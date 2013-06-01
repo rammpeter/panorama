@@ -1,4 +1,7 @@
 Panorama
 ========
 
-Tool for monitoring performance issues of Oracle databases
+Web-tool for monitoring performance issues of Oracle databases.
+Provides easy access to several internal information. 
+
+RubyOnRails-Application, immmediately startable as Java war-File with built-in Jetty application Server. 
