@@ -1,0 +1,73 @@
+
+
+<%= my_ajax_form_tag "dba_history/list_sql_area_historic" do %>
+  <div class="float_left">
+    <b>SQL's aus DBA_Hist_SQLStat</b>
+  </div>
+  <div class="float_left">
+    Anzahl Treffer
+    <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Sortierung") %>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    Filter
+    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
+  </div>
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+  </div>
+  <div class="float_left">
+    SQL-ID
+    <%= text_field_tag(:sql_id, "", :size=>12, :title=>"Einschränkung auf SQL-ID (optional)") %>
+  </div>
+  <div class="float_left">
+  <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
+  </div>
+  <div class="float_left">
+    <div class="float_left">
+      Sortiert nach:
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
+      Elapsed Time per execute
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ElapsedTimeTotal, false) %>
+      Elapsed Time total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ExecutionCount, false) %>
+      total Executions
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :RowsProcessed, false) %>
+      RowsProcessed
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ExecsPerDisk, false) %>
+      Executions per Disk-Read
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :BufferGetsPerRow, false) %>
+      Buffer gets per result-row
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :CPUTime, false) %>
+      CPU-Time total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :BufferGets, false) %>
+      Buffer Gets total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
+      Cluster waits total
+    </div>
+  </div>
+<% end %>
+<div id="list_sql_historic_area" style="float:left; width:100%;">
+
+</div>

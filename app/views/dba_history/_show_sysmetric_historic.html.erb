@@ -1,0 +1,29 @@
+<h3><%= t(:dba_history_show_sysmetric_historic_header, :default=>"SysMetric-history from DBA_Hist_SysMetric_History/GV$SysMetric_History or DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary")  %></h3>
+
+<% @update_area = "list_sysmetric_history_detail_area" %>
+
+<%=
+    my_ajax_form_tag url_for(:controller  => :dba_history,
+                             :action      => :list_sysmetric_historic,
+                             :update_area => @update_area
+                     ) do%>
+     <%= include_start_end_timepicker %>
+     <div class="float_left">
+        RAC-Instance
+        <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
+    </div>
+    <div class="float_left">
+        <%=  t(:grouping, :default=>"Grouping") %>
+        <%= select :grouping, :tag, [[t(:second, :default=>"second"), 'SS'], [t(:minute, :default=>"minute"), 'MI'], [t(:hour, :default=>"hour"), 'HH24'], [t(:day, :default=>"day"), 'DD'] ], {:selected=>'MI'}, {:title=>t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time range")} %>
+    </div>
+    <div class="float_left">
+        <%= submit_tag(t(:dba_history_show_sysmetric_submit_detail_caption, :default=>"Show details"), :title => t(:dba_history_show_sysmetric_submit_detail_hint, :default=>"Show details of SysMetric-history from DBA_Hist_SysMetric_History/GV$SysMetric_History"), :name=>"detail") %>
+    </div>
+    <div class="float_left">
+        <%= submit_tag(t(:dba_history_show_sysmetric_submit_summary_caption, :default=>"Show summary"), :title => t(:dba_history_show_sysmetric_submit_summary_hint, :default=>"Show summary of SysMetric-history from DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary (more compressed)"), :name=>"summary") %>
+    </div>
+<% end %>
+
+<div id="<%= @update_area%>" style="clear:both">
+</div>
+

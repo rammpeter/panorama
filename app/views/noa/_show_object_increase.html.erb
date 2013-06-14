@@ -1,0 +1,38 @@
+<h3>Änderung der Größe von Objekten im gegebenen Zeitraum</h3>
+<% @update_area = :show_object_increase_detail_area  %>
+
+<%= my_ajax_form_tag url_for(:controller=>:noa, :action=>:list_object_increase, :update_area=>@update_area) do %>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="float_left">
+      Tablespace
+      <%= collection_select(:tablespace, :name, @tablespaces, :name, :name) %>
+    </div>
+
+    <div class="float_left">
+      Schema
+      <%= collection_select(:schema, :name, @schemas, :name, :name) %>
+    </div>
+
+    <div class="float_left" style="border:1px solid gray; padding-left: 10px;">
+      <div class="float_left">
+          <%= submit_tag("Detail-Änderung anzeigen", :title => "Anlistung der Objekte mit geänderten Größen", :name=>"detail") %>
+      </div>
+    </div>
+    <div class="float_left" style="border:1px solid gray;">
+      <div class="float_left">
+          Gruppierung
+          <%= select :gruppierung, :tag, [['Objekt-Typ', 'Segment_Type'], ['Schema', 'Owner'], ['Tablespace', 'Tablespace_Name'] ], {:selected=>'Type'}, {:title=>'Gruppierung der Werte auf Zeitleiste'} %>
+      </div>
+      <div class="float_left">
+          <%= submit_tag("Zeitleiste anzeigen", :title => "Anlistung der zeitlichen Entwicklung der Größen je Gruppierung", :name=>"timeline") %>
+      </div>
+    </div>
+
+<% end %>
+
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>
+

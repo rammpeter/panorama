@@ -1,0 +1,17 @@
+<%= my_ajax_form_tag url_for(:controller  => :active_session_history,
+                             :action      => :list_blocking_locks_historic,
+                             :update_area => :show_blocking_locks_detail_area
+                     ) do %>
+  <div>
+    <b>Blocking Locks aus DBA_Hist_Active_Sess_History</b>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    <%= submit_tag(t(:active_session_history_show_blocking_locks_submit_caption, :default=>"Show blocking locks"), :title => t(:active_session_history_show_blocking_locks_submit_hint, :default=>"Show blocking locks history")) %>
+  </div>
+<% end %>
+<div id="show_blocking_locks_detail_area" style="clear: both;">
+</div>
+

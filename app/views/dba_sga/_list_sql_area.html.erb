@@ -1,0 +1,48 @@
+<%
+   @update_area = "list_sql_area_detail_area_#{session[:request_counter]}" unless @update_area  # Kann auch durch Aufrufer vorbelegt sein
+
+  def link_column(rec, value)
+    if @modus == "GV$SQL" || rec.child_count == 1    # Es kann direkt auch Child-Cursor verwiesen werden
+        link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.child_number, rec.parsing_schema_name, rec.object_status)
+    else
+        link_sql_id(@update_area, rec.inst_id, rec.sql_id, nil, rec.parsing_schema_name, rec.object_status)
+    end
+  end
+
+  column_options =
+  [
+    {:caption=>"I",           :data=>proc{|rec| formattedNumber(rec.inst_id)},                         :title=>"Instance-ID"},
+    {:caption=>"SQL-ID",      :data=>proc{|rec| link_column(rec, rec.sql_text)},                       :title=>"SQL-ID"},
+    {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text},                          :title=>"SQL-Text", :data_title=>'SQL_ID=#{rec.sql_id} : #{my_html_escape(rec.full_sql_text.strip)}'},
+  ]
+  column_options << {:caption=>"C",    :data=>proc{|rec| rec.child_number},                            :title=>"Child-Number"} if @modus=="GV$SQL"
+  column_options << {:caption=>"C",    :data=>proc{|rec| rec.child_count},                             :title=>"Anzahl Child-Cursoren"} if @modus=="GV$SQLArea"
+  column_options.concat [
+    {:caption=>"Last active", :data=>proc{|rec| localeDateTime(rec.last_active_time)},                 :title=>"Last active time" },
+    {:caption=>"User",        :data=>proc{|rec| rec.username[0,5]+(rec.username.length>5 ? "." : "")}, :title=>"Username", :data_title=>proc{|rec| "Username = #{rec.username}"} } ,
+    {:caption=>"Execs",       :data=>proc{|rec| formattedNumber(rec.executions)},                      :title=>"Anzahl Ausfuehrungen", :align=>"right"},
+    {:caption=>"Elapsed",     :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs)},               :title=>"Total elapsed time in Sec.", :align=>"right"},
+    {:caption=>"Ela./Ex.",    :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute)},   :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right"},
+    {:caption=>"CPU",         :data=>proc{|rec| formattedNumber(rec.cpu_time_secs)},                   :title=>"CPU-Time in Sekunden", :align=>"right"},
+    {:caption=>"Disk Reads",  :data=>proc{|rec| formattedNumber(rec.disk_reads)},                      :title=>"Total Disk Reads", :align=>"right"},
+    {:caption=>"Disk/Ex.",    :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute)},          :title=>"Disk Reads per Execute", :align=>"right"},
+    {:caption=>"Buffer Gets", :data=>proc{|rec| formattedNumber(rec.buffer_gets)},                     :title=>"Total Buffer Gets", :align=>"right"},
+    {:caption=>"Buffer/Ex.",  :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec)},            :title=>"Buffer Gets per execute", :align=>"right"},
+    {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},                  :title=>"Anzahl Rows processed", :align=>"right"},
+    {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute)},      :title=>"Anzahl Rows processed per Execute", :align=>"right"},
+    {:caption=>"Parses",      :data=>proc{|rec| formattedNumber(rec.parse_calls)},                     :title=>"Anzahl Parse-Calls insgesamt", :data_title=>proc{|rec| "Anzahl Parse-Calls, #{formattedNumber(rec.executions.to_f/rec.parse_calls,2) if rec.parse_calls > 0} Executions je Parse-Call"},  :align=>"right"},
+    {:caption=>"Status",      :data=>proc{|rec| rec.object_status},                                    :title=>"Object-Status"},
+    {:caption=>"Memory (KB)", :data=>proc{|rec| fn((rec.sharable_mem+rec.persistent_mem+rec.runtime_mem)/1024.0,2)},  :title=>"Sharable memory + persistent memory + runtime memory in kBytes", :align=>:right},
+  ]
+
+%>
+
+
+
+<%= gen_slickgrid(@sqls, column_options, {
+        :caption => "SQL der aktuellen SGA aus #{@modus}, gruppiert nach #{if @modus == "GV$SQL";  "SQL-ID, Child-Number" else "SQL-ID" end }#{", SQL-ID='#{@sql_id}'" if @sql_id}#{", Filter='#{@filter}'" if @filter}",
+        :max_height => 450
+}) %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%;">
+</div>

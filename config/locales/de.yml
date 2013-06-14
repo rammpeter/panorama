@@ -1,0 +1,398 @@
+﻿de:
+# Globale Texte ohne Bezug zu erb
+  content:                                                  Inhalt
+  day:                                                      Tag
+  generally:                                                Generell
+  grouping:                                                 Gruppierung
+  help:                                                     Hilfe
+  hour:                                                     Stunde
+  link_historic_sql_id_coming_soon:                         Hier erscheint gleich der Text des SQL, bitte Maus erneut über Objekt führen
+  link_historic_sql_id_hint_prefix:                         Anzeige der Details des
+  minute:                                                   Minute
+  of:                                                       des
+  second:                                                   Sekunde
+  show:                                                     Anzeigen
+  tables:                                                   Tabellen
+  time_selection_start_caption:                             Start
+  time_selection_start_hint:                                Start des Betrachtungszeitraumes im Format
+  time_selection_end_caption:                               Ende
+  time_selection_end_hint:                                  Ende des Betrachtungszeitraumes im Format
+
+# Dialogspezifische Texte (alphabetisch)
+  active_session_history_load_hint:                         Durchschn. Anzahl wartender Sessions gemittelt über Zeit zwischen erstem und letzten Auftreten
+
+  active_session_history_duration_caption:                  Dauer
+  active_session_history_duration_hint:                     Dauer in Sekunden innerhalb des Zeitraumes als Zeitabschnitt
+  active_session_history_first_occurrence_caption:          Erstes Auftreten
+  active_session_history_first_occurrence_hint:             Erstes Auftreten eines sample-record in Gruppierung
+  active_session_history_helper_db_object_title: |-
+    aus gv$Session.Row_Wait_Obj#.
+    Wenn p2Text=object#, dann wird diese genutzt anstatt row_wait_obj#.
+    Achtung: Kann auch Objekt der vorherigen Aktion enthalten
+  active_session_history_last_occurrence_caption:           Letztes Auftreten
+  active_session_history_last_occurrence_hint:              Letztes Auftreten eines sample-record in Gruppierung
+  active_session_history_list_groupfilter_delete_filter_hint: Refresh der Anzeige ohne diesen Filter
+  active_session_history_list_groupfilter_refresh_hint:     Aktualisieren der Anzeige mit den geänderten Parametern
+  active_session_history_first_occurrence_caption:          Erstes Auftreten
+  active_session_history_list_blocking_locks_historic_detail_instance_hint:  Instance der geblockten Session
+  active_session_history_list_session_statistics_historic_link_hint: Anzeige der Verdichtung aus Samples der Gruppierung nach
+  active_session_history_list_session_statistics_historic_grouping_header: Verdichtung nach
+  active_session_history_list_session_statistics_historic_grouping_link_hint: Anzeige der unterschiedlichen
+  active_session_history_list_session_statistics_historic_single_record_sql_id_title: SQL-ID des aktuellen Statements + optional SQL-ID des Top-Level-SQL
+  active_session_history_list_session_statistics_historic_timeline_header: |-
+    Anzahl wartende Sessions verdichtet auf %{group_seconds} Sekunden für Top-10 gruppiert nach: <b>%{groupby}</b>, Filter: %{filter}
+  active_session_history_number_hint:                       (Anzahl wenn mehrere)
+  active_session_history_samples_hint:                      Gesamt-Anzahl Sample-Records in Gruppierung
+  active_session_history_samples_link_hint:                 Anzeige der einzelnen Samples der Gruppierung
+  active_session_history_show_blocking_locks_submit_caption: Blocking Locks anzeigen
+  active_session_history_show_blocking_locks_submit_hint:   Anzeige Historie der Blocking Locks
+  active_session_history_show_top_ten:                      Zeige Top 10 in Zeitleiste, verdichtet nach %{sec} Sek.
+  active_session_history_show_top_ten_hint:                 Anzeige der Top 10 nach total time waited in Zeitleiste, jeweils ein Punkt im Graph für die Summe über %{sec} Sekunden
+  active_session_history_total_time_waited_hint:            Summe Time waited in Sekunden (Sample-Zyklus(1/10 Sekunden) * Samples)
+
+  ajax_helper_link_sql_id_title_prefix:                     Anzeige der Details in SGA für
+
+  dba_history_list_segment_stat_historic_sum_link_sql_hint: Anzeige der SQL-Statements des Zeitraums aus DBA_Hist_SQLStat mit Nutzung des Objekts im Explain Plan
+  dba_history_list_segment_stat_historic_sum_link_wait_hint: Detaillierung der angefallenen Wartezeiten des Objektes
+
+  dba_history_list_sql_detail_historic_bind_name:           Name der Vindevariablen im Statement
+  dba_history_list_sql_detail_historic_bind_pos:            Position der Bindevariablen im Statement
+  dba_history_list_sql_detail_historic_last_plan_hash_hint: Hash-Value des letzten Explain-Plans
+  dba_history_list_sql_detail_historic_module_action_hint:  Module und Action der Session, von der Statement zuletzt geparst wurde
+  dba_history_list_sql_detail_historic_plan_count_hint:     Anzahl unterschiedliche Ausführungspläne im Zeitraum
+  dba_history_show_sysmetric_historic_grouping_hint:        Verdichtung der Werte auf Zeitabschnitt
+  dba_history_show_sysmetric_historic_header:               SysMetric-Historie aus DBA_Hist_SysMetric_History/GV$SysMetric_History oder DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary
+  dba_history_show_sysmetric_submit_detail_caption:         Anzeige Details
+  dba_history_show_sysmetric_submit_detail_hint:            Details der SysMetric-Historie anzeigen aus DBA_Hist_SysMetric_History/GV$SysMetric_History
+  dba_history_show_sysmetric_submit_summary_caption:        Anzeige Summen
+  dba_history_show_sysmetric_submit_summary_hint:           Details der SysMetric-Historie anzeigen aus DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary (mehr verdichtet)
+
+  dba_list_blocking_dml_locks_link_column_blocking_object_hint: Ermitteln der zugehörigen RowID
+
+  dba_list_dml_locks_link_column_blocking_object_hint:      Ermitteln der zugehörigen RowID
+
+  dba_list_rowid_link_hint:                                 Felder und Werte des Primary der Tabelle
+
+  dba_show_locks_caption:                                   Locks anlisten
+  dba_show_locks_all_locks_caption:                         Alle Locks
+  dba_show_locks_all_locks_hint:                            Alle Locks anlisten? Sonst AE- und PS-Locks unterdrücken.
+  dba_show_locks_max_result_size_caption:                   max. anzuzeigen
+  dba_show_locks_max_result_size_hint:                      Limitierung auf maximale Anzahl Zeilen des Resultates der Abfrage
+  dba_show_locks_submit_dml_caption:                        DML-Locks komplett
+  dba_show_locks_submit_dml_hint:                           Alle DML-Locks (Data Manipulation) anzeigen
+  dba_show_locks_submit_blocking_hint:                      Blockierende DML-Locks (Data Manipulation) anzeigen
+  dba_show_locks_submit_ddl_hint:                           DDL-Locks (Data-Definition) anzeigen
+
+  dba_show_sessions_caption:                                Anzeige Sessions
+  dba_show_sessions_instance_hint:                          Einschränkung auf RAC-Instance (optional)
+  dba_show_sessions_filter_hint:                            LIKE-Filter auf Session-ID, Process-ID oder Username von Client/Shadow-Process (optional)
+  dba_show_sessions_only_active_caption:                    Nur Aktive
+  dba_show_sessions_only_active_hint:                       Nur aktive Sessions anzeigen
+  dba_show_sessions_only_user_caption:                      Nur User
+  dba_show_sessions_only_user_hint:                         Nur User-Sessions anzeigen
+  dba_show_sessions_pq_hint:                                Parallel-Query Sessions anzeigen
+  dba_show_sessions_submit_caption:                         Sessions anzeigen
+  dba_show_sessions_submit_hint:                            Anzeige der DB-Sessions nach gegebenen Filtern
+
+  dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
+
+  dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
+  dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
+  dragnet_helper_group_logwriter_redo:                      LogWriter-Belastung / Redolog-Aufkommen
+  dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
+  dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
+  dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
+
+  dragnet_helper_1_desc: |-
+    Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
+    Mit PCTFree < 10 (insbesondere = 0) sind Probleme mit automatischer Ausbalancierung zu erwarten, insbesondere beim Insert der Daten in vorsortierter Folge
+  dragnet_helper_1_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Index PCTFree >= 10
+  dragnet_helper_1_param_1_name:                            Schwellwert für PctFree Index
+  dragnet_helper_1_param_1_hint:                            Selektion von Indizes, die diesen Wert für PctFree unterschreiten
+  dragnet_helper_1_param_2_name:                            Schwellwert für PctFree Index-Partition
+  dragnet_helper_1_param_2_hint:                            Selection von Index-Partitions, die diesen Wert unterschreiten für PctFree
+  dragnet_helper_1_param_3_name:                            Minimale Anzahl Rows
+  dragnet_helper_1_param_3_hint:                            Minimale Anzahl Rows im Index für Aufnahme in Selektion
+
+  dragnet_helper_2_desc: |-
+    Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
+    Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
+  dragnet_helper_2_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Test auf mögliche Komprimierung
+  dragnet_helper_2_param_1_hint:                            Mindestanzahl Zeilen des Index je DISTINCT Key
+  dragnet_helper_2_param_2_name:                            Schwellwert für Index-Größe (MB)
+  dragnet_helper_2_param_2_hint:                            Selection von Indizes, deren Größe in MB diesen Wert überschreitet
+
+  dragnet_helper_3_desc: |-
+    Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
+    Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
+    Bei komprimiertem Index sollten alle Verweise auf Data-Blocks eines Keys in einen Leaf-Block passen
+  dragnet_helper_3_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Index-Komnprimierung, Test auf Leaf-Blocks
+  dragnet_helper_3_param_1_hint:                            Mindestanzahl Leaf-Blocks / Key
+
+  dragnet_helper_4_desc: |-
+    IOT-Struktur für Tabellen lohnt sich, wenn folgende positiven und negativem Kriterien zum positiven überwiegen:
+    Positiv: Einsparung von Plattenplatz durch Wegfall der Speicherung der Inhalte als Tabelle
+    Positiv: Wegfall des 'Table-Access by RowID' bei Zugriff auf Tabelle über Index, da Index bereits alle Daten enthält
+    Negativ: Vergrößerung von secondLevel-Indizes wegen redundanter Speicherung der PKey-Values in jedem sekundären Index
+    Negativ: Vergrößerung des Primary Keys durch Speicherung der Nicht-PKey-Felder
+  dragnet_helper_4_name:                                    Redundanzfreie Ablage von Daten im Primary Key-Index (Umwandlung in Index-organized Tables)
+  dragnet_helper_4_param_1_hint:                            Mindestanzahl Rows des Index
+
+  dragnet_helper_5_desc: |-
+    Absichern von Spalten mit Foreign-Key-Referenzen durch Index kann notwendig sein für:
+    - Delete-Performance der referenzierten Tabelle (verhindern FullTable-Scan)
+    - Verhindern Lock-Propagierung (shared Lock auf Index statt auf Table)
+  dragnet_helper_5_name:                                    Absicherung von Forein Key-Beziehungen durch Indizes (Ermittlung evtl. fehlender Indizes)
+  dragnet_helper_5_param_1_hint:                            Mindestanzahl Rows der referenzierten Tabelle
+  dragnet_helper_5_param_1_name:                            Min. Anzahl Rows referenzierte Tabelle
+
+  dragnet_helper_6_name:                                    Absicherung von Foreign Key-Beziehungen durch Indiezs (Ermitteln möglicherweise unnötiger Indizes)
+  dragnet_helper_6_desc: |-
+    Die Absicherung eines Foreign Key durch Index ist evtl. nicht nötig, wenn:
+    - auf der referenzierten Tabelle nicht physisch gelöscht wird oder
+    - bei Löschung der FullScan auf den referenzierenden Tabellen toleriert werden kann und
+    - durch Fehlern der Indizes mögliche Shared-Lock-Probleme auf der referenzierten Tabelle kein Problem darstellen
+    Inbesondere bei Referenzen sehr großer Tabellen auf sehr kleine Stammtabellen ist der Aufwand für die Indizierung oft nicht gerechtfertigt.
+    Auf Grund der geringen Selektivität dieser Indizes sind sie außer der Absicherung des Foreign Keys kaum zur Zugriffsoptimierung zu gebrauchen.
+
+  dragnet_helper_7_name:                                    Identifikation unnötiger Indizes (Nicht für Zugriffe oder Absicherung von Eindeutigkeit benutzte Indizes)
+  dragnet_helper_7_desc: |-
+    Für Indizes, die nicht für Absicherung von Eindeutigkeit und nicht für Datenzugriff genutzt werden, kann die Frage nach der Daseinsberechtigung des Index gestellt werden.
+    Die Berechtigung kann trotzdem zur Absicherung von Foreign Keys gegeben sein, auch wenn im Betrachtungszeitraum keine Zugriffe stattfanden.
+    Letztlich Sicherheit über Nutzung gibt 'ALTER INDEX ... MONITORING USAGE' sowie Kontrolle über V$OBJECT_USAGE.
+    Weitere Informationen zur Nutzung bringt Anzeige 'Segment statistics historisch' und Analyse der ActiveSessionHistory über Spalte 'Time waited'.
+
+  dragnet_helper_8_name:                                    "Identifikation unnötiger Indizess: Doppelt indizierte Spalten"
+  dragnet_helper_8_desc: |-
+    Mehrfach indizierte Spalten bringen nur Nutzen im Such-Zugriff, wenn weitere Felder die Selektivität des Index verfeinern.
+    Die Indizierung einer Spalte, die bereits durch einen mehrspaltigen Index indiziert ist, ist oftmals überflüssig, z.B. zur Absicherung von Foreign Keys.
+    Alternativ kann mehrfache Indizierung der selben Spalte jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
+
+  dragnet_helper_9_name:                                    "Identifikation unnötiger Indizes: Erkennung nicht genutzter Indizes durch System-Monitoring"
+  dragnet_helper_9_desc: |-
+    Die DB Protokolliert die Nutzung (Zugriff) von Indizes die vorab durch 'ALTER INDEX ... MONITORING USAGE' deklariert wurden.
+    Das Ergebnis der Nutzungsprotokollierung ist je Schema in Tabelle v$Object_Usage einsehbar.
+    Schemaübergreifend ist die Nutzung mit diese Selektion sichtbar.
+    Weitere Informationen zur Nutzung bringt Anzeige 'Segment statistics historisch' und Analyse der ActiveSessionHistory über Spalte 'Time waited'.
+
+  dragnet_helper_10_name:                                   "Identifikation unnötiger Indizes: Indizes mit unnötigen Spalten mit geringer Selektivität"
+  dragnet_helper_10_desc: |-
+    Bei MultiColumn-Indizes mit hoher Selektivität einzelner Spalten wird durch weitere Spalten im Index die Selektivität nicht weiter signifikant verbessert
+    Sinn machen zusätzliche Spalten mit niedriger Selektivität nur wenn sie:
+    - Die Selektivität des gesamten Index wesentlich verbessern
+    - Den Zugriff auf Spalten der Tabelle allein durch Index ohne weiteren table access ermöglichen
+    Ist der o.g. Sinn nicht gegeben, können zusätzliche Spalten mit niedriger Selektivität ersatzlos entfallen.
+    Fur Eliminierung von 'table access by rowid' genutzte Indizes (alle Daten aus Index) sind in Selektion nicht enthalten.
+
+  dragnet_helper_11_name:                                   "Partitionierung von Indizes: Local-Partitionierung für NonUnique-Indizes"
+  dragnet_helper_11_desc: |-
+    Für Partitionierte Tabellen Indizes nach Möglichkeit auch partitionieren (LOCAL), insbesondere dann wenn die Partitionen unterschiedlich aktuelle Dateninhalte physisch trennen.
+    Durch Partitionierung kann oftmals der BLevel des Index reduziert werden.
+    Für Unqiue Indizes gilt dies nur dann, wenn das Partitionierungskriterium mit den ersten Feld(ern) des Index übereinstimmt.
+    Negativ wirkt sich allerdings der n-fache Zugriff auf Index bei Suche aus, wenn Partition-Key ungleich dem indizierten Feld ist und Partition-Key nicht Bestandteil des Filters ist.
+
+  dragnet_helper_12_name:                                   "Partitionierung von Indizes: Local-Partitionierung von Unique Indizes mit Partition-Key=Index-Spalte"
+  dragnet_helper_12_desc: |-
+    Unqiue Indizes lassen sich auch local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
+    Somit kann auch für Zugriffe über diese Indizes Partition-Pruning auf Index-Ebene genutzt werden sowie möglicherweise der BLevel des Index reduziert werden.
+
+  dragnet_helper_13_name:                                   "Partitionierung von Indizes: Local-Partitionierung mit Overhead im Zugriff"
+  dragnet_helper_13_desc: |-
+    Local-Partitionierung nach Spalten, die nicht im Index indiziert sind, führt zum Zugriff auf alle Partitionen des Index bei Range Scan oder Unique Scan.
+    Bei frequenter Nutzung des Index führt dies bei großen Partitionsanzahlen zu unnötig hohen Buffer Gets.
+    Global Partitionierung nach dem Index-Kriterium kann dieses Verhalten abstellen.
+
+  dragnet_helper_3_12_name:                                 "Suboptimale Konfigrations-Parameter der DB"
+  dragnet_helper_3_12_desc: |-
+    Ermittlung von suboptimalen bzw. inkompatiblen Parametrisierungen der Datenbank
+
+  dragnet_helper_50_desc: |-
+    Tabellen-Komprimierung (COMPRESS FOR xxx) reduziert I/O-Aufwände durch Verbesserung der Cache-Hit-Rate.
+    Reduzierung der Größe der Tabellen durch Komprimierung um 1/3 bis 1/2 möglich.
+    Min. 20% Reduktion der Größe sowie Relevanz von I/O sollte vorhanden sein, um CPU-Overhead für Komprimierung/Dekomprimierung zu kompensieren.
+  dragnet_helper_50_name:                                    Evtl. sinnvolle Komprimierung von Tabellen
+  dragnet_helper_50_param_1_hint:                            Mindestanzahl Leaf-Blocks / Key
+
+  dragnet_helper_51_desc: |-
+    Für die Sicherstellung der referentiellen Integrität sollten dringlich technische Schlüssel statt fachlicher Ausdrücke verwendet werden.
+    Auf die kritische Verwendung fachlicher Schlüssel kann oft zurückgeschlossen werden durch Existenz von Referenzen auf mehrspaltige Primary Keys.
+  dragnet_helper_51_name:                                   Verwendung von mehrspaltigen Primary Keys als Referenz-Ziel (fachliche statt technischer Schlüssel)
+
+  dragnet_helper_52_desc: |-
+    Sie sollten ein minimales Auditing (Aufzeichen) von DDL-Operationen vornehmen für die Nachvollziehbarkeit problematischer DDL-Aktionen.
+    Die Audit-Daten werden im Regelfall aufgezeichnet in Tabelle sys.Aud$.
+  dragnet_helper_52_name:                                   Fehlende vorgeschlagene Audit-Optionen
+
+  dragnet_helper_53_desc: |-
+    Lang laufende offene Transaktionen bergen die Gefahr von Lock-Eskalationen in OLTP-Systemen.
+    Schreibende Zugriffe sollten an das Ende von Prozess-Transaktionen verlagert werden, um Sperr-Zeiten bis zum Commit möglichst kurz zu halten.
+    Transaktionen in OLTP-Systemen sollten kurz genug sein, um eventuelle konkurrierende Sperren unter der Wahrnehmungsgrenze zu halten.
+  dragnet_helper_53_name:                                   Lang laufende Transaktionen aus SGA (gv$Active_Session_History)
+
+  dragnet_helper_54_desc: |-
+    Lang laufende offene Transaktionen bergen die Gefahr von Lock-Eskalationen in OLTP-Systemen.
+    Schreibende Zugriffe sollten an das Ende von Prozess-Transaktionen verlagert werden, um Sperr-Zeiten bis zum Commit möglichst kurz zu halten.
+    Transaktionen in OLTP-Systemen sollten kurz genug sein, um eventuelle konkurrierende Sperren unter der Wahrnehmungsgrenze zu halten.
+  dragnet_helper_54_name:                                   Lang laufende Transaktionen aus AWR-Historie (DBA_Hist_Active_Sess_History)
+
+  dragnet_show_selection_do_sql_caption:                    Selektion ausführen
+  dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
+  dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks
+  dragnet_show_selection_select_hint:                       Auswahl des Rasterfahndungs-SQL
+  dragnet_show_selection_show_sql_hint:                     Anzeige des auszuführenden SQL-Statements
+
+  env_current_database:                                     Aktuelle Datenbank
+  env_handling_hints:                                       Tips zur Bedienung
+  env_handling_hint_generally_1:                            Systemweit werden vielfach Kontext-Informationen über MouseOver-Hints angeboten
+  env_handling_hint_generally_2:                            Detaillierungen angezeigter Werte können über Klick auf Hyperlinks ausgelöst werden
+  env_handling_hint_generally_3:                            Detaillierungen werden entweder inline z.B. im Tabellenfeld angezeigt oder in separaten Listen am unteren Seitenrand fortgesetzt
+  env_handling_hint_1:                                      Sortieren der Tabellenanzeige durch Klick auf Spalten-Header
+  env_handling_hint_2:                                      Sortieren nach mehreren Spalten durch aufeinanderfolgende Sortierung nach einzelnen Spalten
+  env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü
+  env_licensing_header:                                     Lizensierung
+  env_license_ok_msg:                                       Datenbank-Instanz %{sid} ist lizensiert für Nutzung mit Panorama.
+  env_license_wrong_msg: |-
+    Die Datenbank-Instanz %{sid} ist nicht lizensiert für die Nutzung mit Panorama!<br><br>
+    Bitte testen Sie Panorama für Ihre Zwecke.<br>
+    Wenn Sie die Nutzung von Panorama fortsetzten möchten, lizensieren sie das Produkt bitte für Ihre Datenbank-Instanz.<br><br>
+    Bitte kontaktieren Sie eine der folgenden Personen:<br>
+    %{p1}<br>
+    %{p2}<br>
+    %{p3}<br>
+
+  env_licensed_db_caption:                                  Aktuell lizensierte Datenbanken
+  env_licensed_db_hint:                                     Zeige aktuell lizensierte Datenbanken
+
+  help_no_help_available:                                   Bisher leider keine Hilfe vorhanden für
+
+  list_io_file_history_samples_hint:                        Anzeige der Zeitleiste der einzelnen Sample-Records
+
+  list_session_statistic_historic_grouping_link_title:      Wait-States des SQL's im gegebenen Zeitraum anzeigen
+
+  list_sql_detail_sql_id_childno_active_session_history_title: Anzeige der "Active Session History"-Einträge dieser SQL-ID
+
+  login_authorization_hint:                                 Zusätzliche Autorisierung für spezielle Applikationen (z.B. NOA)
+  login_database_host_hint:                                 Host-name. Übersteuert TNS-Alias wenn belegt
+  login_lang_caption:                                       Sprache
+  login_locale_title:                                       Auswahl Applikations-Sprache
+  login_role_caption:                                       Rolle
+  login_save_login_caption:                                 Login speichern?
+  login_save_login_hint:                                    Login-Info speichern für wiederholte Verwendung?
+  login_submit_caption:                                     Anmelden
+
+  menu_current_caption:                                     Aktuell
+
+  menu_dba_caption:                                         DBA Allgemein
+  menu_dba_blocking_locks_historic_caption:                 Blocking Locks historisch
+  menu_dba_blocking_locks_historic_hint:                    Anzeige historische Info zu Blocking Locks
+  menu_dba_datafile_caption:                                Datafile-Nutzung
+  menu_dba_datafile_hint:                                   Anlistung der Datafiles der DB
+  menu_dba_explain_plan_hint:                               Anzeige Ausführungsplan eines SQL-Statements
+  menu_dba_locks_hint:                                      Aktueller Lock-Status incl. Blocking Locks
+  menu_dba_schema_audit_trail_hint:                         Anzeige von per Audit Trail geloggten Aktivitäten
+  menu_dba_schema_ts_objects_hint:                          DB-Objekte nach Größe, Auslastung, Verschnitt
+  menu_dba_parameter_hint:                                  Anlistung der aktiven Instance-Parameter
+  menu_dba_redologs_hint:                                   Anlistung der Redo-Logs
+  menu_dba_redologs_historic_hint:                          Anlistung historischer Info der Redo-Logs
+  menu_dba_sessions_hint:                                   Anlistung der aktuellen Session-Info
+  menu_dba_storage_summary_caption:                         Plattenspeicher-Nutzung
+  menu_dba_storage_summary_hint:                            Übersicht über Plattenspeicher-/Tablespace-Nutzung
+  menu_dba_temp_usage_hint:                                 Aktuelle Nutzung Temp-Tablespace
+  menu_dba_used_objects_caption:                            Objekte im Zugriff
+  menu_dba_used_objects_hint: |-
+    Aktuell im Zugriff befindliche Objekte (Vorsicht: Langsam auf großen Systemen)
+
+  menu_historic_caption:                                    Historisch
+
+  menu_io_ash_caption:                                      I/O-Historie aus ASH
+  menu_io_ash_hint:                                         I/O-Historie basierend auf Active Session History
+  menu_io_caption:                                          I/O-Analyse
+  menu_io_file_caption:                                     I/O Historie nach Files
+  menu_io_file_hint:                                        I/O Historie nach Files aus DBA_Hist_FileStatxs
+
+  menu_sga_pga_cache_caption:                               DB-Cache-Nutzung
+  menu_sga_pga_cache_hint:                                  Aktueller Inhalt des DB-Cache
+  menu_sga_pga_compare_execution_plans:                     Vergleich der Execution-Pläne zweier Cursoren in SGA
+  menu_sga_pga_sga_components_caption:                      SGA-Komponenten
+  menu_sga_pga_sga_components_hint:                         Anlistung der Komponenten der aktuellen SGA
+  menu_sga_pga_day_compare_caption:                         SQL-Area Tagesvergleich
+  menu_sga_pga_day_compare_hint:                            Vergleich der SQL-statements zweier Tage
+  menu_sga_pga_object_by_file_and_block_caption:            Objekt nach File und Block
+  menu_sga_pga_object_by_file_and_block_hint:               Ermittlung des Objektnamens zu File- und Block-Nummer
+  menu_sga_pga_object_usage_caption:                        Object-Nutzung durch SQL
+  menu_sga_pga_object_usage_current_hint:                   Nutzung gesuchter Objekte im Explain Plan aktuell in SGA befindlicher SQLs
+  menu_sga_pga_object_usage_historic_hint:                  Nutzung gesuchter Objekte im Explain Plan historischer SQLs
+  menu_sga_pga_pga_statistics_caption:                      PGA-Statistik
+  menu_sga_pga_pga_statistics_current_hint:                 Anzeige aktuelle PGA-Auslastung
+  menu_sga_pga_pga_statistics_historic_hint:                Anzeige historische PGA-Auslastung
+  menu_sga_pga_result_cache_current_hint:                   Anzeige aktuelle Auslastung des Result-Cache
+  menu_sga_pga_sqlarea_current_sqlid_caption:               Aktuell (SQL-ID)
+  menu_sga_pga_sqlarea_current_sqlid_hint:                  Auswertung aktuelle SQLs aus SGA auf Ebene SQL-ID (Kumuliert über Child-Cursoren)
+  menu_sga_pga_sqlarea_current_sqlid_childno_caption:       Aktuell (SQL-ID / Child-Nr.)
+  menu_sga_pga_sqlarea_current_sqlid_childno_hint:          Auswertung aktuelle SQLs aus SGA auf Ebene SQL_ID, Child-Nr.
+  menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
+
+  menu_wait_caption:                                        Wait-Analyse
+  menu_wait_db_file_sequential_read_hint: |-
+    Aktuelle Wait-Auslöser 'db file sequential read' (Vorsicht: Langsam auf großen Systemen)
+  menu_wait_enqueue_caption:                                Enqueue-Statistiken
+  menu_wait_enqueue_historic_hint:                          Aufbereitete historische Informationen aus DBA_Hist_Enqueue_Stat
+  menu_wait_enqueue_rac_hint:                               Dem RAC-Lock-Manager bekannte Blocking Enqueue Locks
+  menu_wait_gc_historic_hint:                               Auswertung Global Cache-Aktivität
+  menu_wait_latch_caption:                                  Latch-Statistiken
+  menu_wait_latch_cbc_hint:                                 Aktuelle Auslöser für Cache Buffer Chains-Latch-Waits
+  menu_wait_latch_statistics_historic_hint:                 Aufbereitete historische Informationen aus DBA_Hist_Latch
+  menu_wait_mutex_caption:                                  Mutex-Statistiken
+  menu_wait_mutex_historic_hint:                            Aufbereitete historische Informationen aus GV$Mutex_Sleep_History seit Start der Instance
+  menu_wait_segment_current_hint:                           Aktuelle Waits nach DB-Objekten
+  menu_wait_segment_historic_hint:                          Historisierte Waits nach DB-Objekten
+  menu_wait_session_current_hint:                           Alle aktuelle Session-Waits
+  menu_wait_session_historic_hint:                          Aufbereitete Active-Session-Informationen aus DBA_Hist_Active_Sess_History
+  menu_wait_special_caption:                                Spezielle Event-Auswertungen
+  menu_wait_system_caption:                                 System-Statistiken
+  menu_wait_system_events_current_hint:                     Aktuelle System-Events
+  menu_wait_system_events_historic_hint:                    Historisierte System-Events
+  menu_wait_sysmetric_caption:                              System-Metric
+  menu_wait_sysmetric_historic_hint:                        Historisierte System-Metric aus DBA_Hist_Sysmetric_History
+  menu_wait_system_statistics_historic_hint:                Historisierte System-Statistik
+
+
+  menu_addition_caption:                                    Spez. Erweiterungen
+  menu_addition_dragnet_caption:                            Rasterfahndung
+  menu_addition_dragnet_hint:                               Rasterfahndung nach Performance-Bottlenecks
+
+  menu_env_index_hint:                                      Start der Applikation ohne Anmeldung an Datenbank
+  menu_env_set_database_hint:                               Start der Applikation nach Anmeldung an Datenbank
+  menu_help_content_caption:                                Aktueller Inhalt
+  menu_help_content_hint:                                   Hilfe zu aktuellem Inhalt
+  menu_help_overview_caption:                               Überblick
+  menu_help_overview_hint:                                  Überblick über Hilfe-Themen
+  menu_help_contact_caption:                                Kontakt
+  menu_help_contact_hint:                                   Kontakt zum Hersteller
+
+  show_mutex_statistics_historic_blocker_hint:              Mutex-Sleep-Historie Gruppiert nach Blocker-Sessions
+  show_mutex_statistics_historic_caption:                   Mutex-Statistiken aus GV$Mutex_Sleep_History (seit Instance-Start)
+  show_mutex_statistics_historic_timeline_caption:          Zeitliche Historie
+  show_mutex_statistics_historic_timeline_hint:             Mutex-Sleep-Historie zeitlich gruppiert
+  show_mutex_statistics_historic_waiter_hint:               Mutex-Sleep-Historie Gruppiert nach Waiter-Sessions
+
+  slickgrid_context_menu_column_sum:                        Summen der Werte dieser Spalte
+  slickgrid_context_menu_column_sum_hint:                   Numerische Summe und Anzahl Zeilen dieser Spalte anzeigen
+  slickgrid_context_menu_export_csv_hint:                   Export grid in csv-file für import nach Excel etc. (in Standard-Download-Verzeichnis)
+  slickgrid_context_menu_field_content:                     Anzeige des Inhaltes des Tabellenfeldes
+  slickgrid_context_menu_field_content_hint:                Anzeige des Inhaltes des Tabellenfeldes in Popup-Fenster (zum Markieren und Kopieren)
+  slickgrid_context_menu_hide_filter:                       Suchfilter ausblenden
+  slickgrid_context_menu_line_height_full:                  Zeilenhöhe für volle Anzeige Feldinhalt
+  slickgrid_context_menu_line_height_single:                Zeilenhöhe für einzeiligen Text
+  slickgrid_context_menu_line_height_single_hint:           Wechsel zwischen einzeiligem Text und Anzeige des kompletten Feld-Inhaltes
+  slickgrid_context_menu_plot_column_hint:                  Hinzufügen/Löschen der Spalte aus grafischem Zeitleisten-Diagramm
+  slickgrid_context_menu_remove_all_from_diagram:           Alle Kurven aus Diagramm entfernen
+  slickgrid_context_menu_remove_all_from_diagram_hint:      Antfernen aller Spalten-Kurven aus dem aktuellen Diagramm
+  slickgrid_context_menu_search_filter_hint:                Anzeigen/Ausblenden des spalten-spezifischen Suchfilters in erster Zeile der Tabelle
+  slickgrid_context_menu_show_filter:                       Suchfilter einblenden
+  slickgrid_context_menu_sort_column:                       Nach dieser Spalte sortieren
+  slickgrid_context_menu_sort_column_hint:                  Sortieren der Tabelle nach dieser Spalte. Wechselt zwischen aufsteigender und absteigender Folge.
+  slickgrid_context_menu_switch_col_into_diagram:           Spalte in Diagramm einblenden
+  slickgrid_context_menu_switch_col_from_diagram:           Spalte aus Diagramm ausblenden
+  slickgrid_filter_hint_not_numeric:                        Filtern nach enthaltener Zeichenkette
+  slickgrid_filter_hint_numeric:                            Filtern nach exaktem Wert (incl. Tausender-Trennung und Komma)

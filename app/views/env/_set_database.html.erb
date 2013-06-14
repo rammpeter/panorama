@@ -1,0 +1,151 @@
+
+<h2><%= t :env_current_database, :default=>"current database" %></h2>
+
+<%= "TNS=#{@database.tns}, Host=#{@database.host}, Port=#{@database.port}, #{@database.sid_usage}=#{@database.sid}" %>
+<br/><br/>
+
+<%  @banners.each do |b| %>
+  <%= (b.banner+"<br>").html_safe %>
+<% end %>
+<br/>
+Platform: <%= @platform_name%>
+<br/><br/>
+<table style="font-size:small; ">
+  <tr>
+    <th>Instance</th>
+    <th>Instancename</th>
+    <th>Hostname</th>
+    <th>Startup</th>
+    <th>Archiver</th>
+    <th>Character-Set</th>
+    <th>CPU-Count</th>
+  </tr>
+  <%  @instance_data.each do |i| %>
+    <tr>
+      <td><%= i.instance_number %>
+          <%= " (*)"  if i.instance_connected && @instance_data.length >1  %>
+      </td>
+      <td><%= i.instance_name %></td>
+      <td><%= i.host_name %></td>
+      <td><%= localeDateTime(i.startup_time) %></td>
+      <td><%= i.archiver %></td>
+      <td><%= i.nls_characterset %></td>
+      <td><%= i.cpu_count %></td>
+    </tr>
+  <% end %>
+</table>
+
+<% if @dictionary_access_problem %>
+    <h2><%= "Dictionary Access-Problem"   %></h2>
+    <div style='color:red;'><br/>
+      <%= @dictionary_access_msg.html_safe %>
+    </div>
+<% end %>
+
+<h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
+<% if @license_ok %>
+    <%= t(:env_license_ok_msg, :default=>"Database instance %{sid} is licensed for usage with Panorama.", :sid=>@database.sid) %>
+<% else %>
+    <span style="color:red; font-size: larger;"> <%= t(:env_license_wrong_msg, :default=>"Database %{sid} is not licensed for usage with Panorama!<br><br>
+Please try out Panorama for your purposes.<br>
+If you will proceed using Panorama, please gain valid usage license for your database.<br><br>
+Please contact one of the following people for license:<br>
+%{p1}<br>
+%{p2}<br>
+%{p3}<br>
+",                                                     :sid=>@database.sid,
+                                                       :p1=>"<a href='mailto:Peter.Ramm@ottogroup.com'>Peter Ramm</a>",
+                                                       :p2=>"<a href='mailto:Juergen.Jagla@ottogroup.com'>Juergen Jagla</a>",
+                                                       :p3=>"<a href='mailto:Bernd.Wulf2@ottogroup.com'>Bernd Wulf</a>"
+                                                      ).html_safe %></span><BR><BR>
+    <%= my_ajax_link_to(t(:env_licensed_db_caption, :default=>"currently licensed databases"),
+                        url_for(:action=>:show_licensed_databases,
+                                :update_area=>:licensed_databases_area
+                        ),
+                        :title=>t(:env_licensed_db_hint, :default=>"Show all licensed databases")
+        )
+    %>
+    <div id="licensed_databases_area"></div>
+<% end %>
+
+<% if @dbids.count > 1 %>
+    <h2>Data for multiple database IDs is recorded in AWR history</h2>
+    <%=  my_ajax_form_tag url_for(:controller  => :env,
+                                :action      => :set_dbid,
+                                :update_area => :dbid_response_area
+                        ) do %>
+            <select name="dbid">
+                <% @dbids.each do |d| %>
+                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:database].dbid}>DBID=#{d.dbid} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)}</option>".html_safe %>
+                <% end %>
+            </select>
+            <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
+    <% end %>
+    <div id="dbid_response_area"></div>
+<% end %>
+
+<h2><%= t :env_handling_hints, :default=>"Handling hints" %></h2>
+
+<h3><%= t :generally, :default=>"Generally" %></h3>
+<ul>
+  <li><%= t :env_handling_hint_generally_1, :default=>"Context-info ist provided system-wide by mouse-over hints" %></li>
+  <li><%= t :env_handling_hint_generally_2, :default=>"Details for shown values are often available by clicking on hyperlinks" %></li>
+  <li><%= t :env_handling_hint_generally_3, :default=>"Details are shown inline in table cells or continued at bottom of current page" %></li>
+</ul>
+
+<h3><%= t :tables, :default=>"Tables" %></h3>
+<ul>
+  <li><%= t :env_handling_hint_1, :default=>"Sort table content by clicking column-header" %></li>
+  <li><%= t :env_handling_hint_2, :default=>"Sort by multiple columns may be done by subsequent sorting of single columns" %></li>
+  <li><%= t :env_handling_hint_3, :default=>"Search filter, optional diagram view and export to Excel are available via context menu" %></li>
+</ul>
+
+<%=
+   # Liste der Standard-Übersetzungen für Nutzung in JavaScript
+   @translation_list = {}
+   def add_to_translation_list(tag, default)
+     @translation_list[tag.to_s] = t(tag, :default=>default)
+   end
+
+   add_to_translation_list(:slickgrid_context_menu_column_sum,              "Sums of all rows of this column")
+   add_to_translation_list(:slickgrid_context_menu_column_sum_hint,         "Calculate numeric sum and count for all rows of this column")
+   add_to_translation_list(:slickgrid_context_menu_export_csv,              "Export grid in csv-file")
+   add_to_translation_list(:slickgrid_context_menu_export_csv_hint,         "Export grid in csv-file for import to Excel etc. (to browsers default download folder)")
+   add_to_translation_list(:slickgrid_context_menu_field_content,           "Show content of table cell")
+   add_to_translation_list(:slickgrid_context_menu_field_content_hint,      "Show content of table cell in popup window (for better copy & paste)")
+   add_to_translation_list(:slickgrid_context_menu_hide_filter,             "Hide search filter")
+   add_to_translation_list(:slickgrid_context_menu_line_height_full,        "Line height for full visible content")
+   add_to_translation_list(:slickgrid_context_menu_line_height_single,      "Line height for single line only")
+   add_to_translation_list(:slickgrid_context_menu_line_height_single_hint, "Switch between single text line in row and display of complete content")
+   add_to_translation_list(:slickgrid_context_menu_plot_column_hint,        "Add/remove column to graphic timeline diagram")
+   add_to_translation_list(:slickgrid_context_menu_remove_all_from_diagram, "Remove all graphs from diagram")
+   add_to_translation_list(:slickgrid_context_menu_remove_all_from_diagram_hint, "Remove all column-graphs from current diagram")
+   add_to_translation_list(:slickgrid_context_menu_search_filter_hint,      "Show/hide column-specific search filter in first line of table")
+   add_to_translation_list(:slickgrid_context_menu_show_filter,             "Show search filter")
+   add_to_translation_list(:slickgrid_context_menu_sort_column,             "Sort by this column")
+   add_to_translation_list(:slickgrid_context_menu_sort_column_hint,        "Sort table by this column. Each click switches between ascending and descending order")
+   add_to_translation_list(:slickgrid_context_menu_switch_col_into_diagram, "Show column in diagram")
+   add_to_translation_list(:slickgrid_context_menu_switch_col_from_diagram, "Remove column from diagram")
+   add_to_translation_list(:slickgrid_filter_hint_not_numeric,              "Filter by containing string")
+   add_to_translation_list(:slickgrid_filter_hint_numeric,                  "Filter by exact value (incl. thousands-delimiter and comma)")
+
+
+
+
+   output = "<script type='text/javascript'>"
+   output << "var locale_translation_list={"
+   @translation_list.each do |key, value|
+     output << "'#{key}':'#{value}',"
+   end
+   output << "};"
+   output << "function locale_translate(tag){"
+   output << "  if (locale_translation_list[tag]){"
+   output << "    return locale_translation_list[tag];"
+   output << "  } else {"
+   output << "    return 'locale_translate: No translation found for tag: '+tag;"
+   output << "  };"
+   output << "};"
+   output << "</script>"
+   output.html_safe
+%>
+

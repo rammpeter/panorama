@@ -1,0 +1,19 @@
+<%= my_ajax_form_tag "dba_sga/list_db_cache_content" do %>
+  <div class="float_left">
+    <b>DB-Cache-Nutzung</b>
+  </div>
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "1", :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>
+  </div>
+  <div class="float_left">
+    Part.
+    <%= check_box_tag(:show_partitions, 1, true, :title=>"Partitionsdetails anzeigen") %>
+  </div>
+  <div class="float_left">
+  <%= submit_tag("Cache-Inhalt anzeigen", :title => "Anlistung der Daten des DB-Cache") %>
+  </div>
+<% end %>
+<div id="list_db_cache_content_area" style="float:left; width:100%; ">
+
+</div>

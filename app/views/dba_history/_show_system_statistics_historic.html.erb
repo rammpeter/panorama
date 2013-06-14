@@ -1,0 +1,30 @@
+<h3>Historie der System-Statistics aus DBA_Hist_SysStat (<a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/stats002.htm#i375475">hier nähere Erklärungen</a>)</a></h3>
+
+<%= my_ajax_form_tag "dba_history/list_system_statistics_historic" do%>
+    <div class="float_left">
+        <%= include_start_end_timepicker %>
+
+        <div class="float_left">
+            RAC-Instance
+            <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
+        </div>
+    </div>
+    <div class="float_left" style="border:1px solid gray; padding-left: 5px;">
+        <div class="float_left">
+            <%= submit_tag("Summen der System-Statistics anzeigen", :title => "Summen anzeigen", :name=>"sum") %>
+        </div>
+    </div>
+    <div class="float_left" style="border:1px solid gray; padding-left: 5px;">
+        <div class="float_left">
+            Verdichtung
+            <%= select :verdichtung, :tag, [['Minute', 'MI'], ['Stunde', 'HH24'], ['Tag', 'DD'] ], {:selected=>'MI'}, {:title=>'Verdichtung der Werte auf Zeitabschnitt (kleinster Zyklus ist AWR-Snapshot)'} %>
+        </div>
+        <div class="float_left">
+            <%= submit_tag("Details der System-Statistics anzeigen", :title => "Details anzeigen", :name=>"full") %>
+        </div>
+    </div>
+<% end %>
+
+<div id="list_system_statistics_historic_area" style="float:left; width:100%;">
+</div>
+

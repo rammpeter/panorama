@@ -1,0 +1,68 @@
+<%
+    def show_column(value, align, title="")
+        "<td align='#{align}' title='#{title}'>#{value}</td>".html_safe
+    end
+
+    def error_content(rec)
+      ofmessage = Ofmessage.find rec.id_ofmessage
+      ofmessagetype = Ofmessagetype.get_cached_instance(ofmessage.id_ofmessagetype, session[:database].hash)
+
+      output = ""
+      output << "<div title=\"#{rec.exname}\">#{my_html_escape(rec.errormessage)}</div>"
+      output << "<div title=\"Message-Details\"><b>Details journal.OFMessage mit ID=#{ofmessage.id}</b>"
+      output << "<table border=\"0\">"
+      output << "  <tr>"
+      output << "    <td>ID_OFMEssageType</td>"
+      output << "    <td>YN_Erroneous</td>"
+      output << "    <td>RunCount</td>"
+      output << "    <td>BulkCriteria</td>"
+      output << "    <td>CreationTimestamp</td>"
+      output << "    <td>ID_OFBulkGroup</td>"
+      output << "    <td>ID_ApplExecution</td>"
+      output << "    <td>NextRetryTimestamp</td>"
+      output << "    <td>CalculatedPriority</td>"
+      output << "  </tr>"
+      output << "  <tr>"
+      output << "    <td title=\"#{ofmessagetype.name}\">#{ofmessage.id_ofmessagetype}</td>"
+      output << "    <td>#{ofmessage.yn_erroneous}</td>"
+      output << "    <td>#{ofmessage.runcount}</td>"
+      output << "    <td>#{ofmessage.bulkcriteria}</td>"
+      output << "    <td>#{localeDateTime(ofmessage.creationtimestamp)}</td>"
+      output << "    <td>#{ofmessage.id_ofbulkgroup}</td>"
+      output << "    <td>#{ofmessage.id_applexecution}</td>"
+      output << "    <td>#{localeDateTime(ofmessage.nextretrytimestamp)}</td>"
+      output << "    <td>#{localeDateTime(ofmessage.calculatedpriority)}</td>"
+      output << "  </tr>"
+      output << "</table>"
+      output << "</div>"
+      output << "<div title=\"Message-Inhalt\">#{my_html_escape(ofmessage.data)}</div>"
+
+      output
+    end
+
+    column_options = [
+    {:caption=>"Timestamp",       :data=>proc{|rec| localeDateTime(rec.creationtimestamp)}, :data_title=>proc{|rec| "Msg erzeugt : #{localeDateTime(rec.msgcreationtimestamp)}"}, :title=>"Zeitstempel des Auftretens des Fehlers" },
+    {:caption=>"Error-Message",   :data=>proc{|rec| error_content(rec)},         :title=>"Fehlermeldung" },
+  ]
+
+%>
+
+<%= gen_slickgrid(@errors, column_options, {
+        :caption => "Fehlermeldungen #{@id_ofmessagetype != 0 ? "ID_OFMessageType=#{@id_ofmessagetype}" : "" } von #{@time_selection_start} #{@time_selection_end ? " bis #{@time_selection_end}" : "" } #{@timeSlice > 0 ? " Zeitscheibe #{@timeSlice} Minuten" : "" }",
+        :max_height => 450
+}) %>
+
+
+
+<%= my_ajax_form_tag url_for(       :action => :show_oferrormessage,
+                                    :id_ofmessagetype => @id_ofmessagetype,
+                                    :time_selection_start => @time_selection_start,
+                                    :time_selection_end   => @time_selection_end,           # entweder time_selection_end oder timeslice sind belegt
+                                    :timeSlice            => @timeSlice,
+                                    :update_area          => @update_area ) do %>
+  Anzahl anzuzeigende Fehlermeldungen
+  <%= text_field_tag(:maxErrors, @maxErrors, :size=>5) %>
+  <%= submit_tag("Refresh Anzeige Details des MessageTypes", :title => "Refresh der Anzeige mit geänderter Anzahl") %>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

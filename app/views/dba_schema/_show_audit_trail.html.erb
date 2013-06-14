@@ -1,0 +1,36 @@
+<% @update_area=:show_audit_trail_detail_area %>
+<%= my_ajax_form_tag url_for(:controller => :dba_schema, :action=>:list_audit_trail, :update_area=>@update_area)  do %>
+  <div>
+    <b>Audit Trail records from DBA_AUDIT_TRAIL</b>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+    <div class="float_left">
+      OS-User
+      <%= text_field_tag(:os_user, "", :size=>10, :title=>"Filter for OS-user of client machine (like-comparison and case ignored)") %>
+    </div>
+    <div class="float_left">
+      DB-User
+      <%= text_field_tag(:db_user, "", :size=>10, :title=>"Filter for database username used for db-connection (like-comparison and case ignored)") %>
+    </div>
+    <div class="float_left">
+      Machine
+      <%= text_field_tag(:machine, "", :size=>10, :title=>"Filter for name of client machine (like-comparison and case ignored)") %>
+    </div>
+    <div class="float_left">
+      Object
+      <%= text_field_tag(:object_name, "", :size=>10, :title=>"Filter for name of database object (like-comparison and case ignored)") %>
+    </div>
+    <div class="float_left">
+      Action
+      <%= text_field_tag(:action_name, "", :size=>10, :title=>"Filter for name of recorded action (like-comparison and case ignored)") %>
+    </div>
+
+  <div class="float_left">
+    <%= submit_tag("Show audit trail", :title => "Show audit trail records") %>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="clear: both; width:100%; ">
+</div>
+

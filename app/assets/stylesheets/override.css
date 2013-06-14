@@ -1,0 +1,74 @@
+/*
+ Überschreiben von Default-Einstellungen diverser plugins
+*/
+table a:link{
+	color:#2E64FE;
+}
+
+.ui-widget-content a {
+    color:#2E64FE;
+}
+
+
+/* Zeile des slickGrid */
+.slick-row {
+}
+
+
+/* Zelle des slickGrid */
+.slick-cell {
+}
+
+/* eigener DIV innerhalb der Zelle des slickGrid, füllt parent komplett aus */
+.slick-inner-cell {
+    font-family: sans-serif;
+    font-size: 11.5px;
+    overflow: hidden;
+    width:100%;
+    height:100%;
+    padding-top: 2px;
+}
+
+.slick-caption {
+    text-align: center;
+    background: url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+    width:100%;
+    margin-top:10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.white-space-wrap {
+    white-space: normal;
+}
+
+.white-space-nowrap {
+    white-space: nowrap;
+}
+
+
+.even {
+    background: none repeat scroll 0 0 #F6F6F6;
+}
+
+.odd {
+    background: none repeat scroll 0 0 #F0F0F0;
+}
+
+/* Übersteuern Struktur eines slick-Spaltenheaders */
+.ui-state-default .slick-header-column {
+    background: url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+    font-family: sans-serif;
+    font-size: small;
+    text-overflow: clip;
+    white-space: normal;
+}
+
+/* Übersteuern Default für Header-Zeile mit Inputs für Such-Strings */
+.slick-headerrow-column.ui-state-default {
+    padding: 2px;
+}
+
+.align-right {
+    text-align: right;
+}

@@ -1,0 +1,87 @@
+<%
+  @update_area = "list_blocking_locks_history_hierarchy_detail_area_#{session[:request_counter]}"
+
+  def link_blocked(rec, value)
+    if rec.blocked_sessions_total == 0
+      value
+    else
+      my_ajax_link_to(value,
+       url_for( :action            => 'list_blocking_locks_history_hierarchy_detail',
+                :update_area       => @update_area,
+                :snapshotts        => @snapshotts,
+                :blocking_instance => rec.instance_number,
+                :blocking_sid      => rec.sid,
+                :blocking_serialno => rec.serialno
+              ),
+       :title=>'Anzeige der durch blocking Session geblockten Sessions')
+    end
+  end
+
+  def link_single(rec)
+    my_ajax_link_to("< #{rec.samples} >",
+        url_for({:action       => "list_blocking_locks_history_single_record",
+                 :groupfilter  =>  {:SnapshotTS      => {:sql => "l.snapshotTS =TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
+                                    :Min_Zeitstempel => {:sql => "l.snapshotTS>=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
+                                    :Max_Zeitstempel => {:sql => "l.snapshotTS<=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
+                                    :Instance        => {:sql => "l.Instance_Number=?",                              :bind_value=>rec.instance_number },
+                                    :SID             => {:sql => "l.SID=?",                                          :bind_value=>rec.sid },
+                                    :SerialNo        => {:sql => "l.SerialNo=?",                                     :bind_value=>rec.serialno },
+                                   },
+                 :update_area  => @update_area
+                }
+               ),
+         :title=>"Anzeige der einzelnen Samples der Session")
+  end
+
+  def link_column_sql_id(rec, sql_id, child_number)
+    link_historic_sql_id(rec.instance_number, sql_id, @snapshotts, @snapshotts, @update_area, rec.username)
+  end
+
+  def link_column_blocking_reason_cascade(rec, value)
+      my_ajax_link_to(value,
+          url_for({:action       => "list_blocking_reason_cascade",
+                   :update_area  => @update_area,
+                   :snapshotts   => @snapshotts,
+                   :instance     => rec.instance_number,
+                   :sid          => rec.sid,
+                   :serialno     => rec.serialno
+                  }
+                 ),
+           :title => "Anzeige der kompletten Kaskade der auslösenden Blocker für diese Session")
+  end
+
+  column_options =
+  [
+    {:caption=>"I.",              :data=>proc{|rec| rec.instance_number},                                     :title=>"Instance der geblockten Sessio"},
+    {:caption=>"SID",             :data=>proc{|rec| link_column_blocking_reason_cascade(rec, rec.sid)},       :title=>"SID der geblockten Session", :data_title=>'SerialNo=#{rec.serialno}'},
+    {:caption=>"Direct Blocked",  :data=>proc{|rec| link_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_direct,0)} >")}, :title=>"Anzahl unmittelbar durch diesen Blocker blockierter Sessions", :align=>"right"},
+    {:caption=>"Total Blocked",   :data=>proc{|rec| link_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_total,0)} >")},  :title=>"Anzahl blockierter Sessions durch diesen Blocker (unmittelbar und mittelbar)", :align=>"right"},
+    {:caption=>"Direct Wait",     :data=>proc{|rec| formattedNumber(rec.seconds_in_wait,0)},                  :title=>"Anzahl Sekunden die Session bereits im geblockten Zustand wartet", :align=>"right"},
+    {:caption=>"Total Wait",      :data=>proc{|rec| formattedNumber(rec.seconds_in_wait_blocked_total,0)},    :title=>"Anzahl Sekunden die mittelbar und unmittelbar von dieser Session geblockte Sessions bereits im Wartezustand warten", :align=>"right"},
+    {:caption=>"Samples",         :data=>proc{|rec| link_single(rec)},                                        :title=>"Anzahl aufgezeichneter Samples für Session und Zeitpunkt", :align=>"right"},
+    {:caption=>"SQL-ID Prev.SQL-ID", :data=>proc{|rec| "#{link_column_sql_id(rec, rec.sql_id, rec.sql_child_number)} #{link_column_sql_id(rec, rec.prev_sql_id, rec.prev_child_number)}"}, :title=>"Aktuelles und vorheriges SQL der geblockten Session"},
+    {:caption=>"Status",          :data=>proc{|rec| rec.status},                                              :title=>"Status der geblockten Session"},
+    {:caption=>"Client-Info / Module / Action",:data=>proc{|rec| "#{rec.client_info} #{rec.module} #{rec.action}"}, :title=>"Client-Info, Module und Action der geblockten Session", :data_title=>'Client-Info, Module und Action der blockenden Session, #{rec.waiting_app_desc}'},
+    {:caption=>"User",            :data=>proc{|rec| rec.username},         :title=>"User der geblockten Session", :data_title=>'User der geblockten Session, Machine=#{rec.machine}, OSUser=#{rec.osuser}, Process=#{rec.process}'},
+    {:caption=>"Program",         :data=>proc{|rec| rec.program},          :title=>"Programm der geblockten Session", :data_title=>'Programm der geblockten Session, Machine=#{rec.machine}, OSUser=#{rec.osuser}, Process=#{rec.process}'},
+    {:caption=>"Objectname",      :data=>proc{|rec| rec.objectname},       :title=>"Name des Objektes, auf das gewartet wird"},
+    {:caption=>"LT",              :data=>proc{|rec| rec.locktype},         :title=>"Locktype der wartenden Session", :data_title=>'#{lock_types(rec.locktype)}'},
+    {:caption=>"ID1, ID2",        :data=>proc{|rec| "#{rec.id1}, #{rec.id2}"},         :title=>"ID1, ID2 des Objektes auf das gewartet wird"},
+    {:caption=>"R",               :data=>proc{|rec| rec.request},                      :title=>"angeforderter Lock-Mode", :data_title=>'#{lock_modes(rec.request.to_s)}'},
+    {:caption=>"L",               :data=>proc{|rec| rec.lockmode},                     :title=>"gehaltener Lock-Mode", :data_title=>'#{lock_modes(rec.lockmode.to_s)}'},
+    {:caption=>"Blocking Object", :data=>proc{|rec| "#{rec.blocking_object_schema}.#{rec.blocking_object_name}"},  :title=>"Schema und Name des blockenden Objektes"},
+    {:caption=>"RowID / Primary Key", :data=>proc{|rec| "#{rec.blocking_rowid} #{rec.waitingforpkeycolumnname} = #{rec.waitingforpkeyvalue}"}, :title=>"RowID sowie Spalten und Inhalt des Primary Key des blockenden Objektes"},
+=begin
+    {:caption=>"Blocking Object", :data=>'"#{rec.root_blocking_object_schema}.#{rec.root_blocking_object_name}"', :title=>"Blockendes Objekt"},
+    {:caption=>"RowID / Primary Key", :data=>'"#{rec.root_blocking_rowid} #{rec.root_waitingforpkeycolumnname} = #{rec.root_waitingforpkeyvalue}"', :title=>"RowID sowie Spalten und Inhalt des Primary Key des blockenden Objektes"},
+=end
+  ]
+%>
+
+<%= gen_slickgrid(@locks, column_options, {
+        :caption => "Sessions am #{@snapshotts} gelockt durch Instance=#{@blocking_instance}, SID=#{@blocking_sid}, SerialNo=#{@blocking_serialno}",
+        :max_height => 450
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

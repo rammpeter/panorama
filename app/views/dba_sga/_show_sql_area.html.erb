@@ -1,0 +1,75 @@
+<% @update_area = "#{@action}_area" %>
+
+<%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>@action, :update_area=>@update_area) do %>
+  <div class="float_left">
+    <b>Ressourcenintensive Statements aus <%= @source_table %></b>
+  </div>
+  <div class="float_left">
+    Anzahl Treffer
+    <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Sortierung") %>
+  </div>
+  <div class="float_left">
+    Filter
+    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
+  </div>
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+  </div>
+  <div class="float_left">
+    SQL-ID
+    <%= text_field_tag(:sql_id, "", :size=>12, :title=>"Einschränkung auf SQL-ID (optional)") %>
+  </div>
+  <div class="float_left">
+  <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
+  </div>
+  <div class="float_left" style="width:100%; ">
+    <div class="float_left">
+      Sortiert nach:
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
+      Elapsed Time per execute
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ElapsedTimeTotal, false) %>
+      Elapsed Time total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ExecutionCount, false) %>
+      total Executions
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :RowsProcessed, false) %>
+      RowsProcessed
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ExecsPerDisk, false) %>
+      Executions per Disk-Read
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :BufferGetsPerRow, false) %>
+      Buffer gets per result-row
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :CPUTime, false) %>
+      CPU-Time total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :BufferGets, false) %>
+      Buffer Gets total
+    </div>
+    <div class="float_left">
+      <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
+      Cluster waits total
+    </div>
+    <div class="float_left" title="Sortiert nach Zeitpunkt der letzten Ausführung des SQL">
+      <%= radio_button_tag(:topSort, :LastActive, false) %>
+      LastActive
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%;">
+
+
+</div>

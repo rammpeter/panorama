@@ -1,0 +1,54 @@
+<%
+  @update_area = "list_mutex_statistics_historic_blocker_detail_area_#{session[:request_counter]}"
+
+  def link_column_samples(rec, value)
+    my_ajax_link_to(value,
+                  url_for(:action               => :list_mutex_statistics_historic_samples,
+                          :update_area          => @update_area,
+                          :instance             => rec.inst_id,
+                          :time_selection_start => @time_selection_start,
+                          :time_selection_end   => @time_selection_end,
+                          :mutex_type           => rec.mutex_type,
+                          :filter               => @groupby,
+                          :filter_value         => (@groupby==:Blocking_Session ? rec.blocking_session : rec.requesting_session )
+                         ),
+                  :title=>"Show single sample records of mutex-wait")
+  end
+
+  def link_column_sid(rec, value)
+    my_ajax_link_to(value,
+                  url_for(:controller           => :active_session_history,
+                          :action               => :show_prepared_active_session_history,
+                          :update_area          => @update_area,
+                          :sid                  => (@groupby==:Blocking_Session ? rec.blocking_session : rec.requesting_session ),
+                          :instance             => rec.inst_id
+                         ),
+                  :title=>"Show wait-events of session")
+  end
+
+  column_options =
+  [
+    {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                                :title=>"RAC-Instance"},
+    {:caption=>"Mutex-Type",       :data=>proc{|rec| rec.mutex_type},                             :title=>"Mutex-Type"},
+  ]
+  column_options <<  {:caption=>"B.SID",            :data=>proc{|rec| link_column_sid(rec, rec.blocking_session) },      :title=>"Blocking-Session"}           if @groupby == :Blocking_Session
+  column_options <<  {:caption=>"W.SID",            :data=>proc{|rec| link_column_sid(rec, rec.requesting_session) },    :title=>"Waiting/Requesting-Session"} if @groupby == :Requesting_Session
+  column_options.concat [
+    {:caption=>"Erstes Auftreten", :data=>proc{|rec| localeDateTime(rec.first_occurrence)},       :title=>"Erstes Auftreten eines Samples im Zeitraum"},
+    {:caption=>"Letztes Auftreten",:data=>proc{|rec| localeDateTime(rec.last_occurrence)},        :title=>"Letztes Auftreten eines Samples im Zeitraum"},
+    {:caption=>"Gets",             :data=>proc{|rec| formattedNumber(rec.gets)},                  :title=>"Total number of gets",     :align=>:right},
+    {:caption=>"Sleeps",           :data=>proc{|rec| formattedNumber(rec.sleeps)},                :title=>"Total number of sleeps",   :align=>:right},
+    {:caption=>"Ratio",            :data=>proc{|rec| formattedNumber(rec.sleep_ratio,3)},         :title=>"Ratio between sleeps and gets",        :align=>:right},
+    {:caption=>"Samples",          :data=>proc{|rec| link_column_samples(rec, rec.samples)},      :title=>"Anzahl einzelne Samples im Zeitraum",  :align=>:right},
+  ]
+
+%>
+
+<%= gen_slickgrid(@mutexes, column_options, {
+        :caption => "Mutex #{@groupby}-Historie zwischen #{@time_selection_start} und #{@time_selection_end}#{" für Instance=#{@instance}" if @instance}",
+        :max_height => 450
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

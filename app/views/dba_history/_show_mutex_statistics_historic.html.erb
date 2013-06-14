@@ -1,0 +1,29 @@
+<% @update_area = "show_mutex_statistics_historic_area_#{session[:request_counter]}" %>
+
+<%= my_ajax_form_tag url_for(:controller  => :dba_history,
+                             :action      => :list_mutex_statistics_historic,
+                             :update_area => @update_area
+                     ) do
+%>
+  <div class="float_left">
+    <b><%=  t(:show_mutex_statistics_historic_caption, :default=>"Mutex-Statistics from GV$Mutex_Sleep_History (since instance-start)") %></b>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("Blocker-Sessions", :title =>t(:show_mutex_statistics_historic_blocker_hint, :default=>"Mutex-Sleep-History grouped by blocker-sessions"), :name=>"Blocker") %>
+  </div>
+    <div class="float_left">
+      <%= submit_tag("Waiter-Sessions", :title =>t(:show_mutex_statistics_historic_waiter_hint, :default=>"Mutex-Sleep-History grouped by waiter-sessions"), :name=>"Waiter") %>
+    </div>
+    <div class="float_left">
+      <%= submit_tag(t(:show_mutex_statistics_historic_timeline_caption, :default=>"Historic timeline"), :title =>t(:show_mutex_statistics_historic_timeline_hint, :default=> "Mutex-Sleep-History grouped at timeline"), :name=>"Timeline") %>
+    </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>

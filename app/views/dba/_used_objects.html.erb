@@ -1,0 +1,19 @@
+<%
+column_options =
+[
+  {:caption=>"Inst-ID",     :data=>proc{|rec| rec.inst_id},     :title=>"RAC-Instance"},
+  {:caption=>"SID",         :data=>proc{|rec| rec.sid},         :title=>"SID der Session"},
+  {:caption=>"Serial#",     :data=>proc{|rec| rec.sn},          :title=>"Serial# der Session"},
+  {:caption=>"Object",      :data=>proc{|rec| rec.object},      :title=>"Name des Objektes"},
+  {:caption=>"Type",        :data=>proc{|rec| rec.objecttype},  :title=>"Objekt-Type"},
+  {:caption=>"Status",      :data=>proc{|rec| rec.status},      :title=>"Status der Session"},
+  {:caption=>"OS-User",     :data=>proc{|rec| rec.osuser},      :title=>"Betriebssystem-User"},
+  {:caption=>"Process",     :data=>proc{|rec| rec.process},     :title=>"Prozess-ID des Clients"},
+  {:caption=>"Machine",     :data=>proc{|rec| rec.machine},     :title=>"Client-Maschine"},
+  {:caption=>"Program",     :data=>proc{|rec| rec.program},     :title=>"Client-Programm"},
+  {:caption=>"Logon",       :data=>proc{|rec| localeDateTime(rec.logon_time)},    :title=>"Logon-Time des Clients"},
+]
+
+%>
+
+<%= gen_slickgrid(@objects, column_options, {:caption => "Aktuell im Zugriff befindliche Objekte", :width=>:auto, :height=>"80%"}) %>

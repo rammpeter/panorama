@@ -1,0 +1,13 @@
+<h2>Objekt-spezifische Statistiken aus V$Segment_Statistics</h2>
+
+<%= my_ajax_form_tag "dba/show_segment_statistics" do%>
+  <%= collection_select(:statistic_name, :statistic_name, @stats, :statistic_name, :statistic_name) %>        
+  Sample (sec)
+  <%= text_field_tag("sample_length", "5", :maxlength=>10, :size => 10, :title=>"Länge des sample-snapshot in Sekunden") %>
+  Nur Änderungen während Sample
+  <%= check_box_tag(:only_sample_change, 1, true, :title=>"Nur Objekte anzeigen deren Daten sich während Sample änderten") %>
+  <%= submit_tag "Statistik anzeigen", :title => "Anzeige der Statistik für Objekte" %>
+<% end %>
+<div id="segment_statistics_detail" style="float:left; width:100%; ">
+.
+</div>

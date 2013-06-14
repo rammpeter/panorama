@@ -1,0 +1,53 @@
+<!-- @update_area muss durch Aufrufer gesetzt sein -->
+
+<div style="clear: both; padding: 5px;"><b>Zusätzliche Informationen</b></div>
+
+<div class="float_left">
+  <%= my_ajax_submit_tag("Komplette Zeitleiste des SQL",
+   url_for(:update_area => @update_area,
+           :action      => :list_sql_history_snapshots,
+           :controller  => :dba_history,
+           :instance    => @sql.inst_id,
+           :sql_id      => @sql.sql_id,
+           :groupby     => :day,
+           :parsing_schema_name => @sql.parsing_schema_name
+          ),
+  :title => "Anlistung der kompletten gespeicherten Zeitleiste des SQL ")
+  %>
+</div>
+<div class="float_left">
+      <%=
+          my_ajax_submit_tag("Cursor Sharing (#{@sql.child_count} Versionen)",
+                             url_for(:update_area => @update_area,
+                                     :action      => :list_sql_shared_cursor,
+                                     :instance    => @sql.inst_id,
+                                     :sql_id      => @sql.sql_id
+                             ),
+                             :title => "Hinderungsgründe für Nutzung Shared Cursor (gv$SQL_Shared_Cursor), wenn mehrere Versionen eines SQL in gv$SQL ausgewiesen werden"
+          )
+      %>
+</div>
+<div class="float_left">
+        <%= my_ajax_submit_tag("Active Session History",
+                               url_for(:update_area => @update_area,
+                                       :controller  => :active_session_history,
+                                       :action      => :show_prepared_active_session_history,
+                                       :instance    => @sql.inst_id,
+                                       :sql_id      => @sql.sql_id
+                               ),
+                               :title => t(:list_sql_detail_sql_id_childno_active_session_history_title, :default=>"Show active session history data for SQL-ID")
+            )
+        %>
+</div>
+<div class="float_left">
+    <%=
+        my_ajax_submit_tag("Open Cursor (#{@open_cursors})",
+            url_for(:action     => :list_open_cursor_per_sql,
+                    :instance   => @instance,
+                    :sql_id     => @sql_id,
+                    :update_area=> @update_area
+                  ),
+           :title=>"Anzeige der aktuellen offenen Cursor in Sessions des Statements")
+    %>
+</div>
+<div  style="clear: both;"></div>

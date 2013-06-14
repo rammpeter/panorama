@@ -1,0 +1,174 @@
+########### Installation der Rails-Anwendung "NOA" auf Linux-Systemen ###########
+Peter Ramm, OSP Dresden 27.11.2008
+
+=> Installation ruby >= 1.8.5 sowie rubygems >= 0.9.2 (Bestandteil diverser Suse-Distributionen)
+
+=> Installation der notwendigen gem-Applikationen als User "root":
+   > gem install rails
+   > gem install mongrel
+   > gem install mongrel_cluster
+   > gem install ruby-oci8 -v 1.0.3          # neuere Versionen besitzen Fehler
+   > gem install ruby-plsql
+   > gem install sqlite3-ruby
+   > gem install activerecord-oracle-adapter -v 1.1.9  # neuere Versionen besitzen Fehler
+   > gem install activerecord-oracle_enhanced-adapter
+
+=> Installation Oracle-Client und Konfiguration der tnsnames.ora
+
+=> Konfiguration Oracle-Environment in Datei "/etc/profile.d/oracle.sh" analog folgendem Beispiel
+   export ORACLE_BASE=/opt/oracle
+   export ORACLE_HOME=$ORACLE_BASE/product/11.1.0/db_1
+   export TNS_ADMIN=$ORACLE_HOME/network/admin
+   export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+   export ORA_NLS33=$ORACLE_HOME/ocommon/nls/admin/data
+   export LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib:$ORACLE_HOME/rdbms/lib
+   export SHLIB_PATH=$ORACLE_HOME/lib:$ORACLE_HOME/rdbms/lib
+   export PATH=$ORACLE_HOME/bin:$PATH
+   
+=> Konfiguration Synergy-Environment in Datei "/etc/profile.d/synergy.sh" analog folgendem Beispiel
+   export TELELOGIC_HOME=/opt/telelogic
+   export SYNERGY_HOME=$TELELOGIC_HOME/synergy
+   export CCM_HOME=/opt/telelogic/synergy/cm64client
+   export SYNERGY_SERVER=o-syn02.ov.otto.de
+   export SYNERGY_ROUTER_PORT=5412
+   export PATH=$CCM_HOME/bin:$PATH
+
+=> Freischaltung IP-Filter Produktion fuer diesen Server
+
+=> Freischaltung des fuer Anwendung gewaehlten Ports in lokaler Firewall (Port > 1024, Empfehlung=8080)
+
+=> Installation Synergy-Client, Synergy-Binaries im Pfad
+
+=> Anlegen eines dem OS-User entsprechenden Synergy-Users (oder OS-User auf Basis eines existierenden Synergy-Users)
+
+=> Anlegen eines Synergy-Working-Areas des NOA-Projektes customer
+
+=> Aktivieren zyklische Ausfuehrung des Start/Update-Scriptes per cron:
+   0 0 * * * <Synergy-Workarea>/customer/src/rails/NOA/scripts/reconf_and_restart_app.sh
+   mit den Parametern:
+     - Projekt-Version (Synergy) z.B. "ramm" fuer Synergy-Projekt "customer_ramm"
+     - Synergy-Passwort des Users
+     - Mail-Adresse zur Benachrichtigung bei Fehlern
+     - HTTP-Port
+
+
+=> Aktivitaeten zur Konfiguration eines Clusters (redundante Services) mit Apache2 und mongrel
+- in /etc/sysconfig/apache2 zusaetzliche Module für apache2 angeben in APACHE_MODULES: 
+    proxy rewrite proxy_balancer proxy_connect proxy_ftp proxy_http
+- in /etc/apache2/vhosts.d Config fuer neuen Virtual Server anlegen a'la
+################## Begin rails-cluster.conf #############################
+Listen 81
+<VirtualHost *:81>
+  ServerName ramm-1.osp-dd.de
+  DocumentRoot /home/ramm/ccm_wa/noa/customer~ramm/customer/src/rails/NOA/public
+  <Directory "/home/ramm/ccm_wa/noa/customer~ramm/customer/src/rails/NOA/public/">
+    Options FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
+  RewriteEngine On
+  # Redirect all non-static requests to Mongrel
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+  RewriteRule ^/(.*)$ balancer://rails-NOA-mongrels%{REQUEST_URI} [P,QSA,L]
+  <Proxy balancer://rails-NOA-mongrels>
+    BalancerMember http://localhost:8001
+    BalancerMember http://localhost:8002
+    BalancerMember http://localhost:8003
+    BalancerMember http://localhost:8004
+  </Proxy>
+  ProxyPass /stylesheets !
+  ProxyPass /javascripts !
+  ProxyPass /images !
+  ProxyPass / balancer://rails-NOA-mongrels
+  ProxyPassReverse / balancer://rails-NOA-mongrels
+  ProxyPreserveHost On
+</VirtualHost>
+################## Ende rails-cluster.conf #############################
+
+==> Start des Mongrel-Clusters in systemV-init-Scripten hinterlegen:
+################### Begin /etc/init.d/rails ############################
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:       Ruby on Rails
+# Required-Start: $remote_fs $syslog
+# X-UnitedLinux-Should-Start:
+# Required-Stop:  $remote_fs $syslog
+# X-UnitedLinux-Should-Stop:
+# Default-Start:  3 5
+# Default-Stop:   0 1 2 6
+# Description:    HTTP-Server fuer Ruby on Rails-Anwendungen
+### END INIT INFO
+
+# Start Mongrel fuer Rails-Applikation in $1 und Port in $2 und Modus in $3
+function start_mongrel {
+        echo "Starting mongrel in $1"
+        . /etc/profile
+        . /etc/profile.d/oracle.sh
+        cd $1
+        mongrel_rails start -e $3 -d -p $2
+}
+
+# Stop Mongrel fuer Rails-Applikation in $1
+function stop_mongrel {
+        echo "Stopping mongrel in $1"
+        . /etc/profile
+        . /etc/profile.d/oracle.sh
+        cd $1
+        mongrel_rails stop -f && rm log/mongrel.pid
+}
+
+# Start Mongrel-Cluster fuer Rails-Applikation in $1
+function start_mongrel_cluster {
+        echo "Starting mongrel-cluster in $1"
+        . /etc/profile
+        . /etc/profile.d/oracle.sh
+        cd $1
+        mongrel_rails cluster::start
+}
+
+# Stop Mongrel-Cluster fuer Rails-Applikation in $1
+function stop_mongrel_cluster {
+        echo "Stopping mongrel-cluster in $1"
+        . /etc/profile
+        . /etc/profile.d/oracle.sh
+        cd $1
+        mongrel_rails cluster::stop
+}
+
+case "$1" in
+    start)
+        echo "Starting HTTP-Server fuer Ruby on Rails-Anwendungen"
+        start_mongrel_cluster /opt/noa/customer/src/rails/NOA
+        start_mongrel /home/ramm/teamplan/rails/TeamPlan 82 production
+        ;;
+    stop)
+        echo "Stopping HTTP-Server fuer Ruby on Rails-Anwendungen"
+        stop_mongrel_cluster /opt/noa/customer/src/rails/NOA
+        stop_mongrel /home/ramm/teamplan/rails/TeamPlan
+        ;;
+    try-restart)
+        echo -n "not implemented for rails"
+        ;;
+    restart)
+        echo -n "not implemented for rails"
+        ;;
+    force-reload)
+        echo -n "not implemented for rails"
+        ;;
+    reload)
+        echo -n "not implemented for rails"
+        ;;
+    status)
+        nxserver --status
+        ;;
+    probe)
+        echo -n "not implemented for rails"
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status}"
+        exit 1
+        ;;
+esac
+################### Ende /etc/init.d/rails #############################
+

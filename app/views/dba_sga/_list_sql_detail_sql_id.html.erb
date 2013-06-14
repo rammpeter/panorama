@@ -1,0 +1,13 @@
+<% @update_area = "list_sql_detail_sql_id_detail_area_#{session[:request_counter]}" %>
+
+<% @modus = "GV$SQLArea" # Ab jetzt Summen-Info anzeigen%>
+<%= render :partial=>"list_sql_sga_stat" %>
+
+<% @modus = "GV$SQLArea" # Ab jetzt wieder Summen-Info anzeigen%>
+<%= render :partial=>"list_sql_sga_stat_footer" %>
+
+<% @modus = "GV$SQL" # Ab jetzt Child-Info anzeigen%>
+<%= render :partial=>"list_sql_area" %>
+
+<div style="clear: both;" id="<%= @update_area_list_sql_detail_sql_id %>"></div>
+

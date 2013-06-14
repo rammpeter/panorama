@@ -1,0 +1,18 @@
+<%= my_ajax_form_tag "dba_history/list_latch_statistics_historic" do %>
+  <div class="float_left">
+    <b>Latch-Statistics aus DBA_Hist_Latch</b>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("Latch-Info anzeigen", :title => "Anlistung der Latch-Info") %>
+  </div>
+<% end %>
+<div id="list_latch_statistics_historic_area" style="float:left; width:100%; ">
+</div>
+

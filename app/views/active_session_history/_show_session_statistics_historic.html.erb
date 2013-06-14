@@ -1,0 +1,39 @@
+<%= my_ajax_form_tag "active_session_history/list_session_statistics_historic" do %>
+  <div>
+    <b>Session-Statistics aus DBA_Hist_Active_Sess_History</b>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    Idle-Waits
+    <%= check_box_tag(:idle_waits, 1, false, :title=>"Idle-Waits (z.B. PX Deq Credit: send blkd) in Betrachtung berücksichtigen? ") %>
+  </div>
+
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1, :title=>"Filter on RAC-Instance (optional)") %>
+  </div>
+  <!--<div class="float_left">
+    Session-ID
+    <%= text_field_tag(:session_id, "", :size=>5, :title=>"optional Filter on Session-ID (like-comparison and case ignored)") %>
+  </div>-->
+
+  <div class="float_left">
+    Gruppiert nach:
+  </div>
+  <div class="float_left">
+      <select name="groupby">
+        <% session_statistics_key_rules.each do |key, value| %>
+          <%=  "<option value='#{key}' #{"selected='selected'" if key=="Event"}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+  </div>
+
+  <div class="float_left">
+    <%= submit_tag("Waits anzeigen", :title => "Anlistung der verdichteten Session-Waits") %>
+  </div>
+<% end %>
+<div id="list_session_statistics_historic_area" style="float:left; width:100%; ">
+</div>
+

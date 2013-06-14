@@ -1,0 +1,25 @@
+<%= my_ajax_form_tag "noa/list_db_cache_historic" do %>
+  <div class="float_left">
+    <b>DB-Cache-Nutzung historisch</b>
+  </div>
+  <div class="float_left">
+    Anzahl Treffer
+    <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Top-Nutzung") %>
+  </div>
+  <%= include_start_end_timepicker %>
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+  </div>
+  <div class="float_left">
+    Partitions
+    <%= check_box_tag(:show_partitions, 1, false, :title=>"Partitionsdetails anzeigen") %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("Anzeigen", :title => "Anlistung der Cache-Nutzung") %>
+  </div>
+<% end %>
+<div id="list_db_cache_historic_area" style="float:left; width:100%;">
+</div>
+
+

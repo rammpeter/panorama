@@ -1,0 +1,138 @@
+<% if @dist_locks.length >0 %>
+  <h3>Pending thwo-phase commits (DBA_2PC_Pending)</h3>
+  <%
+    column_options =
+      [
+        {:caption=>"Local Transaction",  :data=>"rec.local_tran_id",                        :title=>"Local Transaction-ID"},
+        {:caption=>"Global Transaction", :data=>"rec.global_tran_id",                       :title=>"Global Transaction-ID"},
+        {:caption=>"State",              :data=>"rec.state",                                :title=>"Status"},
+        {:caption=>"Mixed",              :data=>"rec.mixed",                                :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Advice",             :data=>"rec.advice",                               :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Comment",            :data=>"rec.tran_comment",                         :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Fail-Time",          :data=>"localeDateTime(rec.fail_time)",            :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Force-Time",         :data=>"localeDateTime(rec.force_time)",           :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Retry-Time",         :data=>"localeDateTime(rec.retry_time)",           :title=>"Keine näheren Details bekannt"},
+        {:caption=>"OS-User",            :data=>"rec.os_user",                              :title=>"Keine näheren Details bekannt"},
+        {:caption=>"OS-Terminal",        :data=>"rec.os_terminal",                          :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Host",               :data=>"rec.host",                                 :title=>"Keine näheren Details bekannt"},
+        {:caption=>"DB-User",            :data=>"rec.db_user",                              :title=>"Keine näheren Details bekannt"},
+        {:caption=>"Commit-No",          :data=>"rec.commit_no",                            :title=>"Keine näheren Details bekannt"},
+      ]
+
+  %>
+  <%= gen_slickgrid(@dist_locks, column_options) %>
+<% end %>
+
+<%
+   @update_area = "lis_dml_locks_detail_area_#{session[:request_counter]}"
+
+    def link_column_sid(rec)
+      my_ajax_link_to("#{rec.instance_number}:#{rec.sid},#{rec.serialno}",
+        url_for( :action            => "show_session_detail",
+                 :instance          => rec.inst_id,
+                 :sid               => rec.sid,
+                 :serialno          => rec.serialno,
+                 :update_area       => @update_area
+                 ),
+         :title => "Details zur Session"
+       )
+    end
+
+   # TODO statt html-Inhalten Data des Grid verändern
+   def link_column_module(rec)
+     local_update_area = "explain_module_info_#{rec.rownum}"
+     my_ajax_link_to(rec.module,
+       url_for(:action => :explain_info,
+               :info=>rec.module,
+               :update_area=>local_update_area
+       ),
+     :title => "Weiter Erklärung zum Module") + "<div id=\"#{local_update_area}\"></div>".html_safe
+   end
+
+   def link_column_action(rec)
+     local_update_area = "explain_action_info_#{rec.rownum}"
+     my_ajax_link_to(rec.action,
+       url_for(:action => :explain_info,
+               :info=>rec.action,
+               :update_area=>local_update_area
+       ),
+     :title => "Weiter Erklärung zur Action") + "<div id=\"#{local_update_area}\"></div>".html_safe
+   end
+
+   def link_column_blocking_sid(rec)
+     my_ajax_link_to(rec.blocking_instance_number ? "#{rec.blocking_instance_number}:#{rec.blocking_sid},#{rec.blocking_serialno}" : "",
+     url_for( :action            => "show_session_detail",
+              :instance          => rec.blocking_instance_number,
+              :sid               => rec.blocking_sid,
+              :serialno          => rec.blocking_serialno,
+              :update_area       => @update_area
+              ),
+      :title => "Details zur Session"
+    )
+   end
+
+   def link_column_blocking_object_rowid(rec)
+     unless rec.waitingforobject
+           ""
+     else
+       my_ajax_link_to("Row_Wait_File#=#{rec.row_wait_file_no}, Row_Wait_Block#=#{rec.row_wait_block_no}, Row_Wait_Row#=#{rec.row_wait_row_no}",
+                         url_for(:action           => :convert_to_rowid,
+                                 :update_area      => "lockdetail_#{rec.row_num}",
+                                 :waitingforobject => rec.waitingforobject,
+                                 :data_object_id   => rec.data_object_id,
+                                 :row_wait_file_no => rec.row_wait_file_no,
+                                 :row_wait_block_no => rec.row_wait_block_no,
+                                 :row_wait_row_no  => rec.row_wait_row_no
+                         ),
+                         :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
+            )+"<div id=\"lockdetail_#{rec.row_num}\"></div>".html_safe
+     end
+   end
+
+   def show_locked_object(rec)
+     if rec.locked_object_name
+       link_table_structure(
+               @update_area,
+               rec.locked_object_owner,
+               rec.locked_object_name,
+               "#{rec.locked_object_owner}.#{rec.locked_object_name}#{" (#{rec.locked_subobject_name})" if rec.locked_subobject_name}"
+       )
+     else
+       "RBS: #{rec.rollback_segment}"
+     end
+   end
+
+  column_options =
+    [
+      {:caption=>"SID/SN",      :data=>proc{|rec| link_column_sid(rec)},                  :title=>"Instance : SID, SerialNo"},
+      {:caption=>"Client-Info", :data=>proc{|rec| rec.client_info},                       :title=>"Client-Info der Session"},
+      {:caption=>"Module",      :data=>proc{|rec| link_column_module(rec)},               :title=>"Module-Info der Session"},
+      {:caption=>"Action",      :data=>proc{|rec| link_column_action(rec)},               :title=>"Action-Info der Session"},
+      {:caption=>"Status",      :data=>proc{|rec| rec.status},                            :title=>"Status der Session"},
+      {:caption=>"Object",      :data=>proc{|rec| show_locked_object(rec)},               :title=>"Betroffenes Objekt", :data_title=>proc{|rec| "%t: Type=#{rec.locked_object_type}"} },
+      {:caption=>"User",        :data=>proc{|rec| rec.instpiduser},                       :title=>"RAC-Instanz:PID des Shadow-Prozesses:Oracle-User"},
+      {:caption=>"Maschine",    :data=>proc{|rec| rec.maschinepidprog},                   :title=>"Maschine:PID des User-Prozesses:ProzessName", :data_title=>proc{|rec| rec.maschinepidprogfull} },
+      {:caption=>"LT",          :data=>proc{|rec| rec.locktype},                          :title=>"LockType",                   :data_title=>proc{|rec| lock_types(rec.locktype)} },
+      {:caption=>"Time wait.",  :data=>proc{|rec| formattedNumber(rec.waitingfortime)},   :title=>"Wartezeit in Sekunden auf Lock bzw. seit letztem Statuswechsel ACTIVE/INACTIVE", :align=>"right"},
+      {:caption=>"Lock held",   :data=>proc{|rec| fn(rec.lock_held_seconds)},             :title=>"Time in seconds since lock was granted", :align=>"right"},
+      {:caption=>"ID1ID2",      :data=>proc{|rec| rec.id1id2},                            :title=>"ID1 und ID2 des Locks"},
+      {:caption=>"R",           :data=>proc{|rec| rec.request},                           :title=>"Request: !=0 indicates waiting for resource determinded by ID1, ID2", :data_title=>proc{|rec| lock_modes(rec.request)} },
+      {:caption=>"L",           :data=>proc{|rec| rec.lockmode},                          :title=>"Lock-Modus",                 :data_title=>proc{|rec| lock_modes(rec.lockmode)} },
+      {:caption=>"Blocking SID",:data=>proc{|rec| link_column_blocking_sid(rec)},         :title=>"Instance und SID der Session, auf die gewartet wird"},
+      {:caption=>"Blocking Object",:data=>proc{|rec| "<span style='float:left;'>#{rec.waitingforobject}</span> #{link_column_blocking_object_rowid(rec)}"},   :title=>"Ressource, auf die gewartet wird"},
+   ]
+
+%>
+<%= gen_slickgrid(@dml_locks, column_options, {
+        :caption =>  "DML Database locks (GV$Lock)",
+        :max_height=>450
+    })
+%>
+
+<br/>
+<b>
+<%= "Anzeige abgebrochen nach #{@max_result_size} Zeilen, Result umfasst komplett #{@result_size} Zeilen" if @result_size > @max_result_size %>
+</b>
+
+<div id="<%= @update_area %>">
+</div>

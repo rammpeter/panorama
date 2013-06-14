@@ -1,0 +1,156 @@
+<%
+  # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
+  @update_area = "list_session_statistics_historic_grouping_table_def_#{session[:request_counter]}"
+
+  def get_filter_from_groupby(groupby, value)
+    if value && value != ''
+      { groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} = ?", :bind_value => value}}
+    else
+      { groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} IS NULL", :bind_value => value}}
+    end
+  end
+
+  def link_single_rows(rec)
+    my_ajax_link_to(fn(rec.count_samples),
+                    url_for({:action       => :list_session_statistic_historic_single_record,
+                             :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby(@groupby, rec.group_value)),
+                             :update_area  => @update_area,
+                            }),
+                    :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"
+    )
+  end
+
+
+  def show_groupkey_value(rec)
+    case @groupby
+       when "SQL-ID" then if rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
+    else rec.group_value
+    end
+  end
+
+  # Aus Gruppenlink direkt SQL-Details aufrufen, wenn eideutige Aussage zu SQL_ID und Username und Instance
+  def link_column_sql_id(rec)
+    if rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
+        rec.sql_id
+    else
+        link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)
+    end
+  end
+
+  def link_column_grouping(rec, value, add_url)
+    if value.to_s.match("<.*>")
+      if value == "< 0 >"
+        ""
+      else
+        my_ajax_link_to("<div style=\"white-space: nowrap;\">#{html_escape(value)}</div>".html_safe,     # Verhindern Zeilenumbruch in Anzeige
+          url_for({:action       => :list_session_statistic_historic_grouping,
+                   :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby(@groupby, rec.group_value)),
+                   :groupby      => add_url[:groupby],
+                   :update_area  => @update_area,
+                  }
+          ),
+          :title=>"#{t(:active_session_history_list_session_statistics_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s")
+      end
+    else
+      case add_url[:groupby]
+          when "SQL-ID" then  link_column_sql_id(rec)
+      else
+          value           # Nur wert anzeigen ohen Link wenn keine sinnvolle Funktion mehr dahinter
+      end
+    end
+  end
+
+  def show_info(value)
+    if value.class == DateTime || value.class == Time
+      localeDateTime value
+    else
+      h value
+    end
+  end
+
+  @column_options = []
+  @column_options << {:caption=>session_statistics_key_rule(@groupby)[:Name],         :data=>proc{|rec| show_groupkey_value(rec) },                        :title=>session_statistics_key_rule(@groupby)[:Title], :data_title=>session_statistics_key_rule(@groupby)[:Data_Title]}
+  @column_options << {:caption=>session_statistics_key_rule(@groupby)[:info_caption], :data=>proc{|rec| show_info(rec.info) },                       :title=>"Nähere Info zu Gruppierungskriterium #{@groupby}", :data_title=>proc{|rec| rec.info_hint} } if session_statistics_key_rule(@groupby)[:info_caption]
+  @column_options << {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")}
+  @column_options << {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")}
+  @column_options << {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs,2) },  :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time range"), :align=>"right"}
+  @column_options << {:caption=>"Avg. Time waited", :data=>proc{|rec| formattedNumber(rec.time_waited_avg_ms,2)},  :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"}
+  @column_options << {:caption=>"Total Time waited",:data=>proc{|rec| formattedNumber(rec.time_waited_secs,0) },   :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right"}
+  @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| formattedNumber(rec.time_waited_secs.to_f/(rec.sample_dauer_secs>0 ? rec.sample_dauer_secs : rec.max_sample_cycle),2) },  :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
+  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) }, :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"}
+
+  session_statistics_key_rules.each do |key, value|
+    unless @groupby == key  || build_groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+      @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(Number if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
+    end
+  end
+
+
+  @column_options << {:caption=>"Avg. Temp",:data=>proc{|rec| formattedNumber(rec.avg_temp_mb,2)},             :title=>"Avg. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Max. Temp",:data=>proc{|rec| formattedNumber(rec.max_temp_mb,2)},             :title=>"Max. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database].version >= "11.2"
+  @column_options << {:caption=>"CPU-Time", :data=>proc{|rec| formattedNumber(rec.tm_delta_cpu_time_secs)},    :title=>"Sum of time in seconds the scanned sessions spent on CPU before capture", :align=>"right"}                          if session[:database].version >= "11.2"
+  @column_options << {:caption=>"DB-Time",  :data=>proc{|rec| formattedNumber(rec.tm_delta_db_time_secs)},     :title=>"Sum of time in seconds the scanned sessions spent on database calls before capture", :align=>"right"}             if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Rd. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_requests)},    :title=>"Number of read I/O requests made by the scanned sessions before capture", :align=>"right"}                        if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Wr. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_requests)},   :title=>"Number of write I/O requests made by the scanned sessions before capture", :align=>"right"}                       if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Rd. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_kbytes)},      :title=>"Number of I/O kBytes read by the scanned sessions before capture", :align=>"right"}                               if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Wr. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_kbytes)},     :title=>"Number of I/O kBytes written by the scanned sessions before capture", :align=>"right"}                            if session[:database].version >= "11.2"
+  @column_options << {:caption=>"IC. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_interconnect_io_kbytes)}, :title=>"Number of I/O kBytes sent over the I/O interconnect by the scanned sessions before capture", :align=>"right"} if session[:database].version >= "11.2"
+
+%>
+
+<%=
+    context_menu_entries = []
+    def create_context_menu_entry(seconds)
+      {:label   => t(:active_session_history_show_top_ten ,     :sec=>seconds, :default=>"Show Top 10 in time line, condensed by %{sec} seconds"),
+       :hint    => t(:active_session_history_show_top_ten_hint, :sec=>seconds, :default=>"Show Top 10 ordered by total time waited in time line, each point in graph for sum over %{sec} seconds"),
+       :ui_icon => "ui-icon-image",
+       :action  => "$('#list_session_statistics_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{seconds}').click();"
+      }
+    end
+
+    context_menu_entries << create_context_menu_entry(60)
+    context_menu_entries << create_context_menu_entry(10)
+    context_menu_entries << create_context_menu_entry(1)
+
+
+    gen_slickgrid(@sessions,
+                   @column_options,
+                   {
+                       :caption => @caption ? @caption : "",
+                       :max_height => 450,
+                       :context_menu_entries => context_menu_entries
+                   }
+                  )
+%>
+
+<%
+  def link_timeline(group_seconds)
+    my_ajax_link_to("Hidden Auslöser für Timeline",
+                    url_for({:action        => "list_session_statistics_historic_timeline",
+                             :groupfilter   => build_groupfilter(@sessions[0]),
+                             :groupby       => @groupby,
+                             :group_seconds => group_seconds,
+                             :update_area   => "#{@update_area}_timeline"
+                            }
+                    ),
+                    :style=>"display:none",
+                    :id=>"list_session_statistics_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{group_seconds}"
+    )
+  end
+
+%>
+
+<%= link_timeline(60) if @sessions.length > 0  %>
+<%= link_timeline(10) if @sessions.length > 0  %>
+<%= link_timeline( 1) if @sessions.length > 0  %>
+
+
+<div id="<%= @update_area %>_timeline" style="float:left; width:100%; "></div>
+<div id="<%= @update_area %>"          style="float:left; width:100%; "></div>
+
+
+<script type="text/javascript">
+    $("#<%= @time_selection_start_id %>").datetimepicker();
+    $("#<%= @time_selection_end_id   %>").datetimepicker();
+</script>
+

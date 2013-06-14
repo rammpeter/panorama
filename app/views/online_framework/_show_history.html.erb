@@ -1,0 +1,31 @@
+<% @update_area = :show_history_detail_area %>
+
+<h3>Anzeige Historie des Online-Frameworks</h3>
+
+<%= my_ajax_form_tag url_for(:action=>:show_history_list, :update_area => @update_area) do %>
+  <%= include_start_end_timepicker %>
+  <div class="float_left">
+    <%= label_tag(:show_rac, "RAC-Instanzen separieren?") %>
+    <%= check_box_tag(:show_rac, 1, false, :title=>"Auswertung nach RAC-Instanzen separieren?") %>
+  </div>
+  <div class="float_left">
+    <%= label_tag(:timeSlice, "Minuten je Gruppenzeile") %>
+    <%= text_field_tag(:timeSlice, "10", :size=>5) %>
+  </div>
+  <div class="float_left">
+    Domain
+    <%= collection_select(:domain, :id, @domains, :id, :name, {}, :title=>"Eingrenzung der angezeigten werte auf Domain") %>
+  </div>
+  <div class="float_left">
+    Gruppiert nach:
+    <%= radio_button_tag(:ShowGroup, :ID_OFMessageType, true) %>
+    ID_OFMessageType
+    <%= radio_button_tag(:ShowGroup, :TimeSlice, false) %>
+    Zeitscheiben
+  </div>
+  <div class="float_left">
+    <%= submit_tag("Anzeige", :title => "Anzeige der Historie des Online-Frameworks") %>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear: both"></div>

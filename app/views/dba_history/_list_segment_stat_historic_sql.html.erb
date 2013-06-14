@@ -1,0 +1,58 @@
+<h2>Statements aus DBA_Hist_SQLPlan mit '<%= @object_name %>', Inst_ID=<%=@instance %>, Von <%=@time_selection_start%> bis <%= @time_selection_end %></h2>
+<table class="tablesorter" border="1" style="font-size:small;">
+  <thead>
+  <tr>
+    <th title="RAC-Instance">I</th>
+    <th title="SQL-Text">SQL</th>
+    <th title="Parsing Schema Name">User</th>
+    <th title="Anzahl Executions">Execs</th>
+    <th title="Elapsed Time in Sekunden über alle parallel query server">Elapsed</th>
+    <th title="Elapsed Time je Execute in Sekunden über alle parallel query server">Ela./Ex.</th>
+    <th title="CPU-Time in Sekunden über alle parallel query server">CPU</th>
+    <th title="Disk Reads">Disk Reads</th>
+    <th title="Buffer Gets">Buffer Gets</th>
+    <th title="Rows Processed">Rows</th>
+  </tr>
+  </thead>
+
+<%
+def link_column(s, value, align, title="")
+  ("<td  title='#{title}' align='" + align + "' >" +
+  my_ajax_link_to(value,
+                url_for(:action => "list_sql_detail_historic",
+                        :dbid        => s.dbid,
+                        :sql_id      => s.sql_id,
+                        :parsing_schema_name =>s.parsing_schema_name,
+                        :instance    => s.instance_number,
+                        :min_snap_id => s.min_snap_id,
+                        :max_snap_id => s.max_snap_id,
+                        :time_selection_start => @time_selection_start,
+                        :time_selection_end   => @time_selection_end,
+                        :update_area => 'list_segment_stat_hist_detail_sql_area'
+                       ),
+                 :title=>"Anzeige der Details des Statements (unterhalb)") +
+  "</td>").html_safe
+end
+
+%>
+  <tbody>
+  <% @sqls.each do |s| %>
+    <tr>
+    <%= link_column(s, formattedNumber(s.instance_number,0), "right") %>
+    <%= link_column(s, s.sql_text, "left") %>
+    <%= link_column(s, s.parsing_schema_name, "left") %>
+    <%= link_column(s, formattedNumber(s.executions,0), "right") %>
+    <%= link_column(s, formattedNumber(s.elapsed_time_secs,3), "right") %>
+    <%= link_column(s, formattedNumber(s.elapsed_time_secs_per_execute,3), "right") %>
+    <%= link_column(s, formattedNumber(s.cpu_time_secs,3), "right") %>
+    <%= link_column(s, formattedNumber(s.disk_reads,0), "right") %>
+    <%= link_column(s, formattedNumber(s.buffer_gets,0), "right") %>
+    <%= link_column(s, formattedNumber(s.rows_processed,0), "right") %>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<div id="list_segment_stat_hist_detail_sql_area" style="float:left; width:100%; ">
+</div>
+

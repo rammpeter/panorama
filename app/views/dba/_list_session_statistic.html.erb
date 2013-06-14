@@ -1,0 +1,15 @@
+<%
+    @update_area = "list_session_statistic_detail_area_#{session[:request_counter]}"
+
+    column_options =
+    [
+      {:caption=>"Name",   :data=>proc{|rec| rec.name}, :title=>"Name der Statistik"          },
+      {:caption=>"Value",  :data=>proc{|rec| formattedNumber(rec.value) }, :align=>"right", :title=>"Statistik-Wert kumuliert seit Logon der Session"        },
+    ]
+
+%>
+<%= gen_slickgrid(@stats, column_options,
+                  {:caption=>"Session-Statistik aus gv$SessStat für Instance=#{@instance} , SID=#{@sid}, 0-Werte werden nicht angezeigt", :width=>:auto}
+)%>
+
+<div id="<%= @update_area%>"></div>

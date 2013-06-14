@@ -1,0 +1,93 @@
+<h3>Description of table <%=  @owner %>.<%= @table_name %></h3>
+
+<%=  my_html_escape(@comment).html_safe %>
+
+<%
+column_options =
+[
+  {:caption=>"Col.Name",          :data=>proc{|rec| rec.column_name},                         :title=>"Column-Name"},
+  {:caption=>"Type",              :data=>proc{|rec| rec.data_type},                           :title=>"Data-Type"},
+  {:caption=>"Prec.",             :data=>proc{|rec| rec.precision},                           :title=>"Precision", :align=>:right},
+  {:caption=>"Sc.",               :data=>proc{|rec| rec.data_scale},                          :title=>"Scale", :align=>:right},
+  {:caption=>"N.",                :data=>proc{|rec| rec.nullable},                            :title=>"Nullable"},
+  {:caption=>"Def.",              :data=>proc{|rec| rec.data_default},                        :title=>"Default"},
+  {:caption=>"Distinct",          :data=>proc{|rec| fn(rec.num_distinct)},                    :title=>"Number of distinct values in column", :align=>:right},
+  {:caption=>"Nulls",             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=>"Number of null values in column",     :align=>:right},
+  {:caption=>"Avg. Len.",         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=>"Average column length in bytes",     :align=>:right},
+  {:caption=>"Comments",          :data=>proc{|rec| rec.comments},                            :title=>"Comments"},
+]
+%>
+
+<%= gen_slickgrid(@columns, column_options, {
+      :caption => "Columns of table  #{@owner}.#{@table_name}",
+      :max_height => 450
+    })
+%>
+
+
+<%
+column_options =
+[
+  {:caption=>"TS",               :data=>proc{|rec| rec.tablespace_name},                  :title=>"Tablespace name"},
+  {:caption=>"PctFree",          :data=>proc{|rec| fn(rec.pct_free)},                     :title=>"Percent free", :align=>:right},
+  {:caption=>"IniTrans",         :data=>proc{|rec| fn(rec.ini_trans)},                    :title=>"Number of initial entries in transaction list of db block", :align=>:right},
+  {:caption=>"MaxTrans",         :data=>proc{|rec| fn(rec.max_trans)},                    :title=>"Maximum number of transactions in transaction list of db block", :align=>:right},
+  {:caption=>"Rows",             :data=>proc{|rec| fn(rec.num_rows)},                     :title=>"Number of rows calculated by last analyze run", :align=>:right},
+  {:caption=>"Size (MB)",        :data=>proc{|rec| fn(rec.size_mb, 2)},                   :title=>"Curent object size in megabytes", :align=>:right},
+  {:caption=>"Blocks",           :data=>proc{|rec| fn(rec.blocks)},                       :title=>"Number of allocated blocks calculated by last analyze run", :align=>:right},
+  {:caption=>"Empty",            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=>"Number of empty (never used) blocks calculated by last analyze run", :align=>:right},
+  {:caption=>"Avg. Space",       :data=>proc{|rec| fn(rec.avg_space)},                    :title=>"Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run", :align=>:right},
+  {:caption=>"Chained",          :data=>proc{|rec| fn(rec.chain_cnt)},                    :title=>"Number of chained rows calculated by last analyze run", :align=>:right},
+  {:caption=>"RowLen",           :data=>proc{|rec| fn(rec.avg_row_len)},                  :title=>"Avg. row len in bytes calculated by last analyze run", :align=>:right},
+  {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                       :title=>"Default parallel degree of table", :align=>:right},
+  {:caption=>"Cache",            :data=>proc{|rec| rec.cache},                            :title=>"Whether the table is to be cached in the buffer cache" },
+  {:caption=>"P.",               :data=>proc{|rec| fn(rec.partition_number)},             :title=>"Number of table partitions", :align=>:right},
+  {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=>"The date of the most recent time this table was analyzed" },
+  {:caption=>"IOT",              :data=>proc{|rec| rec.iot_type},                         :title=>"If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL" },
+  {:caption=>"T",                :data=>proc{|rec| rec.temporary},                        :title=>"Temporary table ?" },
+  {:caption=>"Compr.",           :data=>proc{|rec| rec.compression},                      :title=>"Whether table compression is enabled or not" },
+]
+column_options << {:caption=>"Comp. for",       :data=>proc{|rec| rec.compress_for},        :title=>"Compress what kind of operations" } if session[:database].version >= "11.2"
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {
+      :caption => "Attributes of table #{@owner}.#{@table_name}",
+      :height => :auto
+})
+%>
+
+<%
+column_options =
+[
+  {:caption=>"Name",             :data=>proc{|rec| rec.index_name},                  :title=>"Name of index"},
+  {:caption=>"Columns",          :data=>proc{|rec| rec.column_names},                :title=>"Indexes columns / expressions"},
+  {:caption=>"Type",             :data=>proc{|rec| rec.index_type},                  :title=>"Type of index"},
+  {:caption=>"Unique",           :data=>proc{|rec| rec.uniqueness},                  :title=>"Uniqueness status of the index: UNIQUE,  NONUNIQUE or BITMAP"},
+  {:caption=>"Compr.",           :data=>proc{|rec| "#{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"},  :title=>"Compression an number of key columns for compression"},
+  {:caption=>"TS",               :data=>proc{|rec| rec.subpartition_ts_name ? rec.subpartition_ts_name : (rec.partition_ts_name ? rec.partition_ts_name : rec.tablespace_name)},             :title=>"Tablespace name"},
+  {:caption=>"Pct Free",         :data=>proc{|rec| fn(rec.subpartition_pct_free ? rec.subpartition_pct_free : (rec.partition_pct_free ? rec.partition_pct_free : rec.pct_free))},                :title=>"Percent free", :align=>:right},
+  {:caption=>"Ini Trans",        :data=>proc{|rec| fn(rec.subpartition_ini_trans ? rec.subpartition_ini_trans : (rec.partition_ini_trans ? rec.partition_ini_trans : rec.ini_trans))},               :title=>"Number of initial entries in transaction list of db block", :align=>:right},
+  {:caption=>"Max Trans",        :data=>proc{|rec| fn(rec.subpartition_max_trans ? rec.subpartition_max_trans : (rec.partition_max_trans ? rec.partition_max_trans : rec.max_trans))},               :title=>"Maximum number of transactions in transaction list of db block", :align=>:right},
+  {:caption=>"Rows",             :data=>proc{|rec| fn(rec.num_rows)},                     :title=>"Number of rows calculated by last analyze run", :align=>:right},
+  {:caption=>"Size (MB)",        :data=>proc{|rec| fn(rec.size_mb, 2)},              :title=>"Curent object size in megabytes", :align=>:right},
+  {:caption=>"B",                :data=>proc{|rec| fn(rec.blevel)},                  :title=>"B-tree level", :align=>:right},
+  {:caption=>"Leaf blocks",      :data=>proc{|rec| fn(rec.leaf_blocks)},             :title=>"Number of leaf blocks in the index calculated by last analyze run", :align=>:right},
+  {:caption=>"Distinct",         :data=>proc{|rec| fn(rec.distinct_keys)},           :title=>"Number of distinct keys in the index calculated by last analyze run", :align=>:right},
+  {:caption=>"Avg. leaf blocks / key", :data=>proc{|rec| fn(rec.avg_leaf_blocks_per_key)}, :title=>"The average number of leaf blocks per key calculated by last analyze run", :align=>:right},
+  {:caption=>"Avg. data blocks / key", :data=>proc{|rec| fn(rec.avg_data_blocks_per_key)}, :title=>"The average number of data blocks per key calculated by last analyze run", :align=>:right},
+  {:caption=>"Cluster.",         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=>"A measurement of the amount of (dis)order of the table this index is for", :align=>:right},
+  {:caption=>"Status",           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=>"Index-Status"},
+  {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                   :title=>"Default parallel degree of table", :align=>:right},
+  {:caption=>"P.",               :data=>proc{|rec| "#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}"},  :title=>"Number of index partitions and subpartitions", :align=>:right},
+  {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=>"The date of the most recent time this table was analyzed" },
+  {:caption=>"F. Stat.",         :data=>proc{|rec| rec.funcidx_status},               :title=>"Is the Function-based Index DISABLED or ENABLED?"},
+]
+
+%>
+
+<%= gen_slickgrid(@indexes, column_options, {
+      :caption => "Indexes of table #{@owner}.#{@table_name}",
+      :height => :auto
+})
+%>

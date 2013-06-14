@@ -1,0 +1,26 @@
+<h1>Latch-Waits wegen cache buffers chains</h1>
+<table class="tablesorter" >
+  <thead>
+  <tr>
+    <th title="Latch address">Latch</th>
+    <th title="object owner">Owner</th>
+    <th title="Object name">Object</th>
+    <th title="Anzahl Zugriffe auf Datenblock in Cache">Touches</th>
+    <th title="Anzahl Wiederholungsversuche">Tries</th>
+    <th title="Block-number of object">blockno</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @waits.each do |o| %>
+  <tr>
+    <td><%= o.latchaddr %></td>
+    <td><%= o.owner %></td>
+    <td><%= o.object_name %></td>
+    <td align="right"><%= formattedNumber(o.touches,0) %></td>
+    <td align="right"><%= formattedNumber(o.tries,0) %></td>
+    <td align="right"><%= formattedNumber(o.blockno,0) %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+

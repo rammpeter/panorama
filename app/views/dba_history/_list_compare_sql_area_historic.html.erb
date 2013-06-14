@@ -1,0 +1,65 @@
+<div style="width:100%;">
+</div>
+
+<%
+   @update_area = :list_compare_sql_area_historic_area
+
+    def link_column(tag, d, value)
+      my_ajax_link_to(value,
+                    url_for(:action => :list_sql_detail_historic,
+                            :sql_id      => d.sql_id,
+                            :parsing_schema_name => d.parsing_schema_name,
+                            :dbid        => tag == 1 ? d.dbid_t1 : d.dbid_t2,
+                            :instance    => tag == 1 ? d.min_instance_number_t1 : d.min_instance_number_t2,
+                            :min_snap_id => tag == 1 ? d.min_snap_id_t1 : d.min_snap_id_t2,
+                            :max_snap_id => tag == 1 ? d.max_snap_id_t1 : d.max_snap_id_t2,
+                            :time_selection_start   => (tag == 1 ? @tag1 : @tag2) + " 00:00",
+                            :time_selection_end     => (tag == 1 ? @tag1 : @tag2) + " 23:59",
+                            :update_area => @update_area
+                           ),
+                     :title=>"Anzeige der Details des Statements am betreffenden Tag (unterhalb)")
+    end
+
+   def link_execution_plan(rec, value)
+     my_ajax_link_to(value,
+                     url_for(:update_area          => @update_area,
+                             :action               => :list_sql_history_execution_plan,
+                             :controller           => :dba_history,
+                             :instance             => @instance,
+                             :sql_id               => rec.sql_id,
+                             :time_selection_start => "#{@tag1} 00:00",
+                             :time_selection_end   => "#{@tag2} 23:59",
+                             ),
+                    :title=>"All execution plans between first and la   st day")
+   end
+
+column_options =
+[
+  {:caption=>"I#",              :data=>proc{|rec| rec.instance_count},                                                      :title=>"Number of affected RAC-Instances" },
+  {:caption=>"I<",              :data=>proc{|rec| rec.min_instance_number},                                                 :title=>"Minimum ID of RAC-Instances" },
+  {:caption=>"SQL-ID",          :data=>proc{|rec| link_sql_id(@update_area, rec.min_instance_number, rec.sql_id) },         :title=>"SQL-ID des Statements" },
+  {:caption=>"Plans",           :data=>proc{|rec|  link_execution_plan(rec, rec.execution_plan_count)},                     :title=>"Number of different execution plans", :data_style=>proc{|rec| (rec.execution_plan_count>1 ? "background-color:red;" : "") } },
+  {:caption=>"Elapsed Tag 1",   :data=>proc{|rec| link_column(1, rec, formattedNumber(rec.elapsed_time_t1/1000000.0,0)) },  :title=>"Elapsed Time in Sekunden am Tag 1", :align=>:right },
+  {:caption=>"Elapsed Tag 2",   :data=>proc{|rec| link_column(2, rec, formattedNumber(rec.elapsed_time_t2/1000000.0,0)) },  :title=>"Elapsed Time in Sekunden am Tag 2", :align=>:right },
+  {:caption=>"Elapsed Diff",    :data=>proc{|rec| formattedNumber((rec.elapsed_time_t2-rec.elapsed_time_t1)/1000000.0,0) }, :title=>"Zunahme Elapsed Time von Tag 1 auf Tag 2 in Sekunden", :align=>:right },
+  {:caption=>"Elapsed %",       :data=>proc{|rec| formattedNumber((rec.elapsed_time_t2/rec.elapsed_time_t1.to_f-1)*100,0) },:title=>"Zunahme Elapsed Time von Tag 1 auf Tag 2 in %", :align=>:right },
+  {:caption=>"Korr. Elapsed Diff",:data=>proc{|rec| formattedNumber((rec.elapsed_time_t2-(rec.executions_t2 * rec.elapsed_per_exec_t1))/1000000.0,0) },:title=>"Korrigierte Zunahme Elapsed Time von Tag 1 auf Tag 2 in Sekunden bezogen auf Anzahl Executions von Tag2", :align=>:right },
+  {:caption=>"Exec. Tag 1",     :data=>proc{|rec| link_column(1, rec, formattedNumber(rec.executions_t1)) },                :title=>"Anzahl Executions am Tag 1", :align=>:right },
+  {:caption=>"Exec. Tag 2",     :data=>proc{|rec| link_column(2, rec, formattedNumber(rec.executions_t2)) },                :title=>"Anzahl Executions am Tag 2", :align=>:right },
+  {:caption=>"Elapsed / Exec. Tag 1", :data=>proc{|rec| link_column(1, rec, formattedNumber(rec.elapsed_per_exec_t1/1000000,3)) }, :title=>"Sekunden je Execution am Tag 1", :align=>:right },
+  {:caption=>"Elapsed / Exec. Tag 2", :data=>proc{|rec| link_column(2, rec, formattedNumber(rec.elapsed_per_exec_t2/1000000,3)) }, :title=>"Sekunden je Execution am Tag 2", :align=>:right },
+  {:caption=>"Rows Tag 1",      :data=>proc{|rec| link_column(1, rec, formattedNumber(rec.rows_processed_t1)) },            :title=>"Anzahl Rows processed am Tag 1", :align=>:right },
+  {:caption=>"Rows Tag 2",      :data=>proc{|rec| link_column(2, rec, formattedNumber(rec.rows_processed_t2)) },            :title=>"Anzahl Rows processed am Tag 2", :align=>:right },
+]
+
+%>
+
+<%= gen_slickgrid(@diffs, column_options, {
+        :caption => "Vergleich der Laufzeiten zweiter Tage: Tag 1 '#{@tag1}', Tag 2 '#{@tag2}'#{" Instance = #{@instance}" if @instance}#{" Filter = '#{@filter}'" if @filter}#{" SQL_ID = '#{@sql_id}'" if @sql_id}",
+        :max_height => 450
+}) %>
+
+
+
+<div id="<%= @update_area %>">
+</div>

@@ -1,0 +1,21 @@
+<%
+  def build_groupfilter(rec = nil)
+    groupfilter = {
+                    :DBID                 => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
+                    :time_selection_end   => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end},
+                    :time_selection_start => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start},
+                  }
+    groupfilter[:Min_Snap_ID] = {:sql => "s.snap_id >= ?"        , :bind_value => rec.min_snap_id, :hide_filter => true} if rec
+    groupfilter[:Max_Snap_ID] = {:sql => "s.snap_id <= ?"        , :bind_value => rec.max_snap_id, :hide_filter => true} if rec
+    groupfilter[:Instance]    = {:sql => "s.Instance_Number = ?" , :bind_value => @instance} if @instance
+    groupfilter.merge(@idle_waits_filter).merge(@instance_filter)
+    groupfilter
+  end
+
+  @caption = "Active Session History zwischen #{@time_selection_start} und #{@time_selection_end}#{" für Instance=#{@instance}" if @instance} gruppiert nach #{@groupby}"
+%>
+
+<%= render :partial=> "list_session_statistics_historic_grouping_table_def" %>
+
+
+

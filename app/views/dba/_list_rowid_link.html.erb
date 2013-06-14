@@ -1,0 +1,15 @@
+<%=
+  @update_area = "list_rowid_link_detail_area_#{session[:request_counter]}"
+
+  my_ajax_link_to("RowID=#{@rowid}",
+                  url_for(:action           => :show_rowid_details,
+                          :update_area      => @update_area,
+                          :waitingforobject => @waitingforobject,
+                          :waitingforrowid  => @rowid
+                         ),
+                  :title=>t(:dba_list_rowid_link_hint, :default=>"Columns and row-value of table's primary key'")
+                )
+%>
+
+
+<div id="<%= @update_area %>"></div>

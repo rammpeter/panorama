@@ -1,0 +1,31 @@
+<div><b>Übersicht über Tablespace-Objekte</b></div>
+<div>
+  <%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_objects) do
+  %>
+  <div class="float_left">
+    Tablespaces<br/>
+    <%= collection_select(:tablespace, :name, @tablespaces, :name, :name) %>
+  </div>
+  <div class="float_left">
+    Schemata<br/>
+    <%= collection_select(:schema, :name, @schemas, :name, :name) %>
+  </div>
+  <div class="float_left">
+    Part.<br/>
+    <%= check_box_tag(:showPartitions, 1, true, :title=>"Partitionsdetails anzeigen") %>
+  </div>
+  <div class="float_left">
+    Filter<br>
+    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in Objekt-name enthalten sein (wenn belegt)") %>
+  </div>
+  <div class="float_left">
+    <br/>
+    <%= submit_tag("Objekte und Größen anzeigen", :title => "Objekte mit Größen und Parametern je Tablespace und Schema anzeigen") %>
+  <% end # form %>
+  </div>
+</div>
+
+
+<div id="objects" style="float:left; width:100%;">
+</div>
+

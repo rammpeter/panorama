@@ -1,0 +1,22 @@
+<h2>Abhängigkeiten für Tabelle <%= @username %>.<%= @tablename%></h2>
+
+
+<table border=1 width="100%" >
+<tr>
+    <th title="Hierarchie-Level ( Tiefe der Abhängigkeit)">Level</th>
+    <th title="Tabelle mit einer referentiellen Abhängigkeit">Abhängige Tabelle</th>
+    <th title="Beschreibung der Tabelle mit einer referentiellen Abhängigkeit">Beschreibung</th>
+    <th title="Tabellentyp">Typ</th>
+    <th title="Tabelle von der die erstgenannte referentiell abhänigig ist">Abhängig von Tabelle</th>
+</tr>
+
+<% @dependencies.each do |dependency| %>
+<tr>
+  <td><%= dependency.level.to_i %></td>
+  <td><%= dependency.childowner+"."+dependency.name%></td>
+  <td><%= dependency.documentation%></td>
+  <td title='<%= dependency.tabletypeshort=='M' ? "Stammdaten" : "Keine Stammdaten" %>'><%= dependency.tabletypeshort %></td>
+  <td><%= dependency.parenttable %></td>
+</tr>
+<% end %>
+</table>

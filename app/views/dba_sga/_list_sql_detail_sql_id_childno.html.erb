@@ -1,0 +1,136 @@
+<%
+@update_area = "list_sql_detail_detail_area_#{session[:request_counter]}"
+%>
+
+<%= render :partial=>"list_sql_sga_stat" %>
+<div style="padding: 5px"></div>
+<%
+
+   def avg_read_bytes(rec)
+     fn(rec.read_io_bytes/rec.read_io_requests) if rec.read_io_bytes && rec.read_io_requests && rec.read_io_requests > 0
+   end
+
+   def avg_write_bytes(rec)
+     fn(rec.write_io_bytes/rec.write_io_requests) if rec.write_io_bytes && rec.write_io_requests && rec.write_io_requests > 0
+   end
+
+   sql_starts = 1   # Default falls keine andere Aussage wegen division / 0
+   sql_starts = @plans[0].starts if @plans[0] && @plans[0].starts && @plans[0].starts > 0
+
+     if session[:database].version >= "11.2"
+       @sum_io_requests = 0
+       @sum_interconnect_io_bytes = 0
+       @sum_cpu_seconds = 0                             # Anzahl der Samples
+       @sum_waiting_seconds = 0                         # Anzahl der Samples
+       @sum_db_time_seconds = 0
+       @min_sample_time     = nil
+       @plans.each do |p|
+         @sum_io_requests           += p.io_requests             if p.io_requests
+         @sum_interconnect_io_bytes += p.interconnect_io_bytes   if p.interconnect_io_bytes
+         @sum_cpu_seconds           += p.cpu_seconds             if p.cpu_seconds
+         @sum_waiting_seconds       += p.waiting_seconds         if p.waiting_seconds
+         @sum_db_time_seconds       += p.db_time_seconds         if p.db_time_seconds
+         @min_sample_time           =  p.min_sample_time         if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time  # Kleinste Aufzeichnung eines Samples
+       end
+     end
+
+
+column_options =
+[
+  {:caption=>"Operation",   :data=>proc{|rec| tab = ""; rec.depth.downto(2) {tab += " |&nbsp;"}; "<span style=\"color: lightgray;\">#{tab}</span>#{rec.operation} #{rec.options}".html_safe}, :no_wrap=>true, :title=>"Art des Zugriffs"},
+  {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>"ID der Operation",             :data_title=>proc{|rec| "Parent_ID=#{rec.parent_id}"} },
+  {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>"Reihenfolge der Operation",    :data_title=>proc{|rec| "ID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
+  {:caption=>"Object-name", :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name)},   :title=>"Name des Objekts",             :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
+  {:caption=>"Rows",        :data=>proc{|rec| fn(rec.num_rows) },                           :title=>"Number of rows of object",     :align=>:right },
+  {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
+  {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Costs, cardinality=#{rec.cardinality}, bytes=#{rec.bytes}, time=#{rec.time}, Partition_Start=#{rec.partition_start}, Partition_Stop=#{rec.partition_stop}, Partition_ID=#{rec.partition_id}"} },
+  {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelisierung (Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
+  {:caption=>"Access",      :data=>proc{|rec| html_escape rec.access_predicates },          :title=>"Zugrifskriterium auf Objekt", :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}"} },
+  {:caption=>"Filter",      :data=>proc{|rec| html_escape rec.filter_predicates },          :title=>"Filterkriterium für Objekt",  :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
+  {:caption=>"Temp",        :data=>proc{|rec| rec.temp_space },                             :title=>"Temp-Space prognostiziert" },
+  {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-Distribution-Strategie" },
+]
+column_options <<  {:caption=>"DB time",     :data=>proc{|rec| show_percentage(rec.db_time_seconds, @sum_db_time_seconds) }, :align=>:right, :data_title=>proc{|rec| "DB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)" } if session[:database].version >= "11.2"
+column_options <<  {:caption=>"CPU",         :data=>proc{|rec| show_percentage(rec.cpu_seconds, @sum_cpu_seconds)  },        :align=>:right, :data_title=>proc{|rec| "CPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time." } if session[:database].version >= "11.2"
+column_options <<  {:caption=>"Waits",       :data=>proc{|rec| show_percentage(rec.waiting_seconds, @sum_waiting_seconds)  },:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time." } if session[:database].version >= "11.2"
+column_options <<  {:caption=>"I/O",         :data=>proc{|rec| show_percentage(rec.io_requests, @sum_io_requests)},          :align=>:right, :data_title=>proc{|rec| "IO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)" } if session[:database].version >= "11.2"
+column_options <<  {:caption=>"IC",          :data=>proc{|rec| show_percentage(rec.interconnect_io_bytes, @sum_interconnect_io_bytes)}, :align=>:right, :data_title=>proc{|rec| "Interconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)" } if session[:database].version >= "11.2"
+
+
+column_options.concat [
+  {:caption=>"Starts",      :data=>proc{|rec| fn(rec.starts/sql_starts)         if rec.starts },         :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.starts)         }, Last=#{fn(rec.last_starts)}" },              :title=>"Anzahl Starts der Operation je Ausführung des SQL" },
+  {:caption=>"Rows",        :data=>proc{|rec| fn(rec.output_rows/sql_starts)    if rec.output_rows },    :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.output_rows)    }, Last=#{fn(rec.last_output_rows)}" },         :title=>"Anzahl produzierte Rows der Operation je Ausführung des SQL" },
+  {:caption=>"CR",          :data=>proc{|rec| fn(rec.cr_buffer_gets/sql_starts) if rec.cr_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.cr_buffer_gets) }, Last=#{fn(rec.last_cr_buffer_gets)}" },      :title=>"Anzahl Buffer gets in consistend mode der Operation während letzter Ausführung, meist für Queries" },
+  {:caption=>"CU",          :data=>proc{|rec| fn(rec.cu_buffer_gets/sql_starts) if rec.cu_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.cu_buffer_gets) }, Last=#{fn(rec.last_cu_buffer_gets)}" },      :title=>"Anzahl Buffer gets in current mode der Operation während letzter Ausführung, meist für Insert/Update/Delete" },
+  {:caption=>"Disk R",      :data=>proc{|rec| fn(rec.disk_reads/sql_starts) if rec.disk_reads },         :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.disk_reads)     }, Last=#{fn(rec.last_disk_reads)}" },          :title=>"Anzahl physische Disk-Reads der Operation während letzter Ausführung" },
+  {:caption=>"Disk W",      :data=>proc{|rec| fn(rec.disk_writes/sql_starts) if rec.disk_writes },       :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.disk_writes)    }, Last=#{fn(rec.last_disk_writes)}" },         :title=>"Anzahl physische Disk-Writes der Operation während letzter Ausführung" },
+  {:caption=>"Elapsed",     :data=>proc{|rec| fn(rec.elapsed_time/sql_starts,3) if rec.elapsed_time },   :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.elapsed_time,3) } ms, Last=#{fn(rec.last_elapsed_time,3)} ms" },:title=>"Dauer der Operation während letzter Ausführung in ms" },
+]
+
+
+   @caption = "Explain Plan"
+   if @plan0[0]
+     @caption << " Optimizer-Mode=#{@plan0[0].optimizer}, Executions=#{@plans[0].executions}#{", first ASH-Sample in SGA from #{localeDateTime(@min_sample_time)}" if @min_sample_time}"
+   end
+
+%>
+
+
+
+<%= gen_slickgrid(@plans, column_options, { :caption=>@caption, :line_height_single=>true}) %>
+
+<%
+   def link_session(instance, sid, serialno)
+     my_ajax_link_to("#{sid}/#{serialno}",
+       url_for(:controller=>"dba",
+               :action => "show_session_detail",
+               :instance => instance,
+               :sid      => sid,
+               :serialno => serialno,
+               :update_area => @update_area
+              ),
+       :title=> "Anzeige Details zu Session")
+   end
+%>
+
+<% if @workareas.length > 0 %>
+    <%
+    column_options =
+    [
+      {:caption=>"I",             :data=>proc{|rec| rec.inst_id },                          :title=>"RAC-Instance des Workareas",   :align=>"right"},
+      {:caption=>"Op.-Type",      :data=>proc{|rec| rec.operation_type },                   :title=>"Operation-Type des Workareas"},
+      {:caption=>"Op.ID",         :data=>proc{|rec| rec.operation_id },                     :title=>"Operation-ID des Workareas zur Referenz in Explain-Plan"},
+      {:caption=>"Pol.",          :data=>proc{|rec| rec.policy },                           :title=>"Sizing-Policy des Workareas"},
+      {:caption=>"SID",           :data=>proc{|rec| link_session(rec.inst_id, rec.sid, rec.serialno)  },   :title=>"SID der Session des Workareas"},
+      {:caption=>"QI",            :data=>proc{|rec| rec.qcinst_id },                        :title=>"RAC-Instance des Query Coordinator bei parallel Query"},
+      {:caption=>"QSID",          :data=>proc{|rec| link_session(rec.qcinst_id, rec.qcsid, rec.qcserialno)  },   :title=>"SID der Session des Query-Coordinator bei parallel Query"},
+      {:caption=>"Act. Time",     :data=>proc{|rec| fn(rec.active_time/1000000.0)  },       :title=>"Average time this PGA work area is active in seconds",   :align=>"right"},
+      {:caption=>"Work Area Size",:data=>proc{|rec| fn(rec.work_area_size/1048576.0, 3)  }, :title=>"Maximum size of the PGA work area as it is currently used by the operation in MB",   :align=>"right"},
+      {:caption=>"Exp. Size",     :data=>proc{|rec| fn(rec.expected_size/1048576.0,3)   },  :title=>"Expected size of the PGA work area in MB",   :align=>"right"},
+      {:caption=>"Actual Size",   :data=>proc{|rec| fn(rec.actual_mem_used/1048576.0,3)  }, :title=>"Amount of PGA memory currently allocated in MB",   :align=>"right"},
+      {:caption=>"Max. Size",     :data=>proc{|rec| fn(rec.max_mem_used/1048576.0,3)  },    :title=>"Maximum memory amount used by this PGA work area in MB",   :align=>"right"},
+      {:caption=>"P",             :data=>proc{|rec| fn(rec.number_passes)  },               :title=>"Number of passes corresponding to this PGA work area (0 if running in optimal mode)",   :align=>"right"},
+      {:caption=>"Temp",          :data=>proc{|rec| fn(rec.tempseg_size ? rec.tempseg_size/1048576.0 : nil, 3)  },   :title=>"Temporary segment on disk (ausgelagert in Temp-Tablespace) in MB",   :align=>"right"},
+      {:caption=>"Tablespace",    :data=>proc{|rec| rec.tablespace  },                      :title=>"Genutzter temporary tablespace"},
+    ]
+    %>
+    <%= gen_slickgrid(@workareas, column_options, {:caption => "PGA-Workarea mit diesem Statement aktiver Session", :max_height => 450, :width=>:auto}) %>
+<% end %>
+
+<%
+column_options =
+[
+  {:caption=>"Pos",             :data=>proc{|rec| formattedNumber(rec.position) },      :title=>"Position der Bindevariablen im Statement", :align=>"right"},
+  {:caption=>"Name",            :data=>proc{|rec| rec.name},                            :title=>"Name der Vindevariablen im Statement"},
+  {:caption=>"Typ",             :data=>proc{|rec| rec.datatype_string},                 :title=>"Datentyp der Bindevariablen"},
+  {:caption=>"Last captured",   :data=>proc{|rec| localeDateTime(rec.last_captured)},   :title=>"Zeitpunkt der letzten Aufnahme"},
+  {:caption=>"Value",           :data=>proc{|rec| rec.value_string},                    :title=>"Wert der Bindevariablen in String-Repräsentation"},
+]
+%>
+<%= gen_slickgrid(@binds, column_options, {:caption => "Bindevariablen der letzten Ausführung", :max_height => 450, :width=>:auto}) %>
+
+<%= render :partial=>"list_sql_sga_stat_footer" %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>
+

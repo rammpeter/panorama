@@ -1,0 +1,58 @@
+<h2>Tablespace-Objekte der Datenbank <%= session[:database].sid %> <%= Date.today.strftime("%d.%m.%Y")%> </h2>
+
+<%
+column_options =
+[
+  {:caption=>"Typ",         :data=>proc{|rec| rec.contents},                    :title=>"Typ der Allokation"},
+  {:caption=>"MB Total",    :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>"Größe gesamt in MB",        :align=>:right},
+  {:caption=>"MB Used",     :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>"Genutzter Platz in MB",    :align=>:right},
+  {:caption=>"MB Free",     :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>"Freier Platz in MB",       :align=>:right},
+  {:caption=>"% used",      :data=>proc{|rec| formattedNumber(rec.mbused.to_f/rec.mbtotal*100,1)},  :title=>"Prozentuale Auslastung",                   :align=>:right},
+]
+
+%>
+
+<%= gen_slickgrid(@totals, column_options, {:caption=>"Summen total", :width=>:auto}) %>
+
+<%
+column_options =
+[
+  {:caption=>"Segment-Type",   :data=>proc{|rec| rec.segment_type},                   :title=>"Segment-Type der Summe"},
+  {:caption=>"MBytes",       :data=>proc{|rec| formattedNumber(rec.mbytes)},          :title=>"Größe des Segment-Type (Belegter Platz Netto) in MB",        :align=>:right},
+]
+
+%>
+
+<%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto nach Segment-Typen", :width=>:auto}) %>
+
+<%
+column_options =
+[
+  {:caption=>"Tablespace",          :data=>proc{|rec| rec.tablespace_name},             :title=>"Name des Tablespace"},
+  {:caption=>"Contents",            :data=>proc{|rec| rec.contents},                    :title=>"Typ/Inhalt des Tablespace"},
+  {:caption=>"Blocksize",           :data=>proc{|rec| formattedNumber(rec.blocksize)},  :title=>"Blocksize in Byte des Tablespaces",        :align=>:right},
+  {:caption=>"MB Total",            :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>"Größe des Tablespace gesamt in MB",        :align=>:right},
+  {:caption=>"MB Used",             :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>"Genutzter Platz des Tablespaces in MB",    :align=>:right},
+  {:caption=>"MB Free",             :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>"Freier Platz des Tablespaces in MB",       :align=>:right},
+  {:caption=>"% used",              :data=>proc{|rec| formattedNumber(rec.pctused,1)},  :title=>"Prozentuale Auslastung",                   :align=>:right},
+  {:caption=>"Allocation Type",     :data=>proc{|rec| rec.allocation_type}},
+  {:caption=>"Segment Space Mgmt.", :data=>proc{|rec| rec.segment_space_management}},
+  {:caption=>"Auto ext.",           :data=>proc{|rec| rec.autoextensible},              :title=>"Auto-Extensible ?"},
+]
+
+%>
+
+<%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Nutzung", :width=>:auto}) %>
+
+
+<%
+column_options =
+[
+  {:caption=>"Schema",  :data=>proc{|rec| rec.schema},                  :title=>"Schema / Owner"},
+  {:caption=>"Typ",     :data=>proc{|rec| rec.segment_type},            :title=>"Typ der Objekte"},
+  {:caption=>"MBytes",  :data=>proc{|rec| formattedNumber(rec.mbytes)}, :title=>"Genutzter Platz in MB",        :align=>:right},
+]
+
+%>
+
+<%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Nutzung (> 1 MB)", :width=>:auto}) %>

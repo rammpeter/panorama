@@ -1,0 +1,16 @@
+<h2>Wait-Event-Auswertung aus V$System_Event</h2>
+
+<%= my_ajax_form_tag "dba_waits/show_system_events" do %>
+  Sample-Länge (sec)
+  <%= text_field_tag("sample_length", "1", :maxlength=>10, :size => 5, :title=>"Länge des sample-snapshot in Sekunden") %>
+  Filter
+  <%= text_field_tag("filter", "", :maxlength=>100, :size => 20, :title=>"Filter als Wildcard auf Event-Name") %>
+  Underdrücken Idle-Waits
+  <%= check_box_tag(:suppress_idle_waits, 1, true, :title=>"Wait-Class Idle unterdrücken") %>
+  <%= submit_tag("Events anzeigen", :title => "Anzeige der System-Events") %>
+<% end %>
+<div id="system_events">
+</div>
+
+
+

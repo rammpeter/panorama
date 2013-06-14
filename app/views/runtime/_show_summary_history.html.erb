@@ -1,0 +1,19 @@
+<%
+column_options = [
+    {:caption=>"ID_ProcessingDay", :data=>proc{|rec| fn(rec.id_processingday) },           :title=>"ID_ProcessingDay",              :align=>:right},
+    {:caption=>"Tag",              :data=>proc{|rec| rec.weekday},                         :title=>"Wochentag"},
+    {:caption=>"LV-Datum ",        :data=>proc{|rec| localeDateTime(rec.processingday)},   :title=>"LV-Datum aus Tabelle ProcessingDay",:plot_master_time => true},
+    {:caption=>"Total",            :data=>proc{|rec| fn(rec.totalhours, 2)} ,              :title=>"Laufzeit gesamt in Stunden",    :align=>:right},
+    {:caption=>"Nacht",            :data=>proc{|rec| fn(rec.nachtlvhours, 2)} ,            :title=>"Laufzeit Nacht-LV in Stunden",  :align=>:right},
+    {:caption=>"Mittag",           :data=>proc{|rec| fn(rec.mittaglvhours, 2)} ,           :title=>"Laufzeit Nacht-LV in Stunden",  :align=>:right},
+    {:caption=>"Jobs",             :data=>proc{|rec| fn(rec.jobcount)} ,                   :title=>"Anzahl Jobs",                   :align=>:right},
+]
+%>
+
+<%=
+gen_slickgrid(@daily_runtimes, column_options, {
+        :caption => "Historische LV-Laufzeiten (Ohne ID_Application 120,128 (Platzhalter für Online, Batch)",
+        :max_height => 450,
+        :width => :auto
+}) %>
+

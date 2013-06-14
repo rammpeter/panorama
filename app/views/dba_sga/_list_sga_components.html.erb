@@ -1,0 +1,41 @@
+<h2>SGA-Komponenten<%=", Instance = #{@instance}" if @instance %></h2>
+<%
+column_options =
+[
+  {:caption=>"I",     :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool innerhalb der SGA"},
+  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Größe in Bytes", :align=>"right"},
+  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Größe in Megabytes", :align=>"right"},
+  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Größe in Gigabytes", :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@sums, column_options, {
+        :caption => "Summen nach Pools",
+        :max_height => 450
+}) %>
+
+<%
+column_options =
+[
+  {:caption=>"I",     :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool innerhalb der SGA"},
+  {:caption=>"Name",  :data=>proc{|rec| rec.name},                                           :title=>"Name der Komponente"},
+  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Größe der Komponente in SGA in Bytes", :align=>"right"},
+  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Größe der Komponente in Megabytes",    :align=>"right"},
+  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Größe der Komponente in Gigabytes",    :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@components, column_options, {
+        :caption => "Details",
+        :max_height => 450
+}) %>
+
+
+
+
+
+
+
+

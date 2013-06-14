@@ -1,0 +1,22 @@
+<% @update_area = "list_prepared_active_session_history_detail_area_#{session[:request_counter]}" %>
+<%=
+    my_ajax_form_tag url_for(:controller  => :active_session_history,
+                             :action      => :list_prepared_active_session_history,
+                             :update_area => @update_area,
+                             :groupfilter => @groupfilter,
+                             :groupby     => @groupby
+                            ) do
+%>
+  <div>
+    <b>Session-Statistics aus DBA_Hist_Active_Sess_History</b>
+  </div>
+
+  <%= include_start_end_timepicker(:show_prepare_active_session_history) %>
+
+  <div class="float_left">
+    <%= submit_tag("Waits anzeigen", :title => "Anlistung der verdichteten Session-Waits") %>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>
+

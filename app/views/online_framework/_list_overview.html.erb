@@ -1,0 +1,77 @@
+<%
+   @update_area = :list_overview_detail_area
+
+def link_column(rec, value)
+  my_ajax_link_to(value,
+        url_for(:action => "show_msgtype_details",
+                :id_ofmessagetype => rec.id_ofmessagetype,
+                :timeSlice => 20,
+                :time_selection_start => (Time.now - 60*60*3).strftime(session[:database].strftime_format_with_minutes),
+                :time_selection_end   => Time.now.strftime(session[:database].strftime_format_with_minutes),
+                :update_area => @update_area),
+        :title=>"Anzeige der Details des MessageTypes (unterhalb)")
+end
+
+def link_error(rec, value)
+  my_ajax_link_to(value,
+          url_for(:action => "show_oferrormessage",
+                  :id_ofmessagetype => rec.id_ofmessagetype.to_i,
+                  :update_area => @update_area),
+        :title=>"Anzeige der Fehlermeldungen des Messagetypes (unterhalb)") 
+end
+
+def erroneous_data_style(rec)
+  "background-color:red;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
+end
+
+def minctsnoerror_data_style(rec)
+  output = ""
+  output = "background-color:orange;" if rec.sla_warning_count > 0
+  output = "background-color:red;" if rec.sla_alert_count > 0
+  output
+end
+
+def msgtyp(id_ofmessagetype)
+  Ofmessagetype.get_cached_instance(id_ofmessagetype, session[:database].hash)
+end
+
+def msgtype_with_activity(rec)
+  "#{msgtyp(rec.id_ofmessagetype).yn_active=='N' ? '(' : ''}#{rec.id_ofmessagetype.to_i}#{msgtyp(rec.id_ofmessagetype).yn_active=='N' ? ')' : ''}"
+end
+
+id_data_title = 'YN_Active=#{msgtyp(rec.id_ofmessagetype).yn_active}, Domains=#{msgtyp(rec.id_ofmessagetype).domains}, Prio=#{msgtyp(rec.id_ofmessagetype).id_ofmessagepriority}, StandardBulkCount=#{msgtyp(rec.id_ofmessagetype).standardbulkcount}, MaxBulkGroupsInQueue=#{msgtyp(rec.id_ofmessagetype).maxbulkgroupsinqueue}'
+
+column_options =
+  [
+    {:caption=>"Typ",         :data=>proc{|rec| link_column(rec, msgtype_with_activity(rec))},              :title=>"ID des MessageTypes (ID_OFMessageType)", :data_title=>id_data_title, :align=>"right"},
+    {:caption=>"Name",        :data=>proc{|rec| link_column(rec, msgtyp(rec.id_ofmessagetype).name)},       :title=>"Beschreibung des Messagetypes", :data_title=>'#{msgtyp(rec.id_ofmessagetype).description}'},
+    {:caption=>"Domain",      :data=>proc{|rec| link_column(rec, msgtyp(rec.id_ofmessagetype).domain.name)},:title=>"Application-Server-Domäne"},
+  ]
+  if @showApplExec
+    column_options << {:caption=>"Application",       :data=>proc{|rec| link_column(rec, "#{rec.id_application}: #{rec.applname}")}, :title=>"Application / ID_ApplExecution", :data_title=>'ID_ApplExecution=#{rec.id_applexecution}'}
+  end
+  column_options.concat([
+    {:caption=>"Total",       :data=>proc{|rec| link_column(rec, formattedNumber(rec.total, 0, true))},       :title=>"Totale Anzahl Messages in Queue", :align=>"right", :data_title=>'Totale Anzahl Messages in Queue. Anzahl mit RunCount=0: #{rec.totalwithruncount0.to_i}'},
+    {:caption=>"MinTS",       :data=>proc{|rec| link_column(rec, localeDateTime(rec.minctsnoerror))},         :title=>"Zeitstempel der Einstellung der ältesten nicht fehlerhaften Message", :data_title=>'Älteste fehlerhafte = #{localeDateTime(rec.minctserror)}, #{rec.sla_warning_count} Messages älter als Warning-Schwellwert, #{rec.sla_alert_count} Messages älter als Alert-Schwellwert, Warning-Schwellwert=#{msgtyp(rec.id_ofmessagetype).waitlimitwarning} Minuten, Alert-Schwellwert=#{msgtyp(rec.id_ofmessagetype).waitlimitalert} Minuten', :data_style=>'#{minctsnoerror_data_style(rec)}'},
+    {:caption=>"MaxTS",       :data=>proc{|rec| link_column(rec, localeDateTime(rec.maxcts))},                :title=>"Zeitstempel der Einstellung der jüngsten Message"},
+    {:caption=>"Max-Prio",    :data=>proc{|rec| link_column(rec, localeDateTime(rec.mincalculatedpriority))}, :title=>"Maximale Priorität (kleiner Zeitstempel) einer Message dieses Types"},
+    {:caption=>"MaxReR",      :data=>proc{|rec| link_column(rec, formattedNumber(rec.maxruncount, 0, true))}, :title=>"Maximaler Rerun-Count einer Message", :align=>"right"},
+    {:caption=>"Susp.",       :data=>proc{|rec| link_column(rec, formattedNumber(rec.suspended, 0, true))},   :title=>"Anzahl suspendierte Messages wartend auf Ablauf der Suspendierung", :align=>"right"},
+    {:caption=>"WaitBl",      :data=>proc{|rec| link_column(rec, formattedNumber(rec.waitforblocker, 0, true))},:title=>"Anzahl Messages wartend auf Blocker-Prozess", :align=>"right", :data_title=>'Wartend auf Blocker. MaxBulkGroupsInQueue=#{msgtyp(rec.id_ofmessagetype).maxbulkgroupsinqueue}, StandardBulkCount=#{msgtyp(rec.id_ofmessagetype).standardbulkcount}'},
+    {:caption=>"WaitWk",      :data=>proc{|rec| link_column(rec, formattedNumber(rec.waitforworker, 0, true))},:title=>"Anzahl Messages wartend auf Worker-Prozess", :align=>"right", :data_title=>'Wartend auf Worker. MaxBulkGroupsInQueue=#{msgtyp(rec.id_ofmessagetype).maxbulkgroupsinqueue}, StandardBulkCount=#{msgtyp(rec.id_ofmessagetype).standardbulkcount}'},
+    {:caption=>"Errors",      :data=>proc{|rec| link_error(rec, formattedNumber(rec.erroneous, 0, true))},    :title=>"Anzahl Messages im finalen Fehlerzustand", :data_title=>'Anzahl Messages im finalen Fehlerzustand, max. Limit des Types = #{msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert}', :align=>"right", :data_style=>'#{erroneous_data_style(rec)}'},
+    {:caption=>"BulkGroups",  :data=>proc{|rec| link_column(rec, formattedNumber(rec.bulkgroups, 0, true))},:title=>"Totale Anzahl BulkGroups (Transaktions-Gruppen)", :align=>"right"},
+    {:caption=>"Active",      :data=>proc{|rec| link_column(rec, formattedNumber(rec.activebulkgroups, 0, true))},:title=>"Anzahl aktuell in Abarbeitung durch Worker befindliche BulkGroups (Transaktions-Gruppen)", :align=>"right"},
+    {:caption=>"Max.BG-Prio", :data=>proc{|rec| link_column(rec, localeDateTime(rec.minbulkgroupprio))},    :title=>"Maximale Priorität (kleiner Zeitstempel) einer BulkGroup dieses Types"},
+    {:caption=>"Min.BG Creation", :data=>proc{|rec| link_column(rec, localeDateTime(rec.minbulkgroupcreationts))},  :title=>"Erzeugungs-Zeitpunkt der ältesten Bulkgroup des Msg-Types"},
+  ])
+
+%>
+
+<%= gen_slickgrid(@msgsums, column_options, {
+        :caption => "Aktueller Queue-Inhalt des Online-Framework #{localeDateTime(@sysdate)}",
+        :max_height => 450
+}) %>
+
+<div id="<%= @update_area %>"></div>
+

@@ -1,0 +1,41 @@
+<%
+   @update_area = :list_ddl_locks_detail_area
+
+    def link_column_session(instance, sid, serialno)
+   my_ajax_link_to("#{instance}:#{sid},#{serialno}",
+   url_for( :action            => "show_session_detail",
+            :instance          => instance,
+            :sid               => sid,
+            :serialno          => serialno,
+            :update_area       => @update_area
+            ),
+    :title => "Details zur Session"
+  )
+ end
+
+    column_options =
+      [
+        {:caption=>"B.session",      :data=>proc{|rec| link_column_session(rec.b_inst_id, rec.b_sid, rec.b_serialno)},  :title=>"Instance : SID, SerialNo of blocking session"},
+        {:caption=>"B.PID",          :data=>proc{|rec| rec.b_pid},                                                      :title=>"Process-ID on DB server of blocking session"},
+        {:caption=>"B.user",         :data=>proc{|rec| rec.b_user},                                                     :title=>"DB-user of blocking session"},
+        {:caption=>"B.machine",      :data=>proc{|rec| rec.b_machine},                                                  :title=>"client machine of blocking session"},
+        {:caption=>"B.OS user",       :data=>proc{|rec| rec.b_osuser},                                                  :title=>"OS user on client machine of blocking session"},
+        {:caption=>"B.process",      :data=>proc{|rec| rec.b_process},                                                  :title=>"process ID on client machine of blocking session"},
+        {:caption=>"B.program",      :data=>proc{|rec| rec.b_program},                                                  :title=>"program on client machine of blocking session"},
+        {:caption=>"W.session",      :data=>proc{|rec| link_column_session(rec.w_inst_id, rec.w_sid, rec.w_serialno)},  :title=>"Instance : SID, SerialNo of waiting session"},
+        {:caption=>"LockType",       :data=>proc{|rec| rec.locktype},                                                   :title=>"Lock-Type"},
+        {:caption=>"Object",         :data=>proc{|rec| rec.object},                                                     :title=>"Object"},
+        {:caption=>"mode held",      :data=>proc{|rec| rec.mode_held},                                                  :title=>"Mode held"},
+        {:caption=>"mode requested", :data=>proc{|rec| rec.mode_requested},                                             :title=>"Mode requested"},
+     ]
+
+  %>
+<%= gen_slickgrid(@ddl_locks, column_options, {
+        :caption => "DDL-Locks",
+        :max_height=>450
+})
+%>
+
+<div id="<%= @update_area %>">
+</div>
+

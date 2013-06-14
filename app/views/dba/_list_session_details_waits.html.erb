@@ -1,0 +1,33 @@
+<%
+  column_options =
+  [
+    {:caption=>"Wait-Event",       :data=>proc{|rec| rec.event},                              :title=>"Wait-Event", :data_title=>'#{explain_wait_event(rec.event)}'},
+    {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(@instance, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "list_session_details_wait_info_#{@instance}_#{@sid}") }, :title=>"Parameter des Wait-Events"},
+    {:caption=>"Class",            :data=>proc{|rec| rec.wait_class},                         :title=>"Wait-Class"},
+    {:caption=>"Sec.",             :data=>proc{|rec| rec.seconds_in_wait},                    :title=>"Sekunden im aktuellen Wait-Zustand"},
+    {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>'#{explain_wait_state(rec.state)}'},
+  ]
+
+%>
+<%= gen_slickgrid(@waits, column_options, :caption => "Aktueller Wait-Status für Instance=#{@instance}, SID=#{@sid}", :width=>:auto) %>
+
+
+<% if @pq_waits.length > 0 %>
+  <%
+    column_options =
+    [
+      {:caption=>"PQ-Slave",         :data=>proc{|rec| rec.program},                            :title=>"Programm-Name des PQ-Slaves"},
+      {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                            :title=>"Instanz des PQ-Slaves"},
+      {:caption=>"SID",              :data=>proc{|rec| rec.sid},                                :title=>"Session-ID des PQ-Slaves"},
+      {:caption=>"Req",              :data=>proc{|rec| rec.req_degree},                         :title=>"Angeforderter PQ-Degree"},
+      {:caption=>"Dgr",              :data=>proc{|rec| rec.degree},                             :title=>"Tatsächlicher PQ-Degree"},
+      {:caption=>"Wait-Event",       :data=>proc{|rec| rec.event},                              :title=>"Wait-Event", :data_title=>'#{explain_wait_event(rec.event)}'},
+      {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw,  rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "list_session_details_wait_info_#{rec.inst_id}_#{rec.sid}") }, :title=>"Parameter des Wait-Events"},
+      {:caption=>"Class",            :data=>proc{|rec| rec.wait_class},                         :title=>"Wait-Class"},
+      {:caption=>"Sec.",             :data=>proc{|rec| rec.seconds_in_wait},                    :title=>"Sekunden im aktuellen Wait-Zustand"},
+      {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>'#{explain_wait_state(rec.state)}'},
+    ]
+  %>
+  <%= gen_slickgrid(@pq_waits, column_options,{:caption=>"PQ-Prozesse", :width=>:auto}) %>
+<% end %>
+

@@ -1,0 +1,28 @@
+<h1>Anzeige der Anhängigen Tabellen einer gegebenen Tabelle </h1>
+
+<div id="schema_selection" style="float:left; ">
+<%= my_ajax_form_tag "table_dependencies/select_schema" do %>
+  <%= collection_select(:all_user, :username, @all_users, :username, :username, {}, :title=>"Auswahl Schema für Tabelle deren abhängige Tabellen gesucht werden") %>        
+
+  <!-- observe_field( "all_user_username",
+                    :frequency=>1.0, 
+                    :url => {:action => "select_schema"},
+                    :with => "username",
+    :loading => 'ajax_loading()',
+    :complete => 'ajax_complete()'
+                    )
+  -->
+
+  <%= submit_tag("Tabellen anzeigen", :title => "Anzeige der Tabellen des Schemas") %>
+
+<% end %>
+</div>
+<div id="table_selection" style="float:left; ">
+Table-Selection
+</div>
+<div id="dependencies" style="float:left; width:100%; overflow:scroll; background-color:#EEE5DE; ">                
+Dependencies
+</div>
+
+
+

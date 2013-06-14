@@ -1,0 +1,45 @@
+
+<h1>Releasenotes Panorama for Oracle (Peter Ramm, GTP Dresden)</h1>
+
+
+<h2>Erweiterungen f&uuml;r naechstes Release</h2>
+<ul>
+    <li>Auswertung Active Session History jetzt auch nach Transaction-ID und SQL-Exec-ID</li>
+</ul>
+<h2>Release 1.10 (14.05.2013</h2>
+<ul>
+    <li>Embedded Web-Server jetzt im Panorama.war enthalten, damit kann Panorama Standalone ausgeführt werden per "java -jar Panorama.war". Bei Zeichensatz-Problemen bitte nach -Dfile.encoding=UTF-8 hinzufuegen.</li>
+</ul>
+<h2>Release 1.8 (26.11.2012)</h2>
+<ul>
+  <li>Umstellung der tabellarischen Darstellungen auf jQuery-Plugin "slickGrid"</li>
+</ul>
+<h2>Release 1.7 (18.09.2012)</h2>
+<ul>
+  <li>Erweiterung der Active Session History für Oracle 11g</li>
+</ul>
+<h2>Release 1.6 (30.11.2011)</h2>
+<ul>
+  <li>Anzeige Wait-Times je Objekt in Segment-Statistics historisch</li>
+  <li>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</li>
+  <li>Ausweisung der Hinderungsgr&uuml;nde f&uuml; Nichtnutzung Shared Cursor</li>
+  <li>Separate Ausweisung der SQL-Area nach SQL-ID und zus&auml;tzlicher Unterscheidung von Child-Cursoren</li>
+  <li>Beginn Internationalisierung mit deutsch, englisch</li>
+</ul>
+<ul>
+  <li>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</li>
+  <li>Anzeige Nutzer in Login-Shortcuts</li>
+  <li>Anzeige von Tagessummen je SQL &uuml;ber komplett verf&uuml;gbaren Datenbestand in Historie (Button am Ende der SQL-Detail-Ansichten)</li>
+  <li>Erweiterung der Gruppierungen der ActiveSessionHistory um User</li>
+  <li>Separierung historischer SQL-Daten nach Parsing_Schema_User für saubere Trennung identischer SQL-Statements ausgeführt von verschiedenen Usern gegen gelichnamige Schema-Objekte</li>
+  <li>Einblenden der sekuendlichen Wait-Events aus v$Active_Session_Wait in historische Wait-Auswertung soweit diese in SGA verfuegbar sind</li>
+  <li>Auswertung blocking Locks aller Art über RAC-Lock-Manager unter "DBA-Wait-Analyse/Enqueue Statistics"</li>
+</ul>
+<h2>Release 1.4 (28.04.2011)</h2>
+<ul>
+    <li>Anzeige Service-Name in Einzelanlistung der Active Session History</li>
+    <li>Connect jetzt auch zu Listener-Services m&ouml;glich (bisher nur auf konkrete SID)</li>
+    <li>Auswertung historische Enqueue-Kennzahlen</li>
+    <li>Auswertung des ON_CPU-State zus&auml;tzlich zu den bisherigen Wait-States in Active Session History</li>
+</ul>
+<h2>Release 1.3 (31.03.2011)</h2>

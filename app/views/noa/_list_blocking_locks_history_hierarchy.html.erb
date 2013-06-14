@@ -1,0 +1,46 @@
+<%
+  @update_area = "list_blocking_locks_history_hierarchy_detail_area_#{session[:request_counter]}"
+
+# Generische Funktion für Link
+def link_column_sql_id(rec, sql_id, child_number, parsing_schema_name)
+  link_historic_sql_id(rec.root_blocking_instance_number, sql_id, localeDateTime(rec.root_snapshotts), localeDateTime(rec.root_snapshotts), @update_area, parsing_schema_name)
+end
+
+def link_column_blocked(rec, value)
+  my_ajax_link_to(value,
+   url_for( :action            => 'list_blocking_locks_history_hierarchy_detail',
+            :update_area       => @update_area,
+            :snapshotts        => localeDateTime(rec.root_snapshotts),
+            :blocking_instance => rec.root_blocking_instance_number,
+            :blocking_sid      => rec.root_blocking_sid,
+            :blocking_serialno => rec.root_blocking_serialno
+          ),
+   :title=>'Anzeige der durch diese blocking Session geblockten Sessions')
+end
+
+
+column_options =
+  [
+    {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(rec.root_snapshotts)},                              :title=>"Zeitstempel der Aufzeichnung der Locks"},
+    {:caption=>"B.I.",            :data=>proc{|rec| rec.root_blocking_instance_number},                                :title=>"Instance der blockenden Session"},
+    {:caption=>"B.SID",           :data=>proc{|rec| rec.root_blocking_sid},                                            :title=>"SID der blockenden Session", :data_title=>'SerialNo=#{rec.root_blocking_serialno}'},
+    {:caption=>"Direct Blocked",  :data=>proc{|rec| link_column_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_direct)} >")},  :title=>"Anzahl unmittelbar durch diesen Blocker blockierter Sessions", :align=>"right"},
+    {:caption=>"Total Blocked",   :data=>proc{|rec| link_column_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_total)} >")},   :title=>"Anzahl blockierter Sessions durch diesen Blocker (unmittelbar und mittelbar)", :align=>"right"},
+    {:caption=>"Wait (Sec.)",     :data=>proc{|rec| formattedNumber(rec.seconds_in_wait_total,0)},                     :title=>"Summe Anzahl Sekunden die mittelbar und unmittelbar geblockte Sessions bereits im Wartezustand warten", :align=>"right"},
+    {:caption=>"B. SQL-ID Prev.SQL-ID", :data=>proc{|rec| "#{link_column_sql_id(rec, rec.root_blocking_sql_id, rec.root_blocking_sql_child_number, rec.root_blocking_username)} #{link_column_sql_id(rec, rec.root_blocking_prev_sql_id, rec.root_block_prev_child_number, rec.root_blocking_username)}"}, :title=>"Als letztes und vorletztes ausgeführtes SQL der blockenden Session"},
+    {:caption=>"B.Status",        :data=>proc{|rec| rec.root_blocking_status},                                         :title=>"Status der blockenden Session"},
+    {:caption=>"B. Client-Info / Module / Action",:data=>proc{|rec| "#{rec.root_blocking_client_info} #{rec.root_blocking_module} #{rec.root_blocking_action}"}, :title=>"Client-Info, Module und Action der blockenden Session", :data_title=>'Client-Info, Module und Action der blockenden Session, #{rec.blocking_app_desc}'},
+    {:caption=>"B.User",          :data=>proc{|rec| rec.root_blocking_username},     :title=>"User der blockenden Session", :data_title=>'User der blockenden Session, Machine=#{rec.root_blocking_machine}, OSUser=#{rec.root_blocking_osuser}, Process=#{rec.root_blocking_process}'},
+    {:caption=>"B.Program",       :data=>proc{|rec| rec.root_blocking_program},      :title=>"Programm der blockenden Session", :data_title=>'Programm der blockenden Session, Machine=#{rec.root_blocking_machine}, OSUser=#{rec.root_blocking_osuser}, Process=#{rec.root_blocking_process}'},
+    {:caption=>"Blocking Object", :data=>proc{|rec| rec.root_blocking_object},                                         :title=>"Blockendes Objekt"},
+    {:caption=>"RowID / Primary Key", :data=>proc{|rec| "#{rec.root_blocking_rowid} #{rec.root_waitingforpkeycolumnname} = #{rec.root_waitingforpkeyvalue}"}, :title=>"RowID sowie Spalten und Inhalt des Primary Key des blockenden Objektes"},
+  ]
+%>
+
+<%= gen_slickgrid(@locks, column_options, {
+        :caption => "Blocking Locks zwischen #{@time_selection_start} und #{@time_selection_end} hierarchisch gruppiert ausgehend von Root-Blockern",
+        :max_height=>450
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

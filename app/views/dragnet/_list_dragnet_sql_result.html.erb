@@ -1,0 +1,94 @@
+<%  # Die folgende Logik liegt hier, da sonst nicht auf ActionView-Helper zurückgegriffen werden kann
+if @res.count > 0
+    @column_options = []
+
+      @res[0].each do |key, value|   # Iteration über Spalten der ersten Zeile
+        @column_options << {:caption=>key,
+                           :title=>key,
+                           #:data_title=>proc{|rec| "#{key}: Classname=#{rec[key].class.name}"}
+        }
+      end
+
+      # Ermitteln der anzahl Nachkommastellen einer Zahl
+      def scale_count(number)
+        number = number.to_s
+        index = number.index "."
+        return 0 unless index
+        return number.length-index-1
+      end
+
+      #Iterieren über Spalten des Results
+      chart_x_axis_found = false
+      @column_options.each do |col|
+        isNumber = true
+        isDate   = true
+        scale    = 0                            # Anzahl Nachkommastellen
+        @res.each do |r|                         # Iteration über Zeilen des Results
+          fieldval = r[col[:caption]]              # Aktueller Feldinhalt
+
+          if isNumber && fieldval.class.name!="Fixnum" && fieldval.class.name!="BigDecimal" && fieldval.class.name!="NilClass"    # Prüfen auf alle Werte der Spalte numerisch
+            isNumber = false;
+          else
+            if fieldval.class.name =="BigDecimal" && scale_count(fieldval) > scale
+              scale = scale_count(fieldval)
+            end
+          end
+
+          if isDate && fieldval.class.name!="Time" && fieldval.class.name!="NilClass" # Prüfen auf alle Werte Zeitstempel
+            isDate = false
+          end
+        end
+
+        case
+          when isNumber then
+            col[:data] = proc{|rec| formattedNumber(rec[col[:caption]], scale)}
+            col[:align] = "right"
+          when isDate then
+            col[:data] = proc{|rec| localeDateTime(rec[col[:caption]])}
+            unless chart_x_axis_found
+              col[:plot_master] = true
+              col[:plot_master_time] = proc{|rec| rec[col[:caption]] ? milliSec1970(rec[col[:caption]]) : nil }
+              chart_x_axis_found = true
+            end
+          when col[:caption].downcase == 'sql_id' || col[:caption].downcase == "sql-id" || col[:caption].downcase["sql_id"] || col[:caption].downcase["sql-id"] then
+            min_alter_org = Time.new
+            max_alter_org = min_alter_org-10000
+            @time_selection_end = min_alter_org.strftime("%d.%m.%Y %H:%M")
+            @time_selection_start = (max_alter_org).strftime("%d.%m.%Y %H:%M")
+
+            col[:data] = proc{|rec|
+                                inst_id = 1 # Default
+                                inst_id = rec["inst_id"]            if rec["inst_id"]
+                                inst_id = rec["instance_number"]    if rec["instance_number"]
+                                inst_id = rec["Instance"]           if rec["Instance"]
+                                #link_sql_id('exec_dragnet_sql_detail_area', inst_id, my_html_escape(rec[col[:caption]]))
+                                link_historic_sql_id(inst_id,
+                                                     my_html_escape(rec[col[:caption]]) ,
+                                                     (Time.new-80000).strftime("%d.%m.%Y %H:%M"),
+                                                     Time.new.strftime("%d.%m.%Y %H:%M"),
+                                                     :exec_dragnet_sql_detail_area
+                                )
+
+                             }
+        else
+          col[:data] = proc{|rec| my_html_escape(rec[col[:caption]]) }
+        end
+      end
+
+%>
+
+<%= gen_slickgrid(@res, @column_options, {:caption => @caption, :plot_area => "exec_dragnet_sql_detail_area", :max_height=>450}) %>
+
+<div id='exec_dragnet_sql_detail_area'></div>
+
+<%
+else
+%>
+SQL brachte kein Result
+
+<%
+end
+%>
+
+
+

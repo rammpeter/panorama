@@ -1,0 +1,71 @@
+<!--
+  Template wird von mehreren Controller-Methoden verwendet !!!
+-->
+<%
+   if @sqls.count > 0 && @sqls[0]["start_time"] && @sqls[0]["end_time"]
+     @start_time = localeDateTime @sqls[0]["start_time"]
+     @end_time   = localeDateTime @sqls[0]["end_time"]
+   else
+     @start_time = @time_selection_start
+     @end_time   = @time_selection_end
+   end
+%>
+
+<%
+   @update_area = "list_sql_historic_detail_area_#{session[:request_counter]}"
+
+    def link_column_sql(rec, value)
+      link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)
+    end
+
+    def link_column_snap(result, value)
+      my_ajax_link_to(value,
+        url_for(:action     => "list_sql_history_snapshots",
+                :instance   => result.instance_number,
+                :sql_id     => result.sql_id,
+                :parsing_schema_name =>result.parsing_schema_name,
+                :time_selection_start => @time_selection_start,
+                :time_selection_end   => @time_selection_end,
+                :update_area=> @update_area
+              ),
+       :title=>"Anzeige der Werte der einzelnen Snapshots (unterhalb)")
+    end
+
+   column_options =
+    [
+          {:caption=>"I",           :data=>proc{|rec| rec.instance_number }, :title=>"Instance-ID" },
+    ]
+    # Anzeige Attribute aus explain plan bei Nutzung des Views für Result von show_using_sqls_historic
+    column_options << {:caption=>"Operation",      :data=>proc{|rec| "#{rec.operation} #{rec.options}"}, :title=>"Operation", :data_title=>proc{|rec| "Operation: #{rec.other_tag}"} } if @sqls.count>0 && @sqls[0]["operation"] && @sqls[0]["options"]
+    column_options.concat [
+          {:caption=>"SQL-ID",      :data=>proc{|rec| link_column_sql(rec, rec.sql_id) },                                   :title=>"SQL-ID" },
+          {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text },                                        :title=>"SQL-Text" },
+          {:caption=>"User",        :data=>proc{|rec| rec.parsing_schema_name[0,8]+(rec.parsing_schema_name.length>8   ? "." : "") }, :title=>"Username", :data_title=>proc{|rec| rec.parsing_schema_name} },
+          {:caption=>"Erstes Auftreten", :data=>proc{|rec| localeDateTime(rec.first_occurrence) },                          :title=>"Erstes Auftreten" },
+          {:caption=>"Letztes Auftreten",:data=>proc{|rec| localeDateTime(rec.last_occurrence) },                           :title=>"Letztes Auftreten" },
+          {:caption=>"Execs",       :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.executions)) },             :title=>"Anzahl Ausführungen", :align=>"right" },
+          {:caption=>"Elapsed",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs)) },      :title=>"Total elapsed time in Sec.", :align=>"right" },
+          {:caption=>"Ela./Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs_per_execute,4)) },     :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right" },
+          {:caption=>"CPU",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.cpu_time_secs)) },          :title=>"CPU-Time in Sekunden", :align=>"right",    :data_title=>proc{|rec| "CPU-Time in Sekunden: #{@sum_cpu_time_secs && @sum_cpu_time_secs>0 && rec.cpu_time_secs ? formattedNumber(rec.cpu_time_secs*100.0/@sum_cpu_time_secs,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
+          {:caption=>"Disk Reads",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads)) },             :title=>"Total Disk Reads", :align=>"right",        :data_title=>proc{|rec| "Total Disk Reads: #{@sum_disk_reads && @sum_disk_reads>0 && rec.disk_reads ? formattedNumber(rec.disk_reads*100.0/@sum_disk_reads,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
+          {:caption=>"Disk/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads_per_execute,3)) },     :title=>"Disk Reads per Execute", :align=>"right" },
+          {:caption=>"Buffer Gets", :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets)) },            :title=>"Total Buffer Gets", :align=>"right",       :data_title=>proc{|rec| "Total Buffer Gets: #{@sum_buffer_gets && @sum_buffer_gets>0 && rec.buffer_gets ? formattedNumber(rec.buffer_gets*100.0/@sum_buffer_gets,2) : "x"} % Anteil an Summe aller gezeigten SQL"} },
+          {:caption=>"Buffer/Ex.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets_per_exec,2)) },     :title=>"Buffer Gets per execute", :align=>"right" },
+          {:caption=>"Rows proc.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed)) },         :title=>"Anzahl Rows processed", :align=>"right" },
+          {:caption=>"Rows/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed_per_execute,2)) },     :title=>"Anzahl Rows processed per Execute", :align=>"right" },
+          {:caption=>"Parses",      :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.parse_calls)) },            :title=>"Anzahl Parse-Calls", :align=>"right" },
+  ]
+
+%>
+<%=
+    gen_slickgrid(@sqls, column_options, {
+        :max_height => 450,
+        :caption    => "Statement-Historie aus DBA_Hist_SQLStat ausgeführt zwischen #{@start_time} und #{@end_time} #{"mit Zugriff auf Objekt '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
+})
+%>
+
+
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>
+

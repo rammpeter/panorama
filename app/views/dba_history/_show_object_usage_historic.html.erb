@@ -1,0 +1,29 @@
+<h3>Suche nach das Objekt nutzenden (referenzierenden) SQL-Statements in Historie (DBA_Hist_SQL_Plan)</h3>
+
+<% @update_area = "show_using_sqls_historic_area_#{session[:request_counter]}" %>
+
+<%=
+    my_ajax_form_tag(url_for(:controller =>"dba_history",
+                             :action => "show_using_sqls_historic",
+                             :update_area => @update_area
+                            )
+                    )  do
+%>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left">
+    Objekt-Owner
+    <%= text_field_tag(:ObjectOwner, "", :size=>40, :title=>"Schema-Name des Objektes (optional)") %>
+  </div>
+  <div class="float_left">
+    Objekt-Name
+    <%= text_field_tag(:ObjectName, "", :size=>40, :title=>"Name des Objektes (optional % als Windcard)") %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("SQL's suchen", :title => "das Objekt nutzende SQL's anzeigen") %>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>

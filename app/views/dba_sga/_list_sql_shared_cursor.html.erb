@@ -1,0 +1,18 @@
+<h3>Hinderungsgründe für Nutzung Shared Cursor für Instance=<%= @instance %>, SQL-ID=<%= @sql_id %>, Child-Number=<%= @child_number %></h3>
+F&uuml;r detaiilierte Aussagen bitte Description <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/dynviews_2124.htm" target="_blank">v$SQL_SHARED_CURSOR</a> nachschlagen
+<%
+
+   @update_area = "list_sql_shared_cursor_#{session[:request_counter]}"
+column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},      :title=>"RAC-Instance"},
+  {:caption=>"SQL-ID",          :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.child_number)},      :title=>"SQL-ID"},
+  {:caption=>"C",               :data=>proc{|rec| rec.child_number},     :title=>"Child-Number"},
+
+]
+column_options << {:caption=>"Reason",  :data=>proc{|rec| j rec.reasons},       :title=>"Ein oder mehrere Hinterungsgründe für Nichtnutzung Shared Cursor"} if session[:database].version > "11"
+
+%>
+<%= gen_slickgrid(@reasons, column_options) %>
+
+<div id="<%= @update_area %>"></div>

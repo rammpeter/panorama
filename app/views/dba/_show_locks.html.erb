@@ -1,0 +1,31 @@
+<div>
+<%= my_ajax_form_tag :controller => :dba, :action=>"list_dml_locks" do %>
+  <div class="float_left">
+    <b><%= t :dba_show_locks_caption, :default=> "Show locks" %></b>
+  </div>
+  <div class="float_left">
+    <%= t :dba_show_locks_all_locks_caption, :default=>"All Locks?" %> <%= check_box_tag(:show_all_locks, 1, false, :title=>t(:dba_show_locks_all_locks_hint, :default=>"Show all locks? Otherwise AE- and PS-Locks are suppressed")) %>
+  </div>
+  <div class="float_left"> 
+    <%= t :dba_show_locks_max_result_size_caption, :default=>"max. to show" %>
+    <%= text_field_tag(:max_result_size, "1000", :size=>8, :title=>t(:dba_show_locks_max_result_size_hint, :default=>"Limit max. no. of rows for result")) %>
+  </div>
+
+  <div class="float_left"> 
+  <%= submit_tag(t(:dba_show_locks_submit_dml_caption, :default=>"DML-locks complete"), :title =>t(:dba_show_locks_submit_dml_hint, :default=>"show all DML-locks (Data Manipulation)") ) %>
+  </div>
+<% end  %>
+  <div class="float_left">
+    <%= my_ajax_form_tag :controller => :dba, :action=>"list_blocking_dml_locks" do %>
+      <%= submit_tag "Blocking DML-Locks", :title =>t(:dba_show_locks_submit_blocking_hint, :default=>"show blocking DML-Locks (Data Manipulation)") %>
+    <% end %>
+  </div>
+  <div class="float_left">
+    <%= my_ajax_form_tag :controller => :dba, :action=>"list_ddl_locks" do %>
+      <%= submit_tag "DDL-Locks", :title =>t(:dba_show_locks_submit_ddl_hint, :default=>"show DDL-Locks (Data-Definition)") %>
+    <% end %>
+  </div>
+  
+</div>
+<div id="list_locks_area" style="float:left; width:100%;">
+</div>

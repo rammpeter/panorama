@@ -1,0 +1,40 @@
+<%
+  @update_area = "list_waits_per_event_detail_area_#{session[:request_counter]}"
+
+  def link_column_sid(rec)
+    my_ajax_link_to("#{rec.sid},#{rec.serialno}",
+                    url_for(:action => "show_session_detail",
+                            :instance => rec.inst_id,
+                            :sid      => rec.sid,
+                            :serialno => rec.serialno,
+                            :update_area => @update_area
+                           ),
+                    :title=> "Anzeige Details zu Session"
+                   )
+  end
+
+  column_options =
+    [
+      {:caption=>"I",                :data=>"rec.inst_id",                               :title=>"RAC-Instance"},
+      {:caption=>"SID, SN",          :data=>"link_column_sid(rec)",                      :title=>"SID, Serial-Number"},
+      {:caption=>(@event=="ON CPU" ? "Last Event" : "Event"),            :data=>proc{|rec| rec.event },               :title=>"Wait-Event", :data_title=>'Wait-event: #{explain_wait_event(rec.event)}'},
+      {:caption=>"Wait-Class",       :data=>proc{|rec| rec.wait_class},          :title=>"Wait-Class"},
+      {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.inst_id, @event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "list_session_details_wait_info_#{rec.inst_id}_#{rec.sid}") },  :title=>"Parameter des Wait-Event"},
+      {:caption=>"Wait-Time",        :data=>"rec.wait_time",                              :title=>"Wait-Time"},
+      {:caption=>"Seconds",          :data=>"rec.seconds_in_wait",                        :title=>"Seconds in Wait"},
+      {:caption=>"State",            :data=>"rec.state",                                  :title=>"Status", :data_title=>'#{explain_wait_state(rec.state)}'},
+      {:caption=>"Client-Info",      :data=>"rec.client_info",                            :title=>"Client-Info der Session"},
+      {:caption=>"Module",           :data=>"rec.module",                                 :title=>"Module der Session"},
+      {:caption=>"Action",           :data=>"rec.action",                                 :title=>"Action der Session"},
+      {:caption=>"Active SQL",       :data=>"link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.sql_child_number)", :title=>"SQL-ID des aktiven Statements"},
+      {:caption=>"Prev. SQL",        :data=>"link_sql_id(@update_area, rec.inst_id, rec.prev_sql_id, rec.prev_child_number)", :title=>"SQL-ID des vorhergehenden Statements"},
+    ]
+
+%>
+
+<%= gen_slickgrid(@waits, column_options, {
+        :caption => "Session-Waits: Event='#{@event}', Instance=#{@instance}, #{@waits.length} Sessions, #{localeDateTime(Time.now)}",
+        :max_height => 450
+}) %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%;"></div>

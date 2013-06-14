@@ -1,0 +1,132 @@
+<%= my_ajax_form_tag url_for(:action => "show_chart") do %>
+	
+      <table style="width:700px;">
+        <thead>
+        <tr>
+          <th colspan="3">Anzeige der Online-Framework-Aspects als Chart</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <th> <input name="post[select_criterion]" value="minutes" type="radio" checked="checked" /> </th>
+          <td colspan="2"> Zeige die letzten <input style="width: 5em;" name="post[minutes]"/> Minuten </td>
+        </tr>
+
+        <tr class="odd">
+          <th><input name="post[select_criterion]" value="range" type="radio" />  </th>
+          <td colspan="2"> Zeige den Zeitraum von 
+               <input style="width: 6em;" name="post[from_date]"/>  
+               <input style="width: 6em;" name="post[from_time]"/> 
+               bis 
+               <input style="width: 6em;" name="post[to_date]"/>
+               <input style="width: 6em;" name="post[to_time]"/> 
+          </td>
+		</tr>
+		
+        <tr>
+          <th> </th>
+          <td style="width:1;"> MessageType </td>
+          <td> 
+            <select name="post[message_type]"
+                autocomplete="false"
+                 >
+            <option selected="selected">Alle</option>                	
+            <%for t in @message_types %>    	
+			            <option><%=t.name%></option>                	
+			<% end %>
+
+
+        </select>
+          </td>
+
+        </tr>
+		
+        <tr class="odd">
+          <th> </th>
+		  <td colspan="2"> Summiere <input  style="width: 3em;" name="post[sum_minutes]" value="10" /> Minuten zu einem Diagramm-Punkt auf </td>
+
+        </tr>
+
+        <tr>
+          <th> </th>
+          <td style="width:1;"> Aspects </td>
+          <td>
+            <div>
+            <input 
+                   name="post[aspect_6216]" checked="checked" value="on"
+                   type="checkbox" />
+             <span>Erfolgreiche Nachrichten beim ersten Mal</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6216)%>">Farbe</font>
+           </div>
+            <div>
+            <input 
+                   name="post[aspect_6217]" checked="checked" value="on"
+                   type="checkbox" />
+             <span>Erfolgreiche Nachrichten nach Wiedervorlage</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6217)%>">Farbe</font>
+           </div>
+            <div>
+            <input 
+                   name="post[aspect_6218]" value="on"
+                   type="checkbox" />
+             <span>Fehlerhafte Nachrichten</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6218)%>">Farbe</font>             </div>
+            <div>
+            <input 
+                   name="post[aspect_6279]" value="on"
+                   type="checkbox" />
+             <span>Anzahl der Fehlgeschlagenen Commits</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6279)%>">Farbe</font>             </div>
+            <div>
+            <input 
+                   name="post[aspect_6280]" value="on"
+                   type="checkbox" />
+             <span>Ausgesteuerte Nachrichten; Neustart Transactionsgruppen</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6280)%>">Farbe</font>             </div>            	
+			 <div>
+            <input 
+                   name="post[aspect_6281]" value="on"
+                   type="checkbox" />
+             <span>Nachrichten welche zum ersten Mal zur Bearbeitung vorliegen</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6281)%>">Farbe</font>
+             </div>			 
+			 <div>
+            <input 
+                   name="post[aspect_6282]" value="on"
+                   type="checkbox" />
+             <span>Nachrichten welche zum wiederholten Mal zur Bearbeitung vorliegen</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6282)%>">Farbe</font>			 
+             </div>			 
+			 <div>
+            <input 
+                   name="post[aspect_6283]" value="on"
+                   type="checkbox" />
+             <span>Nachrichten welche zum ersten Mal auf Fehler laufen</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6283)%>">Farbe</font>
+             </div>			 
+			 <div>
+            <input 
+                   name="post[aspect_6284]" value="on"
+                   type="checkbox" />
+             <span>Nachrichten welche zum wiederholten Mal auf Fehler laufen</span> 
+			 <font color="<%=get_gaattr_colour_by_id(6284)%>">Farbe</font> 			 			 			 			 			 
+             </div>			 
+			 
+          </td>
+        </tr>
+        <tr class="odd">
+          <th> </th>
+          <td colspan="2" align="right">
+  <%= submit_tag("Zeige", :title => "Anzeige Chart") %>
+
+</td>
+        </tr>
+</tbody>
+      </table>
+
+<% end %>
+
+<div id="chart">	
+</div>
+
+

@@ -1,0 +1,65 @@
+<%
+
+column_options =
+  [
+    {:caption=>"File_No",          :data=>proc{|rec| rec.file_id},                          :title=>"ID des Datafiles", :align=>:right},
+    {:caption=>"Tablespace",       :data=>proc{|rec| rec.tablespace_name},                  :title=>"Name des Tablespace"},
+    {:caption=>"MB Free",          :data=>proc{|rec| formattedNumber(rec.mbfree)},          :title=>"Freier Platz des Datafile in MB", :align=>:right},
+    {:caption=>"MB Used",          :data=>proc{|rec| formattedNumber(rec.mbused)},          :title=>"Genutzter Platz des Datafile in MB", :align=>:right},
+    {:caption=>"FileSize",         :data=>proc{|rec| formattedNumber(rec.filesize)},        :title=>"Größe des Datafile in MB", :align=>:right},
+    {:caption=>"% used",           :data=>proc{|rec| formattedNumber(rec.pctused*100,1)},   :title=>"Prozentuale Auslastung", :align=>:right},
+    {:caption=>"FileName",         :data=>proc{|rec| rec.file_name},                        :title=>"Filename des Datafiles"},
+    {:caption=>"Auto-Ext.",        :data=>proc{|rec| rec.autoextensible},                   :title=>"Auto-Extensible"},
+    {:caption=>"Status",           :data=>proc{|rec| rec.online_status},                    :title=>"Online-Status"},
+  ]
+
+%>
+
+<%= gen_slickgrid(@datafiles, column_options, {
+        :caption => "Datafile-Details",
+        :width   => :auto,
+        :max_height => 450
+}) %>
+
+<% if session[:database].version >= "11.2" %>
+    <%
+
+    column_options =
+      [
+        {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                                  :title=>"RAC-instance", :align=>:right},
+        {:caption=>"ID",               :data=>proc{|rec| rec.file_no},                                  :title=>"File-ID",      :align=>:right},
+        {:caption=>"File-type",        :data=>proc{|rec| rec.filetype_name},                            :title=>"Name of file type"},
+        {:caption=>"FileName",         :data=>proc{|rec| rec.file_name},                                :title=>"Filename"},
+        {:caption=>"Tablespace",       :data=>proc{|rec| rec.tablespace_name},                          :title=>"Name of tablespace"},
+        {:caption=>"Sm.read MB",       :data=>proc{|rec| formattedNumber(rec.small_read_megabytes)},    :title=>"Number of single block megabytes read",    :align=>:right, :data_title=>proc{|rec| "Number of single block megabytes read, Avg.kBytes/request=#{rec.small_read_reqs>0 ? formattedNumber(rec.small_read_megabytes.to_f*1024/rec.small_read_reqs,1) : 0}" } },
+        {:caption=>"Sm.write MB",      :data=>proc{|rec| formattedNumber(rec.small_write_megabytes)},   :title=>"Number of single block megabytes written", :align=>:right, :data_title=>proc{|rec| "Number of single block megabytes written, Avg.kBytes/request=#{rec.small_write_reqs>0 ? formattedNumber(rec.small_write_megabytes.to_f*1024/rec.small_write_reqs,1) : 0}" }},
+        {:caption=>"Lg.read MB",       :data=>proc{|rec| formattedNumber(rec.large_read_megabytes)},    :title=>"Number of multiblock megabytes read",      :align=>:right, :data_title=>proc{|rec| "Number of multiblock megabytes read, Avg.kBytes/request=#{rec.large_read_reqs>0 ? formattedNumber(rec.large_read_megabytes.to_f*1024/rec.large_read_reqs,1) : 0}" } },
+        {:caption=>"Lg.write MB",      :data=>proc{|rec| formattedNumber(rec.large_write_megabytes)},   :title=>"Number of multiblock megabytes written",   :align=>:right, :data_title=>proc{|rec| "Number of multiblock megabytes written, Avg.kBytes/request=#{rec.large_write_reqs>0 ? formattedNumber(rec.large_write_megabytes.to_f*1024/rec.large_write_reqs,1) : 0}" } },
+        {:caption=>"Sm.read rq.",      :data=>proc{|rec| formattedNumber(rec.small_read_reqs)},         :title=>"Number of single block read requests",     :align=>:right, :data_title=>proc{|rec| "Number of single block read requests, Avg.kBytes/request=#{rec.small_read_reqs>0 ? formattedNumber(rec.small_read_megabytes.to_f*1024/rec.small_read_reqs,1) : 0}" }},
+        {:caption=>"Sm.write rq.",     :data=>proc{|rec| formattedNumber(rec.small_write_reqs)},        :title=>"Number of single block write requests",    :align=>:right, :data_title=>proc{|rec| "Number of single block write requests, Avg.kBytes/request=#{rec.small_write_reqs>0 ? formattedNumber(rec.small_write_megabytes.to_f*1024/rec.small_write_reqs,1) : 0}" } },
+        {:caption=>"Sm.sync read rq.", :data=>proc{|rec| formattedNumber(rec.small_sync_read_reqs)},    :title=>"Number of synchronous single block read requests",     :align=>:right},
+        {:caption=>"Lg.read rq.",      :data=>proc{|rec| formattedNumber(rec.large_read_reqs)},         :title=>"Number of multiblock read requests",       :align=>:right, :data_title=>proc{|rec| "Number of multiblock read requests, Avg.kBytes/request=#{rec.large_read_reqs>0 ? formattedNumber(rec.large_read_megabytes.to_f*1024/rec.large_read_reqs,1) : 0}" } },
+        {:caption=>"Lg.write rq.",     :data=>proc{|rec| formattedNumber(rec.large_write_reqs)},        :title=>"Number of multiblock write requests",      :align=>:right, :data_title=>proc{|rec| "Number of multiblock write requests, Avg.kBytes/request=#{rec.large_write_reqs>0 ? formattedNumber(rec.large_write_megabytes.to_f*1024/rec.large_write_reqs,1) : 0}" } },
+        {:caption=>"Sm.read rq.time",  :data=>proc{|rec| formattedNumber(rec.small_read_reqs>0  ? rec.small_read_servicetime.to_f/rec.small_read_reqs: 0, 2)},   :title=>"Average service time per request for single block reads in milliseconds",     :align=>:right, :data_title=>proc{|rec| "Average service time per request for single block reads in milliseconds, Avg.kBytes/request=#{rec.small_read_reqs>0 ? formattedNumber(rec.small_read_megabytes.to_f*1024/rec.small_read_reqs,1) : 0}" } },
+        {:caption=>"Sm.write rq.time", :data=>proc{|rec| formattedNumber(rec.small_write_reqs>0 ? rec.small_write_servicetime.to_f/rec.small_write_reqs: 0, 2)},  :title=>"Average service time per request for single block writes in milliseconds",   :align=>:right, :data_title=>proc{|rec| "Average service time per request for single block writes in milliseconds, Avg.kBytes/request=#{rec.small_write_reqs>0 ? formattedNumber(rec.small_write_megabytes.to_f*1024/rec.small_write_reqs,1) : 0}" } },
+        {:caption=>"Sm.sync latency",  :data=>proc{|rec| formattedNumber(rec.small_sync_read_reqs>0 ? rec.small_sync_read_latency.to_f/rec.small_sync_read_reqs: 0, 2)},  :title=>"Average latency for single block synchronous reads in milliseconds", :align=>:right},
+        {:caption=>"Lg.read rq.time",  :data=>proc{|rec| formattedNumber(rec.large_read_reqs>0  ? rec.large_read_servicetime.to_f/rec.large_read_reqs: 0, 2)},   :title=>"Average service time per request for multiblock reads in milliseconds",       :align=>:right, :data_title=>proc{|rec| "Average service time per request for multiblock reads in milliseconds, Avg.kBytes/request=#{rec.large_read_reqs>0 ? formattedNumber(rec.large_read_megabytes.to_f*1024/rec.large_read_reqs,1) : 0}" } },
+        {:caption=>"Lg.write rq.time", :data=>proc{|rec| formattedNumber(rec.large_write_reqs>0 ? rec.large_write_servicetime.to_f/rec.large_write_reqs: 0, 2)},  :title=>"Average service time per request for multiblock writes in milliseconds",     :align=>:right, :data_title=>proc{|rec| "Average service time per request for multiblock writes in milliseconds, Avg.kBytes/request=#{rec.large_write_reqs>0 ? formattedNumber(rec.large_write_megabytes.to_f*1024/rec.large_write_reqs,1) : 0}" } },
+        {:caption=>"Asynch. I/O",      :data=>proc{|rec| rec.asynch_io},                                :title=>"Indicates whether asynchronous I/O is available for the file (ASYNC_ON) or not (ASYNC_OFF)"},
+        {:caption=>"Access",           :data=>proc{|rec| rec.access_method},                            :title=>"I/O library used to access the file. Possible values include:
+        OS_LIB - OS system calls are used to access the file
+        ODM_LIB - Oracle Disk Manager library is used to access the file
+        ASM_MANAGED - The file is managed and accessed though ASM
+        DNFS_LIB - The file is accessed through direct NFS library"},
+        {:caption=>"Retries",          :data=>proc{|rec| formattedNumber(rec.retries_on_error)},        :title=>"Number of read retries on error",    :align=>:right},
+      ]
+
+    %>
+
+    <%= gen_slickgrid(@file_usage, column_options, {
+            :caption => "Database file-usage per instance",
+            :width=>:auto,
+            :max_height => 450
+    }) %>
+
+<% end %>

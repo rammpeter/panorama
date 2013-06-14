@@ -1,0 +1,50 @@
+<%
+   @update_area = "second_session_detail_area_#{session[:request_counter]}"
+    def link_blocking_sid(rec)
+        update_area = "second_session_detail_area_#{@instance}_#{@sid}_#{rec.rownum}"
+        my_ajax_link_to(rec.blocking_instance_number ? "#{rec.blocking_instance_number}:#{rec.blocking_sid},#{rec.blocking_serialno}" : "",
+        url_for( :action            => :show_session_detail,
+                 :instance          => rec.blocking_instance_number,
+                 :sid               => rec.blocking_sid,
+                 :serialno          => rec.blocking_serialno,
+                 :update_area       => @update_area
+                 ),
+         :title => "Details zur Session"
+       )
+    end
+
+    def link_blocking_rowid(rec)
+        update_area = "rowid_detail_area_#{@instance}_#{@sid}_#{rec.rownum}"
+        my_ajax_link_to(rec.waitingforrowid,
+                            url_for(:action => :show_rowid_details,
+                                    :update_area      => update_area,
+                                    :waitingforobject => rec.waitingforobject,
+                                    :waitingforrowid  => rec.waitingforrowid
+                                   ),
+                :title => "Details zur RowID"
+         )+"<div id=\"#{update_area}\"></div>".html_safe
+    end
+
+    column_options =
+    [
+      {:caption=>"Locked Object",  :data=>"rec.object",                                                     :title=>"Gelocktes Objekt"},
+      {:caption=>"LT",             :data=>"rec.locktype",    :data_title=>'Locktype: #{lock_types(rec.locktype)}',    :title=>"Lock-Type"},
+      {:caption=>"ID1",            :data=>"rec.id1",                                                        :title=>"ID1 aus gv$Lock"},
+      {:caption=>"ID2",            :data=>"rec.id2",                                                        :title=>"ID2 aus gv$Lock"},
+      {:caption=>"R",              :data=>"rec.request",     :data_title=>'#{lock_modes(rec.request)}',     :title=>"Request"},
+      {:caption=>"L",              :data=>"rec.lockmode",    :data_title=>'#{lock_modes(rec.lockmode)}',    :title=>"Lock-Mode"},
+      {:caption=>"Blocking SID",   :data=>"link_blocking_sid(rec)",                                         :title=>"Blocking SID"},
+      {:caption=>"Blocking Object",:data=>"rec.waitingforobject",                                           :title=>"Blocking Object"},
+      {:caption=>"Blocking RowID", :data=>"link_blocking_rowid(rec)",                                       :title=>"Blocking RowID"},
+      {:caption=>"Lock Sec.",      :data=>proc{|rec| fn(rec.seconds_in_lock)},                              :title=>"Seconds since lock was granted", :align=>:right},
+    ]
+
+%>
+<%= gen_slickgrid(@locks, column_options, {
+        :caption => "Aktuelle DB-Locks für Instance=#{@instance}, SID=#{@sid}",
+        :width=>:auto
+}) %>
+<div id="<%= @update_area %>"></div>
+
+
+

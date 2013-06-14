@@ -1,0 +1,18 @@
+<form method="post" 
+      onsubmit="remote_submit( 'online_worker', 'get_status', 'status', this ); return false;">
+	
+	<span class="field_lable"> Adresse eines Managed-Servers ( z.B. blade263.puc.ov.otto.de ) </span>	
+
+	<input style="width: 20em;" name="url" value="<%= session[:of_last_used_url] %>"/>	
+	
+	<span class="field_lable"> Port </span>	
+	
+	<input style="width: 5em;" name="port" value="<%= session[:of_last_used_port] %>" />	
+	
+	<button type="submit">Go</button>
+
+</form>
+
+<div id="status">	
+</div>
+

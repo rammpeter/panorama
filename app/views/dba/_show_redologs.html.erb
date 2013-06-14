@@ -1,0 +1,21 @@
+<%
+column_options =
+[
+  {:caption=>"Instance",         :data=>proc{|rec| fn(rec.inst_id)},                    :title=>"RAC Instance-Number", :align=>"right"},
+  {:caption=>"Group",            :data=>proc{|rec| fn(rec.groupno)},                    :title=>"Redo-Log-Gruppe", :align=>"right"},
+  {:caption=>"Größe (kBytes)",   :data=>proc{|rec| formattedNumber(rec.kbyte)},         :title=>"Größe in KByte", :align=>"right"},
+  {:caption=>"Status",           :data=>proc{|rec| rec.status},                         :title=>"Status des Logfiles"},
+  {:caption=>"Startzeitpunkt",   :data=>proc{|rec| localeDateTime(rec.starttime)},      :title=>"Beginn der Nutzung"},
+  {:caption=>"Members",          :data=>proc{|rec| rec.members},                        :title=>"Anzahl Member", :align=>"right"},
+  {:caption=>"Archived",         :data=>proc{|rec| rec.archived},                      :title=>"Archived"},
+]
+
+%>
+
+<%=
+    gen_slickgrid(@redologs, column_options, {
+            :caption => "Redo-Logfiles at #{localeDateTime(Time.now)}",
+            :width=>:auto,
+    })
+%>
+

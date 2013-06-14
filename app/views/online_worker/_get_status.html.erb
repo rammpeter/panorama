@@ -1,0 +1,82 @@
+<%
+	def worker_property( name, value )
+		"<span>#{name}</span> <span class=\"field_value\">#{value}</span>"
+	end
+%>
+
+<div title="Domain <%=@domain.name%>" open="true">
+  <% for server in @domain.servers %>
+    <div title="Server <%=server.name%>" >	
+    
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td colspan="2">Start Time</td>
+          <td colspan="4"><%=localeDateTime(server.start_time)%></td>
+        </tr>        
+
+        <tr>
+          <td colspan="2">Heap usage</td>
+          <td colspan="4"><div style="width:300px" maximum="<%=server.max_heap%>" progress="<%=server.current_heap%>"></div></td>
+        </tr>
+
+        <% if server.workers == nil %>
+            <tr>
+              <td colspan="6">Kein OnlineFW-Worker gefunden</td>
+            </tr>
+        <% else  %>
+
+          <tr>
+            <th>Worker ID</th>
+            <th>Worker State</th>
+            <th>Thread State</th>
+            <th>Successful</th>
+            <th>Failures</th>
+            <th> </th>
+          </tr>
+
+
+          <% for i in 0..server.workers.length-1 %>
+            <%worker = server.workers[i]%>
+            <% if i % 2 == 0 %>
+              <tr class="odd">
+            <% else %>
+              <tr>
+            <% end %>
+
+
+              <th><%= worker.identifier %></th>
+              <td><%= worker.worker_state %></td>
+              <td><%= worker.thread_state %></td>
+              <td><%= worker.successful %></td>
+              <td><%= worker.failures %></td>
+              <%
+              def js_inline( server_name, worker )
+                base_id = "worker_#{server_name}_#{worker}"
+                "if ( $( '#{base_id}_trace').style.display == 'none' ) { " \
+                " $( '#{base_id}_trace').style.display = 'inline'; " \
+                "} else { " \
+                " $( '#{base_id}_trace').style.display = 'none'; " \
+                "}"
+              end
+              %>
+              <td> <a href="#" <%="onclick=\"#{js_inline( server.name, worker.identifier )}\""%>>show stack</a></td>
+            </tr>
+            <tr style="height:0px;">
+              <td colspan="6">
+                  <div style="display: none;"  id="worker_<%= server.name + '_' + worker.identifier %>_trace">
+                     <ul type="none">
+                      <% for line in worker.stack_trace %>
+                        <li><%= h line %></li>
+                      <% end %>
+                    </ul>
+                  </div>
+              </td>
+            </tr>
+            <% end %>
+
+         </table>
+
+      </div>
+    <% end %>    
+    <% end %>
+</div>

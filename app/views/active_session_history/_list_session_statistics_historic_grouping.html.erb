@@ -1,0 +1,19 @@
+<% # Parameter für nachfolgendes Partial list_groupfilter
+   @header = "#{t :active_session_history_list_session_statistics_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
+   @repeat_action = :list_session_statistic_historic_grouping
+%>
+
+<%= render :partial => 'list_groupfilter' %>
+
+<%
+
+  def build_groupfilter(rec = nil)    # groupfilter für Nutzung im include
+     @groupfilter
+  end
+%>
+
+<%= render :partial=> "list_session_statistics_historic_grouping_table_def" %>
+
+
+
+

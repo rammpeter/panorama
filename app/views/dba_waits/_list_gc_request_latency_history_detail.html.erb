@@ -1,0 +1,55 @@
+<h4><%= "Objekte des AWR-Snapshot für Instance #{@instance} beginnend #{@begin_interval_time}"%></h4>
+<%
+  def show_column(value, align="left", title="")
+    ("<td align='#{align}' title='#{title}'>#{value}</td>").html_safe
+  end
+%>
+
+
+<div style="float:left; max-height:450px; overflow:scroll; ">
+  <table class="tablesorter" border="1" style="font-size:small; ">
+    <thead>
+    <tr>
+      <th title="Object-Owner, Name, Partition-Name (optional)">Object</th>
+      <th title="Logical Reads">Log.Rd.</th>
+      <th title="Buffer Busy Waits">BBW</th>
+      <th title="DB Block Changes">Bl.Chg.</th>
+      <th title="Physical Reads Non-Direct">Ph.Rd.nd.</th>
+      <th title="Physical Writes">Ph.Wr.</th>
+      <th title="Physical Reads Direct">Ph.Rd.dir.</th>
+      <th title="Physical Writes Direct">Ph.Wr.dir.</th>
+      <th title="ITL Waits">ITL</th>
+      <th title="Row Lock Waits">RL</th>
+      <th title="GC Buffer Busy waits">GC BBW</th>
+      <th title="GC CR Blocks Received">CR BR</th>
+      <th title="GC CU Blocks Received">CU BR</th>
+      <th title="Space Used">Sp.Us.</th>
+      <th title="Space Allocated">Sp.Al.</th>
+      <th title="Table scans">Tbl.Sc.</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <% @objects.each do |o| %>
+      <tr>
+        <%= show_column("#{o.owner} . #{o.object_name} #{"(#{o.subobject_name})"if o.subobject_name}" ) %>
+        <%= show_column(formattedNumber(o.logical_reads_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.buffer_busy_waits_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.db_block_changes_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.physical_reads_delta-o.physical_reads_direct_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.physical_writes_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.physical_reads_direct_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.physical_writes_direct_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.itl_waits_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.row_lock_waits_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.gc_buffer_busy_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.gc_cr_blocks_received_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.gc_cu_blocks_received_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.space_used_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.space_allocated_delta,0), "right") %>
+        <%= show_column(formattedNumber(o.table_scans_delta,0), "right") %>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>

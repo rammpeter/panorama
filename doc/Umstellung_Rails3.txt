@@ -1,0 +1,10 @@
+### Umstellung auf Rails 3
+## Variante JRuby
+- Package bundler installieren
+- config/routes.rb anpassen
+- config/application.rb erstellen
+- Applications-name in diversen Files nachpflegen
+
+prototype-Javascripts entfernen
+DEFAULT-Include-Tag ersetzen durch Include rails, application
+replace_html ersetzen durch page["#id].replaceWith render(:partial => "Name" )

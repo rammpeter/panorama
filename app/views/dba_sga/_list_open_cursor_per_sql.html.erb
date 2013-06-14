@@ -1,0 +1,49 @@
+<%
+   @update_area = "list_open_cursor_per_sql_area_#{session[:request_counter]}"
+
+    def link_column_sid(rec, value)
+        my_ajax_link_to(value,
+            url_for(:controller   => :dba,
+                    :action       => :show_session_detail,
+                    :instance     => @instance,
+                    :sid          => rec.sid,
+                    :serialno     => rec.serialno,
+                    :update_area  => @update_area
+             ),
+      :title=>"Session-Info"
+     )
+   end
+
+
+    def link_column_module(rec, value)
+      update_area_module = "open_cursor_module_area_#{session[:request_counter]}"
+      my_ajax_link_to(value,
+       url_for(:action        => :show_application_info,
+                :update_area  => update_area_module,
+                :org_text     => rec.module
+              ),
+       :title=>"Detaillierung des Modul-Namens")+
+              "<div id=\"#{update_area_module}\"></div>".html_safe
+    end
+
+
+column_options =
+[
+  {:caption=>"Aktiv",    :data=>proc{|rec| rec.stmt_active},      :title=>"Wird das Statement in der Session gerade ausgeführt"},
+  {:caption=>"SID/SN",   :data=>proc{|rec| link_column_sid(rec, "#{rec.inst_id}/#{rec.sid}/#{rec.serialno}")},  :title=>"Inst./SID/Serial No."},
+  {:caption=>"User",     :data=>proc{|rec| rec.username},         :title=>"DB-Username"},
+  {:caption=>"OS-User",  :data=>proc{|rec| rec.osuser},           :title=>"User im Client-OS"},
+  {:caption=>"Process",  :data=>proc{|rec| rec.process},          :title=>"Process im Client-OS"},
+  {:caption=>"Maschine", :data=>proc{|rec| rec.machine},          :title=>"Client-Maschine"},
+  {:caption=>"Programm", :data=>proc{|rec| rec.program},          :title=>"Programm auf Client-Maschine"},
+  {:caption=>"Modul",    :data=>proc{|rec| link_column_module(rec, rec.module)},          :title=>"Programm.Module auf Client-Maschine"},
+]
+
+%>
+
+<%= gen_slickgrid(@open_cursors, column_options, {
+        :caption => "Open Cursor für Instance=#{@instance}, SQL-ID=#{@sql_id}",
+        :max_height=>450,
+        :width=>:auto
+}) %>
+<div style="clear: both;" id="<%= @update_area %>"></div>

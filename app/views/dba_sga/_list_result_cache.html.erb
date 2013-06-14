@@ -1,0 +1,46 @@
+<%
+column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Used total",      :data=>proc{|rec| formattedNumber(rec.space_bytes)},                   :title=>"Space total in bytes (overhead+unused)", :align=>"right"},
+  {:caption=>"Max. size",       :data=>proc{|rec| formattedNumber(rec.max_size)},                      :title=>"Configured instance value for result_cache_max_size in bytes", :align=>"right"},
+  {:caption=>"Usage %",         :data=>proc{|rec| rec.max_size.to_f>0 ? formattedNumber((rec.space_bytes.to_f/rec.max_size.to_f)*100, 1) : nil},  :title=>"%-usage of available memory", :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@sums, column_options, {
+        :caption => "Memory usage summary ",
+        :max_height => 450,
+        :width => :auto
+}) %>
+
+
+<%
+column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Status",          :data=>proc{|rec| rec.status},                                         :title=>"Status of object"},
+  {:caption=>"Name",            :data=>proc{|rec| rec.name},                                           :title=>"Name of object"},
+  {:caption=>"Namespace",       :data=>proc{|rec| rec.namespace},                                      :title=>"Namespace of object"},
+  {:caption=>"Space total",     :data=>proc{|rec| formattedNumber(rec.space_overhead_kb+rec.space_unused_kb)}, :title=>"Space total in kBytes (overhead+unused)", :align=>"right"},
+  {:caption=>"Space overhead",  :data=>proc{|rec| formattedNumber(rec.space_overhead_kb)},             :title=>"Space overhead in kBytes", :align=>"right"},
+  {:caption=>"Space unused",    :data=>proc{|rec| formattedNumber(rec.space_unused_kb)},               :title=>"Space unused in kBytes", :align=>"right"},
+  {:caption=>"Min. creation",   :data=>proc{|rec| localeDateTime(rec.min_creationts)},                 :title=>"First creation-timestamp of object"},
+  {:caption=>"Max. creation",   :data=>proc{|rec| localeDateTime(rec.max_creationts)},                 :title=>"Last creation-timestamp of object"},
+  {:caption=>"First creator",   :data=>proc{|rec| rec.min_creator},                                    :title=>"First user creating result"},
+  {:caption=>"Last creator",    :data=>proc{|rec| rec.max_creator},                                    :title=>"Last user creating result"},
+  {:caption=>"Depend. count",   :data=>proc{|rec| formattedNumber(rec.depend_count)},                  :title=>"Number of dependencies", :align=>"right"},
+  {:caption=>"Pin count",       :data=>proc{|rec| formattedNumber(rec.pin_count)},                     :title=>"Number of active scans on this result", :align=>"right"},
+  {:caption=>"Scan count",      :data=>proc{|rec| formattedNumber(rec.scan_count)},                    :title=>"Total number of scans initiated on the cached result", :align=>"right"},
+  {:caption=>"Row count",       :data=>proc{|rec| formattedNumber(rec.row_count)},                     :title=>"Total number of rows in the cached result", :align=>"right"},
+  {:caption=>"Max. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_max)},                  :title=>"Size of the largest row (in bytes)", :align=>"right"},
+  {:caption=>"Min. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_min)},                  :title=>"Size of the smallest row (in bytes)", :align=>"right"},
+  {:caption=>"Avg. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_avg)},                  :title=>"Average size of a row (in bytes)", :align=>"right"},
+  {:caption=>"Inval.",          :data=>proc{|rec| formattedNumber(rec.invalidations)},                 :title=>"Number of times the object has invalidated its dependents", :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@usage, column_options, {
+        :caption => "Result cache usage by objects",
+        :max_height => 450
+}) %>

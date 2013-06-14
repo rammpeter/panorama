@@ -1,0 +1,19 @@
+<%= my_ajax_form_tag "dba_waits/list_gc_request_latency_history" do %>
+  <div class="float_left">
+    <b>Global Cache Request Latency aus GV$SysStat:
+      <% @totals.each do |t| %>
+        <%= "Instance #{t.inst_id}: #{formattedNumber(t.avg_receive_time_ms,2)} ms  " %>
+      <% end %>
+    </b>
+  </div>
+  <%= include_start_end_timepicker %>
+  <div class="float_left">
+    RAC-Instance
+    <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("Anzeigen", :title => "Anlistung der Request-Latency der einzelnen Snapshots") %>
+  </div>
+<% end %>
+<div id="list_gc_request_latency_area" style="float:left; width:100%; ">
+</div>

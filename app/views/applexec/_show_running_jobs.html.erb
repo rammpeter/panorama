@@ -1,0 +1,15 @@
+<%
+   column_options = [
+    {:caption=>"ID",        :data=>proc{|rec| rec.id},         :title=>"ID in Tabelle ApplExecution"},
+    {:caption=>"Status",    :data=>proc{|rec| rec.status},      :title=>"Status der Verarbeitung"},
+    {:caption=>"Name",      :data=>proc{|rec| rec.name},        :title=>"Name/Executable der Applikation"},
+    {:caption=>"Items ",    :data=>proc{|rec| fn(rec.totalnrofitems)}, :title=>"Anzahl der zu verarbeitenden Items (TotalNrOfItems)", :align=>:right},
+    {:caption=>"Start ",    :data=>proc{|rec| localeDateTime(rec.executionstart)}, :title=>"Start der Ausführung"},
+]
+%>
+
+<%=
+gen_slickgrid(@running_jobs, column_options, {
+    :caption => "Aktuell laufende Jobs (der letzten fünf LV)",
+    :max_height => 450
+}) %>

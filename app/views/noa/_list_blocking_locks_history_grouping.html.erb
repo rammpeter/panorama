@@ -1,0 +1,159 @@
+<%
+# Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
+@update_area = "list_blocking_locks_history_grouping_#{session[:request_counter]}"
+
+def link_column_sql_id(instance, sql_id, child_number)
+  link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel][:bind_value], @groupfilter[:Max_Zeitstempel][:bind_value], @update_area, nil)
+end
+
+
+def link_column(result, value, newgroupkey, action, linktitle)
+  my_ajax_link_to(value,
+      url_for({:action       => action,
+               :groupfilter  => @groupfilter.merge(
+                                  @groupkey[:Name] => {
+                                    :sql => "#{@groupkey[:sql]} #{(result.group_value ? '= ?' : ' IS NULL')}",
+                                    :bind_value => result.group_value
+                                  }
+                                ),
+               :update_area  => @update_area
+              }.merge(newgroupkey)
+             ),
+       :title=>linktitle)
+end
+
+def link_column_single(result, value)
+  link_column(result, value, {}, "list_blocking_locks_history_single_record", "Anzeige der einzelnen Samples der Gruppierung")
+end
+
+# Prüfung, ob value ein Anzahlfeld a'la "< 4 >" ist
+def is_value_anzahl?(value)
+  value[0,1] == '<' && value[value.length-1,1] =='>'
+end
+
+def link_column_grouping(result, value, name, sql)
+  # Nur als Link anzeigen, wenn mehrere Treffer vorhanden (Muster "< Anzahl >")
+  if is_value_anzahl?(value)
+    if value == "< 0 >"
+      ""
+    else
+      link_column(result, value,
+                {:groupkey => {:Name=>name, :sql=>sql}},
+                :list_blocking_locks_history_grouping,
+                "Anzeige der Verdichtung nach #{name} aus Samples der Gruppierung"
+               )
+    end
+  else         # Wert trotzdem als Link darstellen, wenn andere Details statt Gruppierung gezeigt werden können
+    case name
+    when "SID"
+      link_column_blocking_reason_cascade(result, value)
+    when "SQL-ID" then
+      if is_value_anzahl?(result.instance_number) || is_value_anzahl?(result.sql_child_number)
+        value
+      else
+        link_column_sql_id(result.instance_number, result.sql_id, result.sql_child_number)
+      end
+    when "B.SQL-ID" then
+      if is_value_anzahl?(result.blocking_instance_number) || is_value_anzahl?(result.blocking_sql_child_number)
+        value
+      else
+        link_column_sql_id(result.blocking_instance_number, result.blocking_sql_id, result.blocking_sql_child_number )
+      end
+    when "B.SID"
+      if is_value_anzahl?(result.blocking_instance_number) || is_value_anzahl?(result.blocking_sid) || is_value_anzahl?(result.blocking_serialno)
+        value
+      else
+        link_column_blocked(result, result.blocking_sid)
+      end
+    else value
+    end
+  end
+end
+
+def link_column_caption(rec, caption, value)
+  case caption
+    when "SQL-ID" then
+      if is_value_anzahl?(rec.instance_number) || is_value_anzahl?(rec.sql_child_number)
+        value
+      else
+        link_column_sql_id(rec.instance_number, rec.sql_id, rec.sql_child_number )
+      end
+    when "B.SQL-ID" then
+      if is_value_anzahl?(rec.blocking_instance_number) || is_value_anzahl?(rec.blocking_sql_child_number)
+        value
+      else
+        link_column_sql_id(rec.blocking_instance_number, rec.blocking_sql_id, rec.blocking_sql_child_number )
+      end
+    when "B.SID"
+      if is_value_anzahl?(rec.blocking_instance_number) || is_value_anzahl?(rec.blocking_sid) || is_value_anzahl?(rec.blocking_serialno)
+        value
+      else
+        link_column_blocked(rec, rec.blocking_sid)
+      end
+    else value
+  end
+end
+
+def link_column_blocking_reason_cascade(rec, value)
+    my_ajax_link_to(value,
+        url_for({:action       => "list_blocking_reason_cascade",
+                 :update_area  => @update_area,
+                 :snapshotts   => localeDateTime(rec.max_snapshotts),
+                 :instance     => rec.instance_number,
+                 :sid          => rec.sid,
+                 :serialno     => rec.serialno
+                }
+               ),
+         :title => "Anzeige der kompletten Kaskade der auslösenden Blocker für diese Session")
+end
+
+def link_column_blocked(rec, value)
+  my_ajax_link_to(value,
+   url_for( :action            => 'list_blocking_locks_history_hierarchy_detail',
+            :update_area       => @update_area,
+            :snapshotts        => localeDateTime(rec.max_snapshotts),
+            :blocking_instance => rec.blocking_instance_number,
+            :blocking_sid      => rec.blocking_sid,
+            :blocking_serialno => rec.blocking_serialno
+          ),
+   :title=>'Anzeige der durch diese blocking Session geblockten Sessions')
+end
+
+
+column_options =
+  [
+    {:caption=>"Min.Zeitstempel", :data=>proc{|rec| localeDateTime(rec.min_snapshotts)},    :title=>"Kleinster Zeitstempel des Betrachtungsintervalls"},
+    {:caption=>"Max.Zeitstempel", :data=>proc{|rec| localeDateTime(rec.max_snapshotts)},    :title=>"Größter Zeitstempel des Betrachtungsintervalls"},
+    {:caption=>"Inst.",           :data=>proc{|rec| link_column_grouping(rec, rec.instance_number, 'Instance', 'l.Instance_Number')}, :title=>"Instance der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"SID",             :data=>proc{|rec| link_column_grouping(rec, rec.sid, 'SID', 'l.SID')}, :title=>"SID der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Wait (Sec.)",     :data=>proc{|rec| formattedNumber(rec.seconds_in_wait,0)},:title=>"Summe Anzahl Sekunden die Sessions bereits im Wartezustand warten", :align=>"right"},
+    {:caption=>"Samples",         :data=>proc{|rec| link_column_single(rec, "< #{formattedNumber(rec.samples,0)} >")}, :title=>"Anzahl aufgezeichneter Samples", :align=>"right"},
+    {:caption=>"SQL-ID",          :data=>proc{|rec| link_column_grouping(rec, rec.sql_id, 'SQL-ID', 'l.SQL_ID')}, :title=>"SQL-ID der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Module",          :data=>proc{|rec| link_column_grouping(rec, rec.module, 'Module', 'l.module')}, :title=>"Module der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Objectname",      :data=>proc{|rec| link_column_grouping(rec, rec.objectname, 'Objectname', 'l.objectname')}, :title=>"Objectname der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"LT",              :data=>proc{|rec| link_column_grouping(rec, rec.locktype, 'Locktype', 'l.locktype')}, :title=>"Locktype der wartenden Session (Anzahl wenn mehrere)", :data_title=>'#{lock_types(rec.locktype)}'},
+    {:caption=>"R",               :data=>proc{|rec| link_column_grouping(rec, rec.request, 'Request', 'l.request')}, :title=>"Angeforderter LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>'#{lock_modes(rec.request)}'},
+    {:caption=>"L",               :data=>proc{|rec| link_column_grouping(rec, rec.lockmode, 'LockMode', 'l.lockmode')}, :title=>"Gehaltener LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>'#{lock_modes(rec.lockmode)}'},
+    {:caption=>"Blocking Object", :data=>proc{|rec| link_column_grouping(rec, rec.blocking_object, 'Blocking Object', "LOWER(l.Blocking_Object_Schema)||'.'||l.Blocking_Object_Name")}, :title=>"Schema und Name des blockenden Objektes (Anzahl wenn mehrere)"},
+    {:caption=>"RowID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_rowid, 'RowID', 'CAST(l.blocking_rowid AS VARCHAR2(18))')}, :title=>"RowID des blockenden Objektes (Anzahl wenn mehrere)"},
+    {:caption=>"B.Inst.",         :data=>proc{|rec| link_column_grouping(rec, rec.blocking_instance_number, 'B.Instance', 'l.blocking_Instance_Number')}, :title=>"Instance der blockenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"B.SID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sid, 'B.SID', 'l.Blocking_SID')}, :title=>"SID der blockenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sql_id, 'B.SQL-ID', 'l.Blocking_SQL_ID')}, :title=>"SQL-ID der blockenden Session (Anzahl wenn mehrere)"},
+  ]
+%>
+
+<%=
+    caption = "Blocking Locks: Verdichtung nach #{@groupkey[:Name]} Filter: "
+    @groupfilter.each {|key,value|
+        unless value[:hide_filter]
+            caption << " #{key} = '#{value[:bind_value]}' "
+        end
+    }
+
+ gen_slickgrid(@locks, column_options, {
+        :caption => caption,
+        :max_height => 450
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

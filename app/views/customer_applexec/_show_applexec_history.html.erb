@@ -1,0 +1,17 @@
+<%
+column_options = [
+ {:caption=>"Appl",      :data=>proc{|rec| rec.id },                                :title=>"ID der Tabelle ApplExecution"},
+ {:caption=>"Status",    :data=>proc{|rec| rec.applexecutionstatusname},            :title=>"Status der Verarbeitung"},
+ {:caption=>"Items ",    :data=>proc{|rec| fn(rec.totalnrofitems)},                 :title=>"Anzahl der zu verarbeitenden Items (TotalNrOfItems)", :align=>:right},
+ {:caption=>"Start ",    :data=>proc{|rec| localeDateTime(rec.executionstart)},     :title=>"Start der Ausführung", :plot_master_time => true},
+ {:caption=>"Ende ",     :data=>proc{|rec| localeDateTime(rec.executionend)},       :title=>"Ende der Ausführung"},
+ {:caption=>"Sekunden",  :data=>proc{|rec| rec.executionend ? fn(rec.executionend.to_datetime.to_time-rec.executionstart.to_datetime.to_time) : "?"},                         :title=>"Laufzeit in Sekunden", :align=>:right},
+]
+%>
+
+<%=
+gen_slickgrid(@legacyapplexecutions, column_options, {
+        :caption => "History zu ID_Application=#{@legacyapplexecution.id_application}: #{@legacyapplexecution.applicationname}",
+        :max_height => 450,
+        :width => :auto
+}) %>
