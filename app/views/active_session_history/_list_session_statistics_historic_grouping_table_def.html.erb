@@ -64,7 +64,7 @@
     if value.class == DateTime || value.class == Time
       localeDateTime value
     else
-      h value
+      my_html_escape value
     end
   end
 
