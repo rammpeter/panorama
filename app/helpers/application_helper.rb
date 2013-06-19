@@ -209,6 +209,7 @@ module ApplicationHelper
 
   # Maskieren von html-special chars incl. NewLine
   def my_html_escape(org_value)
+    "" if org_value.nil?
     ERB::Util.html_escape(org_value).   # Standard-Escape kann kein NewLine-><BR>
       gsub(/\n/, '<br>').  # Alle vorkommenden NewLine ersetzen
       gsub(/\r/, '')      # Alle vorkommenden CR ersetzen, führt sonst bei Javascript zu Error String not closed

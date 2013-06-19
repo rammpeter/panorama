@@ -3,6 +3,7 @@
     <div style="float:right; padding: 20px;">  <%= @list_sql_sga_stat_msg %></div>
 </div>
 <div style="clear: both"></div>
+<div><%= @sql[:warning_message] %></div>
 <%
 # Anzeige sowohl des konkreten Wertes als auch je Execution in zwei TD-Abschnitten
 def show_both_values(name, param, decimals, title="")

@@ -332,6 +332,8 @@
   menu_sga_pga_sqlarea_current_sqlid_childno_hint:          Auswertung aktuelle SQLs aus SGA auf Ebene SQL_ID, Child-Nr.
   menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
 
+  menu_storage_matview_hint:                                Auswertung Strukturen von Materialized Views und MV-Logs
+
   menu_wait_caption:                                        Wait-Analyse
   menu_wait_db_file_sequential_read_hint: |-
     Aktuelle Wait-Auslöser 'db file sequential read' (Vorsicht: Langsam auf großen Systemen)

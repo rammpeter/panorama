@@ -133,9 +133,25 @@ class DbaSgaController < ApplicationController
 
   private
   # Modus enthält GV$SQL oder GV$SQLArea
-  def fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number=nil )
-    filter = [instance, sql_id, object_status]
-    filter << child_number if modus == "GV$SQL"
+  def fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number=nil, parsing_schema_name=nil)
+    where_string = ""
+    where_values = []
+
+    if object_status
+      where_string << " AND s.Object_Status = ?"
+      where_values << object_status
+    end
+
+    if modus == "GV$SQL"
+      where_string << " AND s.Child_Number = ?"
+      where_values << child_number
+    end
+
+    if parsing_schema_name
+      where_string << " AND s.Parsing_Schema_Name = ?"
+      where_values << parsing_schema_name
+    end
+
     sql = sql_select_first_row ["\
       SELECT /* Panorama-Tool Ramm */
                 s.ELAPSED_TIME/1000000 ELAPSED_TIME_SECS,
@@ -163,20 +179,17 @@ class DbaSgaController < ApplicationController
            FROM #{modus} s
            LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Programm
            WHERE s.Inst_ID = ?
-           AND   s.SQL_ID  = ?
-           AND   s.Object_Status = ?
-           #{modus=="GV$SQL" ? " AND s.Child_Number = ?" : "" }
-           "].concat filter
-    unless sql
-      # Suchen nach anderem Object_Status wenn gesuchter nicht existent
-      object_status = sql_select_one ["SELECT /* Panorama-Tool Ramm */ Object_Status
-                                       FROM   #{modus} s
-                                       WHERE  s.Inst_ID = ?
-                                       AND    s.SQL_ID  = ?
-                                       #{modus=="GV$SQL" ? " AND s.Child_Number = ?" : "" }
-                                      "].concat(modus=="GV$SQL" ? [instance, sql_id, child_number] : [instance, sql_id])
-      sql = fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number) if object_status
+           AND   s.SQL_ID  = ? #{where_string}
+           ", instance, sql_id].concat where_values
+    if sql.nil? && object_status
+      sql = fill_sql_sga_stat(modus, instance, sql_id, nil, child_number, parsing_schema_name)
+      sql[:warning_message] = "No SQL found with Object_Status='#{object_status}' in #{modus}. Filter Object_Status is supressed now." if sql
     end
+    if sql.nil? && parsing_schema_name
+      sql = fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number, nil)
+      sql[:warning_message] = "No SQL found with Parsing_Schema_Name='#{parsing_schema_name}' in #{modus}. Filter Parsing_Schema_Name is supressed now." if sql
+    end
+
     sql
   end
 
@@ -199,8 +212,9 @@ class DbaSgaController < ApplicationController
     @child_number = params[:child_number].to_i
     @object_status= params[:object_status]
     @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
+    @parsing_schema_name = params[:parsing_schema_name]
 
-    @sql = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number)
+    @sql = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
     @sql_statement = get_sga_sql_statement(@instance, @sql_id)
     # Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
     @plan0 = sql_select_all ["\
