@@ -11,19 +11,56 @@ def link_text(rec, value)
                   :title=>"Show query text of materialized view")
 end
 
+def link_real_num_rows(rec)
+  update_area = "list_materialized_view_logs_#{(rec.owner+rec.name).hash}"
+  my_ajax_link_to(rec.mbytes ? (rec.num_rows ? fn(rec.num_rows) : "[No analyze]") : nil,
+                  url_for(:action          => :list_real_num_rows,
+                          :owner           => rec.owner,
+                          :name            => rec.name,
+                          :update_area     => update_area
+                         ),
+                  :title=>"Show current number of rows in MV. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+end
+
+def link_mview_site(rec)
+  if rec.mbytes
+    my_ajax_link_to(rec.mview_site,
+                    url_for(:action          => :list_all_materialized_views,
+                            :owner           => rec.owner,
+                            :name            => rec.name,
+                            :update_area     => @update_area
+                           ),
+                    :title=>"Show details for local materialized view")
+  else
+    rec.mview_site
+  end
+end
+
+def link_snapshot_logs(rec)
+  my_ajax_link_to(rec.snapshot_logs,
+                  url_for(:action          => :list_snapshot_logs,
+                          :snapshot_id     => rec.mview_id,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show query text of materialized view")
+end
+
 
 column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.owner.downcase},                                :title=>"Owner of materialized view"},
     {:caption=>"Name",                  :data=>proc{|rec| link_text(rec, rec.name)},                          :title=>"Name of materialized view"},
+    {:caption=>"Num rows",              :data=>proc{|rec| link_real_num_rows(rec)},                           :title=>"Number of rows of this MView-log recorded at last analyze (for local MViews only)", :align=>:right},
     {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                                 :title=>"Real current physical size of materialized view in MBytes (for local MViews only)", :align=>:right},
-    {:caption=>"MView site",            :data=>proc{|rec| rec.mview_site},                                    :title=>"Global name of the materialized view site"},
+    {:caption=>"MView site",            :data=>proc{|rec| link_mview_site(rec)},                              :title=>"Global name of the materialized view site"},
     {:caption=>"Can use log",           :data=>proc{|rec| rec.can_use_log},                                   :title=>"YES if the materialized view can use a materialized view log, NO if the materialized view is too complex to use a log."},
     {:caption=>"Updatable",             :data=>proc{|rec| rec.updatable},                                     :title=>"(YES/NO) Indicates whether the materialized view is updatable. If set to NO, then the materialized view is read only."},
     {:caption=>"Fast refresh method",   :data=>proc{|rec| rec.refresh_method},                                :title=>"Whether the materialized view uses primary key, rowids, or object identifiers for fast refresh"},
-    {:caption=>"ID",                    :data=>proc{|rec| rec.mview_id},                                      :title=>"Identifier for the materialized view used by the masters for fast refresh"},
+    {:caption=>"ID",                    :data=>proc{|rec| rec.mview_id},                                      :title=>"Identifier for the materialized view used by the masters for fast refresh", :align=>:right},
     {:caption=>"Version",               :data=>proc{|rec| rec.version},                                       :title=>"Oracle version of the materialized view"},
-    {:caption=>"Logs",                  :data=>proc{|rec| rec.snapshot_logs},                                 :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
+    {:caption=>"Logs",                  :data=>proc{|rec| link_snapshot_logs(rec)},                           :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
+    {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
+    {:caption=>"Last analyze",          :data=>proc{|rec| localeDateTime rec.last_analyzed},                  :title=>"Last analyze date for underlying table of this MView"},
   ]
 
 %>

@@ -1,0 +1,32 @@
+<%
+@update_area = "list_snapshot_logs_detail_area_#{session[:request_counter]}"
+
+def link_mview_log(rec)
+  my_ajax_link_to(rec.log_table,
+                  url_for(:action          => :list_materialized_view_logs,
+                          :log_owner       => rec.log_owner,
+                          :log_name        => rec.log_table,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show details for materialized view log")
+end
+
+
+column_options =
+  [
+    {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner.downcase},                      :title=>"Owner of materialized view log"},
+    {:caption=>"Master",                :data=>proc{|rec| rec.master},                                  :title=>"Name of master table of materialized view log"},
+    {:caption=>"Log table",             :data=>proc{|rec| link_mview_log(rec)},                         :title=>"Name of MView log table"},
+    {:caption=>"Last refresh",          :data=>proc{|rec| localeDateTime(rec.current_snapshots)},       :title=>"Date of last refresh of materialzed view"},
+  ]
+
+%>
+
+<%= gen_slickgrid(@snaps, column_options, {
+        :max_height => 450,
+        :caption => "Data from sys.DBA_Snapshot_Log for Snapshot_ID=#{@snapshot_id}"
+
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

@@ -9,7 +9,7 @@ def link_real_num_rows(rec)
                           :name            => rec.log_table,
                           :update_area     => update_area
                          ),
-                  :title=>"Show current number of rows in MV-log")+"<br><div id=\"#{update_area}\"></div>".html_safe
+                  :title=>"Show current number of rows in MV-log. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
 end
 
 
@@ -17,7 +17,9 @@ column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner},                                   :title=>"Owner of materialized view log"},
     {:caption=>"Master",                :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
-    {:caption=>"Log table",             :data=>proc{|rec| rec.log_table},                                   :title=>"Name of the table where the changes to the master table or master materialized view are logged"},
+    {:caption=>"Log table",             :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.log_table, rec.log_table)}, :title=>"Name of the table where the changes to the master table or master materialized view are logged"},
+    {:caption=>"Num rows",              :data=>proc{|rec| link_real_num_rows(rec)},                         :title=>"Number of rows of this MView-log recorded at last analyze", :align=>:right},
+    {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                               :title=>"Real current physical size of materialized view log in MBytes", :align=>:right},
     {:caption=>"RowID",                 :data=>proc{|rec| rec.rowids},                                      :title=>"If YES, records rowid information"},
     {:caption=>"PKey",                  :data=>proc{|rec| rec.primary_key},                                 :title=>"If YES, records primary key information"},
     {:caption=>"Obj",                   :data=>proc{|rec| rec.object_id},                                   :title=>"If YES, records object identifier information in an object table"},
@@ -34,9 +36,7 @@ column_options << {:caption=>"last purge stat.",        :data=>proc{|rec| rec.la
 column_options << {:caption=>"Num. rows purged",        :data=>proc{|rec| fn rec.num_rows_purged},              :title=>"Number of rows purged in the last purge", :align=>:right} if session[:database].version >= "11.2"
 column_options << {:caption=>"SCN",                     :data=>proc{|rec| rec.commit_scn_based},                :title=>"Indicates whether the materialized view log is commit SCN-based (YES) or not (NO)"} if session[:database].version >= "11.2"
 column_options << {:caption=>"MView count",             :data=>proc{|rec| fn rec.snapshot_count},               :title=>"Number of materialized views / snapshots registered on this MView-log", :align=>:right}
-column_options << {:caption=>"Oldest refresh",          :data=>proc{|rec| localeDateTime rec.oldest_snapshot_date},  :title=>"Date of oldest refresh of materialized view/snapshot registered on this MView-log", :align=>:right}
-column_options << {:caption=>"Num rows",                :data=>proc{|rec| link_real_num_rows(rec)},             :title=>"Number of rows of this MView-log recorded al last analyze", :align=>:right}
-column_options << {:caption=>"Size (MB)",               :data=>proc{|rec| fn(rec.mbytes, 1)},                   :title=>"Real current physical size of materialized view log in MBytes", :align=>:right}
+column_options << {:caption=>"Oldest refresh date",    :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},:title=>"Date of oldest resfresh of MV-snapshot on this MV-log"}
 column_options << {:caption=>"Last analyze",            :data=>proc{|rec| localeDateTime rec.last_analyzed},    :title=>"Last analyze date of this MView-log"}
 
 %>
