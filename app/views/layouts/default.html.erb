@@ -62,36 +62,24 @@
         <tr><td colspan="5" style=""> </td></tr>
         <tr>
           <td  colspan="5">
-            <%  if cookies[:last_logins]
-                  cookies_last_logins = Marshal.load cookies[:last_logins]
-                else
-                  cookies_last_logins = []
-                end
-                unless cookies_last_logins && cookies_last_logins.instance_of?(Array)
-                  cookies_last_logins = []    # Dummy-Variante, falls nicht ladbar
-                end
-                cookies_last_logins.each_index do |index|
+            <%  cookies_last_logins = read_last_login_cookies
+
+                # Position des letzten Login in der Liste der gespeicherten Logins
+                cookies_last_login_index = 0
+                cookies_last_login_index = Marshal.load cookies[:last_login_index] if cookies[:last_login_index]
+
             %>
-            <div class="float_left">
-              <small>
-            <%=   database = cookies_last_logins[index]
-                  id = "direct_link_#{index}"
-                  (form_tag(url_for(:controller=>"env",
-                                   :action => "set_database",
-                                   :database=> database),
-                           :remote => true,
-                           :id => id
-                  ) do
-                    submit_tag "#{database[:sid]} (#{database[:user]})", :title => "Anmelden als #{database[:user]}@#{database[:host]}:#{database[:port]}:#{database[:sid]}"
-                  end) + javascript_tag(
-                  "jQuery(function($) {
-                     jQuery('##{id}')
-                       .bind('ajax:beforeSend',   showIndicator )
-                       .bind('ajax:complete', hideIndicator );
-                   });")
-            %>
-              </small>
-            </div>
+
+
+            <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_index), :remote=>true, :id=>:formSavedLogin do %>
+              <select name="saved_logins_index" title="Saved logins">
+                <% cookies_last_logins.each_index do |index| %>
+                  <% database = cookies_last_logins[index] %>
+                  <option <%= "selected" if index ==  cookies_last_login_index %> value="<%= index %>"><%= "#{database[:host]} : #{database[:port]} : #{database[:sid]} - #{database[:user]}" %></option>
+                <% end %>
+              </select>
+              <%= submit_tag "Login", :name => "login", :title => "Login with saved credentials" %>
+              <%= submit_tag "Delete", :name => "delete", :title => "Delete saved login information", :confirm => "Do you really want to delete this saved login credential?" %>
             <% end %>
           </td>
         </tr>
@@ -168,6 +156,11 @@
          jQuery("#formLoginDialog")
         .bind("ajax:before",   showIndicator )
         .bind("ajax:complete", hideIndicator );
+
+        jQuery("#formSavedLogin")
+                .bind("ajax:before",   showIndicator )
+                .bind("ajax:complete", hideIndicator );
+
        });
       </script>
 

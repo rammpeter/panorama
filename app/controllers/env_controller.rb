@@ -1,6 +1,7 @@
 # encoding: utf-8
 class EnvController < ApplicationController
   layout "default"
+  include EnvHelper
   include LicensingHelper
 
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
@@ -16,6 +17,26 @@ class EnvController < ApplicationController
   end
 
 public
+  # Aufgerufen aus dem Anmelde-Dialog für DB
+  def set_database_by_index
+    if params[:login]
+      params[:database] = read_last_login_cookies[params[:saved_logins_index].to_i]
+      params[:saveLogin] = "1"                                                    # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
+      set_database
+    end
+
+    if params[:delete]                                                          # Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
+      cookies_last_logins = read_last_login_cookies
+      cookies_last_logins.delete_at(params[:saved_logins_index].to_i)
+      write_last_login_cookies(cookies_last_logins)
+      respond_to do |format|
+        format.js {render :js => "window.location.reload();" }
+      end
+
+    end
+
+  end
+
   # Aufgerufen aus dem Anmelde-Dialog für DB
   def set_database
 
@@ -162,7 +183,7 @@ public
                                     closeText: 'Auswählen',"
     end
     respond_to do |format|
-      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database.tns},Host=#{@database.host},Port=#{@database.port},#{@database.sid_usage}=#{@database.sid}'>#{@database.tns}</span>"}');
+      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database.tns},Host=#{@database.host},Port=#{@database.port},#{@database.sid_usage}=#{@database.sid}, User=#{@database.user}'>#{@database.user}@#{@database.tns}</span>"}');
                                 $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#main_menu').html('#{j render_to_string :partial =>"build_main_menu" }');
                                 $('#login_dialog').dialog('close');
@@ -204,24 +225,20 @@ public
 private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
   def write_connection_to_cookie database
-    begin
-      if cookies[:last_logins]
-        cookies_last_logins = Marshal.load cookies[:last_logins]
-      else
-        cookies_last_logins = []
-      end
-    rescue Exception
-        cookies_last_logins = []      # Cookie neu initialisieren wenn Fehler beim Auslesen
-    end
-    cookies_last_logins = [] unless cookies_last_logins.instance_of?(Array)  # Falscher Typ des Cookies?
+
+    cookies_last_logins = read_last_login_cookies
 
     cookies_last_logins.each do |value|
-      cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host    # Aktuellen eintrag entfernen
+      cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
     end
     if params[:saveLogin] == "1"
-      cookies_last_logins.delete_at 0 if cookies_last_logins.length > 4    # ersten Eintrag des Arrays löschen bei Überlauf
       cookies_last_logins << database.to_params  # Aktuellen Eintrag hinzufügen
-      cookies.permanent[:last_logins] = Marshal.dump cookies_last_logins  # Zurückschreiben des Cookies
+      cookies_last_logins.sort_by!{|obj| "#{obj[:sid]}.#{obj[:host]}.#{obj[:user]}"}
+      cookies_last_logins.each_index do |index|
+        value = cookies_last_logins[index]
+        cookies.permanent[:last_login_index]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
+      end
+      write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
 
   end

@@ -10,6 +10,7 @@ gem 'activerecord-oracle_enhanced-adapter', ">= 1.4.0"
 gem "memcache-client"
 
 gem 'jruby-openssl'
+gem 'encryptor', '>= 1.1.3'
 
 # Gems used only for assets and not required
 # in production environments by default.
