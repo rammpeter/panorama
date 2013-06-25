@@ -3,16 +3,20 @@
 
 
 def link_text(rec, value)
-  my_ajax_link_to(value,
-                  url_for(:action          => :list_registered_mview_query_text,
-                          :mview_id        => rec.mview_id,
-                          :update_area     => @update_area
-                         ),
-                  :title=>"Show query text of materialized view")
+  if rec.mbytes
+    link_table_structure(@update_area, rec.owner, rec.name, rec.name)
+  else
+    my_ajax_link_to(value,
+                    url_for(:action          => :list_registered_mview_query_text,
+                            :mview_id        => rec.mview_id,
+                            :update_area     => @update_area
+                           ),
+                    :title=>"Show query text of materialized view")
+  end
 end
 
 def link_real_num_rows(rec)
-  update_area = "list_materialized_view_logs_#{(rec.owner+rec.name).hash}"
+  update_area = "list_registered_materialized_view_logs_#{(rec.owner+rec.name).hash.abs}"
   my_ajax_link_to(rec.mbytes ? (rec.num_rows ? fn(rec.num_rows) : "[No analyze]") : nil,
                   url_for(:action          => :list_real_num_rows,
                           :owner           => rec.owner,
@@ -42,7 +46,7 @@ def link_snapshot_logs(rec)
                           :snapshot_id     => rec.mview_id,
                           :update_area     => @update_area
                          ),
-                  :title=>"Show query text of materialized view")
+                  :title=>"Show details for registered materialized view logs")
 end
 
 

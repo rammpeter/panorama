@@ -38,7 +38,7 @@ column_options =
   {:caption=>"I#",              :data=>proc{|rec| rec.instance_count},                                                      :title=>"Number of affected RAC-Instances" },
   {:caption=>"I<",              :data=>proc{|rec| rec.min_instance_number},                                                 :title=>"Minimum ID of RAC-Instances" },
   {:caption=>"SQL-ID",          :data=>proc{|rec| link_sql_id(@update_area, rec.min_instance_number, rec.sql_id) },         :title=>"SQL-ID des Statements" },
-  {:caption=>"Plans",           :data=>proc{|rec|  link_execution_plan(rec, rec.execution_plan_count)},                     :title=>"Number of different execution plans", :data_style=>proc{|rec| (rec.execution_plan_count>1 ? "background-color:red;" : "") } },
+  {:caption=>"Plans",           :data=>proc{|rec|  link_execution_plan(rec, rec.execution_plan_count)},                     :title=>"Number of different execution plans", :data_style=>proc{|rec| (rec.execution_plan_count>1 ? "background-color:coral;" : "") } },
   {:caption=>"Elapsed Tag 1",   :data=>proc{|rec| link_column(1, rec, formattedNumber(rec.elapsed_time_t1/1000000.0,0)) },  :title=>"Elapsed Time in Sekunden am Tag 1", :align=>:right },
   {:caption=>"Elapsed Tag 2",   :data=>proc{|rec| link_column(2, rec, formattedNumber(rec.elapsed_time_t2/1000000.0,0)) },  :title=>"Elapsed Time in Sekunden am Tag 2", :align=>:right },
   {:caption=>"Elapsed Diff",    :data=>proc{|rec| formattedNumber((rec.elapsed_time_t2-rec.elapsed_time_t1)/1000000.0,0) }, :title=>"Zunahme Elapsed Time von Tag 1 auf Tag 2 in Sekunden", :align=>:right },

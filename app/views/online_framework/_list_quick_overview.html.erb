@@ -21,7 +21,7 @@ def link_error(rec, value)
 end
 
 def erroneous_data_style(rec)
-  "background-color:red;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
+  "background-color:coral;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
 end
 
 def msgtyp(id_ofmessagetype)

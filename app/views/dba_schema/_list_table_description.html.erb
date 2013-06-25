@@ -1,4 +1,4 @@
-<h3>Description of table <%=  @owner %>.<%= @table_name %></h3>
+<h3>Description of <%= @table_type %> <%= @owner %>.<%= @table_name %></h3>
 
 <%=  my_html_escape(@comment).html_safe %>
 
@@ -19,7 +19,7 @@ column_options =
 %>
 
 <%= gen_slickgrid(@columns, column_options, {
-      :caption => "Columns of table  #{@owner}.#{@table_name}",
+      :caption => "Columns of #{@table_type}  #{@owner}.#{@table_name}",
       :max_height => 450
     })
 %>
@@ -52,7 +52,7 @@ column_options << {:caption=>"Comp. for",       :data=>proc{|rec| rec.compress_f
 %>
 
 <%= gen_slickgrid(@attribs, column_options, {
-      :caption => "Attributes of table #{@owner}.#{@table_name}",
+      :caption => "Attributes of #{@table_type} #{@owner}.#{@table_name}",
       :height => :auto
 })
 %>
@@ -87,7 +87,12 @@ column_options =
 %>
 
 <%= gen_slickgrid(@indexes, column_options, {
-      :caption => "Indexes of table #{@owner}.#{@table_name}",
+      :caption => "Indexes of #{@table_type} #{@owner}.#{@table_name}",
       :height => :auto
 })
 %>
+
+<% if @viewtext %>
+<h4>Viewtext of <%= @table_type %> <%= @owner %>.<%= @table_name %></h4>
+<pre style="background-color: lightyellow"><%=  @viewtext %></pre>
+<% end %>

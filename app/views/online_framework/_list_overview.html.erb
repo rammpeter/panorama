@@ -21,13 +21,13 @@ def link_error(rec, value)
 end
 
 def erroneous_data_style(rec)
-  "background-color:red;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
+  "background-color:coral;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
 end
 
 def minctsnoerror_data_style(rec)
   output = ""
   output = "background-color:orange;" if rec.sla_warning_count > 0
-  output = "background-color:red;" if rec.sla_alert_count > 0
+  output = "background-color:coral;" if rec.sla_alert_count > 0
   output
 end
 

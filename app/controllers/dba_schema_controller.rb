@@ -157,12 +157,16 @@ class DbaSchemaController < ApplicationController
     @owner        = params[:owner]
     @segment_name = params[:segment_name]
 
-    object = sql_select_first_row ["SELECT * FROM DBA_Objects WHERE Owner=? AND Object_Name=?", @owner, @segment_name]
-    raise "Object #{@owner}.#{@segment_name} does not exist in database" unless object
+    objects = sql_select_all ["SELECT * FROM DBA_Objects WHERE Owner=? AND Object_Name=?", @owner, @segment_name]
+    raise "Object #{@owner}.#{@segment_name} does not exist in database" if objects.count == 0
+    object = objects[0]
+
+    @table_type = "table"
+    @table_type = "materialized view" if objects.count == 2 && (objects[0].object_type == "MATERIALIZED VIEW" || objects[1].object_type == "MATERIALIZED VIEW")
 
     # Ermitteln der zu dem Objekt gehörenden Table
     case object.object_type
-      when "TABLE", "TABLE PARTITION", "TABLE SUBPARTITION"
+      when "TABLE", "TABLE PARTITION", "TABLE SUBPARTITION", "MATERIALIZED VIEW"
         if @segment_name[0,12] == "SYS_IOT_OVER"
           res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @segment_name[13,10]]
           raise "Segment #{@owner}.#{@segment_name} is not known table type" unless res
@@ -269,6 +273,15 @@ class DbaSchemaController < ApplicationController
       i[:column_names] = names[2,names.length]
 
     end
+
+    if @table_type == "materialized view"
+      @viewtext = sql_select_one ["SELECT m.query
+                                   FROM   sys.dba_mviews m
+                                   WHERE  Owner      = ?
+                                   AND    MView_Name = ?
+                                   ", @owner, @table_name]
+    end
+
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_description" }');"}

@@ -2,7 +2,7 @@
 @update_area = "list_materialized_view_logs_detail_area_#{session[:request_counter]}"
 
 def link_real_num_rows(rec)
-  update_area = "list_materialized_view_logs_#{(rec.log_owner+rec.log_table).hash}"
+  update_area = "list_materialized_view_logs_#{(rec.log_owner+rec.log_table).hash.abs}"
   my_ajax_link_to(rec.num_rows ? fn(rec.num_rows) : "[No analyze]",
                   url_for(:action          => :list_real_num_rows,
                           :owner           => rec.log_owner,

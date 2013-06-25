@@ -1005,7 +1005,7 @@ function calculate_current_grid_column_widths(grid_table, caller){
 
     var current_grid_width = grid_table.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
     var columns = grid.getColumns();
-
+    var columns_changed = false;
     var max_table_width = 0;                       // max. Summe aller Spaltenbreiten
     var wrapable_count  = 0;                       // aktuelle Anzahl noch umzubrechender Spalten
     var column_count    = columns.length;                                       // Anzahl Spalten
@@ -1016,11 +1016,19 @@ function calculate_current_grid_column_widths(grid_table, caller){
 
     for (var col_index in columns) {
         column = columns[col_index];
-        if (column['fixedWidth']) {                                             // Feste Breite vorgegeben ?
-            column['width']      = column['fixedWidth'];                        // Feste Breite der Spalte beinhaltet bereits padding
+        if (column['fixedWidth']){
+            if (column['width'] != column['fixedWidth']) {                      // Feste Breite vorgegeben ?
+                column['width']      = column['fixedWidth'];                    // Feste Breite der Spalte beinhaltet bereits padding
+                columns_changed = true;
+            }
+
         } else {                                                                // keine feste Breite vorgegeben
-            column['width']      = column['max_nowrap_width']+h_padding;        // per Default komplette Breite des Inhaltes als Spaltenbreite annehmen , Korrektur um padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
+            if (column['width'] != column['max_nowrap_width']+h_padding) {
+                column['width']      = column['max_nowrap_width']+h_padding;    // per Default komplette Breite des Inhaltes als Spaltenbreite annehmen , Korrektur um padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
+                columns_changed = true;
+            }
         }
+
         max_table_width += column['width'];
         if (column['max_wrap_width'] < column['max_nowrap_width'] && !column['no_wrap'])
             wrapable_count += 1;
@@ -1062,6 +1070,7 @@ function calculate_current_grid_column_widths(grid_table, caller){
                 if (current_table_width < current_grid_width && !columns[col_index]['fixedWidth']){
                     columns[col_index]['width']++;
                     current_table_width++;
+                    columns_changed = true;
                 }
             }
         }
@@ -1072,6 +1081,7 @@ function calculate_current_grid_column_widths(grid_table, caller){
                 columns[col_index]['width'] += sort_pfeil_width;                // erweitern um Darstellung des Sort-Pfeiles
                 current_table_width += sort_pfeil_width;
                 max_table_width += sort_pfeil_width;                            // max. Breite des Grids im auto-Modus
+                columns_changed = true;
             }
         }
     }
@@ -1087,7 +1097,8 @@ function calculate_current_grid_column_widths(grid_table, caller){
 
     jQuery('#caption_'+grid_table.attr('id')).css('width', grid_table.width()); // Breite des Caption-Divs auf Breite des Grid setzen
     grid.setOptions(options);                                                   // Setzen der veränderten options am Grid
-    grid.setColumns(columns);                                                   // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
+    if (columns_changed)
+        grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
 
     //############### Ab hier Berechnen der Zeilenhöhen ##############
     var header_height = options['headerHeight']                                 // alter Wert

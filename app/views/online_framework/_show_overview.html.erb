@@ -5,7 +5,7 @@
         if @blocker_count == 1
           "<td align='center' title='Lt. Aussage sysp.ApplDaemonMonitoring ist der Blocker-Prozess aktiv' style='background-color:lightgreen' >Blocker ist aktiv</td>".html_safe
         else
-          "<td align='center' title='Lt. Aussage sysp.ApplDaemonMonitoring ist der Blocker-Prozess zu lange nicht aktiv' style='background-color:red' >Blocker ist nicht aktiv</td>".html_safe
+          "<td align='center' title='Lt. Aussage sysp.ApplDaemonMonitoring ist der Blocker-Prozess zu lange nicht aktiv' style='background-color:coral' >Blocker ist nicht aktiv</td>".html_safe
         end
       %>
       <%= 
@@ -15,12 +15,12 @@
           if @messageCountNOAFB == 0
             "<td align='center' title='journal.OFMessage@NOAFB enthält keine Datensätze' style='background-color:lightgreen' >Notfall-Queue leer</td>".html_safe
           else
-            "<td align='center' title='journal.OFMessage@NOAFB enthält genannte Anzahl Datensätze' style='background-color:red' >Notfall-Queue enthält #{@messageCountNOAFB} Messages</td>".html_safe
+            "<td align='center' title='journal.OFMessage@NOAFB enthält genannte Anzahl Datensätze' style='background-color:coral' >Notfall-Queue enthält #{@messageCountNOAFB} Messages</td>".html_safe
           end
         end
       %>
       <%= if @error_count_exceeded.length > 0
-            output = "<td style='background-color:red'>Fehlerlimit überschritten für #{@error_count_exceeded.length}Messagtypen ("
+            output = "<td style='background-color:coral'>Fehlerlimit überschritten für #{@error_count_exceeded.length}Messagtypen ("
             output << @error_count_exceeded.map(&:id_ofmessagetype).join(",")
             output << ")</td>"
             output.html_safe
@@ -34,7 +34,7 @@
           end
       %>
       <%= if @sla_alert_exceeded.length > 0
-            output = "<td style='background-color:red'>Alert-Limit für garantierte Verarbeitungszeit wurde in letzter Stunde überschritten für #{@sla_alert_exceeded.length} Messagtypen ("
+            output = "<td style='background-color:coral'>Alert-Limit für garantierte Verarbeitungszeit wurde in letzter Stunde überschritten für #{@sla_alert_exceeded.length} Messagtypen ("
             output << @sla_alert_exceeded.map(&:id_ofmessagetype).join(",")
             output << ")</td>"
             output.html_safe
