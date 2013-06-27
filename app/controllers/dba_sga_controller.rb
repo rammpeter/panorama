@@ -360,12 +360,17 @@ class DbaSgaController < ApplicationController
       @sql_statement = get_sga_sql_statement(@instance, params[:sql_id])
       @open_cursors = get_open_cursor_count(@instance, @sql_id)
 
-      raise "SQL-ID '#{@sql_id}' not found in GV$SQL for instance #{@instance} !"  if @sqls.count == 0
-      respond_to do |format|
-         format.js { render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_detail_sql_id" }');" }
+      if @sqls.count == 0
+        respond_to do |format|
+           format.js { render :js => "alert(\"SQL-ID '#{@sql_id}' not found in GV$SQL for instance #{@instance} !\");" }
+        end
+      else
+        respond_to do |format|
+           format.js { render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_detail_sql_id" }');" }
+        end
       end
     end
-   end
+  end
 
   def list_sql_shared_cursor
     @instance     = params[:instance]

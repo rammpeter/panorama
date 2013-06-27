@@ -13,6 +13,14 @@ class StorageController < ApplicationController
   end
 
   def list_registered_materialized_views
+    where_string = ""
+    where_values = []
+
+    if params[:snapshot_id]
+      where_string << " AND m.MView_ID = ?"
+      where_values << params[:snapshot_id]
+    end
+
     @mvs = sql_select_all ["\
       SELECT m.Owner,
              m.Name,
@@ -29,7 +37,8 @@ class StorageController < ApplicationController
       LEFT OUTER JOIN (SELECT Snapshot_ID, COUNT(*) Snapshot_Logs, MIN(Current_Snapshots) Oldest_Refresh_Date
                        FROM DBA_Snapshot_Logs GROUP BY Snapshot_ID) l  ON l.Snapshot_ID = m.MView_ID
       LEFT OUTER JOIN All_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.Name
-    "]
+      WHERE 1=1 #{where_string}
+    "].concat where_values
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_registered_materialized_views"}');"}
@@ -109,13 +118,29 @@ class StorageController < ApplicationController
 
   # Anzeige der n:m zwischen MV und MV-Log
   def list_snapshot_logs
-    @snapshot_id = params[:snapshot_id]
+    where_string = ""
+    where_values = []
+
+    if params[:snapshot_id]
+      where_string << " AND l.Snapshot_ID = ?"
+      where_values << params[:snapshot_id]
+    end
+
+    if params[:log_owner]
+      where_string << " AND l.Log_Owner = ?"
+      where_values << params[:log_owner]
+    end
+
+    if params[:log_table]
+      where_string << " AND l.Log_Table = ?"
+      where_values << params[:log_table]
+    end
 
     @snaps = sql_select_all ["\
-      SELECT *
-      FROM   DBA_Snapshot_Logs
-      WHERE  Snapshot_ID = ?
-      ", @snapshot_id]
+      SELECT l.*, l.object_id contains_object_id
+      FROM   DBA_Snapshot_Logs l
+      WHERE  1=1 #{where_string}
+      "].concat where_values
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_snapshot_logs"}');"}

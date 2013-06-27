@@ -11,13 +11,29 @@ def link_mview_log(rec)
                   :title=>"Show details for materialized view log")
 end
 
+def link_registered_mview(rec)
+  my_ajax_link_to(rec.snapshot_id,
+                  url_for(:action          => :list_registered_materialized_views,
+                          :snapshot_id     => rec.snapshot_id,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show details for registered materialized view with this snapshot id")
+end
+
 
 column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner.downcase},                      :title=>"Owner of materialized view log"},
-    {:caption=>"Master",                :data=>proc{|rec| rec.master},                                  :title=>"Name of master table of materialized view log"},
+    {:caption=>"Master",                :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
     {:caption=>"Log table",             :data=>proc{|rec| link_mview_log(rec)},                         :title=>"Name of MView log table"},
     {:caption=>"Last refresh",          :data=>proc{|rec| localeDateTime(rec.current_snapshots)},       :title=>"Date of last refresh of materialzed view"},
+    {:caption=>"Snapshot ID",           :data=>proc{|rec| link_registered_mview(rec)},                  :title=>"Materialized view identifier"},
+    {:caption=>"RowID",                 :data=>proc{|rec| rec.rowids},                                  :title=>"If YES, records rowid information"},
+    {:caption=>"PKey",                  :data=>proc{|rec| rec.primary_key},                             :title=>"If YES, records primary key information"},
+    {:caption=>"Obj",                   :data=>proc{|rec| rec.contains_object_id},                      :title=>"If YES, records object identifier information in an object table"},
+    {:caption=>"Flt.",                  :data=>proc{|rec| rec.filter_columns},                          :title=>"If YES, records filter columns"},
+    {:caption=>"Seq.",                  :data=>proc{|rec| rec.sequence},                                :title=>"If YES, records the sequence value, which provides additional ordering information"},
+    {:caption=>"New",                   :data=>proc{|rec| rec.include_new_values},                      :title=>"If YES, records both old and new values. If NO, records old values, but does not record new values."},
   ]
 
 %>

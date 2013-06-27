@@ -12,6 +12,16 @@ def link_real_num_rows(rec)
                   :title=>"Show current number of rows in MV-log. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
 end
 
+def link_snapshot_count(rec)
+  my_ajax_link_to(fn(rec.snapshot_count),
+                  url_for(:action          => :list_snapshot_logs,
+                          :log_owner       => rec.log_owner,
+                          :log_table       => rec.log_table,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show registered materialized view logs for this MV log from DBA_Snapshot_Logs")
+end
+
 
 column_options =
   [
@@ -31,11 +41,11 @@ column_options << {:caption=>"Purge async.",            :data=>proc{|rec| rec.pu
 column_options << {:caption=>"Purge def.",              :data=>proc{|rec| rec.purge_deferred},                  :title=>"Indicates whether the materialized view log is purged in a deferred manner (YES) or not (NO)"} if session[:database].version >= "11.2"
 column_options << {:caption=>"Purge start",             :data=>proc{|rec| localeDateTime rec.purge_start},      :title=>"For deferred purge, the purge start date"} if session[:database].version >= "11.2"
 column_options << {:caption=>"Purge interv.",           :data=>proc{|rec| rec.purge_interval},                  :title=>"For deferred purge, the purge interval"} if session[:database].version >= "11.2"
-column_options << {:caption=>"last purge",              :data=>proc{|rec| localeDateTime rec.last_purge_date},  :title=>"Date of the last purge"} if session[:database].version >= "11.2"
-column_options << {:caption=>"last purge stat.",        :data=>proc{|rec| rec.last_purge_status},               :title=>"Status of the last purge (error code or 0 for success)"} if session[:database].version >= "11.2"
+column_options << {:caption=>"Last purge",              :data=>proc{|rec| localeDateTime rec.last_purge_date},  :title=>"Date of the last purge, either from refresh of oldest MV or explicit execution of DBMS_MVIEW.PURGE_LOG"} if session[:database].version >= "11.2"
+column_options << {:caption=>"Last purge stat.",        :data=>proc{|rec| rec.last_purge_status},               :title=>"Status of the last purge (error code or 0 for success)"} if session[:database].version >= "11.2"
 column_options << {:caption=>"Num. rows purged",        :data=>proc{|rec| fn rec.num_rows_purged},              :title=>"Number of rows purged in the last purge", :align=>:right} if session[:database].version >= "11.2"
 column_options << {:caption=>"SCN",                     :data=>proc{|rec| rec.commit_scn_based},                :title=>"Indicates whether the materialized view log is commit SCN-based (YES) or not (NO)"} if session[:database].version >= "11.2"
-column_options << {:caption=>"MView count",             :data=>proc{|rec| fn rec.snapshot_count},               :title=>"Number of materialized views / snapshots registered on this MView-log", :align=>:right}
+column_options << {:caption=>"MView count",             :data=>proc{|rec| link_snapshot_count(rec)},            :title=>"Number of materialized views / snapshots registered on this MView-log", :align=>:right}
 column_options << {:caption=>"Oldest refresh date",    :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},:title=>"Date of oldest resfresh of MV-snapshot on this MV-log"}
 column_options << {:caption=>"Last analyze",            :data=>proc{|rec| localeDateTime rec.last_analyzed},    :title=>"Last analyze date of this MView-log"}
 

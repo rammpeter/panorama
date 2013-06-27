@@ -9,15 +9,29 @@
       jQuery(document).ready(function(){
           activate_tablesorter_tables();
       });
-      </script>
 
+        // Ueberladen der Funktionen aus application.js
+        function showIndicator() {
+            jQuery("#indicator").show();
+        }
+
+        function hideIndicator() {
+            jQuery("#indicator").hide();
+        }
+
+
+      </script>
+      <%=
+          # Erstellen der JS-Funktion locale_translate
+          set_js_locale_translate
+      %>
     </head>
     <body style="background-color: #ccccff;
                  color: #333;
                  font-family: sans-serif;
                  margin: 0;
                  padding:  5px;
-                ">
+                " onload="hideIndicator();">
         <div id="slick_test_cells">
             <!-- Tables für Test der resultierenden Hoehe und Breite von Zellen für slickGrid -->
             <!-- Zwei table für volle Zeichenbreite -->
@@ -31,6 +45,9 @@
             <h2 style="margin: 10px; padding: 15px;">
               <div style="float:left;">Panorama for Oracle : Nutzungs-Statistik</div>
             </h2>
+            <div id="indicator" style="position: absolute;right: 10px; top: 30px;">
+              <img src="../assets/ajax-loader.gif">
+            </div>
         </div>
 
             <%
