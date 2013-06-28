@@ -32,11 +32,13 @@ class StorageController < ApplicationController
              m.Version,
              l.Snapshot_Logs, l.Oldest_Refresh_Date,
              (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments seg WHERE seg.Owner=m.Owner AND seg.Segment_Name=m.Name) MBytes,
-             t.Num_Rows, t.Last_Analyzed
+             t.Num_Rows, t.Last_Analyzed,
+             mv.Master_Link
       FROM   sys.dba_registered_mviews m
       LEFT OUTER JOIN (SELECT Snapshot_ID, COUNT(*) Snapshot_Logs, MIN(Current_Snapshots) Oldest_Refresh_Date
                        FROM DBA_Snapshot_Logs GROUP BY Snapshot_ID) l  ON l.Snapshot_ID = m.MView_ID
       LEFT OUTER JOIN All_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.Name
+      LEFT OUTER JOIN DBA_MViews mv ON mv.Owner = m.Owner AND mv.MView_Name = m.Name
       WHERE 1=1 #{where_string}
     "].concat where_values
 

@@ -57,6 +57,7 @@ column_options =
     {:caption=>"Num rows",              :data=>proc{|rec| link_real_num_rows(rec)},                           :title=>"Number of rows of this MView-log recorded at last analyze (for local MViews only)", :align=>:right},
     {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                                 :title=>"Real current physical size of materialized view in MBytes (for local MViews only)", :align=>:right},
     {:caption=>"MView site",            :data=>proc{|rec| link_mview_site(rec)},                              :title=>"Global name of the materialized view site"},
+    {:caption=>"Master link",           :data=>proc{|rec| rec.master_link},                                   :title=>"Database link for the master site or the master materialized view site (if MV is local on this database)"},
     {:caption=>"Can use log",           :data=>proc{|rec| rec.can_use_log},                                   :title=>"YES if the materialized view can use a materialized view log, NO if the materialized view is too complex to use a log."},
     {:caption=>"Updatable",             :data=>proc{|rec| rec.updatable},                                     :title=>"(YES/NO) Indicates whether the materialized view is updatable. If set to NO, then the materialized view is read only."},
     {:caption=>"Fast refresh method",   :data=>proc{|rec| rec.refresh_method},                                :title=>"Whether the materialized view uses primary key, rowids, or object identifiers for fast refresh"},
