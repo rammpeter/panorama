@@ -32,7 +32,7 @@ column_options =
     {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                               :title=>"Real current physical size of materialized view log in MBytes", :align=>:right},
     {:caption=>"RowID",                 :data=>proc{|rec| rec.rowids},                                      :title=>"If YES, records rowid information"},
     {:caption=>"PKey",                  :data=>proc{|rec| rec.primary_key},                                 :title=>"If YES, records primary key information"},
-    {:caption=>"Obj",                   :data=>proc{|rec| rec.object_id},                                   :title=>"If YES, records object identifier information in an object table"},
+    {:caption=>"Obj",                   :data=>proc{|rec| rec.has_object_id},                               :title=>"If YES, records object identifier information in an object table"},
     {:caption=>"Flt.",                  :data=>proc{|rec| rec.filter_columns},                              :title=>"If YES, records filter columns"},
     {:caption=>"Seq.",                  :data=>proc{|rec| rec.sequence},                                    :title=>"If YES, records the sequence value, which provides additional ordering information"},
     {:caption=>"New",                   :data=>proc{|rec| rec.include_new_values},                          :title=>"If YES, records both old and new values. If NO, records old values, but does not record new values."},

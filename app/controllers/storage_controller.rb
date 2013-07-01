@@ -99,7 +99,8 @@ class StorageController < ApplicationController
     end
 
     @logs = sql_select_all ["\
-      SELECT l.*, sl.Snapshot_count, sl.Oldest_Refresh_Date,
+      SELECT l.*, l.Object_ID Has_Object_ID,
+             sl.Snapshot_count, sl.Oldest_Refresh_Date,
              t.Num_rows, t.Last_Analyzed,
              (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments seg WHERE seg.Owner=l.Log_Owner AND seg.Segment_Name=l.log_Table) MBytes
       FROM   DBA_MView_Logs l
