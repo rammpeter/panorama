@@ -26,6 +26,7 @@ class ApplicationController < ActionController::Base
     # Präziser before_filter mit Test auf controller
     return if (controller_name == "env"   && action_name == "index") ||
               (controller_name == "env"   && action_name == "set_database") ||
+              (controller_name == "env"   && action_name == "set_database_by_index") ||
               (controller_name == "usage" && action_name == "info") ||
               (controller_name == "usage" && action_name == "detail_sum")
 
