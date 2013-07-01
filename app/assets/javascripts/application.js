@@ -796,7 +796,22 @@ function setup_slickgrid(container, data, columns, options){
         .data('slickgrid', grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
         .css('margin-top', '2px')
         .css('margin-bottom', '2px')
+        .resizable({
+          stop: function( event, ui ) {
+              ui.element
+                  .css('width', '')                                             // durch Resize gesetzte feste Weite wieder entfernen
+                  .css('top', '')
+                  .css('left', '')
+              ;
+              ui.element.data('slickgrid').resizeCanvas();
+
+
+          }
+        })
     ;
+
+    jQuery(container).find(".ui-resizable-e").remove();                         // Entfernen des rechten resizes-Cursors
+    jQuery(container).find(".ui-resizable-se").remove();                        // Entfernen des rechten unteren resize-Cursors
 
     grid.onSort.subscribe(function(e, args) {
         var col = args.sortCol;
