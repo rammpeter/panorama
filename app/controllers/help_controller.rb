@@ -18,9 +18,10 @@ class HelpController < ApplicationController
           ioutput << url_for(
               :controller =>:help,
               :action => :content,
-              :last_used_menu_action => m[:action],
-              :last_used_menu_controller => m[:controller]
-
+              :last_used_menu_action      => m[:action],
+              :last_used_menu_controller  => m[:controller],
+              :last_used_menu_caption     => m[:caption],
+              :last_used_menu_hint        => m[:hint]
           )
           ioutput << "'>#{m[:caption]}</a>&nbsp;&nbsp;&nbsp; #{m[:hint]}</li>"
         end
@@ -40,12 +41,21 @@ class HelpController < ApplicationController
 
   # Themenspezifische Seite zu zuletzt ausgeführtem Menü-Eintrag
   def content
-    @last_used_menu_caption = session[:last_used_menu_caption]
-    @last_used_menu_hint    = session[:last_used_menu_hint]
+    @last_used_menu_caption = session[:last_used_menu_caption]                  # Default
+    @last_used_menu_hint    = session[:last_used_menu_hint]                     # Default
+
+    @last_used_menu_caption = params[:last_used_menu_caption] if params[:last_used_menu_caption]
+    @last_used_menu_hint    = params[:last_used_menu_hint]    if params[:last_used_menu_hint]
+
     begin
     render :template=>"help/help_#{session[:last_used_menu_controller]}_#{session[:last_used_menu_action]}"
     rescue Exception=>e
       render :text=>t(:help_no_help_available, :default=>"Sorry no help yet available")+" '#{@last_used_menu_caption}' (#{@last_used_menu_hint})"
     end
   end
+
+  def version_history
+
+  end
+
 end

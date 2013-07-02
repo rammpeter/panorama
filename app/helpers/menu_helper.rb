@@ -240,6 +240,7 @@ public
           <li>#{ link_to t(:menu_help_content_caption,  :default=>"Current content"),  { :controller => "help", :action=>"content" }, :title=>t(:menu_help_content_hint, :default=>'Help for current content'), :target=>"_blank" }</li>
           <li><a href='mailto:Peter.Ramm@ottogroup.com'  title='#{t :menu_help_contact_title, :default=>"Contact to producer"}'>#{t :menu_help_contact_caption, :default=>"Contact"}</a></li>
           <li><a href='http://sewiki.ov.otto.de:8080/xwiki/bin/view/TA+SYSPARA/Panorama'  title='#{t :menu_help_wiki_title, :default=>"Panorama-Wiki incl. FAQ"}' target='_blank'>#{t :menu_help_wiki_caption, :default=>"Wiki / FAQ"}</a></li>
+          <li>#{ link_to t(:menu_help_version_history_caption, :default=>"Version history"), { :controller => "help", :action=>"version_history" }, :title=>t(:menu_help_version_history_hint, :default=>'Development history of features and versions'), :target=>"_blank"  }</li>
         </ul>
       </li>
     </ul>

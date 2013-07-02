@@ -371,6 +371,8 @@
   menu_help_overview_hint:                                  Überblick über Hilfe-Themen
   menu_help_contact_caption:                                Kontakt
   menu_help_contact_hint:                                   Kontakt zum Hersteller
+  menu_help_version_history_caption:                        Versions-Historie
+  menu_help_version_history_hint:                           Entwicklungs-Historie von Funktionen und Versionen
 
   show_mutex_statistics_historic_blocker_hint:              Mutex-Sleep-Historie Gruppiert nach Blocker-Sessions
   show_mutex_statistics_historic_caption:                   Mutex-Statistiken aus GV$Mutex_Sleep_History (seit Instance-Start)
