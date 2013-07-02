@@ -777,7 +777,7 @@ function parseFloatLocale(value){
 
 // Init SlickGrid + Sortierung
 // Parameter:
-//      container: jQuery-ID (incl. #) des grids
+//      container: jQuery-ID (incl. #) des grids als String
 function setup_slickgrid(container, data, columns, options){
     columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
 
@@ -792,26 +792,31 @@ function setup_slickgrid(container, data, columns, options){
 
     var grid = new Slick.Grid(container, dataView, columns, options);
 
-    jQuery(container)
+    var gridContainer = jQuery(container);                                      // Puffern des jQuery-Objektes
+    gridContainer
         .data('slickgrid', grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
         .css('margin-top', '2px')
         .css('margin-bottom', '2px')
-        .resizable({
-          stop: function( event, ui ) {
-              ui.element
-                  .css('width', '')                                             // durch Resize gesetzte feste Weite wieder entfernen
-                  .css('top', '')
-                  .css('left', '')
-              ;
-              ui.element.data('slickgrid').resizeCanvas();
-
-
-          }
-        })
     ;
 
-    jQuery(container).find(".ui-resizable-e").remove();                         // Entfernen des rechten resizes-Cursors
-    jQuery(container).find(".ui-resizable-se").remove();                        // Entfernen des rechten unteren resize-Cursors
+    // Grid durch Schieber am unteren Ende horitontal resizable gestalten
+    gridContainer.resizable({
+              stop: function( event, ui ) {
+                  ui.element
+                      .css('width', '')                                         // durch Resize gesetzte feste Weite wieder entfernen, da sonst Weiterleitung resize des Parents nicht wirkt
+                      .css('top', '')
+                      .css('left', '')
+                  ;
+                  ui.element.data('slickgrid').resizeCanvas();
+
+                  var total_height = ui.element.data('total_height');
+                  if (total_height < ui.element.height())      // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
+                      ui.element.height(total_height);
+              }
+            })
+    ;
+    gridContainer .find(".ui-resizable-e").remove();                            // Entfernen des rechten resizes-Cursors
+    gridContainer .find(".ui-resizable-se").remove();                           // Entfernen des rechten unteren resize-Cursors
 
     grid.onSort.subscribe(function(e, args) {
         var col = args.sortCol;
@@ -1021,8 +1026,8 @@ function calculate_current_grid_column_widths(grid_table, caller){
     var current_grid_width = grid_table.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
     var columns = grid.getColumns();
     var columns_changed = false;
-    var max_table_width = 0;                       // max. Summe aller Spaltenbreiten
-    var wrapable_count  = 0;                       // aktuelle Anzahl noch umzubrechender Spalten
+    var max_table_width = 0;                                                    // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
+    var wrapable_count  = 0;                                                    // aktuelle Anzahl noch umzubrechender Spalten
     var column_count    = columns.length;                                       // Anzahl Spalten
     var column;
     var h_padding       = 10;                                                   // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
@@ -1103,11 +1108,11 @@ function calculate_current_grid_column_widths(grid_table, caller){
 
     grid_table.data('last_resize_width', grid_table.width());                   // Merken der aktuellen Breite, um unnötige resize-Events zu vermeiden
 
-    var scrollbar_width = 0;
+    var vertical_scrollbar_width = 0;
     if (has_slickgrid_vertical_scrollbar(grid_table))
-        scrollbar_width = scrollbarWidth();
-    if (options['width'] == "auto" && max_table_width+scrollbar_width < grid_table.parent().width() ) {     // Grid kann noch breiter dargestellt werden
-        grid_table.css('width', max_table_width+scrollbar_width);  // Gesamtes Grid auf die Breite des Canvas (Summe aller Spalten) setzten
+        vertical_scrollbar_width = scrollbarWidth();
+    if (options['width'] == "auto" && max_table_width+vertical_scrollbar_width < grid_table.parent().width() ) {     // Grid kann noch breiter dargestellt werden
+        grid_table.css('width', max_table_width+vertical_scrollbar_width);  // Gesamtes Grid auf die Breite des Canvas (Summe aller Spalten) setzten
     }
 
     jQuery('#caption_'+grid_table.attr('id')).css('width', grid_table.width()); // Breite des Caption-Divs auf Breite des Grid setzen
@@ -1119,7 +1124,9 @@ function calculate_current_grid_column_widths(grid_table, caller){
     var header_height = options['headerHeight']                                 // alter Wert
     var row_height    = options['rowHeight']                                    // alter Wert
     var v_padding     = 4;                                                      // Vertiale Erweiterung der Spaltenhöhe um Padding
-
+    var horizontal_scrollbar_width = 0
+    if (current_table_width+vertical_scrollbar_width > grid_table.parent().width() )   // nuss horizontaler Scrollbar existieren?
+        horizontal_scrollbar_width = scrollbarWidth();
 
     // Hoehen von Header so setzen, dass der komplette Inhalt dargestellt wird
     grid_table.find(".slick-header-columns").children().each(function(){
@@ -1149,24 +1156,35 @@ function calculate_current_grid_column_widths(grid_table, caller){
         options['headerHeight'] = header_height;
         //calculate_current_grid_column_widths(grid_table, "recursive from Height set");
 
-        var total_height = grid_table.outerHeight(true) - grid_table.outerHeight()  // margin top/bottom
+        var total_height = 0 // grid_table.outerHeight(true) - grid_table.outerHeight()  // margin top/bottom
                               + options['headerHeight']                         // innere Höhe eines Headers
                               + 8                                               // padding top und bottom=4 des Headers
-                              + ((options['rowHeight']+3) * grid.getDataLength() )  // Höhe aller Datenzeilen
-                              + scrollbarWidth()                                // führt evtl zu
+                              + 2                                               // border=1 top und bottom des headers
+                              + (options['rowHeight'] * grid.getDataLength() )  // Höhe aller Datenzeilen
+                              + horizontal_scrollbar_width
                               + (options["showHeaderRow"] ? options["headerRowHeight"] : 0)
                               ;                                                 // Linie über und unter dem Scrollbar
 
+        grid_table.data('total_height', total_height);                          // Speichern am DIV-Objekt für Zugriff aus anderen Funktionen
 
-         if (options['maxHeight']){
-             if (options['maxHeight'] < total_height)
-                 grid_table.css('height',options['maxHeight']);                 // Limitieren der Höhe
-             else
-                 grid_table.css('height',total_height);                         // dann ganze Höhe anzeigen, da kleiner als max_height
-         }else{                                                                 // max_height nicht gesetzt
-             if (options['autoHeight'])                                         // keine Eingrenzung der Höhe vorgegeben
-                 grid_table.css('height',total_height);                         // dann volle Höhe anzeigen
-         }
+        console.log("Height calculation:");
+        console.log("margin="+(grid_table.outerHeight(true) - grid_table.outerHeight()));
+        console.log("header="+options['headerHeight']);
+        console.log("padding header=8");
+        console.log("rowheight="+options['rowHeight']);
+        console.log("Scrollbar="+scrollbarWidth());
+        console.log("totalcanvas="+(options['rowHeight']) * grid.getDataLength());
+        console.log("total_height="+total_height);
+
+        if (options['maxHeight']){
+            if (options['maxHeight'] < total_height)
+                grid_table.css('height',options['maxHeight']);                 // Limitieren der Höhe
+            else
+                grid_table.css('height',total_height);                         // dann ganze Höhe anzeigen, da kleiner als max_height
+        }else{                                                                 // max_height nicht gesetzt
+            if (options['autoHeight'])                                         // keine Eingrenzung der Höhe vorgegeben
+                grid_table.css('height',total_height);                         // dann volle Höhe anzeigen
+        }
         grid.setOptions(options);                                               // Setzen der veränderten options am Grid
         grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
     }
