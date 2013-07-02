@@ -140,8 +140,10 @@ class StorageController < ApplicationController
     end
 
     @snaps = sql_select_all ["\
-      SELECT l.*, l.object_id contains_object_id
+      SELECT l.*, l.object_id contains_object_id,
+             m.Owner mv_Owner, m.Name MV_Name, m.MView_Site
       FROM   DBA_Snapshot_Logs l
+      LEFT OUTER JOIN DBA_Registered_MViews m ON m.MView_ID = l.Snapshot_ID
       WHERE  1=1 #{where_string}
       "].concat where_values
 
