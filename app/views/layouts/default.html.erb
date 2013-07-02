@@ -31,6 +31,26 @@
 
         // Registrieren resize-Handler für Breitenanpassung der slickGrids
         jQuery(window).resize(function(){ resize_slickGrids();});
+
+        jQuery(document).tooltip({                                              // ui-tooltips verwenden
+            open: function( event, ui ) {
+                ui.tooltip
+                        .css('background-image', 'none')
+                        .css('background-color', 'lightyellow')
+                        .css('color', 'black')
+                        .css('font-size', 'x-small')
+                ;
+                //alert("After");
+            },
+            show: {
+                effect: "slideDown",
+                duration: "fast",
+                delay: 1000
+            },
+            hide: {
+                effect: "hide"
+            }
+        });
       });
     </script>
 
