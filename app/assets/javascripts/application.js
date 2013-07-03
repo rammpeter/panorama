@@ -775,6 +775,17 @@ function parseFloatLocale(value){
     }
 }
 
+// Setzen/Limitieren der Höhe des Grids auf maximale Höhe des Inhaltes
+// Parameter: jQuery-Objekt des Grid-Containers
+function adjust_real_grid_height(jq_container){
+    // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Plastz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
+    var total_height = jq_container.data('total_height');                       // gespeicherte Inhaltes-Höhe aus calculate_current_grid_column_widths
+    if (total_height < jq_container.height())                                   // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
+        jq_container.height(total_height);
+}
+
+
+
 // Init SlickGrid + Sortierung
 // Parameter:
 //      container: jQuery-ID (incl. #) des grids als String
@@ -807,11 +818,7 @@ function setup_slickgrid(container, data, columns, options){
                       .css('top', '')
                       .css('left', '')
                   ;
-                  ui.element.data('slickgrid').resizeCanvas();
-
-                  var total_height = ui.element.data('total_height');
-                  if (total_height < ui.element.height())      // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
-                      ui.element.height(total_height);
+                  adjust_real_grid_height(ui.element);                          // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
               }
             })
     ;
@@ -946,6 +953,8 @@ function setup_slickgrid(container, data, columns, options){
     }
 
     calculate_current_grid_column_widths(jQuery(container), 'setup_slickgrid'); // erstmalige Berechnung der Größen
+
+    adjust_real_grid_height(gridContainer);                                     // Anpassen der Höhe des Grid an maximale Höhe des Inhaltes
 }
 
 function grid2CSV(grid_id) {
@@ -1156,8 +1165,7 @@ function calculate_current_grid_column_widths(grid_table, caller){
         options['headerHeight'] = header_height;
         //calculate_current_grid_column_widths(grid_table, "recursive from Height set");
 
-        var total_height = 0 // grid_table.outerHeight(true) - grid_table.outerHeight()  // margin top/bottom
-                              + options['headerHeight']                         // innere Höhe eines Headers
+        var total_height =      options['headerHeight']                         // innere Höhe eines Headers
                               + 8                                               // padding top und bottom=4 des Headers
                               + 2                                               // border=1 top und bottom des headers
                               + (options['rowHeight'] * grid.getDataLength() )  // Höhe aller Datenzeilen
@@ -1167,24 +1175,22 @@ function calculate_current_grid_column_widths(grid_table, caller){
 
         grid_table.data('total_height', total_height);                          // Speichern am DIV-Objekt für Zugriff aus anderen Funktionen
 
-        console.log("Height calculation:");
-        console.log("margin="+(grid_table.outerHeight(true) - grid_table.outerHeight()));
-        console.log("header="+options['headerHeight']);
-        console.log("padding header=8");
-        console.log("rowheight="+options['rowHeight']);
-        console.log("Scrollbar="+scrollbarWidth());
-        console.log("totalcanvas="+(options['rowHeight']) * grid.getDataLength());
-        console.log("total_height="+total_height);
+        //console.log("Height calculation:");
+        //console.log("margin="+(grid_table.outerHeight(true) - grid_table.outerHeight()));
+        //console.log("header="+options['headerHeight']);
+        //console.log("padding header=8");
+        //console.log("rowheight="+options['rowHeight']);
+        //console.log("Scrollbar="+scrollbarWidth());
+        //console.log("totalcanvas="+(options['rowHeight']) * grid.getDataLength());
+        //console.log("total_height="+total_height);
 
-        if (options['maxHeight']){
-            if (options['maxHeight'] < total_height)
-                grid_table.css('height',options['maxHeight']);                 // Limitieren der Höhe
-            else
-                grid_table.css('height',total_height);                         // dann ganze Höhe anzeigen, da kleiner als max_height
-        }else{                                                                 // max_height nicht gesetzt
-            if (options['autoHeight'])                                         // keine Eingrenzung der Höhe vorgegeben
-                grid_table.css('height',total_height);                         // dann volle Höhe anzeigen
-        }
+        var final_height = total_height+scrollbarWidth();                      // Höhe des Grids nach Abschluss der Operationen
+
+        if (options['maxHeight'] && options['maxHeight'] < total_height)
+            final_height = options['maxHeight'];                                // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
+
+        grid_table.height(final_height);                                        // Grid immer mit zusätzlicher Scrollbar-Höhe aufbauen
+
         grid.setOptions(options);                                               // Setzen der veränderten options am Grid
         grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
     }
