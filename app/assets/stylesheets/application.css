@@ -10,8 +10,7 @@
  *
  *= require_self
  *= require jquery-ui-timepicker-addon
- *= require jquery.tablesorter
- *= require jquery-ui-1.9.1.custom
+ *= require jquery-ui-1.10.3.custom
  *= require context/jquery.contextmenu
  *= require slick.grid
  *= require superfish
@@ -194,19 +193,6 @@ tbody th{
 	color:#333;
 }
 
-/* Einfärbung Zebra-Widget von tablesorter.js */
-tbody tr.odd td{
-	background:#e8e8e8;
-}
-
-tbody tr.even td{
-	background:#eeeeee;
-}
-
-tbody tr.odd th{
-	background:url(greenchrome.gif) top left repeat-x #fff;
-	color:#333;
-}
 tfoot td,tfoot th{
 	border:none;
 	padding-top:10px;
@@ -241,4 +227,5 @@ table a:active{
 {
   background: #d8d8d8;
 }
+
 

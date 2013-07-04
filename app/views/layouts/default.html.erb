@@ -33,20 +33,7 @@
         jQuery(window).resize(function(){ resize_slickGrids();});
 
         jQuery(document).tooltip({                                              // ui-tooltips verwenden
-            open: function( event, ui ) {
-                ui.tooltip
-                        .css('background-image', 'none')
-                        .css('background-color', 'lightyellow')
-                        .css('color', 'black')
-                        .css('font-size', 'x-small')
-                ;
-                console.log('tooltip.open');
-                // alle vorherigen tooltips entfernen
-                jQuery(".ui-tooltip").each(function(index){
-                    if (ui.tooltip.attr('id') != jQuery(this).attr('id'))
-                        jQuery(this).remove();
-                });
-            },
+            tooltipClass: 'tooltip_class',
             show: {
                 effect: "slideDown",
                 duration: "fast",
@@ -55,7 +42,7 @@
             hide: {
                 effect: "slideUp"
             }
-        });
+        }).off('focusin');
       });
     </script>
 
@@ -179,12 +166,12 @@
         // Registrierung der Callbacks für Anmelde-Dialog
         jQuery(function($) {
          jQuery("#formLoginDialog")
-        .bind("ajax:before",   showIndicator )
-        .bind("ajax:complete", hideIndicator );
+        .bind("ajax:before",   ajax_loading )
+        .bind("ajax:complete", ajax_complete );
 
         jQuery("#formSavedLogin")
-                .bind("ajax:before",   showIndicator )
-                .bind("ajax:complete", hideIndicator );
+                .bind("ajax:before",   ajax_loading )
+                .bind("ajax:complete", ajax_complete );
 
        });
       </script>

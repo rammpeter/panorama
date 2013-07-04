@@ -72,3 +72,10 @@ table a:link{
 .align-right {
     text-align: right;
 }
+
+/* Uebersteuern jquery-ui */
+.tooltip_class {
+    background-image: none;
+    background-color: lightyellow;
+    font-size: x-small;
+}

@@ -57,12 +57,13 @@ column_options =
   gen_slickgrid(@history_detail, column_options, { :plot_area => "list_gc_request_latency_history_plot_area",
                                                     :div_style => "float:left; width:100%; max-height:450px; overflow:scroll;",
                                                     :width     => :auto,
-                                                    :caption   => caption
-                                            }
+                                                    :caption   => caption,
+                                                    :max_height=>450
+                                            },
                 )
 %>
 
 
-<div style="clear: both; width: 100%" id="list_gc_request_latency_history_plot_area" style="float:left; "></div>
-<div id="list_gc_request_latency_history_detail_area" style="float:left; "></div>
+<div style="clear: both; width: 100%" id="list_gc_request_latency_history_plot_area"></div>
+<div id="list_gc_request_latency_history_detail_area" style="clear:both;"></div>
 

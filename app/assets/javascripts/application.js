@@ -3,16 +3,15 @@
 
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
 //= require jquery-1.10.2
-//= require jquery-ui-1.9.1.custom
+//= require jquery-ui-1.10.3.custom
 //= require jquery_ujs
 //= require jquery-ui-timepicker-addon
 //= require jquery_table2CSV
-//= require jquery.tablesorter
 //= require flot/jquery.flot
 //= require flot/jquery.flot.resize
 //= require flot/jquery.flot.crosshair
 //= require context/jquery.contextmenu.js
-//= require jquery.event.drag-2.0.min
+//= require jquery.event.drag-2.2
 //= require slick.core
 //= require slick.grid
 //= require slick.dataview
@@ -33,35 +32,18 @@ function hideIndicator() {
     jQuery("#ajax_indicator").dialog("close");
 }
 
-// Funktion zum Aufruf bei Auslösung eines Ajax-Requests ohne Element-spezifischen Funktionen
-function ajax_loading() {
-    showIndicator();
+function closeAllTooltips(){
+    jQuery(".ui-tooltip").remove();
 }
 
-// Table-Sorter aktivieren für alle Tabellen mit class "tablesorter"
-function activate_tablesorter_tables() {
-    var arr = new Array();
-    arr = document.getElementsByTagName('table');
-    for(var i=0; i < arr.length; i++) {
-      var table = arr.item(i);
-      if (table.className.search(/\btablesorter\b/) != -1) {  // Class tablesorter aktiv für table ?
-        // Table mit generierter ID versehen, wenn keine von außen mitkommt
-        if (table.id == "") {
-          table.id = table.parentNode.id+"_tablesorter_table_"+i
-        }
-        // Aktivieren tablesorter für table, wenn diese noch nicht Klasse "tablesorter_activated" besitzt
-        var table_obj = jQuery("#"+table.id);
-        if (!table_obj.hasClass("tablesorter_activated")) {
-          table_obj.addClass("tablesorter_activated");
-          table_obj.tablesorter({cancelSelection:true, widgets: ['zebra'], numericDecimalSeparator:numeric_decimal_separator });
-        }
-      }
-    }
+// Funktion zum Aufruf bei Auslösung eines Ajax-Requests ohne Element-spezifischen Funktionen
+function ajax_loading() {
+    closeAllTooltips();
+    showIndicator();
 }
 
 // Funktion zum Aufruf bei Rückkehr eines Ajax-Requests ohne Element-spezifischen Funktionen
 function ajax_complete(XMLHttpRequest) {
-    activate_tablesorter_tables();
     check_dom_for_duplicate_ids();
     hideIndicator();
 }

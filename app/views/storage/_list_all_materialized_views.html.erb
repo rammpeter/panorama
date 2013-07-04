@@ -50,6 +50,9 @@ column_options =
     {:caption=>"Refresh group",         :data=>proc{|rec| rec.refresh_group},       :title=>"All snapshots in a given refresh group get refreshed in the same transaction"},
     {:caption=>"Last refresh type",     :data=>proc{|rec| rec.last_refresh_type},   :title=>"Method used for the most recent refresh: COMPLETE - Most recent refresh was complete, FAST - Most recent refresh was fast (incremental), NA - Materialized view has not yet been refreshed (for example, if it was created DEFERRED)"},
     {:caption=>"Last refresh date",     :data=>proc{|rec| localeDateTime rec.last_refresh_date}, :title=>"Date on which the materialized view was most recently refreshed. Blank if not yet populated."},
+    {:caption=>"R.",                    :data=>proc{|rec| rec.registered},          :title=>"Is materialized view registered in DBA_Registered_MViews"},
+    {:caption=>"Logs",                  :data=>proc{|rec| link_snapshot_logs(rec)}, :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
+    {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
     {:caption=>"Fast refresh oper.",    :data=>proc{|rec| rec.fr_operations},       :title=>"If REGENERATE, then the fast refresh operations have not been generated"},
     {:caption=>"Complete refresh oper.",:data=>proc{|rec| rec.cr_operations},       :title=>"If REGENERATE, then the complete refresh operations have not been generated"},
     {:caption=>"Staleness",             :data=>proc{|rec| rec.staleness},           :title=>"Relationship between the contents of the materialized view and the contents of the materialized view's masters: FRESH - Materialized view is a read-consistent view of the current state of its masters, STALE - Materialized view is out of date because one or more of its masters has changed. If the materialized view was FRESH before it became STALE, then it is a read-consistent view of a former state of its masters, UNUSABLE - Materialized view is not a read-consistent view of its masters from any point in time, UNKNOWN - Oracle Database does not know whether the materialized view is in a read-consistent view of its masters from any point in time (this is the case for materialized views created on prebuilt tables), UNDEFINED - Materialized view has remote masters. The concept of staleness is not defined for such materialized views."},
@@ -67,9 +70,6 @@ column_options =
     {:caption=>"Cont. status",          :data=>proc{|rec| rec.content_status},      :title=>"The status of the contents of the snapshot"},
     {:caption=>"No ind.",               :data=>proc{|rec| rec.use_no_index},        :title=>"Indicates whether the materialized view was created using the USING NO INDEX clause (Y) or the materialized view was created with the default index (N). The USING NO INDEX clause suppresses the creation of the default index."},
     {:caption=>"Stale since",           :data=>proc{|rec| localeDateTime rec.stale_since}, :title=>"Time from when the materialized view became stale"},
-    {:caption=>"R.",                    :data=>proc{|rec| rec.registered},          :title=>"Is materialized view registered in DBA_Registered_MViews"},
-    {:caption=>"Logs",                  :data=>proc{|rec| link_snapshot_logs(rec)}, :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
-    {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
     {:caption=>"Last analyze",          :data=>proc{|rec| localeDateTime rec.last_analyzed},                  :title=>"Last analyze date for underlying table of this MView"},
 
 

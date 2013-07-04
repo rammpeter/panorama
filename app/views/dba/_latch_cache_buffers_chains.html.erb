@@ -1,26 +1,19 @@
-<h1>Latch-Waits wegen cache buffers chains</h1>
-<table class="tablesorter" >
-  <thead>
-  <tr>
-    <th title="Latch address">Latch</th>
-    <th title="object owner">Owner</th>
-    <th title="Object name">Object</th>
-    <th title="Anzahl Zugriffe auf Datenblock in Cache">Touches</th>
-    <th title="Anzahl Wiederholungsversuche">Tries</th>
-    <th title="Block-number of object">blockno</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% @waits.each do |o| %>
-  <tr>
-    <td><%= o.latchaddr %></td>
-    <td><%= o.owner %></td>
-    <td><%= o.object_name %></td>
-    <td align="right"><%= formattedNumber(o.touches,0) %></td>
-    <td align="right"><%= formattedNumber(o.tries,0) %></td>
-    <td align="right"><%= formattedNumber(o.blockno,0) %></td>
-  </tr>
-  <% end %>
-  </tbody>
-</table>
+<%
+column_options =
+  [
+    {:caption=>"Latch",         :data=>proc{|rec| rec.latchaddr },      :title=>"Latch address"},
+    {:caption=>"Owner",         :data=>proc{|rec| rec.owner},           :title=>"Object owner"},
+    {:caption=>"Object",        :data=>proc{|rec| rec.object_name},     :title=>"Object name"},
+    {:caption=>"Touches",       :data=>proc{|rec| fn(rec.touches)},     :title=>"Anzahl Zugriffe auf Datenblock in Cache",  :align=>:right},
+    {:caption=>"Tries",         :data=>proc{|rec| fn(rec.tries)},       :title=>"Anzahl Wiederholungsversuche",     :align=>:right},
+    {:caption=>"Blockno",       :data=>proc{|rec| fn(rec.blockno)},     :title=>"Block-number of object",           :align=>:right},
+ ]
+
+%>
+<%= gen_slickgrid(@waits, column_options, {
+    :caption => "Latch-Waits wegen cache buffers chains"
+})
+%>
+
+
 
