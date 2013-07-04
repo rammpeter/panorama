@@ -40,7 +40,12 @@
                         .css('color', 'black')
                         .css('font-size', 'x-small')
                 ;
-                //alert("After");
+                console.log('tooltip.open');
+                // alle vorherigen tooltips entfernen
+                jQuery(".ui-tooltip").each(function(index){
+                    if (ui.tooltip.attr('id') != jQuery(this).attr('id'))
+                        jQuery(this).remove();
+                });
             },
             show: {
                 effect: "slideDown",

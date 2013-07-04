@@ -2,7 +2,7 @@
 // This file is automatically included by javascript_include_tag :defaults
 
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
-//= require jquery.1.8.2
+//= require jquery-1.10.2
 //= require jquery-ui-1.9.1.custom
 //= require jquery_ujs
 //= require jquery-ui-timepicker-addon
