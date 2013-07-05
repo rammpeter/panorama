@@ -265,7 +265,7 @@
 
   list_io_file_history_samples_hint:                        Anzeige der Zeitleiste der einzelnen Sample-Records
 
-  list_session_statistic_historic_grouping_link_title:      Wait-States des SQL's im gegebenen Zeitraum anzeigen
+  list_session_statistic_historic_grouping_link_title:      Wait-States des SQL's in Active Session History im gegebenen Zeitraum anzeigen
 
   list_sql_detail_sql_id_childno_active_session_history_title: Anzeige der "Active Session History"-Einträge dieser SQL-ID
 

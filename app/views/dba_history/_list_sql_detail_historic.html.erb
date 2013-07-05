@@ -134,7 +134,7 @@ column_options = [
           user_id_filter = {}
         end
 
-        my_ajax_submit_tag("Wait-States des SQL",
+        my_ajax_submit_tag("Active Session History",
      url_for(:update_area => @update_area,
              :action      => :list_session_statistic_historic_grouping,
              :controller  => :active_session_history,
@@ -158,7 +158,7 @@ column_options = [
                            },
              :groupby    => "SQL-ID"
             ),
-     :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQLin given time range") )
+     :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time range") )
   %>
 </div>
 &nbsp;
