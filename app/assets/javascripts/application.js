@@ -32,8 +32,15 @@ function hideIndicator() {
     jQuery("#ajax_indicator").dialog("close");
 }
 
-function closeAllTooltips(){
-    jQuery(".ui-tooltip").remove();
+var tooltip_document_body = null;
+function closeAllTooltips(self_tooltip){
+    if (tooltip_document_body == null)
+        tooltip_document_body = jQuery(document.body);
+    tooltip_document_body.children(".ui-tooltip").each(function(i){
+        if (!self_tooltip || jQuery(this).attr('id') != self_tooltip.attr('id'))
+        jQuery(this).remove();
+    });
+
 }
 
 // Funktion zum Aufruf bei Auslösung eines Ajax-Requests ohne Element-spezifischen Funktionen
@@ -766,6 +773,11 @@ function adjust_real_grid_height(jq_container){
         jq_container.height(total_height);
 }
 
+// Justieren des Grids nach Abshcluss der Resize-Operation mit unterem Schieber
+function finish_vertical_resize(jg_container){
+    calculate_current_grid_column_widths(jg_container, 'finish_vertical_resize');  // Neuberechnen breiten (neue Situation bzgl. vertikalem Scrollbar)
+    adjust_real_grid_height(jg_container);                                      // Limitieren Höhe
+}
 
 
 // Init SlickGrid + Sortierung
@@ -800,7 +812,7 @@ function setup_slickgrid(container, data, columns, options){
                       .css('top', '')
                       .css('left', '')
                   ;
-                  adjust_real_grid_height(ui.element);                          // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
+                  finish_vertical_resize(ui.element);                          // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
               }
             })
     ;

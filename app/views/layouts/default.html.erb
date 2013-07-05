@@ -34,6 +34,10 @@
 
         jQuery(document).tooltip({                                              // ui-tooltips verwenden
             tooltipClass: 'tooltip_class',
+            open: function(event, ui){
+                console.log("open");
+                closeAllTooltips(ui.tooltip);
+            },
             show: {
                 effect: "slideDown",
                 duration: "fast",
