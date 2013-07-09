@@ -24,10 +24,11 @@ class ApplicationController < ActionController::Base
   # Ausführung vor jeden Request
   def open_connection
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == "env"   && action_name == "index") ||
-              (controller_name == "env"   && action_name == "set_database") ||
-              (controller_name == "env"   && action_name == "set_database_by_index") ||
-              (controller_name == "usage" && action_name == "info") ||
+    return if (controller_name == "env"   && action_name == "index")                  ||
+              (controller_name == "env"   && action_name == "set_database")           ||
+              (controller_name == "env"   && action_name == "set_database_by_index")  ||
+              (controller_name == "usage" && action_name == "info")                   ||
+              (controller_name == "dba_history" && action_name == "getSQL_ShortText") ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
               (controller_name == "usage" && action_name == "detail_sum")
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe

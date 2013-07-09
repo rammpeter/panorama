@@ -1716,15 +1716,11 @@ FROM (
     end
   end
 
-  # Erweitern des Hint (title) von hyperlinks auf SQL-ID um den Text des SQL.Statements
-  def expand_sqlid_hint
-    href_id = params[:href_id]
-    sql_id  = params[:sql_id]
-
-    respond_to do |format|
-      format.js {render :js => "$('##{href_id}').attr('title', '#{j "#{ "#{t(:link_historic_sql_id_hint_prefix, :default=>"Show details of")} SQL-ID=#{sql_id} : "} #{get_cached_sql_shorttext_by_sql_id(sql_id)}" }');"}
-    end
-  rescue Exception => ex; alert ex
+  # SQL Short-Text als JSON liefern, Action wird ohne DB-Connection gestartet !!!
+  def getSQL_ShortText
+    response = {:sql_short_text => get_cached_sql_shorttext_by_sql_id(params[:sql_id])}
+    response = response.to_json
+    render :json => response, :status => 200
   end
 
 end #DbaHistoryController

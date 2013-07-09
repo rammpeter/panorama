@@ -35,7 +35,9 @@ Panorama::Application.configure do
   config.assets.compress = false
 
   # Use a different cache store in production
-  config.cache_store = :mem_cache_store
+  #config.cache_store = :mem_cache_store
+  config.cache_store = :memory_store
+
 
   # Expands the lines which load the assets
   config.assets.debug = true

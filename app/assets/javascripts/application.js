@@ -43,6 +43,26 @@ function closeAllTooltips(self_tooltip){
 
 }
 
+// jQuery.UI Tooltip verwenden
+function register_tooltip(jquery_object){
+    jquery_object.tooltip({                                              // ui-tooltips verwenden
+        tooltipClass: 'tooltip_class',
+        open: function(event, ui){
+            closeAllTooltips(ui.tooltip);
+        },
+        show: {
+            effect: "slideDown",
+            duration: "fast",
+            delay: 1000
+        },
+        hide: {
+            effect: "slideUp"
+        }
+    }).off('focusin');
+}
+
+
+
 // Funktion zum Aufruf bei Auslösung eines Ajax-Requests ohne Element-spezifischen Funktionen
 function ajax_loading() {
     closeAllTooltips();
@@ -85,11 +105,37 @@ function check_dom_for_duplicate_ids() {
     }
 }
 
+
+
+var SQL_shortText_Cache = {};                                                   // Cache für SQL-IDs
+
+
 // Erweitern des Hints für SQL-ID um SQL-Text
 function expand_sql_id_hint(id, sql_id){
-    if (jQuery("#"+id).attr("expand_sqlid_hint") != 1   ) {                         // title nur bei erstem Aufruf aktualisieren
-        jQuery("#"+id).attr("expand_sqlid_hint", 1);                                // Indikator setzen fuer erfolgten ersten Aufruf
-        jQuery.ajax({url: "DbaHistory/expand_sqlid_hint?href_id="+id+"&amp;sql_id="+sql_id});
+    function get_content(id, short_text){
+        return $('#'+id).attr('prefix')+"\n"+short_text;
+    }
+
+    // Title setzen mit Text
+    function set_sql_title(id, short_text){
+        jQuery('#'+id).attr('title', get_content(id, short_text));
+    }
+
+    if (SQL_shortText_Cache[sql_id]){
+        set_sql_title(id, SQL_shortText_Cache[sql_id]);
+    }
+    else {
+        SQL_shortText_Cache[sql_id] = "< SQL-Text: request in progress>"        // Verhindern, dass während der Abfrage erneut nachgefragt wird
+        jQuery.ajax({url: "DbaHistory/getSQL_ShortText?sql_id="+sql_id,
+            dataType: "json",
+            success: function(response) {
+                if (response.sql_short_text){
+                    SQL_shortText_Cache[sql_id] = response.sql_short_text;      // Cachen Ergebnis
+                    set_sql_title(id, response.sql_short_text);                 // Title setzen
+                    // jQuery(".ui-tooltip-content").html(get_content(id, response.sql_short_text));         // bringt hintereinander alle Treffer
+                }
+            }
+        });
     }
 }
 

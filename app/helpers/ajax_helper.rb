@@ -69,6 +69,7 @@ module AjaxHelper
             ),
      {:title       => "#{prefix} <#{t :link_historic_sql_id_coming_soon, :default=>"Text of SQL is loading, please hold mouse over object again"}>",
       :id          =>  id,
+      :prefix      => prefix,
       :onmouseover => "expand_sql_id_hint('#{id}', '#{sql_id}');"
      }
     )
@@ -96,6 +97,7 @@ module AjaxHelper
             ),
      {:title       => "#{prefix} <#{t :link_historic_sql_id_coming_soon, :default=>"Text of SQL is loading, please hold mouse over object again"}>",
       :id          =>  id,
+      :prefix      => prefix,
       :onmouseover => "expand_sql_id_hint('#{id}', '#{sql_id}');"
      }
     )
