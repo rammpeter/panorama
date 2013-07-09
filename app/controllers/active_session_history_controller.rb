@@ -17,7 +17,6 @@ class ActiveSessionHistoryController < ApplicationController
     retval
   end
 
-
   public
   # Anzeige DBA_Hist_Active_Sess_History
   def list_session_statistics_historic
@@ -61,7 +60,8 @@ class ActiveSessionHistoryController < ApplicationController
               FROM   DBA_Hist_Snapshot snap
               WHERE  DBID = #{@dbid}
               GROUP BY DBID, Instance_NUMBER
-             )
+             ),
+           procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
               #{session_statistics_key_rule(@groupby)[:sql]}                 group_value,
              s.DBID,
@@ -101,8 +101,8 @@ class ActiveSessionHistoryController < ApplicationController
              ) s
       LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
       JOIN All_Users u     ON u.User_ID   = s.User_ID    -- LEFT OUTER JOIN verursacht Fehler
-      LEFT OUTER JOIN DBA_Procedures peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN DBA_Procedures po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
       JOIN   Snaps snap ON snap.DBID=s.DBID AND snap.Instance_Number=s.Instance_Number        -- Nutzen in Folgeselects für Index-Scan über Snap_ID in DB_Hist_Active_Sess_History
       WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
@@ -138,6 +138,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     singles= sql_select_all ["\
+      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              -- Beginn eines zu betrachtenden Zeitabschnittes
              TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400 Start_Sample,
@@ -158,8 +159,8 @@ class ActiveSessionHistoryController < ApplicationController
              )s
       JOIN All_Users u     ON u.User_ID   = s.User_ID    -- LEFT OUTER JOIN verursacht Fehler
       LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
-      LEFT OUTER JOIN DBA_Procedures peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN DBA_Procedures po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
       WHERE 1=1 #{@global_where_string}
       GROUP BY TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400, #{session_statistics_key_rule(@groupby)[:sql]}
@@ -240,6 +241,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
+      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              s.*,
              u.UserName, '' SQL_Operation,
@@ -262,8 +264,8 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN All_Users u     ON u.User_ID = s.User_ID
       -- erst p2 abfragen, da bei Request=3 in row_wait_obj# das als vorletztes gelockte Object stehen kann
       LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
-      LEFT OUTER JOIN DBA_Procedures peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN DBA_Procedures po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
       LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
       WHERE  1=1
@@ -291,6 +293,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
+      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,
              #{if session_statistics_key_rule(@groupby)[:info_sql]
@@ -326,8 +329,8 @@ class ActiveSessionHistoryController < ApplicationController
              )s
       LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
       JOIN All_Users u     ON u.User_ID   = s.User_ID  -- LEFT OUTER JOIN verursacht Fehler
-      LEFT OUTER JOIN DBA_Procedures peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN DBA_Procedures po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = s.DBID AND sv.Service_Name_Hash = Service_Hash
       WHERE  1=1
       #{@global_where_string}
