@@ -118,10 +118,10 @@ function expand_sql_id_hint(id, sql_id){
 
 // Registriere Ajax-Callbacks an konkretes jQuery-Objekt
 function bind_special_ajax_callbacks(obj) {
-    obj.ajaxSuccess(function(event, jqXHR, ajaxOptions){
-        if (obj.parents(".slick-cell").length > 0)                              // ajax wurde aus einer slickgrid-Zelle heraus aufgerufen
-            save_new_cell_content(obj);                                         // unterstellen, dass dann auch der Inhalt dieser Zelle geändert sein könnte
-    });
+    obj.bind('ajax:success', function(){                                        // Komischerweise funktioniert hier obj.ajaxSuccess nicht ???
+         if (obj.parents(".slick-cell").length > 0)                             // ajax wurde aus einer slickgrid-Zelle heraus aufgerufen
+             save_new_cell_content(obj);                                        // unterstellen, dass dann auch der Inhalt dieser Zelle geändert sein könnte
+     });
 }
 
 // einmaliges Binden der allgemeinen Ajax-Callbacks für Dokument
