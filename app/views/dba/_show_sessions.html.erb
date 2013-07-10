@@ -1,19 +1,35 @@
 <h2><%= t(:dba_show_sessions_caption, :default=>"Show sessions") %></h2>
 
 <%= my_ajax_form_tag url_for(:controller => :dba, :action => "list_sessions") do  %>
-  <%= t(:dba_show_sessions_only_active_caption, :default=>"Active only") %>
-  <%= check_box_tag(:onlyActive, 1, true, :title=>t(:dba_show_sessions_only_active_hint, :default=>"Show active sessions only")) %>
-  Parallel Query
-  <%= check_box_tag(:showPQServer, 1, false, :title=>t(:dba_show_sessions_pq_hint, :default=>"Show parallel query sessions")) %>
-  <%= t(:dba_show_sessions_only_user_caption, :default=>"User only") %>
-  <%= check_box_tag(:showOnlyUser, 1, true, :title=>t(:dba_show_sessions_only_user_hint, :default=>"Show user sessions only")) %>
-  Instance
-  <%= text_field_tag(:instance, "", :size=>1, :title=>t(:dba_show_sessions_instance_hint, :default=>"Limit to RAC-instance (optional)")) %>
-  Filter
-  <%= text_field_tag(:filter, "", :size=>12, :title=>t(:dba_show_sessions_filter_hint, :default=>"Like-filter on session-ID, process-ID or username of client/shadow-process (optional)")) %>
-  <%= submit_tag(t(:dba_show_sessions_submit_caption, :default=>"Show sessions"), :title => t(:dba_show_sessions_submit_hint, :default=>"Show sessions according to given filters")) %>
+  <div class="float_left">
+    <%= t(:dba_show_sessions_only_active_caption, :default=>"Active only") %>
+    <%= check_box_tag(:onlyActive, 1, true, :title=>t(:dba_show_sessions_only_active_hint, :default=>"Show active sessions only")) %>
+  </div>
+  <div class="float_left">
+    Parallel Query
+    <%= check_box_tag(:showPQServer, 1, false, :title=>t(:dba_show_sessions_pq_hint, :default=>"Show parallel query sessions")) %>
+  </div>
+  <div class="float_left">
+    <%= t(:dba_show_sessions_only_user_caption, :default=>"User only") %>
+    <%= check_box_tag(:showOnlyUser, 1, true, :title=>t(:dba_show_sessions_only_user_hint, :default=>"Show user sessions only")) %>
+  </div>
+  <div class="float_left">
+    <%= t(:dba_show_sessions_only_db_link_caption, :default=>"DB links only") %>
+    <%= check_box_tag(:showOnlyDbLink, 1, false, :title=>t(:dba_show_sessions_only_db_link_hint, :default=>"Show sessions connected via db link only")) %>
+  </div>
+  <div class="float_left">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1, :title=>t(:dba_show_sessions_instance_hint, :default=>"Limit to RAC-instance (optional)")) %>
+  </div>
+  <div class="float_left">
+    Filter
+    <%= text_field_tag(:filter, "", :size=>12, :title=>t(:dba_show_sessions_filter_hint, :default=>"Like-filter on session-ID, process-ID or username of client/shadow-process (optional)")) %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag(t(:dba_show_sessions_submit_caption, :default=>"Show sessions"), :title => t(:dba_show_sessions_submit_hint, :default=>"Show sessions according to given filters")) %>
+  </div>
 <% end %>
-<div id="list_sessions_area">
+<div style="clear: both" id="list_sessions_area">
 </div>
 
 

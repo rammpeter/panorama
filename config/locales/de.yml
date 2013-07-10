@@ -86,6 +86,8 @@
   dba_show_sessions_filter_hint:                            LIKE-Filter auf Session-ID, Process-ID oder Username von Client/Shadow-Process (optional)
   dba_show_sessions_only_active_caption:                    Nur Aktive
   dba_show_sessions_only_active_hint:                       Nur aktive Sessions anzeigen
+  dba_show_sessions_only_db_link_caption:                   Nur DB-Link
+  dba_show_sessions_only_db_link_hint:                      Nur Sessions anzeigen, die über DB-Link angemeldet sind
   dba_show_sessions_only_user_caption:                      Nur User
   dba_show_sessions_only_user_hint:                         Nur User-Sessions anzeigen
   dba_show_sessions_pq_hint:                                Parallel-Query Sessions anzeigen

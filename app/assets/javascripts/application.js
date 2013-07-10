@@ -63,29 +63,6 @@ function register_tooltip(jquery_object){
 
 
 
-// Funktion zum Aufruf bei Auslösung eines Ajax-Requests ohne Element-spezifischen Funktionen
-function ajax_loading() {
-    closeAllTooltips();
-    showIndicator();
-}
-
-// Funktion zum Aufruf bei Rückkehr eines Ajax-Requests ohne Element-spezifischen Funktionen
-function ajax_complete(XMLHttpRequest) {
-    check_dom_for_duplicate_ids();
-    hideIndicator();
-}
-
-function ajax_Error(event, XHR, settings, exception) {
-  jQuery("#error_dialog_content").html('Error : '+exception+'<br/>Status='+XHR.status+' ('+XHR.statusText+')<br/><br/>'+XHR.responseText);
-  jQuery("#error_dialog").dialog("open");
-}
-
-function old_ajax_Error(XHR, settings, exception) {
-  jQuery("#error_dialog_content").html('OldError : '+exception+'<br/>Status='+XHR.status+' ('+XHR.statusText+')<br/><br/>'+XHR.responseText);
-  jQuery("#error_dialog").dialog("open");
-}
-
-
 // DOM-Tree auf doppelte ID's testen
 function check_dom_for_duplicate_ids() {
     var idDictionary = {};
@@ -139,20 +116,30 @@ function expand_sql_id_hint(id, sql_id){
     }
 }
 
-// Registriere Ajax-Callbacks an jQuery-Objekt
-function register_ajax_callbacks(obj) {
-    obj
-        .bind('ajax:beforeSend', function(XHR)                { ajax_loading(XMLHttpRequest)   } )
-        .bind('ajax:complete',   function(XHR)                { ajax_complete(XMLHttpRequest)  } )
-        .bind('ajax:error',      function(XHR, Status, Error) { old_ajax_Error(XHR, Status, Error) } )
-    ;
-    obj.ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
-        ajax_Error(event, jqXHR, ajaxSettings, thrownError);
-    });
-    obj.bind('ajax:success', function(){
+// Registriere Ajax-Callbacks an konkretes jQuery-Objekt
+function bind_special_ajax_callbacks(obj) {
+    obj.ajaxSuccess(function(event, jqXHR, ajaxOptions){
         if (obj.parents(".slick-cell").length > 0)                              // ajax wurde aus einer slickgrid-Zelle heraus aufgerufen
             save_new_cell_content(obj);                                         // unterstellen, dass dann auch der Inhalt dieser Zelle geändert sein könnte
     });
+}
+
+// einmaliges Binden der allgemeinen Ajax-Callbacks für Dokument
+function bind_ajax_callbacks() {
+    jQuery(document)
+        .ajaxSend(function(event, jqXHR, ajaxOptions){
+            closeAllTooltips();
+            showIndicator();
+        })
+        .ajaxComplete(function(event, jqXHR, ajaxOptions){
+            check_dom_for_duplicate_ids();
+            hideIndicator();
+        })
+        .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
+            jQuery("#error_dialog_content").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>'+jqXHR.responseText);
+            jQuery("#error_dialog").dialog("open");
+        })
+    ;
 }
 
 

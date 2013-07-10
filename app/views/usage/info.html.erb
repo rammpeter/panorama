@@ -5,6 +5,12 @@
 
       <script type="text/javascript">
          /* Initialisierung von Objekten bei startup der Seite */
+         bind_ajax_callbacks();                                                  // Callbacks für jeden Ajax-Aufruf binden
+
+        // Registrieren resize-Handler für Breitenanpassung der slickGrids
+        jQuery(window).resize(function(){ resize_slickGrids();});
+
+        register_tooltip(jQuery(document));                                     // Jquery-UI Tooltips verwenden
 
         // Ueberladen der Funktionen aus application.js
         function showIndicator() {

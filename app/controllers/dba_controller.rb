@@ -689,6 +689,9 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     if params[:onlyActive]=="1"
       where_string << " AND s.Status='ACTIVE'"
     end
+    if params[:showOnlyDbLink]=="1"
+      where_string << " AND UPPER(s.program) like 'ORACLE@%' AND UPPER(s.Program) NOT LIKE 'ORACLE@'||(SELECT UPPER(i.Host_Name) FROM gv$Instance i WHERE i.Inst_ID=s.Inst_ID)||'%' "
+    end
     if params[:filter] && params[:filter] != ""
       where_string << " AND ("
       where_string << "    TO_CHAR(s.SID)     LIKE '%'||?||'%'";   where_values << params[:filter]

@@ -278,10 +278,7 @@ class ActiveSessionHistoryController < ApplicationController
     }
 
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_session_statistics_historic_single_record" }');
-                                ajax_complete();  // ajax-Callback selbst ausloesen wenn ajax-sendendes html-Element durch ajax-call überschrieben wird und somit kein complete-callback mehr auslöst
-                               "
-      }
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_session_statistics_historic_single_record" }');"}
     end
   end # list_session_statistic_historic_single_record
 
@@ -350,10 +347,7 @@ class ActiveSessionHistoryController < ApplicationController
     }
 
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_session_statistics_historic_grouping" }');
-                                ajax_complete();  // ajax-Callback selbst ausloesen wenn ajax-sendendes html-Element durch ajax-call überschrieben wird und somit kein complete-callback mehr auslöst
-                              "
-      }
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_session_statistics_historic_grouping" }');"}
     end
   end # list_session_statistic_historic_sqls
 

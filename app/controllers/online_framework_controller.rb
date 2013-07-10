@@ -480,8 +480,7 @@ public
     @errors  = sql_select_all stmt_params
     
     respond_to do |format|
-      format.js {render :js => "$('##{@update_area}').html('#{j render_to_string :partial=>"list_oferrormessage" }');
-                                ajax_complete();"}
+      format.js {render :js => "$('##{@update_area}').html('#{j render_to_string :partial=>"list_oferrormessage" }');"}
     end
   end
   

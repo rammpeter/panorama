@@ -122,7 +122,7 @@ private
   # Aufbereiten der HTML-Options für Ajax
   def prepare_html_options(html_options)
     html_options[:remote] = true              # Ajax-Call verwenden
-    html_options[:onclick] = "register_ajax_callbacks(jQuery(this));"   # Erst bei Klicken auf Link die Ajax-Callbacks registrieren nur für diesen Link/Form
+    html_options[:onclick] = "bind_special_ajax_callbacks(jQuery(this));"   # Erst bei Klicken auf Link die Objekt-spezifischen Ajax-Callbacks registrieren nur für diesen Link/Form
     html_options
   end
 
