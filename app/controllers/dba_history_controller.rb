@@ -413,7 +413,7 @@ class DbaHistoryController < ApplicationController
     raise("Keine SQL-Historie gefunden in DBA_Hist_SQLStat für SQL-ID=#{sql_id}, Instance=#{@instance}, Zeitraum von #{@time_selection_start} bis #{@time_selection_end}") unless @sql
 
     @wait_time_range = sql_select_first_row ["\
-      SELECT /*+ NO_MERGE ORDERED FIRST_ROWS(10) Panorama-Tool Ramm */
+      SELECT /*+ NO_MERGE FIRST_ROWS(10) Panorama-Tool Ramm */
              MIN(Sample_Time) Min_Sample_Time,
              MAX(Sample_Time) Max_Sample_Time
       FROM   DBA_Hist_Active_Sess_History
@@ -435,12 +435,21 @@ class DbaHistoryController < ApplicationController
       ", @dbid, @instance, @sql_id,  @max_snap_id]
 
 
-   @sql_statement = sql_select_one(["\
-     SELECT /* Panorama-Tool Ramm */ SQL_Text FROM DBA_Hist_SQLText
+    sql_statement = sql_select_first_row(["\
+     SELECT /* Panorama-Tool Ramm */ SQL_Text,
+                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 0) Exact_Signature,
+                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 1) Force_Signature
+     FROM DBA_Hist_SQLText
      WHERE dbid = ?
      AND   SQL_ID = ?",
      @dbid, @sql_id
-   ])
+    ])
+
+    @sql_statement      = sql_statement.sql_text if sql_statement
+    @sql_profiles       = sql_select_all ["SELECT * FROM DBA_SQL_Profiles       WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+    @sql_plan_baselines = sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+    @sql_outlines       = sql_select_all ["SELECT * FROM DBA_Outlines           WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+
 
     userid_list = sql_select_all(["SELECT /* Panorama-Tool Ramm */ User_ID FROM All_Users WHERE UserName=?", @parsing_schema_name])
     @user_id = (userid_list[0]).user_id if userid_list.length > 0

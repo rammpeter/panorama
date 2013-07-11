@@ -175,7 +175,9 @@ class DbaSgaController < ApplicationController
                 s.Plan_Hash_Value, s.Optimizer_Env_Hash_Value, s.Module, s.Action, s.Inst_ID,
                 s.Parsing_Schema_Name,
                 o.Owner||'.'||o.Object_Name Program_Name, o.Object_Type Program_Type, o.Last_DDL_Time Program_Last_DDL_Time,
-                s.Program_Line# Program_LineNo
+                s.Program_Line# Program_LineNo,
+                DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 0) Exact_Signature,
+                DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 1) Force_Signature
            FROM #{modus} s
            LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Programm
            WHERE s.Inst_ID = ?
@@ -203,6 +205,24 @@ class DbaSgaController < ApplicationController
         instance, sql_id]
   end
 
+  # Existierende SQL-Profiles, Parameter: Result-Zeile eines selects
+  def get_sql_profiles(sql_row)
+    sql_select_all ["SELECT * FROM DBA_SQL_Profiles WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
+                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+  end
+
+  # Existierende SQL-Plan Baselines, Parameter: Result-Zeile eines selects
+  def get_sql_plan_baselines(sql_row)
+    sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
+                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+  end
+
+  # Existierende stored outlines, Parameter: Result-Zeile eines selects
+  def get_sql_outlines(sql_row)
+    sql_select_all ["SELECT * FROM DBA_Outlines WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR  Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))",
+                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+  end
+
   public
   # Anzeige Einzeldetails des SQL
   def list_sql_detail_sql_id_childno
@@ -214,8 +234,11 @@ class DbaSgaController < ApplicationController
     @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
     @parsing_schema_name = params[:parsing_schema_name]
 
-    @sql = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
-    @sql_statement = get_sga_sql_statement(@instance, @sql_id)
+    @sql                 = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
+    @sql_statement       = get_sga_sql_statement(@instance, @sql_id)
+    @sql_profiles        = get_sql_profiles(@sql)
+    @sql_plan_baselines  = get_sql_plan_baselines(@sql)
+    @sql_outlines        = get_sql_outlines(@sql)
     # Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
     @plan0 = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */ Optimizer
@@ -357,8 +380,11 @@ class DbaSgaController < ApplicationController
       list_sql_detail_sql_id_childno  # Anzeige der Child-Info
     else
       @sql = fill_sql_sga_stat("GV$SQLArea", @instance, params[:sql_id], @object_status)
-      @sql_statement = get_sga_sql_statement(@instance, params[:sql_id])
-      @open_cursors = get_open_cursor_count(@instance, @sql_id)
+      @sql_statement         = get_sga_sql_statement(@instance, params[:sql_id])
+      @sql_profiles          = get_sql_profiles(@sql)
+      @sql_plan_baselines    = get_sql_plan_baselines(@sql)
+      @sql_outlines          = get_sql_outlines(@sql)
+      @open_cursors          = get_open_cursor_count(@instance, @sql_id)
 
       if @sqls.count == 0
         respond_to do |format|
@@ -370,6 +396,7 @@ class DbaSgaController < ApplicationController
         end
       end
     end
+
   end
 
   def list_sql_shared_cursor

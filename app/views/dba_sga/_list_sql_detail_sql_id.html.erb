@@ -3,6 +3,8 @@
 <% @modus = "GV$SQLArea" # Ab jetzt Summen-Info anzeigen%>
 <%= render :partial=>"list_sql_sga_stat" %>
 
+<%= render :partial=>"dba_sga/list_sql_profiles" %>
+
 <% @modus = "GV$SQLArea" # Ab jetzt wieder Summen-Info anzeigen%>
 <%= render :partial=>"list_sql_sga_stat_footer" %>
 

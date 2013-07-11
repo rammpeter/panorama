@@ -24,12 +24,16 @@
 var session_locale = "en";
 var numeric_decimal_separator = '.';
 
+var one_time_suppress_indicator = false;                                        // Unterdrückend er Anzeige des Indicators für einen Aufruf
+
 function showIndicator() {
-    jQuery("#ajax_indicator").dialog("open");
+    if (!one_time_suppress_indicator)                                           // Einmaliges Unterdrücken der Anzeige Indikator
+        jQuery("#ajax_indicator").dialog("open");
 }
 
 function hideIndicator() {
     jQuery("#ajax_indicator").dialog("close");
+    one_time_suppress_indicator = false;                                        // Zurücksetzten auf Default
 }
 
 var tooltip_document_body = null;
@@ -105,6 +109,9 @@ function expand_sql_id_hint(id, sql_id){
         SQL_shortText_Cache[sql_id] = "< SQL-Text: request in progress>"        // Verhindern, dass während der Abfrage erneut nachgefragt wird
         jQuery.ajax({url: "DbaHistory/getSQL_ShortText?sql_id="+sql_id,
             dataType: "json",
+            beforeSend: function(response) {
+                one_time_suppress_indicator = true;                             // Unterdrückend er Anzeige des Indicators für einen Aufruf
+            },
             success: function(response) {
                 if (response.sql_short_text){
                     SQL_shortText_Cache[sql_id] = response.sql_short_text;      // Cachen Ergebnis
@@ -735,10 +742,13 @@ function single_line_height() {
 // Speichern Inhalt und Erneutes Berechnen der Breite und Höhe einer Zelle nach Änderung ihres Inhaltes + Aktualisieren der Anzeige, um kompletten neuen Content zeigen zu können (nicht abgeschnitten)
 // Parameter: jQuery-Objekt auf dem innerhalb einer Zelle ein ajax-Call ausgelöst wurde
 function save_new_cell_content(obj){
-    var cell = obj.parents(".slick-cell");                           // Suchen aufsteigend in Hierarchie nach dem beinhaltenden Zell-Objekt
     var inner_cell = obj.parents(".slick-inner-cell");
-    var grid_table = cell.parents(".slickgrid_top");                            // Grid-Table als jQuery-Objekt
+    var grid_table = inner_cell.parents(".slickgrid_top");                      // Grid-Table als jQuery-Objekt
     var grid = grid_table.data("slickgrid");
+    if (!grid){
+        console.log("No slickgrid found in data for "+inner_cell.html());
+        return;
+    }
     var column = null;
     for (var column_index in grid.getColumns()){
         if (grid.getColumns()[column_index]['field'] == inner_cell.attr('column'))

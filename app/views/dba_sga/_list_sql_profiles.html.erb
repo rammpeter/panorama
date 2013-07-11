@@ -1,0 +1,72 @@
+<%=
+    if @sql_profiles &&  @sql_profiles.length > 0
+        column_options = [
+            {:caption=>"Name",          :data=>proc{|rec| rec.name},                            :title=>"Name of profile"},
+            {:caption=>"Category",      :data=>proc{|rec| rec.category},                        :title=>"Category of profile" },
+            {:caption=>"Created",       :data=>proc{|rec| localeDateTime(rec.created)},         :title=>"Timestamp of creation" },
+            {:caption=>"Last modified", :data=>proc{|rec| localeDateTime(rec.last_modified)},   :title=>"Timestamp of last modification" },
+            {:caption=>"Description",   :data=>proc{|rec| rec.description},                     :title=>"Description of purpose" },
+            {:caption=>"Type",          :data=>proc{|rec| rec.type},                            :title=>"Description of purpose" },
+            {:caption=>"Status",        :data=>proc{|rec| rec.status},                          :title=>"Description of purpose" },
+            {:caption=>"Force matching",:data=>proc{|rec| rec.force_matching},                  :title=>"Description of purpose" },
+          ]
+
+        gen_slickgrid(@sql_profiles, column_options, {
+                :caption => "<div style=\"background-color: coral;\">SQL-Profiles exists for SQL (from DBA_SQL_Profiles)</div>".html_safe
+        })
+    end
+%>
+
+<%=
+    if @sql_plan_baselines &&  @sql_plan_baselines.length > 0
+        column_options = [
+            {:caption=>"Plan name",     :data=>proc{|rec| rec.plan_name},                       :title=>"Name of baseline plan"},
+            {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"},
+            {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" },
+            {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" },
+            {:caption=>"Description",   :data=>proc{|rec| rec.description},                     :title=>"Description of purpose" },
+            {:caption=>"Version",       :data=>proc{|rec| rec.version},                         :title=>"database version at time of plan baseline creation" },
+            {:caption=>"Created",       :data=>proc{|rec| localeDateTime(rec.created)},         :title=>"Timestamp of creation" },
+            {:caption=>"Last modified", :data=>proc{|rec| localeDateTime(rec.last_modified)},   :title=>"Timestamp of last modification" },
+            {:caption=>"Last executed", :data=>proc{|rec| localeDateTime(rec.last_executed)},   :title=>"Timestamp of last execution" },
+            {:caption=>"Last verified", :data=>proc{|rec| localeDateTime(rec.last_verified)},   :title=>"Timestamp of last verification" },
+            {:caption=>"Enabled",       :data=>proc{|rec| rec.enabled},                         :title=>"enabled status of plan baseline" },
+            {:caption=>"Accepted",      :data=>proc{|rec| rec.accepted},                        :title=>"accepted status of plan baseline" },
+            {:caption=>"Fixed",         :data=>proc{|rec| rec.fixed},                           :title=>"fixed status of plan baseline" },
+            {:caption=>"Reproduced",    :data=>proc{|rec| rec.reproduced},                      :title=>"reproduced status of plan baseline" },
+            {:caption=>"Auto purge",    :data=>proc{|rec| rec.autopurge},                       :title=>"autopurge status of plan baseline" },
+            {:caption=>"Executions",    :data=>proc{|rec| fn(rec.executions)},                  :title=>"number of plan baseline executions", :align=>:right },
+            {:caption=>"Buffer gets",   :data=>proc{|rec| fn(rec.buffer_gets)},                 :title=>"total buffer gets",        :align=>:right },
+            {:caption=>"Rows processed",:data=>proc{|rec| fn(rec.rows_processed)},              :title=>"number of rows processed", :align=>:right },
+          ]
+
+        gen_slickgrid(@sql_plan_baselines, column_options, {
+                :caption => "<div style=\"background-color: coral;\">SQL plan baselines exists for SQL (from DBA_SQL_Plan_Baselines)</div>".html_safe
+        })
+    end
+%>
+
+
+
+<%=
+    if @sql_outlines &&  @sql_outlines.length > 0
+        column_options = [
+            {:caption=>"Name",          :data=>proc{|rec| rec.name},                            :title=>"Name of the outline"},
+            {:caption=>"Owner",         :data=>proc{|rec| rec.owner},                           :title=>"User who created the outline"},
+            {:caption=>"Category",      :data=>proc{|rec| rec.category},                        :title=>"Category to which the outline belongs" },
+            {:caption=>"Used",          :data=>proc{|rec| rec.used},                            :title=>"Flag indicating whether the outline has ever been used" },
+            {:caption=>"Timestamp",     :data=>proc{|rec| localeDateTime(rec.timestamp)},       :title=>"Timestamp at which the outline was created" },
+            {:caption=>"Version",       :data=>proc{|rec| rec.version},                         :title=>"Oracle Version that created the outline" },
+            {:caption=>"Compatible",    :data=>proc{|rec| rec.compatible},                      :title=>"Flag indicating whether the outline hints were compatible across migration" },
+            {:caption=>"Enabled",       :data=>proc{|rec| rec.enabled},                         :title=>"Flag indicating whether the outline is enabled" },
+            {:caption=>"Format",        :data=>proc{|rec| rec.format},                          :title=>"Flag indicating what hint format is used" },
+            {:caption=>"Migrated",      :data=>proc{|rec| rec.migrated},                        :title=>"Flag indicating whether the outline has been migrated to SQL plan baseline" },
+          ]
+
+        gen_slickgrid(@sql_outlines, column_options, {
+                :caption => "<div style=\"background-color: coral;\">Stored outlines exists for SQL (from DBA_Outlines)</div>".html_safe
+        })
+    end
+%>
+
+

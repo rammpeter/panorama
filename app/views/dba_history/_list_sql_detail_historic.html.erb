@@ -95,6 +95,9 @@ end
 </table>
 
 </b>
+
+<%= render :partial=>"dba_sga/list_sql_profiles" %>
+
 <%=
 column_options = [
     {:caption=>"Pos",           :data=>proc{|rec| formattedNumber(rec.position)},   :title=>t(:dba_history_list_sql_detail_historic_bind_pos, :default=>"Position of bind variable in statement"), :align=>"right"},
@@ -108,7 +111,6 @@ column_options = [
         :caption => "Bindevariablen der letzten Ausführung",
         :width => :auto
 }) %>
-
 
 <br><b>Zusätzliche Informationen</b><br><br>
 <div style="float:left; ">
