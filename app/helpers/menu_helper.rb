@@ -20,7 +20,6 @@ module MenuHelper
             {:class=>"item", :caption=>"Audit Trail",        :controller=>:dba_schema,       :action=>:show_audit_trail,  :hint=>t(:menu_dba_schema_audit_trail_hint, :default=>"Show activities logged by audit trail records") },
             {:class=>"item", :caption=>"Tablespace-Objects", :controller=>:dba_schema,       :action=>:show_object_size,  :hint=>t(:menu_dba_schema_ts_objects_hint, :default=>"DB-objects by size, utilization and wastage") },
             {:class=>"item", :caption=>t(:menu_dba_datafile_caption, :default=>"Datafile-usage"),     :controller=>:dba,             :action=>"datafile_usage",    :hint=>t(:menu_dba_datafile_hint, :default=>"Show data-files of DB")   },
-            {:class=>"item", :caption=>t(:menu_dba_storage_summary_caption, :default=>"Disk-storage summary"), :controller=>:dba,             :action=>"tablespace_usage",  :hint=>t(:menu_dba_storage_summary_hint, :default=>"Overview over disk space/tablespace usage by schema") },
             {:class=>"item", :caption=>t(:menu_dba_used_objects_caption, :default=>"Attached objects"), :controller=>:dba,             :action=>"used_objects",      :hint=>t(:menu_dba_used_objects_hint, :default=>"Currently attached objects (Attention: large response time at large systems)") },
             {:class=>"item", :caption=>"Explain Plan",       :controller=>:dba,             :action=>"explain_plan",      :hint=>t(:menu_dba_explain_plan_hint, :default=>"Show execution plan of SQL-statement") },
             {:class=>"item", :caption=>"Temp Usage",         :controller=>:dba,             :action=>"temp_usage",        :hint=>t(:menu_dba_temp_usage_hint, :default=>"Current usage of TEMP-tablespace") },
@@ -72,6 +71,7 @@ module MenuHelper
             ]
         },
         { :class=>"menu", :caption=>"Storage", :content=>[
+            {:class=>"item", :caption=>t(:menu_storage_storage_summary_caption, :default=>"Disk-storage summary"), :controller=>:storage,             :action=>"tablespace_usage",  :hint=>t(:menu_storage_storage_summary_hint, :default=>"Overview over disk space/tablespace usage by schema") },
             {:class=>"item", :caption=>"Materialized view structures",         :controller=>"storage",   :action=>"show_materialized_views",  :hint=>t(:menu_storage_matview_hint, :default=>"Show structure of materialzed views and MV-logs")   },
             ]
         },

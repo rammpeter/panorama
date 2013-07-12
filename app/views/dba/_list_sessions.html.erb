@@ -42,7 +42,7 @@
     {:caption=>"Temp",             :data=>"formattedNumber(rec.temp_mb,3)",           :data_title=>'Temp (MB), #{rec.temp_extents} Extents, #{rec.temp_blocks} Blocks', :title=>"Auslagerung in Temp. Tablespace (MB)", :align=>"right"},
     {:caption=>"Long SQL",         :data=>"rec.longsql",                              :title=>"Langlaufendes SQL-Statement"},
     {:caption=>"Open Cursor",      :data=>"formattedNumber(rec.open_cursor)",         :title=>"Anzahl offene Cursor der Session", :align=>"right"},
-    {:caption=>"OC SQL",           :data=>"formattedNumber(rec.open_cursor_sql)",     :title=>"Anzahl unterschiedliche SQL-ID's der offenen Cursor der Session", :align=>"right"},
+    {:caption=>"OC SQL",           :data=>"formattedNumber(rec.open_cursor_sql)",     :title=>"Anzahl unterschiedliche SQL-IDs der offenen Cursor der Session", :align=>"right"},
     {:caption=>"P Q",              :data=>"formattedNumber(rec.pqcount)",             :title=>"Anzahl ParallelQuery-Slaves", :align=>"right"},
     {:caption=>"Q C",              :data=>proc{|rec| link_QC_session(rec)},                     :title=>"Parallel query coordinator session (Instance:SID,SerialNo)"},
     {:caption=>"PGA Used",         :data=>"formattedNumber(rec.pga_used_mem/1048576.0, 3)",   :title=>"Aktuell von Prozess genutzter PGA-Memory in MB", :align=>"right"},

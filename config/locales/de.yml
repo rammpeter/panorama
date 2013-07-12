@@ -295,8 +295,6 @@
   menu_dba_redologs_hint:                                   Anlistung der Redo-Logs
   menu_dba_redologs_historic_hint:                          Anlistung historischer Info der Redo-Logs
   menu_dba_sessions_hint:                                   Anlistung der aktuellen Session-Info
-  menu_dba_storage_summary_caption:                         Plattenspeicher-Nutzung
-  menu_dba_storage_summary_hint:                            Übersicht über Plattenspeicher-/Tablespace-Nutzung
   menu_dba_temp_usage_hint:                                 Aktuelle Nutzung Temp-Tablespace
   menu_dba_used_objects_caption:                            Objekte im Zugriff
   menu_dba_used_objects_hint: |-
@@ -333,6 +331,8 @@
   menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
 
   menu_storage_matview_hint:                                Auswertung Strukturen von Materialized Views und MV-Logs
+  menu_storage_storage_summary_caption:                     Plattenspeicher-Nutzung
+  menu_storage_storage_summary_hint:                        Übersicht über Plattenspeicher-/Tablespace-Nutzung
 
   menu_wait_caption:                                        Wait-Analyse
   menu_wait_db_file_sequential_read_hint: |-

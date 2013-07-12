@@ -1,6 +1,139 @@
 # encoding: utf-8
 class StorageController < ApplicationController
 
+
+  # Groesse und Füllung der Tabelspaces
+  def tablespace_usage
+    @tablespaces = sql_select_all("\
+      SELECT /* NOA-Tools Ramm */
+             t.TableSpace_Name,
+             t.contents,
+             t.Block_Size                   BlockSize,
+             f.FileSize                     MBTotal,
+             NVL(free.MBFree,0)             MBFree,
+             f.FileSize-NVL(free.MBFree,0)  MBUsed,
+             (f.FileSize-NVL(free.MBFree,0))/f.FileSize*100 PctUsed,
+             t.Allocation_Type,
+             t.Segment_Space_Management,
+             f.AutoExtensible
+      FROM  DBA_Tablespaces t
+      LEFT OUTER JOIN
+            (
+            SELECT /* NOA-Tools Ramm */
+                   f.TABLESPACE_NAME,
+                   Sum(f.BYTES)/1048576     MBFree
+            FROM   DBA_FREE_SPACE f
+            GROUP BY f.TABLESPACE_NAME
+            ) free ON free.Tablespace_Name = t.Tablespace_Name
+      LEFT OUTER JOIN
+            (
+            SELECT d.TableSpace_Name, SUM(d.Bytes)/1048576 FileSize,
+                   CASE WHEN COUNT(DISTINCT AutoExtensible)> 1 THEN 'Partial' ELSE MIN(AutoExtensible) END AutoExtensible
+            FROM   DBA_Data_Files d
+            GROUP BY d.Tablespace_Name
+            ) f ON f.Tablespace_Name = t.TableSpace_Name
+      WHERE Contents != 'TEMPORARY'
+      UNION ALL
+      SELECT f.Tablespace_Name,
+             t.Contents,
+             t.Block_Size                   BlockSize,
+             NVL(f.MBTotal,0)               MBTotal,
+             NVL(f.MBTotal,0)-NVL(s.Used_Blocks,0)*t.Block_Size/1048576 MBFree,
+             NVL(s.Used_Blocks,0)*t.Block_Size/1048576 MBUsed,
+             (NVL(s.Used_Blocks,0)*t.Block_Size/1048576)/NVL(f.MBTotal,0)*100 PctUsed,
+             t.Allocation_Type,
+             t.Segment_Space_Management,
+             f.AutoExtensible
+      FROM  DBA_Tablespaces t
+      LEFT OUTER JOIN (SELECT Tablespace_Name, SUM(Bytes)/1048576 MBTotal, SUM(Bytes)/SUM(Blocks) BlockSize,
+                              CASE WHEN COUNT(DISTINCT AutoExtensible)> 1 THEN 'Partial' ELSE MIN(AutoExtensible) END AutoExtensible
+                       FROM DBA_Temp_Files
+                       GROUP BY Tablespace_Name
+                      ) f ON f.Tablespace_Name = t.TableSpace_Name
+      LEFT OUTER JOIN (SELECT Tablespace_Name, SUM(Total_Blocks) Used_Blocks
+                       FROM   GV$Sort_Segment
+                       GROUP BY Tablespace_Name
+                      ) s ON s.Tablespace_Name = t.TableSpace_Name
+      WHERE t.Contents = 'TEMPORARY'
+      UNION ALL
+      SELECT 'Redo Inst='||Inst_ID           Tablespace_Name,
+             'Redo-Logfile'             Contents,
+             #{ if session[:database].version >= "11.2"
+                  "MIN(BlockSize)"
+                else
+                  0
+                end
+             }                          BlockSize,
+             SUM(Bytes*Members)/1048576 MBTotal,
+             0                          MBFree,
+             SUM(Bytes*Members)/1048576 MBUsed,
+             100                        PctUsed,
+             NULL                       Allocation_Type,
+             NULL                       Segment_Space_Management,
+             NULL                       AutoExtensible
+      FROM   gv$Log
+      GROUP BY Inst_ID
+      ORDER BY 4 DESC NULLS LAST
+      ")
+
+    totals = {}
+    @tablespaces.each do |t|
+      unless totals[t.contents]
+        totals[t.contents] = {"mbtotal"=>0, "mbfree"=>0, "mbused"=>0}
+      end
+      totals[t.contents]["mbtotal"] += t.mbtotal
+      totals[t.contents]["mbfree"]  += t.mbfree
+      totals[t.contents]["mbused"] += t.mbused
+    end
+    @totals = []
+    totals.each do |key, value|
+      value["contents"] = key
+      value.extend SelectHashHelper
+      @totals << value
+    end
+
+    @schemas = sql_select_all("\
+      SELECT /* NOA-Tools Ramm */ Owner Schema, Type Segment_Type, SUM(Bytes)/1048576 MBytes
+      FROM (
+        SELECT s.Owner,
+               DECODE(s.Segment_Type,
+                      'INDEX PARTITION', 'Index',
+                      'INDEX SUBPARTITION', 'Index',
+                      'INDEX'          , 'Index',
+                      'TABLE'          , 'Table',
+                      'NESTED TABLE'   , 'Table',
+                      'TABLE PARTITION', 'Table',
+                      'TABLE SUBPARTITION', 'Table',
+                      'LOBSEGMENT'     , 'Table',
+                      'LOB PARTITION'  , 'Table',
+                      'LOBINDEX'       , 'Index',
+                      Segment_Type)||
+               DECODE(i.Index_Type, 'IOT - TOP', ' IOT-PKey', '') Type,
+               s.Bytes
+        FROM   DBA_Segments s
+        LEFT OUTER JOIN DBA_Indexes i ON i.Owner = s.Owner AND i.Index_Name=s.Segment_Name
+        )
+      GROUP BY Owner, Type
+      HAVING SUM(Bytes) > 1048576 -- nur > 1 MB selektieren
+      ORDER BY 3 DESC")
+
+    @segments = sql_select_all "SELECT /* NOA-Tools Ramm */ Segment_Type,
+                                       SUM(Bytes)/1048576   MBytes
+                                FROM  (SELECT s.Bytes,
+                                              s.Segment_Type || DECODE(i.Index_Type, 'IOT - TOP', ' IOT-PKey', '') Segment_Type
+                                       FROM   DBA_Segments s
+                                       LEFT OUTER JOIN DBA_Indexes i ON i.Owner = s.Owner AND i.Index_Name=s.Segment_Name
+                                      )
+                                GROUP BY Segment_Type
+                                ORDER BY 2 DESC"
+
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/tablespace_usage" }');"}
+    end
+  end
+
+
   # Einsprung aus show_materialzed_views
   def list_materialized_view_action
     case
