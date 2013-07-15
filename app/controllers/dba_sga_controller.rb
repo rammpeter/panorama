@@ -224,35 +224,19 @@ class DbaSgaController < ApplicationController
   end
 
   public
-  # Anzeige Einzeldetails des SQL
-  def list_sql_detail_sql_id_childno
-    @modus = "GV$SQL"   # Detaillierung SQL-ID, ChildNo
-    @instance     = prepare_param_instance
-    @sql_id       = params[:sql_id]
-    @child_number = params[:child_number].to_i
-    @object_status= params[:object_status]
-    @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
-    @parsing_schema_name = params[:parsing_schema_name]
 
-    @sql                 = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
-    @sql_statement       = get_sga_sql_statement(@instance, @sql_id)
-    @sql_profiles        = get_sql_profiles(@sql)
-    @sql_plan_baselines  = get_sql_plan_baselines(@sql)
-    @sql_outlines        = get_sql_outlines(@sql)
-    # Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
-    @plan0 = sql_select_all ["\
-        SELECT /* Panorama-Tool Ramm */ Optimizer
-        FROM  gV$SQL_Plan
-        WHERE SQL_ID  = ?
-        AND   Inst_ID = ?
-        AND   Child_Number = ?
-        AND   ID=0",
-        @sql_id, @instance, @child_number
-        ]
-
-    @plans = sql_select_all ["\
+  # Erzeugt Daten für execution plan
+  def get_sga_execution_plan(sql_id, instance, child_number)
+    plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Operation, Options, Object_Owner, Object_Name, Object_Type, Optimizer,
+          Operation, Options, Object_Owner, Object_Name, Object_Type,
+          CASE WHEN p.ID = 0 THEN (SELECT Optimizer    -- Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
+                                    FROM  gV$SQL_Plan sp
+                                    WHERE sp.SQL_ID       = p.SQL_ID
+                                    AND   sp.Inst_ID      = p.Inst_ID
+                                    AND   sp.Child_Number = p.Child_Number
+                                    AND   sp.ID           = 0
+                                   ) ELSE NULL END Optimizer,
           DECODE(Other_Tag,
                  'PARALLEL_COMBINED_WITH_PARENT', 'PCWP',
                  'PARALLEL_COMBINED_WITH_CHILD' , 'PCWC',
@@ -297,8 +281,8 @@ class DbaSgaController < ApplicationController
         AND   Inst_ID = ?
         AND   Child_Number = ?
         ORDER BY ID",
-        @sql_id, @instance, @child_number
-        ].concat(session[:database].version >= "11.2" ? [@sql_id, @instance, @child_number] : [])
+        sql_id, instance, child_number
+        ].concat(session[:database].version >= "11.2" ? [sql_id, instance, child_number] : [])
 
     # Vergabe der exec-Order im Explain
     # iteratives neu durchsuchen der Liste nach folgenden erfuellten Kriterien
@@ -306,29 +290,50 @@ class DbaSgaController < ApplicationController
     # - alle Children als Parent sind bereits mit ExecOrder versehen
     # gefundene Records werden mit aufteigender Folge versehen und im folgenden nicht mehr betrachtet
 
-    # Array mit den Positionen der Objekte in @plans anlegen
+    # Array mit den Positionen der Objekte in plans anlegen
     pos_array = []
-    0.upto(@plans.length-1) {|i|  pos_array << i } 
+    0.upto(plans.length-1) {|i|  pos_array << i }
 
     curr_execorder = 1                                             # Startwert
     while pos_array.length > 0                                     # Bis alle Records im PosArray mit Folge versehen sind
       pos_array.each {|i|                                          # Iteration ueber Verbliebene Records
         is_parent = false                                          # Default-Annahme, wenn kein Child gefunden
         pos_array.each {|x|                                        # Suchen, ob noch ein Child zum Parent existiert in verbliebener Menge
-          if @plans[i].id == @plans[x].parent_id                   # Doch noch ein Child zum Parent gefunden
+          if plans[i].id == plans[x].parent_id                     # Doch noch ein Child zum Parent gefunden
             is_parent = true
             break                                                  # Braucht nicht weiter gesucht werden
           end
         }
         unless is_parent
-          @plans[i].execorder = curr_execorder                     # Vergabe Folge
+          plans[i].execorder = curr_execorder                      # Vergabe Folge
           curr_execorder = curr_execorder + 1
           pos_array.delete(i)                                      # entwerten der verarbeiten Zeile fuer Folgebetrachtung
           break                                                    # Neue Suche vom Beginn an
         end
       }
     end
-    
+    plans
+  end
+
+
+  # Anzeige Einzeldetails des SQL
+  def list_sql_detail_sql_id_childno
+    @modus = "GV$SQL"   # Detaillierung SQL-ID, ChildNo
+    @instance     = prepare_param_instance
+    @sql_id       = params[:sql_id]
+    @child_number = params[:child_number].to_i
+    @object_status= params[:object_status]
+    @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
+    @parsing_schema_name = params[:parsing_schema_name]
+
+    @sql                 = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
+    @sql_statement       = get_sga_sql_statement(@instance, @sql_id)
+    @sql_profiles        = get_sql_profiles(@sql)
+    @sql_plan_baselines  = get_sql_plan_baselines(@sql)
+    @sql_outlines        = get_sql_outlines(@sql)
+
+    @plans               = get_sga_execution_plan(@sql_id, @instance, @child_number)
+
     # PGA-Workarea-Nutzung
     @workareas = sql_select_all ["\
       SELECT /* Panorama Ramm */ w.*,
@@ -385,6 +390,13 @@ class DbaSgaController < ApplicationController
       @sql_plan_baselines    = get_sql_plan_baselines(@sql)
       @sql_outlines          = get_sql_outlines(@sql)
       @open_cursors          = get_open_cursor_count(@instance, @sql_id)
+
+      sql_child_info = sql_select_first_row ["SELECT COUNT(DISTINCT plan_hash_value) Plan_Count,
+                                                     MIN(Child_Number) Min_Child_Number
+                                              FROM   gv$SQL
+                                              WHERE  Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
+
+      @plans = get_sga_execution_plan(@sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
 
       if @sqls.count == 0
         respond_to do |format|
