@@ -507,7 +507,7 @@ class DbaHistoryController < ApplicationController
                          SELECT /*+ ORDERED USE_NL(p) Panorama-Tool Ramm */
                                 ps.DBID, ps.Plan_Hash_Value, ps.Parsing_Schema_Name,
                                 p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Optimizer,
-                                p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.temp_Space, p.Distribution,
+                                p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
                                 p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
                                 CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM All_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)

@@ -70,6 +70,19 @@ if @res.count > 0
                                 )
 
                              }
+          when col[:caption].downcase == 'table_name' || col[:caption].downcase == "table name" then
+            col[:data] = proc{|rec|
+                                owner = nil                                     # Default
+                                owner = rec["table_owner"]          if rec["table_owner"]   && !owner
+                                owner = rec["Table owner"]          if rec["Table owner"]   && !owner
+                                owner = rec["owner"]                if rec["owner"]         && !owner
+                                owner = rec["Owner"]                if rec["Owner"]         && !owner
+                                if owner
+                                  link_table_structure(:exec_dragnet_sql_detail_area, owner, my_html_escape(rec[col[:caption]]), my_html_escape(rec[col[:caption]]))
+                                else
+                                  my_html_escape(rec[col[:caption]])            # Ohne Link
+                                end
+                             }
         else
           col[:data] = proc{|rec| my_html_escape(rec[col[:caption]]) }
         end

@@ -202,9 +202,23 @@
     Bei frequenter Nutzung des Index führt dies bei großen Partitionsanzahlen zu unnötig hohen Buffer Gets.
     Global Partitionierung nach dem Index-Kriterium kann dieses Verhalten abstellen.
 
+  dragnet_helper_14_name:                                   "Identifikation unnötiger Indizes: Nur ein oder wenige Schlüssel-Werte im Index"
+  dragnet_helper_14_desc: |-
+    Für Indizes mit nur einem oder wenigen Schlüsseln kann die Sinnfrage gestellt werden.
+    Ausnahme: Index auch mit nur einem Schlüssel kann sinnvoll sein zur Differenzierung zwischen NULL und NOT NULL.
+    Indizes mit nur einem Schlüssel und keinen NULLs in indizierten Feldern können mit Sicherheit entfernt werden
+  dragnet_helper_14_param_1_hint:                           Mindestanzahl Rows des betrachteten Index
+  dragnet_helper_14_param_1_name:                           Min. Anzahl Rows des Index
+  dragnet_helper_14_param_2_hint:                           Maximale Anzahl von Schlüsselwerten im betrachteten Index
+  dragnet_helper_14_param_2_name:                           Max. Anzahl Schlüsselwerte des Index
+
+
+
+
   dragnet_helper_3_12_name:                                 "Suboptimale Konfigrations-Parameter der DB"
   dragnet_helper_3_12_desc: |-
     Ermittlung von suboptimalen bzw. inkompatiblen Parametrisierungen der Datenbank
+
 
   dragnet_helper_50_desc: |-
     Tabellen-Komprimierung (COMPRESS FOR xxx) reduziert I/O-Aufwände durch Verbesserung der Cache-Hit-Rate.

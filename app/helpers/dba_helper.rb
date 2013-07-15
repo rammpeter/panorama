@@ -78,4 +78,16 @@ module DbaHelper
     end
   end
 
+    # Erweitern Zuweisungen und Vergleiche um Spaces, damit an dieser Stelle umgebrochen werden kann
+  def expand_compare_spaces(origin)
+    return nil unless origin
+    ["=", "!=", "<>", "<=", ">="].each do |search_str|                          # Iteration über mit Space zu expandierende Ausdrücke
+      match_string = /[^ |!|<|>]#{search_str}[^ |!|<|>]/                        # Ausschluss von Vorgängern/Nachfolgern
+      while origin.match(match_string)                                          # noch Treffer zu finden?
+        origin.sub!(match_string, origin.match(match_string)[0].sub(search_str, " #{search_str} "))     # Expandieren mit Spaces
+      end
+    end
+    origin
+  end
+
 end

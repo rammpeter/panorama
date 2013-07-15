@@ -114,7 +114,7 @@ module AjaxHelper
                :segment_name => segment_name,
                :update_area  => update_area
               ),
-      :title=> "Show object structure and details")
+      :title=> "Show object structure and details for #{owner}.#{segment_name}")
   end
 
 

@@ -279,6 +279,29 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
         },
         {
+             :name  => t(:dragnet_helper_14_name, :default=>"Detection of unnecessary indexes: only one ore little key values in index"),
+             :desc  => t(:dragnet_helper_14_desc, :default=>"Indexes with only one or little key values may be unnecessary.
+                       Exception: Indexes with only one key value may be usefull for differentiation between NULL and NOT NULL.
+                       Indexes with only one key value and no NULLs in indexed columns my be definitely removed."),
+             :sql=> "SELECT /* DB-Tools Ramm Komprimierung Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
+                            ROUND(i.Num_Rows/i.Distinct_Keys) \"Rows per Key\",
+                            i.Num_Rows \"Rows Index\", t.Num_Rows \"Rows Table\", t.Num_Rows-i.Num_Rows \"Possible NULLs\", t.IOT_Type,
+                            (SELECT  /*+ NO_MERGE */ ROUND(SUM(bytes)/(1024*1024),1) MBytes
+                                     FROM   DBA_SEGMENTS s
+                             WHERE s.SEGMENT_NAME = i.Index_Name
+                             AND     s.Owner                = i.Owner
+                            ) MBytes
+                     FROM   DBA_Indexes i
+                     JOIN   DBA_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
+                     WHERE   i.Num_Rows > ?
+                     AND     i.Distinct_Keys=?
+                     ORDER BY i.Num_Rows*t.Num_Rows DESC NULLS LAST
+                      ",
+              :parameter=>[{:name=>t(:dragnet_helper_14_param_1_name, :default=>"Min. number of rows in index"), :size=>8, :default=>100000, :title=>t(:dragnet_helper_14_param_1_hint, :default=>"Minimum number of rows in considered index") },
+                           {:name=>t(:dragnet_helper_14_param_2_name, :default=>"Max. number of key values in index"), :size=>8, :default=>1, :title=>t(:dragnet_helper_14_param_2_hint, :default=>"Maximum number of key values in considered index") }
+              ]
+         },
+        {
              :name  => t(:dragnet_helper_8_name, :default=>"Detection of unnecessary indexes: multiple indexed columns"),
              :desc  => t(:dragnet_helper_8_desc, :default=>"Multiple indexed columns are useful for data access only if additional index-columns improve selectivity of index.
              Indexing on column that is already indexed as first column of another multi-column index is often unnecessary, e.g. for coverage of foreign key.

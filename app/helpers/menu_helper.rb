@@ -71,7 +71,7 @@ module MenuHelper
             ]
         },
         { :class=>"menu", :caption=>"Storage", :content=>[
-            {:class=>"item", :caption=>t(:menu_storage_storage_summary_caption, :default=>"Disk-storage summary"), :controller=>:storage,             :action=>"tablespace_usage",  :hint=>t(:menu_storage_storage_summary_hint, :default=>"Overview over disk space/tablespace usage by schema") },
+            {:class=>"item", :caption=>t(:menu_storage_storage_summary_caption, :default=>"Disk-storage summary"), :controller=>:storage,             :action=>:tablespace_usage,  :hint=>t(:menu_storage_storage_summary_hint, :default=>"Overview over disk space/tablespace usage by schema") },
             {:class=>"item", :caption=>"Materialized view structures",         :controller=>"storage",   :action=>"show_materialized_views",  :hint=>t(:menu_storage_matview_hint, :default=>"Show structure of materialzed views and MV-logs")   },
             ]
         },

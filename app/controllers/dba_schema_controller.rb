@@ -282,6 +282,28 @@ class DbaSchemaController < ApplicationController
                                    ", @owner, @table_name]
     end
 
+    @references = sql_select_all ["\
+      SELECT c.*, r.Table_Name R_Table_Name,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
+      FROM   All_Constraints c
+      JOIN   All_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
+      WHERE  c.Constraint_Type = 'R'
+      AND    c.Owner      = ?
+      AND    c.Table_Name = ?
+      ", @owner, @table_name]
+
+    @referencing = sql_select_all ["\
+      SELECT c.*,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
+      FROM   All_Constraints r
+      JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      WHERE  c.Constraint_Type = 'R'
+      AND    r.Owner      = ?
+      AND    r.Table_Name = ?
+      ", @owner, @table_name]
+
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_description" }');"}
