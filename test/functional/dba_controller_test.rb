@@ -56,9 +56,6 @@ class DbaControllerTest < ActionController::TestCase
     get  :datafile_usage, :format=>:js
     assert_response :success
 
-    get  :tablespace_usage, :format=>:js
-    assert_response :success
-
     get  :used_objects, :format=>:js
     assert_response :success
 

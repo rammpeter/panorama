@@ -13,6 +13,11 @@
                    )
   end
 
+    @temp_size = 0
+    @data.each do |rec|
+      @temp_size += rec.blocks*session[:database].db_block_size/(1024.0*1024.0)
+    end
+
   column_options =
     [
       {:caption=>"I",           :data=>"rec.inst_id",                              :title=>"RAC-Instance"},
@@ -33,6 +38,6 @@
 
 %>
 
-<%= gen_slickgrid(@data, column_options, {:caption=>"Temp-Segement Usage", :max_height => 450}) %>
+<%= gen_slickgrid(@data, column_options, {:caption=>"Temp-Segment Usage (#{@temp_size} MB)", :max_height => 450}) %>
 
 <div id="<%= @update_area %>" style="float:left; width:100%;"></div>
