@@ -1,7 +1,9 @@
 <%
+   @update_area = "list_gc_request_latency_detail_area_#{session[:request_counter]}"
+
 column_options =
   [
-    {:caption=>"Object",        :data=>proc{|rec| "#{rec.owner} . #{rec.object_name} #{"(#{rec.subobject_name})"if rec.subobject_name}"},           :title=>"Object-Owner, Name, Partition-Name (optional)"},
+    {:caption=>"Object",        :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}") }, :title=>"Object-Owner, Name, Partition-Name (optional)"},
     {:caption=>"Log.Rd.",       :data=>proc{|rec| fn(rec.logical_reads_delta)},                 :title=>"Logical Reads", :align=>:right},
     {:caption=>"BBW",           :data=>proc{|rec| fn(rec.buffer_busy_waits_delta) },            :title=>"Buffer Busy Waits", :align=>:right},
     {:caption=>"Bl.Chg.",       :data=>proc{|rec| fn(rec.db_block_changes_delta) },             :title=>"DB Block Changes", :align=>:right},
@@ -26,3 +28,4 @@ column_options =
 })
 %>
 
+<div id="<%= @update_area %>"></div>
