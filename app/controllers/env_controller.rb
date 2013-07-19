@@ -57,6 +57,7 @@ public
       end
     end
 
+
     I18n.locale = params[:database][:locale]      # fuer laufende Action Sprache aktiviert
     cookies.permanent[:locale] = Marshal.dump params[:database][:locale]  # Default für erste Seite
 

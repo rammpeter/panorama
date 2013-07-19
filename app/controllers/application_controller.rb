@@ -75,7 +75,6 @@ class ApplicationController < ActionController::Base
     raise e                                                                     # Exception erneut weiterwerfen
   end
 
-
   # Ausfüherung nach jedem Request ohne Ausnahme
   def close_connection
     set_dummy_db_connection
