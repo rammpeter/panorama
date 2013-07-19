@@ -21,7 +21,7 @@ public
   def set_database_by_index
     if params[:login]
       params[:database] = read_last_login_cookies[params[:saved_logins_index].to_i]
-      params[:saveLogin] = "1"                                                    # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
+      params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
       set_database
     end
 
@@ -30,16 +30,14 @@ public
       cookies_last_logins.delete_at(params[:saved_logins_index].to_i)
       write_last_login_cookies(cookies_last_logins)
       respond_to do |format|
-        format.js {render :js => "window.location.reload();" }
+        format.js {render :js => "window.location.reload();" }                  # Neuladen der gesamten HTML-Seite, damit Entfernung des Eintrages auch sichtbar wird
       end
-
     end
 
   end
 
   # Aufgerufen aus dem Anmelde-Dialog für DB
   def set_database
-
     # Test auf Lesbarkeit von X$-Tabellen
     def x_memory_table_accessible?(table_name_suffix, msg)
       begin
@@ -67,8 +65,6 @@ public
     session[:last_used_menu_caption]    = "Login"
     session[:last_used_menu_hint]       = t :menu_env_set_database_hint, :default=>"Start of application after connect to database"
 
-    old_database = session[:database]   # Bisherige Connection, = nil bei erster Anmeldung
-
     @database = Database.new( params[ :database ] ? params[ :database ] : params )
 
     if !@database.host || @database.host == ""  # Hostname nicht belegt, dann TNS-Alias auswerten
@@ -77,8 +73,7 @@ public
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{@database.tns}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
-        # wiederherstellen alte Verbindung für fehlerfreien automatischen Connect je Request
-        old_database.open_oracle_connection if old_database
+        set_dummy_db_connection
         return
       end
       @database.host      = tns_record[:hostName]   # Erweitern um Attribute aus tnsnames.ora
@@ -96,16 +91,14 @@ public
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "zusätzliche Autorisierung erforderlich fuer NOA-Produktionssystem"}'); $('#login_dialog_authorization').show(); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
-        # wiederherstellen alte Verbindung für fehlerfreien automatischen Connect je Request
-        old_database.open_oracle_connection if old_database
+        set_dummy_db_connection
         return
       end
       if params[:database][:authorization]== nil || params[:database][:authorization]!="meyer"
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "Autorisierung '#{params[:database][:authorization]}' ungueltig fuer NOA-Produktionssystem"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
-        # wiederherstellen alte Verbindung für fehlerfreien automatischen Connect je Request
-        old_database.open_oracle_connection if old_database  # Oracle-Connection aufbauen
+        set_dummy_db_connection
         return
       end
     end
@@ -122,8 +115,7 @@ public
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       end
     rescue Exception => e
-      # wiederherstellen alte Verbindung für fehlerfreien automatischen Connect je Request
-      old_database.open_oracle_connection if old_database
+      set_dummy_db_connection
       respond_to do |format|
         format.js {render :js => "$('#content_for_layout').html('#{j "Fehler bei Anmeldung an DB: <br>
                                                                       #{e.message}<br>
@@ -198,6 +190,9 @@ public
                                 "
                 }
     end
+  rescue Exception=>e
+    set_dummy_db_connection                                                     # Rückstellen auf neutrale DB
+    raise e
   end
 
   # Rendern des zugehörigen Templates, wenn zugehörige Action nicht selbst existiert

@@ -851,5 +851,10 @@ public
      output.html_safe
   end
 
+  # Setzen einer neutralen Connection nach Abarbeitung des Requests, damit frühzeitiger Connect bei Beginn der Verarbeitung eines Requests nicht gegen die DB des letzten Requests geht
+  def set_dummy_db_connection
+    ActiveRecord::Base.establish_connection(:adapter  => "nulldb")
+  end
+
 
 end

@@ -70,11 +70,11 @@ class ApplicationController < ActionController::Base
     # Request-Counter je HTML-Session als Hilsmittel für eindeutige html-IDs
     session[:request_counter] = 0 unless session[:request_counter]
     session[:request_counter] += 1
+  rescue Exception=>e
+    set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
+    raise e                                                                     # Exception erneut weiterwerfen
   end
 
-  def set_dummy_db_connection
-    ActiveRecord::Base.establish_connection(:adapter  => "nulldb")
-  end
 
   # Ausfüherung nach jedem Request ohne Ausnahme
   def close_connection
