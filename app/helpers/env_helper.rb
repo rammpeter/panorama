@@ -6,7 +6,7 @@ module EnvHelper
   def read_last_login_cookies
     begin
       if cookies[:last_logins]
-        cookies_last_logins = Marshal.load(Encryptor.decrypt(cookies[:last_logins],  :key => Panorama::Application.config.secret_token))
+        cookies_last_logins = Marshal.load(Encryptor.decrypt(cookies[:last_logins],  :key => Panorama::Application.config.secret_key_base))
       else
         cookies_last_logins = []
       end
@@ -19,7 +19,7 @@ module EnvHelper
 
   # Zurückschreiben des Cookies in cookie-store
   def write_last_login_cookies(cookies_last_logins)
-    cookies.permanent[:last_logins] =  Encryptor.encrypt(Marshal.dump(cookies_last_logins), :key => Panorama::Application.config.secret_token)           # Zurückschreiben des Cookies
+    cookies.permanent[:last_logins] =  Encryptor.encrypt(Marshal.dump(cookies_last_logins), :key => Panorama::Application.config.secret_key_base)           # Zurückschreiben des Cookies
   end
 
 

@@ -1,6 +1,6 @@
 class Domain < ActiveRecord::Base
   self.table_name =  "SYSP.DOMAIN"
-  attr_accessible :name
+  #attr_accessible :name
   has_many :ofmessagetype, :foreign_key => "id_domain"
 
   # Request-übergreifendes Caching des Models, optional :expires_in => 1.minutes

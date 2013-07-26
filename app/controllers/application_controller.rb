@@ -6,7 +6,10 @@ require "application_helper"   # Erweiterung der Controller um Helper-Methoden
 include ActionView::Helpers::JavaScriptHelper      # u.a. zur Nutzung von escape_javascript(j) im Controllern
 
 class ApplicationController < ActionController::Base
-  protect_from_forgery  # cross site scripting verhindern
+  # Prevent CSRF attacks by raising an exception.
+  # For APIs, you may want to use :null_session instead.
+  protect_from_forgery with: :exception                  # cross site scripting verhindern
+
 
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's 
 
@@ -24,12 +27,9 @@ class ApplicationController < ActionController::Base
   # Ausführung vor jeden Request
   def open_connection
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == "env"   && action_name == "index")                  ||
-              (controller_name == "env"   && action_name == "set_database")           ||
-              (controller_name == "env"   && action_name == "set_database_by_index")  ||
-              (controller_name == "usage" && action_name == "info")                   ||
+    return if (controller_name == "env"   && ["index", "set_database", "set_database_by_index"].include?(action_name) )                  ||
               (controller_name == "dba_history" && action_name == "getSQL_ShortText") ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
-              (controller_name == "usage" && action_name == "detail_sum")
+              (controller_name == "usage" && ["info", "detail_sum", "single_record", "ip_info"].include?(action_name) )
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
 

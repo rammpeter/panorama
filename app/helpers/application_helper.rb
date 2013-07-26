@@ -48,13 +48,13 @@ module ApplicationHelper
       end
       h.extend SelectHashHelper    # erlaubt, dass Element per Methode statt als Hash-Element zugegriffen werden können
     end
-    result
+    result.to_ary                                                               # Ab Rails 4 ist result nicht mehr vom Typ Array, sondern ActiveRecord::Result
   end
 
   # Select genau erste Zeile
   def sql_select_first_row(sql)
     result = sql_select_all(sql)
-    return nil if result.length == 0
+    return nil if result.empty?
     result[0].extend SelectHashHelper      # Erweitern Hash um Methodenzugriff auf Elemente
   end
 

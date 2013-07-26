@@ -1,6 +1,7 @@
 # encoding: utf-8
 class UsageController < ApplicationController
   def info
+   session[:database] = Database.new unless session[:database]
     fill_usage_info
   end
 
@@ -114,7 +115,6 @@ class UsageController < ApplicationController
 
   def single_record
     @filter   = params[:filter]
-
     file = File.open(Panorama::Application.config.usage_info_filename, "r")
     @recs = []
     begin
@@ -147,7 +147,6 @@ class UsageController < ApplicationController
     rescue EOFError
       file.close
     end
-
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"single_record" }');"}
     end
