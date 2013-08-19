@@ -1123,7 +1123,7 @@ FROM (
     case
       when params["detail"] then
         caption_add = "SysMetric_History"
-        stmt = "      WITH MinTS AS (SELECT Inst_ID, MIN(Begin_Time) Min_Begin_Time
+        stmt = "      WITH MinTS AS (SELECT /*+ MATERIALIZE */ Inst_ID, MIN(Begin_Time) Min_Begin_Time
                                      FROM   gv$SysMetric_History
                                      GROUP BY Inst_ID)
                       SELECT /* Panorama-Tool Ramm */
