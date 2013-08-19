@@ -192,6 +192,7 @@ class DbaSchemaController < ApplicationController
         raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
     end
 
+    @attribs = sql_select_all ["SELECT * FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @comment = sql_select_one ["SELECT Comments FROM DBA_Tab_Comments WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
@@ -205,22 +206,13 @@ class DbaSchemaController < ApplicationController
                 ORDER BY c.Column_ID
                ", @owner, @table_name]
 
-    @attribs = sql_select_all ["\
-                 SELECT /*+ Panorama Ramm */ t.*,
-                        CASE WHEN t.Partitioned = 'YES' THEN
-                          (SELECT COUNT(*)
-                           FROM   DBA_Tab_Partitions tp
-                           WHERE  tp.Table_Owner = t.Owner
-                           AND    tp.Table_Name = t.Table_Name
-                          )
-                        ELSE NULL END Partition_Number,
-                        (SELECT SUM(Bytes)/(1024*1024)
-                         FROM   DBA_Segments s
-                         WHERE  s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
-                        ) Size_MB
-                 FROM   DBA_Tables t
-                 WHERE  t.Owner = ? AND t.Table_Name = ?
-                ", @owner, @table_name]
+    if @attribs[0].partitioned == 'YES'
+      @partition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+    else
+      @partition_count = 0
+    end
+
+    @size_mb = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
 
     @indexes = sql_select_all ["\
                  SELECT /*+ Panorama Ramm */ i.*, p.Partition_Number, sp.SubPartition_Number, Partition_TS_Name, SubPartition_TS_Name,
@@ -307,6 +299,38 @@ class DbaSchemaController < ApplicationController
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_description" }');"}
+    end
+  end
+
+  def list_table_partitions
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
+    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type, Interval FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
+    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
+
+    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if part_tab.interval}"
+
+    @partitions = sql_select_all ["SELECT * FROM DBA_Tab_Partitions WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_partitions" }');"}
+    end
+  end
+
+  def list_index_partitions
+    @owner      = params[:owner]
+    @index_name = params[:index_name]
+
+    part_ind = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type, Interval FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
+    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
+
+    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if part_ind.interval}"
+
+    @partitions = sql_select_all ["SELECT * FROM DBA_Ind_Partitions WHERE Index_Owner = ? AND Index_Name = ?", @owner, @index_name]
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_index_partitions" }');"}
     end
   end
 

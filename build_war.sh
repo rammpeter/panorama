@@ -1,3 +1,9 @@
+
+# Abgranzung von Rails 3.12 gegen Rails 4
+export JRUBY_HOME=/Users/ramm/Library/jruby-1.7.2
+export PATH=$JRUBY_HOME/bin:$PATH
+
+
 if [ "$1" != "without_clean_cache" ]
 then
   echo "Clean Cache"
