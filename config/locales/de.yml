@@ -166,7 +166,7 @@
   dragnet_helper_8_desc: |-
     Mehrfach indizierte Spalten bringen nur Nutzen im Such-Zugriff, wenn weitere Felder die Selektivität des Index verfeinern.
     Die Indizierung einer Spalte, die bereits durch einen mehrspaltigen Index indiziert ist, ist oftmals überflüssig, z.B. zur Absicherung von Foreign Keys.
-    Alternativ kann mehrfache Indizierung der selben Spalte jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
+    Alternativ kann mehrfache Indizierung der selben Spalte in verschiedenen Composite-Indizes jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
 
   dragnet_helper_9_name:                                    "Identifikation unnötiger Indizes: Erkennung nicht genutzter Indizes durch System-Monitoring"
   dragnet_helper_9_desc: |-

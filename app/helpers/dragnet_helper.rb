@@ -305,7 +305,7 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
              :name  => t(:dragnet_helper_8_name, :default=>"Detection of unnecessary indexes: multiple indexed columns"),
              :desc  => t(:dragnet_helper_8_desc, :default=>"Multiple indexed columns are useful for data access only if additional index-columns improve selectivity of index.
              Indexing on column that is already indexed as first column of another multi-column index is often unnecessary, e.g. for coverage of foreign key.
-             Otherwise multiple indexing same column may be used for optimization of joins or for access on table data without accessing table itself."),
+             Otherwise multiple indexing same column in different composite indexes may be used for optimization of joins or for access on table data without accessing table itself."),
              :sql=> "SELECT /* DB-Tools Ramm doppelt indizierte Spalten*/ d.*, i.Index_Name, ix.Num_Rows,
                                    (
                                                       SELECT Constraint_Name
