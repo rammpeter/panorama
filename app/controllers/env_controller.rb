@@ -146,6 +146,7 @@ public
                                                       (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count
                                                FROM  GV$Instance gi
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number"
+      @instance_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Instance_Name FROM v$Instance"
       @dbids = sql_select_all  "SELECT DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS
                                 FROM   DBA_Hist_Snapshot
                                 GROUP BY DBID
@@ -161,7 +162,7 @@ public
 
     session[:database] = @database
     write_connection_to_cookie @database
-    @license_ok = check_license(@database.sid, @database.host, @database.port)
+    @license_ok = check_license(@instance_name, @database.host, @database.port)
 
     timepicker_regional = ""
     if session[:database].locale == "de"  # Deutsche Texte für DateTimePicker
