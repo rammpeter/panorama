@@ -82,6 +82,11 @@ body {
 h1 {
     font-family: sans-serif;
     color: #0068B8;
+    text-shadow: 2px 2px 2px gray;
+}
+
+h2 {
+    text-shadow: 1px 1px 1px gray;
 }
 
 .monospace {
