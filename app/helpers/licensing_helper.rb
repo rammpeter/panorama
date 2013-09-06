@@ -15,8 +15,10 @@ module LicensingHelper
         {:sid=>"HDL1",      :host=>nil,         :port=>"1522" },
         {:sid=>"MMDBPR1",   :host=>nil,         :port=>"1521" },
         {:sid=>"MMDBPR2",   :host=>nil,         :port=>"1521" },
-        {:sid=>"NOADB1",    :host=>nil,         :port=>"1522" },
-        {:sid=>"NOADB2",    :host=>nil,         :port=>"1522" },
+        {:sid=>"NOADB1",    :host=>"noaa",      :port=>"1522" },
+        {:sid=>"NOADB2",    :host=>"noab",      :port=>"1522" },
+        {:sid=>"NOADB1",    :host=>"dm03db01",  :port=>"1521" },
+        {:sid=>"NOADB2",    :host=>"dm03db02",  :port=>"1521" },
         {:sid=>"RUSPRO3",   :host=>nil,         :port=>nil    },  # Produktion AMOS Russland
         {:sid=>"SPPROD01",  :host=>nil,         :port=>nil    },
         {:sid=>"SPPROD02",  :host=>nil,         :port=>nil    },
