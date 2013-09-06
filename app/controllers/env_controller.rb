@@ -167,7 +167,7 @@ public
 
     session[:database] = @database
     write_connection_to_cookie @database
-    @license_ok = check_license(@instance_name, @hostname, @database.port)
+    @license_ok = check_license(@instance_name, @host_name, @database.port)
 
     timepicker_regional = ""
     if session[:database].locale == "de"  # Deutsche Texte für DateTimePicker
@@ -183,9 +183,7 @@ public
     end
     respond_to do |format|
       format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database.tns},Host=#{@database.host},Port=#{@database.port},#{@database.sid_usage}=#{@database.sid}, User=#{@database.user}'>#{@database.user}@#{@database.tns}</span>"}');
-                                $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#main_menu').html('#{j render_to_string :partial =>"build_main_menu" }');
-                                $('#login_dialog').dialog('close');
                                 $.timepicker.regional = { #{timepicker_regional}
                                     ampm: false,
                                     firstDay: 1,
@@ -194,6 +192,8 @@ public
                                 $.timepicker.setDefaults($.timepicker.regional);
                                 numeric_decimal_separator = '#{session[:database].numeric_decimal_separator}';
                                 var session_locale = '#{session[:database].locale}';
+                                $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
+                                $('#login_dialog').dialog('close');
                                 "
                 }
     end
