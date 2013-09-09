@@ -82,7 +82,7 @@
                 <% end %>
               </select>
               <%= submit_tag "Login", :name => "login", :title => "Login with selected saved credentials".html_safe %>
-              <%= submit_tag "Delete", :name => "delete", :title => "Delete selected saved login information", :confirm => "Do you really want to delete this saved login credential?" %>
+              <%= submit_tag "Delete", :name => "delete", :title => "Delete selected saved login information", data: { confirm: 'Do you really want to delete this saved login credential?' } %>
             <% end %>
           </td>
         </tr>
