@@ -16,6 +16,7 @@ class DbaHistoryController < ApplicationController
       SELECT /* Panorama-Tool Ramm */ s.Instance_Number,
              NVL(o.Owner, '[Unknown]') Owner,
              NVL(o.Object_Name, '[Object-ID = '||MIN(s.Obj#)||']') Object_Name,
+             DECODE(o.Object_Name, NULL, MIN(s.Obj#), NULL) NVL_Object_ID,    -- Eindeutige Object-ID, wenn kein Match in DBA_Objects stattfand
              o.Object_Type,
              #{@show_partitions=="1" ? "o.subObject_Name" : "''"} subObject_Name,
              MIN(s.Min_Snap_ID)                 Min_Snap_ID,
@@ -131,7 +132,8 @@ class DbaHistoryController < ApplicationController
                         ) w ON w.Instance_Number = s.Instance_Number AND w.Current_Obj# = s.Obj#
       #{@object_name ? " WHERE o.Object_Name LIKE UPPER('%#{@object_name}%') " : "" }
       -- Gruppierung ueber Partitionen hinweg
-      GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""}
+      GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""},
+               NVL(o.Object_Name, s.Obj#) -- Nicht existierende Objekte nach Object_ID separieren
       ORDER BY SUM(w.Time_Waited_Secs) DESC NULLS LAST
     ", @time_selection_start, @time_selection_end, @dbid, @dbid, @dbid, @time_selection_start, @time_selection_end]
 
