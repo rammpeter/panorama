@@ -23,14 +23,14 @@
 
   def show_groupkey_value(rec)
     case @groupby
-       when "SQL-ID" then if rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
+       when "SQL-ID" then if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
     else rec.group_value
     end
   end
 
   # Aus Gruppenlink direkt SQL-Details aufrufen, wenn eideutige Aussage zu SQL_ID und Username und Instance
   def link_column_sql_id(rec)
-    if rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
+    if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
         rec.sql_id
     else
         link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)

@@ -33,6 +33,17 @@ def link_column_snap(rec, value)
 end
 
 def link_column_wait(rec, value)
+  if rec.nvl_object_id      # Es wurde kein Object identifiziert, nur hisgtorische Object_ID geliefert
+    value_filter = { :sql => "s.Current_Obj_No = ?", :bind_value => rec.nvl_object_id }
+  else
+    if rec.subobject_name
+      value_filter = { :sql => "LOWER(o.Owner)||'.'||o.Object_Name||'.'||o.SubObject_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}.#{rec.subobject_name}" }
+    else
+      value_filter = { :sql => "LOWER(o.Owner)||'.'||o.Object_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}" }
+    end
+  end
+
+
   my_ajax_link_to(value,
                 url_for(:controller     => :active_session_history,
                         :action         => :list_session_statistic_historic_grouping,
@@ -44,9 +55,7 @@ def link_column_wait(rec, value)
                                 :Min_Snap_ID            => {:sql => "s.snap_id >= ?"        , :bind_value => rec.min_snap_id, :hide_filter => true},
                                 :Max_Snap_ID            => {:sql => "s.snap_id <= ?"        , :bind_value => rec.max_snap_id, :hide_filter => true},
                                 :Idle_Wait1             => {:sql => "NVL(s.Event, s.Session_State) != ?", :bind_value => "PX Deq Credit: send blkd", :hide_filter=>true},
-                                 "DB-Object"            =>rec.subobject_name ?
-                                        { :sql => "LOWER(o.Owner)||'.'||o.Object_Name||'.'||o.SubObject_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}.#{rec.subobject_name}" } :
-                                        { :sql => "LOWER(o.Owner)||'.'||o.Object_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}" }
+                                 "DB-Object"            => value_filter
                         },
                         :groupby        => "DB-Object",
                         :update_area    => @update_area
