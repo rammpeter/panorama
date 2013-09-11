@@ -213,8 +213,12 @@ class DbaSgaController < ApplicationController
 
   # Existierende SQL-Plan Baselines, Parameter: Result-Zeile eines selects
   def get_sql_plan_baselines(sql_row)
-    sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
+    if session[:database].version >= "11.2"
+      sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
                     sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+    else
+      []
+    end
   end
 
   # Existierende stored outlines, Parameter: Result-Zeile eines selects

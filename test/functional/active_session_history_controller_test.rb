@@ -76,7 +76,8 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     def do_outer_test(outer_groupby)
       # Iteration über Gruppierungskriterien
       session_statistics_key_rules.each do |key, value|
-        do_inner_test key, outer_groupby, bind_value_from_key_rule(outer_groupby)
+        do_inner_test key, outer_groupby, bind_value_from_key_rule(outer_groupby)   # Test mit realem Wert
+        do_inner_test key, outer_groupby, nil                                       # Test mit NULL als Filterkriterium
       end
     end
 
