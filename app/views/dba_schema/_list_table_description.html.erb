@@ -114,8 +114,9 @@ column_options =
   {:caption=>"Cluster.",         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=>"A measurement of the amount of (dis)order of the table this index is for", :align=>:right},
   {:caption=>"Status",           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=>"Index-Status"},
   {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                   :title=>"Default parallel degree of table", :align=>:right},
-  {:caption=>"Part.",            :data=>proc{|rec| link_ind_partitions(rec)},  :title=>"Number of index partitions and subpartitions", :align=>:right},
+  {:caption=>"Part.",            :data=>proc{|rec| link_ind_partitions(rec)},         :title=>"Number of index partitions and subpartitions", :align=>:right},
   {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=>"The date of the most recent time this table was analyzed" },
+  {:caption=>"Use",              :data=>proc{|rec| rec.used},                          :title=>"Usage of index detected? From sys.Object_Usage", :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| "background-color:coral;" if rec.used=="NO"} },
   {:caption=>"F. Stat.",         :data=>proc{|rec| rec.funcidx_status},               :title=>"Is the Function-based Index DISABLED or ENABLED?"},
 ]
 

@@ -221,8 +221,15 @@ class DbaSchemaController < ApplicationController
                         (SELECT SUM(Bytes)/(1024*1024)
                          FROM   DBA_Segments s
                          WHERE  s.Owner = i.Owner AND s.Segment_Name = i.Index_Name
-                        ) Size_MB
+                        ) Size_MB,
+                        DECODE(bitand(io.flags, 65536), 0, 'NO', 'YES') Monitoring,
+                        DECODE(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
+                        ou.start_monitoring, ou.end_monitoring
                  FROM   DBA_Indexes i
+                 JOIN   sys.user$   u  ON u.Name  = i.owner
+                 JOIN   sys.Obj$    o  ON o.Owner# = u.User# AND o.Name = i.Index_Name
+                 JOIN   sys.Ind$    io ON io.Obj# = o.Obj#
+                 LEFT OUTER JOIN sys.object_usage ou ON ou.Obj# = o.Obj#
                  LEFT OUTER JOIN (SELECT ii.Index_Name, COUNT(*) Partition_Number,
                                   CASE WHEN COUNT(DISTINCT(ip.Tablespace_Name)) = 1 THEN MIN(ip.Tablespace_Name) ELSE NULL  END Partition_TS_Name,
                                   CASE WHEN COUNT(DISTINCT(ip.Status))          = 1 THEN MIN(ip.Status)          ELSE 'N/A' END Partition_Status,

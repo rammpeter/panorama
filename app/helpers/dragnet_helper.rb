@@ -354,7 +354,7 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
 Results of usage monitoring can be queried from v$Object_Usage but only for current schema.
 Over all schemas usage can be monitored with following SQL.
 Additional information about index usage can be requested from DBA_Hist_Seg_Stat and DBA_Hist_Active_Sess_History."),
-             :sql=> "SELECT /* DB-Tools Ramm: unused indexes */ u.*, i.Num_Rows,
+             :sql=> "SELECT /* DB-Tools Ramm: unused indexes */ u.*, i.Num_Rows, i.Distinct_Keys,
                              (SELECT SUM(s.Bytes) FROM DBA_Segments s WHERE s.Owner=u.Owner AND s.Segment_Name=u.Index_Name)/(1024*1024) MBytes,
                              i.Tablespace_Name, i.Uniqueness
                       FROM   (
