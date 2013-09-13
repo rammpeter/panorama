@@ -39,3 +39,4 @@ gem 'jquery-rails'
 
 # To use debugger
 # gem 'debugger'
+gem "minitest", "~> 4.0"

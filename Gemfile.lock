@@ -59,6 +59,7 @@ GEM
       treetop (~> 1.4.8)
     memcache-client (1.8.5)
     mime-types (1.23)
+    minitest (4.7.5)
     multi_json (1.7.3)
     polyglot (0.3.3)
     rack (1.4.5)
@@ -119,6 +120,7 @@ DEPENDENCIES
   jquery-rails
   jruby-openssl
   memcache-client
+  minitest (~> 4.0)
   rails (= 3.2.13)
   sass-rails (~> 3.2.3)
   therubyrhino

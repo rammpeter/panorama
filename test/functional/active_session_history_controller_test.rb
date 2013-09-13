@@ -67,7 +67,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistic_historic_grouping" do
     def do_inner_test(groupby, outer_groupby, bind_value)
-      add_filter = {outer_groupby => {:sql => "#{session_statistics_key_rule(outer_groupby)[:sql]} = ?", :bind_value => bind_value}}
+      add_filter = {outer_groupby => {:sql => "#{session_statistics_key_rule(outer_groupby)[:sql]} #{bind_value ? " = ?" : " IS NULL"}", :bind_value => bind_value}}
       post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter)
       assert_response :success
