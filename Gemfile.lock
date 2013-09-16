@@ -52,6 +52,7 @@ GEM
       thor (>= 0.14, < 2.0)
     jruby-openssl (0.8.8)
       bouncy-castle-java (>= 1.5.0147)
+    json (1.7.7)
     json (1.7.7-java)
     mail (2.5.3)
       i18n (>= 0.4.0)
@@ -87,6 +88,7 @@ GEM
     rake (10.1.0)
     rdoc (3.12.2)
       json (~> 1.4)
+    rubyzip (0.9.9)
     sass (3.2.8)
     sass-rails (3.2.6)
       railties (~> 3.2.0)
@@ -122,6 +124,7 @@ DEPENDENCIES
   memcache-client
   minitest (~> 4.0)
   rails (= 3.2.13)
+  rubyzip (< 1.0.0)
   sass-rails (~> 3.2.3)
   therubyrhino
   uglifier (>= 1.0.3)

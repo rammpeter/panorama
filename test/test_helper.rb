@@ -50,6 +50,8 @@ class ActiveSupport::TestCase
     database.user     = test_config["test_username"]
     database.password = test_config["test_password"]
     #database.tns      = test_config["database"]
+
+    # puts "Test for #{ENV['DB_VERSION']} with #{database.user}/#{database.password}@#{database.host}:#{database.port}:#{database.sid}"
     database.open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
     database.read_initial_db_values
     database.locale = "de"

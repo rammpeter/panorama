@@ -40,3 +40,6 @@ gem 'jquery-rails'
 # To use debugger
 # gem 'debugger'
 gem "minitest", "~> 4.0"
+
+# Problem mit warbler 1.3.8
+gem "rubyzip", "<1.0.0"

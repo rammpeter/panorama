@@ -716,6 +716,14 @@ class DbaSgaController < ApplicationController
 
   # Result Cache
   def list_result_cache
+    if session[:database].version < "11.1"
+      respond_to do |format|
+        format.js {render :js => "$('##{params[:update_area]}').html('<h2>This funktion is available only for Oracle 11g and above</h2>');"}
+      end
+      return
+    end
+
+
     @instance        = prepare_param_instance
 
     @sums = sql_select_all ["\

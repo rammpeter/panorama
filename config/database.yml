@@ -45,7 +45,7 @@ test:
 test_10.2:
   adapter: nulldb
 
-  test_url:      jdbc:oracle:thin:@.osp-dd.de:1521:NOADD
+  test_url:      jdbc:oracle:thin:@nora.osp-dd.de:1521:NOADD
   test_username: noatest
   test_password: noa
 
