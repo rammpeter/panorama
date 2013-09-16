@@ -48,6 +48,7 @@ module DbaHelper
 
   # Ermitteln des Betroffenen Objektes aus Parametern von v$session_wait
   def object_nach_wait_parameter(instance, event, p1, p1raw, p1text, p2, p2raw, p2text, p3, p3raw, p3text)
+    wordsize = session[:database].wordsize    # Wortbreite in Byte
     case
       when (p1text=="file#" || p1text=="file number") && (p2text=="block#" || p2text=="first dba") then
         result = object_nach_file_und_block(p1, p2, instance)
@@ -66,9 +67,16 @@ module DbaHelper
           p1raw ]
         result = "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}" unless result
         result
-      when event.match('cursor: ') then
-        cursor_rec = sql_select_first_row ["SELECT /*+ Panorama-Tool Ramm */ SQL_ID, Parsing_Schema_Name, SQL_Text FROM gv$SQL WHERE Inst_ID=? AND Hash_Value=?", instance, p1.to_i]
-        "Blocking-SID=#{p2.to_i/(64*1024*64*1024)}, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
+      when p1text == "idn" && p2text == "value" && p3text == "where"
+        if event.match('cursor: ') then
+          cursor_rec = sql_select_first_row ["SELECT /*+ Panorama-Tool Ramm */ SQL_ID, Parsing_Schema_Name, SQL_Text FROM gv$SQL WHERE Inst_ID=? AND Hash_Value=?", instance, p1.to_i]
+          "Blocking-SID=#{p2.to_i/2**(4*session[:database].wordsize) }, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
+        else   # Mutex etc.
+          # P1 = “idn” = Unique Mutex Identifier. Hash value of library cache object protected by mutex or hash bucket number.
+          # P2 = “value” = “Blocking SID | Shared refs” = Top 2 (4 on 64bit) bytes contain SID of blocker. This session is currently holding the mutex exclusively or modifying it. Lower bytes represent the number of shared references when the mutex is in-flux
+          # P3 = “where” = “Location ID | Sleeps” = Top 2(4) bytes contain location in code (internal identifier) where mutex is being waited for. Lower bytes contain the number of sleeps for this mutex. These bytes not populated on some platforms, including Linux
+          "Unique Mutex Identifier=#{p1}, Blocking-SID=#{ p2.to_i/2**(4*wordsize)}, number of shared references=#{p2.to_i%2**(4*wordsize)}, Location-ID=#{p3.to_i/2**(4*wordsize)}, Number of Sleeps=#{p3.to_i%2**(4*wordsize)} "
+        end
       when event.match('library cache') && p1text=="handle address" then
         result = sql_select_one ["SELECT 'handle_address: Owner='''||kglnaown||''', Object='''||kglnaobj||'''' FROM x$kglob WHERE kglhdadr=HEXToRaw(TRIM(TO_char(?,'XXXXXXXXXXXXXXXX')))", p1]
         result = "Nothing found in x$kglob for p1" unless result

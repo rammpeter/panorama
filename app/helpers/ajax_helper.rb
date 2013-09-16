@@ -32,7 +32,7 @@ module AjaxHelper
       (""+  # Wenn kein String als erster Operand, funktioniert html_safe nicht auf Result !!!
        my_ajax_link_to("P1: #{p1text} = #{p1} P2: #{p2text} = #{p2} P3: #{p3text} = #{p3}",
                        url_for(:controller => :dba,
-                               :action     => "show_session_details_waits_object",
+                               :action     => :show_session_details_waits_object,
                                :update_area => unique_div_identifier,
                                :instance    => instance,
                                :event=>event,
