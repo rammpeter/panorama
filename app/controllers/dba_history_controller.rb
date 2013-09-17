@@ -1518,7 +1518,9 @@ FROM (
     end
 
     @res = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ *
+      SELECT /* Panorama-Tool Ramm */ Inst_ID, Mutex_Identifier, Sleep_Timestamp,
+             Mutex_Type, Gets, Sleeps, Requesting_Session, Blocking_Session, Location, RawToHex(Mutex_Value) Mutex_Value,
+             P1, RawToHex(P1Raw) P1Raw, P2, P3, P4, P5
       FROM   GV$Mutex_Sleep_History
       WHERE  Sleep_Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       AND    Sleep_Timestamp  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
