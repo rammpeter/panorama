@@ -153,6 +153,7 @@ Warbler::Config.new do |config|
   # config.webxml.jndi = 'jdbc/rails'
 
   # Workaround fuer Problem mit Java 1.7:  NoMethodError: super: no superclass method `request_parameters'
-  config.webxml.jruby.compile.invokedynamic=false
+  # config.webxml.jruby.compile.invokedynamic=false
+  config.webxml.jruby.compile.mode="OFF"
 
 end
