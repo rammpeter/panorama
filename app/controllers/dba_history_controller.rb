@@ -939,6 +939,14 @@ FROM (
     end
   end
 
+
+  # Auswahl-Dialog
+  def show_system_statistics_historic
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"show_system_statistics_historic" }');"}
+    end
+  end
+
   # Anzeige Snaphots aus DBA_Hist_Sysstat
   def list_system_statistics_historic
     @instance  = prepare_param_instance
