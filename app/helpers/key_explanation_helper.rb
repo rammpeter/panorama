@@ -357,6 +357,19 @@ module KeyExplanationHelper
     end
   end
 
+  def statistic_classes
+    [
+        {:bit => 128, :name =>  'Debug'},
+        {:bit => 64,  :name =>  'SQL'},
+        {:bit => 32,  :name =>  'RAC'},
+        {:bit => 16,  :name =>  'OS'},
+        {:bit => 8,   :name =>  'Cache'},
+        {:bit => 4,   :name =>  'Enqueue'},
+        {:bit => 2,   :name =>  'Redo'},
+        {:bit => 1,   :name =>  'User'},
+    ]
+  end
+
     # Statistik-Klassen aus v$stat_name etc.
   def statistic_class(class_id)
     return nil if class_id.nil?
@@ -370,14 +383,9 @@ module KeyExplanationHelper
       end
     end
 
-    check_for_class(128, 'Debug')
-    check_for_class(64,  'SQL')
-    check_for_class(32,  'RAC')
-    check_for_class(16,  'OS')
-    check_for_class(8,   'Cache')
-    check_for_class(4,   'Enqueue')
-    check_for_class(2,   'Redo')
-    check_for_class(1,   'User')
+    statistic_classes.each do |stat_class|      # Alle Klassen auf Treffer prüfen
+      check_for_class(stat_class[:bit], stat_class[:name])
+    end
     @result
   end
 

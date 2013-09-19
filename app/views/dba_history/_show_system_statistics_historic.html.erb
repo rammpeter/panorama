@@ -8,6 +8,11 @@
             RAC-Instance
             <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
         </div>
+      <div class="float_left">
+        Stat.-Class
+        <%= collection_select(:stat_class, :bit, @statclasses, :bit, :name, {}, {:title=>"Restrict result to statistic class"}) %>
+      </div>
+
     </div>
     <div class="float_left" style="border:1px solid gray; padding-left: 5px;">
         <div class="float_left">
