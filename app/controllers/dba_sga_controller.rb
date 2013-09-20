@@ -261,7 +261,7 @@ class DbaSgaController < ApplicationController
           ELSE NULL END Num_Rows,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
           #{", a.DB_Time_Seconds, a.CPU_Seconds, a.Waiting_Seconds, a.Read_IO_Requests, a.Write_IO_Requests,
-               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time  " if session[:database].version >= "11.2"}
+               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time  " if session[:database].version >= "11.2"}
         FROM  gV$SQL_Plan_Statistics_All p
         #{" LEFT OUTER JOIN (SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
                                     COUNT(*)                                                   DB_Time_Seconds,
@@ -273,7 +273,8 @@ class DbaSgaController < ApplicationController
                                     SUM(Delta_Read_IO_Bytes)          Read_IO_Bytes,
                                     SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
                                     SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
-                                    MIN(Sample_Time)                  Min_Sample_Time
+                                    MIN(Sample_Time)                  Min_Sample_Time,
+                                    MAX(Sample_Time)                  Max_Sample_Time
                              FROM   gv$Active_Session_History
                              WHERE  SQL_ID  = ?
                              AND    Inst_ID = ?
