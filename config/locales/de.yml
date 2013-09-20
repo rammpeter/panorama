@@ -146,7 +146,7 @@
   dragnet_helper_5_param_1_hint:                            Mindestanzahl Rows der referenzierten Tabelle
   dragnet_helper_5_param_1_name:                            Min. Anzahl Rows referenzierte Tabelle
 
-  dragnet_helper_6_name:                                    Absicherung von Foreign Key-Beziehungen durch Indiezs (Ermitteln möglicherweise unnötiger Indizes)
+  dragnet_helper_6_name:                                    Absicherung von Foreign Key-Beziehungen durch Indizes (Ermitteln möglicherweise unnötiger Indizes)
   dragnet_helper_6_desc: |-
     Die Absicherung eines Foreign Key durch Index ist evtl. nicht nötig, wenn:
     - auf der referenzierten Tabelle nicht physisch gelöscht wird oder

@@ -283,18 +283,23 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
              :desc  => t(:dragnet_helper_14_desc, :default=>"Indexes with only one or little key values may be unnecessary.
                        Exception: Indexes with only one key value may be usefull for differentiation between NULL and NOT NULL.
                        Indexes with only one key value and no NULLs in indexed columns my be definitely removed."),
-             :sql=> "SELECT /* DB-Tools Ramm Komprimierung Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
+             :sql=> "SELECT /* DB-Tools Ramm Sinnlose Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
                             ROUND(i.Num_Rows/i.Distinct_Keys) \"Rows per Key\",
                             i.Num_Rows \"Rows Index\", t.Num_Rows \"Rows Table\", t.Num_Rows-i.Num_Rows \"Possible NULLs\", t.IOT_Type,
                             (SELECT  /*+ NO_MERGE */ ROUND(SUM(bytes)/(1024*1024),1) MBytes
                                      FROM   DBA_SEGMENTS s
                              WHERE s.SEGMENT_NAME = i.Index_Name
                              AND     s.Owner                = i.Owner
-                            ) MBytes
+                            ) MBytes,
+                            (SELECT CASE WHEN SUM(DECODE(Nullable, 'N', 1, 0)) = COUNT(*) THEN 'NOT NULL' ELSE 'NULLABLE' END
+                             FROM DBA_Ind_Columns ic
+                             JOIN DBA_Tab_Columns tc ON tc.Owner = ic.Table_Owner AND tc.Table_Name = ic.Table_Name AND tc.Column_Name = ic.Column_Name
+                             WHERE  ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name
+                            ) Nullable
                      FROM   DBA_Indexes i
                      JOIN   DBA_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
                      WHERE   i.Num_Rows > ?
-                     AND     i.Distinct_Keys=?
+                     AND     i.Distinct_Keys<=?
                      ORDER BY i.Num_Rows*t.Num_Rows DESC NULLS LAST
                       ",
               :parameter=>[{:name=>t(:dragnet_helper_14_param_1_name, :default=>"Min. number of rows in index"), :size=>8, :default=>100000, :title=>t(:dragnet_helper_14_param_1_hint, :default=>"Minimum number of rows in considered index") },

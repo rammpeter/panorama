@@ -12,7 +12,7 @@ gem "memcache-client"
 gem 'jruby-openssl'
 
 # da 1.7.4 Fehler erzeugt beim Zugriff auf super
-gem 'jruby-jars', '1.7.3'
+#gem 'jruby-jars', '1.7.3'
 
 # Gems used only for assets and not required
 # in production environments by default.
