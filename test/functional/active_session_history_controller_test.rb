@@ -67,7 +67,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistic_historic_grouping" do
     def do_inner_test(groupby, outer_groupby, bind_value)
-      add_filter = {outer_groupby => {:sql => "#{session_statistics_key_rule(outer_groupby)[:sql]} = ?", :bind_value => bind_value}}
+      add_filter = {outer_groupby => {:sql => "#{session_statistics_key_rule(outer_groupby)[:sql]} #{bind_value ? " = ?" : " IS NULL"}", :bind_value => bind_value}}
       post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter)
       assert_response :success
@@ -76,7 +76,8 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     def do_outer_test(outer_groupby)
       # Iteration über Gruppierungskriterien
       session_statistics_key_rules.each do |key, value|
-        do_inner_test key, outer_groupby, bind_value_from_key_rule(outer_groupby)
+        do_inner_test key, outer_groupby, bind_value_from_key_rule(outer_groupby)   # Test mit realem Wert
+        do_inner_test key, outer_groupby, nil                                       # Test mit NULL als Filterkriterium
       end
     end
 

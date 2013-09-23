@@ -146,6 +146,12 @@ public
                                                       (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count
                                                FROM  GV$Instance gi
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number"
+      @instance_data.each do |i|
+        if i.instance_connected
+          @instance_name = i.instance_name
+          @host_name     = i.host_name
+        end
+      end
       @dbids = sql_select_all  "SELECT DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS
                                 FROM   DBA_Hist_Snapshot
                                 GROUP BY DBID
@@ -161,7 +167,7 @@ public
 
     session[:database] = @database
     write_connection_to_cookie @database
-    @license_ok = check_license(@database.sid, @database.host, @database.port)
+    @license_ok = check_license(@instance_name, @host_name, @database.port)
 
     timepicker_regional = ""
     if session[:database].locale == "de"  # Deutsche Texte für DateTimePicker
@@ -177,9 +183,7 @@ public
     end
     respond_to do |format|
       format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database.tns},Host=#{@database.host},Port=#{@database.port},#{@database.sid_usage}=#{@database.sid}, User=#{@database.user}'>#{@database.user}@#{@database.tns}</span>"}');
-                                $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#main_menu').html('#{j render_to_string :partial =>"build_main_menu" }');
-                                $('#login_dialog').dialog('close');
                                 $.timepicker.regional = { #{timepicker_regional}
                                     ampm: false,
                                     firstDay: 1,
@@ -188,6 +192,8 @@ public
                                 $.timepicker.setDefaults($.timepicker.regional);
                                 numeric_decimal_separator = '#{session[:database].numeric_decimal_separator}';
                                 var session_locale = '#{session[:database].locale}';
+                                $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
+                                $('#login_dialog').dialog('close');
                                 "
                 }
     end
@@ -240,6 +246,7 @@ private
   end
 
   def check_license(sid, host, port)
+    return false unless sid
     license_list.each do |l|
       return true if sid.upcase==l[:sid].upcase && ( l[:host].nil? || host.upcase.match(l[:host].upcase) ) && ( l[:port].nil? || port==l[:port] )
     end

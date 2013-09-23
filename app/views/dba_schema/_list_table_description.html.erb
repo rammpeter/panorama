@@ -28,6 +28,24 @@ column_options =
 
 
 <%
+
+   def link_tab_partitions
+     if @partition_count == 0
+       @partition_count
+     else
+       my_ajax_link_to(fn(@partition_count),
+                       url_for({:action       => :list_table_partitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show partitions of table #{@owner}.#{@table_name}"
+         )
+     end
+   end
+
+
+
 column_options =
 [
   {:caption=>"TS",               :data=>proc{|rec| rec.tablespace_name},                  :title=>"Tablespace name"},
@@ -35,7 +53,7 @@ column_options =
   {:caption=>"IniTrans",         :data=>proc{|rec| fn(rec.ini_trans)},                    :title=>"Number of initial entries in transaction list of db block", :align=>:right},
   {:caption=>"MaxTrans",         :data=>proc{|rec| fn(rec.max_trans)},                    :title=>"Maximum number of transactions in transaction list of db block", :align=>:right},
   {:caption=>"Rows",             :data=>proc{|rec| fn(rec.num_rows)},                     :title=>"Number of rows calculated by last analyze run", :align=>:right},
-  {:caption=>"Size (MB)",        :data=>proc{|rec| fn(rec.size_mb, 2)},                   :title=>"Curent object size in megabytes", :align=>:right},
+  {:caption=>"Size (MB)",        :data=>proc{|rec| fn(@size_mb, 2)},                      :title=>"Curent object size in megabytes", :align=>:right},
   {:caption=>"Blocks",           :data=>proc{|rec| fn(rec.blocks)},                       :title=>"Number of allocated blocks calculated by last analyze run", :align=>:right},
   {:caption=>"Empty",            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=>"Number of empty (never used) blocks calculated by last analyze run", :align=>:right},
   {:caption=>"Avg. Space",       :data=>proc{|rec| fn(rec.avg_space)},                    :title=>"Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run", :align=>:right},
@@ -43,7 +61,7 @@ column_options =
   {:caption=>"RowLen",           :data=>proc{|rec| fn(rec.avg_row_len)},                  :title=>"Avg. row len in bytes calculated by last analyze run", :align=>:right},
   {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                       :title=>"Default parallel degree of table", :align=>:right},
   {:caption=>"Cache",            :data=>proc{|rec| rec.cache},                            :title=>"Whether the table is to be cached in the buffer cache" },
-  {:caption=>"P.",               :data=>proc{|rec| fn(rec.partition_number)},             :title=>"Number of table partitions", :align=>:right},
+  {:caption=>"Part.",            :data=>proc{|rec| link_tab_partitions},                  :title=>"Number of table partitions", :align=>:right},
   {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=>"The date of the most recent time this table was analyzed" },
   {:caption=>"IOT",              :data=>proc{|rec| rec.iot_type},                         :title=>"If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL" },
   {:caption=>"T",                :data=>proc{|rec| rec.temporary},                        :title=>"Temporary table ?" },
@@ -60,6 +78,21 @@ column_options << {:caption=>"Comp. for",       :data=>proc{|rec| rec.compress_f
 %>
 
 <%
+   def link_ind_partitions(rec)
+     if rec.partition_number == 0
+       rec.partition_number
+     else
+       my_ajax_link_to("#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}",
+                       url_for({:action       => :list_index_partitions,
+                                :owner        => rec.owner,
+                                :index_name   => rec.index_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show partitions of index #{rec.index_name}"
+         )
+     end
+   end
+
 column_options =
 [
   {:caption=>"Name",             :data=>proc{|rec| rec.index_name},                  :title=>"Name of index"},
@@ -81,8 +114,9 @@ column_options =
   {:caption=>"Cluster.",         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=>"A measurement of the amount of (dis)order of the table this index is for", :align=>:right},
   {:caption=>"Status",           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=>"Index-Status"},
   {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                   :title=>"Default parallel degree of table", :align=>:right},
-  {:caption=>"P.",               :data=>proc{|rec| "#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}"},  :title=>"Number of index partitions and subpartitions", :align=>:right},
+  {:caption=>"Part.",            :data=>proc{|rec| link_ind_partitions(rec)},         :title=>"Number of index partitions and subpartitions", :align=>:right},
   {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=>"The date of the most recent time this table was analyzed" },
+  {:caption=>"Use",              :data=>proc{|rec| rec.used},                          :title=>"Usage of index detected? From sys.Object_Usage", :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| "background-color:coral;" if rec.used=="NO"} },
   {:caption=>"F. Stat.",         :data=>proc{|rec| rec.funcidx_status},               :title=>"Is the Function-based Index DISABLED or ENABLED?"},
 ]
 
@@ -142,5 +176,7 @@ column_options =
       :height => :auto
 })
 %>
+
+
 
 <div id="<%= @update_area %>" style="clear:both;"></div>

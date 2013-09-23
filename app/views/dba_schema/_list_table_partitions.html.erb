@@ -1,0 +1,26 @@
+<%=
+    column_options =
+    [
+      {:caption=>"Part. name",             :data=>proc{|rec| rec.partition_name},               :title=>"Partition name"},
+      {:caption=>"Sub-part.",              :data=>proc{|rec| fn rec.subpartition_count},        :title=>"Number of sub-partitions", :align=>:right},
+      {:caption=>"High value",             :data=>proc{|rec| rec.high_value},                   :title=>"Partition bound value expression"},
+      {:caption=>"Pos.",                   :data=>proc{|rec| fn rec.partition_position},        :title=>"Position of the partition within the table", :align=>:right},
+      {:caption=>"Tablespace",             :data=>proc{|rec| rec.tablespace_name},              :title=>"Name of the tablespace containing the partition"},
+      {:caption=>"Pct. free",              :data=>proc{|rec| fn rec.pct_free},                  :title=>"Minimum percentage of free space in a block", :align=>:right},
+      {:caption=>"Ini. trans",             :data=>proc{|rec| fn rec.ini_trans},                 :title=>"Initial number of transactions", :align=>:right},
+      {:caption=>"Compression",            :data=>proc{|rec| rec.compression},                  :title=>"Indicates the actual compression property for a partition" },
+      {:caption=>"Compress for",           :data=>proc{|rec| rec.compress_for},                 :title=>"Default compression for what kind of operations" },
+      {:caption=>"Num. rows",              :data=>proc{|rec| fn rec.num_rows},                  :title=>"Number of rows in the partition", :align=>:right},
+      {:caption=>"Blocks",                 :data=>proc{|rec| fn rec.blocks},                    :title=>"Number of used data blocks in the partition", :align=>:right},
+      {:caption=>"Avg. row len",           :data=>proc{|rec| fn rec.avg_row_len},               :title=>"Average length of a row in the partition (in bytes)", :align=>:right},
+      {:caption=>"Last analyzed",          :data=>proc{|rec| localeDateTime rec.last_analyzed},  :title=>"Date on which this partition was most recently analyzed" },
+    ]
+
+    column_options << {:caption=>"Flash cache",             :data=>proc{|rec| rec.flash_cache},                 :title=>"Database Smart Flash Cache hint to be used for partition blocks" }  if session[:database].version >= "11.2"
+    column_options << {:caption=>"Cell flash cache",        :data=>proc{|rec| rec.flash_cache},                 :title=>"Cell flash cache hint to be used for partition blocks" }  if session[:database].version >= "11.2"
+
+    gen_slickgrid(@partitions, column_options, {
+      :caption => "Partitions of table #{@owner}.#{@table_name} #{@partition_expression}",
+      :height => :auto
+})
+%>

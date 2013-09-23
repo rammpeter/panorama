@@ -124,7 +124,7 @@ Warbler::Config.new do |config|
   # config.webxml.booter = :rails
 
   # Set JRuby to run in 1.9 mode.
-  # config.webxml.jruby.compat.version = "1.9"
+  config.webxml.jruby.compat.version = "1.9"
 
   # When using the :rack booter, "Rackup" script to use.
   # - For 'rackup.path', the value points to the location of the rackup
@@ -152,4 +152,9 @@ Warbler::Config.new do |config|
 
   # JNDI data source name
   # config.webxml.jndi = 'jdbc/rails'
+
+  # Workaround fuer Problem mit Java 1.7:  NoMethodError: super: no superclass method `request_parameters'
+  # config.webxml.jruby.compile.invokedynamic=false
+  config.webxml.jruby.compile.mode="OFF"
+
 end

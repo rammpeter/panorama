@@ -4,7 +4,7 @@
 class Database
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's
 
-  attr_accessor :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale, :db_block_size, :version
+  attr_accessor :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale, :db_block_size, :version, :wordsize
   
   def initialize( params = {} )
     @tns      = params[:tns]
@@ -19,6 +19,7 @@ class Database
     @authorization = params[:authorization]  # Autorisierung für spezielle DB's
     @locale   = params[:locale]
     @version  = params[:version]         # DB-Version Oracle
+    @wordsize = params[:wordsize]         # Wortbreite in Byte (4/8 für 32/64 bit)
   end
 
   def tns=(param)
@@ -36,7 +37,8 @@ class Database
       :sid      => @sid,
       :authorization => @authorization,
       :locale   => @locale,
-      :version  => @version
+      :version  => @version,
+      :wordsize => @wordsize
     }
   end
 
@@ -74,6 +76,7 @@ class Database
     self.dbid          = sql_select_one "SELECT /* Panorama Tool Ramm */ DBID FROM v$Database"
     self.db_block_size = sql_select_one "SELECT /* Panorama Tool Ramm */ TO_NUMBER(Value) FROM v$parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE'"
     self.version       = sql_select_one "SELECT /* Panorama Tool Ramm */ Version FROM V$Instance"
+    self.wordsize      = sql_select_one "SELECT DECODE (INSTR (banner, '64bit'), 0, 4, 8) FROM v$version WHERE Banner LIKE '%Oracle Database%'"
   end
 
   def open_oracle_connection

@@ -146,7 +146,7 @@
   dragnet_helper_5_param_1_hint:                            Mindestanzahl Rows der referenzierten Tabelle
   dragnet_helper_5_param_1_name:                            Min. Anzahl Rows referenzierte Tabelle
 
-  dragnet_helper_6_name:                                    Absicherung von Foreign Key-Beziehungen durch Indiezs (Ermitteln möglicherweise unnötiger Indizes)
+  dragnet_helper_6_name:                                    Absicherung von Foreign Key-Beziehungen durch Indizes (Ermitteln möglicherweise unnötiger Indizes)
   dragnet_helper_6_desc: |-
     Die Absicherung eines Foreign Key durch Index ist evtl. nicht nötig, wenn:
     - auf der referenzierten Tabelle nicht physisch gelöscht wird oder
@@ -166,7 +166,7 @@
   dragnet_helper_8_desc: |-
     Mehrfach indizierte Spalten bringen nur Nutzen im Such-Zugriff, wenn weitere Felder die Selektivität des Index verfeinern.
     Die Indizierung einer Spalte, die bereits durch einen mehrspaltigen Index indiziert ist, ist oftmals überflüssig, z.B. zur Absicherung von Foreign Keys.
-    Alternativ kann mehrfache Indizierung der selben Spalte jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
+    Alternativ kann mehrfache Indizierung der selben Spalte in verschiedenen Composite-Indizes jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
 
   dragnet_helper_9_name:                                    "Identifikation unnötiger Indizes: Erkennung nicht genutzter Indizes durch System-Monitoring"
   dragnet_helper_9_desc: |-

@@ -524,7 +524,7 @@ public
     global_options[:width]              = :auto                                 if global_options[:width] == "auto"   # Symbol verwenden
     global_options[:height]             = :auto                                 unless global_options[:height]
     global_options[:multiple_y_axes]    = true                                  if global_options[:multiple_y_axes] == nil
-    global_options[:show_y_axes]        = !global_options[:multiple_y_axes]     unless global_options[:show_y_axes]
+    global_options[:show_y_axes]        = true                                  unless global_options[:show_y_axes]
     global_options[:line_height_single] = false                                 unless global_options[:line_height_single]
 
     calculate_column_options(column_options, data)    # Berechnen diverser Spaltenparameter

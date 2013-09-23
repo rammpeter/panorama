@@ -328,6 +328,8 @@ module KeyExplanationHelper
           "gc buffer busy acquire"            => "If existing GC open request (gc current request) originated from the local instance, then current session will wait for ‘gc buffer busy acquire’. Essentially, current process is waiting for another process in the local instance to acquire GC lock, on behalf of the local instance. Once GC lock is acquired, current process can access that buffer without additional GC processing (if the lock is acquired in a compatible mode).",
           "gc buffer busy release"            => "If existing GC open request (gc current request) originated from a remote instance, then current session will wait for ‘gc buffer busy release’ event. In this case session is waiting for another remote session (hence another instance) to release the GC lock, so that local instance can acquire buffer.",
           "gcs drm freeze in enter server mode" => "Burst in remastering by Dynamic Resource Mastering (DRM)",
+          "latch: ges resource hash list"     => "GES resources (GES = Global Enqueue Service) are accessed via a hash array where each resource is protected by a ges resource hash list child latch.",
+          "library cache: mutex X"            => "This wait event is present whenever a library cache mutex is held in exclusive mode by a session and other sessions need to wait for it to be released.  There are many different operations in the library cache that will require a mutex, so its important to recognize which 'location' (in Oracle's code) is involved in the wait.  'Location' is useful to Oracle Support engineers for diagnosing the cause for this wait event.",
           "log file sequential read"          => "Indicates that the process is waiting for blocks to be read from the online redo log into memory. This primarily occurs at instance startup and when the ARCH process archives filled online redo logs.",
           "ON CPU"                            => "Pseudo wait event, working in database server's CPU",
           "PX Deq Credit: send blkd"          => "PQ process with result (producer) waiting for credit to send next message to consumer (e.g. query coordinator)",
@@ -355,6 +357,19 @@ module KeyExplanationHelper
     end
   end
 
+  def statistic_classes
+    [
+        {:bit => 128, :name =>  'Debug'},
+        {:bit => 64,  :name =>  'SQL'},
+        {:bit => 32,  :name =>  'RAC'},
+        {:bit => 16,  :name =>  'OS'},
+        {:bit => 8,   :name =>  'Cache'},
+        {:bit => 4,   :name =>  'Enqueue'},
+        {:bit => 2,   :name =>  'Redo'},
+        {:bit => 1,   :name =>  'User'},
+    ]
+  end
+
     # Statistik-Klassen aus v$stat_name etc.
   def statistic_class(class_id)
     return nil if class_id.nil?
@@ -368,14 +383,9 @@ module KeyExplanationHelper
       end
     end
 
-    check_for_class(128, 'Debug')
-    check_for_class(64,  'SQL')
-    check_for_class(32,  'RAC')
-    check_for_class(16,  'OS')
-    check_for_class(8,   'Cache')
-    check_for_class(4,   'Enqueue')
-    check_for_class(2,   'Redo')
-    check_for_class(1,   'User')
+    statistic_classes.each do |stat_class|      # Alle Klassen auf Treffer prüfen
+      check_for_class(stat_class[:bit], stat_class[:name])
+    end
     @result
   end
 

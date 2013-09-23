@@ -3,7 +3,7 @@ class DbaController < ApplicationController
 
   include DbaHelper
 
-  def list_dml_locks  
+  def list_dml_locks
     show_all_locks = params[:show_all_locks]
     
     @max_result_size = params[:max_result_size].to_i

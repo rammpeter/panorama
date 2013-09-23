@@ -22,8 +22,12 @@
 
 
   def show_groupkey_value(rec)
+    return nil if rec.group_value.nil?
+
     case @groupby
-       when "SQL-ID" then if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
+      when "SQL-ID"         then if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
+      when "DB-Object"      then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value);end
+      when "DB-Sub-Object"  then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); end
     else rec.group_value
     end
   end

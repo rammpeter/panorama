@@ -1,3 +1,7 @@
+<%=
+    # Erstellen der JS-Funktion locale_translate
+    set_js_locale_translate
+%>
 
 <h2><%= t :env_current_database, :default=>"current database" %></h2>
 
@@ -10,30 +14,25 @@
 <br/>
 Platform: <%= @platform_name%>
 <br/><br/>
-<table style="font-size:small; ">
-  <tr>
-    <th>Instance</th>
-    <th>Instancename</th>
-    <th>Hostname</th>
-    <th>Startup</th>
-    <th>Archiver</th>
-    <th>Character-Set</th>
-    <th>CPU-Count</th>
-  </tr>
-  <%  @instance_data.each do |i| %>
-    <tr>
-      <td><%= i.instance_number %>
-          <%= " (*)"  if i.instance_connected && @instance_data.length >1  %>
-      </td>
-      <td><%= i.instance_name %></td>
-      <td><%= i.host_name %></td>
-      <td><%= localeDateTime(i.startup_time) %></td>
-      <td><%= i.archiver %></td>
-      <td><%= i.nls_characterset %></td>
-      <td><%= i.cpu_count %></td>
-    </tr>
-  <% end %>
-</table>
+
+
+<% column_options =
+  [
+    {:caption=>"Instance",      :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_connected && @instance_data.length >1}" },       :title=>"Instance number"},
+    {:caption=>"Name",          :data=>proc{|rec| rec.instance_name },                  :title=>"Instance name"},
+    {:caption=>"Hostname",      :data=>proc{|rec| rec.host_name },                      :title=>"Last startup time of instance"},
+    {:caption=>"Startup",       :data=>proc{|rec| localeDateTime(rec.startup_time) },   :title=>"Host name of database server"},
+    {:caption=>"Archiver",      :data=>proc{|rec| rec.archiver },                       :title=>"Archiver mode of instance"},
+    {:caption=>"Character-Set", :data=>proc{|rec| rec.nls_characterset },               :title=>"Character set of database"},
+    {:caption=>"Instance-Role", :data=>proc{|rec| rec["instance_role"] },                  :title=>"Instance role for data guard"},
+    {:caption=>"CPU-Count",     :data=>proc{|rec| rec.cpu_count },                      :title=>"Number of CPUs counted for instance"},
+  ]
+
+%>
+<%= gen_slickgrid(@instance_data, column_options, {
+    :caption => "Instance data", :width => :auto
+})
+%>
 
 <% if @dictionary_access_problem %>
     <h2><%= "Dictionary Access-Problem"   %></h2>
@@ -44,7 +43,7 @@ Platform: <%= @platform_name%>
 
 <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
 <% if @license_ok %>
-    <%= t(:env_license_ok_msg, :default=>"Database instance %{sid} is licensed for usage with Panorama.", :sid=>@database.sid) %>
+    <%= t(:env_license_ok_msg, :default=>"Database instance %{sid} is licensed for usage with Panorama.", :sid=>@instance_name) %>
 <% else %>
     <span style="color:red; font-size: larger;"> <%= t(:env_license_wrong_msg, :default=>"Database %{sid} is not licensed for usage with Panorama!<br><br>
 Please try out Panorama for your purposes.<br>
@@ -53,7 +52,7 @@ Please contact one of the following people for license:<br>
 %{p1}<br>
 %{p2}<br>
 %{p3}<br>
-",                                                     :sid=>@database.sid,
+",                                                     :sid=>@instance_name,
                                                        :p1=>"<a href='mailto:Peter.Ramm@ottogroup.com'>Peter Ramm</a>",
                                                        :p2=>"<a href='mailto:Juergen.Jagla@ottogroup.com'>Juergen Jagla</a>",
                                                        :p3=>"<a href='mailto:Bernd.Wulf2@ottogroup.com'>Bernd Wulf</a>"
@@ -100,8 +99,4 @@ Please contact one of the following people for license:<br>
   <li><%= t :env_handling_hint_3, :default=>"Search filter, optional diagram view and export to Excel are available via context menu" %></li>
 </ul>
 
-<%=
-    # Erstellen der JS-Funktion locale_translate
-    set_js_locale_translate
-%>
 

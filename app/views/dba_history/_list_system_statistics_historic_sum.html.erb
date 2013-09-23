@@ -17,9 +17,10 @@
 
 column_options =
 [
-  {:caption=>"I",             :data=>proc{|rec| link_column(rec, rec.instance_number)},         :title=>"RAC-Instance"},
-  {:caption=>"Name",          :data=>proc{|rec| link_column(rec, rec.stat_name)},               :title=>"Name der Statistik" },
-  {:caption=>"Waits",         :data=>proc{|rec| link_column(rec, formattedNumber(rec.value))},  :title=>"Wert der Statistik", :align=>"right"},
+  {:caption=>"I",             :data=>proc{|rec| link_column(rec, rec.instance_number)},             :title=>"RAC-Instance"},
+  {:caption=>"Name",          :data=>proc{|rec| link_column(rec, rec.stat_name)},                   :title=>"Name der Statistik" },
+  {:caption=>"Class",         :data=>proc{|rec| link_column(rec, statistic_class(rec.class_id))},   :title=>"Statistic-Class(es)" },
+  {:caption=>"Waits",         :data=>proc{|rec| link_column(rec, formattedNumber(rec.value))},      :title=>"Wert der Statistik kumuliert seit letztem Instance-Start", :align=>"right"},
 ]
 
 %>

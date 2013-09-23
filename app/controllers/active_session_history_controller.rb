@@ -270,6 +270,7 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
       WHERE  1=1
       #{@global_where_string}
+      ORDER BY s.Sample_Time
      "
      ].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values)
 

@@ -72,7 +72,7 @@ class ApplicationController < ActionController::Base
     session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
-    raise e                                                                     # Exception erneut weiterwerfen
+    alert(e, "Error while connecting to #{session[:database].raw_tns}")         # Explizit anzeige des Connect-Problemes als Popup-Message
   end
 
   # Ausfüherung nach jedem Request ohne Ausnahme
@@ -96,7 +96,7 @@ protected
     end
 
     respond_to do |format|
-      format.js {render :js => "alert('#{j header+message}');"}   # Optional zu erweitern um caller.to_s
+      format.js {render :js => "alert('#{j "#{header}\n\n#{message}"}');"}   # Optional zu erweitern um caller.to_s
     end
 
   end

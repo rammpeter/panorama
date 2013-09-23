@@ -1,18 +1,3 @@
-GIT
-  remote: https://github.com/nulldb/nulldb
-  revision: ffc7dae4697c6b9fb15bed9edca3acb1f00eb5f0
-  branch: master
-  specs:
-    activerecord-nulldb-adapter (0.2.3)
-      activerecord (>= 2.0.0)
-
-GIT
-  remote: https://github.com/yahonda/oracle-enhanced.git
-  revision: 8580b3acccef9b74ebcc1b35d3e44d886085c0be
-  branch: rails4
-  specs:
-    activerecord-oracle_enhanced-adapter (1.4.2)
-
 GEM
   remote: https://rubygems.org/
   specs:

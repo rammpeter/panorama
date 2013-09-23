@@ -447,11 +447,22 @@ class DbaHistoryController < ApplicationController
      @dbid, @sql_id
     ])
 
-    @sql_statement      = sql_statement.sql_text if sql_statement
-    @sql_profiles       = sql_select_all ["SELECT * FROM DBA_SQL_Profiles       WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
-    @sql_plan_baselines = sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
-    @sql_outlines       = sql_select_all ["SELECT * FROM DBA_Outlines           WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
 
+    if sql_statement
+      @sql_statement      = sql_statement.sql_text
+      @sql_profiles       = sql_select_all ["SELECT * FROM DBA_SQL_Profiles       WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+      if session[:database].version >= "11.2"
+        @sql_plan_baselines = sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+      else
+        @sql_plan_baselines = []
+      end
+      @sql_outlines       = sql_select_all ["SELECT * FROM DBA_Outlines           WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+    else
+      @sql_statement      = "[No statement found in DBA_Hist_SQLText]"
+      @sql_profiles       = []
+      @sql_plan_baselines = []
+      @sql_outlines       = []
+    end
 
     userid_list = sql_select_all(["SELECT /* Panorama-Tool Ramm */ User_ID FROM All_Users WHERE UserName=?", @parsing_schema_name])
     @user_id = (userid_list[0]).user_id if userid_list.length > 0
@@ -928,9 +939,29 @@ FROM (
     end
   end
 
+
+  # Auswahl-Dialog
+  def show_system_statistics_historic
+    @statclasses = [{:bit=> nil, :name => "[All classes]"}]
+    statistic_classes.each do |s|
+      @statclasses << s
+    end
+
+    @statclasses.each do |s|
+      s.extend SelectHashHelper
+    end
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"show_system_statistics_historic" }');"}
+    end
+  end
+
   # Anzeige Snaphots aus DBA_Hist_Sysstat
   def list_system_statistics_historic
     @instance  = prepare_param_instance
+    @stat_class_bit = params[:stat_class][:bit]    # Bit-wert fuer Test auf Statistic-Klasse
+    @stat_class_bit = nil if @stat_class_bit == ""
+
     save_session_time_selection                   # Werte puffern fuer spaetere Wiederverwendung
 
     list_system_statistics_historic_sum if params[:sum]
@@ -961,6 +992,7 @@ FROM (
                               GROUP BY DBID, Instance_Number
                              ) ss
                       JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number
+                      #{"JOIN v$StatName sn ON sn.Stat_ID = st.Stat_ID AND BITAND(sn.Class, #{@stat_class_bit.to_i}) = #{@stat_class_bit.to_i}" if @stat_class_bit}
                       WHERE  st.Snap_ID BETWEEN ss.Min_Snap_ID-1 AND ss.Max_Snap_ID /* Vorgänger des ersten mit auswerten für Differenz per LAG */
                     ) hist
               JOIN DBA_Hist_Snapshot so ON so.DBID = hist.DBID AND so.Instance_Number=hist.Instance_Number AND so.Snap_ID=hist.Snap_ID
@@ -999,7 +1031,7 @@ FROM (
     ]
     statnames.each do |sn|
       if columns[sn.stat_id]              # Statisik kommt auch im Result vor
-        column_options << {:caption=>sn.stat_name, :data=>"formattedNumber(rec[#{sn.stat_id}] ? rec[#{sn.stat_id}] : 0)", :title=>"#{sn.stat_name} : class='#{statistic_class(sn.class_id)}'", :align=>"right" }
+        column_options << {:caption=>sn.stat_name, :data=>"formattedNumber(rec[#{sn.stat_id}] ? rec[#{sn.stat_id}] : 0)", :title=>"#{sn.stat_name} : class=\"#{statistic_class(sn.class_id)}\"", :align=>"right" }
       end
     end
 
@@ -1028,12 +1060,12 @@ FROM (
     binds.concat [@time_selection_start, @time_selection_end]
 
     @statistics = sql_select_all ["
-      SELECT /* Panorama-Tool Ramm */ name.Stat_Name, hist.Instance_Number, hist.Stat_ID, hist.Value, Min_Snap_ID, Max_Snap_ID
+      SELECT /* Panorama-Tool Ramm */ name.Stat_Name, hist.Instance_Number, hist.Stat_ID, hist.Value, Min_Snap_ID, Max_Snap_ID, sn.Class Class_ID
       FROM   (
               SELECT /*+ NO_MERGE*/ DBID, Instance_Number, Stat_ID,
                      SUM(Value) Value, MIN(Min_Snap_ID) Min_Snap_ID, MAX(Max_Snap_ID) Max_Snap_ID
               FROM   (
-                      SELECT /*+ NO_MERGE*/ st.DBID, st.Instance_Number, Snap_ID, Stat_Id, ss.Min_Snap_ID, ss.Max_Snap_ID,
+                      SELECT /*+ NO_MERGE*/ st.DBID, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID, ss.Max_Snap_ID,
                              Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY Snap_ID) Value
                       FROM   (SELECT /*+ NO_MERGE*/ DBID, Instance_Number, Min(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
                               FROM   DBA_Hist_Snapshot ss
@@ -1043,6 +1075,7 @@ FROM (
                               GROUP BY DBID, Instance_Number
                              ) ss
                       JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number
+                      #{"JOIN v$StatName sn ON sn.Stat_ID = st.Stat_ID AND BITAND(sn.Class, #{@stat_class_bit.to_i}) = #{@stat_class_bit.to_i}" if @stat_class_bit}
                       WHERE  st.Snap_ID BETWEEN ss.Min_Snap_ID-1 AND ss.Max_Snap_ID /* Vorgänger des ersten mit auswerten für Differenz per LAG */
                     ) hist
               WHERE  hist.Value >= 0    /* Ersten Snap nach Reboot ausblenden */
@@ -1050,6 +1083,7 @@ FROM (
               GROUP BY DBID, Instance_Number, Stat_ID
              ) hist
       JOIN   DBA_Hist_Stat_Name name ON name.DBID=hist.DBID AND name.Stat_ID = hist.Stat_ID
+      LEFT OUTER JOIN v$StatName sn ON sn.Stat_ID = hist.Stat_ID
       ORDER BY Value DESC"].concat(binds)
 
     respond_to do |format|
@@ -1088,7 +1122,7 @@ FROM (
     column_options =
     [
       {:caption=>"Intervall",   :data=>proc{|rec| localeDateTime(rec.begin_interval_time)}, :title=>"Beginn des Zeitintervalls", :plot_master_time=>true },
-      {:caption=>"Value",       :data=>proc{|rec| formattedNumber(rec.value)},              :title=>"Wert der Statistik ", :align=>"right"},
+      {:caption=>"Value",       :data=>proc{|rec| formattedNumber(rec.value)},              :title=>"Wert der Statistik als Differenz zwischen Beginn und Ende des Sample-Zeitraumes", :align=>"right"},
     ]
 
     output = gen_slickgrid(@snaps, column_options,
@@ -1125,7 +1159,7 @@ FROM (
     case
       when params["detail"] then
         caption_add = "SysMetric_History"
-        stmt = "      WITH MinTS AS (SELECT Inst_ID, MIN(Begin_Time) Min_Begin_Time
+        stmt = "      WITH MinTS AS (SELECT /*+ MATERIALIZE */ Inst_ID, MIN(Begin_Time) Min_Begin_Time
                                      FROM   gv$SysMetric_History
                                      GROUP BY Inst_ID)
                       SELECT /* Panorama-Tool Ramm */
@@ -1507,7 +1541,9 @@ FROM (
     end
 
     @res = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ *
+      SELECT /* Panorama-Tool Ramm */ Inst_ID, Mutex_Identifier, Sleep_Timestamp,
+             Mutex_Type, Gets, Sleeps, Requesting_Session, Blocking_Session, Location, RawToHex(Mutex_Value) Mutex_Value,
+             P1, RawToHex(P1Raw) P1Raw, P2, P3, P4, P5
       FROM   GV$Mutex_Sleep_History
       WHERE  Sleep_Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       AND    Sleep_Timestamp  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')

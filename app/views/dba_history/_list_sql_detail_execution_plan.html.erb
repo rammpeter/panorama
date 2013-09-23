@@ -1,7 +1,8 @@
-<%= @update_area = "list_sql_detail_execution_plan_#{session[:request_counter]}" %>
+<% @update_area = "list_sql_detail_execution_plan_#{session[:request_counter]}" %>
 <%= "No execution plan found" if @multiplans.count == 0 %>
 <% @multiplans.each do |mp|
      @plans = mp[:plans]
+     @mp = mp
 %>
 
 
@@ -20,6 +21,30 @@
      return "background-color:orange;"  if rec.version_orange_count < @multiplans.count
    end
 
+   def link_column_wait(rec, value)
+     my_ajax_link_to(value,
+                     url_for(:controller     => :active_session_history,
+                             :action         => :list_session_statistic_historic_grouping,
+                             :groupfilter    => {
+                                     :DBID                   => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
+                                     :Instance               => {:sql => "s.Instance_Number = ?" , :bind_value => @instance},
+                                     "SQL-ID"                => {:sql => "s.SQL_ID = ?" ,          :bind_value => @sql_id},
+                                     "Plan-Hash-Value"       => {:sql => "s.SQL_Plan_Hash_Value = ?", :bind_value => @mp.plan_hash_value},
+                                     "Plan-Line-ID"          => {:sql => "s.SQL_Plan_Line_ID = ?", :bind_value => rec.id},
+                                     :time_selection_start   => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_second_mask}')"    , :bind_value => localeDateTime(@mp.first_occurrence)},
+                                     :time_selection_end     => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_second_mask}')"    , :bind_value => localeDateTime(@mp.last_occurrence)},
+                                     :Min_Snap_ID            => {:sql => "s.snap_id >= ?"        , :bind_value => @mp.min_snap_id, :hide_filter => true},
+                                     :Max_Snap_ID            => {:sql => "s.snap_id <= ?"        , :bind_value => @mp.max_snap_id, :hide_filter => true},
+                                     :Idle_Wait1             => {:sql => "NVL(s.Event, s.Session_State) != ?", :bind_value => "PX Deq Credit: send blkd", :hide_filter=>true}
+                             },
+                             :groupby        => "Event",
+                             :update_area    => @update_area
+                     ),
+                     :title => "Show wait events for operation in Active Session History"
+     )
+   end
+
+
   column_options =
     [
       {:caption=>"Operation",   :data=>proc{|rec| tab = ""; rec.depth.downto(2) {tab += " |&nbsp;"}; "<span style=\"color: lightgray;\">#{tab}</span>#{rec.operation} #{rec.options}".html_safe}, :no_wrap=>true, :title=>"Art des Zugriffs"},
@@ -37,7 +62,7 @@
     ]
   column_options <<  {:caption=>"DB time",     :data=>proc{|rec| show_percentage(rec.db_time_seconds, @sum_db_time_seconds) }, :align=>:right, :data_title=>proc{|rec| "DB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)" } if session[:database].version >= "11.2"
   column_options <<  {:caption=>"CPU",         :data=>proc{|rec| show_percentage(rec.cpu_seconds, @sum_cpu_seconds)  },        :align=>:right, :data_title=>proc{|rec| "CPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time." } if session[:database].version >= "11.2"
-  column_options <<  {:caption=>"Waits",       :data=>proc{|rec| show_percentage(rec.waiting_seconds, @sum_waiting_seconds)  },:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time." } if session[:database].version >= "11.2"
+  column_options <<  {:caption=>"Waits",       :data=>proc{|rec| link_column_wait(rec, show_percentage(rec.waiting_seconds, @sum_waiting_seconds))  },:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time." } if session[:database].version >= "11.2"
   column_options <<  {:caption=>"I/O",         :data=>proc{|rec| show_percentage(rec.io_requests, @sum_io_requests)},          :align=>:right, :data_title=>proc{|rec| "IO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)" } if session[:database].version >= "11.2"
   column_options <<  {:caption=>"IC",          :data=>proc{|rec| show_percentage(rec.interconnect_io_bytes, @sum_interconnect_io_bytes)}, :align=>:right, :data_title=>proc{|rec| "Interconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)" } if session[:database].version >= "11.2"
 
@@ -62,10 +87,10 @@
     end
   end
 
-  @caption =  "Explain Plan: Plan_Hash_Value=#{mp.plan_hash_value}, Optimizer-Mode=#{@plans[0] ? @plans[0].optimizer : "[Unknown]"}, Optimizer_Env_Hash_Value=#{mp.optimizer_env_hash_value}"
+  @caption =  "Explain Plan: Plan_Hash_Value=#{@mp.plan_hash_value}, Optimizer-Mode=#{@plans[0] ? @plans[0].optimizer : "[Unknown]"}, Optimizer_Env_Hash_Value=#{@mp.optimizer_env_hash_value}"
   if @multiplans.length > 1
-    @caption << "<br/>Gültig von #{localeDateTime(mp.first_occurrence)} bis #{localeDateTime(mp.last_occurrence)}<br/>"
-    @caption << "#{mp.executions} Executions, #{formattedNumber(mp.secs_per_execution,6)} Sekunden Elapsed / Execution"
+    @caption << "<br/>Gültig von #{localeDateTime(@mp.first_occurrence)} bis #{localeDateTime(@mp.last_occurrence)}<br/>"
+    @caption << "#{@mp.executions} Executions, #{formattedNumber(@mp.secs_per_execution,6)} Sekunden Elapsed / Execution"
   end
 %>
 
