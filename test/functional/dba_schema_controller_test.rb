@@ -18,6 +18,16 @@ class DbaSchemaControllerTest < ActionController::TestCase
     assert_response :success;
   end
 
+  test "list_table_partitions" do
+    get :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    assert_response :success;
+  end
+
+  test "list_index_partitions" do
+    get :list_index_partitions, :format=>:js, :owner=>"SYS", :index_name=>"I_AUD_1"
+    assert_response :success;
+  end
+
   test "list_audit_trail" do
     get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
     assert_response :success;
