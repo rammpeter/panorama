@@ -282,7 +282,9 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
              :name  => t(:dragnet_helper_14_name, :default=>"Detection of unnecessary indexes: only one ore little key values in index"),
              :desc  => t(:dragnet_helper_14_desc, :default=>"Indexes with only one or little key values may be unnecessary.
                        Exception: Indexes with only one key value may be usefull for differentiation between NULL and NOT NULL.
-                       Indexes with only one key value and no NULLs in indexed columns my be definitely removed."),
+                       Indexes with only one key value and no NULLs in indexed columns my be definitely removed.
+                       If used for ensurance of foreign keys you can often relinquish on these index because resulting FullTableScan on referencing table
+                       in case of delete on referenced table may be accepted."),
              :sql=> "SELECT /* DB-Tools Ramm Sinnlose Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
                             ROUND(i.Num_Rows/i.Distinct_Keys) \"Rows per Key\",
                             i.Num_Rows \"Rows Index\", t.Num_Rows \"Rows Table\", t.Num_Rows-i.Num_Rows \"Possible NULLs\", t.IOT_Type,

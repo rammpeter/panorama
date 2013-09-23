@@ -46,7 +46,7 @@ Peter Ramm, OSP Dresden, 07.09.2009
    # Deployen Applikation
    > <AS_INSTALL>/bin/asadmin deploy --force=true <Verzeichnis>/Panorama.war
 
-   > Starten Browser: http://<host>:8080/NOA
+   > Starten Browser: http://<host>:8080/Panorama
 
    # Vorsicht: Mehrfaches Deployen frisst PermGen-Memory auf, sinnvoll: nach Deployen Glassfish durchstarten
 

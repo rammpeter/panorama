@@ -206,7 +206,9 @@
   dragnet_helper_14_desc: |-
     Für Indizes mit nur einem oder wenigen Schlüsseln kann die Sinnfrage gestellt werden.
     Ausnahme: Index auch mit nur einem Schlüssel kann sinnvoll sein zur Differenzierung zwischen NULL und NOT NULL.
-    Indizes mit nur einem Schlüssel und keinen NULLs in indizierten Feldern können mit Sicherheit entfernt werden
+    Indizes mit nur einem Schlüssel und keinen NULLs in indizierten Feldern können i.d.R. entfernt werden.
+    Bei Nutzung des Index zur Absicherung von Foreign Keys kann oftmals auf den Index verzichtet werden
+    da der resultierende FullTableScan auf der referenzierenden Tabelle bei Delete auf der referenzierten Tabelle billigend in Kauf genommen werden kann.
   dragnet_helper_14_param_1_hint:                           Mindestanzahl Rows des betrachteten Index
   dragnet_helper_14_param_1_name:                           Min. Anzahl Rows des Index
   dragnet_helper_14_param_2_hint:                           Maximale Anzahl von Schlüsselwerten im betrachteten Index
