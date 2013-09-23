@@ -9,7 +9,10 @@
       {:caption=>"Pct. free",              :data=>proc{|rec| fn rec.pct_free},                  :title=>"Minimum percentage of free space in a block", :align=>:right},
       {:caption=>"Ini. trans",             :data=>proc{|rec| fn rec.ini_trans},                 :title=>"Initial number of transactions", :align=>:right},
       {:caption=>"Compression",            :data=>proc{|rec| rec.compression},                  :title=>"Indicates the actual compression property for a partition" },
-      {:caption=>"Compress for",           :data=>proc{|rec| rec.compress_for},                 :title=>"Default compression for what kind of operations" },
+    ]
+    column_options << {:caption=>"Compress for",           :data=>proc{|rec| rec.compress_for},                 :title=>"Default compression for what kind of operations" } if session[:database].version >= "11.2"
+
+    column_options.concat [
       {:caption=>"Num. rows",              :data=>proc{|rec| fn rec.num_rows},                  :title=>"Number of rows in the partition", :align=>:right},
       {:caption=>"Blocks",                 :data=>proc{|rec| fn rec.blocks},                    :title=>"Number of used data blocks in the partition", :align=>:right},
       {:caption=>"Avg. row len",           :data=>proc{|rec| fn rec.avg_row_len},               :title=>"Average length of a row in the partition (in bytes)", :align=>:right},
