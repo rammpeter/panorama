@@ -827,7 +827,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
         {
              :name  => "Optimierbare FullTableScan-Operationen:Lang laufende Foreign-Key-Prüfungen bei Delete",
              :desc  => "Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung verursacht.",
-             :sql=>  "SELECT t.SQL_Text Full_SQL_Text,
+             :sql=>  "SELECT /*+ USE_NL(s t) */ t.SQL_Text Full_SQL_Text,
                              TO_CHAR(SUBSTR(t.SQL_Text, 1, 40)) SQL_Text,
                              s.*
                              FROM (
@@ -855,10 +855,9 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                                    AND snap.Begin_Interval_time >  SYSDATE - ?
                                    AND s.Parsing_Schema_Name = 'SYS'
                                    GROUP BY s.DBID, s.SQL_ID, s.Instance_number
-                             ) s, DBA_Hist_SQLText t
-                       WHERE t.DBID = s.DBID
-                       AND t.SQL_ID = s.SQL_ID
-                       AND UPPER(t.SQL_Text) LIKE '%SELECT%ALL_ROWS%COUNT(1)%'
+                             ) s
+                       JOIN  DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
+                       WHERE UPPER(t.SQL_Text) LIKE '%SELECT%ALL_ROWS%COUNT(1)%'
                        ORDER BY \"Elapsed Time (s) per Execute\" DESC NULLS LAST",
              :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
          },
