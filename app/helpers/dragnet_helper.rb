@@ -663,7 +663,7 @@ DECLARE
 
 BEGIN
   DBMS_OUTPUT.PUT_LINE('===========================================');
-  DBMS_OUTPUT.PUT_LINE('Ermittlung Chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER'));
+  DBMS_OUTPUT.PUT_LINE('Ermittlung Chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER');
   DBMS_OUTPUT.PUT_LINE('Sampe-size='||Sample_Size||' rows'));
   SELECT Statistic# INTO StatNum FROM v$StatName WHERE Name='consistent gets';
   FOR Rec IN (SELECT Owner, Table_Name, Num_Rows
@@ -1833,7 +1833,9 @@ Optional muss die Länge des untersuchten Substrings variert werden.",
                                       MIN(TO_DATE(s.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS')) Min_First_Load,
                                       MIN(Last_Load_Time) Min_Last_Load,
                                       MAX(Last_Load_Time) Max_Last_Load,
-                                      MAX(Last_Active_Time) Max_Last_Active
+                                      MAX(Last_Active_Time) Max_Last_Active,
+                                      MIN(Parsing_Schema_Name) Parsing_Schema_Name,
+                                      COUNT(DISTINCT Parsing_Schema_Name) \"Different pars. schema names\"
                                FROM   gv$SQLArea s, Len
                                GROUP BY Inst_ID, SUBSTR(s.SQL_Text, 1, Len.Substr_Len)
                                HAVING COUNT(*) > 10
