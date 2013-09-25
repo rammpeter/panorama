@@ -18,16 +18,26 @@ class EnvController < ApplicationController
 
 public
   # Aufgerufen aus dem Anmelde-Dialog für DB
-  def set_database_by_index
-    if params[:login]
-      params[:database] = read_last_login_cookies[params[:saved_logins_index].to_i]
+  def set_database_by_id
+    if params[:login]                                                           # Button Login gedrückt
+      read_last_login_cookies.each do |db_cookie|
+puts "#{db_cookie[:id]} , #{params[:saved_logins_id]}"
+        if db_cookie[:id].to_i == params[:saved_logins_id].to_i                           # Diese DB wurde in leect-Liste ausgewählt
+puts "Treffer"
+          params[:database] = db_cookie                                         # Vorbelegen der Formular-Inhalte mit dieser DB
+        end
+      end
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
+      raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
       set_database
     end
 
-    if params[:delete]                                                          # Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
+    if params[:delete]                                                          # Button DELETE gedrückt, Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
       cookies_last_logins = read_last_login_cookies
-      cookies_last_logins.delete_at(params[:saved_logins_index].to_i)
+      cookies_last_logins.each do |c|
+        cookies_last_logins.delete c if c[:id].to_i == params[:saved_logins_id].to_i
+      end
+
       write_last_login_cookies(cookies_last_logins)
       respond_to do |format|
         format.js {render :js => "window.location.reload();" }                  # Neuladen der gesamten HTML-Seite, damit Entfernung des Eintrages auch sichtbar wird
@@ -52,7 +62,7 @@ public
         msg << "> create view X_$#{table_name_suffix} as select * from X$#{table_name_suffix};<br/>"
         msg << "> create public synonym X$#{table_name_suffix} for sys.X_$#{table_name_suffix};<br/>"
         msg << "Damit wird X$#{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY"
-        msg << "</div>"
+        msg << "<br></div>"
         return false
       end
     end
@@ -159,11 +169,17 @@ public
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div> User '#{@database.user}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
-      </div>"
+      @dictionary_access_msg << "<div><br>User '#{@database.user}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein</div>"
     end
 
     @dictionary_access_problem = true if !x_memory_table_accessible?("BH", @dictionary_access_msg )
+
+    if !sql_select_one("SELECT * FROM User_SYS_Privs WHERE Privilege = 'SELECT ANY DICTIONARY'") &&
+       !sql_select_one("SELECT * FROM user_Role_Privs WHERE Granted_Role = 'DBA'")
+      @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
+      @dictionary_access_msg << "<div><br>User '#{@database.user}' does not have grant SELECT ANY DICTIONARY or DBA! Only less functions of Panorama are usable for this user account!</div>"
+    end
+
 
     session[:database] = @database
     write_connection_to_cookie @database
@@ -227,19 +243,25 @@ public
 private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
   def write_connection_to_cookie database
-
     cookies_last_logins = read_last_login_cookies
 
+    max_id = 0
     cookies_last_logins.each do |value|
-      cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
+      max_id = value[:id] if max_id < value[:id]    # Ermitteln der max. ID einer Database
+    end
+    new_database_id = max_id + 1
+
+    cookies_last_logins.each do |value|
+      if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
+        new_database_id = value[:id]                          # Beim erneuten Speichern der DB die selbe ID verwenden statt hochzaehlen
+        cookies_last_logins.delete(value)                     # Aktuellen eintrag entfernen
+      end
     end
     if params[:saveLogin] == "1"
+      database.id = new_database_id                           # Eindeutiges Kriterium für Wiederverwendung
       cookies_last_logins << database.to_params  # Aktuellen Eintrag hinzufügen
       cookies_last_logins.sort_by!{|obj| "#{obj[:sid]}.#{obj[:host]}.#{obj[:user]}"}
-      cookies_last_logins.each_index do |index|
-        value = cookies_last_logins[index]
-        cookies.permanent[:last_login_index]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
-      end
+      cookies.permanent[:last_login_id]  = Marshal.dump database.id             # Merken der ID der aktuellen DB
       write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
 

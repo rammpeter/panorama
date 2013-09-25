@@ -4,7 +4,7 @@
 class Database
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's
 
-  attr_accessor :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale, :db_block_size, :version, :wordsize
+  attr_accessor :id, :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale, :db_block_size, :version, :wordsize
   
   def initialize( params = {} )
     @tns      = params[:tns]
@@ -29,6 +29,7 @@ class Database
   # Rueck-Konvertierung in params-Hash
   def to_params
     {
+      :id       => id,
       :user     => @user,
       :password => @password,
       :privilege=> @privilege,
