@@ -62,6 +62,8 @@ column_options =
   {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                       :title=>"Default parallel degree of table", :align=>:right},
   {:caption=>"Cache",            :data=>proc{|rec| rec.cache},                            :title=>"Whether the table is to be cached in the buffer cache" },
   {:caption=>"Part.",            :data=>proc{|rec| link_tab_partitions},                  :title=>"Number of table partitions", :align=>:right},
+  {:caption=>"Created",          :data=>proc{|rec| localeDateTime(rec.created)},          :title=>"Timestamp of table creation" },
+  {:caption=>"Last DDL",         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=>"Timestamp of last DDL operation on table" },
   {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=>"The date of the most recent time this table was analyzed" },
   {:caption=>"IOT",              :data=>proc{|rec| rec.iot_type},                         :title=>"If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL" },
   {:caption=>"T",                :data=>proc{|rec| rec.temporary},                        :title=>"Temporary table ?" },
