@@ -869,7 +869,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
 Für beide Konstellationen lassen sich problematische Statements identifizieren durch Bewertung nach der Spitze der Anzahl Blockzugriffe zwischen zwei AWR-Snapshots.
 ",
              :sql=> "SELECT /* DB-Tools Ramm CacheBuffer */ * FROM (
-                      SELECT /*+ USE_NL(t) */ s.*, SUBSTR(t.SQL_Text,1,600) \"SQL-Text\"
+                      SELECT /*+ USE_NL(s t) */ s.*, SUBSTR(t.SQL_Text,1,600) \"SQL-Text\"
                       FROM (
                                SELECT /*+ NO_MERGE ORDERED */ s.SQL_ID, s.Instance_number \"Instance\",
                                       NVL(MIN(Parsing_Schema_Name), '[UNKNOWN]') \"UserName\", /* sollte immer gleich sein in Gruppe */
@@ -1511,7 +1511,7 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
              ",
          },
          {
-             :name  => "Lang laufende Full Table Scans durch IS NULL-Abfrage",
+             :name  => "Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)",
              :desc  => "Die Abfrage mit IS NULL führt oftmals zu FullTableScan obwohl evtl. nur wenige NULL-Records selektiert werden.
 Lösung kann sein: Indizierung des mit IS NULL abgefragten Feldes durch speziellen Index, der auch NULL-Values enthält.
 Beispiel: INDEX(Column,0)",

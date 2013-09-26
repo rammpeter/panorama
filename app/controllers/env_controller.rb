@@ -21,9 +21,7 @@ public
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
       read_last_login_cookies.each do |db_cookie|
-puts "#{db_cookie[:id]} , #{params[:saved_logins_id]}"
         if db_cookie[:id].to_i == params[:saved_logins_id].to_i                           # Diese DB wurde in leect-Liste ausgewählt
-puts "Treffer"
           params[:database] = db_cookie                                         # Vorbelegen der Formular-Inhalte mit dieser DB
         end
       end
@@ -153,9 +151,12 @@ puts "Treffer"
       @banners = sql_select_all "SELECT /* Panorama Tool Ramm */ Banner FROM V$Version"
       @instance_data = sql_select_all "SELECT /* Panorama Tool Ramm */ gi.*, i.Instance_Number Instance_Connected,
                                                       (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET') NLS_CharacterSet,
-                                                      (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count
+                                                      (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count,
+                                                      d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging
                                                FROM  GV$Instance gi
-                                               LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number"
+                                               JOIN  v$Database d ON 1=1
+                                               LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
+                                      "
       @instance_data.each do |i|
         if i.instance_connected
           @instance_name = i.instance_name
