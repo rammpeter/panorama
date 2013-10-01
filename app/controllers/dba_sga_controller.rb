@@ -250,7 +250,7 @@ class DbaSgaController < ApplicationController
                  Other_Tag
                 ) Parallel_Short,
           Other_Tag Parallel,
-          Depth, Access_Predicates, Filter_Predicates, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
+          Depth, Access_Predicates, Filter_Predicates, Projection, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
           ID, Parent_ID, Executions,
           Last_Starts, Starts, Last_Output_Rows, Output_Rows, Last_CR_Buffer_Gets, CR_Buffer_Gets,
           Last_CU_Buffer_Gets, CU_Buffer_Gets, Last_Disk_Reads, Disk_Reads, Last_Disk_Writes, Disk_Writes,

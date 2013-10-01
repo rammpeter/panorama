@@ -57,6 +57,7 @@
       {:caption=>"Parallel",    :data=>proc{|rec| rec.other_tag },                              :title=>"Parallelisierung (Other_Tag)" },
       {:caption=>"Access",      :data=>proc{|rec| expand_compare_spaces(rec.access_predicates) }, :title=>"Zugrifskriterium auf Objekt", :style=>"max-width:300px; word-wrap: break-word;" },
       {:caption=>"Filter",      :data=>proc{|rec| expand_compare_spaces(rec.filter_predicates) }, :title=>"Filterkriterium für Objekt",  :style=>"max-width:300px; word-wrap: break-word;" },
+      {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: Expressions produced by the operation", :style=>"max-width:300px; word-wrap: break-word;"},
       {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-Space prognostiziert in MB", :align=>:right },
       {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-Distribution-Strategie" },
     ]
