@@ -148,7 +148,10 @@ Warbler::Config.new do |config|
   # org.jruby.rack.RackInitializationException: library `fcntl' could not be loaded: java.lang.NullPointerException
   # config.webxml.jruby.min.runtimes = 2
 
-  config.webxml.jruby.max.runtimes = 4
+  config.webxml.jruby.max.runtimes = 8
+
+  # Sicherstellen, dass neue Runtime vollstänfig geladen werden konnte
+  config.webxml.jruby.runtime.acquire.timeout = 20
 
   # JNDI data source name
   # config.webxml.jndi = 'jdbc/rails'

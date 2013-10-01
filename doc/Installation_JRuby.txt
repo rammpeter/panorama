@@ -40,7 +40,8 @@ Peter Ramm, OSP Dresden, 07.09.2009
 ###### ToDo's auf Ziel-Maschine ######
    # Installation Glassfish-Applicationserver
    # Anpassen der Domain-Konfiguration in glassfish/domains/domain1/config/domain.xml :
-   #   Anpassen Eintrag <jvm-options>-Xmx512m</jvm-options> unter "java_config" auf passenden Wert > 512 MB wenn noetig
+   #   Anpassen Eintrag <jvm-options>-Xmx512m</jvm-options>            unter "java_config" auf passenden Wert > 512 MB wenn noetig
+   #   Anpassen Eintrag jvm-options>-XX:MaxPermSize=192m</jvm-options> unter "java_config" auf mindestens 256m setzen
    # Starten Applicationserver
    > <AS_INSTALL>/bin/asadmin start-domain
    # Deployen Applikation
