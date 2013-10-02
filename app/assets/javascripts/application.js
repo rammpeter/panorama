@@ -23,7 +23,7 @@
 // global gültige Variable im js, wird von EnvController.setDatabase gesetzt entsprechend der Spracheinstellung
 var session_locale = "en";
 var numeric_decimal_separator = '.';
-
+var show_trace_output = false;                                                  // Anzeige Trace-Output in Konsole
 var one_time_suppress_indicator = false;                                        // Unterdrückend er Anzeige des Indicators für einen Aufruf
 
 function showIndicator() {
@@ -151,7 +151,9 @@ function bind_ajax_callbacks() {
 
 
 function trace_log(msg){
-    console.log(msg);                                                           // Aktivieren trace-Ausschriften
+    if (show_trace_output){
+        console.log(msg);                                                           // Aktivieren trace-Ausschriften
+    }
 }
 
 // Zeichnen eines Diagrammes aus den übergebenen Datentupeln
