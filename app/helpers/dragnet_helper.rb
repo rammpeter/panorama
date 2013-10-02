@@ -1588,7 +1588,7 @@ Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältn
                               AND    s.Logical_Reads > 0
                               ORDER BY Logical_Reads/Num_Rows DESC NULLS LAST
                              ) s
-                      WHERE RowNum < ?",
+                      WHERE Num_Rows < ?",
              :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
                           {:name=>"Maximale Anzahl Rows der Table", :size=>8, :default=>200, :title=>"Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion" }]
          },
@@ -1682,16 +1682,19 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
         {
              :name  => "Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Tables)",
              :desc  => "Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein",
-             :sql=>  "SELECT /* DB-Tools Ramm Tabellen ohne bzw. mit veralteter Statistik */ Owner, Table_Name, Num_Rows, Last_Analyzed
-                      FROM   DBA_Tables
-                      WHERE  (Last_Analyzed IS NULL OR Last_Analyzed < SYSDATE-100)
-                      AND    Owner NOT IN ('SYS', 'SYSTEM', 'OUTLN', 'PERFSTAT', 'PATCH', 'NOALYZE', 'EXFSYS', 'SERVER', 'FLAGENT',
+             :sql=>  "SELECT /* DB-Tools Ramm Tabellen ohne bzw. mit veralteter Statistik */ t.Owner, t.Table_Name, t.Num_Rows, t.Last_Analyzed,
+                             ROUND(s.MBytes,2) MBytes
+                      FROM   DBA_Tables t
+                      JOIN   (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(Bytes)/(1024*1024) MBytes FROM DBA_Segments GROUP BY Owner, Segment_Name) s ON s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
+                      WHERE  (Last_Analyzed IS NULL OR Last_Analyzed < SYSDATE-?)
+                      AND    t.Owner NOT IN ('SYS', 'SYSTEM', 'OUTLN', 'PERFSTAT', 'PATCH', 'NOALYZE', 'EXFSYS', 'SERVER', 'FLAGENT',
                                            'DB_MONITORING', 'DBSNMP', 'WMSYS', 'DBMSXSTATS', 'SYSMAN', 'TOOL', 'AFARIA', 'MONITOR',
                                            'XDB', 'MDSYS', 'ORDSYS', 'DMSYS', 'CTXSYS', 'TSMSYS')
-                      AND    Owner NOT LIKE 'DBA%'
-                      AND    Owner NOT LIKE 'PATROL%'
+                      AND    t.Owner NOT LIKE 'DBA%'
+                      AND    t.Owner NOT LIKE 'PATROL%'
                       AND    Temporary = 'N'
-                      ORDER BY Num_Rows DESC NULLS LAST",
+                      ORDER BY s.MBytes DESC",
+             :parameter=>[{:name=>"Mindestalter existierender Analyse in Tagen", :size=>8, :default=>100, :title=>"Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion" }]
          },
         {
              :name  => "Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Indizes)",
@@ -1699,13 +1702,16 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
              :sql=>  "SELECT /* DB-TOoLs Ramm Indizes ohne bzw. mit veralteter Statistik */ i.Owner, i.Table_Name, i.Index_Name, i.Num_Rows, i.Last_Analyzed
                       FROM   DBA_Indexes i
                       JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
-                      WHERE  (i.Last_Analyzed IS NULL OR i.Last_Analyzed < SYSDATE-40)
+                      JOIN   (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(Bytes)/(1024*1024) MBytes FROM DBA_Segments GROUP BY Owner, Segment_Name) s ON s.Owner = i.Owner AND s.Segment_Name = i.Index_Name
+                      WHERE  (i.Last_Analyzed IS NULL OR i.Last_Analyzed < SYSDATE-?)
                       AND    i.Owner NOT IN ('SYS', 'SYSTEM', 'OUTLN', 'PERFSTAT', 'PATCH', 'NOALYZE', 'EXFSYS', 'SERVER', 'FLAGENT',
                                            'DB_MONITORING', 'DBSNMP', 'WMSYS', 'DBMSXSTATS', 'SYSMAN', 'TOOL', 'AFARIA', 'MONITOR', 'XDB', 'MDSYS', 'ORDSYS',
                                            'CTXSYS', 'TSMSYS')
                       AND    i.Owner NOT LIKE 'DBA%'
                       AND    i.Owner NOT LIKE 'PATROL%'
-                      AND    t.Temporary = 'N'",
+                      AND    t.Temporary = 'N'
+                      ORDER BY s.MBytes DESC",
+             :parameter=>[{:name=>"Mindestalter existierender Analyse in Tagen", :size=>8, :default=>100, :title=>"Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion" }]
          },
         {
              :name  => "PGA-Auslastung:Historische Auslastung PGA-Strukturen",
