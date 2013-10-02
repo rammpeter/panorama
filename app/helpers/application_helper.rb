@@ -837,7 +837,7 @@ public
      output = "<script type='text/javascript'>"
      output << "var locale_translation_list={"
      @translation_list.each do |key, value|
-       output << "'#{key}':'#{value}',"
+       output << "\"#{key}\":\"#{value}\","
      end
      output << "};"
      output << "function locale_translate(tag){"
