@@ -1078,7 +1078,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
          },
         {
              :name  => "Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung SGA)",
-             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die optional mittels ParallelQuery parallelisiert werden kann.",
+             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.",
              :sql=>  "SELECT Inst_ID, SQL_ID, ROUND(Elapsed_Time/1000000,2) Elapsed_Time_Secs, Executions,
                        Rows_Processed, ROUND(Elapsed_Time/1000000/DECODE(Rows_Processed,0,1,Rows_Processed),4) Secs_per_row,
                        SQL_FullText
@@ -1092,7 +1092,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
          },
         {
              :name  => "Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung AWR-Historie)",
-             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die optional mittels ParallelQuery parallelisiert werden kann.",
+             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.",
              :sql=>  "SELECT SQL_ID, Executions, Elapsed_Time_Secs, Rows_Processed,
                              ROUND(Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed),4) Secs_Per_Row, SQL_Text
                       FROM (

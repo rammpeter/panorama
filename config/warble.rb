@@ -158,6 +158,6 @@ Warbler::Config.new do |config|
 
   # Workaround fuer Problem mit Java 1.7:  NoMethodError: super: no superclass method `request_parameters'
   # config.webxml.jruby.compile.invokedynamic=false
-  config.webxml.jruby.compile.mode="OFF"
+#config.webxml.jruby.compile.mode="OFF"
 
 end
