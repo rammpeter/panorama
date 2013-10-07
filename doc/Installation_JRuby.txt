@@ -37,7 +37,7 @@ Peter Ramm, OSP Dresden, 07.09.2009
    #  - manuelles Ruecksetzen des Schreibschutzes des Ziel-Files mit "chmod u+w <file>"
    # Warbler hat leider ein Problem mit dem Schreibschutz
 
-###### ToDo's auf Ziel-Maschine ######
+###### ToDo's auf Ziel-Maschine für Glassfish ######
    # Installation Glassfish-Applicationserver
    # Anpassen der Domain-Konfiguration in glassfish/domains/domain1/config/domain.xml :
    #   Anpassen Eintrag <jvm-options>-Xmx512m</jvm-options> unter "java_config" auf passenden Wert > 512 MB wenn noetig
@@ -57,6 +57,8 @@ Peter Ramm, OSP Dresden, 07.09.2009
    # als root ausfueren fuer Port < 1024
    > jruby -S glassfish -p <Port> -e production --runtimes-min 10 --runtimes-max 20 -n 10
 
+###### ToDo's auf Ziel-Maschine für jetty ######
+    > java -XX:MaxPermSize=256M -jar Panorama.war | tee -a log/jetty.log
 
 ####### Bugfixing #########
 /Users/ramm/Library/jruby-1.6.4/lib/ruby/gems/1.8/gems/activerecord-oracle_enhanced-adapter-1.4.0/lib/active_record/connection_adapters/oracle_enhanced_base_ext.rb:91

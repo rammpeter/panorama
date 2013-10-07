@@ -148,13 +148,14 @@ Warbler::Config.new do |config|
   # org.jruby.rack.RackInitializationException: library `fcntl' could not be loaded: java.lang.NullPointerException
   # config.webxml.jruby.min.runtimes = 2
 
-  config.webxml.jruby.max.runtimes = 4
+  config.webxml.jruby.max.runtimes = 8
 
   # JNDI data source name
   # config.webxml.jndi = 'jdbc/rails'
 
   # Workaround fuer Problem mit Java 1.7:  NoMethodError: super: no superclass method `request_parameters'
-  # config.webxml.jruby.compile.invokedynamic=false
-  config.webxml.jruby.compile.mode="OFF"
+  #config.webxml.jruby.compile.invokedynamic=false
+  #config.webxml.jruby.compile.mode="OFF"
+  # evtl. wird dies verursacht durch zu geringen PermSpace verursache, -XX:MaxPermSize=256m
 
 end
