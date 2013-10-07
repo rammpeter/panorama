@@ -61,6 +61,7 @@ Peter Ramm, OSP Dresden, 07.09.2009
    > jruby -S glassfish -p <Port> -e production --runtimes-min 10 --runtimes-max 20 -n 10
 
 ###### ToDo's auf Ziel-Maschine für jetty ######
+    # Javascript-Interpreter NodeJS installieren, falls System ein Linux-System ist
     > java -XX:MaxPermSize=256M -jar Panorama.war | tee -a log/jetty.log
 
 ####### Bugfixing #########
