@@ -286,22 +286,24 @@ class DbaSchemaController < ApplicationController
     end
 
     @references = sql_select_all ["\
-      SELECT c.*, r.Table_Name R_Table_Name,
+      SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows R_Num_Rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
       FROM   All_Constraints c
       JOIN   All_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
+      JOIN   All_Tables rt     ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    c.Owner      = ?
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
     @referencing = sql_select_all ["\
-      SELECT c.*,
+      SELECT c.*, t.Num_rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
       FROM   All_Constraints r
       JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      JOIN   All_Tables t      ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    r.Owner      = ?
       AND    r.Table_Name = ?

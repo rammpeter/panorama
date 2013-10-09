@@ -30,6 +30,7 @@ module Panorama
     # Textdatei zur Erfassung der Panorama-Nutzung
     # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und deployment der Applikation überlebt
     config.usage_info_filename = "../../panorama_usage_info.log"
+    config.usage_info_filename = ENV['PANORAMA_USAGE_LOG'] if ENV['PANORAMA_USAGE_LOG']
 
 
     # -- begin rails3 relikt

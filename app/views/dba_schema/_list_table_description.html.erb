@@ -148,6 +148,7 @@ column_options =
       {:caption=>"Status",                      :data=>proc{|rec| rec.status},                      :title=>"Status"},
       {:caption=>"Deferred",                    :data=>proc{|rec| rec.deferred},                    :title=>"Deferred-Status"},
       {:caption=>"Validated",                   :data=>proc{|rec| rec.validated},                   :title=>"Validate status"},
+      {:caption=>"Num. rows",                   :data=>proc{|rec| fn(rec.r_num_rows)},              :title=>"Number of rows of referenced table", :align=>:right},
       {:caption=>"Last change",                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=>"Date of last change"},
     ]
 
@@ -170,6 +171,7 @@ column_options =
       {:caption=>"Status",                      :data=>proc{|rec| rec.status},                      :title=>"Status"},
       {:caption=>"Deferred",                    :data=>proc{|rec| rec.deferred},                    :title=>"Deferred-Status"},
       {:caption=>"Validated",                   :data=>proc{|rec| rec.validated},                   :title=>"Validate status"},
+      {:caption=>"Num. rows",                   :data=>proc{|rec| fn(rec.num_rows)},                :title=>"Number of rows of referencing table", :align=>:right},
       {:caption=>"Last change",                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=>"Date of last change"},
     ]
 
