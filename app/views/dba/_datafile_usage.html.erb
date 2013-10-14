@@ -16,7 +16,7 @@ column_options =
 %>
 
 <%= gen_slickgrid(@datafiles, column_options, {
-        :caption => "Datafile-Details",
+        :caption => "Datafile-Details from DBA_Data_Files/DBA_Temp_Files",
         :width   => :auto,
         :max_height => 450
 }) %>
@@ -57,7 +57,7 @@ column_options =
     %>
 
     <%= gen_slickgrid(@file_usage, column_options, {
-            :caption => "Database file-usage per instance",
+            :caption => "Database file-usage per instance from GV$IOStat_File ",
             :max_height => 450
     }) %>
 
