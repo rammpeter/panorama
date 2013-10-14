@@ -77,6 +77,8 @@ class StorageController < ApplicationController
       ")
 
     totals = {}
+    total_sum = {"contents"=>"TOTAL", "mbtotal"=>0, "mbfree"=>0, "mbused"=>0}
+    total_sum.extend SelectHashHelper
     @tablespaces.each do |t|
       unless totals[t.contents]
         totals[t.contents] = {"mbtotal"=>0, "mbfree"=>0, "mbused"=>0}
@@ -84,6 +86,9 @@ class StorageController < ApplicationController
       totals[t.contents]["mbtotal"] += t.mbtotal
       totals[t.contents]["mbfree"]  += t.mbfree
       totals[t.contents]["mbused"] += t.mbused
+      total_sum["mbtotal"] += t.mbtotal
+      total_sum["mbfree"]  += t.mbfree
+      total_sum["mbused"] += t.mbused
     end
     @totals = []
     totals.each do |key, value|
@@ -91,6 +96,7 @@ class StorageController < ApplicationController
       value.extend SelectHashHelper
       @totals << value
     end
+    @totals << total_sum
 
     @schemas = sql_select_all("\
       SELECT /* NOA-Tools Ramm */ Owner Schema, Type Segment_Type, SUM(Bytes)/1048576 MBytes
