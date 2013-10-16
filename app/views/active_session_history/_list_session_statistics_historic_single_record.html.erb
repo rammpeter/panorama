@@ -34,7 +34,7 @@ def link_column_object(rec)
                               :row_wait_row_no  => rec.current_row_no
                       ),
                       :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
-         )+"<div id='#{update_area}'></div>".html_safe
+         )+"<div id=\"#{update_area}\"></div>".html_safe
   end
 end
 

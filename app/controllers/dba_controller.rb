@@ -276,6 +276,8 @@ class DbaController < ApplicationController
                    AND    Object_Name = UPPER(?)",
                    schema, object_name])[0]
 
+    raise "No object found with name #{waitingforobject}" unless object_rec
+
     if object_rec.object_type.match("INDEX")
       table_name = sql_select_all(["\
                      SELECT Table_Name
