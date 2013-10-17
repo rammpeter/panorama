@@ -324,8 +324,10 @@
   menu_io_file_caption:                                     I/O Historie nach Files
   menu_io_file_hint:                                        I/O Historie nach Files aus DBA_Hist_FileStatxs
 
-  menu_sga_pga_cache_caption:                               DB-Cache-Nutzung
-  menu_sga_pga_cache_hint:                                  Aktueller Inhalt des DB-Cache
+  menu_sga_pga_cache_advice_caption:                        DB-Cache Advice historisch
+  menu_sga_pga_cache_advice_hint:                           Historische Anlistung der "was wäre wenn"-Analyse bei Veränderung der Größe des DB-Cache
+  menu_sga_pga_cache_usage_caption:                         DB-Cache-Nutzung
+  menu_sga_pga_cache_usage_hint:                            Aktueller Inhalt des DB-Cache
   menu_sga_pga_compare_execution_plans:                     Vergleich der Execution-Pläne zweier Cursoren in SGA
   menu_sga_pga_sga_components_caption:                      SGA-Komponenten
   menu_sga_pga_sga_components_hint:                         Anlistung der Komponenten der aktuellen SGA

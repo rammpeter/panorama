@@ -89,7 +89,11 @@ module MenuHelper
             },
             {:class=>"item", :caption=>t(:menu_sga_pga_day_compare_caption, :default=>"SQL-Area day comparison"),         :controller=>"dba_history", :action=>"compare_sql_area_historic",     :hint=>t(:menu_sga_pga_day_compare_hint, :default=>"Comparison of SQL-statements from two different days") },
             {:class=>"item", :caption=>t(:menu_sga_pga_sga_components_caption, :default=>"SGA-components"),                 :controller=>"dba_sga",     :action=>"show_sga_components",           :hint=>t(:menu_sga_pga_sga_components_hint, :default=>"Show components of current SGA") },
-            {:class=>"item", :caption=>t(:menu_sga_pga_cache_caption, :default=>"DB-cache usage"),                :controller=>"dba_sga",     :action=>"db_cache_content",              :hint=>t(:menu_sga_pga_cache_hint, :default=>"Current content of DB-cache") },
+            { :class=>"menu", :caption=>"DB-Cache", :content=>[
+                {:class=>"item", :caption=>t(:menu_sga_pga_cache_usage_caption,  :default=>"DB-cache usage"),  :controller=>"dba_sga",     :action=>"db_cache_content",              :hint=>t(:menu_sga_pga_cache_usage_hint,  :default=>"Current content of DB-cache") },
+                {:class=>"item", :caption=>t(:menu_sga_pga_cache_advice_caption, :default=>"DB-cache advice"), :controller=>"dba_sga",     :action=>"show_db_cache_advice_historic", :hint=>t(:menu_sga_pga_cache_advice_hint, :default=>"Historic view on \"what happens if\"-analysis for change of cache size") },
+            ]
+            },
             { :class=>"menu", :caption=>t(:menu_sga_pga_object_usage_caption, :default=>"Object usage by SQL"), :content=>[
                 {:class=>"item", :caption=>t(:menu_current_caption, :default=>"Current"),                     :controller=>"dba_sga",     :action=>"show_object_usage",             :hint=>t(:menu_sga_pga_object_usage_current_hint, :default=>"Usage of given objects in explain plan of current SQLs in SGA") },
                 {:class=>"item", :caption=>t(:menu_historic_caption, :default=>"Historic"),                  :controller=>"dba_history", :action=>"show_object_usage_historic",    :hint=>t(:menu_sga_pga_object_usage_historic_hint, :default=>"Usage of given objects in explain plan of historic SQLs") },

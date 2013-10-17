@@ -5,6 +5,11 @@ class DbaSgaControllerTest < ActionController::TestCase
   setup do
     set_session_test_db_context{}
 
+    time_selection_end  = Time.new
+    time_selection_start  = time_selection_end-10000          # x Sekunden Abstand
+    @time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
+    @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
+
     @topSort = ["ElapsedTimePerExecute",
                "ElapsedTimeTotal",
                "ExecutionCount",
@@ -53,6 +58,7 @@ class DbaSgaControllerTest < ActionController::TestCase
 
   test "list_sga_components" do
     post :list_sga_components, :format=>:js, :instance=>1
+    assert_response :success
     post :list_sga_components, :format=>:js
     assert_response :success
   end
@@ -84,7 +90,13 @@ class DbaSgaControllerTest < ActionController::TestCase
 
   test "list_result_cache" do
     post :list_result_cache, :format=>:js, :instance=>1
+    assert_response :success
     post :list_result_cache, :format=>:js
+    assert_response :success
+  end
+
+  test "list_db_cache_advice_historic" do
+    post :list_db_cache_advice_historic, :format=>:js, :instance=>1, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
     assert_response :success
   end
 

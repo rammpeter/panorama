@@ -819,33 +819,6 @@ FROM (
     end
   end
 
-  private
-  # Ermitteln der minimalen und maximalen Snap-ID zu gebenen Zeiten einer Instance
-  # Format "DD.MM.YYYY HH:MI" bzw.sql_datetime_minute_mask (locale)
-  # Belegt die Instance-Variablen @min_snap_id und @max_snap_id
-  def get_min_max_snap_id(time_selection_start, time_selection_end, instance)
-    additional_where = ""
-    additional_binds = []
-    if instance && instance != 0
-      additional_where << " AND Instance_Number = ?"
-      additional_binds << instance
-    end
-
-    snaps = sql_select_all ["
-      SELECT /* Panorama-Tool Ramm */ Min(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
-      FROM   DBA_Hist_Snapshot
-      WHERE  Begin_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-      AND    Begin_Interval_Time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-      AND    DBID            = ?
-      #{additional_where}",
-      time_selection_start, time_selection_end, prepare_param_dbid].concat(additional_binds)
-    raise "Kein Snapshot gefunden zwischen #{time_selection_start} und #{time_selection_end} für Instance #{instance}" if snaps.length == 0
-    @min_snap_id = snaps[0].min_snap_id      # Kleinste ID
-    @max_snap_id = snaps[0].max_snap_id      # Groesste ID
-    raise "Kein Snapshot gefunden zwischen #{time_selection_start} und #{time_selection_end} für Instance #{instance}" unless @min_snap_id
-  end
-
-  public
   # Anzeigen der gefundenen Events
   def list_system_events_historic
     @instance  = prepare_param_instance

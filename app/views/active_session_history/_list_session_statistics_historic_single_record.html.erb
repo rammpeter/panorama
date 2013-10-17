@@ -53,7 +53,7 @@ end
 column_options =
   [
     {:caption=>"I",                :data=>proc{|rec| rec.instance_number },                     :title=>"RAC-Instance"},
-    {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.sample_time)},          :title=>"Zeitpunkt des Sample", :data_title=>'Zeitpunkt des Sample, Sample_ID=#{rec.sample_id}', :plot_master=>true, :plot_master_time=>"milliSec1970(rec.sample_time)" },
+    {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.sample_time)},          :title=>"Zeitpunkt des Sample", :data_title=>'Zeitpunkt des Sample, Sample_ID=#{rec.sample_id}', :plot_master_time=>true },
     {:caption=>"SID",              :data=>proc{|rec| rec.session_id},                           :title=>"Session-ID",           :data_title=>'Session-ID, SerialNo=#{rec.session_serial_no}, Type=#{rec.session_type}'},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                             :title=>"User-Name", :data_title=>proc{|rec| "%t: User_ID=#{rec.user_id}"}},
     {:caption=>"QC",               :data=>proc{|rec| "#{rec.qc_instance_id}:#{rec.qc_session_id}" if rec.qc_instance_id},  :title=>"Query-coordinator instance and session-id (if parallel query is used)"},

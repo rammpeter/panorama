@@ -228,7 +228,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
          items: [
             {
                 label: (show_y_axes==true ? "y-Achse(n) ausblenden" : "y-Achse(n) anzeigen"),
-                icon: 'assets/images/application-monitor.png',
+                icon: 'assets/application-monitor.png',
                 action: function(){
                     jQuery('#'+plot_area_id).html(""); // Altes Diagramm entfernen
                     plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, (show_y_axes==true ? false : true), x_axis_time);
@@ -236,7 +236,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
             },
              {
                  label: (multiple_y_axes==true ? "Alle Kurven in einer y-Achse darstellen" : "Eigene y-Achse je Kurve (100% Wertebereich)"),
-                 icon: 'assets/images/application-monitor.png',
+                 icon: 'assets/application-monitor.png',
                  action: function(){
                      jQuery('#'+plot_area_id).html(""); // Altes Diagramm entfernen
                      plot_diagram(unique_id, plot_area_id, caption, data_array, (multiple_y_axes==true ? false : true), show_y_axes, x_axis_time);

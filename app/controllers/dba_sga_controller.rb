@@ -773,5 +773,68 @@ class DbaSgaController < ApplicationController
     end
   end
 
+  def list_db_cache_advice_historic
+    @instance = prepare_param_instance
+    save_session_time_selection  # werte in session puffern in @time_selection_start, @time_selection_end
+
+    get_instance_min_max_snap_id(@time_selection_start, @time_selection_end, @instance)   # @min_snap_id, @max_snap_id belegen
+
+    rows = sql_select_all ["SELECT *
+                            FROM   (
+                                    SELECT ss.Begin_Interval_Time, h.Snap_ID,
+                                           h.Size_For_Estimate Buffer_Cache_MB,
+                                           h.Size_Factor,
+                                           h.Physical_Reads -  LAG(h.Physical_Reads,    1, Physical_Reads)     OVER (PARTITION BY h.Instance_Number, Size_Factor ORDER BY h.Snap_ID) Phys_Reads_Delta
+                                           FROM   DBA_Hist_DB_Cache_Advice h
+                                           JOIN   DBA_Hist_Snapshot ss ON ss.DBID=h.DBID AND ss.Instance_Number=h.Instance_Number AND ss.Snap_ID=h.Snap_ID
+                                           WHERE  h.DBID            = ?
+                                           AND    h.Instance_Number = ?
+                                           AND    h.Snap_ID         BETWEEN ? AND ?
+                                   )
+                            WHERE Snap_ID >= ?
+                            ORDER BY snap_id, Size_Factor
+                           ", prepare_param_dbid, @instance, @min_snap_id-1, @max_snap_id, @min_snap_id]
+
+    results = []
+    columns = {}
+
+    if rows.count > 0     # letzten Record sichern
+      res = {"begin_interval_time" => rows[0].begin_interval_time}
+      rows.each do |r|
+        if res["begin_interval_time"] != r.begin_interval_time
+          res.extend SelectHashHelper
+          results << res
+          res = {"begin_interval_time" => r.begin_interval_time}                # Neuer Result-Record
+        end
+        res[r.buffer_cache_mb] = r.phys_reads_delta
+        columns[r.size_factor] = r.buffer_cache_mb                              # Existenz der Spalte merken
+        if r.size_factor == 1                                                   # Merken der Ist-Werte (size_factor=1)
+          res["phys_reads_delta_1"] = r.phys_reads_delta
+          res["buffer_cache_mb_1"]  = r.buffer_cache_mb
+        end
+      end
+      res.extend SelectHashHelper
+      results << res
+    end
+
+
+    column_options =
+        [
+            {:caption=>"Start",       :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},              :title=>"Start of considered time range", :plot_master_time => true},
+        ]
+
+    columns.each do |key, value|
+      column_options << {:caption=>key.to_s,       :data=>proc{|rec| fn(rec[value])},     :title => "Estimated number of physical (non-cached) reads if cache size would be #{fn(value)} MB (factor #{key})", :data_title=>proc{|rec|"%t instead of #{fn(rec.buffer_cache_mb_1)} MB (#{fn(rec[value]*100.0/rec.phys_reads_delta_1) if rec.phys_reads_delta_1 && rec.phys_reads_delta_1 > 0} % compared to actual number)"} }
+    end
+
+    output = gen_slickgrid(results, column_options, {
+        :caption => "Estimated number of read requests if size of DB buffer cache is changed with factor x",
+        :max_height => 450
+    })
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j output }');"}
+    end
+  end
 
 end
