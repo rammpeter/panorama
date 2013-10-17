@@ -829,7 +829,8 @@ class DbaSgaController < ApplicationController
 
     output = gen_slickgrid(results, column_options, {
         :caption => "Estimated number of read requests if size of DB buffer cache is changed with factor x",
-        :max_height => 450
+        :max_height => 450,
+        :multiple_y_axes => false
     })
 
     respond_to do |format|
