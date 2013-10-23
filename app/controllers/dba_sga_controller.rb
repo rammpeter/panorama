@@ -783,7 +783,7 @@ class DbaSgaController < ApplicationController
                             FROM   (
                                     SELECT ss.Begin_Interval_Time, h.Snap_ID,
                                            h.Size_For_Estimate Buffer_Cache_MB,
-                                           h.Size_Factor,
+                                           ROUND(h.Size_Factor,1) Size_Factor,
                                            h.Physical_Reads -  LAG(h.Physical_Reads,    1, Physical_Reads)     OVER (PARTITION BY h.Instance_Number, Size_Factor ORDER BY h.Snap_ID) Phys_Reads_Delta
                                            FROM   DBA_Hist_DB_Cache_Advice h
                                            JOIN   DBA_Hist_Snapshot ss ON ss.DBID=h.DBID AND ss.Instance_Number=h.Instance_Number AND ss.Snap_ID=h.Snap_ID
@@ -824,7 +824,7 @@ class DbaSgaController < ApplicationController
         ]
 
     columns.each do |key, value|
-      column_options << {:caption=>key.to_s,       :data=>proc{|rec| fn(rec[value])},     :title => "Estimated number of physical (non-cached) reads if cache size would be #{fn(value)} MB (factor #{key})", :data_title=>proc{|rec|"%t instead of #{fn(rec.buffer_cache_mb_1)} MB (#{fn(rec[value]*100.0/rec.phys_reads_delta_1) if rec.phys_reads_delta_1 && rec.phys_reads_delta_1 > 0} % compared to actual number)"} }
+      column_options << {:caption=>key.to_s,       :data=>proc{|rec| fn(rec[value])},     :title => "Estimated number of physical (non-cached) reads if cache size would be #{fn(value)} MB (factor #{key})", :data_title=>proc{|rec|"%t instead of #{fn(rec.buffer_cache_mb_1)} MB (#{fn(rec[value]*100.0/rec.phys_reads_delta_1) if rec[value] && rec.phys_reads_delta_1 && rec.phys_reads_delta_1 > 0} % compared to actual number)"} }
     end
 
     output = gen_slickgrid(results, column_options, {
