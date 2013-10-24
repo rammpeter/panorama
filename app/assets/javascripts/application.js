@@ -29,11 +29,12 @@ var one_time_suppress_indicator = false;                                        
 function showIndicator() {
     if (!one_time_suppress_indicator)                                           // Einmaliges Unterdrücken der Anzeige Indikator
         jQuery("#ajax_indicator").dialog("open");
+    else
+        one_time_suppress_indicator = false;                                    // Zurücksetzen auf Default
 }
 
 function hideIndicator() {
     jQuery("#ajax_indicator").dialog("close");
-    one_time_suppress_indicator = false;                                        // Zurücksetzten auf Default
 }
 
 var tooltip_document_body = null;
@@ -110,7 +111,7 @@ function expand_sql_id_hint(id, sql_id){
         jQuery.ajax({url: "DbaHistory/getSQL_ShortText?sql_id="+sql_id,
             dataType: "json",
             beforeSend: function(response) {
-                one_time_suppress_indicator = true;                             // Unterdrückend er Anzeige des Indicators für einen Aufruf
+                one_time_suppress_indicator = true;                             // Unterdrückend der Anzeige des Indicators für einen Aufruf
             },
             success: function(response) {
                 if (response.sql_short_text){
