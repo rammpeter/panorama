@@ -17,6 +17,6 @@ ssh sbfapp@sbfappserver.ov.otto.de "
   ./start_Panorama_jetty.sh
 "
 
-#sleep 10
+sleep 10
 
-#open "http://ramm-1.osp-dd.de:8080/Panorama"
+open "http://sbfappserver.ov.otto.de:8080/Panorama"

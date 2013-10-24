@@ -11,7 +11,7 @@ then
 fi
 
 echo "Create Panorama.war"
-jruby -S warble
+jruby -S warble 
 
 echo "Entfernen der assets unter public"
 #rm -r public/assets/*
