@@ -1,0 +1,15 @@
+<%
+   column_options =
+           [
+                   {:caption=>'Client name',    :data=>proc{|rec| rec.client_name},     :title=>'Name of Automated Maintenance Tasks Client'},
+                   {:caption=>'Status',         :data=>proc{|rec| rec.status},          :title=>'Current status of the Client'},
+                   {:caption=>'Consumer group', :data=>proc{|rec| rec.consumer_group},  :title=>'Resource Consumer Group normaly used to execute jobs'},
+                   {:caption=>'Client tag',     :data=>proc{|rec| rec.client_tag},      :title=>'Tag used in forming job names'},
+                   {:caption=>'Priority override',     :data=>proc{|rec| rec.priority_override},      :title=>'Priority override for jobs'},
+                   {:caption=>'Attributes',     :data=>proc{|rec| rec.attributes},      :title=>'Client attributes'},
+                   {:caption=>'Window group',   :data=>proc{|rec| rec.window_group},    :title=>'Window group used to schedule jobs'},
+                   {:caption=>'Service name',   :data=>proc{|rec| rec.service_name},    :title=>'Service on which jobs will execute'},
+           ]
+
+%>
+<%= gen_slickgrid(@tasks, column_options, {:caption=>'Automated Maintenance Tasks Clients from DBA_Autotask_Client' , :width=>:auto}) %>

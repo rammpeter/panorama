@@ -76,7 +76,7 @@ class DragnetController < ApplicationController
 
     # Optionales Filtern des Results
     if dragnet_sql[:filter_proc]
-      raise "filter_proc muss Klasse proc besitzen für #{dragnet_sql[:name]}" if dragnet_sql[:filter_proc].class.name != "Proc"
+      raise "filter_proc muss Klasse proc besitzen für #{dragnet_sql[:name]}" if dragnet_sql[:filter_proc].class.name != 'Proc'
       res = []
       @res.each do |r|
         res << r if dragnet_sql[:filter_proc].call(r)

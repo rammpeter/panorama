@@ -329,5 +329,47 @@ class StorageController < ApplicationController
     end
   end
 
+  # Nutzung von Datafiles
+  def datafile_usage
+    @datafiles = sql_select_all("\
+      SELECT /* Panorama-Tool Ramm */
+             d.*,
+             NVL(f.BYTES,0)/1048576            MBFree,
+             (d.BYTES-NVL(f.BYTES,0))/1048576  MBUsed,
+             d.BYTES/1048576                   FileSize,
+             (d.Bytes-NVL(f.Bytes,0))/d.BYTES  PctUsed
+      FROM   (SELECT File_Name, File_ID, Tablespace_Name, Bytes, Blocks,
+                     Status, AutoExtensible, Online_Status
+              FROM   DBA_Data_Files
+              UNION ALL
+              SELECT File_Name, File_ID, Tablespace_Name, Bytes, Blocks,
+                     Status, AutoExtensible, '[UNKNOWN]' Online_Status
+              FROM   DBA_Temp_Files
+             )d
+      LEFT JOIN (SELECT File_ID, Tablespace_Name, SUM(Bytes) Bytes
+                 FROM   DBA_FREE_SPACE
+                 GROUP BY File_ID, Tablespace_Name
+                ) f ON f.FILE_ID = d.FILE_ID AND f.Tablespace_Name = d.Tablespace_Name -- DATA und Temp verwenden File_ID redundant
+      ORDER BY 1 ASC")
+
+    if session[:database].version >= "11.2"
+      @file_usage = sql_select_all "\
+        SELECT f.*,
+               NVL(d.File_Name, t.File_Name) File_Name,
+               NVL(d.Tablespace_Name, t.Tablespace_Name) Tablespace_Name
+        FROM   gv$IOStat_File f
+        LEFT JOIN DBA_Data_Files d ON d.File_ID = f.File_No AND f.FileType_Name='Data File'   -- DATA und Temp verwenden File_ID redundant
+        LEFT JOIN DBA_Temp_Files t ON t.File_ID = f.File_No AND f.FileType_Name='Temp File'
+        ORDER BY f.Inst_ID, f.File_No
+      "
+    end
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/datafile_usage" }');"}
+    end
+  end
+
+
+
 end
 

@@ -301,8 +301,6 @@
   menu_dba_caption:                                         DBA Allgemein
   menu_dba_blocking_locks_historic_caption:                 Blocking Locks historisch
   menu_dba_blocking_locks_historic_hint:                    Anzeige historische Info zu Blocking Locks
-  menu_dba_datafile_caption:                                Datafile-Nutzung
-  menu_dba_datafile_hint:                                   Anlistung der Datafiles der DB
   menu_dba_explain_plan_hint:                               Anzeige Ausführungsplan eines SQL-Statements
   menu_dba_locks_hint:                                      Aktueller Lock-Status incl. Blocking Locks
   menu_dba_schema_audit_trail_hint:                         Anzeige von per Audit Trail geloggten Aktivitäten
@@ -348,6 +346,8 @@
   menu_sga_pga_sqlarea_current_sqlid_childno_hint:          Auswertung aktuelle SQLs aus SGA auf Ebene SQL_ID, Child-Nr.
   menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
 
+  menu_storage_datafile_caption:                            Datafile-Nutzung
+  menu_storage_datafile_hint:                               Anlistung der Datafiles der DB
   menu_storage_matview_hint:                                Auswertung Strukturen von Materialized Views und MV-Logs
   menu_storage_storage_summary_caption:                     Plattenspeicher-Nutzung
   menu_storage_storage_summary_hint:                        Übersicht über Plattenspeicher-/Tablespace-Nutzung

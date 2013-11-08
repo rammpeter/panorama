@@ -2,7 +2,7 @@
 # Filters added to this controller apply to all controllers in the application.
 # Likewise, all the methods added will be available for all controllers.
 
-require "application_helper"   # Erweiterung der Controller um Helper-Methoden
+require 'application_helper' # Erweiterung der Controller um Helper-Methoden
 include ActionView::Helpers::JavaScriptHelper      # u.a. zur Nutzung von escape_javascript(j) im Controllern
 
 class ApplicationController < ActionController::Base
@@ -27,9 +27,9 @@ class ApplicationController < ActionController::Base
   # Ausführung vor jeden Request
   def open_connection
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == "env"   && ["index", "set_database", "set_database_by_id"].include?(action_name) )                  ||
-              (controller_name == "dba_history" && action_name == "getSQL_ShortText") ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
-              (controller_name == "usage" && ["info", "detail_sum", "single_record", "ip_info"].include?(action_name) )
+    return if (controller_name == 'env' && ['index', 'set_database', 'set_database_by_id'].include?(action_name) )                  ||
+              (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
+              (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
 
@@ -51,7 +51,7 @@ class ApplicationController < ActionController::Base
       begin
         # Ausgabe Logging-Info in File für Usage-Auswertung
         filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, "a"){|file| file.write("#{request.remote_ip} #{session[:database].raw_tns} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime("%Y/%m/%d-%H:%M:%S")}\n")}
+        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{session[:database].raw_tns} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')}\n")}
       rescue Exception => e
         logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
@@ -61,10 +61,10 @@ class ApplicationController < ActionController::Base
       # Registrieren mit Name an Oracle-DB
       #ActiveRecord::Base.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
       ActiveRecord::Base.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
-                                                  [[ActiveRecord::ConnectionAdapters::Column.new(":action", nil), "#{controller_name}/#{action_name}"]]
+                                                  [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil), "#{controller_name}/#{action_name}"]]
       )
     else  # Keine DB bekannt
-       raise "Keine DB ausgewählt! Bitte rechts oben DB auswählen"
+       raise 'Keine DB ausgewählt! Bitte rechts oben DB auswählen'
     end
 
     # Request-Counter je HTML-Session als Hilsmittel für eindeutige html-IDs
@@ -83,12 +83,12 @@ class ApplicationController < ActionController::Base
 
 protected  
   # Ausgabe der Meldungen einer Exception
-  def alert exception, header=""
+  def alert(exception, header='')
     logger.error exception.message
     exception.backtrace.each do |bt|
       logger.error bt
     end
-    message = exception.message 
+    message = exception.message
     message << "\n\n"
     #message << caller.to_s
     exception.backtrace.each do |bt|
@@ -96,7 +96,7 @@ protected
     end
 
     respond_to do |format|
-      format.js {render :js => "alert('#{j "#{header}\n\n#{message}"}');"}   # Optional zu erweitern um caller.to_s
+      format.js { render :js => "alert('#{j "#{header}\n\n#{message}"}');" } # Optional zu erweitern um caller.to_s
     end
 
   end
