@@ -78,7 +78,7 @@ Warbler::Config.new do |config|
 
   # Name of the archive (without the extension). Defaults to the basename
   # of the project directory.
-  config.jar_name = "Panorama"
+  config.jar_name = 'Panorama'
 
   # Name of the MANIFEST.MF template for the war file. Defaults to a simple
   # MANIFEST.MF that contains the version of Warbler used to create the war file.
@@ -101,7 +101,7 @@ Warbler::Config.new do |config|
   # with webxml-config. You may want to exclude this file via
   # config.excludes.
   # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList["jetty-web.xml"]
+  config.webinf_files += FileList['jetty-web.xml']
 
   # Files to be included in the root of the webapp.  Note that files in public
   # will have the leading 'public/' part of the path stripped during staging.
@@ -124,7 +124,7 @@ Warbler::Config.new do |config|
   # config.webxml.booter = :rails
 
   # Set JRuby to run in 1.9 mode.
-  config.webxml.jruby.compat.version = "1.9"
+  config.webxml.jruby.compat.version = '1.9'
 
   # When using the :rack booter, "Rackup" script to use.
   # - For 'rackup.path', the value points to the location of the rackup
