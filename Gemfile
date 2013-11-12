@@ -5,7 +5,8 @@ gem 'rails', '4.0.0'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
+#gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
+gem 'activerecord-nulldb-adapter'
 
 #gem 'activerecord-oracle_enhanced-adapter', ">= 1.4.2"
 gem 'activerecord-oracle_enhanced-adapter', git: 'https://github.com/yahonda/oracle-enhanced.git', branch: 'rails4'
