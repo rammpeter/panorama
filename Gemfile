@@ -1,15 +1,14 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.0.0'
+gem 'rails', '4.0.1'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-#gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
-gem 'activerecord-nulldb-adapter'
+gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
 
-#gem 'activerecord-oracle_enhanced-adapter', ">= 1.4.2"
-gem 'activerecord-oracle_enhanced-adapter', git: 'https://github.com/yahonda/oracle-enhanced.git', branch: 'rails4'
+#gem 'activerecord-oracle_enhanced-adapter', git: 'https://github.com/yahonda/oracle-enhanced.git', branch: 'rails4'
+gem 'activerecord-oracle_enhanced-adapter'
 gem "memcache-client"
 
 # Gems used only for assets and not required
@@ -30,6 +29,7 @@ gem "memcache-client"
 gem 'therubyrhino'
 gem 'therubyrhino_jar'
 
+gem 'multi_json'
 gem 'uglifier'
 gem 'sass'
 
