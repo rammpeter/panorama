@@ -676,9 +676,6 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
                                        AND    ps.Serial# = ?
                                       ", @instance, @sid, @serialno]
 
-puts @pq_coordinator.class.name
-puts @pq_coordinator.count
-
     @open_cursor_counts = sql_select_first_row ["\
                          SELECT /*+ ORDERED USE_HASH(s) */
                                 COUNT(*) Total,

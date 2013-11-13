@@ -47,4 +47,3 @@ end
 
 c = Container.new( { :ID_CusTOMER => 12 } )
 c.ID_CUSTOMER = 13
-puts c.ID_CUSTOmeR
