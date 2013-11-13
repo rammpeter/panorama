@@ -53,9 +53,6 @@ class DbaControllerTest < ActionController::TestCase
     post :show_session_details_waits_object, :format=>:js, :event=>"db file sequential read"
     assert_response :success
 
-    get  :datafile_usage, :format=>:js
-    assert_response :success
-
     get  :used_objects, :format=>:js
     assert_response :success
 

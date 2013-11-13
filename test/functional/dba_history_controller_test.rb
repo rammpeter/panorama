@@ -95,13 +95,13 @@ class DbaHistoryControllerTest < ActionController::TestCase
   end
 
   test "list_system_statistics_historic" do
-    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, :sum=>1
+    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>1, :sum=>1
     assert_response :success
-    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, :full=>1, :verdichtung=>{:tag =>"MI"}
+    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>1, :full=>1, :verdichtung=>{:tag =>"MI"}
     assert_response :success
-    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, :full=>1, :verdichtung=>{:tag =>"HH24"}
+    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>1, :full=>1, :verdichtung=>{:tag =>"HH24"}
     assert_response :success
-    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, :full=>1, :verdichtung=>{:tag =>"DD"}
+    post :list_system_statistics_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>1, :full=>1, :verdichtung=>{:tag =>"DD"}
     assert_response :success
   end
 

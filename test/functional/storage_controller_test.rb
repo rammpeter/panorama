@@ -12,6 +12,10 @@ class StorageControllerTest < ActionController::TestCase
   end
 
   test "storage_controller" do
+
+    get  :datafile_usage, :format=>:js
+    assert_response :success
+
     post :list_materialized_view_action, :format=>:js, :registered_mviews => "Hugo"
     assert_response :success;
 
