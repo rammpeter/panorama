@@ -10,8 +10,8 @@ module EnvHelper
       else
         cookies_last_logins = []
       end
-#    rescue Exception
-#      cookies_last_logins = []      # Cookie neu initialisieren wenn Fehler beim Auslesen
+    rescue Exception
+      cookies_last_logins = []      # Cookie neu initialisieren wenn Fehler beim Auslesen
     end
     cookies_last_logins = [] unless cookies_last_logins.instance_of?(Array)  # Falscher Typ des Cookies?
 
@@ -32,7 +32,7 @@ module EnvHelper
   def write_last_login_cookies(cookies_last_logins)
 
     crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-    cookies[:last_logins] = crypt.encrypt_and_sign(cookies_last_logins)
+    cookies[:last_logins] = { :value => crypt.encrypt_and_sign(cookies_last_logins), :expires => 1.year.from_now }
   end
 
 
