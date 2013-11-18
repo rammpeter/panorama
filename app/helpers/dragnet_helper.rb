@@ -1988,7 +1988,7 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
          :name  => "Commit / Rollback - Aufkommen",
          :desc  => "Aus den Zahlen des Commit- und Rollback-Verhaltens lassen sich Rückschlüsse auf evtl. problematisches Applikationsverhalten ziehen.",
          :sql=>  "SELECT /* DB-Tools Ramm Commits und Rollbacks in gegebenen Zeitraum */ Begin, Instance_Number, User_Commits, User_Rollbacks,
-                         ROUND(User_Rollbacks/(User_Commits+User_Rollbacks)*100) Percent_Rollback,
+                         ROUND(User_Rollbacks/(DECODE(User_Commits+User_Rollbacks, 0, 1, User_Commits+User_Rollbacks))*100) Percent_Rollback,
                          Rollback_Changes
                   FROM   (
                           SELECT TRUNC(Begin_Interval_Time, 'HH24') Begin, Instance_Number,
@@ -2083,18 +2083,23 @@ Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festge
            :desc  => t(:dragnet_helper_51_desc, :default=>"For ensurance of referential integrity should technical id's be used instead of business expressions.
 Often problematic usage of business keys can be detetcted by existence of references on multi-column primary keys"),
            :sql=>  "
-             SELECT /* Panorama-Tool Ramm: Fachliche Schluessel*/ p.Owner||'.'||p.Table_Name \"Table\",
+             SELECT /* Panorama-Tool Ramm: Fachliche Schluessel*/ p.Owner||'.'||p.Table_Name \"Referenced Table\",
+                    MIN(pr.Num_Rows) \"Rows in referenced table\",
                     p.Constraint_Name \"Primary Key\", r.Owner||'.'||r.Table_Name \"Referencing Table\",
+                    MIN(tr.Num_Rows) \"Rows in referencing table\",
                     COUNT(*) \"Number of PKey rows\",
                     MIN(c.Column_Name) \"One PKey-Column\",
                     MAX(c.Column_Name) \"Other PKey-Column\"
              FROM   DBA_Constraints r
              JOIN   DBA_Constraints p  ON p.Owner = r.R_Owner AND p.Constraint_Name = r.r_Constraint_Name
              JOIN   DBA_Cons_Columns c ON c.Owner = p.Owner   AND c.Constraint_Name = p.Constraint_Name
+             JOIN   DBA_Tables pr ON pr.Owner = p.Owner AND pr.Table_Name = p.Table_Name
+             JOIN   DBA_Tables tr ON tr.Owner = r.Owner AND tr.Table_Name = r.Table_Name
              WHERE  r.Constraint_Type = 'R'
              AND    c.Owner NOT IN ('SYS', 'SYSTEM')
              GROUP BY p.Owner, p.Table_Name, p.Constraint_Name, r.Owner, r.Table_Name, r.Constraint_Name
              HAVING COUNT(*) > 1
+             ORDER BY MIN(tr.Num_Rows+pr.Num_Rows) * COUNT(*) DESC NULLS LAST
            ",
            :parameter=>[
            ]
