@@ -103,6 +103,11 @@
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
 
+  dragnet_helper_param_history_backward_name:               Betrachtung der Historie rückwärts in Tagen
+  dragnet_helper_param_history_backward_hint:               Anzahl Tage rückwärts von jetzt für Auswertung der Historie
+            :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+
+
   dragnet_helper_1_desc: |-
     Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
     Mit PCTFree < 10 (insbesondere = 0) sind Probleme mit automatischer Ausbalancierung zu erwarten, insbesondere beim Insert der Daten in vorsortierter Folge
@@ -250,6 +255,27 @@
     Schreibende Zugriffe sollten an das Ende von Prozess-Transaktionen verlagert werden, um Sperr-Zeiten bis zum Commit möglichst kurz zu halten.
     Transaktionen in OLTP-Systemen sollten kurz genug sein, um eventuelle konkurrierende Sperren unter der Wahrnehmungsgrenze zu halten.
   dragnet_helper_54_name:                                   Lang laufende Transaktionen aus AWR-Historie (DBA_Hist_Active_Sess_History)
+
+  dragnet_helper_55_desc: |-
+    Kartesische Joins können dann problematisch sein, wenn zwei große Mengen ohne Join-Bedingung miteinander verknüpft werden.
+    Hinweis auf Probleme können die Laufzeit des SQL sowie die Größe der beteiligten Tabellen sein.
+    Ausgewertet wird die aktuelle SGA (GV$SQL_Plan)
+  dragnet_helper_55_name:                                   Problematische Nutzung von kartesischen Joins (Auswertung aktuelle SGA)
+  dragnet_helper_55_param1_name:                            Ausschluss eines Objekt-Owners
+  dragnet_helper_55_param1_desc:                            Ausschluss eines einzelnen Objekt-Owners aus dem Ergebnis
+  dragnet_helper_55_param2_name:                            Minimum totale Laufzeit des SQL (Sek.)
+  dragnet_helper_55_param2_desc:                            Minimum der Summe der totalen Laufzeit des SQL in SGA in Sekunden
+
+
+  dragnet_helper_56_desc: |-
+    Kartesische Joins können dann problematisch sein, wenn zwei große Mengen ohne Join-Bedingung miteinander verknüpft werden.
+    Hinweis auf Probleme können die Laufzeit des SQL sowie die Größe der beteiligten Tabellen sein.
+    Ausgewertet wird die AWR-Historie (DBA_Hist_SQL_Plan)
+  dragnet_helper_56_name:                                   Problematische Nutzung von kartesischen Joins (Auswertung AWR-Historie)
+  dragnet_helper_56_param1_name:                            Ausschluss eines Objekt-Owners
+  dragnet_helper_56_param1_desc:                            Ausschluss eines einzelnen Objekt-Owners aus dem Ergebnis
+  dragnet_helper_56_param2_name:                            Minimum totale Laufzeit des SQL (Sek.)
+  dragnet_helper_56_param2_desc:                            Minimum der Summe der totalen Laufzeit des SQL in SGA in Sekunden
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports

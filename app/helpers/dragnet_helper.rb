@@ -276,7 +276,7 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
                             AND     i.UNiqueness != 'UNIQUE'
                            ) i
                     ) ORDER BY MBytes DESC NULLS LAST, Num_Rows",
-            :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
         },
         {
              :name  => t(:dragnet_helper_14_name, :default=>"Detection of unnecessary indexes: only one ore little key values in index"),
@@ -744,7 +744,7 @@ Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die 
                              GROUP BY s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_Number) s
                       WHERE s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                       ) ORDER BY Num_Rows_Index DESC NULLS LAST, Elapsed_Secs DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Optimierbare FullTableScan-OperationenFull-Table-Scans nach Executions",
@@ -820,7 +820,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                      )
                      WHERE  SQL_Text NOT LIKE '%dbms_stats%'
                      ORDER BY Rows_per_Exec/Num_Rows/Executions",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8,   :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Minmale Anzahl Rows der Tabelle",             :size=>8, :default=>100, :title=>"Minimale Anzahl Rows der Tabelle für Aufnahme in Selektion" },
                           {:name=>"Minmale Anzahl Executions",                   :size=>8, :default=>100, :title=>"Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion" }]
          },
@@ -859,7 +859,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                        JOIN  DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
                        WHERE UPPER(t.SQL_Text) LIKE '%SELECT%ALL_ROWS%COUNT(1)%'
                        ORDER BY \"Elapsed Time (s) per Execute\" DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Übermäßige Anzahl Zugriffe auf Cache-Buffer",
@@ -911,7 +911,7 @@ Für beide Konstellationen lassen sich problematische Statements identifizieren
                       AND    t.SQL_ID = s.SQL_ID
                       ORDER BY \"max. BufferGets betw.snapshots\" DESC NULLS LAST
                       ) WHERE RowNum<?",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Maximale Anzahl Rows", :size=>8, :default=>100, :title=>"Maximale Anzahl Rows für Aufnahme in Selektion" }]
          },
         {
@@ -961,7 +961,7 @@ Ab 11g können stored functions mit function result caching für diesen Zweck ge
                             JOIN   DBA_Hist_SQLText t  ON (t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)
                       WHERE Owner NOT IN ('SYS')
                       ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Minimale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions für Aufnahme in Selektion" }]
          },
         {
@@ -1010,7 +1010,7 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                       AND    SUM(Rows_Processed_Delta) > 0
                       ) s
                       ORDER BY Additional_Fetches DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Statements mit unnötig hoher Ausführungszahl: Unnötig hohe Execute-Anzahl wegen fehlender Array-Verarbeitung",
@@ -1033,7 +1033,7 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit.
                       HAVING SUM(s.Executions_Delta) > 0
                       AND    SUM(s.Rows_Processed_Delta) > 0
                       ORDER BY SUM(Executions_Delta)*SUM(Executions_Delta)/SUM(Rows_Processed_Delta) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Unnötige Ausführung von StatementsSelects/Updates/Deletes ohne Treffer",
@@ -1073,7 +1073,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                              OR UPPER(t.SQL_Text) LIKE 'WITH%'
                              )
                       ORDER BY s.\"Elapsed Time (Sec)\" DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Minimale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions für Aufnahme in Selektion" }]
          },
         {
@@ -1114,7 +1114,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                               GROUP BY t.SQL_ID
                            )
                       ORDER BY Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Langlaufende Statements ohne Nutzung Parallel Query (Auswertung SGA)",
@@ -1165,7 +1165,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                              ) s
                       WHERE  s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) > ? /* > 50 Sekunden */
                       ORDER BY s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Minimale elapsed time/Execution", :size=>8, :default=>20, :title=>"Minimale elapsed time per execution für Aufnahme in Selektion" }]
          },
         {
@@ -1254,7 +1254,7 @@ Selektion beleuchtet die AWR-Historie.",
                                                      AND    Operation NOT LIKE 'SELECT%'
                                                      AND    ps.Object_Type IS NOT NULL
                       ) ORDER BY Elapsed_Secs_Per_Exec * Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Probleme bei Nutzung Parallel Query: Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE",
@@ -1306,7 +1306,7 @@ Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu 
                              )
                            )
                       ORDER BY Elapsed_Secs DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen",
@@ -1355,7 +1355,7 @@ Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full
                       GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value
                       ) a)
                       ORDER BY Elapsed_Time_Secs*NVL(Num_Rows,1) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Identifikation von Statements mit wechselndem Ausführungsplan aus Historie",
@@ -1401,7 +1401,7 @@ Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
                              )
                       ORDER BY \"Secs. per exec last plan\"  * (Executions_First_Plan+Executions_Last_Plan) -
                                \"Secs. per exec first plan\" * (Executions_First_Plan+Executions_Last_Plan) DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Nested-Loop-Join auf große Tabellen mit großem Result des SQL (Test per SGA-Statement-Cache)",
@@ -1525,6 +1525,77 @@ Beispiel: INDEX(Column,0)",
                       ORDER BY COUNT(*) DESC
              ",
          },
+         {
+             :name  => t(:dragnet_helper_55_name, :default => 'Problematic usage of cartesian joins (from current SGA)'),
+             :desc  => t(:dragnet_helper_55_desc, :default => 'Cartesian joins may be problematic in case of joining two large results without join condition.
+Problems may be targeted by execution time of SQL or size of affected tables.
+Results are from GV$SQL_Plan'),
+             :sql=>  "SELECT /*+ USE_HASH(p s i t) LEADING(p) */ p.Inst_ID, p.SQL_ID, p.Child_Number, p.Operation, p.Options, p.Object_Owner, p.Object_Name, NVL(i.Num_Rows, t.Num_Rows) Num_Rows,
+                             s.Executions, s.Elapsed_Time/1000000 Elapsed_Time_Secs,
+                             p.ID Line_ID, p.Parent_ID
+                      FROM   (WITH plans AS (SELECT /*+ NO_MERGE */ *
+                                             FROM   gv$SQL_Plan
+                                             WHERE  (Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number) IN (SELECT Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number
+                                                                                                         FROM gv$SQL_Plan
+                                                                                                         WHERE  options = 'CARTESIAN'
+                                                                                                        )
+                                            )
+                              SELECT /*+ NO_MERGE */ Level, plans.*
+                              FROM   plans
+                              CONNECT BY PRIOR Inst_ID = Inst_ID AND PRIOR SQL_ID=SQL_ID AND  PRIOR Plan_Hash_Value = Plan_Hash_Value AND  PRIOR child_number = child_number AND PRIOR  id = parent_id AND PRIOR Object_Name IS NULL -- Nur Nachfolger suchen so lange Vorgänger kein Object_Name hat
+                              START WITH options = 'CARTESIAN'
+                             ) p
+                      JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, Child_Number, Executions, Elapsed_Time
+                              FROM gv$SQL
+                             ) s ON s.Inst_ID = p.Inst_ID AND s.SQL_ID = p.SQL_ID AND s.Child_Number = p.Child_Number
+                      LEFT OUTER JOIN DBA_Indexes i ON i.Owner = p.Object_Owner AND i.Index_Name = p.Object_Name
+                      LEFT OUTER JOIN DBA_Tables t  ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                      WHERE Object_Name IS NOT NULL  -- Erstes Vorkommen von ObjectName in der Parent-Hierarchie nutzen
+                      AND   Object_Owner != NVL(?, 'Hugo')
+                      AND   Elapsed_Time/1000000 > ?
+                      ORDER BY s.Elapsed_Time DESC, s.SQL_ID, s.Child_Number
+            ",
+            :parameter=>[
+               {:name=>t(:dragnet_helper_55_param1_name, :default=>'Exclusion of object owners'), :size=>30, :default=>'SYS', :title=>t(:dragnet_helper_55_param1_desc, :default=>'Exclusion of single object owners from result') },
+               {:name=>t(:dragnet_helper_55_param2_name, :default=>'Minimum total execution time of SQL (sec.)'), :size=>10, :default=>100, :title=>t(:dragnet_helper_55_param2_desc, :default=>'Minimum total execution time of SQL in SGA in seconds') },
+            ]
+         },
+         {
+             :name  => t(:dragnet_helper_56_name, :default => 'Problematic usage of cartesian joins (from AWR history)'),
+             :desc  => t(:dragnet_helper_56_desc, :default => 'Cartesian joins may be problematic in case of joining two large results without join condition.
+Problems may be targeted by execution time of SQL or size of affected tables.
+Results are from DBA_Hist_SQL_Plan'),
+             :sql=>  "SELECT ps.*,
+                             (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner = ps.Object_Owner AND i.Index_Name = ps.Object_Name) Num_Rows_Index,
+                             (SELECT Num_Rows FROM  DBA_Tables t WHERE t.Owner = ps.Object_Owner AND t.Table_Name = ps.Object_Name) Num_Rows_Table
+                      FROM   (
+                              SELECT /*+ LEADING(p) */ s.Instance_Number, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.ID Line_ID, p.Parent_ID,
+                                     SUM(s.Executions_Delta) Executions, SUM(s.Elapsed_Time_Delta/1000000) Elapsed_Time_Secs
+                              FROM   (WITH plans AS (SELECT /*+ NO_MERGE LEADING(i) USE_NL(i o) */ o.*
+                                                     FROM   (SELECT /*+ PARALLEL(i,2) */ DISTINCT DBID, SQL_ID, Plan_Hash_Value FROM DBA_Hist_SQL_Plan i WHERE options = 'CARTESIAN') i
+                                                     JOIN   DBA_Hist_SQL_Plan o ON o.DBID=i.DBID AND o.SQL_ID=I.SQL_ID AND o.Plan_Hash_Value = i.Plan_Hash_Value
+                                                    )
+                                      SELECT /*+ NO_MERGE */ Level, plans.*
+                                      FROM   plans
+                                      CONNECT BY PRIOR DBID = DBID AND PRIOR SQL_ID=SQL_ID AND  PRIOR Plan_Hash_Value = Plan_Hash_Value AND PRIOR  id = parent_id AND PRIOR Object_Name IS NULL  -- Nur Nachfolger suchen so lange Vorgänger kein Object_Name hat
+                                      START WITH options = 'CARTESIAN'
+                                     ) p
+                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = p.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
+                              WHERE Object_Name IS NOT NULL -- Erstes Vorkommen von ObjectName in der Parent-Hierarchie nutzen
+                              AND   ss.Begin_Interval_Time > SYSDATE - ?
+                              AND   p.Object_Owner != NVL(?, 'Hugo')
+                              GROUP BY s.Instance_Number, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.ID, p.ID, p.Parent_ID
+                             ) ps
+                      WHERE   Elapsed_Time_Secs > ?
+                      ORDER BY Elapsed_Time_Secs DESC, SQL_ID, Plan_Hash_Value
+                      ",
+             :parameter=>[
+                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                 {:name=>t(:dragnet_helper_56_param1_name, :default=>'Exclusion of object owners'), :size=>30, :default=>'SYS', :title=>t(:dragnet_helper_56_param1_desc, :default=>'Exclusion of single object owners from result') },
+                 {:name=>t(:dragnet_helper_56_param2_name, :default=>'Minimum total execution time of SQL (sec.)'), :size=>10, :default=>100, :title=>t(:dragnet_helper_56_param2_desc, :default=>'Minimum total execution time of SQL in SGA in seconds') },
+             ]
+         },
       ]
   end
 
@@ -1588,7 +1659,7 @@ Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältn
                               ORDER BY Logical_Reads/Num_Rows DESC NULLS LAST
                              ) s
                       WHERE Num_Rows < ?",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Maximale Anzahl Rows der Table", :size=>8, :default=>200, :title=>"Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion" }]
          },
         {
@@ -1670,7 +1741,7 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       )
                       WHERE Rows_Processed > ?
                       ORDER BY Rows_Processed DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                           {:name=>"Minimale Anzahl Rows processed", :size=>8, :default=>10000, :title=>"Minimale Anzah Rows processed für Aufnahme in Selektion" }]
          },
         {
@@ -1737,7 +1808,7 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       AND    ss.Begin_Interval_Time > SYSDATE-?
                       GROUP BY ss.Begin_Interval_Time, p.Instance_Number, p.DBID, p.Snap_ID
                       ORDER BY ss.Begin_Interval_Time",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => "Konkurrenz bzgl. Speicher, Latches: Unzureichend gecachte Sequences",
@@ -1783,7 +1854,7 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       GROUP BY Sample_Time
                       ORDER BY 1",
              :parameter=>[
-                 {:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>1, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                  {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }
              ]
          },
@@ -1804,7 +1875,7 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                               GROUP BY s.SQL_ID, s.Instance_Number, Parsing_schema_Name
                              ) s
                       ORDER BY Parses DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
              :name  => t(:dragnet_helper_3_12_name, :default=>"Non-optimal database configuration parameters"),
@@ -1981,7 +2052,7 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                   WHERE  t.Command_Type IN (2,6,7)
                   AND    s.Rows_Processed > ?
                   ORDER BY Executions DESC NULLS LAST",
-         :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+         :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                       {:name=>"Minimale Anzahl geschriebene Rows", :size=>8, :default=>100000, :title=>"Minimale anzahl geschriebene Rows für Aufnahme in Selektion" }]
     },
     {
@@ -2013,7 +2084,7 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                           GROUP BY TRUNC(Begin_Interval_Time, 'HH24'), Instance_Number
                          )
                   ORDER BY 1",
-         :parameter=>[{:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+         :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                       {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }]
      },
     {
@@ -2030,7 +2101,7 @@ Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben
                   ORDER BY ss.Begin_Interval_Time",
          :parameter=>[
              {:name=>"Instance-Number", :size=>8, :default=>1, :title=>"RAC-Instance-Number" },
-             {:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>1, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" }]
+             {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
      },
     ]
   end
@@ -2074,7 +2145,7 @@ Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festge
            ",
            :parameter=>[
                {:name=>"Format picture for TRUNC-function", :size=>8, :default=>"DD", :title=>"Format-picture of TRUNC function (DD=day, HH24=hour etc.)" },
-               {:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>1, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+               {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }
            ]
       },
@@ -2251,7 +2322,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
               ORDER BY \"Duration (Secs.)\" DESC
            ",
            :parameter=>[
-               {:name=>"Betrachtung der Historie rückwärts in Tagen", :size=>8, :default=>1, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie" },
+               {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                {:name=>"Minimale Transaktionsdauer in Sekunden", :size=>8, :default=>300, :title=>"Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion" },
            ]
       },
