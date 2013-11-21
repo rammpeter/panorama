@@ -15,8 +15,8 @@ ssh sbfapp@sbfappserver.ov.otto.de "
   mv Panorama.war Panorama.war.old1 
   mv Panorama.war.new Panorama.war 
   ./start_Panorama_jetty.sh
+  cat /var/opt/panorama/Panorama_jetty.log
 "
 
-sleep 10
 
 open "http://sbfappserver.ov.otto.de:8080/Panorama"

@@ -6,9 +6,9 @@ module DragnetHelper
   def sqls_potential_db_structures
     [
         {
-            :name  => t(:dragnet_helper_1_name, :default=>"Ensure optimal storage parameter for indexes: PCTFree >= 10"),
-            :desc  => t(:dragnet_helper_1_desc, :default=>"Ensure that indexes are used with PCTFree >= 10 (minimum from my experience).
-With PCTFree < 10 (especially = 0) problems with automatic balancing are expected, especially during insert of sorted data"),
+            :name  => t(:dragnet_helper_1_name, :default=> 'Ensure optimal storage parameter for indexes: PCTFree >= 10'),
+            :desc  => t(:dragnet_helper_1_desc, :default=> 'Ensure that indexes are used with PCTFree >= 10 (minimum from my experience).
+With PCTFree < 10 (especially = 0) problems with automatic balancing are expected, especially during insert of sorted data'),
             :sql=> "SELECT /* DB-Tools Ramm Index-PCTFree */* FROM (
                         SELECT Owner, Table_Name, Index_Name, NULL Partition_Name, PCT_Free, Num_Rows
                         FROM DBA_Indexes
@@ -24,15 +24,15 @@ With PCTFree < 10 (especially = 0) problems with automatic balancing are expecte
                     WHERE Num_Rows > ?
                     AND   Owner NOT IN ('SYS', 'SYSTEM', 'SYSMAN')
                     ORDER BY Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=>t(:dragnet_helper_1_param_1_name, :default=>"Threshold for pctfree of index"), :size=>8, :default=>10, :title=>t(:dragnet_helper_1_param_1_hint, :default=>"Selection of indexes underrunning this value for PctFree" )},
-                         {:name=>t(:dragnet_helper_1_param_2_name, :default=>"Threshold for pctfree of index partition"), :size=>8, :default=>10, :title=>t(:dragnet_helper_1_param_2_hint, :default=>"Selection of index partitions underrunning this value for PctFree") },
-                         {:name=>t(:dragnet_helper_1_param_3_name, :default=>"Minumum number of rows"), :size=>15, :default=>100000, :title=>t(:dragnet_helper_1_param_3_hint, :default=>"Minimum number of rows for index") },
+            :parameter=>[{:name=>t(:dragnet_helper_1_param_1_name, :default=> 'Threshold for pctfree of index'), :size=>8, :default=>10, :title=>t(:dragnet_helper_1_param_1_hint, :default=> 'Selection of indexes underrunning this value for PctFree')},
+                         {:name=>t(:dragnet_helper_1_param_2_name, :default=> 'Threshold for pctfree of index partition'), :size=>8, :default=>10, :title=>t(:dragnet_helper_1_param_2_hint, :default=> 'Selection of index partitions underrunning this value for PctFree') },
+                         {:name=>t(:dragnet_helper_1_param_3_name, :default=> 'Minumum number of rows'), :size=>15, :default=>100000, :title=>t(:dragnet_helper_1_param_3_hint, :default=> 'Minimum number of rows for index') },
             ]
         },
         {
-            :name  => t(:dragnet_helper_2_name, :default=>"Ensure optimal storage parameter for indexes: Test for possible index-compression"),
-            :desc  => t(:dragnet_helper_2_desc, :default=>"Index-compression (COMPRESS) is usefull by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
-For poor selective indexes reduction of size by 1/4 to 1/3 is possible."),
+            :name  => t(:dragnet_helper_2_name, :default=> 'Ensure optimal storage parameter for indexes: Test for possible index-compression'),
+            :desc  => t(:dragnet_helper_2_desc, :default=> 'Index-compression (COMPRESS) is usefull by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
+For poor selective indexes reduction of size by 1/4 to 1/3 is possible.'),
             :sql=> "SELECT /* DB-Tools Ramm Komprimierung Indizes */  *
                     FROM (
                                 SELECT ROUND(i.Num_Rows/i.Distinct_Keys) Rows_Per_Key, i.Num_Rows, i.Owner, i.Index_Name, i.Index_Type, i.Table_Owner, i.Table_Name,
@@ -59,15 +59,15 @@ For poor selective indexes reduction of size by 1/4 to 1/3 is possible."),
                     WHERE MBytes > ?
                     AND   Index_Type NOT IN ('BITMAP')
                     ORDER BY NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/Distinct_Keys DESC NULLS LAST",
-            :parameter=>[{:name=>"Min. rows/key", :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_1_hint, :default=>"Minimum number of index rows per DISTINCT Key") },
-                         {:name=>t(:dragnet_helper_2_param_2_name, :default=>"Threshold for index size (MB)"), :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_2_hint, :default=>"Selection of indexes excessing given size limit in MB") },
+            :parameter=>[{:name=> 'Min. rows/key', :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_1_hint, :default=> 'Minimum number of index rows per DISTINCT Key') },
+                         {:name=>t(:dragnet_helper_2_param_2_name, :default=> 'Threshold for index size (MB)'), :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_2_hint, :default=> 'Selection of indexes excessing given size limit in MB') },
             ]
         },
         {
-            :name  => t(:dragnet_helper_3_name, :default=>"Ensure optimal storage parameter for indexes: index-compression, test by leaf-block count"),
-            :desc  => t(:dragnet_helper_3_desc, :default=>"Index-compression (COMPRESS) allows reduction of physical size for OLTP-indexes with low selectivity.
+            :name  => t(:dragnet_helper_3_name, :default=> 'Ensure optimal storage parameter for indexes: index-compression, test by leaf-block count'),
+            :desc  => t(:dragnet_helper_3_desc, :default=> 'Index-compression (COMPRESS) allows reduction of physical size for OLTP-indexes with low selectivity.
 For indexes with low selectivity reduction of index-size by compression can be 1/4 to 1/3.
-For compressed index for one indexed value all links to data blocks should normally fit into one leaf block"),
+For compressed index for one indexed value all links to data blocks should normally fit into one leaf block'),
             :sql=> "SELECT /* DB-Tools Ramm Komprimierung Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
                            ROUND(i.Num_Rows/i.Distinct_Keys) Rows_Per_Key,
                            Avg_Leaf_Blocks_Per_Key, Avg_Data_Blocks_Per_Key, i.Num_Rows, t.IOT_Type
@@ -76,14 +76,14 @@ For compressed index for one indexed value all links to data blocks should norma
                     WHERE  Avg_Leaf_Blocks_Per_Key > ?
                     AND    i.Compression = 'DISABLED'
                     ORDER BY Avg_Leaf_Blocks_Per_Key*Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=>"Min. Leaf-Blocks/Key", :size=>8, :default=>1, :title=>t(:dragnet_helper_3_param_1_hint, :default=>"Minimum number of leaf-blocks / key") },
+            :parameter=>[{:name=> 'Min. Leaf-Blocks/Key', :size=>8, :default=>1, :title=>t(:dragnet_helper_3_param_1_hint, :default=> 'Minimum number of leaf-blocks / key') },
             ]
         },
         {
-            :name  => t(:dragnet_helper_50_name, :default=>"Possibly useful compression of tables"),
-            :desc  => t(:dragnet_helper_50_desc, :default=>"Table compression (COMPRESS FOR xxx) reduces I/O-effort by improvement of cache hit ratio.
+            :name  => t(:dragnet_helper_50_name, :default=> 'Possibly useful compression of tables'),
+            :desc  => t(:dragnet_helper_50_desc, :default=> 'Table compression (COMPRESS FOR xxx) reduces I/O-effort by improvement of cache hit ratio.
                 Decrease in size by 1/3 to 1/2 is possible.
-                Min. 20% decrease of size and relevant I/O should exist to compensate CPU overhead of compression/decompression."),
+                Min. 20% decrease of size and relevant I/O should exist to compensate CPU overhead of compression/decompression.'),
             :sql=> "SELECT /* Panorama-Tool Ramm */
                            Owner, Object_Name, Object_Type, SUM(Samples) \"Anzahl ASH-Samples\", Compression, Compress_For
                     FROM   (SELECT o.Owner, o.Object_Name, o.Object_Type, h.Samples,
@@ -113,12 +113,12 @@ For compressed index for one indexed value all links to data blocks should norma
                     ORDER BY SUM(Samples) DESC
             ",
             :parameter=>[
-                {:name=>"Number of days in history to consider", :size=>8, :default=>2, :title=>"Number of days in history to consider in active session history" },
-                {:name=>"Min. number of samples in ASH", :size=>8, :default=>100, :title=>"Minimum number of samples in active session history" },
+                {:name=> 'Number of days in history to consider', :size=>8, :default=>2, :title=> 'Number of days in history to consider in active session history'},
+                {:name=> 'Min. number of samples in ASH', :size=>8, :default=>100, :title=> 'Minimum number of samples in active session history'},
             ]
         },
         {
-            :name  => t(:dragnet_helper_4_name, :default=>"Avoid data redundancy in primary key index (move to index-organized tables)"),
+            :name  => t(:dragnet_helper_4_name, :default=> 'Avoid data redundancy in primary key index (move to index-organized tables)'),
             :desc  => t(:dragnet_helper_4_desc, :default=>"IOT-structure for tables is recommended if following criterias outbalance to positive side:
 Positive: Saving of disk space and buffer cache space due to omission of table itself
 Positive: Omission of 'table-access by row-id' while accessing data by index, because PKey-index already contains all table data
@@ -151,13 +151,13 @@ Negative: Enlargement of primary key because it contains whole table data"),
                     AND   Owner NOT IN ('SYS')
                     --AND   Anzahl_PKey_Columns>0 /* Wenn Fehlen des PKeys nicht in Frage gestellt werden darf */
                     ORDER BY 1/Num_Rows*(Anzahl_Columns-Anzahl_PKey_Columns+1)*Anzahl_Indizes",
-            :parameter=>[{:name=>"Min. number of rows", :size=>8, :default=>100000, :title=>t(:dragnet_helper_4_param_1_hint, :default=>"Minimum number of rows of index") },]
+            :parameter=>[{:name=> 'Min. number of rows', :size=>8, :default=>100000, :title=>t(:dragnet_helper_4_param_1_hint, :default=> 'Minimum number of rows of index') },]
         },
         {
-            :name  => t(:dragnet_helper_5_name, :default=>"Coverage of foreign-key relations by indexes (detection of potentially missing indexes)"),
-            :desc  => t(:dragnet_helper_5_desc, :default=>"Protection of colums with foreign key references by index can be necessary for:
+            :name  => t(:dragnet_helper_5_name, :default=> 'Coverage of foreign-key relations by indexes (detection of potentially missing indexes)'),
+            :desc  => t(:dragnet_helper_5_desc, :default=> 'Protection of colums with foreign key references by index can be necessary for:
 - Ensure delete performance of referenced table (suppress FullTable-Scan)
-- Supress lock propagation (shared lock on index instead of table)"),
+- Supress lock propagation (shared lock on index instead of table)'),
             :sql=> "SELECT /* DB-Tools Ramm  Index fehlt fuer Foreign Key*/
                            Ref.Owner, Ref.Table_Name, refcol.Column_Name, refcol.Position, reft.Num_Rows Rows_Org,
                            Ref.R_Owner, target.Table_Name Target_Table, Ref.R_Constraint_Name, targett.Num_rows Rows_Target
@@ -176,10 +176,10 @@ Negative: Enlargement of primary key because it contains whole table data"),
                     AND Ref.Owner NOT IN ('SYS', 'SYSTEM', 'PERFSTAT', 'MDSYS', 'SYSMAN', 'OLAPSYS')
                     AND targett.Num_rows > ?
                     ORDER BY targett.Num_rows DESC NULLS LAST, refcol.Position",
-            :parameter=>[{:name=>t(:dragnet_helper_5_param_1_name, :default=>"Min. no. of rows of referenced table"), :size=>8, :default=>1000, :title=>t(:dragnet_helper_5_param_1_hint, :default=>"Minimum number of rows of referenced table") },]
+            :parameter=>[{:name=>t(:dragnet_helper_5_param_1_name, :default=> 'Min. no. of rows of referenced table'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_5_param_1_hint, :default=> 'Minimum number of rows of referenced table') },]
         },
         {
-            :name  => t(:dragnet_helper_6_name, :default=>"Coverage of foreign-key relations by indexes(detection of potentially unnecessary indexes)"),
+            :name  => t(:dragnet_helper_6_name, :default=> 'Coverage of foreign-key relations by indexes(detection of potentially unnecessary indexes)'),
             :desc  => t(:dragnet_helper_6_desc, :default=>"Protection of existing foreign key constraint by index on referencing column may be unnecessary if:
 - there are no physical deletes on referenced table
 - full table scan on referencing table is acceptable during delete on referenced table
@@ -218,13 +218,13 @@ Due to the poor selectivity such indexes are mostly not useful for access optimi
                             WHERE  ri.r_owner = p.Owner AND ri.R_Constraint_Name=p.Constraint_Name
                            ) < ?                      -- Begrenzung auf Anzahl referenzierende Tabellen
                     ORDER BY Rows_Origin DESC NULLS LAST",
-            :parameter=>[{:name=>"Max. Anzahl Rows referenzierte Tabelle", :size=>8, :default=>100, :title=>"Max. Anzahl Rows der referenzierten Tabelle" },
-                         {:name=>"Min. Anzahl Rows referenzierende Tabelle", :size=>8, :default=>100000, :title=>"Mindestanzahl Rows der referenzierenden Tabelle" },
-                         {:name=>"Max. Anzahl referenzierende Tabellen", :size=>8, :default=>20, :title=>"Max. Anzahl referenzierende Tabellen (bei groesserer Anzahl FullScan-Problem bei Delete auf Master)" },
+            :parameter=>[{:name=> 'Max. Anzahl Rows referenzierte Tabelle', :size=>8, :default=>100, :title=> 'Max. Anzahl Rows der referenzierten Tabelle'},
+                         {:name=> 'Min. Anzahl Rows referenzierende Tabelle', :size=>8, :default=>100000, :title=> 'Mindestanzahl Rows der referenzierenden Tabelle'},
+                         {:name=> 'Max. Anzahl referenzierende Tabellen', :size=>8, :default=>20, :title=> 'Max. Anzahl referenzierende Tabellen (bei groesserer Anzahl FullScan-Problem bei Delete auf Master)'},
             ]
         },
         {
-            :name  => t(:dragnet_helper_7_name, :default=>"Detection of unnecessary indexes (indexes not used for access or ensurance of uniqueness)"),
+            :name  => t(:dragnet_helper_7_name, :default=> 'Detection of unnecessary indexes (indexes not used for access or ensurance of uniqueness)'),
             :desc  => t(:dragnet_helper_7_desc, :default=>"Necessity of  existence of indexes may be put into question if these indexes are not used for uniqueness or access optimization.
 However the index may be useful for coverage of foreign key constraints, even if there had been no usage of index in considered time range.
 Ultimate knowledge about usage of index may be gained by tagging index with 'ALTER INDEX ... MONITORING USAGE' and monitoring usage via V$OBJECT_USAGE.
@@ -279,12 +279,12 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
         },
         {
-             :name  => t(:dragnet_helper_14_name, :default=>"Detection of unnecessary indexes: only one ore little key values in index"),
-             :desc  => t(:dragnet_helper_14_desc, :default=>"Indexes with only one or little key values may be unnecessary.
+             :name  => t(:dragnet_helper_14_name, :default=> 'Detection of unnecessary indexes: only one ore little key values in index'),
+             :desc  => t(:dragnet_helper_14_desc, :default=> 'Indexes with only one or little key values may be unnecessary.
                        Exception: Indexes with only one key value may be usefull for differentiation between NULL and NOT NULL.
                        Indexes with only one key value and no NULLs in indexed columns my be definitely removed.
                        If used for ensurance of foreign keys you can often relinquish on these index because resulting FullTableScan on referencing table
-                       in case of delete on referenced table may be accepted."),
+                       in case of delete on referenced table may be accepted.'),
              :sql=> "SELECT /* DB-Tools Ramm Sinnlose Indizes */ i.Owner \"Owner\", i.Table_Name, Index_Name, Index_Type, BLevel, Distinct_Keys,
                             ROUND(i.Num_Rows/i.Distinct_Keys) \"Rows per Key\",
                             i.Num_Rows \"Rows Index\", t.Num_Rows \"Rows Table\", t.Num_Rows-i.Num_Rows \"Possible NULLs\", t.IOT_Type,
@@ -304,15 +304,15 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
                      AND     i.Distinct_Keys<=?
                      ORDER BY i.Num_Rows*t.Num_Rows DESC NULLS LAST
                       ",
-              :parameter=>[{:name=>t(:dragnet_helper_14_param_1_name, :default=>"Min. number of rows in index"), :size=>8, :default=>100000, :title=>t(:dragnet_helper_14_param_1_hint, :default=>"Minimum number of rows in considered index") },
-                           {:name=>t(:dragnet_helper_14_param_2_name, :default=>"Max. number of key values in index"), :size=>8, :default=>1, :title=>t(:dragnet_helper_14_param_2_hint, :default=>"Maximum number of key values in considered index") }
+              :parameter=>[{:name=>t(:dragnet_helper_14_param_1_name, :default=> 'Min. number of rows in index'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_14_param_1_hint, :default=> 'Minimum number of rows in considered index') },
+                           {:name=>t(:dragnet_helper_14_param_2_name, :default=> 'Max. number of key values in index'), :size=>8, :default=>1, :title=>t(:dragnet_helper_14_param_2_hint, :default=> 'Maximum number of key values in considered index') }
               ]
          },
         {
-             :name  => t(:dragnet_helper_8_name, :default=>"Detection of unnecessary indexes: multiple indexed columns"),
-             :desc  => t(:dragnet_helper_8_desc, :default=>"Multiple indexed columns are useful for data access only if additional index-columns improve selectivity of index.
+             :name  => t(:dragnet_helper_8_name, :default=> 'Detection of unnecessary indexes: multiple indexed columns'),
+             :desc  => t(:dragnet_helper_8_desc, :default=> 'Multiple indexed columns are useful for data access only if additional index-columns improve selectivity of index.
              Indexing on column that is already indexed as first column of another multi-column index is often unnecessary, e.g. for coverage of foreign key.
-             Otherwise multiple indexing same column in different composite indexes may be used for optimization of joins or for access on table data without accessing table itself."),
+             Otherwise multiple indexing same column in different composite indexes may be used for optimization of joins or for access on table data without accessing table itself.'),
              :sql=> "SELECT /* DB-Tools Ramm doppelt indizierte Spalten*/ d.*, i.Index_Name, ix.Num_Rows,
                                    (
                                                       SELECT Constraint_Name
@@ -353,10 +353,10 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
                       AND        d.Table_Owner NOT IN ('SYSMAN','SYS', 'XDB', 'SYSTEM')
                       ORDER BY ix.Num_Rows DESC NULLS LAST
                       ",
-              :parameter=>[{:name=>"Minmale Anzahl Rows des Index", :size=>8, :default=>100000, :title=>"Minimale Anzahl Rows des Index für Berücksichtigung in Auswertung" }]
+              :parameter=>[{:name=> 'Minmale Anzahl Rows des Index', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows des Index für Berücksichtigung in Auswertung'}]
          },
         {
-             :name  => t(:dragnet_helper_9_name, :default=>"Detection of unnecessary indexes: unused indexes detected by system monitoring"),
+             :name  => t(:dragnet_helper_9_name, :default=> 'Detection of unnecessary indexes: unused indexes detected by system monitoring'),
              :desc  => t(:dragnet_helper_9_desc, :default=>"DB monitors usage (access) on indexes if declared so before by 'ALTER INDEX ... MONITORING USAGE'.
 Results of usage monitoring can be queried from v$Object_Usage but only for current schema.
 Over all schemas usage can be monitored with following SQL.
@@ -380,12 +380,12 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                       WHere Used='NO' AND Monitoring='YES'
                       AND i.Num_Rows > ?
                       ORDER BY i.Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Tage rückwärts ohne Nutzung",    :size=>8, :default=>7,   :title=>"Anzahl Tage, die der Start_Monitoring-Zeitstempel ungenutzter Indizes alt sein muss" },
-                          {:name=>"Minimale Anzahl Rows des Index", :size=>8, :default=>100, :title=>"Minimale Anzahl Rows des Index für Aufnahme in Selektion" }
+             :parameter=>[{:name=> 'Tage rückwärts ohne Nutzung',    :size=>8, :default=>7,   :title=> 'Anzahl Tage, die der Start_Monitoring-Zeitstempel ungenutzter Indizes alt sein muss'},
+                          {:name=> 'Minimale Anzahl Rows des Index', :size=>8, :default=>100, :title=> 'Minimale Anzahl Rows des Index für Aufnahme in Selektion'}
              ]
          },
         {
-             :name  => t(:dragnet_helper_10_name, :default=>"Detection of unnecessary indexes: indexes with unnecessary columns because of pure selectivity"),
+             :name  => t(:dragnet_helper_10_name, :default=> 'Detection of unnecessary indexes: indexes with unnecessary columns because of pure selectivity'),
              :desc  => t(:dragnet_helper_10_desc, :default=>"For multi-column indexes with high selectivity of single columns often additional columns in index don't  improve selectivity of that index.
 Additional columns with low selectivity are useful only if:
 - they essentially improve selectivity of whole index
@@ -430,15 +430,15 @@ This selection already suppresses indexes used for elimination of 'table access 
                         WHERE  o.Owner NOT IN ('SYS', 'OLAPSYS', 'SYSMAN', 'WMSYS', 'CTXSYS')
                         AND    Num_Rows > ?
                         ORDER BY Max_Num_Distinct / Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Größte Selektivität eines Feldes des Index > 1/x der Anzahl Rows ", :size=>8, :default=>4, :title=>"Anzahl DISTINCT-Werte des Index-Feldes mit der größten Selektivität ist > 1/x der Anzahl Rows des Index" },
-                          {:name=>"Minimale Anzahl Rows des Index", :size=>8, :default=>100000, :title=>"Minimale Anzahl Rows des Index für Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Größte Selektivität eines Feldes des Index > 1/x der Anzahl Rows ', :size=>8, :default=>4, :title=> 'Anzahl DISTINCT-Werte des Index-Feldes mit der größten Selektivität ist > 1/x der Anzahl Rows des Index'},
+                          {:name=> 'Minimale Anzahl Rows des Index', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows des Index für Aufnahme in Selektion'}]
          },
         {
-             :name  => t(:dragnet_helper_11_name, :default=>"Partitioning of indexes:Local-partitioning for NonUnique-indexes"),
-             :desc  => t(:dragnet_helper_11_desc, :default=>"Indexes of partitioned tables may be equal partitioned (LOCAL), especially if partitioning physically isolates different data content of table.
+             :name  => t(:dragnet_helper_11_name, :default=> 'Partitioning of indexes:Local-partitioning for NonUnique-indexes'),
+             :desc  => t(:dragnet_helper_11_desc, :default=> 'Indexes of partitioned tables may be equal partitioned (LOCAL), especially if partitioning physically isolates different data content of table.
 Partitioning of indexes may also reduce BLevel of index.
 For unique indexes this is only true if partition key is equal with first column(s) of index.
-Negative aspect is multiple access on every partition of index if partition key is not the same like indexed column(s) and partition key is not part of WHERE-filter."),
+Negative aspect is multiple access on every partition of index if partition key is not the same like indexed column(s) and partition key is not part of WHERE-filter.'),
              :sql=> "SELECT /* DB-Tools Local-Partitionierung*/
                              i.Owner, i.Table_Name, i.Index_Name,
                              i.Num_Rows , i.Distinct_Keys
@@ -459,7 +459,7 @@ Negative aspect is multiple access on every partition of index if partition key 
                       ORDER BY i.Num_Rows DESC NULLS LAST",
          },
         {
-             :name  => t(:dragnet_helper_12_name, :default=>"Partitioning of indexes:Local-partitioning of unique indexes with partition-key = index-column"),
+             :name  => t(:dragnet_helper_12_name, :default=> 'Partitioning of indexes:Local-partitioning of unique indexes with partition-key = index-column'),
              :desc  => t(:dragnet_helper_12_desc, :default=>"Unique indexes may be local partitioned if partition key is in identical order leading part of index.
 This way partition pruning ay be used for access on unique indexes plus possible decrease of index' BLevel."),
              :sql=> "SELECT /* DB-Tools Ramm Partitionierung Unique Indizes */
@@ -487,10 +487,10 @@ This way partition pruning ay be used for access on unique indexes plus possible
                       ORDER BY t.Num_Rows DESC NULLS LAST",
          },
         {
-             :name  => t(:dragnet_helper_13_name, :default=>"Partitioning of indexes:Local-partitioning with overhead in access"),
-             :desc  => t(:dragnet_helper_13_desc, :default=>"Local partitioning by not indexed columns leads to iterative access on all partitions of index during range scan or unique scan.
+             :name  => t(:dragnet_helper_13_name, :default=> 'Partitioning of indexes:Local-partitioning with overhead in access'),
+             :desc  => t(:dragnet_helper_13_desc, :default=> 'Local partitioning by not indexed columns leads to iterative access on all partitions of index during range scan or unique scan.
 For frequently used indexes with high partition count this may result in unnecessary high access on database buffers.
-Solution for such situations is global (not) partitioning of index."),
+Solution for such situations is global (not) partitioning of index.'),
              :sql=> "SELECT /* DB-Tools Ramm: mehrfach frequentierte Hash-Partitions */ i.Owner, i.Index_Name, i.Index_Type,
                              i.Table_Name, pl.Executions, pl.Rows_Processed, i.Num_Rows,
                              p.Partitioning_Type, c.Column_Position, c.Column_Name Part_Col, ic.Column_Name Ind_Col,
@@ -515,10 +515,10 @@ Solution for such situations is global (not) partitioning of index."),
                       ORDER BY pl.Rows_Processed DESC NULLS LAST, pl.Executions DESC NULLS LAST, i.Num_Rows DESC NULLS LAST",
          },
         {
-             :name  => "Ermittlung nicht genutzter Tabellen",
-             :desc  => "Für niemals für Selektionen genutzte Tabellen kann kritisch die Daseinsberechtigung hinterfragt werden.
+             :name  => 'Ermittlung nicht genutzter Tabellen',
+             :desc  => 'Für niemals für Selektionen genutzte Tabellen kann kritisch die Daseinsberechtigung hinterfragt werden.
 Dies beinhaltet auch Tabellen, die zwar geschrieben aber nie gelesen werden.
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm Nicht genutzte Tabellen */ o.*, sz.MBytes
                       FROM ( SELECT /*+ NO_MERGE */ 'TABLE' Object_Type, Owner, Table_Name Object_Name
                              FROM   DBA_Tables
@@ -559,15 +559,15 @@ Dies beinhaltet auch Tabellen, die zwar geschrieben aber nie gelesen werden.
                       AND    used.Object_Name IS NULL
                       AND    o.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS', 'OUTLN', 'MDSYS', 'OLAPSYS', 'EXFSYS', 'DBSNMP', 'SYSMAN', 'XDB', 'CTXSYS', 'DMSYS')
                       ORDER BY sz.MBytes DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der AWR-Historie für SQL rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Match im SQL-Text" },
-                          {:name=>"Betrachtung der AWR-Historie für Plan rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Vorkommen im Explain-Plan" }]
+             :parameter=>[{:name=> 'Betrachtung der AWR-Historie für SQL rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Match im SQL-Text'},
+                          {:name=> 'Betrachtung der AWR-Historie für Plan rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Vorkommen im Explain-Plan'}]
          },
         {
-             :name  => "Ermittlung nicht genutzter Objekte:Fehlendes Housekeeping bei Massendaten",
-             :desc  => "In vielen Konstellationen ist wichtig, nicht mehr produktive Altdaten auch wieder aus dem System zu entfernen.
+             :name  => 'Ermittlung nicht genutzter Objekte:Fehlendes Housekeeping bei Massendaten',
+             :desc  => 'In vielen Konstellationen ist wichtig, nicht mehr produktive Altdaten auch wieder aus dem System zu entfernen.
 Bei größerem Abstand der Ermittlung von analyze-Info hilft u.g. Statement zum Ermitteln von Lücken im Housekeeping.
 Es werden ausgewiesen die Inserts und Updates seit der letzten Tabellen-Analyse für Tabellen ohne Deletes.
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm Housekeeping*/
                              m.Table_Owner, m.Table_Name, m.TimeStamp, t.Last_analyzed,
                              ROUND(m.Timestamp - t.Last_Analyzed, 2) Tage_nach_Analyze,
@@ -583,11 +583,11 @@ Es werden ausgewiesen die Inserts und Updates seit der letzten Tabellen-Analyse 
                       ORDER BY m.Inserts+m.Updates+m.Deletes DESC NULLS LAST",
          },
         {
-             :name  => "Ermittlung nicht genutzter Spalten (NULL)",
-             :desc  => "Ungenutzte Spalten, die nur NULL-Werte enthalten, können möglicherweise entfernt werden.
+             :name  => 'Ermittlung nicht genutzter Spalten (NULL)',
+             :desc  => 'Ungenutzte Spalten, die nur NULL-Werte enthalten, können möglicherweise entfernt werden.
 Jede NULL-Spalte eines Records belegt ein Byte, wenn nicht alle nachfolgenden Spalten auch NULL sind.
 Ab 11g können statt dessen virtuelle Spalten definiert werden, wenn Struktur fest vorausgesetzt wird (SAP ??).
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm  Spalten mit komplett  NULL-Values */
                              c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct
                       FROM   DBA_Tab_Columns c
@@ -598,9 +598,9 @@ Ab 11g können statt dessen virtuelle Spalten definiert werden, wenn Struktur fe
                       ORDER BY t.Num_Rows DESC NULLS LAST",
          },
         {
-             :name  => "Ermittlung wenig aussagefähiger Spalten",
-             :desc  => "Für Spalten mit wenigen DISTINCT-Werten kann Sinn hinterfragt werden, evtl. redundante Aussage zu weiteren Spalten der Tabelle, die in Stammdaten hinter n:1-Relationen verlagert werden kann (Normalisierung)
-",
+             :name  => 'Ermittlung wenig aussagefähiger Spalten',
+             :desc  => 'Für Spalten mit wenigen DISTINCT-Werten kann Sinn hinterfragt werden, evtl. redundante Aussage zu weiteren Spalten der Tabelle, die in Stammdaten hinter n:1-Relationen verlagert werden kann (Normalisierung)
+',
              :sql=> "SELECT /* DB-Tools Ramm Spalten mit wenig Distinct-Values */
                              c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct,
                              ROUND((c.Avg_Col_Len*(Num_Rows-Num_Nulls)+Num_Nulls)/(1024*1024),2) Megabyte
@@ -610,23 +610,23 @@ Ab 11g können statt dessen virtuelle Spalten definiert werden, wenn Struktur fe
                       AND    NVL(t.Num_Rows,0) > ?
                       AND    c.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS')
                       ORDER BY c.Num_Distinct, t.Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Minimale Anzahl Rows in Table", :size=>8, :default=>100000, :title=>"Minimale Anzahl Rows in Table für Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Minimale Anzahl Rows in Table', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows in Table für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Unused gesetzte jedoch nicht gelöschte Spalten",
-             :desc  => "Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
-",
-             :sql=> "SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
+             :name  => 'Unused gesetzte jedoch nicht gelöschte Spalten',
+             :desc  => 'Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
+',
+             :sql=> 'SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
                       FROM   DBA_Unused_Col_Tabs cs
                       JOIN   DBA_Tables t ON t.Owner = cs.Owner AND t.Table_Name = cs.Table_Name
-                      ORDER BY t.Num_Rows*cs.Count DESC NULLS LAST",
+                      ORDER BY t.Num_Rows*cs.Count DESC NULLS LAST',
          },
         {
-             :name  => "Ermittlung von chained rows",
-             :desc  => "chained rows verursachen das Nachlesen von Migrationsblöcken bei Zugriff auf einen Record, der nicht vollständig im aktuellen Block enthalten ist.
+             :name  => 'Ermittlung von chained rows',
+             :desc  => 'chained rows verursachen das Nachlesen von Migrationsblöcken bei Zugriff auf einen Record, der nicht vollständig im aktuellen Block enthalten ist.
 Durch Anpassen PCTFREE sowie Reorganisation der betroffenen Tabelle lassen sich chained rows vermeiden.
 
-Die Selektion ist nicht direkt ausführbar. Bitte PL/SQL-Code kopieren und extern in SQL*Plus ausführen !!!",
+Die Selektion ist nicht direkt ausführbar. Bitte PL/SQL-Code kopieren und extern in SQL*Plus ausführen !!!',
              :sql=> "
 SET SERVEROUT ON;
 
@@ -689,7 +689,7 @@ END;
              ",
          },
         {
-             :name  => "Dropped tables in recycle bin",
+             :name  => 'Dropped tables in recycle bin',
              :desc  => "Use 'PURGE RECYCLEBIN' to free space of dropped tables from recycle bin",
              :sql=> "SELECT /* Panorama-Tool Ramm */ *
                       FROM   DBA_Tables
@@ -706,10 +706,10 @@ END;
   def sqls_wrong_execution_plan
     [
         {
-             :name  => "Optimierbare IndexFullScan-Operationen",
-             :desc  => "IndexFullScan-Operationen auf großen Indizes können oftmals erfolgreich auf parallelen DirectRead per IndexFastFullScan umgesetzt werden, wenn die Sortierung des Index für das Result nicht relevant ist.
+             :name  => 'Optimierbare IndexFullScan-Operationen',
+             :desc  => 'IndexFullScan-Operationen auf großen Indizes können oftmals erfolgreich auf parallelen DirectRead per IndexFastFullScan umgesetzt werden, wenn die Sortierung des Index für das Result nicht relevant ist.
 Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die Hints /*+ PARALLEL_INDEX(Alias, Degree) INDEX_FFS(Alias) */ zu verwenden.
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm IndexFullScan */ * FROM (
                       SELECT p.SQL_ID, s.Parsing_Schema_Name, p.Object_Owner, p.Object_Name,
                              (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name
@@ -747,10 +747,10 @@ Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die 
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Optimierbare FullTableScan-OperationenFull-Table-Scans nach Executions",
-             :desc  => "FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
+             :name  => 'Optimierbare FullTableScan-OperationenFull-Table-Scans nach Executions',
+             :desc  => 'FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
 Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm FullTableScan */ p.SQL_ID, p.Object_Owner, p.Object_Name,
                               (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name) Num_Rows,
                               s.Elapsed_Secs, s.Executions, s.Disk_Reads, s.Buffer_Gets, s.Rows_Processed,
@@ -781,15 +781,15 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                              HAVING SUM(Executions_Delta) > ?  -- Nur vielfache Ausfuehrung mit Full Scan stellt Problem dar
                             ) s ON s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                       ORDER BY Executions*Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Betrachtung der Historie Execution Plan rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein" },
-                          {:name=>"Betrachtung der SQL-Ausführungs-Historie rückwärts in Tagen", :size=>8, :default=>8, :title=>"Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein" },
-                          {:name=>"Minmale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Betrachtung der Historie Execution Plan rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein'},
+                          {:name=> 'Betrachtung der SQL-Ausführungs-Historie rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein'},
+                          {:name=> 'Minmale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Optimierbare FullTableScan-Operationen:Full-Table-Scans nach Executions und Rows_Processed",
-             :desc  => "FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
+             :name  => 'Optimierbare FullTableScan-Operationen:Full-Table-Scans nach Executions und Rows_Processed',
+             :desc  => 'FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
 Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
-",
+',
              :sql=> "SELECT /* DB-Tools Ramm FullTableScans */ * FROM (
                             SELECT i.SQL_ID, i.Object_Owner, i.Object_Name, ROUND(i.Rows_Processed/i.Executions,2) Rows_per_Exec,
                                    i.Num_Rows, i.Elapsed_Time_Secs, i.Executions, i.Disk_Reads, i.Buffer_Gets, i.Rows_Processed,
@@ -821,12 +821,12 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                      WHERE  SQL_Text NOT LIKE '%dbms_stats%'
                      ORDER BY Rows_per_Exec/Num_Rows/Executions",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Minmale Anzahl Rows der Tabelle",             :size=>8, :default=>100, :title=>"Minimale Anzahl Rows der Tabelle für Aufnahme in Selektion" },
-                          {:name=>"Minmale Anzahl Executions",                   :size=>8, :default=>100, :title=>"Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion" }]
+                          {:name=> 'Minmale Anzahl Rows der Tabelle',             :size=>8, :default=>100, :title=> 'Minimale Anzahl Rows der Tabelle für Aufnahme in Selektion'},
+                          {:name=> 'Minmale Anzahl Executions',                   :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Optimierbare FullTableScan-Operationen:Lang laufende Foreign-Key-Prüfungen bei Delete",
-             :desc  => "Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung verursacht.",
+             :name  => 'Optimierbare FullTableScan-Operationen:Lang laufende Foreign-Key-Prüfungen bei Delete',
+             :desc  => 'Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung verursacht.',
              :sql=>  "SELECT /*+ USE_NL(s t) */ t.SQL_Text Full_SQL_Text,
                              TO_CHAR(SUBSTR(t.SQL_Text, 1, 40)) SQL_Text,
                              s.*
@@ -862,7 +862,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Übermäßige Anzahl Zugriffe auf Cache-Buffer",
+             :name  => 'Übermäßige Anzahl Zugriffe auf Cache-Buffer',
              :desc  => "Zugriffe auf DB-Blöcke im Cache der DB (db-block-gets, consistent reads) werden dann kritisch hinsichtlich des provozierens von 'cache buffers chains'-Latchwaits wenn:
 - in massiver Häufigkeit auf einige wenige Blöcke lesend oder schreibend zugegriffen wird (HotBlocks im Buffer-Cache)
 - exorbitant viele Blöcke gelesen werden (kritsch selbst dann wenn diese weit verteilt im Cache liegen und keine HotBlocks bilden)
@@ -912,14 +912,14 @@ Für beide Konstellationen lassen sich problematische Statements identifizieren
                       ORDER BY \"max. BufferGets betw.snapshots\" DESC NULLS LAST
                       ) WHERE RowNum<?",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Maximale Anzahl Rows", :size=>8, :default=>100, :title=>"Maximale Anzahl Rows für Aufnahme in Selektion" }]
+                          {:name=> 'Maximale Anzahl Rows', :size=>8, :default=>100, :title=> 'Maximale Anzahl Rows für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Statements mit unnötig hoher Ausführungszahl: Zugriff auf kleine Objekte",
-             :desc  => "Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
+             :name  => 'Statements mit unnötig hoher Ausführungszahl: Zugriff auf kleine Objekte',
+             :desc  => 'Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
 Damit reduziert sich CPU-Belastung und Gefahr von „Cache Buffers Chains“ Latch-Waits.
 Ab 11g können stored functions mit function result caching für diesen Zweck genutzt werden.
-",
+',
              :sql=>  "SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
                       FROM  (
                                SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_number \"Instance\",
@@ -962,14 +962,14 @@ Ab 11g können stored functions mit function result caching für diesen Zweck ge
                       WHERE Owner NOT IN ('SYS')
                       ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Minimale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions für Aufnahme in Selektion" }]
+                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA",
-             :desc  => "Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
+             :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA',
+             :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
 Damit moderate Reduktion von CPU-Belastung und Laufzeit
-",
-             :sql=>  "SELECT * FROM (
+',
+             :sql=> 'SELECT * FROM (
                               SELECT Inst_ID, Parsing_Schema_Name, Module,
                                      SQL_ID, Executions, Fetches, End_Of_Fetch_Count,Rows_Processed,
                                      ROUND(Rows_Processed/Executions,2) Rows_per_Exec,
@@ -983,14 +983,14 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                               AND    Executions > 0
                               AND    Rows_Processed > 0
                               )
-                              ORDER BY Additional_Fetches DESC NULLS LAST",
+                              ORDER BY Additional_Fetches DESC NULLS LAST',
          },
         {
-             :name  => "Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWR-Historie",
-             :desc  => "Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
+             :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWR-Historie',
+             :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
 Damit moderate Reduktion von CPU-Belastung und Laufzeit
-",
-             :sql=>  "SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
+',
+             :sql=> 'SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
                       FROM (
                       SELECT s.Instance_Number Instance, s.DBID, Parsing_Schema_Name, Module,
                              SQL_ID, SUM(Executions_Delta) Executions, SUM(Fetches_Delta) Fetches,
@@ -1009,14 +1009,14 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                       AND    SUM(Executions_Delta) > 0
                       AND    SUM(Rows_Processed_Delta) > 0
                       ) s
-                      ORDER BY Additional_Fetches DESC NULLS LAST",
+                      ORDER BY Additional_Fetches DESC NULLS LAST',
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Statements mit unnötig hoher Ausführungszahl: Unnötig hohe Execute-Anzahl wegen fehlender Array-Verarbeitung",
-             :desc  => "Bei geringer Anzahl Rows je Execution und hoher Execution-Zahl lohnt sich die Bündelung von Schreibzugriffen in Array-Operationen bzw. PL/SQL-FORALL-Operationen wenn sie in selber Transaktion stattfinden.
+             :name  => 'Statements mit unnötig hoher Ausführungszahl: Unnötig hohe Execute-Anzahl wegen fehlender Array-Verarbeitung',
+             :desc  => 'Bei geringer Anzahl Rows je Execution und hoher Execution-Zahl lohnt sich die Bündelung von Schreibzugriffen in Array-Operationen bzw. PL/SQL-FORALL-Operationen wenn sie in selber Transaktion stattfinden.
 Damit moderate Reduktion von CPU-Belastung und Laufzeit.
-",
+',
              :sql=>  "SELECT /* DB-Tools Ramm: Buendelbare Einzeilsatz-Executes */ s.SQL_ID, s.Instance_Number Instance, Parsing_Schema_Name,
                              SUM(s.Executions_Delta) Executions,
                              ROUND(SUM(s.Elapsed_Time_Delta)/1000000) Elapsed_Time_Secs,
@@ -1036,10 +1036,10 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit.
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Unnötige Ausführung von StatementsSelects/Updates/Deletes ohne Treffer",
-             :desc  => "Für Select- / Update- / Delete-Statements, deren Zugriffskriterien niemals zu Treffern führen, kann evtl. die Sinnfrage gestellt werden.
+             :name  => 'Unnötige Ausführung von StatementsSelects/Updates/Deletes ohne Treffer',
+             :desc  => 'Für Select- / Update- / Delete-Statements, deren Zugriffskriterien niemals zu Treffern führen, kann evtl. die Sinnfrage gestellt werden.
 Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer das erwartete und zu testende Resultat ist.
-",
+',
              :sql=>  "SELECT /*+ USE_NL(t)  “DB-Tools Ramm Ohne Result */ s.*, t.SQL_Text \"SQL-Text\"
                       FROM  (
                                SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, s.Instance_number \"Instance\",
@@ -1074,11 +1074,11 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                              )
                       ORDER BY s.\"Elapsed Time (Sec)\" DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Minimale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions für Aufnahme in Selektion" }]
+                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung SGA)",
-             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.",
+             :name  => 'Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung SGA)',
+             :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
              :sql=>  "SELECT Inst_ID, SQL_ID, ROUND(Elapsed_Time/1000000,2) Elapsed_Time_Secs, Executions,
                        Rows_Processed, ROUND(Elapsed_Time/1000000/DECODE(Rows_Processed,0,1,Rows_Processed),4) Secs_per_row,
                        SQL_FullText
@@ -1091,8 +1091,8 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                       ORDER BY Elapsed_Time/DECODE(Rows_Processed,0,1,Rows_Processed) DESC NULLS LAST",
          },
         {
-             :name  => "Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung AWR-Historie)",
-             :desc  => "Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.",
+             :name  => 'Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung AWR-Historie)',
+             :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
              :sql=>  "SELECT SQL_ID, Executions, Elapsed_Time_Secs, Rows_Processed,
                              ROUND(Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed),4) Secs_Per_Row, SQL_Text
                       FROM (
@@ -1117,8 +1117,8 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Langlaufende Statements ohne Nutzung Parallel Query (Auswertung SGA)",
-             :desc  => "Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.",
+             :name  => 'Langlaufende Statements ohne Nutzung Parallel Query (Auswertung SGA)',
+             :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query\"*/
                              s.Inst_ID, s.SQL_ID,
                              ROUND(s.Elapsed_Time/10000)/100 Elapsed_Time_Sec,
@@ -1137,11 +1137,11 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                       AND   s.SQL_ID  = p.SQL_ID
                       AND   s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) > ? * 1000000 /* > 10 Sekunden */
                       ORDER BY s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) DESC NULLS LAST",
-             :parameter=>[{:name=>"Minimale elapsed time/Execution", :size=>8, :default=>20, :title=>"Minimale elapsed time per execution für Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Minimale elapsed time/Execution', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)",
-             :desc  => "Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.",
+             :name  => 'Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)',
+             :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query aus Historie\"*/
                              s.*,
                              s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) Elapsed_time_Sec_Per_Exec,
@@ -1166,13 +1166,13 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                       WHERE  s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) > ? /* > 50 Sekunden */
                       ORDER BY s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Minimale elapsed time/Execution", :size=>8, :default=>20, :title=>"Minimale elapsed time per execution für Aufnahme in Selektion" }]
+                          {:name=> 'Minimale elapsed time/Execution', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung SGA)",
-             :desc  => "Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
+             :name  => 'Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung SGA)',
+             :desc  => 'Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
 Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
-Selektion beleuchtet die aktuelle SGA.",
+Selektion beleuchtet die aktuelle SGA.',
              :sql=>  "SELECT /*+ \"DBTools Ramm Nichtparallel Anteile bei PQ\" */ p.*,
                              s.Last_active_Time,
                              s.Executions,
@@ -1210,10 +1210,10 @@ Selektion beleuchtet die aktuelle SGA.",
                       ORDER BY Num_Rows DESC NULLS LAST",
          },
         {
-             :name  => "Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung AWR-Historie)",
-             :desc  => "Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
+             :name  => 'Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung AWR-Historie)',
+             :desc  => 'Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
 Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
-Selektion beleuchtet die AWR-Historie.",
+Selektion beleuchtet die AWR-Historie.',
              :sql=>  "SELECT /* DB-Tools Ramm Nichparallel Anteile bei PQ */ * FROM (
                       SELECT /*+ NO_MERGE */ x.*, ps.Operation, ps.Options, ps.Object_Type, ps.Object_Owner, ps.Object_Name,
                              CASE
@@ -1257,9 +1257,9 @@ Selektion beleuchtet die AWR-Historie.",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Probleme bei Nutzung Parallel Query: Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE",
-             :desc  => "Nicht per PARALLEL_ENABLE zur parallelen Verarbeitung zugelassene stored functions führen zur Serialisierung der Verarbeitung bei Verwendung der Parallel Query-Option im Statement.
-Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.",
+             :name  => 'Probleme bei Nutzung Parallel Query: Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE',
+             :desc  => 'Nicht per PARALLEL_ENABLE zur parallelen Verarbeitung zugelassene stored functions führen zur Serialisierung der Verarbeitung bei Verwendung der Parallel Query-Option im Statement.
+Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.',
              :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
                       ProcLines AS (
                               SELECT /*+ NO_MERGE MATERIALIZE */ p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type
@@ -1309,7 +1309,7 @@ Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu 
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen",
+             :name  => 'Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen',
              :desc  => "Teile von parallel verarbeiteten Statements können trotzdem seriell abgearbeitet werden und die Ergebnisse des Teilschrittes werden per Broadcast parallelisiert.
 Für kleinere Datenstrukturen ist dies oft so gewollt, für größere Datenstrukturen fehlen möglicherweise PARALLEL-Anweisungen.
 Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.",
@@ -1358,10 +1358,10 @@ Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Identifikation von Statements mit wechselndem Ausführungsplan aus Historie",
-             :desc  => "mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
+             :name  => 'Identifikation von Statements mit wechselndem Ausführungsplan aus Historie',
+             :desc  => 'mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
 Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
-",
+',
              :sql=>  "SELECT SQL_ID, Plan_Variationen \"Plan count\",
                              ROUND(Elapsed_Time_Secs_First_Plan) \"Elapsed time (sec.) first plan\",
                              Executions_First_Plan \"Execs. first plan\",
@@ -1404,10 +1404,10 @@ Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Nested-Loop-Join auf große Tabellen mit großem Result des SQL (Test per SGA-Statement-Cache)",
-             :desc  => "Oft ausgeführte Nested-Loop-Operationen auf große (schwer zu cachende) Tabellen können Laufzeit-Treiber sein.
+             :name  => 'Nested-Loop-Join auf große Tabellen mit großem Result des SQL (Test per SGA-Statement-Cache)',
+             :desc  => 'Oft ausgeführte Nested-Loop-Operationen auf große (schwer zu cachende) Tabellen können Laufzeit-Treiber sein.
 Für die angelisteten Statements ist die Variante „Hash-Join“ zu untersuchen.
-Statement für jede RAC-Instanz einzeln ausführen, da sonst utopische Laufzeit bei Zugriff auf GV$-Tabellen.",
+Statement für jede RAC-Instanz einzeln ausführen, da sonst utopische Laufzeit bei Zugriff auf GV$-Tabellen.',
              :sql=>  "SELECT /* DB-Tools Ramm Nested Loop auf grossen Tabellen */ * FROM (
                       SELECT /*+ PARALLEL(p,2) PARALLEL(s,2) */
                              s.SQL_FullText, p.SQL_ID, p.Plan_Hash_Value, p.operation, p.Object_Type,  p.options, p.Object_Name,
@@ -1449,13 +1449,13 @@ Statement für jede RAC-Instanz einzeln ausführen, da sonst utopische Laufzeit 
                                              AND s.Rows_Processed/DECODE(s.Executions,0,1,s.Executions) > ? -- Schwellwert fuer mgl. Ineffizienz NestedLoop
                       )
                       ORDER BY Rows_Per_Execution*Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>"Minimale Anzahl Rows processed / Execution", :size=>8, :default=>100000, :title=>"Minimale Anzahl Rows processed / Execution als Schwellwert fuer mgl. Ineffizienz NestedLoop" }]
+             :parameter=>[{:name=> 'Minimale Anzahl Rows processed / Execution', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows processed / Execution als Schwellwert fuer mgl. Ineffizienz NestedLoop'}]
          },
         {
-             :name  => "Iteration im Nested-Loop-Join gegen Full-Scan-Operation ",
-             :desc  => "Vielfache Ausführung von Full-Scan Operationen per Iteration in Nested Loop Join kann zu exorbitanten Blockzugriffen führen und damit  massiv CPU und I/O-Ressourcen beanspruchen sowie Cache Buffers Chains Latch-Waits provozieren.
+             :name  => 'Iteration im Nested-Loop-Join gegen Full-Scan-Operation ',
+             :desc  => 'Vielfache Ausführung von Full-Scan Operationen per Iteration in Nested Loop Join kann zu exorbitanten Blockzugriffen führen und damit  massiv CPU und I/O-Ressourcen beanspruchen sowie Cache Buffers Chains Latch-Waits provozieren.
 Legitim ist ein solcher Zugriff allerdings, wenn steuerndes Result des Nested Loop einen oder wenige Records liefert.
-Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.",
+Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.',
              :sql=>  "SELECT p.Inst_ID, p.SQL_ID, s.Executions, s.Elapsed_Time/1000000 Elapsed_time_Secs, p.Child_Number, p.Plan_Hash_Value,
                              p.Operation, p.Options, p.Object_Owner, Object_Name, p.ID, s.SQL_FullText
                       FROM   (
@@ -1493,12 +1493,12 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
                       ORDER BY Elapsed_Time DESC NULLS LAST",
          },
          {
-             :name  => "Implizite Konvertierungen per INTERNAL_FUNCTION",
-             :desc  => "Auslöser von impliziten Typ-Konvertierungen ist oftmals versehentlich mit falschem Typ gebundene Bindevariable.
+             :name  => 'Implizite Konvertierungen per INTERNAL_FUNCTION',
+             :desc  => 'Auslöser von impliziten Typ-Konvertierungen ist oftmals versehentlich mit falschem Typ gebundene Bindevariable.
 Die Konvertierung verursacht möglicherweise unnötig CPU-Last auf der DB-Maschine.
 Durch die Ansprache der Spalte per INTERNAL_FUNCTION statt direkt wird die mögliche Nutzung von Indizes für den Zugriff verhindert.
 In diesen Fällen sollte tunlichst der entsprechende Datentyp für die Variablenbindung verwendet werden.
-Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.",
+Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(p s) */
                               SQL_FullText, s.SQL_ID,
                               s.Elapsed_Time/1000000 Elasped_Secs,
@@ -1511,10 +1511,10 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
              ",
          },
          {
-             :name  => "Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)",
-             :desc  => "Die Abfrage mit IS NULL führt oftmals zu FullTableScan obwohl evtl. nur wenige NULL-Records selektiert werden.
+             :name  => 'Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)',
+             :desc  => 'Die Abfrage mit IS NULL führt oftmals zu FullTableScan obwohl evtl. nur wenige NULL-Records selektiert werden.
 Lösung kann sein: Indizierung des mit IS NULL abgefragten Feldes durch speziellen Index, der auch NULL-Values enthält.
-Beispiel: INDEX(Column,0)",
+Beispiel: INDEX(Column,0)',
              :sql=>  "SELECT p.Inst_ID, p.SQL_ID, MIN(h.Sample_Time) First_Occurrence, MAX(h.Sample_Time) Last_Occurrence, COUNT(*) Wait_Time_Secs,
                              p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
                       FROM   gv$SQL_Plan p
@@ -1604,7 +1604,7 @@ Results are from DBA_Hist_SQL_Plan'),
   def dragnet_sqls_tuning_sga_pga
       [
         {
-             :name  => "Identifikation von HotBlocks im DB-Cache:Viele Zugriffe auf kleine Objekte",
+             :name  => 'Identifikation von HotBlocks im DB-Cache:Viele Zugriffe auf kleine Objekte',
              :desc  => "Statements mit hochfrequent gelesenen Blöcken im DB-Cache laufen Gefahr, durch 'cache buffers chains'-LatchWaits ausgebremst zu werden.
 Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältnis zur Größe (viele Zugriffe auf wenige Blöcke).",
              :sql=>  "SELECT /* DB-Tools Ramm Hot-Blocks im DB-Cache */*
@@ -1660,13 +1660,13 @@ Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältn
                              ) s
                       WHERE Num_Rows < ?",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Maximale Anzahl Rows der Table", :size=>8, :default=>200, :title=>"Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion" }]
+                          {:name=> 'Maximale Anzahl Rows der Table', :size=>8, :default=>200, :title=> 'Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion'}]
          },
         {
-             :name  => "Identifikation von HotBlocks im DB-Cache:Suboptimale Indizes",
-             :desc  => "Indizes mit hoher Datenfluktuation und Schieflage (z.B. fortlaufende Nummern) scannen nach Record-Löschungen sukzessive mehr DB-Blöcke beim Zugriff.
+             :name  => 'Identifikation von HotBlocks im DB-Cache:Suboptimale Indizes',
+             :desc  => 'Indizes mit hoher Datenfluktuation und Schieflage (z.B. fortlaufende Nummern) scannen nach Record-Löschungen sukzessive mehr DB-Blöcke beim Zugriff.
 Problematisch ist insbesondere Zugriff auf erste Records solcher moving windows.
-Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.",
+Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.',
              :sql=>  "SELECT * FROM (
                       SELECT /*+ NO_MERGE MATERIALIZE */ p.Inst_ID \"Inst\", p.SQL_ID, p.Child_Number \"Child Number\", s.Executions \"Executions\",
                              s.Buffer_Gets \"Buffer gets\", s.Rows_Processed \"Rows processed\",
@@ -1702,17 +1702,17 @@ Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.",
                       WHERE LENGTH(REGEXP_REPLACE(SQL_Text, '[^:]','')) < ?  -- Anzahl Bindevariablen < x
                       AND    \"Buffer Gets per Row\" > ?                         -- nur problematische anzeigen
                       ORDER BY \"Buffer Gets per Row\" * \"Rows processed\" DESC NULLS LAST",
-             :parameter=>[{:name=>"Maximale Anzahl Operationen im Execution Plan", :size=>8, :default=>5, :title=>"Maximale Anzahl Operationen im Execution Plan des SQL" },
-                          {:name=>"Minimale Anzahl Executions", :size=>8, :default=>100, :title=>"Minimale Anzahl Executions für Aufnahme in Selektion" },
-                          {:name=>"Maximale Anzahl Bindevariablen", :size=>8, :default=>5, :title=>"Maximale Anzahl Bindevariablen im Statement" },
-                          {:name=>"Minimale Anzahl Rows processed / Execution", :size=>8, :default=>2, :title=>"Minimale Anzahl Rows processed / Execution" },
-                          {:name=>"Minimale Anzahl Buffer gets / Row", :size=>8, :default=>5, :title=>"Minimale Anzahl Buffer gets per Row" }]
+             :parameter=>[{:name=> 'Maximale Anzahl Operationen im Execution Plan', :size=>8, :default=>5, :title=> 'Maximale Anzahl Operationen im Execution Plan des SQL'},
+                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'},
+                          {:name=> 'Maximale Anzahl Bindevariablen', :size=>8, :default=>5, :title=> 'Maximale Anzahl Bindevariablen im Statement'},
+                          {:name=> 'Minimale Anzahl Rows processed / Execution', :size=>8, :default=>2, :title=> 'Minimale Anzahl Rows processed / Execution'},
+                          {:name=> 'Minimale Anzahl Buffer gets / Row', :size=>8, :default=>5, :title=> 'Minimale Anzahl Buffer gets per Row'}]
          },
         {
-             :name  => "Prüfung der Notwendigkeit des Updates indizierter Spalten",
-             :desc  => "Das Update indizierter Spalten einer Tabelle kostet Aufwand für Index-Maintenance (Entfernen und Neueinstellen des Index-Eintrages) auch wenn sich der Inhalt des Feldes gar nicht geändert hat.
+             :name  => 'Prüfung der Notwendigkeit des Updates indizierter Spalten',
+             :desc  => 'Das Update indizierter Spalten einer Tabelle kostet Aufwand für Index-Maintenance (Entfernen und Neueinstellen des Index-Eintrages) auch wenn sich der Inhalt des Feldes gar nicht geändert hat.
 Unter diesem Aspekt ist es sinnvoll, indizierte Spalten häufig upzudatender Tabellen deren Inhalte sich nie ändern sollten aus dem Update-Statement zu entfernen.
-Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mappern, die per Default alle Spalten einer Tabelle enthalten.",
+Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mappern, die per Default alle Spalten einer Tabelle enthalten.',
              :sql=>  "SELECT * FROM (
                       SELECt /*+ ORDERED */ p.*, t.SQL_Text, i.Column_Name,
                             (SELECT SUM(Executions_Delta) FROM DBA_Hist_SQLStat st
@@ -1742,16 +1742,16 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       WHERE Rows_Processed > ?
                       ORDER BY Rows_Processed DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>"Minimale Anzahl Rows processed", :size=>8, :default=>10000, :title=>"Minimale Anzah Rows processed für Aufnahme in Selektion" }]
+                          {:name=> 'Minimale Anzahl Rows processed', :size=>8, :default=>10000, :title=> 'Minimale Anzah Rows processed für Aufnahme in Selektion'}]
          },
         {
-             :name  => "System- Statistiken:Prüfung auf aktuelle Analyze-Info",
-             :desc  => "Für Cost-based Optimizer sollten System-Statistiken hinreichend aktuell sein und die Realität beschreiben",
-             :sql=>  "SELECT * FROM sys.Aux_Stats$",
+             :name  => 'System- Statistiken:Prüfung auf aktuelle Analyze-Info',
+             :desc  => 'Für Cost-based Optimizer sollten System-Statistiken hinreichend aktuell sein und die Realität beschreiben',
+             :sql=> 'SELECT * FROM sys.Aux_Stats$',
          },
         {
-             :name  => "Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Tables)",
-             :desc  => "Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein",
+             :name  => 'Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Tables)',
+             :desc  => 'Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein',
              :sql=>  "SELECT /* DB-Tools Ramm Tabellen ohne bzw. mit veralteter Statistik */ t.Owner, t.Table_Name, t.Num_Rows, t.Last_Analyzed,
                              ROUND(s.MBytes,2) MBytes
                       FROM   DBA_Tables t
@@ -1764,11 +1764,11 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       AND    t.Owner NOT LIKE 'PATROL%'
                       AND    Temporary = 'N'
                       ORDER BY s.MBytes DESC",
-             :parameter=>[{:name=>"Mindestalter existierender Analyse in Tagen", :size=>8, :default=>100, :title=>"Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Mindestalter existierender Analyse in Tagen', :size=>8, :default=>100, :title=> 'Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion'}]
          },
         {
-             :name  => "Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Indizes)",
-             :desc  => "Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein",
+             :name  => 'Objekt-Statistiken:Prüfung auf aktuelle Analyze-Info (Indizes)',
+             :desc  => 'Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein',
              :sql=>  "SELECT /* DB-TOoLs Ramm Indizes ohne bzw. mit veralteter Statistik */ i.Owner, i.Table_Name, i.Index_Name, i.Num_Rows, i.Last_Analyzed
                       FROM   DBA_Indexes i
                       JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
@@ -1781,11 +1781,11 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       AND    i.Owner NOT LIKE 'PATROL%'
                       AND    t.Temporary = 'N'
                       ORDER BY s.MBytes DESC",
-             :parameter=>[{:name=>"Mindestalter existierender Analyse in Tagen", :size=>8, :default=>100, :title=>"Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion" }]
+             :parameter=>[{:name=> 'Mindestalter existierender Analyse in Tagen', :size=>8, :default=>100, :title=> 'Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion'}]
          },
         {
-             :name  => "PGA-Auslastung:Historische Auslastung PGA-Strukturen",
-             :desc  => "Unzureichende Bereitstellung PGA für Sort-/Hash-Operationen führt zu Auslagern auf TEMP-Tablespace mit entsprechenden Performance-Auswirkungen.",
+             :name  => 'PGA-Auslastung:Historische Auslastung PGA-Strukturen',
+             :desc  => 'Unzureichende Bereitstellung PGA für Sort-/Hash-Operationen führt zu Auslagern auf TEMP-Tablespace mit entsprechenden Performance-Auswirkungen.',
              :sql=>  "SELECT /*+ DB-Tools Ramm - PGA-Historie*/
                              ss.Begin_Interval_Time, p.Instance_Number,
                              ROUND(MAX(DECODE(p.Name, 'aggregate PGA target parameter'      , p.Value, 0))/(1024*1024)) \"PGA Aggregate Target (MB)\",
@@ -1811,18 +1811,18 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => "Konkurrenz bzgl. Speicher, Latches: Unzureichend gecachte Sequences",
-             :desc  => "Das Nachlesen von Sequence-Werten / Fuellen des Sequence-Caches ist verbunden mit Schreiben in Dictionary sowie Abgleich der Strukturen zwischen RAC-Instanzen.
-    Zu hochfrequenter Zugriff auf Dictionary-Strukturen der Sequences führt zu diversen unnötigen Wartesituationen, daher fachlich und technisch sinnvolle Cache-Größen definieren für Sequences.",
+             :name  => 'Konkurrenz bzgl. Speicher, Latches: Unzureichend gecachte Sequences',
+             :desc  => 'Das Nachlesen von Sequence-Werten / Fuellen des Sequence-Caches ist verbunden mit Schreiben in Dictionary sowie Abgleich der Strukturen zwischen RAC-Instanzen.
+    Zu hochfrequenter Zugriff auf Dictionary-Strukturen der Sequences führt zu diversen unnötigen Wartesituationen, daher fachlich und technisch sinnvolle Cache-Größen definieren für Sequences.',
              :sql=>  "SELECT /* DB-Tools Ramm Unzureichend gecachte Sequences */ *
                       FROM   DBA_Sequences
                       WHERE  Sequence_Owner NOT IN ('SYS', 'SYSTEM')
                       ORDER  By Last_Number/DECODE(Cache_Size,0,1,Cache_Size) DESC NULLS LAST",
          },
         {
-             :name  => "Konkurrenz bzgl. Speicher, Latches: Überblick über Sequence-Nutzung",
-             :desc  => "Wenn in Applikation gecacht werden kann, müssen Sequences nicht einzeln von DB gelesen werden.
-    Dies reduziert DB-Roundtrips der Applikation und wird hier bewertet.",
+             :name  => 'Konkurrenz bzgl. Speicher, Latches: Überblick über Sequence-Nutzung',
+             :desc  => 'Wenn in Applikation gecacht werden kann, müssen Sequences nicht einzeln von DB gelesen werden.
+    Dies reduziert DB-Roundtrips der Applikation und wird hier bewertet.',
              :sql=>  "SELECT /* DB-Tools Ramm  Ueberblick Sequence-Nutzung */ *
                       FROM   (
                               SELECT ROUND(Executions/CASE WHEN (Last_Active_Time - First_Load_Time) < 1 THEN 1 ELSE Last_Active_Time - First_Load_Time END) Executions_per_Day,
@@ -1843,9 +1843,9 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       ORDER BY Executions_per_Day DESC NULLS LAST"
          },
         {
-             :name  => "Aktive Sessions (AWR-Historie)",
-             :desc  => "Die Anzahl der zu einem Zeitpunkt aktiven Sessions lässt Rückschlüsse auf Systemlast zu
-    Die Peaks der gleichzeitig aktiven Sessions sollte Grundlage für die Bemessung von Session-Pools (z.B. von Application-Servern) darstellen.",
+             :name  => 'Aktive Sessions (AWR-Historie)',
+             :desc  => 'Die Anzahl der zu einem Zeitpunkt aktiven Sessions lässt Rückschlüsse auf Systemlast zu
+    Die Peaks der gleichzeitig aktiven Sessions sollte Grundlage für die Bemessung von Session-Pools (z.B. von Application-Servern) darstellen.',
              :sql=>  "SELECT /*+ PARALLEL(s,4) DB-Tools Ramm: aktive Sessions */
                              Sample_Time, count(*) \"Active Sessions\"
                       FROM   DBA_hist_Active_Sess_History s
@@ -1855,16 +1855,16 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       ORDER BY 1",
              :parameter=>[
                  {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                 {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }
+                 {:name=> 'Instance', :size=>8, :default=>1, :title=> 'RAC-Instance'}
              ]
          },
         {
-             :name  => "Parse-Aktivität",
-             :desc  => "Folgende Stmts. beurteilen Verhältnis von parses zu executes.
+             :name  => 'Parse-Aktivität',
+             :desc  => 'Folgende Stmts. beurteilen Verhältnis von parses zu executes.
     Bei hochfrequenten Parses sollten Alternativen untersucht werden:
     - Wiederverwendung geparster Statements in Applikation
     - Nutzung von Statements-Caches auf Ebene Application-Server bzw. JDBC-Treiber
-    - Nutzung session cached cursors-Feature der DB",
+    - Nutzung session cached cursors-Feature der DB',
              :sql=>  "SELECT /* DB-Tools Ramm Parse-Ratio Einzelwerte */ s.*, ROUND(Executions/DECODE(Parses, 0, 1, Parses),2) \"Execs/Parse\"
                       FROM   (
                               SELECT s.SQL_ID, s.Instance_Number, Parsing_schema_Name, SUM(s.Executions_Delta) Executions,
@@ -1878,8 +1878,8 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => t(:dragnet_helper_3_12_name, :default=>"Non-optimal database configuration parameters"),
-             :desc  => t(:dragnet_helper_3_12_desc, :default=>"Detection of non-optimal or incompatible database parameters"),
+             :name  => t(:dragnet_helper_3_12_name, :default=> 'Non-optimal database configuration parameters'),
+             :desc  => t(:dragnet_helper_3_12_desc, :default=> 'Detection of non-optimal or incompatible database parameters'),
              :sql=>  "SELECT /* DB-Tools Ramm DB-Parameter */
                              Inst_ID, Name, Value, 'Value should be 0 if cursor_sharing is used because lookup to session cached cursors is done before converting literals to bind variables' Description
                       FROM   gv$Parameter p
@@ -1895,10 +1895,10 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
   def sqls_cursor_redundancies
     [
         {
-             :name  => "Fehlende Nutzung von Bindevariablen",
-             :desc  => "Nutzung von Literalen statt Bindevariablen für Filterbedingungen ohne Kompensierung durch cursor_sharing-Parameter führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
+             :name  => 'Fehlende Nutzung von Bindevariablen',
+             :desc  => 'Nutzung von Literalen statt Bindevariablen für Filterbedingungen ohne Kompensierung durch cursor_sharing-Parameter führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
 Das folgende Statement sucht grob nach diesbezüglichen Ausreissern.
-Optional muss die Länge des untersuchten Substrings variert werden.",
+Optional muss die Länge des untersuchten Substrings variert werden.',
              :sql=>  "WITH Len AS (SELECT ? Substr_Len FROM DUAL)
                        SELECT g.*, s.SQL_Text \"Beispiel SQL-Text\"
                        FROM   (
@@ -1919,12 +1919,12 @@ Optional muss die Länge des untersuchten Substrings variert werden.",
                        JOIN gv$SQLArea s ON s.Inst_ID = g.Inst_ID AND s.SQL_ID = g.SQL_ID
                        ORDER BY g.Memory DESC NULLS LAST
              ",
-             :parameter=>[{:name=>"Anzahl Zeichen für Vergleich der SQLs", :size=>8, :default=>60, :title=>"Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)" }]
+             :parameter=>[{:name=> 'Anzahl Zeichen für Vergleich der SQLs', :size=>8, :default=>60, :title=> 'Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)'}]
          },
         {
-             :name  => "Mehrfach offene Cursoren: Überblick über SQL",
-             :desc  => "Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
-Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.",
+             :name  => 'Mehrfach offene Cursoren: Überblick über SQL',
+             :desc  => 'Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
+Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.',
              :sql=>  "SELECT /* Anzahl Open Cursor gruppiert nach SQL */
                              oc.*
                       FROM   (
@@ -1940,9 +1940,9 @@ Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und 
                       ORDER BY Anzahl_OC DESC NULLS LAST",
          },
         {
-             :name  => "Mehrfach offene Cursoren: Mehrfach in Session geöffnete SQL",
-             :desc  => "Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
-Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.",
+             :name  => 'Mehrfach offene Cursoren: Mehrfach in Session geöffnete SQL',
+             :desc  => 'Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
+Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.',
              :sql=>  "SELECT /* SQLs mehrfach als Cursor geoeffnet je Session */
                              sq.*, cu.SID, s.UserName, cu.Anz_Open_Cursor \"Anzahl Open Cursor\", cu.Anz_Sql \"Anzahl SQL\",
                              s.Client_Info, s.Machine, s.Program, s.Module, s.Action, cu.SQL_Text
@@ -1961,7 +1961,7 @@ Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und 
                       ORDER BY cu.Anz_Open_Cursor-cu.Anz_Sql DESC NULLS LAST"
          },
     {
-         :name  => "Konkurrenz bzgl. Speicher: Verdrängung im Shared Pool",
+         :name  => 'Konkurrenz bzgl. Speicher: Verdrängung im Shared Pool',
          :desc  => "Dieser View listet Objekte an, die für ihre Platzierung im Shared Pool andere verdrängen mussten.
 Bei der Selektion werden die Inhalte gelöscht, d.h., die Selektion zeigt die Verdrängungen seit der letzten Selektion (nur einmalig).
 'No. Items flushed from shared pool' von 7..8 ist normal, höhere Werte zeigen Probleme Platz zu finden.",
@@ -1988,12 +1988,12 @@ Bei der Selektion werden die Inhalte gelöscht, d.h., die Selektion zeigt die Ve
                   ORDER BY KsmLrNum DESC NULLS LAST",
     },
       {
-        :name  => "Probleme mit Function-based Index bei cusor_sharing != EXACT",
-        :desc  => "Bei Setzen des Parameters cursor_sharing=FORCE oder SIMILAR auf Session- oder Instance-Ebene werden function-based Indizes mit Literalen evtl. nicht mehr erkannt,
+        :name  => 'Probleme mit Function-based Index bei cusor_sharing != EXACT',
+        :desc  => 'Bei Setzen des Parameters cursor_sharing=FORCE oder SIMILAR auf Session- oder Instance-Ebene werden function-based Indizes mit Literalen evtl. nicht mehr erkannt,
   da diese Literale durch Bindevariablen ersetzt werden.
   Lösung: Bindevariablen in PL/SQL-Function auslagern und diese im function-based Index aufrufen.
 Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr für SQL-Ausführung verwendet wird
-",
+',
         :sql=>   "SELECT /* Panorama-Tool Ramm  */
                          i.Owner, i.Index_Name, i.Index_type, i.Table_Name, i.Num_Rows,
                          e.Column_Position, e.Column_Expression
@@ -2002,7 +2002,7 @@ Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr 
                   WHERE  Index_Type LIKE 'FUNCTION-BASED%'
                   AND    Owner NOT IN ('SYS', 'XDB', 'SYSMAN')",
         :filter_proc => proc{|rec|
-             rec["column_expression"].match(/['0123456789]/)
+             rec['column_expression'].match(/['0123456789]/)
         },
       },
     ]
@@ -2014,12 +2014,12 @@ Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr 
   def dragnet_sqls_logwriter_redo
     [
     {
-         :name  => "Schreibende Zugriffe nach Executions (Aktuelle SGA)",
-         :desc  => "Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
+         :name  => 'Schreibende Zugriffe nach Executions (Aktuelle SGA)',
+         :desc  => 'Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
 Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
 Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
 Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
-Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-",
+Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-',
          :sql=>  "SELECT /* DB-Tools Ramm: Schreibende Zugriffe nach Executes */
                          Inst_ID, SQL_ID, Parsing_Schema_Name, Executions, Rows_Processed, ROUND(Rows_Processed/Executions,2) \"Rows per Exec\",
                          ROUND(Elapsed_Time/1000000) Elapsed_Time_Secs, SQL_Text
@@ -2028,15 +2028,15 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                   AND    Executions > 0
                   AND    Rows_Processed > ?
                   ORDER BY Executions DESC NULLS LAST",
-         :parameter=>[{:name=>"Minimale Anzahl geschriebene Rows", :size=>8, :default=>100000, :title=>"Minimale anzahl geschriebene Rows für Aufnahme in Selektion" }]
+         :parameter=>[{:name=> 'Minimale Anzahl geschriebene Rows', :size=>8, :default=>100000, :title=> 'Minimale anzahl geschriebene Rows für Aufnahme in Selektion'}]
      },
     {
-         :name  => "Schreibende Zugriffe nach Executions (AWR-Historie)",
-         :desc  => "Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
+         :name  => 'Schreibende Zugriffe nach Executions (AWR-Historie)',
+         :desc  => 'Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
 Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
 Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
 Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
-Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-",
+Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-',
          :sql=>  "SELECT /* DB-Tools Ramm: Schreibende Zugriffe nach Executes */
                          s.Instance_Number, s.SQL_ID, s.Executions, s.Rows_Processed,
                          ROUND(s.Rows_Processed/s.Executions,2) \"Rows per Exec\", t.SQL_Text, TO_CHAR(SUBSTR(t.SQL_Text,1,100))
@@ -2053,11 +2053,11 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                   AND    s.Rows_Processed > ?
                   ORDER BY Executions DESC NULLS LAST",
          :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                      {:name=>"Minimale Anzahl geschriebene Rows", :size=>8, :default=>100000, :title=>"Minimale anzahl geschriebene Rows für Aufnahme in Selektion" }]
+                      {:name=> 'Minimale Anzahl geschriebene Rows', :size=>8, :default=>100000, :title=> 'Minimale anzahl geschriebene Rows für Aufnahme in Selektion'}]
     },
     {
-         :name  => "Commit / Rollback - Aufkommen",
-         :desc  => "Aus den Zahlen des Commit- und Rollback-Verhaltens lassen sich Rückschlüsse auf evtl. problematisches Applikationsverhalten ziehen.",
+         :name  => 'Commit / Rollback - Aufkommen',
+         :desc  => 'Aus den Zahlen des Commit- und Rollback-Verhaltens lassen sich Rückschlüsse auf evtl. problematisches Applikationsverhalten ziehen.',
          :sql=>  "SELECT /* DB-Tools Ramm Commits und Rollbacks in gegebenen Zeitraum */ Begin, Instance_Number, User_Commits, User_Rollbacks,
                          ROUND(User_Rollbacks/(DECODE(User_Commits+User_Rollbacks, 0, 1, User_Commits+User_Rollbacks))*100) Percent_Rollback,
                          Rollback_Changes
@@ -2085,22 +2085,22 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                          )
                   ORDER BY 1",
          :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                      {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }]
+                      {:name=> 'Instance', :size=>8, :default=>1, :title=> 'RAC-Instance'}]
      },
     {
-         :name  => "Einstellung Recovery-Verhalten",
-         :desc  => "Die Vorgaben von Recovery-Zeiten (fast_start_mttr_target) beeinflussen im Extrem drastisch das I/O-Verhalten der DB.
+         :name  => 'Einstellung Recovery-Verhalten',
+         :desc  => 'Die Vorgaben von Recovery-Zeiten (fast_start_mttr_target) beeinflussen im Extrem drastisch das I/O-Verhalten der DB.
 Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben können:
 - Viele kleine asynchrone Write-Requests erzeugt werden statt weniger Requests mit mehreren Blöcken (im Normalfall bis 3000 DB-Blöcke / async.Write-Request)
-- Die max. Anzahl async. Write-Requests des OS erreicht werden und massiv Verzögerungen im I/O der DB auftreten",
-         :sql=>  "SELECT /*+ DB-Tools Ramm MTTR-Historie */ r.Instance_Number, ss.Begin_Interval_Time, target_mttr, estimated_mttr, optimal_logfile_size, CKPT_BLOCK_WRITES
+- Die max. Anzahl async. Write-Requests des OS erreicht werden und massiv Verzögerungen im I/O der DB auftreten',
+         :sql=> 'SELECT /*+ DB-Tools Ramm MTTR-Historie */ r.Instance_Number, ss.Begin_Interval_Time, target_mttr, estimated_mttr, optimal_logfile_size, CKPT_BLOCK_WRITES
                   FROM   dba_hist_instance_recovery r
                   JOIN   DBA_Hist_Snapshot ss ON ss.DBID = r.DBID AND ss.Instance_Number = r.Instance_Number AND ss.Snap_ID = r.Snap_ID
                   WHERE  r.Instance_Number = ?
                   AND    ss.Begin_Interval_Time > SYSDATE-?
-                  ORDER BY ss.Begin_Interval_Time",
+                  ORDER BY ss.Begin_Interval_Time',
          :parameter=>[
-             {:name=>"Instance-Number", :size=>8, :default=>1, :title=>"RAC-Instance-Number" },
+             {:name=> 'Instance-Number', :size=>8, :default=>1, :title=> 'RAC-Instance-Number'},
              {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
      },
     ]
@@ -2113,9 +2113,9 @@ Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben
   def sqls_conclusion_application
     [
       {
-           :name  => "Erheblich größere Laufzeit je Module gegenüber Durchschnitt über längere Zeit",
-           :desc  => "Auf Basis der Active Session History lassen sich Ausreiser der DB-Laufzeit je Modul ausweisen.
-Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festgelegt (DD=Tag, HH24=Stunde etc.)",
+           :name  => 'Erheblich größere Laufzeit je Module gegenüber Durchschnitt über längere Zeit',
+           :desc  => 'Auf Basis der Active Session History lassen sich Ausreiser der DB-Laufzeit je Modul ausweisen.
+Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festgelegt (DD=Tag, HH24=Stunde etc.)',
            :sql=>  "WITH Modules AS (
                SELECT /*+ PARALLEL(h,2) */
                       TRUNC(Sample_Time, picture)  Time_Range_Start,
@@ -2144,13 +2144,13 @@ Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festge
            ORDER BY MAX(Secs_Waiting)-AVG(Secs_Waiting) DESC
            ",
            :parameter=>[
-               {:name=>"Format picture for TRUNC-function", :size=>8, :default=>"DD", :title=>"Format-picture of TRUNC function (DD=day, HH24=hour etc.)" },
+               {:name=> 'Format picture for TRUNC-function', :size=>8, :default=> 'DD', :title=> 'Format-picture of TRUNC function (DD=day, HH24=hour etc.)'},
                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-               {:name=>"Instance", :size=>8, :default=>1, :title=>"RAC-Instance" }
+               {:name=> 'Instance', :size=>8, :default=>1, :title=> 'RAC-Instance'}
            ]
       },
       {
-           :name  => t(:dragnet_helper_51_name, :default=>"Usage of multi-column primary keys as reference target (business keys instead of technical keys)"),
+           :name  => t(:dragnet_helper_51_name, :default=> 'Usage of multi-column primary keys as reference target (business keys instead of technical keys)'),
            :desc  => t(:dragnet_helper_51_desc, :default=>"For ensurance of referential integrity should technical id's be used instead of business expressions.
 Often problematic usage of business keys can be detetcted by existence of references on multi-column primary keys"),
            :sql=>  "
@@ -2176,9 +2176,9 @@ Often problematic usage of business keys can be detetcted by existence of refere
            ]
       },
       {
-           :name  => t(:dragnet_helper_52_name, :default=>"Missing suggested AUDIT-options"),
-           :desc  => t(:dragnet_helper_52_desc, :default=>"You should have some minimal audit of DDL operations for traceability of problematic DDL.
-Audit trail will usually be recorded in table sys.Aud$."),
+           :name  => t(:dragnet_helper_52_name, :default=> 'Missing suggested AUDIT-options'),
+           :desc  => t(:dragnet_helper_52_desc, :default=> 'You should have some minimal audit of DDL operations for traceability of problematic DDL.
+Audit trail will usually be recorded in table sys.Aud$.'),
            :sql=>  "
               SELECT /* Panorama-Tool Ramm: Auditing */
                      '\"AUDIT '||a.Name||'\" missing!'  Problem
@@ -2215,7 +2215,7 @@ Audit trail will usually be recorded in table sys.Aud$."),
            ]
       },
       {
-           :name  => t(:dragnet_helper_53_name, :default=>"Long running transactions from SGA (gv$Active_Session_History)"),
+           :name  => t(:dragnet_helper_53_name, :default=> 'Long running transactions from SGA (gv$Active_Session_History)'),
            :desc  => t(:dragnet_helper_53_desc, :default=>"Long running transactions contains the risk of lock escalations in OLTP-systems.
 Writing access should be suspended to the end of process transactions to keep lock time until commit as short as possible.
 Transaktions in OLTP-systems should be short enough to keep potential lock wait time below user's cognition limits.
@@ -2266,11 +2266,11 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
               ORDER BY \"Duration (Secs.)\" DESC
            ",
            :parameter=>[
-               {:name=>"Minimale Transaktionsdauer in Sekunden", :size=>8, :default=>300, :title=>"Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion" },
+               {:name=> 'Minimale Transaktionsdauer in Sekunden', :size=>8, :default=>300, :title=> 'Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion'},
            ]
       },
       {
-           :name  => t(:dragnet_helper_54_name, :default=>"Long running transactions from AWH-history (DBA_Hist_Active_Sess_History)"),
+           :name  => t(:dragnet_helper_54_name, :default=> 'Long running transactions from AWH-history (DBA_Hist_Active_Sess_History)'),
            :desc  => t(:dragnet_helper_54_desc, :default=>"Long running transactions contains the risk of lock escalations in OLTP-systems.
 Writing access should be suspended to the end of process transactions to keep lock time until commit as short as possible.
 Transaktions in OLTP-systems should be short enough to keep potential lock wait time below user's cognition limits.
@@ -2323,7 +2323,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
            ",
            :parameter=>[
                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-               {:name=>"Minimale Transaktionsdauer in Sekunden", :size=>8, :default=>300, :title=>"Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion" },
+               {:name=> 'Minimale Transaktionsdauer in Sekunden', :size=>8, :default=>300, :title=> 'Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion'},
            ]
       },
     ]
@@ -2341,12 +2341,12 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
     end
 
     @result = []
-    add_group(sqls_potential_db_structures, t(:dragnet_helper_group_potential_db_structures,  :default=>"Potential in DB-structures"))
-    add_group(sqls_wrong_execution_plan,    t(:dragnet_helper_group_wrong_execution_plan,     :default=>"Detection of SQL with problematic execution plan"))
-    add_group(dragnet_sqls_tuning_sga_pga,  t(:dragnet_helper_group_tuning_sga_pga,           :default=>"Tuning of / load rejection from SGA, PGA"))
-    add_group(sqls_cursor_redundancies,     t(:dragnet_helper_group_cursor_redundancies,      :default=>"Redundant cursors / usage of bind variables"))
-    add_group(dragnet_sqls_logwriter_redo,  t(:dragnet_helper_group_logwriter_redo,           :default=>"Logwriter load / redo impact"))
-    add_group(sqls_conclusion_application,  t(:dragnet_helper_group_conclusion_application,   :default=>"Conclusions on appliction behaviour"))
+    add_group(sqls_potential_db_structures, t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'))
+    add_group(sqls_wrong_execution_plan,    t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'))
+    add_group(dragnet_sqls_tuning_sga_pga,  t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'))
+    add_group(sqls_cursor_redundancies,     t(:dragnet_helper_group_cursor_redundancies,      :default=> 'Redundant cursors / usage of bind variables'))
+    add_group(dragnet_sqls_logwriter_redo,  t(:dragnet_helper_group_logwriter_redo,           :default=> 'Logwriter load / redo impact'))
+    add_group(sqls_conclusion_application,  t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'))
 
     @result
   end
