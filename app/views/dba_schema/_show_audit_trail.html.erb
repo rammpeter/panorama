@@ -26,8 +26,20 @@
       Action
       <%= text_field_tag(:action_name, "", :size=>10, :title=>"Filter for name of recorded action (like-comparison and case ignored)") %>
     </div>
-
-  <div class="float_left">
+    <div class="float_left">
+      Grouping
+      <select name="grouping" title="Group result by time cycle (none for not grouping)">
+        <option selected value='none'>[none]</option>
+        <option value='MI'>Minute</option>
+        <option value='HH24'>Hour</option>
+        <option value='DD'>Day</option>
+      </select>
+    </div>
+    <div class="float_left">
+      Top x for group
+      <%= text_field_tag(:top_x, "5", :size=>5, :title=>"Count for top x hits to show as columns (only relevant if 'Grouping' is not 'none')") %>
+    </div>
+    <div class="float_left">
     <%= submit_tag("Show audit trail", :title => "Show audit trail records") %>
   </div>
 <% end %>

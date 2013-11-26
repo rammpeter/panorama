@@ -1,0 +1,54 @@
+<%
+   @update_area = "list_audit_trail_detail_area_#{session[:request_counter]}"
+
+   def link_session(rec)
+     my_ajax_link_to(rec.sessionid,
+                     url_for(:controller   => :dba_schema,
+                             :action       => :list_audit_trail,
+                             :sessionid    => rec.sessionid,
+                             :update_area  => @update_area
+                     ),
+                     :title=> 'Show audit records of session')
+
+   end
+
+   def link_sql_text(rec)
+     if rec.sql_text
+       # Da der Inhalt nachträeglich erst per JSaufgerufen wird, müssen ' doppelt escaped werden
+       "<a title=\"Show complete SQL-Statement (below)\" onclick=\"jQuery('##{@update_area}').html('<pre>#{j (my_html_escape rec.sql_text.gsub(/'/, "\\\\'") ) }</pre>');\">#{rec.sql_text[0,30]}</a>".html_safe
+     end
+   end
+
+   column_options = []
+   column_options << {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.begin_timestamp)},     :title=> 'Begin of time range', :plot_master_time=>true}
+   column_options << {:caption=> 'Audits Total',      :data=>proc{|rec| fn rec.audits},                           :title=> 'Total number of audit records'}
+   @machines.each do |m|
+     column_options << {:caption=> "Machine: #{m[:machine]}", :data=>proc{|rec| rec[:machines][m[:machine]]},     :title=> 'Number of audit records for machine'}
+   end
+   @osusers.each do |m|
+     column_options << {:caption=> "OS-User: #{m[:osuser]}", :data=>proc{|rec| rec[:osusers][m[:osuser]]},     :title=> 'Number of audit records for operating system user'}
+   end
+   @dbusers.each do |m|
+     column_options << {:caption=> "DB-User: #{m[:dbuser]}", :data=>proc{|rec| rec[:dbusers][m[:dbuser]]},     :title=> 'Number of audit records for database user'}
+   end
+
+
+%>
+
+<%=
+    caption = 'Audit-Records '
+    caption << " from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
+    caption << " Session-ID=#{@sessionid}"      if @sessionid
+    caption << " OS-User LIKE '#{@os_user}'"    if @os_user
+    caption << " DB-User LIKE '#{@os_user}'"    if @db_user
+    caption << " Machine LIKE '#{@machine}'"    if @machine
+    caption << " Object LIKE '#{@object_name}'" if @object_name
+    caption << " Action LIKE '#{@action_name}'" if @action_name
+
+    gen_slickgrid(@audits, column_options, {
+            :caption => caption,
+            :max_height => 450,
+            :multiple_y_axes => false
+    })
+%>
+<div id="<%= @update_area %>"></div>

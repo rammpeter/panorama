@@ -349,6 +349,7 @@ class DbaSchemaController < ApplicationController
 
 
   def list_audit_trail
+
     where_string = ""
     where_values = []
 
@@ -395,15 +396,105 @@ class DbaSchemaController < ApplicationController
       where_values << @action_name
     end
 
-    @audits = sql_select_all ["\
+    if params[:grouping] != "none"
+      list_audit_trail_grouping(params[:grouping], where_string, where_values, params[:update_area], params[:top_x].to_i)
+    else
+      @audits = sql_select_all ["\
                      SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                      FROM   DBA_Audit_Trail
                      WHERE  1=1 #{where_string}
                      ORDER BY Timestamp
                     "].concat(where_values)
 
+      respond_to do |format|
+        format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_audit_trail" }');"}
+      end
+    end
+  end
+
+  # Gruppierte Ausgabe der Audit-Trail-Info
+  def list_audit_trail_grouping(grouping, where_string, where_values, update_area, top_x)
+    audits = sql_select_all ["\
+                     SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
+                     FROM   (SELECT TRUNC(Timestamp, '#{grouping}') Begin_Timestamp, UserHost, OS_UserName, UserName,
+                                    COUNT(*)         Audits
+                                    FROM   DBA_Audit_Trail
+                                    WHERE  1=1 #{where_string}
+                                    GROUP BY TRUNC(Timestamp, '#{grouping}'), UserHost, OS_UserName, UserName
+                            )
+                     ORDER BY Begin_Timestamp, Audits
+                    "].concat(where_values)
+
+    def create_new_audit_result_record(audit_detail_record)
+      {
+        :begin_timestamp => audit_detail_record.begin_timestamp,
+        :audits => 0,
+        :machines => {},
+        :osusers => {},
+        :dbusers=>{}
+      }
+    end
+
+    @audits = []
+    machines = {}; osusers={}; dbusers={}
+    if audits.count > 0
+      ts = audits[0].begin_timestamp
+      rec = create_new_audit_result_record(audits[0])
+      @audits << rec
+      audits.each do |a|
+        # Gruppenwechsel
+        if a.begin_timestamp != ts
+          ts = a.begin_timestamp
+          rec = create_new_audit_result_record(a)
+          @audits << rec
+        end
+        rec[:audits] = rec[:audits] + a.audits
+
+        rec[:machines][a.userhost] = a.audits
+        machines[a.userhost] = (machines[a.userhost] ||= 0) + a.audits  # Maschine als verwendet merken
+
+        rec[:osusers][a.os_username] = a.audits
+        osusers[a.os_username] = (osusers[a.os_username] ||= 0) + a.audits
+
+        rec[:dbusers][a.username] = a.audits
+        dbusers[a.username] = (dbusers[a.username] ||= 0) + a.audits
+
+      end
+    end
+
+    @audits.each do |a|
+      a.extend SelectHashHelper
+    end
+
+    @machines = []
+    machines.each do |key, value|
+      @machines << { :machine=>key, :audits=>value}
+    end
+    @machines.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @machines.count > top_x
+      @machines.delete_at(@machines.count-1)
+    end
+
+    @osusers = []
+    osusers.each do |key, value|
+      @osusers << { :osuser=>key, :audits=>value}
+    end
+    @osusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @osusers.count > top_x
+      @osusers.delete_at(@osusers.count-1)
+    end
+
+    @dbusers = []
+    dbusers.each do |key, value|
+      @dbusers << { :dbuser=>key, :audits=>value}
+    end
+    @dbusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @dbusers.count > top_x
+      @dbusers.delete_at(@dbusers.count-1)
+    end
+
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_audit_trail" }');"}
+      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_audit_trail_grouping" }');"}
     end
   end
 
