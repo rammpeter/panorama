@@ -110,13 +110,17 @@ class DbaHistoryController < ApplicationController
                      SUM(Space_Allocated_Delta)         Space_Allocated_Delta,
                      SUM(Table_Scans_Delta)             Table_Scans_Delta
               from DBA_HIST_SEG_STAT s
-              WHERE  (s.Snap_ID, s.Instance_Number) IN (
-                      SELECT /*+ NO_MERGE */ Snap_ID, Instance_Number FROM dba_hist_snapshot
-                      WHERE Begin_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-                      AND   Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-                      AND   DBID = ?
+              WHERE  (s.DBID, s.Snap_ID, s.Instance_Number) IN (
+                      SELECT /*+ NO_MERGE ORDERED */ s1.DBID, ss.Snap_ID, ss.Instance_Number
+                      FROM   (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s1
+                      JOIN   (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s2 ON s2.Instance_Number = s1.Instance_Number AND s2.DBID = s1.DBID
+                      JOIN   (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time    > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e1 ON e1.Instance_Number = s1.Instance_Number AND e1.DBID = s1.DBID
+                      JOIN   (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time   <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e2 ON e2.Instance_Number = s1.Instance_Number AND e2.DBID = s1.DBID
+                      JOIN   DBA_Hist_Snapshot ss ON ss.Instance_Number = s1.Instance_Number AND ss.DBID=s1.DBID
+                      WHERE  ss.Snap_ID >= NVL(s1.Snap_ID, s2.Snap_ID)
+                      AND    ss.Snap_ID <= NVL(e1.Snap_ID, e2.Snap_ID)
+                      AND    s1.DBID = ?
                     )
-              AND   s.DBID = ?
               #{ @instance ? " AND s.Instance_Number =#{@instance}" : ""}
               GROUP BY s.Obj#, s.Instance_Number
              ) s
@@ -140,7 +144,7 @@ class DbaHistoryController < ApplicationController
       GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""},
                NVL(o.Object_Name, s.Obj#) -- Nicht existierende Objekte nach Object_ID separieren
       ORDER BY SUM(w.Time_Waited_Secs) DESC NULLS LAST
-    ", @time_selection_start, @time_selection_end, @dbid, @dbid, @dbid, @time_selection_start, @time_selection_end]
+    ", @time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid, @dbid, @time_selection_start, @time_selection_end]
 
     respond_to do |format|
       format.js {render :js => "$('#list_segment_stat_hist_sum_area').html('#{j render_to_string :partial=>"list_segment_stat_historic_sum" }');" }
@@ -155,6 +159,8 @@ class DbaHistoryController < ApplicationController
     @owner          = params[:owner]
     @object_name    = params[:object_name]
     @subobject_name = params[:subobject_name]
+    min_snap_id     = params[:min_snap_id]
+    max_snap_id     = params[:max_snap_id]
 
     stmt = "SELECT /* Panorama-Tool Ramm */ * FROM (
             Select /*+ NO_MERGE */
@@ -174,13 +180,10 @@ class DbaHistoryController < ApplicationController
                    SUM(Space_Used_Delta)          Space_Used_Delta,
                    SUM(Space_Allocated_Delta)     Space_Allocated_Delta,
                    SUM(Table_Scans_Delta)         Table_Scans_Delta
-            from DBA_HIST_SEG_STAT s,
-                 DBA_hist_snapshot sn
+            FROM   DBA_HIST_SEG_STAT s
+            JOIN   DBA_hist_snapshot sn ON sn.DBID = s.DBID AND sn.Instance_Number = s.Instance_Number AND sn.Snap_ID = s.Snap_ID
             where  s.Instance_Number = ?
-            AND    sn.Instance_Number = ?
-            AND    s.Snap_ID = sn.Snap_ID
-            AND    sn.Begin_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-            AND    sn.Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+            AND    s.Snap_ID BETWEEN ? AND ?
             AND    s.Obj# IN (
                               SELECT Object_ID FROM DBA_Objects
                               WHERE  Owner=?
@@ -190,7 +193,7 @@ class DbaHistoryController < ApplicationController
             GROUP BY sn.Begin_Interval_Time
             )
             ORDER BY 1"
-    binds = [stmt, @instance.to_i, @instance.to_i, @time_selection_start, @time_selection_end, @owner, @object_name]
+    binds = [stmt, @instance.to_i, min_snap_id, max_snap_id, @owner, @object_name]
     binds << @subobject_name if @subobject_name       # Nur binden wenn gefüllt
     @segment_details = sql_select_all binds
     respond_to do |format|

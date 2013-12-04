@@ -26,6 +26,8 @@ def link_column_snap(rec, value)
                         :instance       => rec.instance_number,
                         :time_selection_start => @time_selection_start,
                         :time_selection_end   => @time_selection_end,
+                        :min_snap_id    => rec.min_snap_id,
+                        :max_snap_id    => rec.max_snap_id,
                         :update_area    => @update_area
                        ),
                 :title => "Anzeige der einzelnen Snaphots zum Objekt"
