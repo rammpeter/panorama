@@ -18,6 +18,7 @@ class DbaHistoryController < ApplicationController
              NVL(o.Object_Name, '[Object-ID = '||MIN(s.Obj#)||']') Object_Name,
              DECODE(o.Object_Name, NULL, MIN(s.Obj#), NULL) NVL_Object_ID,    -- Eindeutige Object-ID, wenn kein Match in DBA_Objects stattfand
              o.Object_Type,
+             SUM(po.SQL_IDs) SQL_IDs,
              #{@show_partitions=="1" ? "o.subObject_Name" : "''"} subObject_Name,
              MIN(s.Min_Snap_ID)                 Min_Snap_ID,
              MAX(s.Max_Snap_ID)                 Max_Snap_ID,
@@ -130,6 +131,10 @@ class DbaHistoryController < ApplicationController
                          AND    NVL(s.Event, s.Session_State) != 'PX Deq Credit: send blkd' -- dieser Event wird als Idle-Event gewertet
                          GROUP BY Instance_Number, Current_Obj#
                         ) w ON w.Instance_Number = s.Instance_Number AND w.Current_Obj# = s.Obj#
+      LEFT OUTER JOIN   (SELECT /*+ NO_MERGE PARALLEL(po,2) */ Object_Owner, Object_Name, COUNT(DISTINCT SQL_ID) SQL_IDs
+                         FROM   DBA_Hist_SQL_Plan po
+                         GROUP BY Object_Owner, Object_Name
+                        ) po ON po.Object_Owner = o.Owner AND po.Object_Name = o.Object_Name
       #{@object_name ? " WHERE o.Object_Name LIKE UPPER('%#{@object_name}%') " : "" }
       -- Gruppierung ueber Partitionen hinweg
       GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""},

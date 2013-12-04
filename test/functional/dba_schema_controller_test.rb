@@ -16,15 +16,21 @@ class DbaSchemaControllerTest < ActionController::TestCase
   test "list_table_description" do
     get :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"AUD$"
     assert_response :success;
+
+    get :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"TAB$"
+    assert_response :success;
+
+    get :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
+    assert_response :success;
   end
 
   test "list_table_partitions" do
-    get :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    get :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT"
     assert_response :success;
   end
 
   test "list_index_partitions" do
-    get :list_index_partitions, :format=>:js, :owner=>"SYS", :index_name=>"I_AUD_1"
+    get :list_index_partitions, :format=>:js, :owner=>"SYS", :index_name=>"WRH$_SQLSTAT_PK"
     assert_response :success;
   end
 

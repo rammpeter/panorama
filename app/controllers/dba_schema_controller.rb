@@ -228,11 +228,13 @@ class DbaSchemaController < ApplicationController
                         ) Size_MB,
                         DECODE(bitand(io.flags, 65536), 0, 'NO', 'YES') Monitoring,
                         DECODE(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
-                        ou.start_monitoring, ou.end_monitoring
+                        ou.start_monitoring, ou.end_monitoring,
+                        do.Created, do.Last_DDL_Time
                  FROM   DBA_Indexes i
                  JOIN   sys.user$   u  ON u.Name  = i.owner
                  JOIN   sys.Obj$    o  ON o.Owner# = u.User# AND o.Name = i.Index_Name
                  JOIN   sys.Ind$    io ON io.Obj# = o.Obj#
+                 LEFT OUTER JOIN DBA_Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
                  LEFT OUTER JOIN sys.object_usage ou ON ou.Obj# = o.Obj#
                  LEFT OUTER JOIN (SELECT ii.Index_Name, COUNT(*) Partition_Number,
                                   CASE WHEN COUNT(DISTINCT(ip.Tablespace_Name)) = 1 THEN MIN(ip.Tablespace_Name) ELSE NULL  END Partition_TS_Name,
@@ -286,22 +288,24 @@ class DbaSchemaController < ApplicationController
     end
 
     @references = sql_select_all ["\
-      SELECT c.*, r.Table_Name R_Table_Name,
+      SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
       FROM   All_Constraints c
       JOIN   All_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
+      JOIN   All_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    c.Owner      = ?
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
     @referencing = sql_select_all ["\
-      SELECT c.*,
+      SELECT c.*, ct.Num_Rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
       FROM   All_Constraints r
       JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      JOIN   All_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    r.Owner      = ?
       AND    r.Table_Name = ?

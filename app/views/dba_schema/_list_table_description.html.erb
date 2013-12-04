@@ -117,6 +117,8 @@ column_options =
   {:caption=>"Status",           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=>"Index-Status"},
   {:caption=>"Dg.",              :data=>proc{|rec| fn(rec.degree)},                   :title=>"Default parallel degree of table", :align=>:right},
   {:caption=>"Part.",            :data=>proc{|rec| link_ind_partitions(rec)},         :title=>"Number of index partitions and subpartitions", :align=>:right},
+  {:caption=>"Created",          :data=>proc{|rec| localeDateTime(rec.created)},      :title=>"Timestamp of index creation" },
+  {:caption=>"Last DDL",         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=>"Timestamp of last DDL operation on index" },
   {:caption=>"Last analyzed",    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=>"The date of the most recent time this table was analyzed" },
   {:caption=>"Use",              :data=>proc{|rec| rec.used},                          :title=>"Usage of index detected? From sys.Object_Usage", :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| "background-color:coral;" if rec.used=="NO"} },
   {:caption=>"F. Stat.",         :data=>proc{|rec| rec.funcidx_status},               :title=>"Is the Function-based Index DISABLED or ENABLED?"},
