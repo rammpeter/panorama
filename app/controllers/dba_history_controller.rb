@@ -112,14 +112,14 @@ class DbaHistoryController < ApplicationController
               from DBA_HIST_SEG_STAT s
               WHERE  (s.DBID, s.Snap_ID, s.Instance_Number) IN (
                       SELECT /*+ NO_MERGE ORDERED */ s1.DBID, ss.Snap_ID, ss.Instance_Number
-                      FROM   (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s1
-                      JOIN   (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s2 ON s2.Instance_Number = s1.Instance_Number AND s2.DBID = s1.DBID
-                      JOIN   (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time    > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e1 ON e1.Instance_Number = s1.Instance_Number AND e1.DBID = s1.DBID
-                      JOIN   (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time   <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e2 ON e2.Instance_Number = s1.Instance_Number AND e2.DBID = s1.DBID
-                      JOIN   DBA_Hist_Snapshot ss ON ss.Instance_Number = s1.Instance_Number AND ss.DBID=s1.DBID
+                      FROM   DBA_Hist_Snapshot ss
+                      LEFT OUTER JOIN (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s1 ON s1.Instance_Number = ss.Instance_Number AND s1.DBID = ss.DBID
+                      JOIN            (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s2 ON s2.Instance_Number = ss.Instance_Number AND s2.DBID = ss.DBID
+                      LEFT OUTER JOIN (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time    > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e1 ON e1.Instance_Number = ss.Instance_Number AND e1.DBID = ss.DBID
+                      JOIN            (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE End_Interval_time   <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) e2 ON e2.Instance_Number = ss.Instance_Number AND e2.DBID = ss.DBID
                       WHERE  ss.Snap_ID >= NVL(s1.Snap_ID, s2.Snap_ID)
                       AND    ss.Snap_ID <= NVL(e1.Snap_ID, e2.Snap_ID)
-                      AND    s1.DBID = ?
+                      AND    ss.DBID = ?
                     )
               #{ @instance ? " AND s.Instance_Number =#{@instance}" : ""}
               GROUP BY s.Obj#, s.Instance_Number
