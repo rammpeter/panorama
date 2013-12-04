@@ -60,7 +60,7 @@ public
         msg << "> create view X_$#{table_name_suffix} as select * from X$#{table_name_suffix};<br/>"
         msg << "> create public synonym X$#{table_name_suffix} for sys.X_$#{table_name_suffix};<br/>"
         msg << "Damit wird X$#{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY"
-        msg << "<br></div>"
+        msg << "</div>"
         return false
       end
     end
@@ -95,7 +95,7 @@ public
     end
 
     # Temporaerer Schutz des Produktionszuganges bis zur Implementierung LDAP-Autorisierung    
-    if (@database.host.rindex("dm03-scan") || @database.host.rindex("dm04-scan")) && @database.sid.rindex("NOADB")
+    if @database.host.rindex("noaa") || @database.host.rindex("noab")
       if params[:database][:authorization]== nil  || params[:database][:authorization]==""
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "zusätzliche Autorisierung erforderlich fuer NOA-Produktionssystem"}'); $('#login_dialog_authorization').show(); $('#login_dialog').effect('shake', { times:3 }, 100);"}
@@ -151,12 +151,9 @@ public
       @banners = sql_select_all "SELECT /* Panorama Tool Ramm */ Banner FROM V$Version"
       @instance_data = sql_select_all "SELECT /* Panorama Tool Ramm */ gi.*, i.Instance_Number Instance_Connected,
                                                       (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET') NLS_CharacterSet,
-                                                      (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count,
-                                                      d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging
+                                                      (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count
                                                FROM  GV$Instance gi
-                                               JOIN  v$Database d ON 1=1
-                                               LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
-                                      "
+                                               LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number"
       @instance_data.each do |i|
         if i.instance_connected
           @instance_name = i.instance_name
@@ -170,17 +167,11 @@ public
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div><br>User '#{@database.user}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein</div>"
+      @dictionary_access_msg << "<div> User '#{@database.user}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
+      </div>"
     end
 
     @dictionary_access_problem = true if !x_memory_table_accessible?("BH", @dictionary_access_msg )
-
-    if !sql_select_one("SELECT * FROM User_SYS_Privs WHERE Privilege = 'SELECT ANY DICTIONARY'") &&
-       !sql_select_one("SELECT * FROM user_Role_Privs WHERE Granted_Role = 'DBA'")
-      @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div><br>User '#{@database.user}' does not have grant SELECT ANY DICTIONARY or DBA! Only less functions of Panorama are usable for this user account!</div>"
-    end
-
 
     session[:database] = @database
     write_connection_to_cookie @database
@@ -244,25 +235,19 @@ public
 private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
   def write_connection_to_cookie database
+
     cookies_last_logins = read_last_login_cookies
 
-    max_id = 0
     cookies_last_logins.each do |value|
-      max_id = value[:id] if max_id < value[:id]    # Ermitteln der max. ID einer Database
-    end
-    new_database_id = max_id + 1
-
-    cookies_last_logins.each do |value|
-      if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
-        new_database_id = value[:id]                          # Beim erneuten Speichern der DB die selbe ID verwenden statt hochzaehlen
-        cookies_last_logins.delete(value)                     # Aktuellen eintrag entfernen
-      end
+      cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
     end
     if params[:saveLogin] == "1"
-      database.id = new_database_id                           # Eindeutiges Kriterium für Wiederverwendung
       cookies_last_logins << database.to_params  # Aktuellen Eintrag hinzufügen
       cookies_last_logins.sort_by!{|obj| "#{obj[:sid]}.#{obj[:host]}.#{obj[:user]}"}
-      cookies.permanent[:last_login_id]  = Marshal.dump database.id             # Merken der ID der aktuellen DB
+      cookies_last_logins.each_index do |index|
+        value = cookies_last_logins[index]
+        cookies.permanent[:last_login_index]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
+      end
       write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
 
