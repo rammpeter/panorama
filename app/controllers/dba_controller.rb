@@ -532,9 +532,9 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       where_string << "    TO_CHAR(s.SID)     LIKE '%'||?||'%'";   where_values << params[:filter]
       where_string << " OR TO_CHAR(s.Process) LIKE '%'||?||'%'";   where_values << params[:filter]
       where_string << " OR TO_CHAR(p.spid)    LIKE '%'||?||'%'";   where_values << params[:filter]
-      where_string << " OR s.UserName         LIKE '%'||?||'%'";   where_values << params[:filter]
-      where_string << " OR s.OSUser           LIKE '%'||?||'%'";   where_values << params[:filter]
-      where_string << " OR s.Machine          LIKE '%'||?||'%'";   where_values << params[:filter]
+      where_string << " OR s.UserName         LIKE '%'||UPPER(?)||'%'";   where_values << params[:filter]
+      where_string << " OR s.OSUser           LIKE '%'||UPPER(?)||'%'";   where_values << params[:filter]
+      where_string << " OR s.Machine          LIKE '%'||UPPER(?)||'%'";   where_values << params[:filter]
       where_string << ")"
     end
 
