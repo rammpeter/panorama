@@ -192,11 +192,7 @@ class DbaSchemaController < ApplicationController
         raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
     end
 
-    @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time
-                                FROM DBA_Tables t
-                                JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
-                                WHERE t.Owner = ? AND t.Table_Name = ?
-                               ", @owner, @table_name]
+    @attribs = sql_select_all ["SELECT * FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @comment = sql_select_one ["SELECT Comments FROM DBA_Tab_Comments WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
@@ -286,24 +282,22 @@ class DbaSchemaController < ApplicationController
     end
 
     @references = sql_select_all ["\
-      SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows R_Num_Rows,
+      SELECT c.*, r.Table_Name R_Table_Name,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
       FROM   All_Constraints c
       JOIN   All_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
-      JOIN   All_Tables rt     ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    c.Owner      = ?
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
     @referencing = sql_select_all ["\
-      SELECT c.*, t.Num_rows,
+      SELECT c.*,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
       FROM   All_Constraints r
       JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
-      JOIN   All_Tables t      ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    r.Owner      = ?
       AND    r.Table_Name = ?
@@ -322,7 +316,7 @@ class DbaSchemaController < ApplicationController
     part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database].version >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
     part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
 
-    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database].version >= "11.2" && part_tab.interval}" if part_tab
+    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database].version >= "11.2" && part_tab.interval}"
 
     @partitions = sql_select_all ["SELECT * FROM DBA_Tab_Partitions WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
 
@@ -338,7 +332,7 @@ class DbaSchemaController < ApplicationController
     part_ind = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database].version >= "11.2"} FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
     part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
 
-    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if session[:database].version >= "11.2" && part_ind.interval}" if part_ind
+    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if session[:database].version >= "11.2" && part_ind.interval}"
 
     @partitions = sql_select_all ["SELECT * FROM DBA_Ind_Partitions WHERE Index_Owner = ? AND Index_Name = ?", @owner, @index_name]
 
@@ -349,7 +343,6 @@ class DbaSchemaController < ApplicationController
 
 
   def list_audit_trail
-
     where_string = ""
     where_values = []
 
@@ -396,105 +389,15 @@ class DbaSchemaController < ApplicationController
       where_values << @action_name
     end
 
-    if params[:grouping] != "none"
-      list_audit_trail_grouping(params[:grouping], where_string, where_values, params[:update_area], params[:top_x].to_i)
-    else
-      @audits = sql_select_all ["\
+    @audits = sql_select_all ["\
                      SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                      FROM   DBA_Audit_Trail
                      WHERE  1=1 #{where_string}
                      ORDER BY Timestamp
                     "].concat(where_values)
 
-      respond_to do |format|
-        format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_audit_trail" }');"}
-      end
-    end
-  end
-
-  # Gruppierte Ausgabe der Audit-Trail-Info
-  def list_audit_trail_grouping(grouping, where_string, where_values, update_area, top_x)
-    audits = sql_select_all ["\
-                     SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
-                     FROM   (SELECT TRUNC(Timestamp, '#{grouping}') Begin_Timestamp, UserHost, OS_UserName, UserName,
-                                    COUNT(*)         Audits
-                                    FROM   DBA_Audit_Trail
-                                    WHERE  1=1 #{where_string}
-                                    GROUP BY TRUNC(Timestamp, '#{grouping}'), UserHost, OS_UserName, UserName
-                            )
-                     ORDER BY Begin_Timestamp, Audits
-                    "].concat(where_values)
-
-    def create_new_audit_result_record(audit_detail_record)
-      {
-        :begin_timestamp => audit_detail_record.begin_timestamp,
-        :audits => 0,
-        :machines => {},
-        :osusers => {},
-        :dbusers=>{}
-      }
-    end
-
-    @audits = []
-    machines = {}; osusers={}; dbusers={}
-    if audits.count > 0
-      ts = audits[0].begin_timestamp
-      rec = create_new_audit_result_record(audits[0])
-      @audits << rec
-      audits.each do |a|
-        # Gruppenwechsel
-        if a.begin_timestamp != ts
-          ts = a.begin_timestamp
-          rec = create_new_audit_result_record(a)
-          @audits << rec
-        end
-        rec[:audits] = rec[:audits] + a.audits
-
-        rec[:machines][a.userhost] = a.audits
-        machines[a.userhost] = (machines[a.userhost] ||= 0) + a.audits  # Maschine als verwendet merken
-
-        rec[:osusers][a.os_username] = a.audits
-        osusers[a.os_username] = (osusers[a.os_username] ||= 0) + a.audits
-
-        rec[:dbusers][a.username] = a.audits
-        dbusers[a.username] = (dbusers[a.username] ||= 0) + a.audits
-
-      end
-    end
-
-    @audits.each do |a|
-      a.extend SelectHashHelper
-    end
-
-    @machines = []
-    machines.each do |key, value|
-      @machines << { :machine=>key, :audits=>value}
-    end
-    @machines.sort!{ |x,y| y[:audits] <=> x[:audits] }
-    while @machines.count > top_x
-      @machines.delete_at(@machines.count-1)
-    end
-
-    @osusers = []
-    osusers.each do |key, value|
-      @osusers << { :osuser=>key, :audits=>value}
-    end
-    @osusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
-    while @osusers.count > top_x
-      @osusers.delete_at(@osusers.count-1)
-    end
-
-    @dbusers = []
-    dbusers.each do |key, value|
-      @dbusers << { :dbuser=>key, :audits=>value}
-    end
-    @dbusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
-    while @dbusers.count > top_x
-      @dbusers.delete_at(@dbusers.count-1)
-    end
-
     respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_audit_trail_grouping" }');"}
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_audit_trail" }');"}
     end
   end
 
