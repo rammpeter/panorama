@@ -60,9 +60,9 @@ column_options =
   {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
   {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Costs, cardinality=#{rec.cardinality}, bytes=#{rec.bytes}, time=#{rec.time}, Partition_Start=#{rec.partition_start}, Partition_Stop=#{rec.partition_stop}, Partition_ID=#{rec.partition_id}"} },
   {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelisierung (Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
-  {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>"Zugrifskriterium auf Objekt", :style=>"max-width:300px; word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}"} },
-  {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>"Filterkriterium für Objekt",  :style=>"max-width:300px; word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
-  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },          :title=>"Projection: Expressions produced by the operation", :style=>"max-width:300px; word-wrap: break-word;" },
+  {:caption=>"A.",          :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>"Zugrifskriterium auf Objekt", :style=>"max-width:300px; word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}"} },
+  {:caption=>"F.",          :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>"Filterkriterium für Objekt",  :style=>"max-width:300px; word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
+  {:caption=>"P.",          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },          :title=>"Projection: Expressions produced by the operation", :style=>"max-width:300px; word-wrap: break-word;" },
   {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-Space prognostiziert in MB", :align=>:right},
   {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-Distribution-Strategie" },
 ]
