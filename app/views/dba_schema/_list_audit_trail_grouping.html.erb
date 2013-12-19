@@ -31,6 +31,9 @@
    @dbusers.each do |m|
      column_options << {:caption=> "DB-User: #{m[:dbuser]}", :data=>proc{|rec| rec[:dbusers][m[:dbuser]]},     :title=> 'Number of audit records for database user'}
    end
+   @actions.each do |m|
+     column_options << {:caption=> "Action: #{m[:action]}", :data=>proc{|rec| rec[:actions][m[:action]]},     :title=> 'Number of audit records for action'}
+   end
 
 
 %>
