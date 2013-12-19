@@ -137,6 +137,26 @@ column_options =
 <pre style="background-color: lightyellow"><%=  @viewtext %></pre>
 <% end %>
 
+<% if @unique_constraints.count > 0 %>
+    <%=
+        column_options =
+                [
+                        {:caption=>"Constraint name",       :data=>proc{|rec| rec.constraint_name},             :title=>"Constraint name"},
+                        {:caption=>"Status",                :data=>proc{|rec| rec.status},                      :title=>"Status"},
+                        {:caption=>"Deferred",              :data=>proc{|rec| rec.deferred},                    :title=>"Deferred-Status"},
+                        {:caption=>"Validated",             :data=>proc{|rec| rec.validated},                   :title=>"Validate status"},
+                        {:caption=>"Last change",           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=>"Date of last change"},
+                        {:caption=>"Index",                 :data=>proc{|rec| rec.index_name},                  :title=>"Name of index used for enforcement of unique constraint"},
+                ]
+
+        gen_slickgrid(@unique_constraints, column_options, {
+                :caption => "Unique constraints for  #{@table_type} #{@owner}.#{@table_name}",
+                :height => :auto
+        })
+    %>
+
+<% end %>
+
 <%=
     column_options =
     [

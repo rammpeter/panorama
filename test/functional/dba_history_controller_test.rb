@@ -25,7 +25,7 @@ class DbaHistoryControllerTest < ActionController::TestCase
     post :list_segment_stat_historic_sum, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1
     assert_response :success
 
-    post :list_segment_stat_hist_detail, :format=>:js, :instance=>1,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
+    post :list_segment_stat_hist_detail, :format=>:js, :instance=>1, :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
          :owner=>'sys', :object_name=>'SEG$'
     assert_response :success
 

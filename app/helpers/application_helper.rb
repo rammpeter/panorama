@@ -497,6 +497,7 @@ public
   #     :no_wrap    => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #   global_options: Hash mit globalen Optionen
   #     :caption    => Titel vor Anzeige der Tabelle, darf keine "'" enthalten
+  #     :caption_style => Style-Attribute für caption der Tabelle
   #     :width      => Weite der Tabelle (Default="100%", :auto=nicht volle Breite)
   #     :height     => Höhe der Tabelle in Pixel oder '100%' für Parent ausfüllen oder :auto für dynam. Hoehe in Anhaengigkeit der Anzahl Zeilen, Default=:auto
   #     :max_height => max. Höhe Höhe der Tabelle in Pixel
@@ -522,6 +523,11 @@ public
 
     # Defaults für global_options
     global_options[:caption]            = escape_js_chars(global_options[:caption])    # Sonderzeichen in caption escapen
+    if global_options[:caption_style]
+      global_options[:caption]            = "<span style=\"#{global_options[:caption_style]}\">#{global_options[:caption]}</span>"
+    else
+      global_options[:caption]            = "<span style=\"font-weight: bold;\">#{global_options[:caption]}</span>"
+    end
     global_options[:width]              = '100%'                                unless global_options[:width]         # Default für Weite wenn nichts anderes angegeben
     global_options[:width]              = :auto                                 if global_options[:width] == 'auto'   # Symbol verwenden
     global_options[:height]             = :auto                                 unless global_options[:height]

@@ -54,9 +54,8 @@ class ActiveSessionHistoryController < ApplicationController
       WITH snaps AS (
               SELECT DBID, Instance_NUMBER, -- Letzten Snap vor Zeitraum und ersten Snap nach Zeitraum zur Abgrenzung der Datenmenge
                      -- Wirklich gefiltert wird auf s.Sample_time
-                     MAX(CASE WHEN Begin_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) Min_Snap_ID,
-                     NVL(MIN(CASE WHEN Begin_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END),
-                         MAX(Snap_ID)) Max_Snap_ID  -- Max. Snap-ID nehmen wenn keine existent nach Ende des Zeiraumes
+                     NVL(MAX(CASE WHEN Begin_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END), MIN(Snap_ID)) Min_Snap_ID, -- Min. Snap-ID nehmen wenn keine existent vor Beginn des Zeitraums
+                     NVL(MIN(CASE WHEN Begin_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END), MAX(Snap_ID)) Max_Snap_ID  -- Max. Snap-ID nehmen wenn keine existent nach Ende des Zeiraumes
               FROM   DBA_Hist_Snapshot snap
               WHERE  DBID = #{@dbid}
               GROUP BY DBID, Instance_NUMBER
