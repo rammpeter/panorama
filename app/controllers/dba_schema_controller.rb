@@ -295,6 +295,15 @@ class DbaSchemaController < ApplicationController
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
+    @check_constraints = sql_select_all ["\
+      SELECT c.*
+      FROM   All_Constraints c
+      WHERE  c.Constraint_Type = 'C'
+      AND    c.Owner = ?
+      AND    c.Table_Name = ?
+      AND    Generated != 'GENERATED NAME' -- Ausblenden implizite NOT NULL Constraints
+      ", @owner, @table_name]
+
     @references = sql_select_all ["\
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
