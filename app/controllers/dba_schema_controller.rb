@@ -414,7 +414,7 @@ class DbaSchemaController < ApplicationController
       where_values << @action_name
     end
 
-    if params[:grouping] != "none"
+    if params[:grouping] && params[:grouping] != "none"
       list_audit_trail_grouping(params[:grouping], where_string, where_values, params[:update_area], params[:top_x].to_i)
     else
       @audits = sql_select_all ["\
@@ -432,9 +432,14 @@ class DbaSchemaController < ApplicationController
 
   # Gruppierte Ausgabe der Audit-Trail-Info
   def list_audit_trail_grouping(grouping, where_string, where_values, update_area, top_x)
-      audits = sql_select_all ["\
+    @grouping = grouping
+    @top_x    = top_x
+
+    audits = sql_select_all ["\
                    SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
-                   FROM   (SELECT TRUNC(Timestamp, '#{grouping}') Begin_Timestamp, UserHost, OS_UserName, UserName, Action_Name,
+                   FROM   (SELECT TRUNC(Timestamp, '#{grouping}') Begin_Timestamp,
+                                  MAX(Timestamp)+1/1440 Max_Timestamp,  -- auf naechste ganze Minute aufgerundet
+                                  UserHost, OS_UserName, UserName, Action_Name,
                                   COUNT(*)         Audits
                                   FROM   DBA_Audit_Trail
                                   WHERE  1=1 #{where_string}
@@ -445,16 +450,17 @@ class DbaSchemaController < ApplicationController
     def create_new_audit_result_record(audit_detail_record)
       {
                 :begin_timestamp => audit_detail_record.begin_timestamp,
+                :max_timestamp   => audit_detail_record.max_timestamp,
                 :audits   => 0,
                 :machines => {},
-                :osusers  => {},
-                :dbusers  =>{},
+                :os_users  => {},
+                :db_users  =>{},
                 :actions  => {}
       }
     end
 
     @audits = []
-    machines = {}; osusers={}; dbusers={}; actions={}
+    machines = {}; os_users={}; db_users={}; actions={}
     if audits.count > 0
       ts = audits[0].begin_timestamp
       rec = create_new_audit_result_record(audits[0])
@@ -467,16 +473,16 @@ class DbaSchemaController < ApplicationController
           @audits << rec
         end
         rec[:audits] = rec[:audits] + a.audits
+        rec[:max_timestamp] = a.max_timestamp if a.max_timestamp > rec[:max_timestamp]  # Merken des groessten Zeitstempels
 
         rec[:machines][a.userhost] = (rec[:machines][a.userhost] ||=0) + a.audits
         machines[a.userhost] = (machines[a.userhost] ||= 0) + a.audits  # Gesamtmenge je Maschine merken für Sortierung nach Top x
 
-        rec[:osusers][a.os_username] = (rec[:osusers][a.os_username] ||=0) + a.audits
-        osusers[a.os_username] = (osusers[a.os_username] ||= 0) + a.audits
+        rec[:os_users][a.os_username] = (rec[:os_users][a.os_username] ||=0) + a.audits
+        os_users[a.os_username] = (os_users[a.os_username] ||= 0) + a.audits
 
-
-        rec[:dbusers][a.username] = (rec[:dbusers][a.username] ||=0) + a.audits
-        dbusers[a.username] = (dbusers[a.username] ||= 0) + a.audits
+        rec[:db_users][a.username] = (rec[:db_users][a.username] ||=0) + a.audits
+        db_users[a.username] = (db_users[a.username] ||= 0) + a.audits
 
         rec[:actions][a.action_name] = (rec[:actions][a.action_name] ||=0) + a.audits
         actions[a.action_name] = (actions[a.action_name] ||= 0) + a.audits
@@ -498,27 +504,27 @@ class DbaSchemaController < ApplicationController
       @machines.delete_at(@machines.count-1)
     end
 
-    @osusers = []
-    osusers.each do |key, value|
-      @osusers << { :osuser=>key, :audits=>value}
+    @os_users = []
+    os_users.each do |key, value|
+      @os_users << { :os_user=>key, :audits=>value}
     end
-    @osusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
-    while @osusers.count > top_x
-      @osusers.delete_at(@osusers.count-1)
+    @os_users.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @os_users.count > top_x
+      @os_users.delete_at(@os_users.count-1)
     end
 
-    @dbusers = []
-    dbusers.each do |key, value|
-      @dbusers << { :dbuser=>key, :audits=>value}
+    @db_users = []
+    db_users.each do |key, value|
+      @db_users << { :db_user=>key, :audits=>value}
     end
-    @dbusers.sort!{ |x,y| y[:audits] <=> x[:audits] }
-    while @dbusers.count > top_x
-      @dbusers.delete_at(@dbusers.count-1)
+    @db_users.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @db_users.count > top_x
+      @db_users.delete_at(@db_users.count-1)
     end
 
     @actions = []
     actions.each do |key, value|
-      @actions << { :action=>key, :audits=>value}
+      @actions << { :action_name=>key, :audits=>value}
     end
     @actions.sort!{ |x,y| y[:audits] <=> x[:audits] }
     while @actions.count > top_x
