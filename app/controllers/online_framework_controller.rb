@@ -536,6 +536,20 @@ public
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "online_framework/show_working_ofbulkgroup" }');"}
     end
   end
+
+
+  def show_external_queue
+    @content = sql_select_all "\
+      SELECT /* Panorama-Tool Ramm */ ID_OFMessageType, MIN(CreationTimestamp) MinTS, MAX(CreationTimestamp) MaxTS, COUNT(*) Anzahl,
+             (SELECT Name FROM sysp.OFMessageType mt WHERE mt.ID = m.ID_OFMessageType) Name
+      FROM   journal.OFExtServiceMessage m
+      GROUP BY ID_OFMessageType
+      ORDER BY 2"
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "online_framework/show_external_queue" }');"}
+    end
+  end
 end
 
 

@@ -70,7 +70,10 @@ if @res.count > 0
                                 )
 
                              }
-          when col[:caption].downcase == 'table_name' || col[:caption].downcase == "table name" then
+          when col[:caption].downcase == 'table_name' ||
+                  col[:caption].downcase == "table name" ||
+                  col[:caption].downcase == "object_name"
+          then
             col[:data] = proc{|rec|
                                 owner = nil                                     # Default
                                 owner = rec["table_owner"]          if rec["table_owner"]   && !owner

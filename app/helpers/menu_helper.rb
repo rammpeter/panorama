@@ -143,8 +143,8 @@ module MenuHelper
             {:class=> 'item', :caption=> 'Übersicht Queue',               :controller=> 'online_framework',    :action=> 'show_overview',           :hint=> 'Übersicht über wartende Messages des Online-FW'},
             {:class=> 'item', :caption=> 'Durchsatz historisch',          :controller=> 'online_framework',    :action=> 'show_history',            :hint=> 'Historischer durchsatz des Online-FW'},
             {:class=> 'item', :caption=> 'Bulkgroup-Info',                :controller=> 'online_framework',    :action=> 'show_working_ofbulkgroup',:hint=> 'Info zu wartenden und aktiv verarbeiteten Bulkgroups'},
-            {:class=> 'item', :caption=> 'Aspekte als Chart',             :controller=> 'online_queue',        :action=> 'start_working',           :hint=> 'Unsupported'},
             {:class=> 'item', :caption=> 'Worker Infos',                  :controller=> 'online_worker',       :action=> 'start_working',           :hint=> 'Unsupported'},
+            {:class=> 'item', :caption=> 'Übersicht externe Queue',       :controller=> 'online_framework',    :action=> 'show_external_queue',     :hint=> 'Übersicht über auf Übertragung nach journal.OFMessage wartende Messages des Online-FW in Tabelle journal.OFExtServiceMessage'},
             ]
         },
     ]
