@@ -117,8 +117,9 @@ module ApplicationHelper
       # ermitteln SID oder alternativ Instance_Name oder Service_Name
       sid_tag_length = 4
       sid_usage = :SID
-      start_pos_sid = fullstring.index('SID')
-      if start_pos_sid==nil || (next_start_pos_description && next_start_pos_description<start_pos_sid)
+      start_pos_sid = fullstring.index('SID=')                                  # i.d.R. folgt unmittelbar ein "="
+      start_pos_sid = fullstring.index('SID ') if start_pos_sid.nil?            # evtl. " " zwischen SID und "="
+      if start_pos_sid.nil? || (next_start_pos_description && next_start_pos_description<start_pos_sid)
         sid_tag_length = 12
         sid_usage = :SERVICE_NAME
         start_pos_sid = fullstring.index('SERVICE_NAME')
