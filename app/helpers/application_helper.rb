@@ -96,6 +96,8 @@ module ApplicationHelper
       end
       fullstring = fullstring[start_pos_description + 10, 1000000]     # Rest des Strings fuer weitere Verarbeitung
 
+      next if tns_name[0,1] == "#"                                              # Auskommentierte Zeile
+
       next_start_pos_description = fullstring.index('DESCRIPTION')      # Alle weiteren Treffer muessen vor der naechsten Description liegen
 
       # ermitteln Hostname
