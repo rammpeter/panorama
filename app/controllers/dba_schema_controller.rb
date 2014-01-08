@@ -343,14 +343,14 @@ class DbaSchemaController < ApplicationController
 
     @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database].version >= "11.2" && part_tab.interval}"
 
-    @partitions = sql_select_all ["\
+    @partitions = sql_select_all ['\
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
                    FROM   DBA_Segments s
                    WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
                   ) Size_MB
       FROM DBA_Tab_Partitions p
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
-      ", @owner, @table_name]
+      ', @owner, @table_name]
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_partitions" }');"}
