@@ -14,7 +14,8 @@
 
     column_options.concat [
       {:caption=>"Num. rows",              :data=>proc{|rec| fn rec.num_rows},                  :title=>"Number of rows in the partition", :align=>:right},
-      {:caption=>"Blocks",                 :data=>proc{|rec| fn rec.blocks},                    :title=>"Number of used data blocks in the partition", :align=>:right},
+      {:caption=>"Size (MB)",              :data=>proc{|rec| fn(rec.size_mb,2)},                :title=>"Curent object size in megabytes", :align=>:right},
+      {:caption=>"Blocks",                 :data=>proc{|rec| fn rec.blocks},                    :title=>"Number of used data blocks in the partition (below high water mark)", :align=>:right},
       {:caption=>"Avg. row len",           :data=>proc{|rec| fn rec.avg_row_len},               :title=>"Average length of a row in the partition (in bytes)", :align=>:right},
       {:caption=>"Last analyzed",          :data=>proc{|rec| localeDateTime rec.last_analyzed},  :title=>"Date on which this partition was most recently analyzed" },
     ]

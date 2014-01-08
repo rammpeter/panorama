@@ -343,7 +343,14 @@ class DbaSchemaController < ApplicationController
 
     @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database].version >= "11.2" && part_tab.interval}"
 
-    @partitions = sql_select_all ["SELECT * FROM DBA_Tab_Partitions WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+    @partitions = sql_select_all ["\
+      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
+                   FROM   DBA_Segments s
+                   WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
+                  ) Size_MB
+      FROM DBA_Tab_Partitions p
+      WHERE p.Table_Owner = ? AND p.Table_Name = ?
+      ", @owner, @table_name]
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_partitions" }');"}
@@ -359,7 +366,14 @@ class DbaSchemaController < ApplicationController
 
     @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if session[:database].version >= "11.2" && part_ind.interval}"
 
-    @partitions = sql_select_all ["SELECT * FROM DBA_Ind_Partitions WHERE Index_Owner = ? AND Index_Name = ?", @owner, @index_name]
+    @partitions = sql_select_all ["\
+      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
+                   FROM   DBA_Segments s
+                   WHERE  s.Owner = p.Index_Owner AND s.Segment_Name = p.Index_Name AND s.Partition_Name = p.Partition_Name
+                  ) Size_MB
+      FROM DBA_Ind_Partitions p
+      WHERE p.Index_Owner = ? AND p.Index_Name = ?
+      ", @owner, @index_name]
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_index_partitions" }');"}
