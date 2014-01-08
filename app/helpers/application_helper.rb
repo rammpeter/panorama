@@ -98,12 +98,10 @@ module ApplicationHelper
 
       next if tns_name[0,1] == "#"                                              # Auskommentierte Zeile
 
-      next_start_pos_description = fullstring.index('DESCRIPTION')      # Alle weiteren Treffer muessen vor der naechsten Description liegen
-
       # ermitteln Hostname
       start_pos_host = fullstring.index('HOST')
       # Naechster Block mit Description beginnen wenn kein Host enthalten oder in naechster Description gefunden
-      next if start_pos_host==nil || (next_start_pos_description && next_start_pos_description<start_pos_host)
+      next if start_pos_host==nil || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_host)    # Alle weiteren Treffer muessen vor der naechsten Description liegen
       fullstring = fullstring[start_pos_host + 5, 1000000]
       hostName = fullstring[0..fullstring.index(')')-1]
       hostName = hostName.delete(' ').delete('=') # Entfernen Blank u.s.w
@@ -111,7 +109,7 @@ module ApplicationHelper
       # ermitteln Port
       start_pos_port = fullstring.index('PORT')
       # Naechster Block mit Description beginnen wenn kein Port enthalten oder in naechster Description gefunden
-      next if start_pos_port==nil || (next_start_pos_description && next_start_pos_description<start_pos_port)
+      next if start_pos_port==nil || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_port) # Alle weiteren Treffer muessen vor der naechsten Description liegen
       fullstring = fullstring[start_pos_port + 5, 1000000]
       port = fullstring[0..fullstring.index(')')-1]
       port = port.delete(' ').delete('=')      # Entfernen Blank u.s.w.
@@ -121,13 +119,13 @@ module ApplicationHelper
       sid_usage = :SID
       start_pos_sid = fullstring.index('SID=')                                  # i.d.R. folgt unmittelbar ein "="
       start_pos_sid = fullstring.index('SID ') if start_pos_sid.nil?            # evtl. " " zwischen SID und "="
-      if start_pos_sid.nil? || (next_start_pos_description && next_start_pos_description<start_pos_sid)
+      if start_pos_sid.nil? || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_sid) # Alle weiteren Treffer muessen vor der naechsten Description liegen
         sid_tag_length = 12
         sid_usage = :SERVICE_NAME
         start_pos_sid = fullstring.index('SERVICE_NAME')
       end
       # Naechster Block mit Description beginnen wenn kein SID enthalten oder in naechster Description gefunden
-      next if start_pos_sid==nil || (next_start_pos_description && next_start_pos_description<start_pos_sid)
+      next if start_pos_sid==nil || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_sid) # Alle weiteren Treffer muessen vor der naechsten Description liegen
       fullstring = fullstring[start_pos_sid + sid_tag_length, 1000000]               # Rest des Strings fuer weitere Verarbeitung
       
       sidName = fullstring[0..fullstring.index(')')-1]
