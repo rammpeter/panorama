@@ -248,8 +248,11 @@ class DbaHistoryController < ApplicationController
     filter   = params[:filter]  =="" ? nil : params[:filter]
     instance = prepare_param_instance
     @dbid    = prepare_param_dbid
-    sql_id   = params[:sql_id]  =="" ? nil : params[:sql_id]
-    params[:sql_id] = params[:sql_id].strip if params[:sql_id]
+    sql_id   = case params[:sql_id]
+                 when nil then nil
+                 when "" then nil
+                 else params[:sql_id].strip
+              end
     save_session_time_selection                   # Werte puffern fuer spaetere Wiederverwendung
 
     where_string_instance  = ""                         # Filter-Text für nachfolgendes Statement
