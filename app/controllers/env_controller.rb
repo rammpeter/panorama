@@ -17,12 +17,15 @@ class EnvController < ApplicationController
   end
 
 public
-  # Aufgerufen aus dem Anmelde-Dialog für DB
+  # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
       read_last_login_cookies.each do |db_cookie|
-        if db_cookie[:id].to_i == params[:saved_logins_id].to_i                           # Diese DB wurde in leect-Liste ausgewählt
+        if db_cookie[:id].to_i == params[:saved_logins_id].to_i                 # Diese DB wurde in Select-Liste ausgewählt
           params[:database] = db_cookie                                         # Vorbelegen der Formular-Inhalte mit dieser DB
+          # Entschlüsseln des Passwortes
+          crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+          params[:database][:password] = crypt.decrypt_and_verify(params[:database][:password])
         end
       end
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
@@ -240,12 +243,24 @@ private
   def write_connection_to_cookie database
 
     cookies_last_logins = read_last_login_cookies
+    min_id = nil
 
     cookies_last_logins.each do |value|
       cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
+      min_id = value[:id].to_i if  min_id.nil? || value[:id].to_i < min_id     # Kleinste ID finden
     end
     if params[:saveLogin] == "1"
-      cookies_last_logins << database.to_params  # Aktuellen Eintrag hinzufügen
+      if cookies_last_logins.length > 10                                        # Max. Anzahl Connections in Auswahl-Liste überschritten?
+        cookies_last_logins.each do |value|
+          cookies_last_logins.delete(value) if value[:id].to_i == min_id             # Löschen der ältesten Eintragung
+        end
+      end
+      database_as_hash = database.to_params
+      # Passwort verschlüsseln
+      crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+      database_as_hash[:password] = crypt.encrypt_and_sign(database_as_hash[:password])
+
+      cookies_last_logins << database_as_hash  # Aktuellen Eintrag hinzufügen
       cookies_last_logins.sort_by!{|obj| "#{obj[:sid]}.#{obj[:host]}.#{obj[:user]}"}
       cookies_last_logins.each_index do |index|
         value = cookies_last_logins[index]

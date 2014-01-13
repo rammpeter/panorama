@@ -1,12 +1,12 @@
 # encoding: utf-8
 module EnvHelper
+  require "zlib"
 
   # Einlesen last_logins aus cookie-store
   def read_last_login_cookies
     begin
       if cookies[:last_logins]
-        crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-        cookies_last_logins = crypt.decrypt_and_verify(cookies[:last_logins])
+        cookies_last_logins = Marshal.load(Zlib::Inflate.inflate(cookies[:last_logins]))
       else
         cookies_last_logins = []
       end
@@ -28,11 +28,10 @@ module EnvHelper
     cookies_last_logins
   end
 
-  # Zurückschreiben des Cookies in cookie-store
+  # Zurückschreiben des Cookies in cookie-store, Komprimieren, um 4K-Limit nicht zu überschreiten
   def write_last_login_cookies(cookies_last_logins)
-
-    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-    cookies[:last_logins] = { :value => crypt.encrypt_and_sign(cookies_last_logins), :expires => 1.year.from_now }
+    compressed_cookie = Zlib::Deflate.deflate(Marshal.dump(cookies_last_logins))
+    cookies[:last_logins] = { :value => compressed_cookie, :expires => 1.year.from_now }
   end
 
 
