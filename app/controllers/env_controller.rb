@@ -98,7 +98,7 @@ public
     end
 
     # Temporaerer Schutz des Produktionszuganges bis zur Implementierung LDAP-Autorisierung    
-    if @database.host.rindex("noaa") || @database.host.rindex("noab")
+    if @database.host.upcase.rindex("DM03-SCAN") && @database.sid.upcase.rindex("NOADB")
       if params[:database][:authorization]== nil  || params[:database][:authorization]==""
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "zusätzliche Autorisierung erforderlich fuer NOA-Produktionssystem"}'); $('#login_dialog_authorization').show(); $('#login_dialog').effect('shake', { times:3 }, 100);"}
