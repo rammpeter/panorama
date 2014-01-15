@@ -379,6 +379,11 @@
   menu_storage_storage_summary_caption:                     Plattenspeicher-Nutzung
   menu_storage_storage_summary_hint:                        Übersicht über Plattenspeicher-/Tablespace-Nutzung
 
+  menu_storage_undo_history_caption:                        UNDO-Nutzung historisch
+  menu_storage_undo_history_hint:                           Historische Nutzung von UNDO-Space
+  menu_storage_undo_usage_caption:                          UNDO Segmente
+  menu_storage_undo_usage_hint:                             Aktuelle Nutzung von UNDO-Space nach Segmenten
+
   menu_wait_caption:                                        Wait-Analyse
   menu_wait_db_file_sequential_read_hint: |-
     Aktuelle Wait-Auslöser 'db file sequential read' (Vorsicht: Langsam auf großen Systemen)

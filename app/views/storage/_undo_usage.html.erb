@@ -1,0 +1,41 @@
+<%
+   column_options =
+           [
+                   {:caption=>"Owner",                 :data=>proc{|rec| rec.owner},                        :title=>"Owner of UNDO tablespace"},
+                   {:caption=>"Tablespace",            :data=>proc{|rec| rec.tablespace_name},              :title=>"Name of UNDO tablespace"},
+                   {:caption=>"I",                     :data=>proc{|rec| rec.inst_id},                      :title=>'RAC-instance if tablespace is defined as "undo_tablespace" for this instance', :align=>:right},
+                   {:caption=>"Size total (MB)",       :data=>proc{|rec| fn(rec.size_mb,2)},                :title=>"Total size of UNDO segment in tablespace",     :align=>:right},
+                   {:caption=>"Size active (MB)",      :data=>proc{|rec| fn(rec.size_mb_active,2)},         :title=>"Size of active extents in UNDO segment",       :align=>:right},
+                   {:caption=>"Size unexpired (MB)",   :data=>proc{|rec| fn(rec.size_mb_unexpired,2)},      :title=>"Size of unexpired extents in UNDO segment",    :align=>:right},
+                   {:caption=>"Size expired (MB)",     :data=>proc{|rec| fn(rec.size_mb_expired,2)},        :title=>"Size of expired extents in UNDO segment",      :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@undo_tablespaces, column_options, {
+        :caption => 'Current UNDO tablespaces'
+
+}) %>
+
+
+<%
+   column_options =
+           [
+                   {:caption=>"Owner",                 :data=>proc{|rec| rec.owner},                        :title=>"Owner of UNDO tablespace"},
+                   {:caption=>"Segment",               :data=>proc{|rec| rec.segment_name},                 :title=>"Name of UNDO segment"},
+                   {:caption=>"Tablespace",            :data=>proc{|rec| rec.tablespace_name},              :title=>"Name of UNDO tablespace"},
+                   {:caption=>"I",                     :data=>proc{|rec| rec.inst_id},                      :title=>'RAC-instance if tablespace is defined as "undo_tablespace" for this instance', :align=>:right},
+                   {:caption=>"Size total (MB)",       :data=>proc{|rec| fn(rec.size_mb,2)},                :title=>"Total size of UNDO segment in tablespace",     :align=>:right},
+                   {:caption=>"Size active (MB)",      :data=>proc{|rec| fn(rec.size_mb_active,2)},         :title=>"Size of active extents in UNDO segment",       :align=>:right},
+                   {:caption=>"Size unexpired (MB)",   :data=>proc{|rec| fn(rec.size_mb_unexpired,2)},      :title=>"Size of unexpired extents in UNDO segment",    :align=>:right},
+                   {:caption=>"Size expired (MB)",     :data=>proc{|rec| fn(rec.size_mb_expired,2)},        :title=>"Size of expired extents in UNDO segment",      :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@undo_segments, column_options, {
+        :max_height => 450,
+        :caption => 'Current UNDO segments'
+
+}) %>
+

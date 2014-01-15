@@ -24,6 +24,7 @@ gem "memcache-client"
 #  gem 'uglifier', '>= 1.0.3'
 #end
 
+
 # JavaScript-Runtime für Server-Seite, wenn kein lokaler installiert ist wie z.B. nodejs (oft unter Linux der Fall)
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
 gem 'therubyrhino'

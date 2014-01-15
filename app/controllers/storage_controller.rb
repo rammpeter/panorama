@@ -369,6 +369,58 @@ class StorageController < ApplicationController
     end
   end
 
+  # Nutzung von Undo-Segmenten
+  def undo_usage
+    @undo_tablespaces = sql_select_all("\
+      SELECT /* Panorama-Tool Ramm */
+             Owner, Tablespace_Name,
+             SUM(Bytes)/(1024*1024) Size_MB,
+             SUM(DECODE(Status, 'UNEXPIRED', Bytes, 0))/(1024*1024) Size_MB_UnExpired,
+             SUM(DECODE(Status, 'EXPIRED',   Bytes, 0))/(1024*1024) Size_MB_Expired,
+             SUM(DECODE(Status, 'ACTIVE',    Bytes, 0))/(1024*1024) Size_MB_Active,
+             (SELECT Inst_ID FROM gv$Parameter p WHERE Name='undo_tablespace' AND p.Value = e.Tablespace_Name) Inst_ID
+      FROM   DBA_UNDO_Extents e
+      GROUP BY Owner, Tablespace_Name
+      ORDER BY SUM(Bytes) DESC")
+
+    @undo_segments = sql_select_all("\
+      SELECT /* Panorama-Tool Ramm */
+             Owner, Segment_Name, Tablespace_Name,
+             SUM(Bytes)/(1024*1024) Size_MB,
+             SUM(DECODE(Status, 'UNEXPIRED', Bytes, 0))/(1024*1024) Size_MB_UnExpired,
+             SUM(DECODE(Status, 'EXPIRED',   Bytes, 0))/(1024*1024) Size_MB_Expired,
+             SUM(DECODE(Status, 'ACTIVE',    Bytes, 0))/(1024*1024) Size_MB_Active,
+             (SELECT Inst_ID FROM gv$Parameter p WHERE Name='undo_tablespace' AND p.Value = e.Tablespace_Name) Inst_ID
+      FROM   DBA_UNDO_Extents e
+      GROUP BY Owner, Segment_Name, Tablespace_Name
+      ORDER BY SUM(Bytes) DESC")
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/undo_usage" }');"}
+    end
+  end
+
+  def list_undo_history
+    save_session_time_selection
+    @instance = prepare_param_instance
+    @instance = nil if @instance == ''
+
+    @undo_history = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             Begin_Time, End_Time, Instance_Number, UndoBlks, TxnCount, MaxQueryLen, MaxQuerySQLID,
+             MaxConcurrency, UnxpStealCnt, UnxpBlkRelCnt, UnxpBlkReuCnt, ExpStealCnt, ExpBlkRelCnt, ExpBlkReuCnt,
+             SSOldErrCnt, NoSpaceErrCnt, ActiveBlks, UnexpiredBlks, ExpiredBlks, Tuned_UndoRetention
+      FROM   DBA_Hist_UndoStat
+      WHERE  Begin_Time BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
+      #{'AND Instance_Number = ?' if @instance}
+      ORDER BY Begin_Time
+      ", @time_selection_start, @time_selection_end].concat(@instance ? [@instance] : [])
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_undo_history"}');"}
+    end
+  end
+
 
 
 end
