@@ -1,0 +1,34 @@
+<%
+   @update_area = "list_undo_transactions_detail_area_#{session[:request_counter]}"
+
+
+   def link_session(rec)
+     my_ajax_link_to("#{rec.sid},#{rec.serialno}",
+                     url_for(:action          => :list_undo_transactions,
+                             :update_area     => @update_area
+                     ),
+                     :title=>"Show session details")
+   end
+
+
+   column_options =
+           [
+                   {:caption=>"I",                     :data=>proc{|rec| rec.inst_id},                      :title=>'RAC-instance', :align=>:right},
+                   {:caption=>"SID, Serial#",          :data=>proc{|rec| link_session(rec)},                :title=>'SID, Serial# of session', :align=>:right},
+                   {:caption=>"User",                  :data=>proc{|rec| rec.username},                     :title=>'User name'},
+                   {:caption=>"Program",               :data=>proc{|rec| rec.program},                      :title=>'Program'},
+                   {:caption=>"Used undo blocks",      :data=>proc{|rec| fn rec.used_undo_blocks},          :title=>'Number of undo blocks used', :align=>:right},
+  #                 {:caption=>"Used undo (MB)",        :data=>proc{|rec| session[:database].blcoksize*  fn rec.used_undo_blocks},          :title=>'Number of undo blocks used', :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@undo_transactions, column_options, {
+        :max_height => 450,
+        :caption => "Current transactions for undo segment id = #{@segment_id}"
+
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both; width:100%;">
+</div>
+

@@ -384,16 +384,21 @@ class StorageController < ApplicationController
       ORDER BY SUM(Bytes) DESC")
 
     @undo_segments = sql_select_all("\
-      SELECT /* Panorama-Tool Ramm */
-             Owner, Segment_Name, Tablespace_Name,
-             SUM(Bytes)/(1024*1024) Size_MB,
-             SUM(DECODE(Status, 'UNEXPIRED', Bytes, 0))/(1024*1024) Size_MB_UnExpired,
-             SUM(DECODE(Status, 'EXPIRED',   Bytes, 0))/(1024*1024) Size_MB_Expired,
-             SUM(DECODE(Status, 'ACTIVE',    Bytes, 0))/(1024*1024) Size_MB_Active,
-             (SELECT Inst_ID FROM gv$Parameter p WHERE Name='undo_tablespace' AND p.Value = e.Tablespace_Name) Inst_ID
-      FROM   DBA_UNDO_Extents e
-      GROUP BY Owner, Segment_Name, Tablespace_Name
-      ORDER BY SUM(Bytes) DESC")
+      SELECT /* Panorama-Tool Ramm */ i.*, t.Transactions, r.Segment_ID,
+             (SELECT Inst_ID FROM gv$Parameter p WHERE Name='undo_tablespace' AND p.Value = i.Tablespace_Name) Inst_ID
+      FROM   (SELECT
+                     Owner, Segment_Name, Tablespace_Name,
+                     SUM(Bytes)/(1024*1024) Size_MB,
+                     SUM(DECODE(Status, 'UNEXPIRED', Bytes, 0))/(1024*1024) Size_MB_UnExpired,
+                     SUM(DECODE(Status, 'EXPIRED',   Bytes, 0))/(1024*1024) Size_MB_Expired,
+                     SUM(DECODE(Status, 'ACTIVE',    Bytes, 0))/(1024*1024) Size_MB_Active
+              FROM   DBA_UNDO_Extents e
+              GROUP BY Owner, Segment_Name, Tablespace_Name
+            ) i
+      LEFT OUTER JOIN DBA_Rollback_Segs r ON r.Segment_Name = i.Segment_Name
+      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ XidUsn, COUNT(*) Transactions FROM gv$Transaction GROUP BY XidUsn) t ON t.XidUsn = r.Segment_ID
+      ORDER BY Size_MB DESC")
+
 
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/undo_usage" }');"}
@@ -421,7 +426,23 @@ class StorageController < ApplicationController
     end
   end
 
+  def list_undo_transactions
+    @segment_id = params[:segment_id]
 
+    @undo_transactions = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             s.Inst_ID, s.SID, s.Serial# SerialNo, s.UserName, s.Program,
+             t.Used_Ublk Used_Undo_Blocks
+      FROM   v$Transaction t
+      JOIN   gv$Session s ON s.TAddr = t.Addr
+      WHERE  t.XIDUsn = ?
+      ORDER BY t.Used_Ublk DESC
+      ", @segment_id]
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_undo_transactions"}');"}
+    end
+  end
 
 end
 
