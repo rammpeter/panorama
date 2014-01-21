@@ -873,5 +873,12 @@ public
     ActiveRecord::Base.establish_connection(:adapter  => 'nulldb')
   end
 
+  # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht
+  def render_partial(partial_name = nil)
+    partial_name = self.action_name if partial_name.nil?
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"#{controller_name}/#{partial_name}"}');"}
+    end
+  end
 
 end

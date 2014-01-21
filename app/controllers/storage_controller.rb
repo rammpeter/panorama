@@ -134,9 +134,7 @@ class StorageController < ApplicationController
                                 ORDER BY 2 DESC"
 
 
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/tablespace_usage" }');"}
-    end
+    render_partial
   end
 
 
@@ -181,9 +179,7 @@ class StorageController < ApplicationController
       WHERE 1=1 #{where_string}
     "].concat where_values
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_registered_materialized_views"}');"}
-    end
+    render_partial
   end
 
   def list_all_materialized_views
@@ -218,9 +214,7 @@ class StorageController < ApplicationController
       ORDER BY m.MView_Name
     "].concat where_values
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_all_materialized_views"}');"}
-    end
+    render_partial
   end
 
   def list_materialized_view_logs
@@ -252,9 +246,7 @@ class StorageController < ApplicationController
       WHERE 1=1 #{where_string}
       "].concat where_values
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_materialized_view_logs"}');"}
-    end
+    render_partial
   end
 
 
@@ -286,9 +278,7 @@ class StorageController < ApplicationController
       WHERE  1=1 #{where_string}
       "].concat where_values
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_snapshot_logs"}');"}
-    end
+    render_partial
   end
 
   def list_registered_mview_query_text
@@ -364,9 +354,7 @@ class StorageController < ApplicationController
       "
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/datafile_usage" }');"}
-    end
+    render_partial
   end
 
   # Nutzung von Undo-Segmenten
@@ -399,10 +387,7 @@ class StorageController < ApplicationController
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ XidUsn, COUNT(*) Transactions FROM gv$Transaction GROUP BY XidUsn) t ON t.XidUsn = r.Segment_ID
       ORDER BY Size_MB DESC")
 
-
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "storage/undo_usage" }');"}
-    end
+    render_partial
   end
 
   def list_undo_history
@@ -421,27 +406,25 @@ class StorageController < ApplicationController
       ORDER BY Begin_Time
       ", @time_selection_start, @time_selection_end].concat(@instance ? [@instance] : [])
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_undo_history"}');"}
-    end
+    render_partial
   end
 
   def list_undo_transactions
     @segment_id = params[:segment_id]
+    @segment_id = nil if @segment_id == ''
 
     @undo_transactions = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             s.Inst_ID, s.SID, s.Serial# SerialNo, s.UserName, s.Program,
-             t.Used_Ublk Used_Undo_Blocks
+             s.Inst_ID, s.SID, s.Serial# SerialNo, s.UserName, s.Program, s.Status, s.OSUser, s.Client_Info, s.Module, s.Action,
+             t.Start_Time, t.Recursive, t.Used_Ublk Used_Undo_Blocks, t.Used_URec Used_Undo_Records, t.Log_IO, t.Phy_IO, RawToHex(t.XID) XID,
+             t.XIDUSN Segment, t.XIDSLOT Slot, t.XIDSQN Sequence, t.CR_get, t.CR_Change
       FROM   v$Transaction t
       JOIN   gv$Session s ON s.TAddr = t.Addr
-      WHERE  t.XIDUsn = ?
+      #{'WHERE  t.XIDUsn = ?' if @segment_id}
       ORDER BY t.Used_Ublk DESC
-      ", @segment_id]
+      "].concat(@segment_id ? [@segment_id] : [])
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_undo_transactions"}');"}
-    end
+    render_partial
   end
 
 end

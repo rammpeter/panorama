@@ -76,8 +76,9 @@ module MenuHelper
             {:class=> 'item', :caption=>t(:menu_storage_storage_summary_caption, :default=> 'Disk-storage summary'), :controller=>:storage,             :action=>:tablespace_usage,  :hint=>t(:menu_storage_storage_summary_hint, :default=> 'Overview over disk space/tablespace usage by schema') },
             {:class=> 'item', :caption=>t(:menu_storage_datafile_caption, :default=> 'Datafile-usage'),     :controller=>:storage,             :action=>:datafile_usage,    :hint=>t(:menu_storage_datafile_hint, :default=> 'Show data-files of DB')   },
             { :class=> 'menu', :caption=> 'UNDO-TS', :content=>[
-                {:class=> 'item', :caption=>t(:menu_storage_undo_usage_caption, :default=> 'UNDO segments summary'), :controller=>:storage,             :action=>:undo_usage,  :hint=>t(:menu_storage_undo_usage_hint, :default=> 'Current usage of undo space by segments') },
-                {:class=> 'item', :caption=>t(:menu_storage_undo_history_caption, :default=> 'UNDO usage historic'),     :controller=>:storage,             :action=>:show_undo_history,    :hint=>t(:menu_storage_undo_history_hint, :default=> 'Historic usage of UNDO space')   },
+                {:class=> 'item', :caption=>t(:menu_storage_undo_usage_caption, :default=> 'Undo segments summary'), :controller=>:storage,             :action=>:undo_usage,  :hint=>t(:menu_storage_undo_usage_hint, :default=> 'Current usage of undo space by segments') },
+                {:class=> 'item', :caption=>'Active transactions', :controller=>:storage,             :action=>:list_undo_transactions,  :hint=>'Current active transactions' },
+                {:class=> 'item', :caption=>t(:menu_storage_undo_history_caption, :default=> 'Undo usage historic'),     :controller=>:storage,             :action=>:show_undo_history,    :hint=>t(:menu_storage_undo_history_hint, :default=> 'Historic usage of UNDO space')   },
             ]
             },
             {:class=> 'item', :caption=> 'Tablespace-Objects', :controller=>:dba_schema,       :action=>:show_object_size,  :hint=>t(:menu_dba_schema_ts_objects_hint, :default=> 'DB-objects by size, utilization and wastage') },
@@ -209,6 +210,7 @@ private
       my_ajax_link_to(title,
                       url_for(:controller          => exec_controller,
                               :action              => exec_action,
+                              :update_area         => 'content_for_layout',     # Standard-Div für Anzeige in Layout
                               :redirect_controller => controller,
                               :redirect_action     => action,
                               :last_used_menu_controller => controller, # Merken der zuletzt aus Menü ausgeführten Action
