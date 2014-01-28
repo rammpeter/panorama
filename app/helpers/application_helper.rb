@@ -646,7 +646,7 @@ public
 
     output << "var options = #{prepare_js_global_options_for_slickgrid(table_id, global_options)};"      # Global Options definieren
     output << "var columns = #{prepare_js_columns_for_slickgrid(table_id, column_options)};"      # JS-columns definieren
-    output << "setup_slickgrid('##{table_id}', data, columns, options);"    # Aufbau des slickGrid
+    output << "new SlickGridExtended('##{table_id}', data, columns, options);"    # Aufbau des slickGrid
 
     ################### Context-Menu ########################
     output << "build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', #{plotting}, ["

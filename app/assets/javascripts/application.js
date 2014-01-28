@@ -765,26 +765,6 @@ function save_new_cell_content(obj){
     calculate_current_grid_column_widths(grid_table, 'recalculate_cell_dimension'); // Neuberechnung der Zeilenhöhe, Spaltenbreite etc. auslösen, auf jeden Fall, da sich die Höhe verändert haben kann
 }
 
-// Ermittlung Spaltenbreite der Header auf Basis der konketen Inhalte
-function calculate_header_column_width(columns){
-    var test_header       = jQuery('#test_header');                             // Objekt zum Test der realen string-Breite für td
-    var test_header_wrap  = jQuery('#test_header_wrap');                        // Objekt zum Test der realen string-Breite für td
-    var column;                                                                 // aktuell betrachtete Spalte
-
-    // Ermittlung max. Zeichenbreite ohne Umbrüche
-    for (var col_index in columns){
-        column = columns[col_index]
-
-        test_header.html(column['name']);                                       // Test-Zelle mit zu messendem Inhalt belegen
-        column['header_nowrap_width']  = test_header.prop("scrollWidth");       // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
-
-        test_header_wrap.html(column['name']);
-        column['max_wrap_width']      = test_header_wrap.width();
-
-        column['max_nowrap_width']    = column['max_wrap_width']                // Normbreite der Spalte mit Mindestbreite des Headers initialisieren (lieber Header umbrechen als Zeilen einer anderen Spalte)
-    }
-    return columns;
-}
 
 function processColumnsResized(grid){
     for (var col_index in grid.getColumns()){
@@ -830,7 +810,7 @@ function finish_vertical_resize(jg_container){
 // Parameter:
 //      container: jQuery-ID (incl. #) des grids als String
 function setup_slickgrid(container, data, columns, options){
-    columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
+//    columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
 
     var columnFilters = {};
     var dataView = new Slick.Data.DataView();
