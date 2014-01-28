@@ -179,7 +179,7 @@ class StorageController < ApplicationController
       WHERE 1=1 #{where_string}
     "].concat where_values
 
-    render_partial
+    render_partial :list_registered_materialized_views
   end
 
   def list_all_materialized_views
@@ -214,7 +214,7 @@ class StorageController < ApplicationController
       ORDER BY m.MView_Name
     "].concat where_values
 
-    render_partial
+    render_partial  :list_all_materialized_views
   end
 
   def list_materialized_view_logs
@@ -246,7 +246,7 @@ class StorageController < ApplicationController
       WHERE 1=1 #{where_string}
       "].concat where_values
 
-    render_partial
+    render_partial  :list_materialized_view_logs
   end
 
 
@@ -278,7 +278,7 @@ class StorageController < ApplicationController
       WHERE  1=1 #{where_string}
       "].concat where_values
 
-    render_partial
+    render_partial :list_snapshot_logs
   end
 
   def list_registered_mview_query_text
