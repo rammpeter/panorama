@@ -547,12 +547,10 @@ public
     else
       plot_area_id = "plot_area_#{id_num}"
     end
-    @last_gen_html_table_plot_area_id = plot_area_id   # Zur Verwendung beim Aufrufer nach ausführung gen_html_table
-
 
     plotting = false                 # Soll Diagramm zeichenbar sein
     column_options.each do |col|
-      raise 'Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein' if plotting && col[:plot_master]
+      raise 'Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein' if plotting && (col[:plot_master] || col[:plot_master_time])
       plotting = true if col[:plot_master] || col[:plot_master_time]
     end
 
@@ -646,11 +644,10 @@ public
 
     output << "var options = #{prepare_js_global_options_for_slickgrid(table_id, global_options)};"      # Global Options definieren
     output << "var columns = #{prepare_js_columns_for_slickgrid(table_id, column_options)};"      # JS-columns definieren
-    output << "new SlickGridExtended('##{table_id}', data, columns, options);"    # Aufbau des slickGrid
+    output << "var slExtended = new SlickGridExtended('##{table_id}', data, columns, options);"    # Aufbau des slickGrid
 
     ################### Context-Menu ########################
-    output << "build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', #{plotting}, ["
-    # Dynamisch erweitertes Context-Menü
+    output << "var additional_menu_entries = ["
     context_menu_entries = global_options[:context_menu_entries]
     if context_menu_entries
       context_menu_entries = [context_menu_entries] if context_menu_entries.class == Hash  # Einzelnen Hash in Array einbetten, wenn nicht Array üebergeben wurde
@@ -663,7 +660,9 @@ public
                      },"
       end
     end
-    output << ']);' # Ende build_slickgrid_context_menu
+    output << '];' # Ende build_slickgrid_context_menu
+    output << "slExtended.build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', #{plotting}, additional_menu_entries);"
+    # Dynamisch erweitertes Context-Menü
 
     output << '});' # Ende anonyme function
 
