@@ -548,12 +548,6 @@ public
       plot_area_id = "plot_area_#{id_num}"
     end
 
-    plotting = false                 # Soll Diagramm zeichenbar sein
-    column_options.each do |col|
-      raise 'Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein' if plotting && (col[:plot_master] || col[:plot_master_time])
-      plotting = true if col[:plot_master] || col[:plot_master_time]
-    end
-
     output = ''
     output << "<div id='#{table_id}' class='slickgrid_top' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
@@ -661,7 +655,7 @@ public
       end
     end
     output << '];' # Ende build_slickgrid_context_menu
-    output << "slExtended.build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', #{plotting}, additional_menu_entries);"
+    output << "slExtended.build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', additional_menu_entries);"
     # Dynamisch erweitertes Context-Menü
 
     output << '});' # Ende anonyme function

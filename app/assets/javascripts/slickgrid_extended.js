@@ -28,6 +28,15 @@ function SlickGridExtended(container, data, columns, options){
     options['headerHeight']  = 1;                                               // Default, der später nach Notwendigkeit größer gesetzt wird
     options['rowHeight']     = 1;                                               // Default, der später nach Notwendigkeit größer gesetzt wird
 
+    options['plotting']      = false;                                           // Soll Diagramm zeichenbar sein: Default=false wenn nicht eine Spalte als x-Achse deklariert ist
+    for (var col_index in columns) {
+        column = columns[col_index];
+        if (options['plotting'] && (column['plot_master'] || column['plot_master_time']))
+            alert('Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein');
+        if (column['plot_master'] || column['plot_master_time'])
+            options['plotting'] = true;
+    }
+
     var grid = new Slick.Grid(container, dataView, columns, options);
 
     var gridContainer = jQuery(container);                                      // Puffern des jQuery-Objektes
@@ -233,11 +242,11 @@ function SlickGridExtended(container, data, columns, options){
 
 
 
-// Aufbau context-Menu für slickgrid, Parameter: DOM-ID, plotting diagramm? (true/false), Array mit Entry-Hashes
+// Aufbau context-Menu für slickgrid, Parameter: DOM-ID, Array mit Entry-Hashes
     var last_slickgrid_contexmenu_col_header=null;                                  // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_column_name='';                                   // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_field_content='';                                 // globale Variable mit Inhalt des Feldes auf dem Context-Menu aufgerufen wurde
-    this.build_slickgrid_context_menu = function(table_id, plot_area_id, plotting, menu_entries){
+    this.build_slickgrid_context_menu = function(table_id, plot_area_id, menu_entries){
         var grid_table = jQuery('#'+table_id);
         var grid = grid_table.data('slickgrid');
         var options = grid.getOptions();
@@ -266,7 +275,7 @@ function SlickGridExtended(container, data, columns, options){
         menu_entry("line_height_single","ui-icon ui-icon-arrow-2-n-s",      function(t){ options['line_height_single'] = !options['line_height_single']; calculate_current_grid_column_widths(grid_table, "context menu line_height_single");} );
 
 
-        if (plotting){
+        if (options['plotting']){
             // Menu-Eintrag Spalte in Diagramm
             menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, plot_area_id, options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
             // Menu-Eintrag Alle entfernen aus Diagramm
