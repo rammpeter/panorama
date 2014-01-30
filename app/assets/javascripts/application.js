@@ -503,29 +503,8 @@ function plot_table_diagram(table_id, plot_area_id, caption, column_name, multip
 
 
 
-function processColumnsResized(grid){
-    for (var col_index in grid.getColumns()){
-        var column = grid.getColumns()[col_index];
-        if (column['previousWidth'] != column['width']){                        // Breite dieser Spalte wurde resized durch drag
-            column['fixedWidth'] = column['width'];                             // Diese spalte von Kalkulation der Spalten ausnehmen
-        }
-    }
-    grid.getOptions()["rowHeight"] = 1;                                         //Neuberechnung der wirklich benötigten Höhe auslösen
-    calculate_current_grid_column_widths(jQuery(grid.getCanvasNode()).parents(".slickgrid_top"), "processColumnsResized");
-    //grid.render();                                                              // Grid neu berechnen und zeichnen
-}
 
 
-// Parsen eines numerischen Wertes aus der landesspezifischen Darstellung mit Komma und Dezimaltrenner
-function parseFloatLocale(value){
-    if (value == "")
-        return 0;
-    if (session_locale == 'en'){                                        // globale Variable session_locale wird gesetzt bei Anmeldung in EnvController.setDatabase
-        return parseFloat(value.replace(/\,/g, ""));
-    } else {
-        return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
-    }
-}
 
 
 

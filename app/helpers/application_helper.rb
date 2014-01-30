@@ -447,6 +447,7 @@ public
     output << "  multiple_y_axes:      #{global_options[:multiple_y_axes]},"
     output << "  show_y_axes:          #{global_options[:show_y_axes]},"
     output << "  line_height_single:   #{global_options[:line_height_single]},"
+    output << "  locale:               '#{session[:locale]}',"
     output << '}'
     output
 
