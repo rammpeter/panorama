@@ -8,7 +8,7 @@ class EnvController < ApplicationController
   def index
     I18n.locale = :de                   # Default
     I18n.locale =  Marshal.load cookies[:locale]  if cookies[:locale]
-    I18n.locale = session[:locale]                if session[:locale]
+    I18n.locale = session[:database].locale       if session[:database]
 
     session[:last_used_menu_controller] = "env"
     session[:last_used_menu_action]     = "index"
