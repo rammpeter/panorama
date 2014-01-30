@@ -1,8 +1,3 @@
-<%=
-    # Erstellen der JS-Funktion locale_translate
-    set_js_locale_translate
-%>
-
 <h2><%= t :env_current_database, :default=>"current database" %></h2>
 
 <%= "TNS=#{@database.tns}, Host=#{@database.host}, Port=#{@database.port}, #{@database.sid_usage}=#{@database.sid}" %>

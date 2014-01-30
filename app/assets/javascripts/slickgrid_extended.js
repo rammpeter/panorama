@@ -469,7 +469,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     }
 
 
-
 // Aufbau context-Menu für slickgrid, Parameter: DOM-ID, Array mit Entry-Hashes
     var last_slickgrid_contexmenu_col_header=null;                                  // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_column_name='';                                   // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
@@ -708,6 +707,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_option('enableCellNavigation', true);
         init_option('headerRowHeight',      30);                // Höhe der optionalen Filter-Zeile
         init_option('enableColumnReorder',  false);
+
+        if (!options['locale'])
+            options['locale'] = 'en';                                           // Default falls keine Vorgabe von aussen
     }
 
 
@@ -1106,7 +1108,26 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     }
 
 
+    /**
+     * Translate key into string according to options[:locale]
+     * @param key
+     */
+    function locale_translate(key){
+        var sl_locale = thiz.grid.getOptions()['locale'];
 
+        if (get_slickgrid_translations()[key]){
+            if (get_slickgrid_translations()[key][sl_locale]){
+                return get_slickgrid_translations()[key][sl_locale];
+            } else {
+                if (get_slickgrid_translations()[key]['en'])
+                    return get_slickgrid_translations()[key]['en'];
+                else
+                    return 'No default translation (en) available for key "'+key+'"';
+            }
+        } else {
+              return 'No translation available for key "'+key+'"';
+        }
+    }
 
 
 } // Ende SlickGridExtended
@@ -1180,6 +1201,100 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
 function single_line_height() {
     return jQuery('#test_cell').html("1").height();
 }
+
+
+/**
+ * Übersetzungsliste
+ */
+
+function get_slickgrid_translations() {
+    return {
+        'slickgrid_context_menu_column_sum': {
+            'en': 'Sums of all rows of this column',
+            'de': 'Summen der Werte dieser Spalte'
+        },
+        'slickgrid_context_menu_column_sum_hint': {
+            'en': 'Calculate numeric sum and count for all rows of this column',
+            'de': 'Numerische Summe und Anzahl Zeilen dieser Spalte anzeigen'
+        },
+        'slickgrid_context_menu_export_csv': {
+            'en': 'Export grid in csv-file'
+        },
+        'slickgrid_context_menu_export_csv_hint': {
+            'en': 'Export grid in csv-file for import to Excel etc. (to browsers default download folder)',
+            'de': 'Export grid in csv-file für import nach Excel etc. (in Standard-Download-Verzeichnis)'
+        },
+        'slickgrid_context_menu_field_content': {
+            'en': 'Show content of table cell',
+            'de': 'Anzeige des Inhaltes des Tabellenfeldes'
+        },
+        'slickgrid_context_menu_field_content_hint': {
+            'en': 'Show content of table cell in popup window (for better copy & paste)',
+            'de': 'Anzeige des Inhaltes des Tabellenfeldes in Popup-Fenster (zum Markieren und Kopieren)'
+        },
+        'slickgrid_context_menu_hide_filter': {
+            'en': 'Hide search filter',
+            'de': 'Suchfilter ausblenden'
+        },
+        'slickgrid_context_menu_line_height_full': {
+            'en': 'Line height for full visible content',
+            'de': 'Zeilenhöhe für volle Anzeige Feldinhalt'
+        },
+        'slickgrid_context_menu_line_height_single': {
+            'en': 'Line height for single line only',
+            'de': 'Zeilenhöhe für einzeiligen Text'
+        },
+        'slickgrid_context_menu_line_height_single_hint': {
+            'en': 'Switch between single text line in row and display of complete content',
+            'de': 'Wechsel zwischen einzeiligem Text und Anzeige des kompletten Feld-Inhaltes'
+        },
+        'slickgrid_context_menu_plot_column_hint': {
+            'en': 'Add/remove column to graphic timeline diagram',
+            'de': 'Hinzufügen/Löschen der Spalte aus grafischem Zeitleisten-Diagramm'
+        },
+        'slickgrid_context_menu_remove_all_from_diagram': {
+            'en': 'Remove all graphs from diagram',
+            'de': 'Alle Kurven aus Diagramm entfernen'
+        },
+        'slickgrid_context_menu_remove_all_from_diagram_hint': {
+            'en': 'Remove all column-graphs from current diagram',
+            'de': 'Antfernen aller Spalten-Kurven aus dem aktuellen Diagramm'
+        },
+        'slickgrid_context_menu_search_filter_hint': {
+            'en': 'Show/hide column-specific search filter in first line of table',
+            'de': 'Anzeigen/Ausblenden des spalten-spezifischen Suchfilters in erster Zeile der Tabelle'
+        },
+        'slickgrid_context_menu_show_filter': {
+            'en': 'Show search filter',
+            'de': 'Suchfilter einblenden'
+        },
+        'slickgrid_context_menu_sort_column': {
+            'en': 'Sort by this column',
+            'de': 'Nach dieser Spalte sortieren'
+        },
+        'slickgrid_context_menu_sort_column_hint': {
+            'en': 'Sort table by this column. Each click switches between ascending and descending order',
+            'de': 'Sortieren der Tabelle nach dieser Spalte. Wechselt zwischen aufsteigender und absteigender Folge.'
+        },
+        'slickgrid_context_menu_switch_col_into_diagram': {
+            'en': 'Show column in diagram',
+            'de': 'Spalte in Diagramm einblenden'
+        },
+        'slickgrid_context_menu_switch_col_from_diagram': {
+            'en': 'Remove column from diagram',
+            'de': 'Spalte aus Diagramm ausblenden'
+        },
+        'slickgrid_filter_hint_not_numeric': {
+            'en': 'Filter by containing string',
+            'de': 'Filtern nach enthaltener Zeichenkette'
+        },
+        'slickgrid_filter_hint_numeric': {
+            'en': 'Filter by exact value (incl. thousands-delimiter and comma)',
+            'de': 'Filtern nach exaktem Wert (incl. Tausender-Trennung und Komma)'
+        }
+    }
+}
+
 
 
 

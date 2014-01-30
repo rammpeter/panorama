@@ -430,23 +430,3 @@
   show_mutex_statistics_historic_timeline_hint:             Mutex-Sleep-Historie zeitlich gruppiert
   show_mutex_statistics_historic_waiter_hint:               Mutex-Sleep-Historie Gruppiert nach Waiter-Sessions
 
-  slickgrid_context_menu_column_sum:                        Summen der Werte dieser Spalte
-  slickgrid_context_menu_column_sum_hint:                   Numerische Summe und Anzahl Zeilen dieser Spalte anzeigen
-  slickgrid_context_menu_export_csv_hint:                   Export grid in csv-file für import nach Excel etc. (in Standard-Download-Verzeichnis)
-  slickgrid_context_menu_field_content:                     Anzeige des Inhaltes des Tabellenfeldes
-  slickgrid_context_menu_field_content_hint:                Anzeige des Inhaltes des Tabellenfeldes in Popup-Fenster (zum Markieren und Kopieren)
-  slickgrid_context_menu_hide_filter:                       Suchfilter ausblenden
-  slickgrid_context_menu_line_height_full:                  Zeilenhöhe für volle Anzeige Feldinhalt
-  slickgrid_context_menu_line_height_single:                Zeilenhöhe für einzeiligen Text
-  slickgrid_context_menu_line_height_single_hint:           Wechsel zwischen einzeiligem Text und Anzeige des kompletten Feld-Inhaltes
-  slickgrid_context_menu_plot_column_hint:                  Hinzufügen/Löschen der Spalte aus grafischem Zeitleisten-Diagramm
-  slickgrid_context_menu_remove_all_from_diagram:           Alle Kurven aus Diagramm entfernen
-  slickgrid_context_menu_remove_all_from_diagram_hint:      Antfernen aller Spalten-Kurven aus dem aktuellen Diagramm
-  slickgrid_context_menu_search_filter_hint:                Anzeigen/Ausblenden des spalten-spezifischen Suchfilters in erster Zeile der Tabelle
-  slickgrid_context_menu_show_filter:                       Suchfilter einblenden
-  slickgrid_context_menu_sort_column:                       Nach dieser Spalte sortieren
-  slickgrid_context_menu_sort_column_hint:                  Sortieren der Tabelle nach dieser Spalte. Wechselt zwischen aufsteigender und absteigender Folge.
-  slickgrid_context_menu_switch_col_into_diagram:           Spalte in Diagramm einblenden
-  slickgrid_context_menu_switch_col_from_diagram:           Spalte aus Diagramm ausblenden
-  slickgrid_filter_hint_not_numeric:                        Filtern nach enthaltener Zeichenkette
-  slickgrid_filter_hint_numeric:                            Filtern nach exaktem Wert (incl. Tausender-Trennung und Komma)
