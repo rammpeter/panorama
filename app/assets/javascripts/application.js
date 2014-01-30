@@ -807,38 +807,6 @@ function finish_vertical_resize(jg_container){
 }
 
 
-function grid2CSV(grid_id) {
-    var grid_div = jQuery("#"+grid_id);
-    var grid = grid_div.data("slickgrid");
-    var data = "";
-
-    function escape(cell){
-        return cell.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/;/g, "\\;");
-    }
-
-    //Header
-    grid_div.find(".slick-header-columns").children().each(function(index, element) {
-        data += '"'+escape(jQuery(element).text())+'";'
-    });
-    data += "\n";
-
-    // Zellen
-    var grid_data    = grid.getData().getItems();
-    var grid_columns = grid.getColumns();
-
-    for (data_index in grid_data){
-        for (col_index in grid_columns){
-            data += '"'+escape(grid_data[data_index][grid_columns[col_index]['field']])+'";'
-        }
-        data += "\n"
-    }
-
-    if (navigator.appName.indexOf("Explorer") != -1)                            // Internet Explorer
-        document.location.href = 'data:Application/octet-stream,' + encodeURIComponent(data);
-     else {
-        document.location.href = 'data:Application/download,' + encodeURIComponent(data);
-    }
-}
 
 // Anzeige der Statistik aller Zeilen der Spalte (Summe etc.)
 function show_column_stats(grid, column_name){
@@ -1045,20 +1013,6 @@ function calculate_current_grid_column_widths(grid_table, caller){
         grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
     }
     trace_log("end calculate_current_grid_column_widths "+caller);
-}
-
-// Ein- / Ausblenden der Filter-Inputs in Header-Rows des Slickgrids
-function switch_slickgrid_filter_row(grid, grid_table){
-    var options = grid.getOptions();
-    if (options["showHeaderRow"]) {
-        grid.setHeaderRowVisibility(false);
-        grid.getData().setFilter(null);
-    } else {
-        grid.setHeaderRowVisibility(true);
-        grid.getData().setFilter(options["searchFilter"]);
-    }
-    grid.setColumns(grid.getColumns());                                         // Auslösen/Provozieren des Events onHeaderRowCellRendered für slickGrid
-    calculate_current_grid_column_widths(grid_table, "switch_slickgrid_filter_row");  // Höhe neu berechnen
 }
 
 
