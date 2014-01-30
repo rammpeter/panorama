@@ -409,14 +409,10 @@ public
                   name:         '#{col[:caption]}',
                   field:        '#{col[:name]}',
                   toolTip:      '#{col[:title]}',
-                  sortable:     true,
-                  formatter:    HTMLFormatter,
                   index:        '#{col[:index]}',
                  "
       output << " cssClass:     '#{cssClass}',"
       output << " style:        '#{col[:style]}'," if col[:style]
-      output << " headerCssClass: 'slickgrid_header_#{table_id}',"
-      output << ' minWidth:     5,'               # Default von 30 reduzieren
       output << ' no_wrap:      1,'               if col[:no_wrap]
       output << ' plot_master:  1,'               if col[:plot_master]
       output << ' plot_master_time: 1,'           if col[:plot_master_time]
@@ -442,9 +438,6 @@ public
 
   def prepare_js_global_options_for_slickgrid(table_id, global_options)
     output = '{'
-    output << '  enableCellNavigation: true,'
-    output << '  headerRowHeight: 30,'                                          # Höhe für optional einblendbaren Such-Filter
-    output << '  enableColumnReorder:  false,'
     output << '  fullWidthRows:        true,'                                 if global_options[:width] == '100%'
     output << '  autoHeight:           true,'                                 if global_options[:height].to_s == 'auto' && ! global_options[:max_height]
     output << "  maxHeight:            #{global_options[:max_height]},"       if global_options[:max_height]      # max. Höhe in Pixel

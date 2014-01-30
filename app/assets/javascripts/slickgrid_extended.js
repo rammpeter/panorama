@@ -22,17 +22,17 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
     // Ermitteln der Breite eines Scrollbars (nur einmal je Session wirklich ausführen, sonst gecachten wert liefern)
     var scrollbarWidth_internal_cache = null;   // Ergebnis von scrollbarWidth zur Wiederverwendung
-
-
+    var slickgrid_render_needed = 0;                                                // globale Variable, die steuert, ob aktuell gezeichnetes Grid nach Abschluss neu gerendert werden muss, da sich Größen geändert haben
 
 
     // ###################### Begin Constructor-Code #######################
     jQuery(window).resize(function(){ resize_slickGrids();});
 
 
-    var gridContainer = jQuery('#'+container_id);                                      // Puffern des jQuery-Objektes
+    var gridContainer = jQuery('#'+container_id);                               // Puffern des jQuery-Objektes
 
-    columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
+    init_columns_and_calculate_header_column_width(columns, container_id);      // columns um Defaults und Weiten-Info der Header erweitern
+    init_options(options);                                                      // Options um Defaults erweitern
 
     var columnFilters = {};
     var dataView = new Slick.Data.DataView();
@@ -224,7 +224,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     }
 
     // Ermittlung Spaltenbreite der Header auf Basis der konketen Inhalte
-    function calculate_header_column_width(columns){
+    function init_columns_and_calculate_header_column_width(columns, container_id){
+        function init_column(column, key, value){
+            if (!column[key])
+                column[key] = value;                            // Default-Attribut der Spalte, braucht damit nicht angegeben werden
+        }
+
         // DIVs für Test der resultierenden Breite von Zellen für slickGrid
         var test_header_outer      = jQuery('<div class="slick_header_column ui-widget-header" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0;"><nobr><div id="test_header" style="width: 1px; overflow: hidden;"></div></nobr></div>');
         gridContainer.after(test_header_outer);                             // Einbinden in DOM-Baum
@@ -235,13 +240,18 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         gridContainer.after(test_header_wrap_outer);
         var test_header_wrap  = test_header_wrap_outer.find('#test_header_wrap'); // Objekt zum Test der realen string-Breite für td
 
-      //  var test_header_wrap  = jQuery('#test_header_wrap');
-
         var column;                                                             // aktuell betrachtete Spalte
 
         // Ermittlung max. Zeichenbreite ohne Umbrüche
         for (var col_index in columns){
             column = columns[col_index]
+
+            init_column(column, 'formatter', HTMLFormatter)                     // Default-Formatter, braucht damit nicht angegeben werden
+            init_column(column, 'sortable',  true);
+            init_column(column, 'minWidth',  5);                                // Default von 30 reduzieren
+            init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
+            init_column(column, 'slickgridExtended', thiz);
+
 
             test_header.html(column['name']);                                   // Test-Zelle mit zu messendem Inhalt belegen
             column['header_nowrap_width']  = test_header.prop("scrollWidth");   // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
@@ -255,9 +265,20 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         // Entfernen der DIVs fuer Breitenermittlung aus dem DOM-Baum
         test_header_outer.remove();
         test_header_wrap_outer.remove();
-        return columns;
     }
 
+
+    // Options um Defaults erweitern
+    function init_options(options){
+        function init_option(key, value){
+            if (!options[key])
+                options[key] = value;                            // Default-Attribut der Option, braucht damit nicht angegeben werden
+        }
+
+        init_option('enableCellNavigation', true);
+        init_option('headerRowHeight',      30);
+        init_option('enableColumnReorder',  false);
+    }
 
 
 // Aufbau context-Menu für slickgrid, Parameter: DOM-ID, Array mit Entry-Hashes
@@ -659,7 +680,7 @@ SlickGridExtended.prototype.save_new_cell_content = function(obj){
     this.grid.getData().getItems()[inner_cell.attr("row")][inner_cell.attr("column")] = inner_cell.text();  // sichtbarer Anteil der Zelle
     this.grid.getData().getItems()[inner_cell.attr("row")]["metadata"]["columns"][inner_cell.attr("column")]["fulldata"] = inner_cell.html(); // Voller html-Inhalt der Zelle
 
-    calc_cell_dimensions(inner_cell.text(), inner_cell.html(), column);         // Neu-Berechnen der max. Größen durch getürkten Aufruf der Zeichenfunktion
+    this.calc_cell_dimensions(inner_cell.text(), inner_cell.html(), column);         // Neu-Berechnen der max. Größen durch getürkten Aufruf der Zeichenfunktion
     this.calculate_current_grid_column_widths(grid_table, 'recalculate_cell_dimension'); // Neuberechnung der Zeilenhöhe, Spaltenbreite etc. auslösen, auf jeden Fall, da sich die Höhe verändert haben kann
 }
 
@@ -803,6 +824,45 @@ SlickGridExtended.prototype.plot_slickgrid_diagram = function(table_id, plot_are
 } // plot_slickgrid_diagram
 
 
+var test_cell = null;                                                           // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
+var test_cell_wrap = null;                                                      // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
+// Ermitteln der Dimensionen aller Zellen der Zeile und Abgleich gegen bisherige Werte der Spalte
+// Parameter: Zelle des data-Array
+//            Zelle des metadata-Array
+//            Column-Definition
+SlickGridExtended.prototype.calc_cell_dimensions = function(value, fullvalue, column){
+    if (!column['last_calc_value'] || (value != column['last_calc_value'] && value.length*9 > column['max_wrap_width'])){  // gleicher Wert muss nicht erneut gecheckt werden, neuer Wert muss > alter sein bei 10 Pixel Breite, aber bei erstem Male durchlauen
+        if (!test_cell)
+            test_cell = jQuery('#test_cell');                                     // Objekt zum Test der realen string-Breite für td, Initialisierung bei erstem Zugriff
+        test_cell.html(fullvalue);                                              // Test-DOM nowrapped mit voll dekoriertem Inhalt füllen
+        test_cell.attr('class', column['cssClass']);                            // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+        if (test_cell.prop("scrollWidth")  > column['max_nowrap_width']){
+            column['max_nowrap_width']  = test_cell.prop("scrollWidth");
+            this.slickgrid_render_needed = 1;
+        }
+        if (!column['no_wrap']  && test_cell.prop("scrollWidth") > column['max_wrap_width']){     // Nur Aufrufen, wenn max_wrap_width sich auch vergrößern kann (aktuelle Breite > bisher größte Wrap-Breite)
+            if (!test_cell_wrap)
+                test_cell_wrap    = jQuery('#test_cell_wrap');                    // Objekt zum Test der realen string-Breite für td
+            test_cell_wrap.html(fullvalue);                                     // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
+            test_cell_wrap.attr('class', column['cssClass']);                   // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+            if (test_cell_wrap.width()  > column['max_wrap_width']){
+//console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.width()+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
+                column['max_wrap_width']  = test_cell_wrap.width();
+                this.slickgrid_render_needed = 1;
+            }
+            if (fullvalue != value)                                             // Enthält Zelle einen mit tags dekorierten Wert ?
+                test_cell_wrap.html("");                                        // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
+        }
+        if (fullvalue != value)                                                 // Enthält Zelle einen mit tags dekorierten Wert ?
+            test_cell.html("");                                                 // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
+        column['last_calc_value'] = value;                                      // Merken an Spalte für nächsten Vergleich
+    }
+}
+
+
+
+
+
 
 // ############################# end public methods (prototype) ##############################
 
@@ -818,8 +878,52 @@ function resize_slickGrids(){
             grid.data('last_resize_width', grid.width());                       // persistieren Aktuelle Breite
         }
     });
-
-
-
-
 }
+
+
+
+// Default-Formatter für Umsetzung HTML in SlickGrid
+// Parameter: row-,cell-Nr. beginnend mit 0
+//            value:        Wert der Zelle in data
+//            columnDef:    Spaltendefinition
+//            dataContext:  komplette Zeile aus data-Array
+// TODO Statt eines DIV den äusseren DIV dekorieren
+function HTMLFormatter(row, cell, value, columnDef, dataContext){
+    var column_metadata = dataContext['metadata']['columns'][columnDef['field']];  // Metadata der Spalte der Row
+    var fullvalue = value;                                                      // wenn keine dekorierten Daten vorhanden sind, dann Nettodaten verwenden
+    if (column_metadata['fulldata'])
+        fullvalue = column_metadata['fulldata']                                 // Ersetzen des data-Wertes durch komplette Vorgabe incl. html-tags etc.
+
+    if (!column_metadata['dc'] || column_metadata['dc']==0){                    // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
+        columnDef['slickgridExtended'].calc_cell_dimensions(value, fullvalue, columnDef);   // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
+        column_metadata['dc'] = 1;                                              // Zeile als berechnet markieren
+    }
+
+    var output = "<div class='slick-inner-cell' row="+row+" column='"+columnDef['field']+"'";           // sichert u.a. 100% Ausdehnung im Parent und Wiedererkennung der Spalte bei Mouse-Events
+    if (column_metadata['title']) {
+        output += " title='"+column_metadata['title']+"'";
+    } else {
+        if (columnDef['toolTip'])
+            output += " title='"+columnDef['toolTip']+"'";
+    }
+    var style = "";
+    if (column_metadata['style'])
+        style += column_metadata['style'];
+    if (columnDef['style'])
+        style += columnDef['style'];
+    if (!columnDef['no_wrap'])
+        style += "white-space: normal; ";
+    if (style != "")
+        output += " style='"+style+"'";
+    output += ">"+fullvalue+"</div>"
+    return output;
+}
+
+
+// Ermittlung der Zeilenhöhe fuer einzeilige Darstellung
+function single_line_height() {
+    return jQuery('#test_cell').html("1").height();
+}
+
+
+
