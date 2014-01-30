@@ -18,6 +18,18 @@
  *                             { label: "Menu-Label", hint: "MouseOver-Hint", ui_icon: "ui-icon-image", action:  function(t){ ActionName } }
  **/
 function SlickGridExtended(container_id, data, columns, options, additional_context_menu){
+    var thiz = this;                                                            // Persistieren Objekt-Zeiger über Constructor hinaus
+
+    // Ermitteln der Breite eines Scrollbars (nur einmal je Session wirklich ausführen, sonst gecachten wert liefern)
+    var scrollbarWidth_internal_cache = null;   // Ergebnis von scrollbarWidth zur Wiederverwendung
+
+
+
+
+    // ###################### Begin Constructor-Code #######################
+    jQuery(window).resize(function(){ resize_slickGrids();});
+
+
     var gridContainer = jQuery('#'+container_id);                                      // Puffern des jQuery-Objektes
 
     columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
@@ -44,10 +56,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         gridContainer.after('<div id="' + options['plot_area_id'] + '"></div>');
     }
 
-    var grid = new Slick.Grid(gridContainer, dataView, columns, options);
+    this.grid = new Slick.Grid(gridContainer, dataView, columns, options);
 
     gridContainer
-        .data('slickgrid', grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
+        .data('slickgrid', this.grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
+        .data('slickgridextended', this)                                        // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
         .css('margin-top', '2px')
         .css('margin-bottom', '2px')
     ;
@@ -67,9 +80,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     gridContainer.find(".ui-resizable-e").remove();                             // Entfernen des rechten resizes-Cursors
     gridContainer.find(".ui-resizable-se").remove();                            // Entfernen des rechten unteren resize-Cursors
 
-    initialize_slickgrid();                                                     // einmaliges Initialisieren des SlickGrid
+    initialize_slickgrid(this.grid);                                                     // einmaliges Initialisieren des SlickGrid
 
-    calculate_current_grid_column_widths(gridContainer, 'setup_slickgrid'); // erstmalige Berechnung der Größen
+    thiz.calculate_current_grid_column_widths(gridContainer, 'setup_slickgrid'); // erstmalige Berechnung der Größen
 
     adjust_real_grid_height(gridContainer);                                     // Anpassen der Höhe des Grid an maximale Höhe des Inhaltes
 
@@ -79,10 +92,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     // ###################### Ende Constructor-Code #######################
 
 
-
-
     // initialer Aufbau des SlickGrid-Objektes
-    function initialize_slickgrid(){
+    function initialize_slickgrid(grid){
         grid.onSort.subscribe(function(e, args) {
             var col = args.sortCol;
             var sort_smaller = function(value1, value2){return value1<value2;};     // Default-Sortier-Funktion für String
@@ -136,7 +147,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         grid.onScroll.subscribe(function(){
             if (slickgrid_render_needed ==1){
                 slickgrid_render_needed = 0;
-                calculate_current_grid_column_widths(jQuery(this.getCanvasNode()).parents(".slickgrid_top"), 'onScroll');
+                thiz.calculate_current_grid_column_widths(jQuery(this.getCanvasNode()).parents(".slickgrid_top"), 'onScroll');
             }
         });
 
@@ -190,7 +201,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         // Caption setzen
         if (options['caption'] && options['caption'] != ""){
-            var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption'></div>").insertBefore(container_id);
+            var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption'></div>").insertBefore('#'+container_id);
             caption.html(options['caption'])
         }
     }   // initialize_slickgrid
@@ -284,14 +295,14 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         if (options['plotting']){
             // Menu-Eintrag Spalte in Diagramm
-            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
+            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ thiz.plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
             // Menu-Eintrag Alle entfernen aus Diagramm
             menu_entry("remove_all_from_diagram", "ui-icon ui-icon-trash",         function(t){
                     var columns = grid.getColumns();
                     for (var col_index in columns){
                         columns[col_index]['plottable'] = 0;
                     }
-                    plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], null);  // Diagramm neu zeichnen
+                    thiz.plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], null);  // Diagramm neu zeichnen
                 }
             );
         }
@@ -392,5 +403,423 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         }
     }
 
+    // Anzeige der Statistik aller Zeilen der Spalte (Summe etc.)
+    function show_column_stats(grid, column_name){
+        var column = grid.getColumns()[grid.getColumnIndex(column_name)];
+        var data   = grid.getData().getItems();
+        var sum   = 0;
+        var count = 0;
+        var distinct = {};
+        var distinct_count = 0;
+        for (var row_index in data){
+            sum += parseFloatLocale(data[row_index][column_name])
+            count ++;
+            distinct[data[row_index][column_name]] = 1;     // Wert in hash merken
+        }
+        for (var i in distinct) {
+            distinct_count += 1;
+        }
+        alert("Sum = "+sum+"\nCount = "+count+"\nCount distinct = "+distinct_count);
+    }
+
+// Anzeige des kompletten Inhaltes der Zelle
+    function show_full_cell_content(content){
+        alert(content);
+    }
+
+// Setzen/Limitieren der Höhe des Grids auf maximale Höhe des Inhaltes
+// Parameter: jQuery-Objekt des Grid-Containers
+    function adjust_real_grid_height(jq_container){
+        // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Plastz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
+        var total_height = jq_container.data('total_height');                       // gespeicherte Inhaltes-Höhe aus calculate_current_grid_column_widths
+        if (total_height < jq_container.height())                                   // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
+            jq_container.height(total_height);
+    }
+
+// Justieren des Grids nach Abshcluss der Resize-Operation mit unterem Schieber
+    function finish_vertical_resize(jg_container){
+        calculate_current_grid_column_widths(jg_container, 'finish_vertical_resize');  // Neuberechnen breiten (neue Situation bzgl. vertikalem Scrollbar)
+        adjust_real_grid_height(jg_container);                                      // Limitieren Höhe
+    }
+
+
+
+
+
+
 
 } // Ende SlickGridExtended
+
+
+
+// ############################# begin public methods (prototype) ##############################
+
+SlickGridExtended.prototype.trace_log = function(msg){
+    if (false){
+        console.log(msg);                                                           // Aktivieren trace-Ausschriften
+    }
+}
+
+
+// Berechnung der aktuell möglichen Spaltenbreiten in Abhängigkeit des Parent und anpassen slickGrid
+// Diese Funktion muss gegen rekursiven Aufruf geschützt werden,recursive from Height set da sie durch diverse Events getriggert wird
+// Parameter: jQuery-Object der Table, Herkunfts-String
+SlickGridExtended.prototype.calculate_current_grid_column_widths = function(grid_table, caller){
+
+    // Testen, ob DOM-Objekt vertikalen Scrollbar besitzt
+    // Parameter: jQuery-Objekt des grids
+    function has_slickgrid_vertical_scrollbar(grid_table){
+        var viewport = grid_table.find(".slick-viewport");
+        var scrollHeight = viewport.prop('scrollHeight');
+        var clientHeight = viewport.prop('clientHeight');
+        // Test auf vertikalen Scrollbar nur vornehmen, wenn clientHeight wirklich gesetzt ist und dann Differenz zu ScrollHeight
+        return clientHeight > 0 && scrollHeight != clientHeight;
+    }
+
+    //var grid = grid_table.data('slickgrid');
+    var options = this.grid.getOptions();
+
+    var current_grid_width = grid_table.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
+    var columns = this.grid.getColumns();
+    var columns_changed = false;
+    var max_table_width = 0;                                                    // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
+    var wrapable_count  = 0;                                                    // aktuelle Anzahl noch umzubrechender Spalten
+    var column_count    = columns.length;                                       // Anzahl Spalten
+    var column;
+    var h_padding       = 10;                                                   // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
+
+    this.trace_log("start calculate_current_grid_column_widths "+caller);
+
+    for (var col_index in columns) {
+        column = columns[col_index];
+        if (column['fixedWidth']){
+            if (column['width'] != column['fixedWidth']) {                      // Feste Breite vorgegeben ?
+                column['width']      = column['fixedWidth'];                    // Feste Breite der Spalte beinhaltet bereits padding
+                columns_changed = true;
+            }
+
+        } else {                                                                // keine feste Breite vorgegeben
+            if (column['width'] != column['max_nowrap_width']+h_padding) {
+                column['width']      = column['max_nowrap_width']+h_padding;    // per Default komplette Breite des Inhaltes als Spaltenbreite annehmen , Korrektur um padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
+                columns_changed = true;
+            }
+        }
+
+        max_table_width += column['width'];
+        if (column['max_wrap_width'] < column['max_nowrap_width'] && !column['no_wrap'])
+            wrapable_count += 1;
+    }
+    // Prüfen auf Möglichkeit des Umbruchs in der Zelle
+    var current_table_width = max_table_width                                   // Summe aller max. Spaltenbreiten
+    if (has_slickgrid_vertical_scrollbar(grid_table))
+        current_table_width += this.scrollbarWidth();
+    while (current_table_width > current_grid_width && wrapable_count > 0){     // es könnten noch weitere Spalten umgebrochen werden und zur Verringerung horiz. Scrollens dienen
+        var min_wrap_diff = 1000000;                                            // kleinste Differenz
+        var wrap_column  = null;                                                // sollte definitiv noch belegt werden
+        for (var col_index in columns) {
+            column = columns[col_index];
+            var max_wrap_width = column['max_wrap_width']+h_padding;
+            var width          = column['width'];
+            if (max_wrap_width < width                  &&                      // Differenz existiert und ist kleiner als bisher je Spalte gesehene
+                width-max_wrap_width < min_wrap_diff    &&
+                !column['fixedWidth']                   &&                      // keine feste Breite der Spalte vorgegeben
+                !column['no_wrap']){                                            // Wrap der spalte nicht ausgeschlossen
+                min_wrap_diff  = width-max_wrap_width;                          // merken der kleinsten Differenz
+                wrap_column = column;                                           // merken der Spalte mit kleinster Differenz
+            }
+        }
+        if (wrap_column){                                                       // Es wurde noch eine zu wrappende Spalte gefunden
+            if (current_table_width-min_wrap_diff < current_grid_width){        // Wrappen der Spalte macht Tabelle kleiner als mögliche Breite wäre
+                wrap_column['width'] = wrap_column['width'] - (current_table_width - current_grid_width)  // Wrappen der Spalte nur um notwendigen Bereich
+                min_wrap_diff = current_table_width - current_grid_width        // reduziert auf wirkliche Reduzierung
+            } else {
+                wrap_column['width'] = wrap_column['max_wrap_width']+h_padding; // padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
+            }
+            current_table_width -= min_wrap_diff;
+        }
+        wrapable_count--;
+    }
+    // Evtl. Zoomen der Spalten wenn noch mehr Platz rechts vorhanden
+    if (options['width'] == '' || options['width'] == '100%'){                  // automatische volle Breite des Grid
+        while (current_table_width < current_grid_width){                       // noch Platz am rechten Rand, kann auch nach wrap einer Spalte verbleiben
+            for (var col_index in columns) {
+                if (current_table_width < current_grid_width && !columns[col_index]['fixedWidth']){
+                    columns[col_index]['width']++;
+                    current_table_width++;
+                    columns_changed = true;
+                }
+            }
+        }
+    } else {                                                                    // auto-width
+        var sort_pfeil_width = 10;
+        for (var col_index in columns) {
+            if (current_table_width < current_grid_width && !columns[col_index]['fixedWidth']){
+                columns[col_index]['width'] += sort_pfeil_width;                // erweitern um Darstellung des Sort-Pfeiles
+                current_table_width += sort_pfeil_width;
+                max_table_width += sort_pfeil_width;                            // max. Breite des Grids im auto-Modus
+                columns_changed = true;
+            }
+        }
+    }
+
+    grid_table.data('last_resize_width', grid_table.width());                   // Merken der aktuellen Breite, um unnötige resize-Events zu vermeiden
+
+    var vertical_scrollbar_width = 0;
+    if (has_slickgrid_vertical_scrollbar(grid_table))
+        vertical_scrollbar_width = this.scrollbarWidth();
+    if (options['width'] == "auto" && max_table_width+vertical_scrollbar_width < grid_table.parent().width() ) {     // Grid kann noch breiter dargestellt werden
+        grid_table.css('width', max_table_width+vertical_scrollbar_width);  // Gesamtes Grid auf die Breite des Canvas (Summe aller Spalten) setzten
+    }
+
+    jQuery('#caption_'+grid_table.attr('id')).css('width', grid_table.width()); // Breite des Caption-Divs auf Breite des Grid setzen
+    this.grid.setOptions(options);                                                   // Setzen der veränderten options am Grid
+    if (columns_changed)
+        this.grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
+
+    //############### Ab hier Berechnen der Zeilenhöhen ##############
+    var header_height = options['headerHeight']                                 // alter Wert
+    var row_height    = options['rowHeight']                                    // alter Wert
+    var v_padding     = 4;                                                      // Vertiale Erweiterung der Spaltenhöhe um Padding
+    var horizontal_scrollbar_width = 0
+    if (current_table_width+vertical_scrollbar_width > grid_table.parent().width() )   // nuss horizontaler Scrollbar existieren?
+        horizontal_scrollbar_width = this.scrollbarWidth();
+
+    // Hoehen von Header so setzen, dass der komplette Inhalt dargestellt wird
+    grid_table.find(".slick-header-columns").children().each(function(){
+        var scrollHeight = jQuery(this).prop("scrollHeight");
+        var clientHeight = jQuery(this).prop("clientHeight");
+        if (scrollHeight > clientHeight && scrollHeight-4 > header_height){     // Inhalt steht nach unten über
+            header_height = scrollHeight-4;                                     // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
+        }
+    });
+
+    if (options["line_height_single"]){
+        row_height = single_line_height() + 8;
+    } else {                                                                    // Volle notwendige Höhe errechnen
+        // Hoehen von Cell so setzen, dass der komplette Inhalt dargestellt wird
+        grid_table.find(".slick-inner-cell").each(function(){
+            var scrollHeight = jQuery(this).prop("scrollHeight");
+
+            if (scrollHeight > row_height+v_padding){                           // Inhalt steht nach unten über
+                row_height = scrollHeight+6;                             // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
+            }
+
+        });
+    }
+
+    if (row_height != options['rowHeight'] || header_height != options['headerHeight']){
+        options['rowHeight']    = row_height;
+        options['headerHeight'] = header_height;
+        //calculate_current_grid_column_widths(grid_table, "recursive from Height set");
+
+        var total_height =      options['headerHeight']                         // innere Höhe eines Headers
+                + 8                                               // padding top und bottom=4 des Headers
+                + 2                                               // border=1 top und bottom des headers
+                + (options['rowHeight'] * this.grid.getDataLength() )  // Höhe aller Datenzeilen
+                + horizontal_scrollbar_width
+                + (options["showHeaderRow"] ? options["headerRowHeight"] : 0)
+            ;                                                 // Linie über und unter dem Scrollbar
+
+        grid_table.data('total_height', total_height);                          // Speichern am DIV-Objekt für Zugriff aus anderen Funktionen
+
+        //console.log("Height calculation:");
+        //console.log("margin="+(grid_table.outerHeight(true) - grid_table.outerHeight()));
+        //console.log("header="+options['headerHeight']);
+        //console.log("padding header=8");
+        //console.log("rowheight="+options['rowHeight']);
+        //console.log("Scrollbar="+scrollbarWidth());
+        //console.log("totalcanvas="+(options['rowHeight']) * grid.getDataLength());
+        //console.log("total_height="+total_height);
+
+        var final_height = total_height+this.scrollbarWidth();                      // Höhe des Grids nach Abschluss der Operationen
+
+        if (options['maxHeight'] && options['maxHeight'] < total_height)
+            final_height = options['maxHeight'];                                // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
+
+        grid_table.height(final_height);                                        // Grid immer mit zusätzlicher Scrollbar-Höhe aufbauen
+
+        this.grid.setOptions(options);                                               // Setzen der veränderten options am Grid
+        this.grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
+    }
+    this.trace_log("end calculate_current_grid_column_widths "+caller);
+}
+
+
+// Speichern Inhalt und Erneutes Berechnen der Breite und Höhe einer Zelle nach Änderung ihres Inhaltes + Aktualisieren der Anzeige, um kompletten neuen Content zeigen zu können (nicht abgeschnitten)
+// Parameter: jQuery-Objekt auf dem innerhalb einer Zelle ein ajax-Call ausgelöst wurde
+SlickGridExtended.prototype.save_new_cell_content = function(obj){
+    var inner_cell = obj.parents(".slick-inner-cell");
+    var grid_table = inner_cell.parents(".slickgrid_top");                      // Grid-Table als jQuery-Objekt
+    var column = null;
+    for (var column_index in this.grid.getColumns()){
+        if (this.grid.getColumns()[column_index]['field'] == inner_cell.attr('column'))
+            column = this.grid.getColumns()[column_index];
+    }
+    // Rückschreiben des neuen Dateninhaltes in Metadata-Struktur des Grid
+    this.grid.getData().getItems()[inner_cell.attr("row")][inner_cell.attr("column")] = inner_cell.text();  // sichtbarer Anteil der Zelle
+    this.grid.getData().getItems()[inner_cell.attr("row")]["metadata"]["columns"][inner_cell.attr("column")]["fulldata"] = inner_cell.html(); // Voller html-Inhalt der Zelle
+
+    calc_cell_dimensions(inner_cell.text(), inner_cell.html(), column);         // Neu-Berechnen der max. Größen durch getürkten Aufruf der Zeichenfunktion
+    this.calculate_current_grid_column_widths(grid_table, 'recalculate_cell_dimension'); // Neuberechnung der Zeilenhöhe, Spaltenbreite etc. auslösen, auf jeden Fall, da sich die Höhe verändert haben kann
+}
+
+
+SlickGridExtended.prototype.scrollbarWidth = function() {
+    if (this.scrollbarWidth_internal_cache)
+        return this.scrollbarWidth_internal_cache;
+//    var div = $('<div style="width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;"><div style="height:100px;"></div>');
+    var div = $('<div style="width:50px;height:50px;overflow:scroll;"><div id="scrollbarWidth_testdiv">Hugo</div></div>');
+    // Append our div, do our calculation and then remove it
+    $('body').append(div);
+    this.scrollbarWidth_internal_cache = div.width() - div.find("#scrollbarWidth_testdiv").width();
+    $(div).remove();
+    return this.scrollbarWidth_internal_cache;
+}
+
+
+// Zeichnen eines Diagrammes mit den Daten einer slickgrid-Spalte
+// Parameter:
+// ID der Table
+// jQuery-Selector des DIVs fuer Plotting
+// Kopfzeile
+// Name der Spalte, die ein/ausgeschalten wird
+SlickGridExtended.prototype.plot_slickgrid_diagram = function(table_id, plot_area_id, caption, column_id, multiple_y_axes, show_y_axes) {
+
+    function get_numeric_content(celldata){ // Ermitteln des numerischen html-Inhaltes einer TD-Zelle bzw. ihrer Kinder, wenn weitere enthalten sind
+        if (session_locale == 'de'){   // globale Variable session_locale wird gesetzt bei Anmeldung in EnvController.setDatabase
+            return parseFloat(celldata.replace(/\./g, "").replace(/,/,"."));   // Deutsche nach englische Float-Darstellung wandeln (Dezimatrenner, Komma)
+        }
+        if (session_locale == 'en'){   // globale Variable session_locale wird gesetzt bei Anmeldung in EnvController.setDatabase
+            return parseFloat(celldata.replace(/\,/g, ""));                   // Englische Float-Darstellung wandeln, Tausend-Separator entfernen
+        }
+        return "Error: unsupported locale "+session_locale;
+    }
+
+    function get_date_content(celldata){ // Ermitteln des html-Inhaltes einer TD-Zelle bzw. ihrer Kinder, wenn weitere enthalten sind, als Date
+        var parsed_field;
+        if (session_locale == 'de'){
+            var all_parts = celldata.split(" ");
+            var date_parts = all_parts[0].split(".");
+            parsed_field = date_parts[2]+"/"+date_parts[1]+"/"+date_parts[0]+" "+all_parts[1]   // Datum ISO neu zusammengsetzt + Zeit
+        }
+        if (session_locale == 'en'){
+            parsed_field= celldata.replace(/-/g,"/");       // Umwandeln "-" nach "/", da nur so im Date-Konstruktor geparst werden kann
+        }
+        return new Date(parsed_field+" GMT");
+    }
+
+    //Sortieren eines DataArray nach dem ersten Element des inneren Arrays (X-Achse)
+    function data_array_sort(a,b){
+        return a[0] - b[0];
+    }
+
+
+
+    var grid =  jQuery('#'+table_id);
+    var columns = grid.data('slickgrid').getColumns();                          // JS-Objekt mit Spalten-Struktur gespeichert an DOM-Element, Originaldaten des Slickgrid, daher kein Speichern nötig
+    var data    = grid.data('slickgrid').getData().getItems();                  // JS-Aray mit Daten-Struktur gespeichert an DOM-Element, Originaldaten des Slickgrid, daher kein Speichern nötig
+
+    // Spaltenheader der Spalte mit class 'plottable' versehen oder wegnehmen wenn bereits gesetzt (wenn Column geschalten wird)
+    for (var col_index in columns){
+        if (columns[col_index]['id'] == column_id){
+            if (columns[col_index]['plottable'] == 1)
+                columns[col_index]['plottable'] = 0
+            else
+                columns[col_index]['plottable'] = 1
+        }
+    }
+
+    var plot_master_column_index = null;                                        // Spalten-Nr. der Plotmaster-Spalte
+    var plot_master_column_id = null;                                           // Spalten-Name der Plotmaster-Spalte
+    var plot_master_time_column_index=null;                                     // Spalten-Nr. der Plotmaster-Spalte, wenn diese Zeit als Inhalt hat
+    var plotting_column_count = 0;                                              // Anzahl der zu zeichnenden Spalten
+    for (var column_index in columns) {
+        var column = columns[column_index]                                      // konkretes Spalten-Objekt aus DOM
+        if (column['plot_master']){                              // ermitteln der Spalte, die plot_master für X-Achse ist
+            if (plot_master_column_index){ alert("Only one column may have attribute 'plot_master'");}
+            plot_master_column_index = column_index;
+            plot_master_column_id = column['id'];
+        }
+        if (column['plot_master_time']){                         // ermitteln der Spalte, die plot_master für X-Achse ist mit Zeit als Inhalt
+            if (plot_master_time_column_index){ alert("Only one column may have attribute 'plot_master_time'");}
+            plot_master_column_index = column_index;
+            plot_master_column_id = column['id'];
+            plot_master_time_column_index=column_index;
+        }
+        if (column['plottable'] == 1){
+            plotting_column_count++;
+        }
+    }
+    if (plot_master_column_index == null){
+        alert('Fehler: Keine <th>-Spalte besitzt die Klasse "plot_master"! Exakt eine Spalte mit dieser Klasse wird erwartet');
+    }
+
+    var x_axis_time = false;                                                    // Defaut, wenn keine plot_master_time gesetzt werden
+    var data_array = [];
+    var plotting_index = 0
+    // Iteration ueber plotting-Spalten
+    for (var column_index in columns) {
+        var column = columns[column_index]                                      // konkretes Spalten-Objekt aus DOM
+        if (column['plottable']==1){                                            // nur fuer zu zeichnenden Spalten ausführen
+            var col_data_array = [];
+            // Iteration ueber alle Records der Tabelle
+            var max_column_value = 0;                                           // groessten Wert der Spalte ermitteln für notwendige Breite der Anzeige
+            for (var data_index in data){                                       // Iteration über Daten
+                var x_val = null;
+                var y_val = null;
+                // Aufbau eines Tupels aus Plot_master und plottable-Spalte
+                // Plottable-Spalte
+                y_val = get_numeric_content(data[data_index][column['id']]);
+                if (y_val > max_column_value)              // groessten wert der Spalte ermitteln
+                    max_column_value = y_val;
+                // Plot-Master-Spalte
+                if (plot_master_time_column_index){
+                    x_val = get_date_content(data[data_index][plot_master_column_id]).getTime();       // Zeit in ms seit 1970
+                    x_axis_time = true;       // mindestens ein plot_master_time gesetzt werden
+                } else {
+                    x_val = get_numeric_content(data[data_index][plot_master_column_id]);
+                }
+                col_data_array.push( [ x_val, y_val ]);
+            }
+            col_data_array.sort(data_array_sort);      // Data_Array der Spalte nach X-Achse sortieren
+            col_attr = {label:column['name'],
+                data: col_data_array
+            }
+            data_array.push(col_attr);   // Erweiterung des primären arrays
+            plotting_index = plotting_index + 1;  // Weiterzaehlen Index
+        }
+    }
+
+
+    plot_diagram(
+        table_id,
+        plot_area_id,
+        caption,
+        data_array,
+        multiple_y_axes,
+        show_y_axes,
+        x_axis_time
+    );
+} // plot_slickgrid_diagram
+
+
+
+// ############################# end public methods (prototype) ##############################
+
+
+// ############################# global functions ##############################
+
+// Fangen des Resize-Events des Browsers und Anpassen der Breite aller slickGrids
+function resize_slickGrids(){
+    jQuery('.slickgrid_top').each(function(index, element){
+        var grid = jQuery(element);
+        if (grid.data('last_resize_width') && grid.data('last_resize_width') != grid.width() && grid.data('slickgrid')) { // nur durchrechnen, wenn sich wirklich Breite ändert und grid bereits initialisiert ist
+            grid.data('slickgridextended').calculate_current_grid_column_widths(grid, "resize_slickGrids");
+            grid.data('last_resize_width', grid.width());                       // persistieren Aktuelle Breite
+        }
+    });
+
+
+
+
+}
