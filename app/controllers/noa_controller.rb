@@ -709,10 +709,10 @@ class NoaController < ApplicationController
     end
 
     output = gen_slickgrid(@sizes, column_options, {
-        :multiple_y_axes => false,
-        :show_y_axes => true,
-        :plot_area => :list_object_increase_timeline_diagramm,
-        :max_height => 450
+        :multiple_y_axes  => false,
+        :show_y_axes      => true,
+        :plot_area_id     => :list_object_increase_timeline_diagramm,
+        :max_height       => 450
     })
     output << "</div><div id='list_object_increase_timeline_diagramm'></div>".html_safe
 
@@ -750,7 +750,7 @@ class NoaController < ApplicationController
                              {
                                  :multiple_y_axes => false,
                                  :show_y_axes     => true,
-                                 :plot_area       => :list_object_increase_object_timeline_diagramm,
+                                 :plot_area_id    => :list_object_increase_object_timeline_diagramm,
                                  :caption         => "Größenentwicklung #{owner}.#{name}",
                                  :max_height      => 450
                              }

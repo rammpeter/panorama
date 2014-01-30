@@ -65,7 +65,7 @@
     caption << "<br>ID_Application=#{@ofmessagetype.id_application} : Verantwortlich: #{@ofmessagetype.application.developmentteam ? @ofmessagetype.application.developmentteam.name: ""}"
 
     gen_slickgrid(@history, column_options, {
-            :plot_area => "list_message_detail_inner_plot_area",
+            :plot_area_id => "list_message_detail_inner_plot_area",
             :max_height => 450,
             :caption => caption.html_safe
     })

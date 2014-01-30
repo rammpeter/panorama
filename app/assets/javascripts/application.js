@@ -160,13 +160,14 @@ function trace_log(msg){
 // Zeichnen eines Diagrammes aus den übergebenen Datentupeln
 // Parameter:
 // Unique-ID fuer Bildung der Canvas-ID
-// jQuery-Selector des DIVs fuer Plotting
+// DOM-ID of DIV for plotting
 // Kopfzeile
 // Daten-Array
 // multiple_y_axes  bool
 // show_y_axes      bool
 // x_axis_time      bool    Ist X-Achse ein Zeitstempel oder Nummer
 function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, show_y_axes, x_axis_time) {
+    var plot_area = jQuery('#'+plot_area_id);
 
     function pad2(number){          // Vornullen auffuellen für Datum etc.
         var str=''+number;
@@ -177,7 +178,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
     }
 
     function remove_diagram(){      // Komplettes Diagramm entfernen
-        jQuery(plot_area_id).html("");                                  // Area putzen
+        plot_area.html("");                                  // Area putzen
     }
 
     var canvas_id = "canvas_" + unique_id;
@@ -185,7 +186,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
     var canvas_height = 450;
 
     // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
-    jQuery(plot_area_id)
+    plot_area
             .css("background-color", "white")
             .html('<div id="'+head_id+'" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>'+
                   '<div id="'+canvas_id+'" style="float:left; width:100%; height: '+canvas_height+'px; background-color: white; "></div>'
@@ -231,7 +232,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
                 label: (show_y_axes==true ? "y-Achse(n) ausblenden" : "y-Achse(n) anzeigen"),
                 icon: 'assets/application-monitor.png',
                 action: function(){
-                    jQuery(plot_area_id).html(""); // Altes Diagramm entfernen
+                    plot_area.html(""); // Altes Diagramm entfernen
                     plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, (show_y_axes==true ? false : true), x_axis_time);
                 }
             },
@@ -239,7 +240,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
                  label: (multiple_y_axes==true ? "Alle Kurven in einer y-Achse darstellen" : "Eigene y-Achse je Kurve (100% Wertebereich)"),
                  icon: 'assets/application-monitor.png',
                  action: function(){
-                     jQuery(plot_area_id).html(""); // Altes Diagramm entfernen
+                     plot_area.html(""); // Altes Diagramm entfernen
                      plot_diagram(unique_id, plot_area_id, caption, data_array, (multiple_y_axes==true ? false : true), show_y_axes, x_axis_time);
                  }
              }

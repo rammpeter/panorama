@@ -1021,9 +1021,9 @@ FROM (
 
 
     output = gen_slickgrid(@stats, column_options,
-                     {:plot_area => "list_system_statistics_historic_plot_area",
-                      :caption =>"System-Statistik von #{@time_selection_start} bis #{@time_selection_end}",
-                      :max_height=> 450,
+                     {:plot_area_id => "list_system_statistics_historic_plot_area",
+                      :caption      => "System-Statistik von #{@time_selection_start} bis #{@time_selection_end}",
+                      :max_height   => 450,
                       #:div_style => "float:left; width:100%; max-height:450px; overflow:scroll;"
                      }
       )
@@ -1110,9 +1110,9 @@ FROM (
     ]
 
     output = gen_slickgrid(@snaps, column_options,
-                     {:plot_area => "list_system_statistics_historic_detail_plot_area",
-                      :caption =>"System-Statistik #{@stat_name} Instance=#{@instance} von #{@time_selection_start} bis #{@time_selection_end}",
-                      :max_height => 450
+                     {:plot_area_id => "list_system_statistics_historic_detail_plot_area",
+                      :caption      =>"System-Statistik #{@stat_name} Instance=#{@instance} von #{@time_selection_start} bis #{@time_selection_end}",
+                      :max_height   => 450
                      }
       )
     output << "<div id='list_system_statistics_historic_detail_plot_area' style='float:left; width:100%;'></div>".html_safe
@@ -1232,9 +1232,9 @@ FROM (
     end
 
     output = gen_slickgrid(@stats, column_options,
-                     {:plot_area => "list_sysmetric_historic_plot_area",
-                      :caption =>"SysMetric von #{@time_selection_start} bis #{@time_selection_end} aus #{caption_add}",
-                      :max_height => 450
+                     {:plot_area_id => "list_sysmetric_historic_plot_area",
+                      :caption      => "SysMetric von #{@time_selection_start} bis #{@time_selection_end} aus #{caption_add}",
+                      :max_height   => 450
                      }
       )
     output << "<div id='list_sysmetric_historic_plot_area' style='float:left; width:100%;'></div>".html_safe

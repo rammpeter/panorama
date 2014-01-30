@@ -448,7 +448,7 @@ public
     output << '  fullWidthRows:        true,'                                 if global_options[:width] == '100%'
     output << '  autoHeight:           true,'                                 if global_options[:height].to_s == 'auto' && ! global_options[:max_height]
     output << "  maxHeight:            #{global_options[:max_height]},"       if global_options[:max_height]      # max. Höhe in Pixel
-    output << "  plot_area:            '#{global_options[:plot_area]}',"      if global_options[:plot_area]       # DIV-ID für Diagramm
+    output << "  plot_area:            '#{global_options[:plot_area_id]}',"   if global_options[:plot_area_id]    # DIV-ID für Diagramm
     output << "  caption:              '#{global_options[:caption]}',"
     output << "  width:                '#{global_options[:width].to_s}',"
     output << "  multiple_y_axes:      #{global_options[:multiple_y_axes]},"
@@ -485,30 +485,30 @@ public
   # Parameter:
   #   data:     Array mit Objekt je auszugebende Zeile
   #   column_options:  Array mit Hash je Spalte
-  #     :caption    => Spalten-Header
-  #     :data       => Ausdruch für Ausgabe der Daten (rec = aktuelles Zeilen-Objekt
-  #     :title      => MouseOver-Hint für Spaltenheader und Spaltendaten
-  #     :data_title => MouseOver-Hint für Spaltendaten (:title genutzt, wenn nicht definiert), "%t" innerhalb des data_title wird mit Inhalt von :title ersetzt
-  #     :style      => Style für Spaltenheader und Spaltendaten
-  #     :data_style => Style für Spaltendaten (:style genutzt, wenn nicht definiert)
-  #     :align      => Ausrichtung
-  #     :plot_master=> Spalte ist X-Achse für Diagramm-Darstellung <true>
-  #     :plot_master_time=> Spalte ist x-Achse mit Datum/Zeit, die als Zeitstrahl dargestellt werden soll <true>
-  #     :header_class => class-Ausdruck für <th> Spaltenheader
-  #     :show_pct_hint => proc{|rec| xxx }-Ausdruck für Anzeige %-Anteil des Feldes an der Summe aller Records, muss numerischen Wert zurückgeben
-  #     :no_wrap    => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
+  #     :caption              => Spalten-Header
+  #     :data                 => Ausdruch für Ausgabe der Daten (rec = aktuelles Zeilen-Objekt
+  #     :title                => MouseOver-Hint für Spaltenheader und Spaltendaten
+  #     :data_title           => MouseOver-Hint für Spaltendaten (:title genutzt, wenn nicht definiert), "%t" innerhalb des data_title wird mit Inhalt von :title ersetzt
+  #     :style                => Style für Spaltenheader und Spaltendaten
+  #     :data_style           => Style für Spaltendaten (:style genutzt, wenn nicht definiert)
+  #     :align                => Ausrichtung
+  #     :plot_master          => Spalte ist X-Achse für Diagramm-Darstellung <true>
+  #     :plot_master_time     => Spalte ist x-Achse mit Datum/Zeit, die als Zeitstrahl dargestellt werden soll <true>
+  #     :header_class         => class-Ausdruck für <th> Spaltenheader
+  #     :show_pct_hint        => proc{|rec| xxx }-Ausdruck für Anzeige %-Anteil des Feldes an der Summe aller Records, muss numerischen Wert zurückgeben
+  #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #   global_options: Hash mit globalen Optionen
-  #     :caption    => Titel vor Anzeige der Tabelle, darf keine "'" enthalten
-  #     :caption_style => Style-Attribute für caption der Tabelle
-  #     :width      => Weite der Tabelle (Default="100%", :auto=nicht volle Breite)
-  #     :height     => Höhe der Tabelle in Pixel oder '100%' für Parent ausfüllen oder :auto für dynam. Hoehe in Anhaengigkeit der Anzahl Zeilen, Default=:auto
-  #     :max_height => max. Höhe Höhe der Tabelle in Pixel
-  #     :plot_area  => div für Anzeige des Diagrammes (überschreibt Default hinter table)
-  #     :div_style  => Einpacken der Tabelle in Div mit diesem Style
-  #     :multiple_y_axes => Jedem Wert im Diagramm seinen eigenen 100%-Wertebereich der y-Achse zuweisen (true|false)
-  #     :show_y_axes => Anzeige der y-Achsen links im Diagramm? (true|false)
+  #     :caption              => Titel vor Anzeige der Tabelle, darf keine "'" enthalten
+  #     :caption_style        => Style-Attribute für caption der Tabelle
+  #     :width                => Weite der Tabelle (Default="100%", :auto=nicht volle Breite)
+  #     :height               => Höhe der Tabelle in Pixel oder '100%' für Parent ausfüllen oder :auto für dynam. Hoehe in Anhaengigkeit der Anzahl Zeilen, Default=:auto
+  #     :max_height           => max. Höhe Höhe der Tabelle in Pixel
+  #     :plot_area_id         => div für Anzeige des Diagrammes (überschreibt Default hinter table)
+  #     :div_style            => Einpacken der Tabelle in Div mit diesem Style
+  #     :multiple_y_axes      => Jedem Wert im Diagramm seinen eigenen 100%-Wertebereich der y-Achse zuweisen (true|false)
+  #     :show_y_axes          => Anzeige der y-Achsen links im Diagramm? (true|false)
   #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :label, :icon, :action
-  #     :line_height_single => Einzeilige Anzeige in Zeile der Tabelle oder mehrzeilige Anzeige wenn durch Umburch im Feld nötig (true|false)
+  #     :line_height_single   => Einzeilige Anzeige in Zeile der Tabelle oder mehrzeilige Anzeige wenn durch Umburch im Feld nötig (true|false)
 
   def gen_slickgrid(data, column_options, global_options={})
 
@@ -542,21 +542,10 @@ public
     id_num = rand(99999999)  # Zufallszahl für html-ID
     table_id  = "grid_#{id_num}"
 
-    #if global_options[:plot_area]              # Wo soll diagramm angezeigt werden
-    #  plot_area_id = global_options[:plot_area]
-    #else
-    #  plot_area_id = "plot_area_#{id_num}"
-    #end
-
-    global_options[:plot_area] = "##{global_options[:plot_area]}" if global_options[:plot_area]      # erweitern zu jQuery ID-Selector
-
     output = ''
     output << "<div id='#{table_id}' class='slickgrid_top' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
     output << "'></div>"
-
-    #output << "<div id='#{plot_area_id}'></div>" unless global_options[:plot_area]   # Zeichenflaeche als div anlegen, wenn noch nicht existiert/von aussen deklariert
-
 
     output << "<script type='text/javascript'>"
     output << 'jQuery(function($){'                                             # Beginn anonyme Funktion

@@ -52,11 +52,11 @@ column_options =
 %>
 <%=
 caption = "Aufkommen an Daten aus DBA_Hist_SQL_Stat von #{@time_selection_start} bis #{@time_selection_end} für SQL-ID = '#{@sql_id}' Instance = #{@instance}"
-gen_slickgrid(@hist, column_options, {    :plot_area  => "#{@update_area}_plot_area",
-                                           :div_style  => "float:left; width:100%; max-height:450px; overflow:scroll;",
-                                           :caption    => caption.html_safe,
-                                           :max_height => 450
-                                          })
+gen_slickgrid(@hist, column_options, {  :plot_area_id => "#{@update_area}_plot_area",
+                                        :div_style   => "float:left; width:100%; max-height:450px; overflow:scroll;",
+                                        :caption     => caption.html_safe,
+                                        :max_height  => 450
+                                     })
 %>
 
 <div id="<%= @update_area %>_plot_area" style="float:left; width:100%; ">

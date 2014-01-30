@@ -11,9 +11,9 @@ column_options =
 %>
 
 <%= gen_slickgrid(@snaps, column_options, {
-        :plot_area  => "list_system_events_historic_detail_plot_area",
-        :caption    =>"System-Event '#{@event_name}' Instance '#{@instance}' von #{@time_selection_start} bis #{@time_selection_end}",
-        :max_height => 450
+        :plot_area_id   => "list_system_events_historic_detail_plot_area",
+        :caption        =>"System-Event '#{@event_name}' Instance '#{@instance}' von #{@time_selection_start} bis #{@time_selection_end}",
+        :max_height     => 450
 })
 %>
 

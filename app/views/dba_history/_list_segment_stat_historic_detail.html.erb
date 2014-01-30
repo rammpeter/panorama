@@ -23,11 +23,11 @@ column_options =
 
   <%=
       caption = "Daten aus DBA_Hist_Seg_stat, Inst_ID=#{@instance}, Von #{@time_selection_start} bis #{@time_selection_end} #{@owner}.#{@object_name}#{@subobject_name ? " ("+@subobject_name+")" : ""}"
-      gen_slickgrid(@segment_details, column_options, {:plot_area => "list_segment_stat_historic_detail_plot_area",
-                                                 :div_style => "float:left; width:100%; max-height:450px; overflow:scroll;",
-                                                 :caption =>caption.html_safe,
-                                                 :max_height =>450
-                                                }
+      gen_slickgrid(@segment_details, column_options, { :plot_area_id   => "list_segment_stat_historic_detail_plot_area",
+                                                        :div_style      => "float:left; width:100%; max-height:450px; overflow:scroll;",
+                                                        :caption        => caption.html_safe,
+                                                        :max_height     => 450
+                                                       }
                     )
   %>
 

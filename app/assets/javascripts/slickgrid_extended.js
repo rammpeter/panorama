@@ -39,6 +39,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         if (column['plot_master'] || column['plot_master_time'])
             options['plotting'] = true;
     }
+    if (options['plotting'] && !options['plot_area_id']){                       // DIV fuer Anzeige des Diagramms fehlt noch
+        options['plot_area_id'] = 'plot_area_' + container_id;                  // Generierte ID des DIVs fuer Diagramm-Anzeige
+        gridContainer.after('<div id="' + options['plot_area_id'] + '"></div>');
+    }
 
     var grid = new Slick.Grid(gridContainer, dataView, columns, options);
 
@@ -60,14 +64,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         }
     })
     ;
-    gridContainer.find(".ui-resizable-e").remove();                            // Entfernen des rechten resizes-Cursors
-    gridContainer.find(".ui-resizable-se").remove();                           // Entfernen des rechten unteren resize-Cursors
-
-    if (!options['plot_area']){
-        var plot_area = 'plot_area_'+Math.floor(Math.random()*1000000);                      // Zufällige numerische ID
-        options['plot_area'] = '#'+plot_area
-        gridContainer.after('<div id="'+plot_area+'"></div>');
-    }
+    gridContainer.find(".ui-resizable-e").remove();                             // Entfernen des rechten resizes-Cursors
+    gridContainer.find(".ui-resizable-se").remove();                            // Entfernen des rechten unteren resize-Cursors
 
     initialize_slickgrid();                                                     // einmaliges Initialisieren des SlickGrid
 
@@ -286,14 +284,14 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         if (options['plotting']){
             // Menu-Eintrag Spalte in Diagramm
-            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
+            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
             // Menu-Eintrag Alle entfernen aus Diagramm
             menu_entry("remove_all_from_diagram", "ui-icon ui-icon-trash",         function(t){
                     var columns = grid.getColumns();
                     for (var col_index in columns){
                         columns[col_index]['plottable'] = 0;
                     }
-                    plot_slickgrid_diagram(table_id, options['plot_area'], options['caption'], null);  // Diagramm neu zeichnen
+                    plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], null);  // Diagramm neu zeichnen
                 }
             );
         }

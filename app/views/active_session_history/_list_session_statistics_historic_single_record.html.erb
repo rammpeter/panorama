@@ -90,9 +90,9 @@ column_options =
 %>
 
 <%= gen_slickgrid(@sessions, column_options, {
-        :caption => @caption,
-        :plot_area => "list_session_statistics_historic_single_record_detail_area",
-        :max_height => 450
+        :caption        => @caption,
+        :plot_area_id   => "list_session_statistics_historic_single_record_detail_area",
+        :max_height     => 450
 }) %>
 
 <div id="<%= @update_area %>" style="float:left; width:100%;">
