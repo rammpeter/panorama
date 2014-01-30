@@ -10,12 +10,15 @@
  * Creates a new instance of the grid.
  * @class SlickGridExtended
  * @constructor
- * @param {Node}              container   DOM-Container node to create the grid in.
- * @param {Array       }      data        An array of objects for databinding.
- * @param {Array}             columns     An array of column definitions.
- * @param {Object}            options     Grid options.
+ * @param {Node}              container_id  ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix)
+ * @param {Array}             data          An array of objects for databinding.
+ * @param {Array}             columns       An array of column definitions.
+ * @param {Object}            options       Grid options.
+ * @param {Array}             additional_context_menu Array with additional context menu entries as object
+ *                             { label: "Menu-Label", hint: "MouseOver-Hint", ui_icon: "ui-icon-image", action:  function(t){ ActionName } }
  **/
-function SlickGridExtended(container, data, columns, options){
+function SlickGridExtended(container_id, data, columns, options, additional_context_menu){
+    var gridContainer = jQuery('#'+container_id);                                      // Puffern des jQuery-Objektes
 
     columns = calculate_header_column_width(columns);                           // columns um Weiten-Info der Header erweitern
 
@@ -37,9 +40,8 @@ function SlickGridExtended(container, data, columns, options){
             options['plotting'] = true;
     }
 
-    var grid = new Slick.Grid(container, dataView, columns, options);
+    var grid = new Slick.Grid(gridContainer, dataView, columns, options);
 
-    var gridContainer = jQuery(container);                                      // Puffern des jQuery-Objektes
     gridContainer
         .data('slickgrid', grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
         .css('margin-top', '2px')
@@ -58,15 +60,22 @@ function SlickGridExtended(container, data, columns, options){
         }
     })
     ;
-    gridContainer .find(".ui-resizable-e").remove();                            // Entfernen des rechten resizes-Cursors
-    gridContainer .find(".ui-resizable-se").remove();                           // Entfernen des rechten unteren resize-Cursors
+    gridContainer.find(".ui-resizable-e").remove();                            // Entfernen des rechten resizes-Cursors
+    gridContainer.find(".ui-resizable-se").remove();                           // Entfernen des rechten unteren resize-Cursors
 
+    if (!options['plot_area']){
+        var plot_area = 'plot_area_'+Math.floor(Math.random()*1000000);                      // Zufällige numerische ID
+        options['plot_area'] = '#'+plot_area
+        gridContainer.after('<div id="'+plot_area+'"></div>');
+    }
 
     initialize_slickgrid();                                                     // einmaliges Initialisieren des SlickGrid
 
-    calculate_current_grid_column_widths(jQuery(container), 'setup_slickgrid'); // erstmalige Berechnung der Größen
+    calculate_current_grid_column_widths(gridContainer, 'setup_slickgrid'); // erstmalige Berechnung der Größen
 
     adjust_real_grid_height(gridContainer);                                     // Anpassen der Höhe des Grid an maximale Höhe des Inhaltes
+
+    build_slickgrid_context_menu(container_id, additional_context_menu);           // Aufbau Context-Menu fuer Liste
 
 
     // ###################### Ende Constructor-Code #######################
@@ -183,7 +192,7 @@ function SlickGridExtended(container, data, columns, options){
 
         // Caption setzen
         if (options['caption'] && options['caption'] != ""){
-            var caption = jQuery("<div id='caption_"+container.replace(/#/, "")+"' class='slick-caption'></div>").insertBefore(container);
+            var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption'></div>").insertBefore(container_id);
             caption.html(options['caption'])
         }
     }   // initialize_slickgrid
@@ -209,12 +218,12 @@ function SlickGridExtended(container, data, columns, options){
     function calculate_header_column_width(columns){
         // DIVs für Test der resultierenden Breite von Zellen für slickGrid
         var test_header_outer      = jQuery('<div class="slick_header_column ui-widget-header" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0;"><nobr><div id="test_header" style="width: 1px; overflow: hidden;"></div></nobr></div>');
-        jQuery(container).after(test_header_outer);                             // Einbinden in DOM-Baum
+        gridContainer.after(test_header_outer);                             // Einbinden in DOM-Baum
         var test_header         = test_header_outer.find('#test_header');       // Objekt zum Test der realen string-Breite
 
         // TABLE für umgebrochene Zeichenbreite
         var test_header_wrap_outer = jQuery('<table style="visibility:hidden; position:absolute; width:1;"><tr><td class="slick_header_column ui-widget-header" style="padding: 0; margin: 0;"><div id="test_header_wrap"></div></td></tr></table>');
-        jQuery(container).after(test_header_wrap_outer);
+        gridContainer.after(test_header_wrap_outer);
         var test_header_wrap  = test_header_wrap_outer.find('#test_header_wrap'); // Objekt zum Test der realen string-Breite für td
 
       //  var test_header_wrap  = jQuery('#test_header_wrap');
@@ -246,12 +255,12 @@ function SlickGridExtended(container, data, columns, options){
     var last_slickgrid_contexmenu_col_header=null;                                  // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_column_name='';                                   // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_field_content='';                                 // globale Variable mit Inhalt des Feldes auf dem Context-Menu aufgerufen wurde
-    this.build_slickgrid_context_menu = function(table_id, plot_area_id, menu_entries){
+//    this.build_slickgrid_context_menu = function(table_id,  menu_entries){
+    function build_slickgrid_context_menu(table_id,  menu_entries){
         var grid_table = jQuery('#'+table_id);
         var grid = grid_table.data('slickgrid');
         var options = grid.getOptions();
         var context_menu_id = "menu_"+table_id;
-
         var menu = jQuery("<div class='contextMenu' id='"+context_menu_id+"' style='display:none;'>").insertAfter('#'+table_id);
         var ul   = jQuery("<ul></ul>").appendTo(menu);
         jQuery("<div id='header_"+context_menu_id+"' style='padding: 3px;' align='center'>Header</div>").appendTo(ul);
@@ -277,14 +286,14 @@ function SlickGridExtended(container, data, columns, options){
 
         if (options['plotting']){
             // Menu-Eintrag Spalte in Diagramm
-            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, plot_area_id, options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
+            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
             // Menu-Eintrag Alle entfernen aus Diagramm
             menu_entry("remove_all_from_diagram", "ui-icon ui-icon-trash",         function(t){
                     var columns = grid.getColumns();
                     for (var col_index in columns){
                         columns[col_index]['plottable'] = 0;
                     }
-                    plot_slickgrid_diagram(table_id, plot_area_id, options['caption'], null);  // Diagramm neu zeichnen
+                    plot_slickgrid_diagram(table_id, options['plot_area'], options['caption'], null);  // Diagramm neu zeichnen
                 }
             );
         }

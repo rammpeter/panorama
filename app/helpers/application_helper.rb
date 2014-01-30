@@ -448,6 +448,7 @@ public
     output << '  fullWidthRows:        true,'                                 if global_options[:width] == '100%'
     output << '  autoHeight:           true,'                                 if global_options[:height].to_s == 'auto' && ! global_options[:max_height]
     output << "  maxHeight:            #{global_options[:max_height]},"       if global_options[:max_height]      # max. Höhe in Pixel
+    output << "  plot_area:            '#{global_options[:plot_area]}',"      if global_options[:plot_area]       # DIV-ID für Diagramm
     output << "  caption:              '#{global_options[:caption]}',"
     output << "  width:                '#{global_options[:width].to_s}',"
     output << "  multiple_y_axes:      #{global_options[:multiple_y_axes]},"
@@ -540,20 +541,21 @@ public
 
     id_num = rand(99999999)  # Zufallszahl für html-ID
     table_id  = "grid_#{id_num}"
-    @last_gen_html_table_table_id = table_id   # Zur Verwendung beim Aufrufer nach ausführung gen_html_table
 
-    if global_options[:plot_area]              # Wo soll diagramm angezeigt werden
-      plot_area_id = global_options[:plot_area]
-    else
-      plot_area_id = "plot_area_#{id_num}"
-    end
+    #if global_options[:plot_area]              # Wo soll diagramm angezeigt werden
+    #  plot_area_id = global_options[:plot_area]
+    #else
+    #  plot_area_id = "plot_area_#{id_num}"
+    #end
+
+    global_options[:plot_area] = "##{global_options[:plot_area]}" if global_options[:plot_area]      # erweitern zu jQuery ID-Selector
 
     output = ''
     output << "<div id='#{table_id}' class='slickgrid_top' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
     output << "'></div>"
 
-    output << "<div id='#{plot_area_id}'></div>" unless global_options[:plot_area]   # Zeichenflaeche als div anlegen, wenn noch nicht existiert/von aussen deklariert
+    #output << "<div id='#{plot_area_id}'></div>" unless global_options[:plot_area]   # Zeichenflaeche als div anlegen, wenn noch nicht existiert/von aussen deklariert
 
 
     output << "<script type='text/javascript'>"
@@ -638,7 +640,6 @@ public
 
     output << "var options = #{prepare_js_global_options_for_slickgrid(table_id, global_options)};"      # Global Options definieren
     output << "var columns = #{prepare_js_columns_for_slickgrid(table_id, column_options)};"      # JS-columns definieren
-    output << "var slExtended = new SlickGridExtended('##{table_id}', data, columns, options);"    # Aufbau des slickGrid
 
     ################### Context-Menu ########################
     output << "var additional_menu_entries = ["
@@ -654,9 +655,9 @@ public
                      },"
       end
     end
-    output << '];' # Ende build_slickgrid_context_menu
-    output << "slExtended.build_slickgrid_context_menu('#{table_id}', '#{plot_area_id}', additional_menu_entries);"
-    # Dynamisch erweitertes Context-Menü
+    output << '];' # Ende Context-Menu
+
+    output << "var slExtended = new SlickGridExtended('#{table_id}', data, columns, options, additional_menu_entries);"    # Aufbau des slickGrid
 
     output << '});' # Ende anonyme function
 
