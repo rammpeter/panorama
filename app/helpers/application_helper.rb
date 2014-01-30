@@ -640,7 +640,7 @@ public
     end
     output << '];' # Ende Context-Menu
 
-    output << "var slExtended = new SlickGridExtended('#{table_id}', data, columns, options, additional_menu_entries);"    # Aufbau des slickGrid
+    output << "createSlickGridExtended('#{table_id}', data, columns, options, additional_menu_entries);"    # Aufbau des slickGrid
 
     output << '});' # Ende anonyme function
 
