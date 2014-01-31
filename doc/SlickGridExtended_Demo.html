@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+        <title>Personal extension for SlickGrid (Peter Ramm)</title>
+
+
+        <link href="../vendor/assets/stylesheets/context/jquery.contextmenu.css?body=1" media="screen" rel="stylesheet" />
+        <link href="../vendor/assets/stylesheets/slick.grid.css?body=1" media="screen" rel="stylesheet" />
+
+        <script src="../vendor/assets/javascripts/jquery-1.10.2.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/flot/jquery.flot.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/flot/jquery.flot.resize.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/flot/jquery.flot.crosshair.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/context/jquery.contextmenu.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/jquery.event.drag-2.2.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/slick.core.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/slick.grid.js?body=1"></script>
+        <script src="../vendor/assets/javascripts/slick.dataview.js?body=1"></script>
+
+        <script type="text/javascript">
+            var current_demo;
+
+            function show_demo(demo_name){
+                jQuery('#demo_div').html("Demo");
+
+                jQuery('#demo_footer').html('<a href="" onclick="print_demo(current_demo); return false;">Show source</a>');
+            }
+
+            function print_demo(demo_name){
+                jQuery('#demo_div').html(demo_name);
+                jQuery('#demo_footer').html('<a href="" onclick="show_demo(current_demo); return false;">Show demo</a>');
+            }
+
+            var demo1 =
+"Hugo               \n\
+";
+
+        </script>
+    </head>
+    <body>
+        <div style="background-color:gray; color: white; padding: 10px;">
+            <h2>Erweiterungen für SlickGrid</h2>
+        </div>
+        <div style="background-color:lightgray;  padding: 10px;">
+            Demo: <a href="" onclick="current_demo=demo1; show_demo(current_demo); return false;">Freie Länge, freie Breite</a>
+        </div>
+        <div id="demo_div">
+        </div>
+        <div id="demo_footer">
+        </div>
+    </body>
+</html>
