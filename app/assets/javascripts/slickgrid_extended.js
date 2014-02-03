@@ -208,7 +208,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             }
 
             $(args.node).empty();
-            $("<input type='text' style='font-size: 11.5px; width: 100%;' title='"+input_hint(args.column.id)+"'>")
+            $("<input type='text' style='font-size: 11.5; width: 100%;' title='"+input_hint(args.column.id)+"'>")
                 .data("columnId", args.column.id)
                 .val(columnFilters[args.column.id])
                 .appendTo(args.node);
@@ -1294,6 +1294,10 @@ function get_slickgrid_translations() {
         }
     }
 }
+
+
+
+
 
 
 
