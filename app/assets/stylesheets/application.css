@@ -227,10 +227,5 @@ table a:active{
     -moz-box-shadow: 5px 5px 5px #888;
 }
 
-/* Aktive Zeile des SlickGrid einfärben */
-.slick-row.active
-{
-  background: #d8d8d8;
-}
 
 
