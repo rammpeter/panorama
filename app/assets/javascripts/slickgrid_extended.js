@@ -1007,6 +1007,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         } else {
             x_legend_title = 'X';
         }
+        jQuery('#'+canvas_id+" .legend").find("table").addClass('legend_table');
         jQuery('#'+canvas_id+" .legend").find("tbody").append("<tr><td align='center'>"+x_legend_title+"</td><td class='legendXAxis'></td></tr>");
         var legendXAxis =jQuery('#'+canvas_id+" .legendXAxis");
 
