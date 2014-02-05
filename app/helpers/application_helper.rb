@@ -410,7 +410,7 @@ public
                   toolTip:      '#{col[:title]}',
                   index:        '#{col[:index]}',
                  "
-      output << " cssClass:     '#{cssClass}',"
+      output << " cssClass:     '#{cssClass}',"   if cssClass != ''
       output << " style:        '#{col[:style]}'," if col[:style]
       output << ' no_wrap:      1,'               if col[:no_wrap]
       output << ' plot_master:  1,'               if col[:plot_master]
@@ -604,13 +604,15 @@ public
 
         output << "#{col[:name]}: '#{escape_js_chars stripped_celldata}',"
 
-        metadata << "#{col[:name]}: {"
-        metadata << "title:    '#{escape_js_chars title}',"    if title && title != ''
-        metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
-        metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
-        metadata << '},'
+        if (title && title != '') || (style && style != '') || (celldata != stripped_celldata)
+          metadata << "#{col[:name]}: {"
+          metadata << "title:    '#{escape_js_chars title}',"    if title && title != ''
+          metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
+          metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
+          metadata << '},'
+        end
       end
-      output << "metadata: { columns: { #{metadata} } },"
+      output << "metadata: { columns: { #{metadata} } }," if metadata != ''
       output << '},'
     end
     output << '];' # Data

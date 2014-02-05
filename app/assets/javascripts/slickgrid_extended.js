@@ -19,7 +19,7 @@ function createSlickGridExtended(container_id, data, columns, options, additiona
  * Creates a new instance of the grid.
  * @class SlickGridExtended
  * @constructor
- * @param {Node}              container_id  ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix)
+ * @param {Node}              container_id  ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix).  This Container should not have additional styles (margin, padding, etc.)
  * @param {Array}             data          An array of objects for databinding.
  * @param {Array}             columns       An array of column definitions.
  * @param {Object}            options       Grid options.
@@ -52,8 +52,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      *  Helper zur Initialisierung des Objektes
      **/
     this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
-        init_data(data);                                                        // data im fortlaufende id erweitern
         init_columns_and_calculate_header_column_width(columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
+        init_data(data, columns);                                               // data im fortlaufende id erweitern
         init_options(options);                                                  // Options um Defaults erweitern
         init_test_cells();                                                      // hidden DIV-Elemente fuer Groessentest aufbauen
 
@@ -658,9 +658,17 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      *  data im fortlaufende id erweitern
      * @param data
      */
-    init_data = function(data){
+    init_data = function(data, columns){
         for (var data_index in data){
-            data[data_index]['id'] = data_index;
+            var data_row = data[data_index];
+            data_row['id'] = data_index;                                        // Data-Array fortlaufend durchnumerieren
+            if (!data[data_index]['metadata'])
+                data[data_index]['metadata'] = {columns: {}};                   // Metadata-Objekt anlegen wenn noch nicht existiert
+            for (var col_index in columns){                                     // Iteration über Columns
+                var col = columns[col_index];
+                if (!data_row['metadata']['columns'][col['field']])
+                    data_row['metadata']['columns'][col['field']] = {};         // Metadata für alle Spalten anlegen
+            }
         }
     }
 
@@ -720,9 +728,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_option('enableCellNavigation', true);
         init_option('headerRowHeight',      30);                // Höhe der optionalen Filter-Zeile
         init_option('enableColumnReorder',  false);
-
-        if (!options['locale'])
-            options['locale'] = 'en';                                           // Default falls keine Vorgabe von aussen
+        init_option('width',                'auto');
+        init_option('locale',               'en');
     }
 
 
