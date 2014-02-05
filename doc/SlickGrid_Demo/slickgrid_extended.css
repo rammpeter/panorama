@@ -65,3 +65,11 @@
     max-width: 800px;
     white-space: pre-line;  /* Erlaubt Linefeed im Tooltip */
 }
+
+/* Legende von Diagrammen */
+table.legend_table, table.legend_table th, table.legend_table td {
+    background: none repeat scroll 0 0 #EEEEEE;
+    font-size: 85%;
+    border: 1px solid #666666;
+    border-collapse: collapse;
+}

@@ -7,6 +7,7 @@
         <link href="slick.grid.css?body=1" media="screen" rel="stylesheet" />
         <link href="jquery-ui-1.10.3.custom.css?body=1" media="screen" rel="stylesheet" />
         <link href="slickgrid_extended.css?body=1" media="screen" rel="stylesheet" />
+        <link href="context_jquery.contextmenu.css?body=1" media="screen" rel="stylesheet" />
 
 
         <script src="jquery-1.10.2.js?body=1"></script>
@@ -14,6 +15,7 @@
         <script src="jquery.flot.js?body=1"></script>
         <script src="jquery.flot.resize.js?body=1"></script>
         <script src="jquery.flot.crosshair.js?body=1"></script>
+        <script src="context_jquery.contextmenu.js?body=1"></script>
         <script src="jquery.contextmenu.js?body=1"></script>
         <script src="jquery.event.drag-2.2.js?body=1"></script>
         <script src="slick.core.js?body=1"></script>
@@ -166,7 +168,7 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                                 { col0: '10.01.2013 15:40', col1: '55,40', col2: '23566', col3: '23' },                                     <br>\
                     ];                                                                                                                      <br>\
                                                                                                                                             <br>\
-                    var additional_menu_entries = [];                                                                                       <br>\
+                    var additional_menu_entries = [{ label: 'Additional entry', hint: 'Additional entry just for fun', action: function(t){alert('Just for fun');} }];   <br>\
                                                                                                                                             <br>\
                     createSlickGridExtended('demo_div', data, columns, options, additional_menu_entries);                                   <br>\
                     ";
@@ -251,8 +253,15 @@ locale:                 'de',               // Locale/language, supported: 'de',
 multiple_y_axes:        true | false,       // Use own y-axis scale for every column in diagram, optional
 show_y_axes:            true | false,       // show y-axis labels in diagram
             </pre>
-            <h3>Additional context menu entries</h3>
-            TODO: describe structure
+            <h3>Array entry of additional context menu entries</h3>
+            <pre>
+{
+    label:      'label',                    // Label for menu entry
+    hint:       'label hint',               // Mouse over hint for entry
+    ui_icon:    'icon_image',               // Image resource with icon
+    action:     function(t){ alert('Hugo';} // Action to execute if menu entry is clicked
+}
+            </pre>
         </div>
     </body>
 </html>

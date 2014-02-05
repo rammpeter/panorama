@@ -10,7 +10,7 @@
 //= require flot/jquery.flot
 //= require flot/jquery.flot.resize
 //= require flot/jquery.flot.crosshair
-//= require context/jquery.contextmenu.js
+//= require context/context_jquery.contextmenu.js
 //= require jquery.event.drag-2.2
 //= require slick.core
 //= require slick.grid
