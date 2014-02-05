@@ -407,7 +407,6 @@ public
       cssClass << " #{col[:css_class]}" if col[:css_class]
       output << "{id:           '#{col[:name]}',
                   name:         '#{col[:caption]}',
-                  field:        '#{col[:name]}',
                   toolTip:      '#{col[:title]}',
                   index:        '#{col[:index]}',
                  "

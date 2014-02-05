@@ -53,10 +53,10 @@
 
             var demo1 =
 "\
-var columns = [{ id: 'col0', name: 'Name, Vorname', field: 'col0', toolTip: 'Name, Vorname der Person', cssClass: '',   sort_type: 'string' },                <br>\
-               { id: 'col1', name: 'Gehalt',        field: 'col1', toolTip: 'Gehalt der Person',        cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
-               { id: 'col2', name: 'Alter',         field: 'col2', toolTip: 'Alter der Person',         cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
-               { id: 'col3', name: 'Geboren',       field: 'col3', toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' },                <br>\
+var columns = [{ id: 'col0', name: 'Name, Vorname', toolTip: 'Name, Vorname der Person', cssClass: '',   sort_type: 'string' },                <br>\
+               { id: 'col1', name: 'Gehalt',        toolTip: 'Gehalt der Person',        cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+               { id: 'col2', name: 'Alter',         toolTip: 'Alter der Person',         cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+               { id: 'col3', name: 'Geboren',       toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' },                <br>\
 ];                                                                                                                      <br>\
                                                                                                                         <br>\
 var options = { autoHeight:         true,                                                                               <br>\
@@ -108,7 +108,29 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
         </div>
         <div id=overview>
             <h2>Slickgrid extension</h2>
-            <h3>Structure of column entry</h3>
+            SlickGrid is a javascript data table created by Michael Leibman (michael.leibman@gmail.com, http://github.com/mleibman/slickgrid).<br>
+            It supports large amount of data by presenting only visible part of data rows as html-DIVs.<br>
+            So size of html DOM structure is independent from length of data table to show.<br>
+            <br>
+            SlickGridExtended extends SlickGrid with following features:
+            <ul>
+                <li>Automatic sizing of column widths dependent from content width</li>
+                <li>Automatic wraping of column content to prevent horizontal scroll bar</li>
+                <li>Sort columns according to column type (string, float, date). Date and time sorting according to given locale sign.</li>
+                <li>User can change table height with slider at table bottom</li>
+
+            </ul>
+            <h3>Structure of column array entry</h3>
+            <pre>
+id:     'col0',         // Column-ID, mandatory
+name:   'ColName',      // Column Name for display in header row, mandatory
+field:  'col0',         // Field reference in data row, for most cases same value like id
+
+            </pre>
+            { id: 'col0', name: 'Name, Vorname', field: 'col0', toolTip: 'Name, Vorname der Person', cssClass: '',   sort_type: 'string' },                <br>\
+            { id: 'col1', name: 'Gehalt',        field: 'col1', toolTip: 'Gehalt der Person',        cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+            { id: 'col2', name: 'Alter',         field: 'col2', toolTip: 'Alter der Person',         cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+            { id: 'col3', name: 'Geboren',       field: 'col3', toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' }
             <h3>Structure of data row</h3>
             <h3>Supported options</h3>
             <h3>Additional context menu entries</h3>

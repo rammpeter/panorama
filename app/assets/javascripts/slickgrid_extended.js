@@ -679,6 +679,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
             init_column(column, 'formatter', HTMLFormatter)                     // Default-Formatter, braucht damit nicht angegeben werden
             init_column(column, 'sortable',  true);
+            init_column(column, 'field',     column['id']);                     // Field-Referenz in data-Record muss nicht angegeben werden wenn identisch
             init_column(column, 'minWidth',  5);                                // Default von 30 reduzieren
             init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
             init_column(column, 'slickgridExtended', this);

@@ -209,7 +209,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             }
 
             $(args.node).empty();
-            $("<input type='text' style='font-size: 11.5px; width: 100%;' title='"+input_hint(args.column.id)+"'>")
+            $("<input type='text' style='font-size: 11.5; width: 100%;' title='"+input_hint(args.column.id)+"'>")
                 .data("columnId", args.column.id)
                 .val(columnFilters[args.column.id])
                 .appendTo(args.node);
@@ -679,9 +679,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
             init_column(column, 'formatter', HTMLFormatter)                     // Default-Formatter, braucht damit nicht angegeben werden
             init_column(column, 'sortable',  true);
+            init_column(column, 'field',     column['id']);                     // Field-Referenz in data-Record muss nicht angegeben werden wenn identisch
             init_column(column, 'minWidth',  5);                                // Default von 30 reduzieren
             init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
-            init_column(column, 'slickgridExtended', this);
+            init_column(column, 'slickgridExtended', this);                     // Referenz auf Objekt für Zugriff aus Callback-Funktions die nur Column enthalten
 
 
             test_header.html(column['name']);                                   // Test-Zelle mit zu messendem Inhalt belegen
