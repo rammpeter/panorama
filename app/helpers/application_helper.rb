@@ -548,12 +548,9 @@ public
       col[:isDate]  = true                                                        # Default-Annahme, die nachfolgend zu prüfen ist
     end
     # erstellen JS-ata
-    row_id = 0
     output << 'var data=['
     data.each do |rec|
       output << '{'
-      output << "  id: #{row_id},"
-      row_id += 1
       metadata = ''
       column_options.each do |col|
         if col[:data].class == Proc

@@ -68,17 +68,17 @@ var options = { autoHeight:         true,                                       
                 locale:              'de',                                                                              <br>\
 };                                                                                                                      <br>\
                                                                                                                         <br>\
-var data = [{ id: 1, col0: 'Meier, Franz', col1: '4500,20', col2: '45', col3: '10.01.1962',                             <br>\
+var data = [{ col0: 'Meier, Franz', col1: '4500,20', col2: '45', col3: '10.01.1962',                                    <br>\
               metadata: { columns: { col0: {title: 'Meier'}, col1: {}, col2: {title: 'Alter = 45'}, col3: {}            <br>\
                                    },                                                                                   <br>\
                         },                                                                                              <br>\
             },                                                                                                          <br>\
-            { id: 2, col0: 'Huber, Xaver', col1: '2500,18', col2: '55', col3: '19.02.1958',                             <br>\
+            { col0: 'Huber, Xaver', col1: '2500,18', col2: '55', col3: '19.02.1958',                                    <br>\
               metadata: { columns: { col0: {title: 'Huber'}, col1: {}, col2: {title: 'Alter = 55'}, col3: {}            <br>\
                                    },                                                                                   <br>\
                         },                                                                                              <br>\
             },                                                                                                          <br>\
-            { id: 3, col0: 'Beckenbauer, Heinrich', col1: '2500,18', col2: '61', col3: '14.11.1952',                    <br>\
+            { col0: 'Beckenbauer, Heinrich', col1: '2500,18', col2: '61', col3: '14.11.1952',                           <br>\
               metadata: { columns: { col0: {title: 'Beckenbauer'}, col1: {}, col2: {title: 'Alter = 61'}, col3: {}      <br>\
                                    },                                                                                   <br>\
                         },                                                                                              <br>\
@@ -122,16 +122,28 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
             </ul>
             <h3>Structure of column array entry</h3>
             <pre>
-id:     'col0',         // Column-ID, mandatory
-name:   'ColName',      // Column Name for display in header row, mandatory
-field:  'col0',         // Field reference in data row, for most cases same value like id
-
+{
+    id:         'col0',                 // Column-ID, mandatory
+    name:       'ColName',              // Column Name for display in header row, mandatory
+    toolTip:    'Col-Hint',             // Tooltip for mouse over hint, optional
+    sort_type:  'string',               // Defines sort function for column (supported values: 'string', 'float', 'date'), optional (default=string)
+    cssClass:   'myClass',              // set class value for displayed rows of this column
+    style:      'text-align: right',    // set css style value for displayed rows of this column
+    field:      'col0',                 // Field reference in data row, for most cases defaults to id, optional
+}
             </pre>
-            { id: 'col0', name: 'Name, Vorname', field: 'col0', toolTip: 'Name, Vorname der Person', cssClass: '',   sort_type: 'string' },                <br>\
-            { id: 'col1', name: 'Gehalt',        field: 'col1', toolTip: 'Gehalt der Person',        cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
-            { id: 'col2', name: 'Alter',         field: 'col2', toolTip: 'Alter der Person',         cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
-            { id: 'col3', name: 'Geboren',       field: 'col3', toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' }
             <h3>Structure of data row</h3>
+            <pre>
+{
+    id:         1,                      // Record number, must be unique in data array
+}
+            </pre>
+
+            var data = [{ id: 1, col0: 'Meier, Franz', col1: '4500,20', col2: '45', col3: '10.01.1962',                             <br>\
+            metadata: { columns: { col0: {title: 'Meier'}, col1: {}, col2: {title: 'Alter = 45'}, col3: {}            <br>\
+            },                                                                                   <br>\
+            },                                                                                              <br>\
+
             <h3>Supported options</h3>
             <h3>Additional context menu entries</h3>
         </div>

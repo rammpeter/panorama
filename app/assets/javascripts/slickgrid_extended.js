@@ -51,20 +51,20 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      *  Helper zur Initialisierung des Objektes
      **/
     this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
-
+        init_data(data);                                                        // data im fortlaufende id erweitern
         init_columns_and_calculate_header_column_width(columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
         init_options(options);                                                  // Options um Defaults erweitern
-        init_test_cells();                                                          // hidden DIV-Elemente fuer Groessentest aufbauen
+        init_test_cells();                                                      // hidden DIV-Elemente fuer Groessentest aufbauen
 
         dataView = new Slick.Data.DataView();
         dataView.setItems(data);
-        options["searchFilter"] = slickgrid_filter_item_row;                        // merken filter-Funktion für Aktivierung über Menü
+        options["searchFilter"] = slickgrid_filter_item_row;                    // merken filter-Funktion für Aktivierung über Menü
         //dataView.setFilter(slickgrid_filter_item_row);
 
-        options['headerHeight']  = 1;                                               // Default, der später nach Notwendigkeit größer gesetzt wird
-        options['rowHeight']     = 1;                                               // Default, der später nach Notwendigkeit größer gesetzt wird
+        options['headerHeight']  = 1;                                           // Default, der später nach Notwendigkeit größer gesetzt wird
+        options['rowHeight']     = 1;                                           // Default, der später nach Notwendigkeit größer gesetzt wird
 
-        options['plotting']      = false;                                           // Soll Diagramm zeichenbar sein: Default=false wenn nicht eine Spalte als x-Achse deklariert ist
+        options['plotting']      = false;                                       // Soll Diagramm zeichenbar sein: Default=false wenn nicht eine Spalte als x-Achse deklariert ist
         for (var col_index in columns) {
             column = columns[col_index];
             if (options['plotting'] && (column['plot_master'] || column['plot_master_time']))
@@ -653,6 +653,15 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         adjust_real_grid_height(jg_container);                                      // Limitieren Höhe
     }
 
+    /**
+     *  data im fortlaufende id erweitern
+     * @param data
+     */
+    init_data = function(data){
+        for (var data_index in data){
+            data[data_index]['id'] = data_index;
+        }
+    }
 
 // Ermittlung Spaltenbreite der Header auf Basis der konketen Inhalte
     init_columns_and_calculate_header_column_width = function(columns, container_id){
@@ -679,6 +688,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
             init_column(column, 'formatter', HTMLFormatter)                     // Default-Formatter, braucht damit nicht angegeben werden
             init_column(column, 'sortable',  true);
+            init_column(column, 'sort_type', 'string');                          // Sort-Type. TODO Ermittlung nach JavaScript verschieben
             init_column(column, 'field',     column['id']);                     // Field-Referenz in data-Record muss nicht angegeben werden wenn identisch
             init_column(column, 'minWidth',  5);                                // Default von 30 reduzieren
             init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
