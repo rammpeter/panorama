@@ -40,6 +40,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     var force_height_calculation        = false;                                // true aktiviert Neuberechnung der Grid-Höhe
 
     this.gridContainer = jQuery('#'+container_id);                              // Puffern des jQuery-Objektes
+    this.gridContainer.addClass('slickgrid_top');                               // css-Klasse setzen zur Wiedererkennung
     jQuery(window).resize(function(){ resize_slickGrids();});                   // Registrieren des Resize-Event Handlers
 
 

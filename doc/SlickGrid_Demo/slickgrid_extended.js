@@ -40,6 +40,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     var force_height_calculation        = false;                                // true aktiviert Neuberechnung der Grid-Höhe
 
     this.gridContainer = jQuery('#'+container_id);                              // Puffern des jQuery-Objektes
+    this.gridContainer.addClass('slickgrid_top');                               // css-Klasse setzen zur Wiedererkennung
     jQuery(window).resize(function(){ resize_slickGrids();});                   // Registrieren des Resize-Event Handlers
 
 
@@ -304,8 +305,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         var options = this.grid.getOptions();
 
-        var current_grid_width = this.gridContainer.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
-        var columns = this.grid.getColumns();
+        var current_grid_width = this.gridContainer.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert        var columns = this.grid.getColumns();
         var columns_changed = false;
         var max_table_width = 0;                                                    // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
         var wrapable_count  = 0;                                                    // aktuelle Anzahl noch umzubrechender Spalten

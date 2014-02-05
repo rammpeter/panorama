@@ -437,8 +437,6 @@ public
 
   def prepare_js_global_options_for_slickgrid(table_id, global_options)
     output = '{'
-    output << '  fullWidthRows:        true,'                                 if global_options[:width] == '100%'
-    output << '  autoHeight:           true,'                                 if global_options[:height].to_s == 'auto' && ! global_options[:max_height]
     output << "  maxHeight:            #{global_options[:max_height]},"       if global_options[:max_height]      # max. Höhe in Pixel
     output << "  plot_area:            '#{global_options[:plot_area_id]}',"   if global_options[:plot_area_id]    # DIV-ID für Diagramm
     output << "  caption:              '#{global_options[:caption]}',"
@@ -536,7 +534,7 @@ public
     table_id  = "grid_#{id_num}"
 
     output = ''
-    output << "<div id='#{table_id}' class='slickgrid_top' style='"
+    output << "<div id='#{table_id}' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
     output << "'></div>"
 

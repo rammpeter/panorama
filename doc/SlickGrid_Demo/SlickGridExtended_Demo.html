@@ -59,8 +59,7 @@ var columns = [{ id: 'col0', name: 'Name, Vorname', toolTip: 'Name, Vorname der 
                { id: 'col3', name: 'Geboren',       toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' },                <br>\
 ];                                                                                                                      <br>\
                                                                                                                         <br>\
-var options = { autoHeight:         true,                                                                               <br>\
-                caption:            '<span style=\"font-weight: bold;\">Testpersonen</span>',                           <br>\
+var options = { caption:            '<span style=\"font-weight: bold;\">Unlimited height and width</span>',             <br>\
                 width:              'auto',                                                                             <br>\
                 multiple_y_axes:     true,                                                                              <br>\
                 show_y_axes:         true,                                                                              <br>\
@@ -90,6 +89,46 @@ var additional_menu_entries = [];                                               
 createSlickGridExtended('demo_div', data, columns, options, additional_menu_entries);                                   <br>\
 ";
 
+
+            var demo2 =
+                    "\
+                    var columns = [{ id: 'col0', name: 'Name, Vorname', toolTip: 'Name, Vorname der Person', cssClass: '',   sort_type: 'string' },                <br>\
+                                   { id: 'col1', name: 'Gehalt',        toolTip: 'Gehalt der Person',        cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col2', name: 'Alter',         toolTip: 'Alter der Person',         cssClass: '',   sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col3', name: 'Geboren',       toolTip: 'Geburtsdatum der Person',  cssClass: '',   sort_type: 'date' },                <br>\
+                    ];                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var options = { caption:            '<span style=\"font-weight: bold;\">Limited height and full width</span>',          <br>\
+                                    width:              '100%',                                                                             <br>\
+                                    multiple_y_axes:     true,                                                                              <br>\
+                                    show_y_axes:         true,                                                                              <br>\
+                                    line_height_single:  false,                                                                             <br>\
+                                    locale:              'de',                                                                              <br>\
+                    };                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var data = [{ col0: 'Meier, Franz', col1: '4500,20', col2: '45', col3: '10.01.1962',                                    <br>\
+                                  metadata: { columns: { col0: {title: 'Meier'}, col1: {}, col2: {title: 'Alter = 45'}, col3: {}            <br>\
+                                                       },                                                                                   <br>\
+                                            },                                                                                              <br>\
+                                },                                                                                                          <br>\
+                                { col0: 'Huber, Xaver', col1: '2500,18', col2: '55', col3: '19.02.1958',                                    <br>\
+                                  metadata: { columns: { col0: {title: 'Huber'}, col1: {}, col2: {title: 'Alter = 55'}, col3: {}            <br>\
+                                                       },                                                                                   <br>\
+                                            },                                                                                              <br>\
+                                },                                                                                                          <br>\
+                                { col0: 'Beckenbauer, Heinrich', col1: '2500,18', col2: '61', col3: '14.11.1952',                           <br>\
+                                  metadata: { columns: { col0: {title: 'Beckenbauer'}, col1: {}, col2: {title: 'Alter = 61'}, col3: {}      <br>\
+                                                       },                                                                                   <br>\
+                                            },                                                                                              <br>\
+                                }                                                                                                           <br>\
+                    ];                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var additional_menu_entries = [];                                                                                       <br>\
+                                                                                                                                            <br>\
+                    createSlickGridExtended('demo_div', data, columns, options, additional_menu_entries);                                   <br>\
+                    ";
+
+
         </script>
     </head>
     <body>
@@ -98,12 +137,13 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
         </div>
         <div style="background-color:lightgray;  padding: 10px;">
             <a href="" onclick="overview(); return false;">Overview</a>&nbsp;&nbsp;&nbsp;
-            <a href="" onclick="show_demo(demo1); return false;">Demo unlimited height and width</a>
+            <a href="" onclick="show_demo(demo1); return false;">Demo unlimited height and width</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo2); return false;">Demo limited height, full width</a>&nbsp;&nbsp;&nbsp;
         </div>
-        <div id="demo">
-            <div id="demo_footer" style="clear:both;">
+        <div id="demo" style="padding: 10px;">
+            <div id="demo_footer">
             </div>
-            <div id="demo_div_wrap" style="padding: 10px;">
+            <div id="demo_div_wrap">
             </div>
         </div>
         <div id=overview>
@@ -123,29 +163,48 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
             <h3>Structure of column array entry</h3>
             <pre>
 {
-    id:         'col0',                 // Column-ID, mandatory
-    name:       'ColName',              // Column Name for display in header row, mandatory
-    toolTip:    'Col-Hint',             // Tooltip for mouse over hint, optional
-    sort_type:  'string',               // Defines sort function for column (supported values: 'string', 'float', 'date'), optional (default=string)
-    cssClass:   'myClass',              // set class value for displayed rows of this column
-    style:      'text-align: right',    // set css style value for displayed rows of this column
-    field:      'col0',                 // Field reference in data row, for most cases defaults to id, optional
+    id:                 'col0',                 // Column-ID, mandatory
+    name:               'ColName',              // Column Name for display in header row, mandatory
+    toolTip:            'Col-Hint',             // Tooltip for mouse over hint, optional
+    sort_type:          'string',               // Defines sort function for column (supported values: 'string', 'float', 'date'), optional (default=string)
+    cssClass:           'myClass',              // set class value for displayed rows of this column, optional
+    style:              'text-align: right',    // set css style value for displayed rows of this column, optional
+    no_wrap:            true,                   // suppress wrapping of column content if table exceeds page width, optional
+    plot_master:        true,                   // Use this column as x-axis in diagram, optional
+    plot_master_time:   true,                   // Use this column as x-axis with time line in diagram, optional
+    field:              'col0',                 // Field reference in data row, for most cases defaults to id, optional
 }
             </pre>
-            <h3>Structure of data row</h3>
+            <h3>Structure of row in data array</h3>
             <pre>
 {
-    id:         1,                      // Record number, must be unique in data array
+    col0:         'Value for first column',                             // column value for display, reduced to sortable content
+    col1:         'Value for first column',                             // column value for display, reduced to sortable content
+    ....
+    metadata:   {                                                       // Metadata for all columns of row
+                    col0:   {
+                                title:      'myHint',                   // row-specific mouse over hint for this column, optional
+                                style:      'background-color:red;',    // row-specific style this column, optional
+                                fulldata:   '&lt;a href=""&gt;data&lt;/a&gt;',      // complete column value incl. additional html-decorations, optional, only if different to column value above
+                            },
+                    col1:   {
+                            }
+                }
 }
             </pre>
-
-            var data = [{ id: 1, col0: 'Meier, Franz', col1: '4500,20', col2: '45', col3: '10.01.1962',                             <br>\
-            metadata: { columns: { col0: {title: 'Meier'}, col1: {}, col2: {title: 'Alter = 45'}, col3: {}            <br>\
-            },                                                                                   <br>\
-            },                                                                                              <br>\
-
             <h3>Supported options</h3>
+            <pre>
+maxHeight:              true,               // maximum height in pixel, optional
+plot_area:              'area_1521',        // html-DIV to display diagram in it, optional
+caption:                'MyCaption',        // table caption text (may be html-decorated), optional
+width:                  'auto',             // table width, 'auto' = miminum witdh to display columns, '100%' = full parent width
+line_height_single:     true,               // limit line height to one text line, also if content is wrapped, optional
+locale:                 'de',               // Locale/language, supported: 'de', 'en'
+multiple_y_axes:        true | false,       // Use own y-axis scale for every column in diagram, optional
+show_y_axes:            true | false,       // show y-axis labels in diagram
+            </pre>
             <h3>Additional context menu entries</h3>
+            TODO: describe structure
         </div>
     </body>
 </html>
