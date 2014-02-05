@@ -11,6 +11,7 @@
 function createSlickGridExtended(container_id, data, columns, options, additional_context_menu){
     var sle = new SlickGridExtended(container_id, data, columns, options, additional_context_menu);
     sle.initSlickGridExtended(container_id, data, columns, options, additional_context_menu);
+    sle.calculate_current_grid_column_widths('createSlickGridExtended');        // Sicherstellen, dass mindestens ein zweites Mal diese Funktion durchlaufen wird und Scrollbars real berücksichtigt werden
     return sle;
 }
 
