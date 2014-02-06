@@ -22,6 +22,7 @@
         <script src="slick.dataview.js?body=1"></script>
         <script src="plot_diagram.js?body=1"></script>
         <script src="slickgrid_extended.js?body=1"></script>
+        <script src="String.js?body=1"></script>
 
         <script type="text/javascript">
             var current_demo;
@@ -173,6 +174,37 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                     createSlickGridExtended('demo_div', data, columns, options, additional_menu_entries);                                   <br>\
                     ";
 
+            var demo4 =
+                    "\
+                    var columns = [{ id: 'col0', name: 'Time',          toolTip: 'Date/Time',               sort_type: 'date' , plot_master_time: 'true' },             <br>\
+                                   { id: 'col1', name: 'Value 1',       toolTip: 'Value 1',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col2', name: 'Value 2',       toolTip: 'Value 2',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col3', name: 'Value 3',       toolTip: 'Value 3',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                    ];                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var options = { caption:            '<span style=\"font-weight: bold;\">Time line with diagram</span>',                 <br>\
+                                    width:              '100%',                                                                             <br>\
+                                    maxHeight:          '400',                                                                              <br>\
+                                    locale:              'en',                                                                              <br>\
+                    };                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var data = [];                                                                                                          <br>\
+                    for (var i = 1; i <= 50000; i++){                                                                                        <br>\
+                        var date = new Date(i*60000);                                                                                       <br>\
+                                                                                                                                            <br>\
+                        data.push({                                                                                                         <br>\
+                                    col0: '%04d/%02d/%02d %02d:%02d'.sprintf(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes()), <br>\
+                                    col1: (Math.random()*100).toFixed(2),                                                                   <br>\
+                                    col2: (Math.random()*10000).toFixed(2),                                                                 <br>\
+                                    col3: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                        });                                                                                                                 <br>\
+                    };                                                                                                                      <br>\
+                                                                                                                                            <br>\
+                    var additional_menu_entries = [{ label: 'Additional entry', hint: 'Additional entry just for fun', action: function(t){alert('Just for fun');} }];   <br>\
+                                                                                                                                            <br>\
+                    createSlickGridExtended('demo_div', data, columns, options, additional_menu_entries);                                   <br>\
+                    ";
+
 
         </script>
     </head>
@@ -182,9 +214,10 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
         </div>
         <div style="background-color:lightgray;  padding: 10px;">
             <a href="" onclick="overview(); return false;">Overview</a>&nbsp;&nbsp;&nbsp;
-            <a href="" onclick="show_demo(demo1); return false;">Demo unlimited height and width</a>&nbsp;&nbsp;&nbsp;
-            <a href="" onclick="show_demo(demo2); return false;">Demo limited height, full width</a>&nbsp;&nbsp;&nbsp;
-            <a href="" onclick="show_demo(demo3); return false;">Demo time line with diagram</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo1); return false;" title="Locale='de'">Demo unlimited height and width</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo2); return false;" title="Locale='de'">Demo limited height, full width</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo3); return false;" title="Locale='de'">Demo time line with diagram</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo4); return false;" title="Locale='en'">Demo large data (50000 rows)</a>&nbsp;&nbsp;&nbsp;
         </div>
         <div id="demo" style="padding: 10px;">
             <div id="demo_footer">
@@ -205,6 +238,7 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                 <li>Sort columns according to column type (string, float, date). Date and time sorting according to given locale sign.</li>
                 <li>User can change table height with slider at table bottom</li>
                 <li>Context menu (right mouse click) with additional actions</li>
+                <li>Search for column values</li>
 
             </ul>
             SlickGridExtended is used by calling javascript function:<br>
@@ -251,7 +285,8 @@ width:                  'auto',             // table width, 'auto' = miminum wit
 line_height_single:     true,               // limit line height to one text line, also if content is wrapped, optional
 locale:                 'de',               // Locale/language, supported: 'de', 'en'
 multiple_y_axes:        true | false,       // Use own y-axis scale for every column in diagram, optional
-show_y_axes:            true | false,       // show y-axis labels in diagram
+show_y_axes:            true | false,       // show y-axis labels in diagram, optional
+sort_method:            'QuickSort',        // Define sort method for column sort. Supported values: 'QuickSort', 'BubbleSort'
             </pre>
             <h3>Array entry of additional context menu entries</h3>
             <pre>

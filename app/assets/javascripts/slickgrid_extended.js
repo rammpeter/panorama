@@ -117,50 +117,88 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     function initialize_slickgrid(grid){
         grid.onSort.subscribe(function(e, args) {
             var col = args.sortCol;
-            var sort_smaller = function(value1, value2){return value1<value2;};     // Default-Sortier-Funktion für String
+            var field = col.field;
 
-            if (col['sort_type'] == "float"){
-                sort_smaller = function(value1, value2){
-                    return parseFloatLocale(value1) < parseFloatLocale(value2);
-                }
+            function convert_german_date(value){                                // de-Datum in sortierbaren string konvetieren
+                var tag_zeit = value.split(" ");
+                var dat = tag_zeit[0].split(".")
+                return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
             }
 
-            if (col['sort_type'] == "date" && options['locale'] == 'de'){              // englisches Date lässt sich als String sortieren
-                sort_smaller = function(value1, value2){
-                    function convert(value){
-                        var tag_zeit = value.split(" ");
-                        var dat = tag_zeit[0].split(".")
-                        return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
+            // Quicksort-Funktion zum schnellen sortieren
+            function quickSort(){
+
+                sortFunc = function(a,b){                                       // Default für String
+                    if (a[field] < b[field])
+                        return -1;
+                    if (a[field] > b[field])
+                        return 1;
+                    if (a[field] === b[field])
+                        return 0;
+                }
+
+                if (col['sort_type'] == "float") {
+                    sortFunc  = function(a, b) {
+                        return parseFloatLocale(a[field]) - parseFloatLocale(b[field]);
                     }
-                    return convert(value1) < convert(value2);
+                } else if (col['sort_type'] == "date" && options['locale'] == 'de'){
+                    sortFunc  = function(a, b){
+                        var fa = convert_german_date(a[field]);
+                        var fb = convert_german_date(b[field]);
+                        if (a < b)
+                            return -1;
+                        if (a > b)
+                            return 1;
+                        if (a === b)
+                            return 0;
+                    }
                 }
+                dataView.getItems().sort(sortFunc);
             }
+
 
             // Bubblesort-Funktion zur Erhaltung der vorherigen Sortierung innerhalb gleicher Werte als Ersatz für Array.sort
-            function swap(z,a,b) {
-                temp=z[a];
-                z[a]=z[b];
-                z[b]=temp;
-            }
+            function bubbleSort(){
+                var data_array = dataView.getItems();
 
-            var field = col.field;
-            for(var m=dataView.getItems().length-1; m>0; m--){
-                for(var n=0; n<m; n++){
-                    if (args.sortAsc){
-                        if (sort_smaller(dataView.getItems()[n+1][field], dataView.getItems()[n][field]))
-                            swap(dataView.getItems(),n,n+1);
-                    } else {
-                        if (sort_smaller(dataView.getItems()[n][field], dataView.getItems()[n+1][field]))
-                            swap(dataView.getItems(),n,n+1);
+                var sort_smaller = function(value1, value2){return value1<value2;};     // Default-Sortier-Funktion für String
+
+                if (col['sort_type'] == "float"){
+                    sort_smaller = function(value1, value2){
+                        return parseFloatLocale(value1) < parseFloatLocale(value2);
+                    }
+                }
+
+                if (col['sort_type'] == "date" && options['locale'] == 'de'){              // englisches Date lässt sich als String sortieren
+                    sort_smaller = function(value1, value2){
+                        return convert_german_date(value1) < convert_german_date(value2);
+                    }
+                }
+
+                function swap(a,b) {
+                    temp=data_array[a];
+                    data_array[a]=data_array[b];
+                    data_array[b]=temp;
+                }
+
+                for(var m=data_array.length-1; m>0; m--){
+                    for(var n=0; n<m; n++){
+                        if (sort_smaller(data_array[n+1][field], data_array[n][field]))
+                            swap(n,n+1);
                     }
                 }
             }
+            if (grid.getOptions()['sort_method'] == 'QuickSort'){
+                quickSort();
+            } else if (grid.getOptions()['sort_method'] == 'BubbleSort'){
+                bubbleSort();
+            } else {
+                alert('Option "sort_method" with unsuported value "'+grid.getOptions()['sort_type']+'"');
+            }
 
-            //dataView.idxById = {};
-            //dataView.updateIdxById();
+            if (!args.sortAsc)
+                dataView.getItems().reverse();
             dataView.refresh();                                                     // DataView mit sortiertem Inhalt synchr.
-
-
             grid.invalidate();
             grid.render();
         });
@@ -518,6 +556,18 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             );
         }
 
+        menu_entry("sort_method","ui-icon ui-icon-triangle-2-n-s",      function(t){
+                if (options['sort_method'] == 'QuickSort'){
+                    options['sort_method'] = 'BubbleSort';
+                } else {
+                    options['sort_method'] = 'QuickSort';
+                }
+                jQuery("#"+context_menu_id+"_sort_method_label").html(locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']));
+            },
+            locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']),
+            locale_translate('slickgrid_context_menu_sort_method_hint')
+        );
+
         for (entry_index in menu_entries){
             menu_entry(entry_index, "ui-icon "+menu_entries[entry_index]['ui_icon'], menu_entries[entry_index]['action'], menu_entries[entry_index]['label'], menu_entries[entry_index]['hint']);
         }
@@ -730,6 +780,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_option('enableColumnReorder',  false);
         init_option('width',                'auto');
         init_option('locale',               'en');
+        init_option('sort_method',          'QuickSort');                       // QuickSort (Array.sort) oder BubbleSort
     }
 
 
@@ -1103,6 +1154,18 @@ function get_slickgrid_translations() {
         'slickgrid_context_menu_switch_col_from_diagram': {
             'en': 'Remove column from diagram',
             'de': 'Spalte aus Diagramm ausblenden'
+        },
+        'slickgrid_context_menu_sort_method_QuickSort': {
+            'en': 'Switch column sort method to bubble sort',
+            'de': 'Sortier-Methode für Spalten auf Bubble-Sort wechseln'
+        },
+        'slickgrid_context_menu_sort_method_BubbleSort': {
+            'en': 'Switch column sort method to quick sort',
+            'de': 'Sortier-Methode für Spalten auf Quick-Sort wechseln'
+        },
+        'slickgrid_context_menu_sort_method_hint': {
+            'en': 'Switch column sort method between quick sort (fast) and bubble sort (remains last sort order for identical values)',
+            'de': 'Wechsel der Sortier-Methode zwischen Quick-Sort (schnell) und Bubble-Sort (erhält vorherige Sortierfolge für gleiche Werte)'
         },
         'slickgrid_filter_hint_not_numeric': {
             'en': 'Filter by containing string',

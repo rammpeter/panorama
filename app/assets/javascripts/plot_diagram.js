@@ -82,7 +82,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
 
     context_menu_entry(
         'y_axis',
-        "ui-icon ui-icon-zoomin",
+        "ui-icon ui-icon-comment",
         show_y_axes==true ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
         show_y_axes==true ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint'),
         function(t){
@@ -93,7 +93,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
 
     context_menu_entry(
         'all_in_one',
-        "ui-icon ui-icon-zoomin",
+        "ui-icon ui-icon-arrow-4-diag",
         multiple_y_axes==true ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
         multiple_y_axes==true ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint'),
         function(t){
