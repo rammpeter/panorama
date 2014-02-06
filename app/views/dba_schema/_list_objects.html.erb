@@ -15,7 +15,7 @@
     {:caption=>"Rowlen",            :data=>proc{|rec| fn(rec.avg_rowlen)},      :align=>:right, :title=>"Durchschn. Größe eines Records lt. letzter Analyse (Avg_Row_Len für Table, Summe Avg_Col_Len + RowID für Indizes)"},
     {:caption=>"% Ungen.",          :data=>proc{|rec| fn(rec.percent_free)},    :align=>:right, :title=>"Ungenutzter Platz innerhalb der Extents in %. Ermittelt aus Extents - (Avg_Row_Len*Num_Rows)"},
     {:caption=>"MBytes Ungen. ARL", :data=>proc{|rec| fn(rec.mbytes_free_avg_row_len)}, :align=>:right, :title=>"Ungenutzter Platz innerhalb der Extents in MBytes. Ermittelt aus Extents - (Avg_Row_Len*Num_Rows)"},
-    {:caption=>"Blocks",            :data=>proc{|rec| fn(rec.empty_blocks)},    :align=>:right, :title=>"Ungenutzter Blöcke laut empty_blocks"},
+    {:caption=>"Blocks empty",      :data=>proc{|rec| fn(rec.empty_blocks)},    :align=>:right, :title=>"Ungenutzter Blöcke laut empty_blocks"},
     {:caption=>"Avg. Space",        :data=>proc{|rec| fn(rec.avg_space)},       :align=>:right, :title=>"Durchschn. ungenutzte Bytes je Block laut analyze-Info avg_space"},
     {:caption=>"Analyzed",          :data=>proc{|rec| localeDateTime(rec.last_analyzed)},       :title=>"Zeitpunkt der letzten Analyse"},
   ]
