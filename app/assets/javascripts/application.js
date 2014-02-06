@@ -10,12 +10,11 @@
 //= require flot/jquery.flot
 //= require flot/jquery.flot.resize
 //= require flot/jquery.flot.crosshair
-//= require context/context_jquery.contextmenu.js
 //= require jquery.event.drag-2.2
 //= require slick.core
 //= require slick.grid
 //= require slick.dataview
-//= require jqgrid/jquery.contextmenu.js
+//= require jquery.contextmenu.js
 //= require superfish/hoverIntent
 //= require superfish/superfish
 //= require_tree .

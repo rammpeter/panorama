@@ -1,1 +1,1 @@
-../../vendor/assets/javascripts/jqgrid/jquery.contextmenu.js
+../../vendor/assets/javascripts/jquery.contextmenu.js
