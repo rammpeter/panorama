@@ -180,6 +180,12 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                                    { id: 'col1', name: 'Value 1',       toolTip: 'Value 1',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
                                    { id: 'col2', name: 'Value 2',       toolTip: 'Value 2',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
                                    { id: 'col3', name: 'Value 3',       toolTip: 'Value 3',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col4', name: 'Value 4',       toolTip: 'Value 4',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col5', name: 'Value 5',       toolTip: 'Value 5',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col6', name: 'Value 6',       toolTip: 'Value 6',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col7', name: 'Value 7',       toolTip: 'Value 7',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col8', name: 'Value 8',       toolTip: 'Value 8',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
+                                   { id: 'col9', name: 'Value 9',       toolTip: 'Value 9',                 sort_type: 'float',     style: 'text-align: right;'},                <br>\
                     ];                                                                                                                      <br>\
                                                                                                                                             <br>\
                     var options = { caption:            '<span style=\"font-weight: bold;\">Time line with diagram</span>',                 <br>\
@@ -189,7 +195,7 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                     };                                                                                                                      <br>\
                                                                                                                                             <br>\
                     var data = [];                                                                                                          <br>\
-                    for (var i = 1; i <= 50000; i++){                                                                                        <br>\
+                    for (var i = 1; i <= 20000; i++){                                                                                        <br>\
                         var date = new Date(i*60000);                                                                                       <br>\
                                                                                                                                             <br>\
                         data.push({                                                                                                         <br>\
@@ -197,6 +203,12 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
                                     col1: (Math.random()*100).toFixed(2),                                                                   <br>\
                                     col2: (Math.random()*10000).toFixed(2),                                                                 <br>\
                                     col3: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col4: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col5: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col6: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col7: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col8: (Math.random()*1000000).toFixed(2),                                                               <br>\
+                                    col9: (Math.random()*1000000).toFixed(2),                                                               <br>\
                         });                                                                                                                 <br>\
                     };                                                                                                                      <br>\
                                                                                                                                             <br>\
@@ -217,7 +229,7 @@ createSlickGridExtended('demo_div', data, columns, options, additional_menu_entr
             <a href="" onclick="show_demo(demo1); return false;" title="Locale='de'">Demo unlimited height and width</a>&nbsp;&nbsp;&nbsp;
             <a href="" onclick="show_demo(demo2); return false;" title="Locale='de'">Demo limited height, full width</a>&nbsp;&nbsp;&nbsp;
             <a href="" onclick="show_demo(demo3); return false;" title="Locale='de'">Demo time line with diagram</a>&nbsp;&nbsp;&nbsp;
-            <a href="" onclick="show_demo(demo4); return false;" title="Locale='en'">Demo large data (50000 rows)</a>&nbsp;&nbsp;&nbsp;
+            <a href="" onclick="show_demo(demo4); return false;" title="Locale='en'">Demo large data (20000 rows)</a>&nbsp;&nbsp;&nbsp;
         </div>
         <div id="demo" style="padding: 10px;">
             <div id="demo_footer">
