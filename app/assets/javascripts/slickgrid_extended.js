@@ -978,6 +978,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         }
     }
 
+    // Ermittlung der Zeilenhöhe fuer einzeilige Darstellung
+    function single_line_height() {
+        return thiz.test_cell.html("1").height();
+    }
+
+
 
     /**
      * Translate key into string according to options[:locale]
@@ -1067,11 +1073,6 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
     return output;
 }
 
-
-// Ermittlung der Zeilenhöhe fuer einzeilige Darstellung
-function single_line_height() {
-    return jQuery('#test_cell').html("1").height();
-}
 
 
 /**
