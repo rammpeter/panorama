@@ -188,6 +188,10 @@ class DbaSchemaController < ApplicationController
         res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @segment_name[7,10]]
         @owner      = res.table_owner
         @table_name = res.table_name
+      when "SEQUENCE"
+        @seqs = sql_select_all ["SELECT * FROM DBA_Sequences WHERE Sequence_Owner = ? AND Sequence_Name = ?", @owner, @segment_name]
+        render_partial "list_sequence_description"
+        return
       else
         raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
     end
@@ -329,9 +333,7 @@ class DbaSchemaController < ApplicationController
       ", @owner, @table_name]
 
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_description" }');"}
-    end
+      render_partial "list_table_description"
   end
 
   def list_table_partitions
