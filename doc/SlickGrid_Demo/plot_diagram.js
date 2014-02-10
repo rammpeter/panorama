@@ -1,1 +1,0 @@
-../../app/assets/javascripts/plot_diagram.js

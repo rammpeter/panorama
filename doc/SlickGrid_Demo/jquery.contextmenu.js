@@ -1,1 +1,0 @@
-../../vendor/assets/javascripts/jquery.contextmenu.js

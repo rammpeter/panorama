@@ -1,1 +1,0 @@
-../../vendor/assets/javascripts/jquery.event.drag-2.2.js
