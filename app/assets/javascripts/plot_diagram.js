@@ -87,7 +87,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
         show_y_axes==true ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint'),
         function(t){
             plot_area.html(""); // Altes Diagramm entfernen
-            plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, (show_y_axes==true ? false : true), x_axis_time);
+            plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, (show_y_axes==true ? false : true), x_axis_time, locale);
         }
     );
 
@@ -98,7 +98,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
         multiple_y_axes==true ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint'),
         function(t){
             plot_area.html(""); // Altes Diagramm entfernen
-            plot_diagram(unique_id, plot_area_id, caption, data_array, (multiple_y_axes==true ? false : true), show_y_axes, x_axis_time);
+            plot_diagram(unique_id, plot_area_id, caption, data_array, (multiple_y_axes==true ? false : true), show_y_axes, x_axis_time, locale);
         }
     );
 
