@@ -650,6 +650,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 return true;
             }
         });
+        //thiz.gridContainer.longpress(function() {alert("Hugo");}, null, 2000);
     }
 
     // Ein- / Ausblenden der Filter-Inputs in Header-Rows des Slickgrids
