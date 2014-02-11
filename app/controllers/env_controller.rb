@@ -265,7 +265,7 @@ private
       cookies_last_logins.each_index do |index|
         value = cookies_last_logins[index]
         value[:id] = index                                                      # Zur Wiedererkennung des gewünschten Eintrages
-        cookies.permanent[:last_login_index]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
+        cookies.permanent[:last_login_id]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
       end
       write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
