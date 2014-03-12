@@ -1,4 +1,4 @@
-<% @update_area=:show_audit_trail_detail_area %>
+<% @update_area=get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller => :dba_schema, :action=>:list_audit_trail, :update_area=>@update_area)  do %>
   <div>
     <b>Audit Trail records from DBA_AUDIT_TRAIL</b>

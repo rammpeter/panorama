@@ -1,13 +1,13 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.0.2'
+gem 'rails', '4.0.3'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
+#gem 'activerecord-nulldb-adapter', git: 'https://github.com/nulldb/nulldb', branch: 'master'
+gem 'activerecord-nulldb-adapter'
 
-#gem 'activerecord-oracle_enhanced-adapter', git: 'https://github.com/yahonda/oracle-enhanced.git', branch: 'rails4'
 gem 'activerecord-oracle_enhanced-adapter'
 gem "memcache-client"
 

@@ -807,4 +807,10 @@ public
     end
   end
 
+  # Eindeutigen Bezeichner fuer DIV-ID in html-Struktur
+  def get_unique_area_id
+    session[:request_counter] = 0 if session[:request_counter] > 10000    # Sicherstellen, das keine Kumulation ohne Ende
+    "a#{session[:request_counter]}"
+  end
+
 end

@@ -45,7 +45,8 @@
 }
 
 body { 
-	background-color: #ccccff; 
+	/*background-color: #ccccff;*/
+    background-color: #CED8F6;
 	color: #333;
 	margin: 0;
     padding: 5px;
