@@ -7,7 +7,7 @@
 <%= render :partial => 'list_groupfilter' %>
 
 <%
-   @update_area = :list_session_statistics_historic_single_record_detail_area
+   @update_area = get_unique_area_id
 
 def link_column_sql_id(rec)
   retval = link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start][:bind_value], @groupfilter[:time_selection_end][:bind_value], @update_area, rec.username)

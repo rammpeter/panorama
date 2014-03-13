@@ -1,4 +1,4 @@
-<% @update_area = "list_prepared_active_session_history_detail_area_#{session[:request_counter]}" %>
+<% @update_area = get_unique_area_id %>
 <%=
     my_ajax_form_tag url_for(:controller  => :active_session_history,
                              :action      => :list_prepared_active_session_history,

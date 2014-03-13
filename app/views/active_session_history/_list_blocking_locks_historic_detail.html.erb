@@ -1,5 +1,5 @@
 <%
-  @update_area = "list_blocking_locks_histor1ic_detail_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 
   def link_blocked(rec, value)
     if rec.blocked_sessions_total == 0
