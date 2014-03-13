@@ -24,7 +24,7 @@
 <% end %>
 
 <%
-   @update_area = "lis_dml_locks_detail_area_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
 
     def link_column_sid(rec)
       my_ajax_link_to("#{rec.instance_number}:#{rec.sid},#{rec.serialno}",

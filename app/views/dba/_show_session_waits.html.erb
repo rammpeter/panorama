@@ -1,5 +1,5 @@
 <%
-   @update_area = "show_session_waits_detail_area_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
    def link_column(rec, value)
      my_ajax_link_to(value,
              url_for(:action   => "list_waits_per_event",

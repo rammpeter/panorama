@@ -1,5 +1,5 @@
 <%
-   @update_area = :list_ddl_locks_detail_area
+   @update_area = get_unique_area_id
 
     def link_column_session(instance, sid, serialno)
    my_ajax_link_to("#{instance}:#{sid},#{serialno}",

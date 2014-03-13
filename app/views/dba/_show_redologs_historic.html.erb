@@ -1,4 +1,4 @@
-<% @update_area = :show_redologs_historic_detail_area %>
+<% @update_area = get_unique_area_id %>
 
 <%= my_ajax_form_tag url_for(:controller => :dba, :action => :list_redologs_historic, :update_area => @update_area) do %>
     <div class="float_left">

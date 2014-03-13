@@ -1,5 +1,5 @@
 <%
-  @update_area = "list_waits_per_event_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 
   def link_column_sid(rec)
     my_ajax_link_to("#{rec.sid},#{rec.serialno}",

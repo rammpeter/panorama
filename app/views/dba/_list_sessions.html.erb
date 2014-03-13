@@ -1,4 +1,5 @@
 <%
+   @update_area = get_unique_area_id
 
  def link_session(rec)
    my_ajax_link_to(rec.sidsn,
@@ -6,7 +7,7 @@
              :instance => rec.inst_id,
              :sid      => rec.sid,
              :serialno => rec.serialno,
-             :update_area => :list_sessions_detail_area
+             :update_area => @update_area
             ),
      :title=> "Anzeige Details zu Session")
  end
@@ -17,7 +18,7 @@
               :instance => rec.qcinst_id,
               :sid      => rec.qcsid,
               :serialno => rec.qcserialno,
-              :update_area => :list_sessions_detail_area
+              :update_area => @update_area
              ),
       :title=> "Show details for query coordinator session")
   end
@@ -64,5 +65,5 @@
 
 <%= gen_slickgrid(@sessions, column_options, {:caption=> "Sessions", :max_height=>450}) %>
 
-<div id="list_sessions_detail_area">
+<div id="<%= @update_area %>">
 </div>

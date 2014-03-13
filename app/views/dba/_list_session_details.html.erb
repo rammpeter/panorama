@@ -1,7 +1,7 @@
 <div style="clear:both; padding: 5px;"></div>
 <h2>Details zu Session SID=<%= @sid%>, Serial#=<%= @serialno%>, Instance=<%= @instance %></h2>
 <% @prev_update_area = @update_area
-   @update_area = "list_session_details_area_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
 %>
 <%
 column_options =

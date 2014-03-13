@@ -1,5 +1,5 @@
 <%
-   @update_area = "second_session_detail_area_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
     def link_blocking_sid(rec)
         update_area = "second_session_detail_area_#{@instance}_#{@sid}_#{rec.rownum}"
         my_ajax_link_to(rec.blocking_instance_number ? "#{rec.blocking_instance_number}:#{rec.blocking_sid},#{rec.blocking_serialno}" : "",

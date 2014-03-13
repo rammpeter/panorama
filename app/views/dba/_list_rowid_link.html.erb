@@ -1,5 +1,5 @@
 <%=
-  @update_area = "list_rowid_link_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 
   my_ajax_link_to("RowID=#{@rowid}",
                   url_for(:action           => :show_rowid_details,
