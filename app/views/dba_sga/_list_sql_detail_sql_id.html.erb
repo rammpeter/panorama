@@ -1,4 +1,4 @@
-<% @update_area = "list_sql_detail_sql_id_detail_area_#{session[:request_counter]}" %>
+<% @update_area = get_unique_area_id %>
 
 <% @modus = "GV$SQLArea" # Ab jetzt Summen-Info anzeigen%>
 <%= render :partial=>"list_sql_sga_stat" %>

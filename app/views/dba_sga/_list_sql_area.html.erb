@@ -1,5 +1,5 @@
 <%
-   @update_area = "list_sql_area_detail_area_#{session[:request_counter]}" unless @update_area  # Kann auch durch Aufrufer vorbelegt sein
+   @update_area = get_unique_area_id unless @update_area  # Kann auch durch Aufrufer vorbelegt sein
 
   def link_column(rec, value)
     if @modus == "GV$SQL" || rec.child_count == 1    # Es kann direkt auch Child-Cursor verwiesen werden

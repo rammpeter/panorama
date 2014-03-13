@@ -1,4 +1,4 @@
-<% @update_area = :list_db_cache_advice_historic_detail_area %>
+<% @update_area = get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_db_cache_advice_historic, :update_area=>@update_area)  do %>
     <div class="float_left">
       <b>Historic DB-cache advice from DBA_Hist_DB_Cache_Advice</b>

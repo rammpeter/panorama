@@ -1,8 +1,8 @@
 <h3>Hinderungsgründe für Nutzung Shared Cursor für Instance=<%= @instance %>, SQL-ID=<%= @sql_id %>, Child-Number=<%= @child_number %></h3>
-F&uuml;r detaiilierte Aussagen bitte Description <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/dynviews_2124.htm" target="_blank">v$SQL_SHARED_CURSOR</a> nachschlagen
+Für detaiilierte Aussagen bitte Description <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/dynviews_2124.htm" target="_blank">v$SQL_SHARED_CURSOR</a> nachschlagen
 <%
 
-   @update_area = "list_sql_shared_cursor_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
 column_options =
 [
   {:caption=>"I",               :data=>proc{|rec| rec.inst_id},      :title=>"RAC-Instance"},

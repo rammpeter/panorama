@@ -1,6 +1,6 @@
 <h2>Compare execution plans of two different cursor in SGA</h2>
 
-<% @update_area = :show_compare_execution_plans_detail_area %>
+<% @update_area = get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller => :dba_sga, :action => :list_compare_execution_plans, :update_area => @update_area) do %>
     <div class="float_left">
         Inst. 1<br>

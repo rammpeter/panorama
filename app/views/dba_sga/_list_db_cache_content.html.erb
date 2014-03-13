@@ -26,7 +26,7 @@ column_options =
 <!-- Tabelle mit Objekten -->
 
 <%
-   @update_area = :list_db_cache_content_detail_area
+   @update_area = get_unique_area_id
 
    def link_column_sql(rec)
      my_ajax_link_to("#{rec.owner} . #{rec.object_name}#{rec.subobject_name ? " ("+rec.subobject_name+")": ""}",
