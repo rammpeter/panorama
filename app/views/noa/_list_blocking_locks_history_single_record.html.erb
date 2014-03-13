@@ -1,6 +1,6 @@
 <%
 
-@update_area = "list_blocking_locks_history_single_record_detail_area_#{session[:request_counter]}"
+@update_area = get_unique_area_id
 
 def link_column_sql_id(instance, sql_id, child_number, parsing_schema_name)
   link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel][:bind_value], @groupfilter[:Max_Zeitstempel][:bind_value], @update_area, parsing_schema_name)

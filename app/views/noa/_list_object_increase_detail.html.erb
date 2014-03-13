@@ -1,5 +1,5 @@
 <%
-  @update_area = :list_object_increase_object_timeline_area
+  @update_area = get_unique_area_id
    def link_column_detail(rec, value)
      my_ajax_link_to(value,
       url_for(:action               => :list_object_increase_object_timeline,

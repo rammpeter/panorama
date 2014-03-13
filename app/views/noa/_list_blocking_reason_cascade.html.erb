@@ -1,5 +1,5 @@
 <%
-  @update_area = "list_blocking_reason_cascade_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 
 # Generische Funktion für Link
 def link_column_sql_id(rec, sql_id, child_number, parsing_schema_name)

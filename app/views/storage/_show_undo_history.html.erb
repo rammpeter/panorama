@@ -1,6 +1,6 @@
 <h3>UNDO usage history from DBA_Hist_UndoStat</h3>
 
-<% update_area=:show_undo_history_detail_area %>
+<% update_area = get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller=>:storage, :action=>:list_undo_history, :update_area=>update_area) do %>
     <%= include_start_end_timepicker %>
     <div class="float_left">

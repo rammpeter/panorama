@@ -1,5 +1,5 @@
 <%
-  @update_area = :show_working_ofbulkgroup_detail_area
+  @update_area = get_unique_area_id
 
   def link_column(rec, value)
   my_ajax_link_to(value,

@@ -1,6 +1,6 @@
 <%
 # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
-@update_area = "list_blocking_locks_history_grouping_#{session[:request_counter]}"
+@update_area = get_unique_area_id
 
 def link_column_sql_id(instance, sql_id, child_number)
   link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel][:bind_value], @groupfilter[:Max_Zeitstempel][:bind_value], @update_area, nil)

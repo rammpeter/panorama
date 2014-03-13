@@ -1,5 +1,5 @@
 <%
-  @update_area = "list_undo_history_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 
   column_options =
   [

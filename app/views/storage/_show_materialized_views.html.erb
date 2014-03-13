@@ -1,4 +1,4 @@
-<% @update_area = :show_mat_view_detail_area %>
+<% @update_area = get_unique_area_id %>
 
 <%= my_ajax_form_tag url_for(:controller=>:storage, :action=>:list_materialized_view_action, :update_area=>@update_area) do %>
     <div class="float_left">

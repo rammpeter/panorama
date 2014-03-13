@@ -1,6 +1,6 @@
 <%
     # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
-    @update_area = "list_io_file_history_#{session[:request_counter]}"
+    @update_area = get_unique_area_id
 
     def get_filter_from_groupby(groupby, value)
         if value && value != ''

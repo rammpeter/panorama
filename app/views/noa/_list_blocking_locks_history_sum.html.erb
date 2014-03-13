@@ -1,6 +1,6 @@
 <%
 
-@update_area = "list_blocking_locks_history_detail_#{session[:request_counter]}"
+@update_area = get_unique_area_id
 # Generische Funktion für Link
 
 def link_column(result, value, groupkey, action, linktitle)

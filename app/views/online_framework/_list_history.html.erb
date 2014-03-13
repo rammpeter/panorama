@@ -1,5 +1,5 @@
 <%
-    @update_area = "list_history_detail_area_#{session[:request_counter]}"
+    @update_area = get_unique_area_id
 
   def currentQueueLength(rec)
     @start_queue_length = @start_queue_length - rec.incoming.to_i+rec.firsttrysuccess.to_i+rec.retrysuccess.to_i+rec.finalerror.to_i
