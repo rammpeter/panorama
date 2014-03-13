@@ -1,6 +1,6 @@
 <%
 
-  @update_area ="list_sql_detail_historic_detail_area_#{session[:request_counter]}"
+  @update_area = get_unique_area_id
 # Anzeige sowohl des konkreten Wertes als auch je Execution in zwei TD-Abschnitten
 def show_both_values(name, param, decimals, title="")
   param = param.to_f   # Sicherstellen Typ

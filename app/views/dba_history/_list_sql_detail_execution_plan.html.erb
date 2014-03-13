@@ -1,4 +1,4 @@
-<% @update_area = "list_sql_detail_execution_plan_#{session[:request_counter]}" %>
+<% @update_area = get_unique_area_id %>
 <%= "No execution plan found" if @multiplans.count == 0 %>
 <% @multiplans.each do |mp|
      @plans = mp[:plans]

@@ -12,7 +12,7 @@
 %>
 
 <%
-   @update_area = "list_sql_historic_detail_area_#{session[:request_counter]}"
+   @update_area = get_unique_area_id
 
     def link_column_sql(rec, value)
       link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)

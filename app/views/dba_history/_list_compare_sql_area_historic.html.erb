@@ -2,7 +2,7 @@
 </div>
 
 <%
-   @update_area = :list_compare_sql_area_historic_area
+   @update_area = get_unique_area_id
 
     def link_column(tag, d, value)
       my_ajax_link_to(value,
