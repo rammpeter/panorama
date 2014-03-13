@@ -282,6 +282,34 @@ class ActiveSessionHistoryController < ApplicationController
     end
   end # list_session_statistic_historic_single_record
 
+  # Anzeige der verschiedenen SQL-IDs je Instance/User falls bislang noch nicht eindeutig
+  def list_sql_id_links
+    where_from_groupfilter(params[:groupfilter], nil)
+    @dbid = params[:groupfilter][:DBID][:bind_value]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+
+    @sql_ids = sql_select_all ["\
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             s.SQL_ID, s.Instance_Number, u.UserName
+      FROM   (SELECT /*+ NO_MERGE ORDERED */
+                     10 Sample_Cycle, DBID, Instance_Number, #{get_ash_default_select_list}
+              FROM   DBA_Hist_Active_Sess_History s
+              LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
+              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
+              #{@dba_hist_where_string}
+              UNION ALL
+              SELECT 1 Sample_Cycle, #{@dbid} DBID, Inst_ID Instance_Number, #{get_ash_default_select_list}
+              FROM   gv$Active_Session_History
+             )s
+      LEFT OUTER JOIN All_Users             u   ON u.User_ID   = s.User_ID  -- LEFT OUTER JOIN verursacht Fehler
+      WHERE  1=1
+      #{@global_where_string}
+      GROUP BY s.DBID, s.SQL_ID, s.Instance_Number, u.UserName
+      ORDER BY SUM(s.Sample_Cycle) DESC
+     "
+                              ].concat(@dba_hist_where_values).concat(@global_where_values)
+
+    render_partial
+  end
 
   # Generische Funktion zum Anlisten der verdichteten Einzel-Records eines Gruppierungskriteriums nach GroupBy
   def list_session_statistic_historic_grouping
@@ -346,9 +374,7 @@ class ActiveSessionHistoryController < ApplicationController
       end
     }
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> 'list_session_statistics_historic_grouping' }');"}
-    end
+    render_partial 'list_session_statistics_historic_grouping'
   end # list_session_statistic_historic_sqls
 
   # Auswahl von/bis

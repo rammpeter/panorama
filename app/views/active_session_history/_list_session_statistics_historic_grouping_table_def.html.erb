@@ -25,7 +25,7 @@
     return nil if rec.group_value.nil?
 
     case @groupby
-      when "SQL-ID"         then if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>"); rec.group_value; else; link_column_sql_id(rec); end
+      when "SQL-ID"         then link_column_sql_id(rec)
       when "DB-Object"      then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value);end
       when "DB-Sub-Object"  then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); end
     else rec.group_value
@@ -35,7 +35,13 @@
   # Aus Gruppenlink direkt SQL-Details aufrufen, wenn eideutige Aussage zu SQL_ID und Username und Instance
   def link_column_sql_id(rec)
     if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
-        rec.sql_id
+      my_ajax_link_to(rec.sql_id,
+                      url_for({:action       => :list_sql_id_links,
+                               :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby("SQL-ID", rec.sql_id)),
+                               :update_area  => @update_area,
+                              }
+                      ),
+                      :title=>"Show SQL details for different instances / users")
     else
         link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)
     end

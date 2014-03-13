@@ -1,0 +1,18 @@
+<%
+   @update_area = get_unique_area_id
+
+    column_options =
+    [
+        {:caption=>"SQL_ID",   :data=>proc{|rec| link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)},  :title=>"SQL-ID"},
+        {:caption=>"Instance", :data=>proc{|rec| rec.instance_number },  :title=>"RAC-Instance SQL is executed on"},
+        {:caption=>"User",     :data=>proc{|rec| rec.username },         :title=>"DB user executing SQL"},
+    ]
+
+%>
+<%= gen_slickgrid(@sql_ids, column_options, {
+        :caption => "Possibly different SQLs with same SQL-ID",
+        :width => :auto,
+        :max_height=>450
+})
+%>
+<div id="<%= @update_area%>"></div>
