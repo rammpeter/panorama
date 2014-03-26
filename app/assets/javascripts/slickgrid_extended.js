@@ -320,7 +320,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var test_cell_id        = 'test_cell'       +container_id;
         var test_cell_wrap_id   = 'test_cell_wrap'  +container_id;
         var test_cells_outer = jQuery(
-            '<div id="slick_test_cells">'+
+            '<div>'+
                 //Tables für Test der resultierenden Hoehe und Breite von Zellen für slickGrid
                 // Zwei table für volle Zeichenbreite
                 '<div class="slick-inner-cell" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; overflow: hidden;"></div></nobr></div>'+
@@ -823,7 +823,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
 
     trace_log = function(msg){
-        if (true){
+        if (false){
             console.log(msg);                                                           // Aktivieren trace-Ausschriften
         }
     }
