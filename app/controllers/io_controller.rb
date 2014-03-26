@@ -20,7 +20,7 @@ class IoController < ApplicationController
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
     groupfilter = {
-        :DBID                 => {:sql => "s.DBID = ?"           , :bind_value => @dbid, :hide_filter => true},
+        :DBID                 => {:sql => "s.DBID = ?"           , :bind_value => @dbid},
         :time_selection_end   => {:sql => "s.Begin_Interval_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end},
         :time_selection_start => {:sql => "s.End_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start},
     }

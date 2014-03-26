@@ -35,13 +35,13 @@ def link_column_snap(rec, value)
 end
 
 def link_column_wait(rec, value)
-  if rec.nvl_object_id      # Es wurde kein Object identifiziert, nur hisgtorische Object_ID geliefert
-    value_filter = { :sql => "s.Current_Obj_No = ?", :bind_value => rec.nvl_object_id }
+  if rec.nvl_object_id      # Es wurde kein Object identifiziert, nur historische Object_ID geliefert
+    value_filter = { :Current_Obj_No => rec.nvl_object_id }
   else
     if rec.subobject_name
-      value_filter = { :sql => "LOWER(o.Owner)||'.'||o.Object_Name||'.'||o.SubObject_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}.#{rec.subobject_name}" }
+      value_filter = {  :Owner => rec.owner.upcase, :Object_Name => rec.object_name, :SubObject_Name => rec.subobject_name }
     else
-      value_filter = { :sql => "LOWER(o.Owner)||'.'||o.Object_Name = ?", :bind_value => "#{rec.owner.downcase}.#{rec.object_name}" }
+      value_filter = { :Owner => rec.owner.upcase, :Object_Name => rec.object_name }
     end
   end
 
@@ -50,15 +50,14 @@ def link_column_wait(rec, value)
                 url_for(:controller     => :active_session_history,
                         :action         => :list_session_statistic_historic_grouping,
                         :groupfilter    => {
-                                :DBID                   => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
-                                :Instance               => {:sql => "s.Instance_Number = ?" , :bind_value => rec.instance_number},
-                                :time_selection_start   => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start},
-                                :time_selection_end     => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end},
-                                :Min_Snap_ID            => {:sql => "s.snap_id >= ?"        , :bind_value => rec.min_snap_id, :hide_filter => true},
-                                :Max_Snap_ID            => {:sql => "s.snap_id <= ?"        , :bind_value => rec.max_snap_id, :hide_filter => true},
-                                :Idle_Wait1             => {:sql => "NVL(s.Event, s.Session_State) != ?", :bind_value => "PX Deq Credit: send blkd", :hide_filter=>true},
-                                 "DB-Object"            => value_filter
-                        },
+                                :DBID                   => session[:database].dbid,
+                                :Instance               => rec.instance_number,
+                                :time_selection_start   => @time_selection_start,
+                                :time_selection_end     => @time_selection_end,
+                                :Min_Snap_ID            => rec.min_snap_id,
+                                :Max_Snap_ID            => rec.max_snap_id,
+                                :Idle_Wait1             => "PX Deq Credit: send blkd"
+                        }.merge(value_filter),
                         :groupby        => "DB-Object",
                         :update_area    => @update_area
                        ),

@@ -9,41 +9,47 @@
    @time_selection_start_id = "time_selection_start_#{session[:request_counter]}"
    @time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
 
+   def strip_groupfilter                                                        # Groupfilter reduzieren um problematische Filter
+     @groupfilter.delete("Min_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
+     @groupfilter.delete("Max_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
+     @groupfilter
+   end
 
     @caption = ""
     @caption << (my_ajax_form_tag url_for(:controller => :active_session_history, :action        => :refresh_time_selection,
-                                :groupby       => @groupby,                  # Gruppierungskriterium für einen Dialog
-                                :groupfilter   => @groupfilter,                # Groupfilter des letzten Aufrufes wiederverwenden
-                                :update_area   => params[:update_area],        # Update_area des letzten Aufrufes wiederverwenden
+                                :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
+                                :groupfilter   => strip_groupfilter,            # Groupfilter des letzten Aufrufes wiederverwenden, reduziert um Fehlerquellen
+                                :update_area   => params[:update_area],         # Update_area des letzten Aufrufes wiederverwenden
                                 :repeat_controller => @repeat_controller ? @repeat_controller : :active_session_history, # Möglichkeit, den Controller zu wechseln
                                 :repeat_action => @repeat_action             # Zuletzt aufgerufene action wiederholen
                         ) do
         form_content = ""
         form_content << "<div style=\"float:left;\">"
         form_content << @header
+        form_content << "&nbsp;"
         form_content << "</div><div style=\"float:left;\">"
         form_content << "<table>"
         form_content << "<tr>"
         @groupfilter.each do|key,value|
-            form_content << "<th>#{key}</th>".html_safe if !value[:hide_filter] &&  key != "time_selection_start" && key != "time_selection_end"
+            form_content << "<th>#{key}</th>".html_safe if !groupfilter_value(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
         end
         form_content << "<th>Start time</th>"
         form_content << "<th>End time</th>"
 
         form_content << "</tr><tr>"
         @groupfilter.each do|key,value|
-            if !value[:hide_filter] &&  key != "time_selection_start" && key != "time_selection_end"
+            if !groupfilter_value(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
                 form_content << "<td>"
-                form_content << "#{value[:bind_value]}".html_safe
+                form_content << "#{value}".html_safe
                 form_content << submit_tag("x", :name=>key, :title => t(:active_session_history_list_groupfilter_delete_filter_hint, :default=>"Refresh content without this filter"), :style=>"color:red")
                 form_content << "</td>"
             end
         end
         form_content << "<td>"
-        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"][:bind_value], :size=>14, :id=>@time_selection_start_id, :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
+        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>14, :id=>@time_selection_start_id, :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
         form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
         form_content << "</td><td>"
-        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"][:bind_value]  , :size=>14, :id=>@time_selection_end_id,   :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
+        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>14, :id=>@time_selection_end_id,   :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
         form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
         form_content << "</td>"
 

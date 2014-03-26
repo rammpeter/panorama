@@ -33,11 +33,11 @@
   active_session_history_list_groupfilter_refresh_hint:     Aktualisieren der Anzeige mit den geänderten Parametern
   active_session_history_first_occurrence_caption:          Erstes Auftreten
   active_session_history_list_blocking_locks_historic_detail_instance_hint:  Instance der geblockten Session
-  active_session_history_list_session_statistics_historic_link_hint: Anzeige der Verdichtung aus Samples der Gruppierung nach
-  active_session_history_list_session_statistics_historic_grouping_header: Verdichtung nach
-  active_session_history_list_session_statistics_historic_grouping_link_hint: Anzeige der unterschiedlichen
-  active_session_history_list_session_statistics_historic_single_record_sql_id_title: SQL-ID des aktuellen Statements + optional SQL-ID des Top-Level-SQL
-  active_session_history_list_session_statistics_historic_timeline_header: |-
+  active_session_history_list_session_statistic_historic_link_hint: Anzeige der Verdichtung aus Samples der Gruppierung nach
+  active_session_history_list_session_statistic_historic_grouping_header: Verdichtung nach
+  active_session_history_list_session_statistic_historic_grouping_link_hint: Anzeige der unterschiedlichen
+  active_session_history_list_session_statistic_historic_single_record_sql_id_title: SQL-ID des aktuellen Statements + optional SQL-ID des Top-Level-SQL
+  active_session_history_list_session_statistic_historic_timeline_header: |-
     Anzahl wartende Sessions verdichtet auf %{group_seconds} Sekunden für Top-10 gruppiert nach: <b>%{groupby}</b>, Filter: %{filter}
   active_session_history_number_hint:                       (Anzahl wenn mehrere)
   active_session_history_samples_hint:                      Gesamt-Anzahl Sample-Records in Gruppierung

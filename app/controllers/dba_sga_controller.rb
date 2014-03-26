@@ -39,9 +39,8 @@ class DbaSgaController < ApplicationController
                           params[:maxResultCount],
                           params[:topSort]
     )
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_area" }');"}
-    end
+
+    render_partial :list_sql_area
   end
 
   def fill_sql_area_list(modus, instance, filter, sql_id, max_result_count, top_sort) # Wird angesprungen aus Vor-Methode
@@ -408,9 +407,7 @@ class DbaSgaController < ApplicationController
            format.js { render :js => "alert(\"SQL-ID '#{@sql_id}' not found in GV$SQL for instance #{@instance} !\");" }
         end
       else
-        respond_to do |format|
-           format.js { render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_detail_sql_id" }');" }
-        end
+        render_partial
       end
     end
 
@@ -436,9 +433,7 @@ class DbaSgaController < ApplicationController
       r["reasons"] = reasons   # Spalte im Result hinzufügen
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_shared_cursor" }');"}
-    end
+    render_partial
   end
 
   # Anzeige der offenen Cursor eines SQL
@@ -467,9 +462,7 @@ class DbaSgaController < ApplicationController
        AND    o.SQL_ID  = ?
        ", @instance, @sql_id]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_open_cursor_per_sql" }');"}
-    end
+    render_partial
   end
 
   # SGA-Komponenten 
@@ -491,9 +484,8 @@ class DbaSgaController < ApplicationController
       FROM GV$SGAStat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
       ORDER BY 1 DESC", @instance]
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"dba_sga/list_sga_components" }');"}
-    end
+
+    render_partial
   end
 
   def list_db_cache_content
@@ -561,9 +553,8 @@ class DbaSgaController < ApplicationController
     @objects.each do |o|
       @total_blocks += o.blocks
     end
-    respond_to do |format|
-      format.js {render :js => "$('#list_db_cache_content_area').html('#{j render_to_string :partial=>"list_db_cache_content" }');"}
-    end
+
+    render_partial
   end # list_db_cache_content
 
   def show_using_sqls
@@ -608,17 +599,13 @@ class DbaSgaController < ApplicationController
                             )
        WHERE #{wherestr}
        ORDER BY s.Elapsed_Time DESC"].concat whereval;
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"show_using_sqls" }');"}
-    end
+    render_partial
   end
 
   def list_object_nach_file_und_block
      @object = object_nach_file_und_block(params[:fileno], params[:blockno]) 
      #@object = "[Kein Object gefunden für Parameter FileNo=#{params[:fileno]}, BlockNo=#{params[:blockno]}]" unless @object
-     respond_to do |format|
-       format.js {render :js => "$('#list_object_area').html('#{j render_to_string :partial=>"list_object_nach_file_und_block" }');"}
-     end
+     render_partial
   end
 
   def list_cursor_memory
@@ -634,9 +621,7 @@ class DbaSgaController < ApplicationController
       WHERE  wa.Inst_ID=? AND wa.SQL_ID=?
       ", @instance, @sql_id]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_cursor_memory" }');"}
-    end
+    render_partial
   end
 
 
@@ -710,9 +695,7 @@ class DbaSgaController < ApplicationController
       @plan_2 << p if p.inst_id == @instance_2 && p.sql_id == @sql_id_2 && p.child_number == @child_number_2
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_compare_execution_plans" }');"}
-    end
+    render_partial
   end
 
   # Result Cache
@@ -768,9 +751,7 @@ class DbaSgaController < ApplicationController
             ) o
       ORDER BY Space_Overhead_KB+Space_Unused_KB DESC", @instance]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_result_cache" }');"}
-    end
+    render_partial
   end
 
   def list_db_cache_advice_historic

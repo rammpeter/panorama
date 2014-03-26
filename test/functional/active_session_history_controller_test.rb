@@ -20,11 +20,11 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       @min_snap_id = snaps.min_snap_id
       @max_snap_id = snaps.max_snap_id
       @groupfilter = {
-                :DBID            => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
-                :time_selection_start => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, 'DD.MM.YYYY HH24:MI')"    , :bind_value => @time_selection_start},
-                :time_selection_end   => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, 'DD.MM.YYYY HH24:MI')"    , :bind_value => @time_selection_end},
-                :Min_Snap_ID     => {:sql => "s.snap_id >= ?"        , :bind_value => @min_snap_id, :hide_filter => true},
-                :Max_Snap_ID     => {:sql => "s.snap_id <= ?"        , :bind_value => @max_snap_id, :hide_filter => true}
+                :DBID            => session[:database].dbid,
+                :time_selection_start => @time_selection_start,
+                :time_selection_end   => @time_selection_end,
+                :Min_Snap_ID     => @min_snap_id,
+                :Max_Snap_ID     => @max_snap_id
         }
     }
   end
@@ -34,7 +34,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     case key
       when "User"         then 'Hugo'
       when "SQL-ID"       then '123456789'
-      when "Session-ID"   then '1, 2'
+      when "Session-ID"   then '1'
       when "Operation"    then 'FULL SCAN'
       when "Entry-PL/SQL" then 'Hugo'
       when "PL/SQL"       then 'Hugo'
@@ -55,7 +55,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistics_historic" do
     def do_test(groupby)
-      post :list_session_statistics_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
+      post :list_session_statistic_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
       assert_response :success
     end
 
@@ -67,9 +67,9 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistic_historic_grouping" do
     def do_inner_test(groupby, outer_groupby, bind_value)
-      add_filter = {outer_groupby => {:sql => "#{session_statistics_key_rule(outer_groupby)[:sql]} #{bind_value ? " = ?" : " IS NULL"}", :bind_value => bind_value}}
+      add_filter = {outer_groupby => bind_value}
       post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
-           :groupfilter=>@groupfilter.merge(add_filter)
+           :groupfilter => @groupfilter.merge(add_filter)
       assert_response :success
     end
 
@@ -93,7 +93,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistic_historic_single_record" do
     def do_test(groupby, bind_value)
-      add_filter = {groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} = ?", :bind_value => bind_value}}
+      add_filter = {groupby => bind_value}
       post :list_session_statistic_historic_single_record, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter)
       assert_response :success
@@ -106,8 +106,8 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistics_historic_timeline" do
     def do_test(groupby, bind_value)
-      add_filter = {groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} = ?", :bind_value => bind_value}}
-      post :list_session_statistics_historic_timeline, :format=>:js, :groupby=>groupby,
+      add_filter = {groupby => bind_value}
+      post :list_session_statistic_historic_timeline, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter),
            :top_values => ["1", "2", "3"], :group_seconds=>60
       assert_response :success
@@ -128,9 +128,9 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   test "list_prepared_active_session_history" do
     post :list_prepared_active_session_history, :format=>:js, :groupby=>"SQL-ID",
          :groupfilter => {
-                         :DBID     => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
-                         :Instance => {:sql => "s.Instance_Number = ?" , :bind_value => 1 },
-                         :SQL_ID   => {:sql => "s.SQL_ID = ?"          , :bind_value => @sga_sql_id }
+                         :DBID     => session[:database].dbid,
+                         :Instance => 1,
+                         "SQL-ID"  => @sga_sql_id
          },
          :time_selection_start => @time_selection_start,
          :time_selection_end   => @time_selection_end

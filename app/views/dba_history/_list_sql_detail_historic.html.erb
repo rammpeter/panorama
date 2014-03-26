@@ -140,23 +140,14 @@ column_options = [
      url_for(:update_area => @update_area,
              :action      => :list_session_statistic_historic_grouping,
              :controller  => :active_session_history,
-             :groupfilter=>{:DBID => {:bind_value  =>@dbid, :hide_filter => :true, :sql => "s.DBID = ?" },
-                            :Idle_Wait1 =>{:bind_value  => "PX Deq Credit: send blkd",
-                                           :hide_filter => :true,
-                                           :sql         => "NVL(s.Event, s.Session_State) != ?"
-                                          },
-                            :Instance_Number => {:bind_value => @instance,    :sql => "s.Instance_Number = ?" },
-                            :Min_Snap_ID =>{:bind_value  => @min_snap_id,
-                                            :hide_filter => :true,
-                                            :sql         => "s.snap_id >= ?"
-                                           },
-                            :Max_Snap_ID =>{:bind_value  => @max_snap_id,
-                                            :hide_filter => :true,
-                                            :sql         => "s.snap_id <= ?"
-                                           },
-                            :time_selection_start =>{:bind_value =>@time_selection_start,   :sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')" },
-                            :time_selection_end   =>{:bind_value =>@time_selection_end,     :sql => "s.Sample_Time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')" },
-                            "SQL-ID" =>{:bind_value => @sql_id,       :sql => "s.SQL_ID = ?"     }
+             :groupfilter=>{:DBID => {:bind_value  =>@dbid},
+                            :Idle_Wait1 =>{:bind_value  => "PX Deq Credit: send blkd" },
+                            :Instance_Number => {:bind_value => @instance},
+                            :Min_Snap_ID =>{:bind_value  => @min_snap_id},
+                            :Max_Snap_ID =>{:bind_value  => @max_snap_id},
+                            :time_selection_start =>{:bind_value =>@time_selection_start },
+                            :time_selection_end   =>{:bind_value =>@time_selection_end },
+                            "SQL-ID" =>{:bind_value => @sql_id }
                            },
              :groupby    => "SQL-ID"
             ),

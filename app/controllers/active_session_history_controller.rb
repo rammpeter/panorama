@@ -19,119 +19,25 @@ class ActiveSessionHistoryController < ApplicationController
 
   public
   # Anzeige DBA_Hist_Active_Sess_History
-  def list_session_statistics_historic
-    @instance  = prepare_param_instance
-    @dbid      = prepare_param_dbid
-    @groupby    = params[:groupby]
+  def list_session_statistic_historic
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @instance = prepare_param_instance
+    params[:groupfilter] = {}
+    params[:groupfilter]["DBID"]                  = prepare_param_dbid
+    params[:groupfilter]["Instance"]              =  @instance if @instance
+    params[:groupfilter]["Idle_Wait1"]            = 'PX Deq Credit: send blkd' unless params[:idle_waits] == '1'
+    params[:groupfilter]["time_selection_start"]  = @time_selection_start
+    params[:groupfilter]["time_selection_end"]    = @time_selection_end
 
-    if params[:idle_waits] == '1' # Idle-Waits anzeigen
-      @idle_waits_filter = {}
-    else
-      @idle_waits_filter = {:Idle_Wait1 => {:sql => 'NVL(s.Event, s.Session_State) != ?', :bind_value => 'PX Deq Credit: send blkd', :hide_filter=>true}}
-    end
-
-    if @instance
-      @instance_filter = {:Instance_Number => {:sql => 's.Instance_Number = ?', :bind_value => @instance}}
-    else
-      @instance_filter = {}
-    end
-
-    where_string  = '' # Filter-Text für nachfolgendes Statement
-    where_values = [@time_selection_start, @time_selection_end, @dbid, @time_selection_start, @time_selection_end]    # Filter-werte für nachfolgendes Statement
-    if @instance
-      where_string << ' AND s.Instance_Number = ?'
-      where_values << @instance
-    end
-    @idle_waits_filter.each {|key,value|
-      if value[:sql] != ''
-        where_string << " AND #{value[:sql]}"
-        where_values << value[:bind_value]
-      end
-    }
-
-    @sessions= sql_select_all ["\
-      WITH snaps AS (
-              SELECT DBID, Instance_NUMBER, -- Letzten Snap vor Zeitraum und ersten Snap nach Zeitraum zur Abgrenzung der Datenmenge
-                     -- Wirklich gefiltert wird auf s.Sample_time
-                     NVL(MAX(CASE WHEN Begin_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END), MIN(Snap_ID)) Min_Snap_ID, -- Min. Snap-ID nehmen wenn keine existent vor Beginn des Zeitraums
-                     NVL(MIN(CASE WHEN Begin_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END), MAX(Snap_ID)) Max_Snap_ID  -- Max. Snap-ID nehmen wenn keine existent nach Ende des Zeiraumes
-              FROM   DBA_Hist_Snapshot snap
-              WHERE  DBID = #{@dbid}
-              GROUP BY DBID, Instance_NUMBER
-             ),
-           procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED Panorama-Tool Ramm */
-              #{session_statistics_key_rule(@groupby)[:sql]}                 group_value,
-             s.DBID,
-             #{if session_statistics_key_rule(@groupby)[:info_sql]
-                 session_statistics_key_rule(@groupby)[:info_sql]
-               else "''"
-               end
-              } Info,
-             ''                           Info_Hint,
-             AVG(Wait_Time+Time_Waited)/1000        Time_Waited_Avg_ms,
-             SUM(s.Sample_Cycle)          Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
-             MAX(s.Sample_Cycle)          Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
-             MIN(snap.Min_Snap_ID)        Min_Snap_ID, -- Pseudo-Gruppenfunktion, Werte sind immer identisch
-             MAX(snap.Max_Snap_ID)        Max_Snap_ID, -- Pseudo-Gruppenfunktion, Werte sind immer identisch
-             #{'SUM(TM_Delta_CPU_Time_ms)/1000 Tm_Delta_CPU_Time_Secs,
-                SUM(TM_Delta_DB_Time_ms)/1000  Tm_Delta_DB_Time_Secs,
-                SUM(Delta_Read_IO_Requests)  Delta_Read_IO_Requests,
-                SUM(Delta_Write_IO_Requests) Delta_Write_IO_Requests,
-                SUM(Delta_Read_IO_kBytes)    Delta_Read_IO_kBytes,
-                SUM(Delta_Write_IO_kBytes)   Delta_Write_IO_kBytes,
-                SUM(Delta_Interconnect_IO_kBytes) Delta_Interconnect_IO_kBytes,
-                MAX(Temp_Space_Allocated)/(1024*1024) Max_Temp_MB,
-                AVG(Temp_Space_Allocated)/(1024*1024) Avg_Temp_MB,
-             ' if session[:database].version >= '11.2'}
-             COUNT(1)                     Count_Samples,
-             #{include_session_statistic_historic_default_select_list}
-      FROM   (SELECT /*+ NO_MERGE ORDERED USE_NL(s) */
-                     10 Sample_Cycle, snap.DBID, snap.Instance_Number, #{get_ash_default_select_list}
-              FROM   Snaps snap
-              LEFT OUTER JOIN (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = snap.Instance_Number
-              JOIN   DBA_Hist_Active_Sess_History s  ON s.DBID = snap.DBID AND s.Instance_Number = snap.Instance_Number
-              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
-              AND    s.Snap_ID BETWEEN snap.Min_Snap_ID AND snap.Max_Snap_ID     -- Zeit-Filter auf Index zielen für DBA_Hist_Active_Sess_History
-              UNION ALL
-              SELECT 1 Sample_Cycle, #{@dbid} DBID, Inst_ID Instance_Number, #{get_ash_default_select_list}
-              FROM   gv$Active_Session_History
-             ) s
-      LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
-      LEFT OUTER JOIN All_Users u     ON u.User_ID   = s.User_ID    -- LEFT OUTER JOIN verursachte früher Fehler, muss aber outer join sein
-      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
-      LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
-      JOIN   Snaps snap ON snap.DBID=s.DBID AND snap.Instance_Number=s.Instance_Number        -- Nutzen in Folgeselects für Index-Scan über Snap_ID in DB_Hist_Active_Sess_History
-      WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-      AND    s.Sample_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') #{where_string}
-      GROUP BY s.DBID, #{session_statistics_key_rule(@groupby)[:sql]}
-      ORDER BY SUM(s.Sample_Cycle) DESC
-     "
-     ].concat(where_values)
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @sessions.each {|s|
-      if @groupby=='Module' || @groupby=='Action'
-        info = explain_application_info(s.group_value)
-        s.info      = info[:short_info]
-        s.info_hint = info[:long_info]
-      end
-    }
-
-    respond_to do |format|
-      format.js {render :js => "$('#list_session_statistics_historic_area').html('#{j render_to_string :partial=> 'list_session_statistics_historic' }');"}
-    end
-  end # list_session_statistics_historic
+    list_session_statistic_historic_grouping      # Weiterleiten Request an Standard-Verarbeitung für weiteres DrillDown
+  end # list_session_statistic_historic
 
   # Anzeige Diagramm mit Top10
-  def list_session_statistics_historic_timeline
+  def list_session_statistic_historic_timeline
     group_seconds = params[:group_seconds].to_i
 
     where_from_groupfilter(params[:groupfilter], params[:groupby])
-    @dbid = params[:groupfilter][:DBID][:bind_value]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+    @dbid = params[:groupfilter][:DBID]       # identische DBID verwenden wie im groupfilter bereits gesetzt
 
 
 
@@ -177,10 +83,10 @@ class ActiveSessionHistoryController < ApplicationController
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ''
     @groupfilter.each do |key, value|
-      @filter << "#{key}=\"#{value[:bind_value]}\", " unless value[:hide_filter]
+      @filter << "#{key}=\"#{value}\", " unless groupfilter_value(key)[:hide_content]
     end
 
-    diagram_caption = "#{t(:active_session_history_list_session_statistics_historic_timeline_header,
+    diagram_caption = "#{t(:active_session_history_list_session_statistic_historic_timeline_header,
                                                    :default=> 'Number of waiting sessions condensed by %{group_seconds} seconds for top-10 grouped by: <b>%{groupby}</b>, Filter: %{filter}',
                                                    :group_seconds=>group_seconds, :groupby=>@groupby, :filter=>@filter
     )}"
@@ -193,7 +99,7 @@ class ActiveSessionHistoryController < ApplicationController
                         :caption        => diagram_caption,
                         :update_area    => params[:update_area]
     )
-  end # list_session_statistics_historic_timeline
+  end # list_session_statistic_historic_timeline
 
   private
   # Felder, die generell von DBA_Hist_Active_Sess_History und gv$Active_Session_History selektiert werden
@@ -236,7 +142,7 @@ class ActiveSessionHistoryController < ApplicationController
   # Anlisten der Einzel-Records eines Gruppierungskriteriums
   def list_session_statistic_historic_single_record
     where_from_groupfilter(params[:groupfilter], nil)
-    @dbid = params[:groupfilter][:DBID][:bind_value]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
@@ -277,15 +183,13 @@ class ActiveSessionHistoryController < ApplicationController
       s.sql_operation = translate_opcode(s.sql_opcode)
     }
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> 'list_session_statistics_historic_single_record' }');"}
-    end
+    render_partial
   end # list_session_statistic_historic_single_record
 
   # Anzeige der verschiedenen SQL-IDs je Instance/User falls bislang noch nicht eindeutig
   def list_sql_id_links
     where_from_groupfilter(params[:groupfilter], nil)
-    @dbid = params[:groupfilter][:DBID][:bind_value]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
     @sql_ids = sql_select_all ["\
       SELECT /*+ ORDERED Panorama-Tool Ramm */
@@ -314,7 +218,7 @@ class ActiveSessionHistoryController < ApplicationController
   # Generische Funktion zum Anlisten der verdichteten Einzel-Records eines Gruppierungskriteriums nach GroupBy
   def list_session_statistic_historic_grouping
     where_from_groupfilter(params[:groupfilter], params[:groupby])
-    @dbid = params[:groupfilter][:DBID][:bind_value]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
@@ -327,6 +231,7 @@ class ActiveSessionHistoryController < ApplicationController
                end
               } Info,
              '' Info_Hint,
+             MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID,
              AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
              SUM(s.Sample_Cycle)          Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
              MAX(s.Sample_Cycle)          Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
@@ -343,13 +248,13 @@ class ActiveSessionHistoryController < ApplicationController
              COUNT(1)                     Count_Samples,
              #{include_session_statistic_historic_default_select_list}
       FROM   (SELECT /*+ NO_MERGE ORDERED */
-                     10 Sample_Cycle, DBID, Instance_Number, #{get_ash_default_select_list}
+                     10 Sample_Cycle, DBID, Instance_Number, Snap_ID, #{get_ash_default_select_list}
               FROM   DBA_Hist_Active_Sess_History s
               LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
               WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
               #{@dba_hist_where_string}
               UNION ALL
-              SELECT 1 Sample_Cycle, #{@dbid} DBID, Inst_ID Instance_Number, #{get_ash_default_select_list}
+              SELECT 1 Sample_Cycle, #{@dbid} DBID, Inst_ID Instance_Number, NULL Snap_ID, #{get_ash_default_select_list}
               FROM   gv$Active_Session_History
              )s
       LEFT OUTER JOIN DBA_Objects           o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
@@ -374,39 +279,37 @@ class ActiveSessionHistoryController < ApplicationController
       end
     }
 
-    render_partial 'list_session_statistics_historic_grouping'
-  end # list_session_statistic_historic_sqls
+    render_partial :list_session_statistic_historic_grouping
+  end
 
   # Auswahl von/bis
   # Vorbelegungen von diversen Filtern durch Übergabe im Param-Hash
   def show_prepared_active_session_history
-    @groupfilter = {:DBID      => {:sql => 's.DBID = ?', :bind_value => prepare_param_dbid, :hide_filter => true} }
-    @groupfilter[:Instance]    =  {:sql => 's.Instance_Number = ?', :bind_value => params[:instance] } if params[:instance]
-    @groupfilter[:SQL_ID]      =  {:sql => 's.SQL_ID = ?', :bind_value => params[:sql_id] }   if params[:sql_id]
-    @groupfilter['Session-ID'] =  {:sql => 's.Session_ID = ?', :bind_value => params[:sid] }      if params[:sid]
-    @groupfilter['SerialNo']   =  {:sql => 's.Session_Serial_No = ?', :bind_value => params[:serialno] } if params[:serialno]
+    @groupfilter = {:DBID      => prepare_param_dbid }
+    @groupfilter[:Instance]    =  params[:instance]  if params[:instance]
+    @groupfilter[:SQL_ID]      =  params[:sql_id]    if params[:sql_id]
+    @groupfilter['Session-ID'] =  params[:sid]       if params[:sid]
+    @groupfilter['SerialNo']   =  params[:serialno]  if params[:serialno]
 
     @groupby = 'Hugo' # Default
     @groupby = 'SQL-ID' if params[:sql_id]
     @groupby = 'Session-ID' if params[:sid]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> 'show_prepared_active_session_history' }');"}
-    end
+    render_partial
   end
 
   # Anzeige nach Eingabe von/bis in show_prepared_active_session_history
   def list_prepared_active_session_history
     save_session_time_selection
-    params[:groupfilter][:time_selection_start] = {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start}
-    params[:groupfilter][:time_selection_end]   = {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end}
+    params[:groupfilter][:time_selection_start] = @time_selection_start
+    params[:groupfilter][:time_selection_end]   = @time_selection_end
 
     list_session_statistic_historic_grouping  # Weiterleiten
   end
 
   def refresh_time_selection
-    params[:groupfilter][:time_selection_start][:bind_value] = params[:time_selection_start] if params[:time_selection_start]
-    params[:groupfilter][:time_selection_end][:bind_value]   = params[:time_selection_end]   if params[:time_selection_end]
+    params[:groupfilter][:time_selection_start] = params[:time_selection_start] if params[:time_selection_start]
+    params[:groupfilter][:time_selection_end]   = params[:time_selection_end]   if params[:time_selection_end]
     params[:groupfilter].each do |key, value|
       params[:groupfilter].delete(key) if params[key] && key!='time_selection_start' && key!='time_selection_end' # Element aus groupfilter loeschen, dass namentlich im param-Hash genannt ist
     end
@@ -568,9 +471,7 @@ class ActiveSessionHistoryController < ApplicationController
         ", @dbid, @min_snap_id, @max_snap_id, @time_selection_start, @time_selection_end, @time_selection_start, @time_selection_end
                             ]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> 'list_blocking_locks_historic' }');"}
-    end
+    render_partial
   end
 
   def list_blocking_locks_historic_detail
@@ -664,10 +565,7 @@ class ActiveSessionHistoryController < ApplicationController
         ORDER BY o.Wait_Time+o.Time_Waited+cs.Seconds_In_Wait_Blocked_Total DESC"].concat(wherevalues)
 
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> 'list_blocking_locks_historic_detail' }');"}
-    end
-
+    render_partial
   end
 
 end

@@ -3,7 +3,7 @@
 
     column_options =
     [
-        {:caption=>"SQL_ID",   :data=>proc{|rec| link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)},  :title=>"SQL-ID"},
+        {:caption=>"SQL_ID",   :data=>proc{|rec| link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)},  :title=>"SQL-ID"},
         {:caption=>"Instance", :data=>proc{|rec| rec.instance_number },  :title=>"RAC-Instance SQL is executed on"},
         {:caption=>"User",     :data=>proc{|rec| rec.username },         :title=>"DB user executing SQL"},
     ]

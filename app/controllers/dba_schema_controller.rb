@@ -354,9 +354,7 @@ class DbaSchemaController < ApplicationController
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
       ", @owner, @table_name]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_table_partitions" }');"}
-    end
+    render_partial
   end
 
   def list_index_partitions
@@ -377,9 +375,7 @@ class DbaSchemaController < ApplicationController
       WHERE p.Index_Owner = ? AND p.Index_Name = ?
       ", @owner, @index_name]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_index_partitions" }');"}
-    end
+    render_partial
   end
 
 
@@ -440,9 +436,7 @@ class DbaSchemaController < ApplicationController
                      ORDER BY Timestamp
                     "].concat(where_values)
 
-      respond_to do |format|
-        format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_audit_trail" }');"}
-      end
+      render_partial
     end
   end
 
@@ -547,8 +541,6 @@ class DbaSchemaController < ApplicationController
       @actions.delete_at(@actions.count-1)
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_audit_trail_grouping" }');"}
-    end
+    render_partial
   end
 end

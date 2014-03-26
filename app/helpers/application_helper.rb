@@ -30,7 +30,9 @@ module ApplicationHelper
         bind_index = bind_index + 1
         bind_alias = ":A#{bind_index}"
         stmt['?'] = bind_alias          # Ersetzen ? durch Host-Variable
-        raise "bind value at position #{bind_index} is NULL for '#{bind_alias}' in binds-array for sql: #{stmt}" unless sql[bind_index]
+        unless sql[bind_index]
+          raise "bind value at position #{bind_index} is NULL for '#{bind_alias}' in binds-array for sql: #{stmt}"
+        end
         raise "bind value at position #{bind_index} missing for '#{bind_alias}' in binds-array for sql: #{stmt}" if sql.count <= bind_index
         binds << [ActiveRecord::ConnectionAdapters::Column.new(bind_alias, nil), sql[bind_index]]
       end

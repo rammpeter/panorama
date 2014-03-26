@@ -46,15 +46,15 @@
       my_ajax_link_to(rec.session_id,
         url_for(:action     => :list_session_statistic_historic_grouping,
               :groupfilter  => {
-                                :Instance             => {:sql => "s.Instance_Number = ?" , :bind_value => rec.instance_number},
-                                "Session-ID"          => {:sql => "s.Session_ID = ?"      , :bind_value => rec.session_id},
-                                :SerialNo             => {:sql => "s.Session_Serial_No = ?" , :bind_value => rec.session_serialno},
-                                :Idle_Wait1           => {:sql => "NVL(s.Event, s.Session_State) != ?", :bind_value => "PX Deq Credit: send blkd", :hide_filter=>true},
-                                :DBID                 => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
-                                :time_selection_start => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start},
-                                :time_selection_end   => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end},
-                                :Min_Snap_ID          => {:sql => "s.snap_id >= ?"        , :bind_value => @min_snap_id, :hide_filter => true},
-                                :Max_Snap_ID          => {:sql => "s.snap_id <= ?"        , :bind_value => @max_snap_id, :hide_filter => true}
+                                :Instance             => rec.instance_number,
+                                "Session-ID"          => rec.session_id,
+                                :SerialNo             => rec.session_serialno,
+                                :Idle_Wait1           => "PX Deq Credit: send blkd",
+                                :DBID                 => session[:database].dbid,
+                                :time_selection_start => @time_selection_start,
+                                :time_selection_end   => @time_selection_end,
+                                :Min_Snap_ID          => @min_snap_id,
+                                :Max_Snap_ID          => @max_snap_id
                         },
               :groupby      => "Session-ID",
               :update_area  => @update_area

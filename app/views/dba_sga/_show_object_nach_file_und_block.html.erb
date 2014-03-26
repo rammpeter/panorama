@@ -1,6 +1,7 @@
 <h2>Ermitteln des Objectes für einzelnen DB-Block</h2>
 
-<%= my_ajax_form_tag "dba_sga/list_object_nach_file_und_block" do %>
+<% @update_area = get_unique_area_id %>
+<%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_object_nach_file_und_block, :update_area=>@update_area) do %>
   File-Number
   <%= text_field_tag(:fileno, "", :size=>40) %>
   Block-Number
@@ -8,5 +9,5 @@
   <%= submit_tag("Name des Objektes suchen", :title => "Name des Objektes suchen") %>
 <% end %>
 
-<div id="list_object_area" >
+<div id="<%= @update_area %>" >
 </div>

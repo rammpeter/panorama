@@ -133,9 +133,7 @@ class OnlineFrameworkController < ApplicationController
       @msgsums << value
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_quick_overview" }');"}
-    end
+    render_partial
   end
   
   def list_overview
@@ -201,9 +199,7 @@ class OnlineFrameworkController < ApplicationController
                       ) b ON b.ID_OFMessagetype = m.ID_OFMessageType
        #{@showApplExec ? "LEFT OUTER JOIN sysp.ApplExecution ae ON ae.ID = m.ID_ApplExecution" : ""}
       ORDER BY m.MinCalculatedPriority")
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_overview" }');"}
-    end
+    render_partial
   end
 
 private

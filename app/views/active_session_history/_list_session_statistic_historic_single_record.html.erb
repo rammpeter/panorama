@@ -10,10 +10,10 @@
    @update_area = get_unique_area_id
 
 def link_column_sql_id(rec)
-  retval = link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start][:bind_value], @groupfilter[:time_selection_end][:bind_value], @update_area, rec.username)
+  retval = link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
   if rec["top_level_sql_id"] && rec.top_level_sql_id != nil && rec.top_level_sql_id != rec.sql_id
     retval << " "
-    retval << link_historic_sql_id(rec.instance_number, rec.top_level_sql_id, @groupfilter[:time_selection_start][:bind_value], @groupfilter[:time_selection_end][:bind_value], @update_area, rec.username)
+    retval << link_historic_sql_id(rec.instance_number, rec.top_level_sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
   end
   retval
 end
@@ -57,7 +57,7 @@ column_options =
     {:caption=>"SID",              :data=>proc{|rec| rec.session_id},                           :title=>"Session-ID",           :data_title=>'Session-ID, SerialNo=#{rec.session_serial_no}, Type=#{rec.session_type}'},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                             :title=>"User-Name", :data_title=>proc{|rec| "%t: User_ID=#{rec.user_id}"}},
     {:caption=>"QC",               :data=>proc{|rec| "#{rec.qc_instance_id}:#{rec.qc_session_id}" if rec.qc_instance_id},  :title=>"Query-coordinator instance and session-id (if parallel query is used)"},
-    {:caption=>"SQL-ID",           :data=>proc{|rec| link_column_sql_id(rec) },       :title=>t(:active_session_history_list_session_statistics_historic_single_record_sql_id_title, :default=>"SQL-ID of current statement + optional SQL-ID of top level SQL"), :data_title=>proc{|rec| "SQL-ID, Child-No=#{rec.sql_child_number}, Plan-Hash-Value=#{rec.sql_plan_hash_value}#{ " Current=#{rec.is_sqlid_current}" if rec["is_sqlid_current"]} " } },
+    {:caption=>"SQL-ID",           :data=>proc{|rec| link_column_sql_id(rec) },       :title=>t(:active_session_history_list_session_statistic_historic_single_record_sql_id_title, :default=>"SQL-ID of current statement + optional SQL-ID of top level SQL"), :data_title=>proc{|rec| "SQL-ID, Child-No=#{rec.sql_child_number}, Plan-Hash-Value=#{rec.sql_plan_hash_value}#{ " Current=#{rec.is_sqlid_current}" if rec["is_sqlid_current"]} " } },
     {:caption=>"O",                :data=>proc{|rec| rec.sql_opcode},                           :title=>"SQL-Opcode", :data_title=>'SQL-Operation=#{rec.sql_operation}'},
   ]
   column_options <<  {:caption=>"Exec.", :data=>proc{|rec| "ID=#{rec.sql_exec_id} #{localeDateTime(rec.sql_exec_start)}"},  :title=>"SQL Execution-ID, Start of Execution"}                     if session[:database].version >= "11.2"
@@ -91,7 +91,6 @@ column_options =
 
 <%= gen_slickgrid(@sessions, column_options, {
         :caption        => @caption,
-        :plot_area_id   => "list_session_statistics_historic_single_record_detail_area",
         :max_height     => 450
 }) %>
 

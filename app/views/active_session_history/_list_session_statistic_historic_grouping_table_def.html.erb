@@ -2,18 +2,24 @@
   # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
   @update_area = get_unique_area_id
 
-  def get_filter_from_groupby(groupby, value)
-    if value && value != ''
-      { groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} = ?", :bind_value => value}}
+  def get_groupfilter(rec, groupby_column, groupby_value)
+    if rec.min_snap_id
+      @groupfilter["Min_Snap_ID"] = rec.min_snap_id
     else
-      { groupby => {:sql => "#{session_statistics_key_rule(groupby)[:sql]} IS NULL", :bind_value => value}}
+      @groupfilter.delete("Min_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
     end
+    if rec.max_snap_id
+      @groupfilter["Max_Snap_ID"] = rec.max_snap_id
+    else
+      @groupfilter.delete("Max_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
+    end
+    @groupfilter.merge({ groupby_column => groupby_value})
   end
 
   def link_single_rows(rec)
     my_ajax_link_to(fn(rec.count_samples),
                     url_for({:action       => :list_session_statistic_historic_single_record,
-                             :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby(@groupby, rec.group_value)),
+                             :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
                              :update_area  => @update_area,
                             }),
                     :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"
@@ -37,13 +43,13 @@
     if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
       my_ajax_link_to(rec.sql_id,
                       url_for({:action       => :list_sql_id_links,
-                               :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby("SQL-ID", rec.sql_id)),
+                               :groupfilter  => get_groupfilter(rec, "SQL-ID", rec.sql_id),
                                :update_area  => @update_area,
                               }
                       ),
                       :title=>"Show SQL details for different instances / users")
     else
-        link_historic_sql_id(rec.instance_number, rec.sql_id, build_groupfilter(rec)[:time_selection_start][:bind_value], build_groupfilter(rec)[:time_selection_end][:bind_value], @update_area, rec.username)
+        link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
     end
   end
 
@@ -54,12 +60,13 @@
       else
         my_ajax_link_to("<div style=\"white-space: nowrap;\">#{html_escape(value)}</div>".html_safe,     # Verhindern Zeilenumbruch in Anzeige
           url_for({:action       => :list_session_statistic_historic_grouping,
-                   :groupfilter  => build_groupfilter(rec).merge(get_filter_from_groupby(@groupby, rec.group_value)),
+                   :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
                    :groupby      => add_url[:groupby],
                    :update_area  => @update_area,
                   }
           ),
-          :title=>"#{t(:active_session_history_list_session_statistics_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s")
+          :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s"
+        )
       end
     else
       case add_url[:groupby]
@@ -90,7 +97,7 @@
   @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) }, :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"}
 
   session_statistics_key_rules.each do |key, value|
-    unless @groupby == key  || build_groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+    unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
       @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(Number if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
     end
   end
@@ -114,7 +121,7 @@
       {:label   => t(:active_session_history_show_top_ten ,     :sec=>seconds, :default=>"Show Top 10 in time line, condensed by %{sec} seconds"),
        :hint    => t(:active_session_history_show_top_ten_hint, :sec=>seconds, :default=>"Show Top 10 ordered by total time waited in time line, each point in graph for sum over %{sec} seconds"),
        :ui_icon => "ui-icon-image",
-       :action  => "$('#list_session_statistics_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{seconds}').click();"
+       :action  => "$('#list_session_statistic_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{seconds}').click();"
       }
     end
 
@@ -136,15 +143,15 @@
 <%
   def link_timeline(group_seconds)
     my_ajax_link_to("Hidden Auslöser für Timeline",
-                    url_for({:action        => "list_session_statistics_historic_timeline",
-                             :groupfilter   => build_groupfilter(@sessions[0]),
+                    url_for({:action        => "list_session_statistic_historic_timeline",
+                             :groupfilter   => @groupfilter,
                              :groupby       => @groupby,
                              :group_seconds => group_seconds,
                              :update_area   => "#{@update_area}_timeline"
                             }
                     ),
                     :style=>"display:none",
-                    :id=>"list_session_statistics_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{group_seconds}"
+                    :id=>"list_session_statistic_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{group_seconds}"
     )
   end
 

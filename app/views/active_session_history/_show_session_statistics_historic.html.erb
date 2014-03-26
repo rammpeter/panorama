@@ -1,4 +1,5 @@
-<%= my_ajax_form_tag "active_session_history/list_session_statistics_historic" do %>
+<% @update_area = get_unique_area_id %>
+<%= my_ajax_form_tag url_for(:controller=>:active_session_history, :action=>:list_session_statistic_historic, :update_area=>@update_area) do %>
   <div>
     <b>Session-Statistics aus DBA_Hist_Active_Sess_History</b>
   </div>
@@ -34,6 +35,6 @@
     <%= submit_tag("Waits anzeigen", :title => "Anlistung der verdichteten Session-Waits") %>
   </div>
 <% end %>
-<div id="list_session_statistics_historic_area" style="float:left; width:100%; ">
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
 </div>
 

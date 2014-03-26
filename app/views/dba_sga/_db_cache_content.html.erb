@@ -1,4 +1,5 @@
-<%= my_ajax_form_tag "dba_sga/list_db_cache_content" do %>
+<%= @update_area = get_unique_area_id %>
+<%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_db_cache_content, :update_area=>@update_area) do %>
   <div class="float_left">
     <b>DB-Cache-Nutzung</b>
   </div>
@@ -14,6 +15,6 @@
   <%= submit_tag("Cache-Inhalt anzeigen", :title => "Anlistung der Daten des DB-Cache") %>
   </div>
 <% end %>
-<div id="list_db_cache_content_area" style="float:left; width:100%; ">
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
 
 </div>

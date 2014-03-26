@@ -34,7 +34,7 @@
                         :update_area  => @update_area,
                         }
                     ),
-                    :title=>"#{t(:active_session_history_list_session_statistics_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s")
+                    :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s")
             end
         else
            value           # Nur wert anzeigen ohen Link wenn keine sinnvolle Funktion mehr dahinter
@@ -62,7 +62,7 @@
 %>
 
 <% # Parameter für nachfolgendes Partial list_groupfilter
-   @header = "#{t :active_session_history_list_session_statistics_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
+   @header = "#{t :active_session_history_list_session_statistic_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
    @repeat_controller = :io
    @repeat_action = :list_io_file_history_grouping
 %>

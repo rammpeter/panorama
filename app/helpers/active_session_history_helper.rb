@@ -8,7 +8,7 @@ module ActiveSessionHistoryHelper
     unless @session_statistics_key_rules_hash
       @session_statistics_key_rules_hash = {}
       @session_statistics_key_rules_hash["Instance"]    = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
-      @session_statistics_key_rules_hash["Session-ID"]  = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_id",         :Name => 'Session-ID',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
+      @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",         :Name => 'Session/Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
       @session_statistics_key_rules_hash["Transaction"] = {:sql => "RawToHex(s.XID)",     :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if session[:database].version >= "11.2"
       @session_statistics_key_rules_hash["User"]        = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User" }
       @session_statistics_key_rules_hash["SQL-ID"]      = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID', :info_sql  => "(SELECT SUBSTR(t.SQL_Text,1,40) FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)", :info_caption => "SQL-Text (first chars)" }
@@ -60,6 +60,47 @@ module ActiveSessionHistoryHelper
     end
   end
 
+
+  # Ermitteln des SQL für NOT NULL oder NULL
+  def groupfilter_value(key, value=nil)
+    unless @groupfilter_values_hash
+      @groupfilter_values_hash = {}
+      @groupfilter_values_hash["DBID"]                  = {:sql => "s.DBID",                          :hide_content => true}
+      @groupfilter_values_hash["Min_Snap_ID"]           = {:sql => "s.snap_id >= ?",                  :hide_content => true, :already_bound => true  }
+      @groupfilter_values_hash["Max_Snap_ID"]           = {:sql => "s.snap_id <= ?",                  :hide_content => true, :already_bound => true  }
+      @groupfilter_values_hash["Plan-Line-ID"]          = {:sql => "s.SQL_Plan_Line_ID" }
+      @groupfilter_values_hash["Plan-Hash-Value"]       = {:sql => "s.SQL_Plan_Hash_Value"}
+      @groupfilter_values_hash["Session-ID"]            = {:sql => "s.Session_ID"}
+      @groupfilter_values_hash["SerialNo"]              = {:sql => "s.Session_Serial_No"},
+      @groupfilter_values_hash["time_selection_start"]  = {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
+      @groupfilter_values_hash["time_selection_end"]    = {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
+      @groupfilter_values_hash["Idle_Wait1"]            = {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
+      @groupfilter_values_hash["Owner"]                 = {:sql => "UPPER(o.Owner)"}
+      @groupfilter_values_hash["Object_Name"]           = {:sql => "o.Object_Name"}
+      @groupfilter_values_hash["SubObject_Name"]        = {:sql => "o.SubObject_Name"}
+      @groupfilter_values_hash["Current_Obj_No"]        = {:sql => "s.Current_Obj_No"}
+
+    end
+
+    retval = @groupfilter_values_hash[key]                                      # 1. Versuch aus Liste der zusätzlich definierten
+    retval = { :sql => session_statistics_key_rule(key)[:sql] } unless retval   # 2. Versuch aus Liste der Gruppierungskriterien
+    raise "groupfilter_value: unknown key '#{key}'" unless retval
+    retval = retval.clone                                                       # Entkoppeln von Quelle so dass Änderungen lokal bleiben
+    unless retval[:already_bound]                                               # Muss Bindung noch hinzukommen?
+      if value && value != ''
+        retval[:sql] = "#{retval[:sql]} = ?"
+      else
+        if retval[:sql]["?"]
+          puts retval.to_s
+        end
+        retval[:sql] = "#{retval[:sql]} IS NULL"
+      end
+    end
+
+    retval
+  end
+
+
   # Belegen des WHERE-Statements aus Hash mit Filter-Bedingungen und setzen Variablen
   def where_from_groupfilter (groupfilter, groupby)
     @groupfilter = groupfilter             # Instanzvariablen zur nachfolgenden Nutzung
@@ -70,19 +111,18 @@ module ActiveSessionHistoryHelper
     @dba_hist_where_values = []              # Filter-werte für nachfolgendes Statement für DBA_Hist_Active_Sess_History
 
     @groupfilter.each {|key,value|
-      if value[:sql] != ""
-        if key == "DBID" || key == "Min_Snap_ID" || key == "Max_Snap_ID"    # Werte nur gegen HistTabelle binden
-          @dba_hist_where_string << " AND #{value[:sql]}"  # Filter weglassen, wenn nicht belegt
-          if value[:bind_value] && value[:bind_value] != ''
-            @dba_hist_where_values << value[:bind_value]   # Wert nur binden wenn nicht im :sql auf NULL getestet wird
-          else
-            @dba_hist_where_values << 0                    # Wenn kein valides Alter festgestellt über DBA_Hist_Snapshot, dann reicht gv$Active_Session_History aus für Zugriff,
-            @dba_hist_where_string << "/* Zugriff auf DBA_Hist_Active_Sess_History ausblenden, da kein Wert für #{key} gefunden wurde (alle Daten kommen aus gv$Active_Session_History)*/"
-          end
-        else                                # Werte für Hist- und gv$-Tabelle binden
-          @global_where_string << " AND #{value[:sql]}"
-          @global_where_values << value[:bind_value] if value[:bind_value] && value[:bind_value] != ''  # Wert nur binden wenn nicht im :sql auf NULL getestet wird
+      sql = groupfilter_value(key, value)[:sql]
+      if key == "DBID" || key == "Min_Snap_ID" || key == "Max_Snap_ID"    # Werte nur gegen HistTabelle binden
+        @dba_hist_where_string << " AND #{sql}"  # Filter weglassen, wenn nicht belegt
+        if value && value != ''
+          @dba_hist_where_values << value   # Wert nur binden wenn nicht im :sql auf NULL getestet wird
+        else
+          @dba_hist_where_values << 0                    # Wenn kein valides Alter festgestellt über DBA_Hist_Snapshot, dann reicht gv$Active_Session_History aus für Zugriff,
+          @dba_hist_where_string << "/* Zugriff auf DBA_Hist_Active_Sess_History ausblenden, da kein Wert für #{key} gefunden wurde (alle Daten kommen aus gv$Active_Session_History)*/"
         end
+      else                                # Werte für Hist- und gv$-Tabelle binden
+        @global_where_string << " AND #{sql}"
+        @global_where_values << value if value && value != ''  # Wert nur binden wenn nicht im :sql auf NULL getestet wird
       end
     }
   end # where_from_groupfilter

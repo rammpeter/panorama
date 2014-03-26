@@ -26,16 +26,16 @@
                      url_for(:controller     => :active_session_history,
                              :action         => :list_session_statistic_historic_grouping,
                              :groupfilter    => {
-                                     :DBID                   => {:sql => "s.DBID = ?"            , :bind_value => session[:database].dbid, :hide_filter => true},
-                                     :Instance               => {:sql => "s.Instance_Number = ?" , :bind_value => @instance},
-                                     "SQL-ID"                => {:sql => "s.SQL_ID = ?" ,          :bind_value => @sql_id},
-                                     "Plan-Hash-Value"       => {:sql => "s.SQL_Plan_Hash_Value = ?", :bind_value => @mp.plan_hash_value},
-                                     "Plan-Line-ID"          => {:sql => "s.SQL_Plan_Line_ID = ?", :bind_value => rec.id},
-                                     :time_selection_start   => {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_second_mask}')"    , :bind_value => localeDateTime(@mp.first_occurrence)},
-                                     :time_selection_end     => {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_second_mask}')"    , :bind_value => localeDateTime(@mp.last_occurrence)},
-                                     :Min_Snap_ID            => {:sql => "s.snap_id >= ?"        , :bind_value => @mp.min_snap_id, :hide_filter => true},
-                                     :Max_Snap_ID            => {:sql => "s.snap_id <= ?"        , :bind_value => @mp.max_snap_id, :hide_filter => true},
-                                     :Idle_Wait1             => {:sql => "NVL(s.Event, s.Session_State) != ?", :bind_value => "PX Deq Credit: send blkd", :hide_filter=>true}
+                                     :DBID                   => session[:database].dbid,
+                                     :Instance               => @instance,
+                                     "SQL-ID"                => @sql_id,
+                                     "Plan-Hash-Value"       => @mp.plan_hash_value,
+                                     "Plan-Line-ID"          => rec.id,
+                                     :time_selection_start   => localeDateTime(@mp.first_occurrence),
+                                     :time_selection_end     => localeDateTime(@mp.last_occurrence),
+                                     :Min_Snap_ID            => @mp.min_snap_id,
+                                     :Max_Snap_ID            => @mp.max_snap_id,
+                                     :Idle_Wait1             => "PX Deq Credit: send blkd"
                              },
                              :groupby        => "Event",
                              :update_area    => @update_area
