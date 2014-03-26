@@ -7,8 +7,8 @@ def link_column(result, value, groupkey, action, linktitle)
   my_ajax_link_to(value,
       url_for({:action       => action,
                :groupfilter  => @groupfilter.merge({
-                                  :Min_Zeitstempel => {:sql => "l.SnapshotTS >= TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => localeDateTime(result.min_snapshotts)},
-                                  :Max_Zeitstempel => {:sql => "l.SnapshotTS <= TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => localeDateTime(result.max_snapshotts)},
+                                  :Min_Zeitstempel => localeDateTime(result.min_snapshotts),
+                                  :Max_Zeitstempel => localeDateTime(result.max_snapshotts),
                                 }),
                :update_area  => @update_area
               }.merge(groupkey)

@@ -22,22 +22,6 @@
     end
   end
 
-  def link_single(rec)
-    my_ajax_link_to("< #{rec.samples} >",
-        url_for({:action       => "list_blocking_locks_history_single_record",
-                 :groupfilter  =>  {:SnapshotTS      => {:sql => "l.snapshotTS =TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Min_Zeitstempel => {:sql => "l.snapshotTS>=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Max_Zeitstempel => {:sql => "l.snapshotTS<=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Instance        => {:sql => "l.Instance_Number=?",                              :bind_value=>rec.instance_number },
-                                    :SID             => {:sql => "l.SID=?",                                          :bind_value=>rec.sid },
-                                    :SerialNo        => {:sql => "l.SerialNo=?",                                     :bind_value=>rec.serialno },
-                                   },
-                 :update_area  => @update_area
-                }
-               ),
-         :title=>"Anzeige der einzelnen Samples der Session")
-  end
-
   def link_column_sql_id(rec)
         link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.username)
   end

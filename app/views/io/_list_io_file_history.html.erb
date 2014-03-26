@@ -2,20 +2,12 @@
     # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
     @update_area = get_unique_area_id
 
-    def get_filter_from_groupby(groupby, value)
-        if value && value != ''
-            { groupby => {:sql => "#{io_file_key_rule(groupby)[:sql]} = ?", :bind_value => value}}
-        else
-            { groupby => {:sql => "#{io_file_key_rule(groupby)[:sql]} IS NULL", :bind_value => value}}
-        end
-    end
-
    def link_samples(rec)
      my_ajax_link_to(
        fn(rec.samples),
        url_for(
          :action       => :list_io_file_history_samples,
-         :groupfilter  => @groupfilter.merge(get_filter_from_groupby(@groupby, rec.group_value)),
+         :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
          :update_area  => @update_area,
        ),
        :title=>t(:list_io_file_history_samples_hint, :default=>"Show timeline of sample records")
@@ -29,7 +21,7 @@
             else
                 my_ajax_link_to(value,
                     url_for({:action       => :list_io_file_history_grouping,
-                        :groupfilter  => @groupfilter.merge(get_filter_from_groupby(@groupby, rec.group_value)),
+                        :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
                         :groupby      => add_url[:groupby],
                         :update_area  => @update_area,
                         }
@@ -66,7 +58,7 @@
    @repeat_controller = :io
    @repeat_action = :list_io_file_history_grouping
 %>
-<%= render :partial => 'active_session_history/list_groupfilter' %>
+<%= render :partial => 'list_groupfilter' %>
 
 
 <%=

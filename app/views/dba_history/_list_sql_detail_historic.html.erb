@@ -131,7 +131,7 @@ column_options = [
 <div style="float:left; ">
     <%=
         if @user_id
-          user_id_filter = {:user_id =>{:bind_value => @user_id, :sql => "s.User_ID = ?"}}
+          user_id_filter = {"User-ID" =>@user_id}
         else
           user_id_filter = {}
         end
@@ -140,15 +140,15 @@ column_options = [
      url_for(:update_area => @update_area,
              :action      => :list_session_statistic_historic_grouping,
              :controller  => :active_session_history,
-             :groupfilter=>{:DBID => {:bind_value  =>@dbid},
-                            :Idle_Wait1 =>{:bind_value  => "PX Deq Credit: send blkd" },
-                            :Instance_Number => {:bind_value => @instance},
-                            :Min_Snap_ID =>{:bind_value  => @min_snap_id},
-                            :Max_Snap_ID =>{:bind_value  => @max_snap_id},
-                            :time_selection_start =>{:bind_value =>@time_selection_start },
-                            :time_selection_end   =>{:bind_value =>@time_selection_end },
-                            "SQL-ID" =>{:bind_value => @sql_id }
-                           },
+             :groupfilter=>{:DBID                   => @dbid,
+                            :Idle_Wait1             => "PX Deq Credit: send blkd",
+                            :Instance               => @instance,
+                            :Min_Snap_ID            => @min_snap_id,
+                            :Max_Snap_ID            => @max_snap_id,
+                            :time_selection_start   => @time_selection_start,
+                            :time_selection_end     => @time_selection_end ,
+                            "SQL-ID"                => @sql_id
+                           }.merge(user_id_filter),
              :groupby    => "SQL-ID"
             ),
      :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time range") )

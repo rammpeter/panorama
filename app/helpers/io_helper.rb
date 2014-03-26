@@ -16,6 +16,15 @@ module IoHelper
 
   def io_file_key_rule(key)
     retval = io_file_key_rules[key]
+    unless retval
+      retval = {
+        "DBID"                 => {:sql => "s.DBID", :hide_content => true},
+        "time_selection_end"   => {:sql => "s.Begin_Interval_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"  , :already_bound => true},   # SQL muss nicht mehr um =? erweitert werden
+        "time_selection_start" => {:sql => "s.End_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :already_bound => true},
+      }[key]
+    end
+
+
     raise "io_file_key_rule: unknown key '#{key}'" unless retval
     retval
   end

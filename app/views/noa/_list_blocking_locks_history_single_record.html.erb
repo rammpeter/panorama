@@ -3,7 +3,7 @@
 @update_area = get_unique_area_id
 
 def link_column_sql_id(instance, sql_id, child_number, parsing_schema_name)
-  link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel][:bind_value], @groupfilter[:Max_Zeitstempel][:bind_value], @update_area, parsing_schema_name)
+  link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel], @groupfilter[:Max_Zeitstempel], @update_area, parsing_schema_name)
 end
 
 
@@ -49,9 +49,7 @@ column_options =
 
     caption = "Einzel-Snapshots für "
     @groupfilter.each {|key,value|
-        unless value[:hide_filter]
-            caption << "#{key} = '#{value[:bind_value]}' </div>"
-        end
+        caption << "#{key} = '#{value}' </div>"
     }
 %>
 

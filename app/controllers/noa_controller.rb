@@ -199,6 +199,23 @@ class NoaController < ApplicationController
 
 
   private
+
+  def blocking_locks_groupfilter_values(key)
+
+    retval = {
+        "SnapshotTS"        => {:sql => "l.snapshotTS =TO_DATE(?, '#{sql_datetime_second_mask}')", :already_bound => true },
+        "Min_Zeitstempel"   => {:sql => "l.snapshotTS>=TO_DATE(?, '#{sql_datetime_second_mask}')", :already_bound => true  },
+        "Max_Zeitstempel"   => {:sql => "l.snapshotTS<=TO_DATE(?, '#{sql_datetime_second_mask}')", :already_bound => true  },
+        "Instance"          => {:sql => "l.Instance_Number" },
+        "SID"               => {:sql => "l.SID"},
+        "SerialNo"          => {:sql => "l.SerialNo"},
+        "Hide_Non_Blocking" => {:sql => "NVL(l.Blocking_SID, '0') != ?", :already_bound => true }
+    }[key]
+    raise "blocking_locks_groupfilter_values: unknown key '#{key}'" unless retval
+    retval
+  end
+
+
   # Belegen des WHERE-Statements aus Hash mit Filter-Bedingungen und setzen Variablen
   def where_from_blocking_locks_groupfilter (groupfilter, groupkey)
     @groupfilter = groupfilter
@@ -207,11 +224,19 @@ class NoaController < ApplicationController
     @where_values = []    # Filter-werte für nachfolgendes Statement
 
     @groupfilter.each {|key,value|
-      if value[:sql] != ""
-        @where_string << " AND #{value[:sql]}"
-        # Wert nur binden wenn nicht im :sql auf NULL getestet wird
-        @where_values << value[:bind_value] if value[:bind_value] && value[:bind_value] != ''
+      sql = blocking_locks_groupfilter_values(key)[:sql].clone
+
+      unless blocking_locks_groupfilter_values(key)[:already_bound]
+        if value && value != ''
+          sql << " = ?"
+        else
+          sql << " IS NULL"
+        end
       end
+
+      @where_string << " AND #{sql}"
+      # Wert nur binden wenn nicht im :sql auf NULL getestet wird
+      @where_values << value if value && value != ''
     }
 
   end
@@ -234,7 +259,7 @@ class NoaController < ApplicationController
     groupfilter = {}
 
     unless params[:show_non_blocking]     # non-Blocking filtern
-      groupfilter = {:Hide_Non_Blocking => {:sql => "NVL(l.Blocking_SID, '0') != ?" , :bind_value => '0'}  }
+      groupfilter = {"Hide_Non_Blocking" => '0' }
     end
 
     where_from_blocking_locks_groupfilter(groupfilter, nil)

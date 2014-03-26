@@ -3,19 +3,14 @@
 @update_area = get_unique_area_id
 
 def link_column_sql_id(instance, sql_id, child_number)
-  link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel][:bind_value], @groupfilter[:Max_Zeitstempel][:bind_value], @update_area, nil)
+  link_historic_sql_id(instance, sql_id, @groupfilter[:Min_Zeitstempel], @groupfilter[:Max_Zeitstempel], @update_area, nil)
 end
 
 
 def link_column(result, value, newgroupkey, action, linktitle)
   my_ajax_link_to(value,
       url_for({:action       => action,
-               :groupfilter  => @groupfilter.merge(
-                                  @groupkey[:Name] => {
-                                    :sql => "#{@groupkey[:sql]} #{(result.group_value ? '= ?' : ' IS NULL')}",
-                                    :bind_value => result.group_value
-                                  }
-                                ),
+               :groupfilter  => @groupfilter.merge({@groupkey[:Name] => result.group_value}),
                :update_area  => @update_area
               }.merge(newgroupkey)
              ),
@@ -145,9 +140,7 @@ column_options =
 <%=
     caption = "Blocking Locks: Verdichtung nach #{@groupkey[:Name]} Filter: "
     @groupfilter.each {|key,value|
-        unless value[:hide_filter]
-            caption << " #{key} = '#{value[:bind_value]}' "
-        end
+            caption << " #{key} = '#{value}' "
     }
 
  gen_slickgrid(@locks, column_options, {

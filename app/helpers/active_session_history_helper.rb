@@ -79,6 +79,7 @@ module ActiveSessionHistoryHelper
       @groupfilter_values_hash["Object_Name"]           = {:sql => "o.Object_Name"}
       @groupfilter_values_hash["SubObject_Name"]        = {:sql => "o.SubObject_Name"}
       @groupfilter_values_hash["Current_Obj_No"]        = {:sql => "s.Current_Obj_No"}
+      @groupfilter_values_hash["User-ID"]               = {:sql => "s.User_ID"}
 
     end
 
@@ -126,5 +127,6 @@ module ActiveSessionHistoryHelper
       end
     }
   end # where_from_groupfilter
+
 
 end

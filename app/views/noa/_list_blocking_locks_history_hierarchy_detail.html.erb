@@ -20,12 +20,12 @@
   def link_single(rec)
     my_ajax_link_to("< #{rec.samples} >",
         url_for({:action       => "list_blocking_locks_history_single_record",
-                 :groupfilter  =>  {:SnapshotTS      => {:sql => "l.snapshotTS =TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Min_Zeitstempel => {:sql => "l.snapshotTS>=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Max_Zeitstempel => {:sql => "l.snapshotTS<=TO_DATE(?, '#{sql_datetime_second_mask}')", :bind_value => @snapshotts },
-                                    :Instance        => {:sql => "l.Instance_Number=?",                              :bind_value=>rec.instance_number },
-                                    :SID             => {:sql => "l.SID=?",                                          :bind_value=>rec.sid },
-                                    :SerialNo        => {:sql => "l.SerialNo=?",                                     :bind_value=>rec.serialno },
+                 :groupfilter  =>  {:SnapshotTS      => @snapshotts,
+                                    :Min_Zeitstempel => @snapshotts,
+                                    :Max_Zeitstempel => @snapshotts,
+                                    :Instance        => rec.instance_number,
+                                    :SID             => rec.sid,
+                                    :SerialNo        => rec.serialno,
                                    },
                  :update_area  => @update_area
                 }

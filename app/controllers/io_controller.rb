@@ -20,11 +20,11 @@ class IoController < ApplicationController
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
     groupfilter = {
-        :DBID                 => {:sql => "s.DBID = ?"           , :bind_value => @dbid},
-        :time_selection_end   => {:sql => "s.Begin_Interval_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_end},
-        :time_selection_start => {:sql => "s.End_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :bind_value => @time_selection_start},
+        "DBID"                 => @dbid,
+        "time_selection_end"   => @time_selection_end,
+        "time_selection_start" => @time_selection_start,
     }
-    groupfilter[:instance]    = {:sql => "s.Instance_Number = ?" , :bind_value => @instance} if @instance
+    groupfilter["Instance"]    = @instance if @instance
 
     params[:groupfilter] = groupfilter
     list_io_file_history_grouping
@@ -40,17 +40,22 @@ class IoController < ApplicationController
     @with_where_string    = ""
     @with_where_values    = []
 
-
-
     @groupfilter.each {|key,value|
-      if key == "time_selection_end" || key=="time_selection_start" || key=="DBID" || key=="instance"
-        @with_where_string << " AND #{value[:sql]}"
-        @with_where_values << value[:bind_value]
-      else
-        if value[:sql] != ""
-          @global_where_string << " AND #{value[:sql]}"
-          @global_where_values << value[:bind_value] if value[:bind_value] && value[:bind_value] != ''  # Wert nur binden wenn nicht im :sql auf NULL getestet wird
+      sql = io_file_key_rule(key)[:sql].clone
+      unless io_file_key_rule(key)[:already_bound]
+        if value && value != ''
+          sql << " = ?"
+        else
+          sql << " IS NULL"
         end
+      end
+
+      if key == "time_selection_end" || key=="time_selection_start" || key=="DBID" || key=="instance"
+        @with_where_string << " AND #{sql}"
+        @with_where_values << value
+      else
+        @global_where_string << " AND #{sql}"
+        @global_where_values << value if value && value != ''  # Wert nur binden wenn nicht im :sql auf NULL getestet wird
       end
     }
   end # where_from_groupfilter
@@ -210,7 +215,7 @@ class IoController < ApplicationController
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
     @groupfilter.each do |key, value|
-      @filter << "#{key}=\"#{value[:bind_value]}\", " unless value[:hide_filter]
+      @filter << "#{key}=\"#{value}\", "
     end
     diagram_caption = "Timeline for #{@data_column_name}, Filter: #{@filter}"
 
