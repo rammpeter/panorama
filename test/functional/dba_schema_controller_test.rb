@@ -5,7 +5,7 @@ class DbaSchemaControllerTest < ActionController::TestCase
   setup do
     set_session_test_db_context{}
     time_selection_end  = Time.new
-    time_selection_start  = time_selection_end-10000
+    time_selection_start  = time_selection_end-100000
     @time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
     @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
   end
@@ -35,13 +35,27 @@ class DbaSchemaControllerTest < ActionController::TestCase
   end
 
   test "list_audit_trail" do
-    get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+    get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none"
     assert_response :success;
+
     get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
-        :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo"
+        :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"none"
     assert_response :success;
-    get :list_audit_trail, :format=>:js, :sessionid=>12345
+
+    get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none"
     assert_response :success;
+
+    get :list_audit_trail, :format=>:js,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none"
+    assert_response :success;
+
+    get :list_audit_trail, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+        :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"MI", :top_x=>"5"
+    assert_response :success;
+
+    get :list_audit_trail, :format=>:js,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI"
+    assert_response :success;
+
   end
+
 
 end

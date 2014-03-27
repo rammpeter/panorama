@@ -436,7 +436,7 @@ class DbaSchemaController < ApplicationController
                      ORDER BY Timestamp
                     "].concat(where_values)
 
-      render_partial
+      render_partial :list_audit_trail
     end
   end
 
@@ -541,6 +541,6 @@ class DbaSchemaController < ApplicationController
       @actions.delete_at(@actions.count-1)
     end
 
-    render_partial
+    render_partial :list_audit_trail_grouping
   end
 end

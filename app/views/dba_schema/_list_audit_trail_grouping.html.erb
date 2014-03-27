@@ -61,7 +61,7 @@
 %>
 
 <%=
-    caption = 'Audit-Records '
+    caption = "Audit-Records per '#{@grouping}'"
     caption << " from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
     caption << " Session-ID=#{@sessionid}"      if @sessionid
     caption << " OS-User LIKE '#{@os_user}'"    if @os_user
