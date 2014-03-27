@@ -34,7 +34,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     case key
       when "User"         then 'Hugo'
       when "SQL-ID"       then '123456789'
-      when "Session-ID"   then '1'
+      when "Session/Sn."  then '1,2'
       when "Operation"    then 'FULL SCAN'
       when "Entry-PL/SQL" then 'Hugo'
       when "PL/SQL"       then 'Hugo'
