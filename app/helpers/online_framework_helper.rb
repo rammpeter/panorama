@@ -1,5 +1,10 @@
 # encoding: utf-8
 module OnlineFrameworkHelper
+
+  def msgType(id_ofmessagetype)
+    Ofmessagetype.get_cached_instance(id_ofmessagetype, session[:database].hash)
+  end
+
   # Anlage der Spalten, die in jeder Ansicht der Historie zu sehen sind
   def define_default_columns
 
@@ -13,6 +18,26 @@ module OnlineFrameworkHelper
 
     def elapsed_per_bulkgroup(rec)
       (rec.bulkgroups.to_i == 0) ? "?" : formattedNumber(rec.elapsedmilliseconds.to_i/1000.0/rec.bulkgroups.to_i, 2)
+    end
+
+    def SLA_title_warning(rec)
+      if rec['id_ofmessagetype']
+        if msgType(rec.id_ofmessagetype).waitlimitwarning
+          "Limit für Warnung = #{msgType(rec.id_ofmessagetype).waitlimitwarning} Minuten"
+        else
+          'Kein Limit für Warnung definiert für diesen Messagetyp'
+        end
+      end
+    end
+
+    def SLA_title_alert(rec)
+      if rec['id_ofmessagetype']
+        if msgType(rec.id_ofmessagetype).waitlimitalert
+          "Limit für Alert = #{msgType(rec.id_ofmessagetype).waitlimitalert} Minuten"
+        else
+          'Kein Limit für Alert definiert für diesen Messagetyp'
+        end
+      end
     end
 
     [
@@ -31,8 +56,8 @@ module OnlineFrameworkHelper
         {:caption=>"Bulk-Groups",       :data=>proc{|rec| formattedNumber(rec.bulkgroups)},      :title=>"Anzahl durch Worker verarbeitete Bulk-Groups",     :align=>'right'},
         {:caption=>"Msg. / Bulkgroup",  :data=>proc{|rec| msg_per_bulkgroup(rec)},               :title=>"Durchschn. Anzahl Messages je Bulkgroup",     :align=>'right'},
         {:caption=>"Elapsed / Bulkgroup",:data=>proc{|rec| link_column(rec, elapsed_per_bulkgroup(rec))},          :title=>"Verarbeitungszeit je Bulkgroup in Sekunden",     :align=>'right'},
-        {:caption=>"SLA Warnings",      :data=>proc{|rec| link_column(rec, fn(rec.sla_warnings))},                 :title=>"Anzahl Warnungen wegen Überschreiten der SLA-Zeiten zwischen Einstellen und Verarbeitung von Messages",     :align=>'right'},
-        {:caption=>"SLA Alerts",        :data=>proc{|rec| link_column(rec, fn(rec.sla_alerts))},                   :title=>"Anzahl Alerts wegen Überschreiten der SLA-Zeiten zwischen Einstellen und Verarbeitung von Messages",     :align=>'right'},
+        {:caption=>"SLA Warnings",      :data=>proc{|rec| link_column(rec, fn(rec.sla_warnings))},                 :title=>"Anzahl Warnungen wegen Überschreiten der SLA-Zeiten zwischen Einstellen und Verarbeitung von Messages", :data_title=>proc{|rec| "%t: #{SLA_title_warning(rec)}"},  :align=>'right'},
+        {:caption=>"SLA Alerts",        :data=>proc{|rec| link_column(rec, fn(rec.sla_alerts))},                   :title=>"Anzahl Alerts wegen Überschreiten der SLA-Zeiten zwischen Einstellen und Verarbeitung von Messages",    :data_title=>proc{|rec| "%t: #{SLA_title_alert(rec)}"},    :align=>'right'},
     ]
   end
 

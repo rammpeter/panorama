@@ -21,7 +21,7 @@ def link_error(rec, value)
 end
 
 def erroneous_data_style(rec)
-  "background-color:coral;" if rec.erroneous >= msgtyp(rec.id_ofmessagetype).messagecounterrorlimitalert
+  "background-color:coral;" if rec.erroneous >= msgType(rec.id_ofmessagetype).messagecounterrorlimitalert
 end
 
 def minctsnoerror_data_style(rec)
@@ -31,12 +31,8 @@ def minctsnoerror_data_style(rec)
   output
 end
 
-def msgtyp(id_ofmessagetype)
-  Ofmessagetype.get_cached_instance(id_ofmessagetype, session[:database].hash)
-end
-
 def msgtype_with_activity(rec)
-  "#{msgtyp(rec.id_ofmessagetype).yn_active=='N' ? '(' : ''}#{rec.id_ofmessagetype.to_i}#{msgtyp(rec.id_ofmessagetype).yn_active=='N' ? ')' : ''}"
+  "#{msgType(rec.id_ofmessagetype).yn_active=='N' ? '(' : ''}#{rec.id_ofmessagetype.to_i}#{msgType(rec.id_ofmessagetype).yn_active=='N' ? ')' : ''}"
 end
 
 id_data_title = 'YN_Active=#{msgtyp(rec.id_ofmessagetype).yn_active}, Domains=#{msgtyp(rec.id_ofmessagetype).domains}, Prio=#{msgtyp(rec.id_ofmessagetype).id_ofmessagepriority}, StandardBulkCount=#{msgtyp(rec.id_ofmessagetype).standardbulkcount}, MaxBulkGroupsInQueue=#{msgtyp(rec.id_ofmessagetype).maxbulkgroupsinqueue}'
@@ -44,8 +40,8 @@ id_data_title = 'YN_Active=#{msgtyp(rec.id_ofmessagetype).yn_active}, Domains=#{
 column_options =
   [
     {:caption=>"Typ",         :data=>proc{|rec| link_column(rec, msgtype_with_activity(rec))},              :title=>"ID des MessageTypes (ID_OFMessageType)", :data_title=>id_data_title, :align=>"right"},
-    {:caption=>"Name",        :data=>proc{|rec| link_column(rec, msgtyp(rec.id_ofmessagetype).name)},       :title=>"Beschreibung des Messagetypes", :data_title=>'#{msgtyp(rec.id_ofmessagetype).description}'},
-    {:caption=>"Domain",      :data=>proc{|rec| link_column(rec, msgtyp(rec.id_ofmessagetype).domain.name)},:title=>"Application-Server-Domäne"},
+    {:caption=>"Name",        :data=>proc{|rec| link_column(rec, msgType(rec.id_ofmessagetype).name)},       :title=>"Beschreibung des Messagetypes", :data_title=>'#{msgtyp(rec.id_ofmessagetype).description}'},
+    {:caption=>"Domain",      :data=>proc{|rec| link_column(rec, msgType(rec.id_ofmessagetype).domain.name)},:title=>"Application-Server-Domäne"},
   ]
   if @showApplExec
     column_options << {:caption=>"Application",       :data=>proc{|rec| link_column(rec, "#{rec.id_application}: #{rec.applname}")}, :title=>"Application / ID_ApplExecution", :data_title=>'ID_ApplExecution=#{rec.id_applexecution}'}
