@@ -13,8 +13,11 @@ module LicensingHelper
         {:sid=>"EKP2",      :host=>nil,         :port=>nil    },  # EKR Produktion
         {:sid=>"HAZADD",    :host=>nil,         :port=>"1524" },
         {:sid=>"HDL1",      :host=>nil,         :port=>"1522" },
+        {:sid=>"IMDB",      :host=>nil,         :port=>nil    },
         {:sid=>"MMDBPR1",   :host=>nil,         :port=>"1521" },
         {:sid=>"MMDBPR2",   :host=>nil,         :port=>"1521" },
+        {:sid=>'MS3GL1',    :host=>'3gldb01',   :port=>"1521" },
+        {:sid=>'MS3GL2',    :host=>'3gldb02',   :port=>"1521" },
         {:sid=>"NOADB1",    :host=>"noaa",      :port=>"1522" },
         {:sid=>"NOADB2",    :host=>"noab",      :port=>"1522" },
         {:sid=>"NOADB1",    :host=>"dm03db01",  :port=>"1521" },
@@ -25,6 +28,7 @@ module LicensingHelper
         {:sid=>"TRANSTOR",  :host=>nil,         :port=>"1521" },
         {:sid=>"TR1",       :host=>nil,         :port=>"1521" },
         {:sid=>"TR2",       :host=>nil,         :port=>"1521" },
+        {:sid=>"UDB",       :host=>nil,         :port=>nil    },
         {:sid=>"WSI01",     :host=>nil,         :port=>nil    },
     ]
   end
