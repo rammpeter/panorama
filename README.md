@@ -13,4 +13,5 @@ Preconditions for Server machine:
 - Java runtime environment Java 6 or 7
 - Installed Java Cryptography Extension (JCE).<br>
 If JCE is not installed you will get this error:<br>
-Illegal key size: possibly you need to install Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for your JRE
+Illegal key size: possibly you need to install Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for your JRE<br>
+JCE is available under http://www.oracle.com/technetwork/java/javase/downloads/index.html
