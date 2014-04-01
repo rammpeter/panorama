@@ -240,7 +240,9 @@ public
 
 private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
+  MAX_CONNECTIONS_IN_COOKIE = 5                                                 # Bei groesseren Werten läuft max. Request-Größe über, Error 312 des Web-Servers
   def write_connection_to_cookie database
+
 
     cookies_last_logins = read_last_login_cookies
     min_id = nil
@@ -250,7 +252,7 @@ private
       min_id = value[:id].to_i if  min_id.nil? || value[:id].to_i < min_id     # Kleinste ID finden
     end
     if params[:saveLogin] == "1"
-      if cookies_last_logins.length > 10                                        # Max. Anzahl Connections in Auswahl-Liste überschritten?
+      if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                      # Max. Anzahl Connections in Auswahl-Liste überschritten?
         cookies_last_logins.each do |value|
           cookies_last_logins.delete(value) if value[:id].to_i == min_id             # Löschen der ältesten Eintragung
         end

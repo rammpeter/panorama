@@ -71,7 +71,7 @@ module ActiveSessionHistoryHelper
       @groupfilter_values_hash["Plan-Line-ID"]          = {:sql => "s.SQL_Plan_Line_ID" }
       @groupfilter_values_hash["Plan-Hash-Value"]       = {:sql => "s.SQL_Plan_Hash_Value"}
       @groupfilter_values_hash["Session-ID"]            = {:sql => "s.Session_ID"}
-      @groupfilter_values_hash["SerialNo"]              = {:sql => "s.Session_Serial_No"},
+      @groupfilter_values_hash["SerialNo"]              = {:sql => "s.Session_Serial_No"}
       @groupfilter_values_hash["time_selection_start"]  = {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
       @groupfilter_values_hash["time_selection_end"]    = {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
       @groupfilter_values_hash["Idle_Wait1"]            = {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
