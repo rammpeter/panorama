@@ -2,7 +2,7 @@ Panorama
 ========
 
 Web-tool for monitoring performance issues of Oracle databases.
-Provides easy access to several internal information. 
+Provides easy access to several internal information.<br>
 Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
 RubyOnRails-Application:
