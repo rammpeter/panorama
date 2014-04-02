@@ -3,6 +3,7 @@ Panorama
 
 Web-tool for monitoring performance issues of Oracle databases.
 Provides easy access to several internal information. 
+Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
 RubyOnRails-Application:
 - immmediately startable as Java war-File with built-in Jetty application Server. ( java -jar Panorama.war )
