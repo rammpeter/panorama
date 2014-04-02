@@ -278,6 +278,13 @@
   dragnet_helper_56_param2_name:                            Minimum totale Laufzeit des SQL (Sek.)
   dragnet_helper_56_param2_desc:                            Minimum der Summe der totalen Laufzeit des SQL in SGA in Sekunden
 
+  dragnet_helper_57_desc: |-
+    Bei großer Anzahl Child-Cursoren eines Statements (> 500) steigt das Risiko von latch waits und kritischer CPU-Last bei Parsen und Ausführung von SQL
+    Die folgenden Zähler für Gründe zeigen warum beim Parsen neue Child-Cursoren erzeugt wurden
+  dragnet_helper_57_name:                                   Kritische Anzahl von Child-Cursoren einer SQL-ID
+  dragnet_helper_57_param1_name:                            Min. Anzahl Childs je SQL-ID
+  dragnet_helper_57_param1_desc:                            Minimale Anzahl Child-Cursoren je SQL-ID für Anzeige
+
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
   dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks

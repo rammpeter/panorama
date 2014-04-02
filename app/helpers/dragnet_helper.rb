@@ -2005,6 +2005,25 @@ Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr 
              rec['column_expression'].match(/['0123456789]/)
         },
       },
+      {
+          :name  => t(:dragnet_helper_57_name, :default => 'Critical amount of child cursors per SQL-ID'),
+          :desc  => t(:dragnet_helper_57_desc, :default=>'Large amount of child cursors per SQL-ID (> 500) show risk of latch waits and heavy CPU-usage for parse and execute.
+Following counter columns show reasons why parsing SQL results in new child cursor.'),
+          :sql=>   "SELECT /* Panorama-Tool Ramm  */
+                         Inst_ID, SQL_ID, COUNT(*) Child_Count
+                        #{result = '';
+                          recs = sql_select_all("SELECT Column_Name FROM All_Tab_Columns WHERE Table_Name = 'V_$SQL_SHARED_CURSOR' AND Data_Type = 'VARCHAR2' AND Data_Length = 1 ORDER BY Column_ID");
+                          recs.each do |rec|
+                            result << ", SUM(DECODE(#{rec.column_name}, 'Y', 1, 0)) #{rec.column_name}\n"
+                          end
+                          result
+                         }
+                    FROM   gv$SQL_Shared_Cursor
+                    GROUP BY Inst_ID, SQL_ID
+                    HAVING COUNT(*) > ?
+                    ORDER BY COUNT(*) DESC",
+          :parameter=>[{:name=> t(:dragnet_helper_57_param1_name, :default => 'Min. number of childs per SQL-ID'), :size=>8, :default=>5, :title=> t(:dragnet_helper_57_param1_desc, :default => 'Minimum number of child cursors per SQL-ID for display')}]
+      },
     ]
   end
 
@@ -2329,7 +2348,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
     ]
   end
 
-
+  @@dragnet_sqls = []
   public
   def dragnet_sqls
 
@@ -2337,18 +2356,19 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
       sqls.each do |s|
         s[:group] = groupname
       end
-      @result.concat sqls
+      @@dragnet_sqls.concat sqls
     end
 
-    @result = []
-    add_group(sqls_potential_db_structures, t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'))
-    add_group(sqls_wrong_execution_plan,    t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'))
-    add_group(dragnet_sqls_tuning_sga_pga,  t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'))
-    add_group(sqls_cursor_redundancies,     t(:dragnet_helper_group_cursor_redundancies,      :default=> 'Redundant cursors / usage of bind variables'))
-    add_group(dragnet_sqls_logwriter_redo,  t(:dragnet_helper_group_logwriter_redo,           :default=> 'Logwriter load / redo impact'))
-    add_group(sqls_conclusion_application,  t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'))
+    if @@dragnet_sqls.length == 0
+      add_group(sqls_potential_db_structures, t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'))
+      add_group(sqls_wrong_execution_plan,    t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'))
+      add_group(dragnet_sqls_tuning_sga_pga,  t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'))
+      add_group(sqls_cursor_redundancies,     t(:dragnet_helper_group_cursor_redundancies,      :default=> 'Redundant cursors / usage of bind variables'))
+      add_group(dragnet_sqls_logwriter_redo,  t(:dragnet_helper_group_logwriter_redo,           :default=> 'Logwriter load / redo impact'))
+      add_group(sqls_conclusion_application,  t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'))
+    end
 
-    @result
+    @@dragnet_sqls
   end
 
 end
