@@ -86,7 +86,8 @@ module MenuHelper
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_io_caption, :default=> 'I/O analysis'), :content=>[
-            {:class=> 'item', :caption=>t(:menu_io_ash_caption, :default=> 'I/O history from ASH'),         :controller=> 'io',             :action=> 'show_io_ash_history',  :hint=>t(:menu_io_ash_hint, :default=> 'I/O history based on active session history')   },
+            {:class=> 'item', :caption=>t(:menu_io_iostat_detail_caption, :default=> 'I/O-Stat detail history'),         :controller=> 'io',             :action=> 'show_iostat_detail_history',  :hint=>t(:menu_io_iostat_detail_hint, :default=> 'I/O history based on DBA_Hist_IOStat_Detail') , :min_db_version => '11.1'  },
+            {:class=> 'item', :caption=>t(:menu_io_iostat_filetype_caption, :default=> 'I/O-Stat filetype history'),         :controller=> 'io',             :action=> 'show_iostat_filetype_history',  :hint=>t(:menu_io_iostat_filetype_hint, :default=> 'I/O history based on DBA_Hist_IOStat_FileType') , :min_db_version => '11.1'  },
             {:class=> 'item', :caption=>t(:menu_io_file_caption, :default=> 'I/O history by files'),        :controller=> 'io',             :action=> 'show_io_file_history',  :hint=>t(:menu_io_file_hint, :default=> 'I/O history by files based on DBA_Hist_FileStatxs')   },
             ]
         },

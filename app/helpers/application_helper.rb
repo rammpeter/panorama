@@ -185,6 +185,13 @@ module ApplicationHelper
 
   alias fn formattedNumber
 
+  # Sichere Division / 0 absichern
+  def secure_div(divident, divisor)
+    return nil if divisor == 0
+    divident.to_f/divisor
+  end
+
+
   # locale-spezifische Ersetzungen
   def sql_datetime_minute_mask
     session[:database].translate_sql_datetime_minute_mask

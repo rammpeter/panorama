@@ -21,14 +21,10 @@ class IoControllerTest < ActionController::TestCase
 
   end
 
-  test "list_io_ash_history" do
-    post :list_io_ash_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :instance =>1
-    assert_response :success
-  end
-
+  ################### io_file ######################
   test "list_io_file_history" do
     def do_test(groupby)
-      post :list_io_file_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :instance =>1, :groupby=>groupby
+      post :list_io_file_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
       assert_response :success
     end
 
@@ -52,11 +48,72 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_io_file_history_samples" do
     def do_test(groupby)
-      post :list_io_file_history_samples, :format=>:js, :groupfilter=>@groupfilter,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      post :list_io_file_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
       assert_response :success
     end
 
     io_file_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_io_file_history_timeline" do
+    def do_test(groupby)
+      post :list_io_file_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      assert_response :success
+    end
+
+    io_file_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  #################### iostat_detail #######################
+  test "list_iostat_detail_history" do
+    def do_test(groupby)
+      post :list_iostat_detail_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
+      assert_response :success
+    end
+
+    iostat_detail_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_detail_history_grouping" do
+    def do_test(groupby)
+      post :list_iostat_detail_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
+      assert_response :success
+    end
+
+    iostat_detail_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_detail_history_samples" do
+    def do_test(groupby)
+      post :list_iostat_detail_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      assert_response :success
+    end
+
+    iostat_detail_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_detail_history_timeline" do
+    def do_test(groupby)
+      post :list_iostat_detail_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      assert_response :success
+    end
+
+    iostat_detail_key_rules.each do |key, value|
       do_test key
     end
 

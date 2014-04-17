@@ -281,6 +281,7 @@
   dragnet_helper_57_desc: |-
     Bei großer Anzahl Child-Cursoren eines Statements (> 500) steigt das Risiko von latch waits und kritischer CPU-Last bei Parsen und Ausführung von SQL
     Die folgenden Zähler für Gründe zeigen warum beim Parsen neue Child-Cursoren erzeugt wurden
+    Dokumentation ist hier verfügbar: http://docs.oracle.com/cd/E16655_01/server.121/e17615/refrn30254.htm#REFRN30254
   dragnet_helper_57_name:                                   Kritische Anzahl von Child-Cursoren einer SQL-ID
   dragnet_helper_57_param1_name:                            Min. Anzahl Childs je SQL-ID
   dragnet_helper_57_param1_desc:                            Minimale Anzahl Child-Cursoren je SQL-ID für Anzeige
@@ -350,8 +351,10 @@
 
   menu_historic_caption:                                    Historisch
 
-  menu_io_ash_caption:                                      I/O-Historie aus ASH
-  menu_io_ash_hint:                                         I/O-Historie basierend auf Active Session History
+  menu_io_iostat_detail_caption:                            I/O-Stat Detail Historie
+  menu_io_iostat_detail_hint:                               I/O-Historie basierend auf DBA_Hist_IOStat_Detail
+  menu_io_iostat_filetype_caption:                          I/O-Stat FileType Historie
+  menu_io_iostat_filetype_hint:                             I/O-Historie basierend auf DBA_Hist_IOStat_FileType
   menu_io_caption:                                          I/O-Analyse
   menu_io_file_caption:                                     I/O Historie nach Files
   menu_io_file_hint:                                        I/O Historie nach Files aus DBA_Hist_FileStatxs

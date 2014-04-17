@@ -33,11 +33,6 @@ module IoHelper
   # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
   def io_file_values_column_options
 
-    def secure_div(divident, divisor)
-      return nil if divisor == 0
-      divident.to_f/divisor
-    end
-
     unless @io_file_values_column_options
 
       @io_file_values_column_options = [
@@ -60,6 +55,65 @@ module IoHelper
     end
     @io_file_values_column_options
   end
+
+  ##########################
+  def iostat_detail_key_rules
+    # Regelwerk zur Verwendung der jeweiligen Gruppierungen und Verdichtungskriterien
+    unless @iostat_detail_key_rules_hash
+      @iostat_detail_key_rules_hash = {}
+      @iostat_detail_key_rules_hash["Instance"]       = {:sql => "f.Instance_Number", :sql_alias => "instance_number",    :Name => 'Inst.',           :Title => 'RAC-Instance' }
+      @iostat_detail_key_rules_hash["Function-Name"]  = {:sql => "f.Function_Name",   :sql_alias => "function_name",      :Name => 'Function-Name',   :Title => 'Name of function' }
+      @iostat_detail_key_rules_hash["Filetype-Name"]  = {:sql => "f.Filetype_Name",   :sql_alias => "filetype_name",      :Name => 'Filetype-Name',   :Title => 'Name of file type' }
+    end
+    @iostat_detail_key_rules_hash
+  end
+
+  def iostat_detail_key_rule(key)
+    retval = iostat_detail_key_rules[key]
+    unless retval
+      retval = {
+          "DBID"                 => {:sql => "s.DBID", :hide_content => true},
+          "time_selection_end"   => {:sql => "s.Begin_Interval_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"  , :already_bound => true},   # SQL muss nicht mehr um =? erweitert werden
+          "time_selection_start" => {:sql => "s.End_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"    , :already_bound => true},
+      }[key]
+    end
+
+
+    raise "iostat_detail_key_rule: unknown key '#{key}'" unless retval
+    retval
+  end
+
+  # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
+  def iostat_detail_values_column_options
+
+    def secure_div(divident, divisor)
+      return nil if divisor == 0
+      divident.to_f/divisor
+    end
+
+    unless @iostat_detail_values_column_options
+
+      @iostat_detail_values_column_options = [
+          {:caption=>"Small read (MB/sec.)",      :data=>proc{|rec| fn(secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs),2)},    :title=>"Number of single block MB read per second",             :raw_data=>proc{|rec| secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs)},      :data_title=>proc{|rec| "%t, #{fn(rec.small_read_megabytes,2)} MB read"}},
+          {:caption=>"Small write (MB/sec.)",     :data=>proc{|rec| fn(secure_div(rec.small_write_megabytes, rec.sample_dauer_secs),2)},    :title=>"Number of single block MB written per second",          :raw_data=>proc{|rec| secure_div(rec.small_write_megabytes, rec.sample_dauer_secs)},     :data_title=>proc{|rec| "%t, #{fn(rec.small_write_megabytes,2)} MB written"}},
+          {:caption=>"Large read (MB/sec.)",      :data=>proc{|rec| fn(secure_div(rec.large_read_megabytes,  rec.sample_dauer_secs),2)},    :title=>"Number of multiblock MB read per second",               :raw_data=>proc{|rec| secure_div(rec.large_read_megabytes,  rec.sample_dauer_secs)},      :data_title=>proc{|rec| "%t, #{fn(rec.large_read_megabytes,2)} MB read"}},
+          {:caption=>"Large write (MB/sec.)",     :data=>proc{|rec| fn(secure_div(rec.large_write_megabytes, rec.sample_dauer_secs),2)},    :title=>"Number of multiblock MB written per second",            :raw_data=>proc{|rec| secure_div(rec.large_write_megabytes, rec.sample_dauer_secs)},     :data_title=>proc{|rec| "%t, #{fn(rec.large_write_megabytes,2)} MB written"}},
+          {:caption=>"Small read requests/sec.",  :data=>proc{|rec| fn(secure_div(rec.small_read_reqs,       rec.sample_dauer_secs))},      :title=>"Number of single block read requests per second",       :raw_data=>proc{|rec| secure_div(rec.small_read_reqs,       rec.sample_dauer_secs)},           :data_title=>proc{|rec| "%t, #{fn(rec.small_read_reqs)} requests"}},
+          {:caption=>"Small write requests/sec.", :data=>proc{|rec| fn(secure_div(rec.small_write_reqs,      rec.sample_dauer_secs))},      :title=>"Number of single block write requests per second",      :raw_data=>proc{|rec| secure_div(rec.small_write_reqs,      rec.sample_dauer_secs)},          :data_title=>proc{|rec| "%t, #{fn(rec.small_write_reqs)} requests"}},
+          {:caption=>"Large read requests/sec.",  :data=>proc{|rec| fn(secure_div(rec.large_read_reqs,       rec.sample_dauer_secs))},      :title=>"Number of multiblock read requests per second",         :raw_data=>proc{|rec| secure_div(rec.large_read_reqs,       rec.sample_dauer_secs)},           :data_title=>proc{|rec| "%t, #{fn(rec.large_read_reqs)} requests"}},
+          {:caption=>"Large write requests/sec.", :data=>proc{|rec| fn(secure_div(rec.large_write_reqs,      rec.sample_dauer_secs))},      :title=>"Number of multiblock write requests per second",        :raw_data=>proc{|rec| secure_div(rec.large_write_reqs,      rec.sample_dauer_secs)},          :data_title=>proc{|rec| "%t, #{fn(rec.large_write_reqs)} requests"}},
+          {:caption=>"Wait events/sec.",          :data=>proc{|rec| fn(secure_div(rec.number_of_waits,       rec.sample_dauer_secs))},      :title=>"Number of I/O wait events per second",                  :raw_data=>proc{|rec| secure_div(rec.number_of_waits,       rec.sample_dauer_secs)},           :data_title=>proc{|rec| "%t, #{fn(rec.number_of_waits)} wait events occured"}},
+          {:caption=>"Waiting sessions (Load)",   :data=>proc{|rec| fn(secure_div(rec.wait_time.to_f/1000,   rec.sample_dauer_secs),2)},    :title=>"Average number of waiting sessions",                    :raw_data=>proc{|rec| secure_div(rec.wait_time.to_f/1000,   rec.sample_dauer_secs)},       :data_title=>proc{|rec| "%t, #{fn(rec.wait_time.to_f/1000)} seconds waited in total"}},
+      ]
+      @iostat_detail_values_column_options.each do |c|        # Defaults bestücken
+        c[:align] = :right
+        c[:group_operation] = "SUM" unless c[:group_operation]
+      end
+    end
+    @iostat_detail_values_column_options
+  end
+
+
 
 end
 

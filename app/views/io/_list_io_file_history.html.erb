@@ -57,6 +57,7 @@
    @header = "#{t :active_session_history_list_session_statistic_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
    @repeat_controller = :io
    @repeat_action = :list_io_file_history_grouping
+   @key_rule_proc = proc{|key| io_file_key_rule(key)}
 %>
 <%= render :partial => 'list_groupfilter' %>
 
@@ -72,7 +73,8 @@
                                      :label   => t(:list_io_file_history_timeline ,     :default=>"Show values in time line diagram (Top 20)"),
                                      :hint    => t(:list_io_file_history_timeline_hint, :default=>"Show values time line, each point in graph for one snapshot sample"),
                                      :ui_icon => "ui-icon-image",
-                                     :action  => "$('#list_io_file_history_#{session[:request_counter]}hidden_link_data_column_name').val(last_slickgrid_contexmenu_col_header.text());  ; $('#list_io_file_history_#{session[:request_counter]}hidden_link_timeline').click();"
+                                     # Setze den Spaltenheader der angeklickten Spalte in text_field eines Formulares und sende dieses
+                                     :action  => "$('#list_io_file_history_#{session[:request_counter]}hidden_link_data_column_name').val($(t).data('slickgridextended').last_slickgrid_contexmenu_col_header.text()); $('#list_io_file_history_#{session[:request_counter]}hidden_link_timeline').click();"
                            }]
                  }
                 )

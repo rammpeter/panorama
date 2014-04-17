@@ -2008,7 +2008,8 @@ Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr 
       {
           :name  => t(:dragnet_helper_57_name, :default => 'Critical amount of child cursors per SQL-ID'),
           :desc  => t(:dragnet_helper_57_desc, :default=>'Large amount of child cursors per SQL-ID (> 500) show risk of latch waits and heavy CPU-usage for parse and execute.
-Following counter columns show reasons why parsing SQL results in new child cursor.'),
+Following counter columns show reasons why parsing SQL results in new child cursor.
+Documentation is available here: http://docs.oracle.com/cd/E16655_01/server.121/e17615/refrn30254.htm#REFRN30254'),
           :sql=>   "SELECT /* Panorama-Tool Ramm  */
                          Inst_ID, SQL_ID, COUNT(*) Child_Count
                         #{result = '';

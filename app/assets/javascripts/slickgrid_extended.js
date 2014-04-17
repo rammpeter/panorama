@@ -48,6 +48,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     var data_view                       = null;
     var columnFilters                   = {};                                   // aktuelle Filter-Kriterien der Daten
     var force_height_calculation        = false;                                // true aktiviert Neuberechnung der Grid-Höhe
+    var last_slickgrid_contexmenu_col_header    = null;                         // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
+    var last_slickgrid_contexmenu_column_name   = '';                           // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
+    var last_slickgrid_contexmenu_field_content = '';                           // globale Variable mit Inhalt des Feldes auf dem Context-Menu aufgerufen wurde
 
     this.gridContainer = jQuery('#'+container_id);                              // Puffern des jQuery-Objektes
     this.gridContainer.addClass('slickgrid_top');                               // css-Klasse setzen zur Wiedererkennung
@@ -542,10 +545,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         trace_log("end calculate_current_grid_column_widths "+caller);
     }
 
-
-    var last_slickgrid_contexmenu_col_header=null;                                  // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
-    var last_slickgrid_contexmenu_column_name='';                                   // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
-    var last_slickgrid_contexmenu_field_content='';                                 // globale Variable mit Inhalt des Feldes auf dem Context-Menu aufgerufen wurde
     /**
      * Aufbau context-Menu für slickgrid, Parameter: DOM-ID, Array mit Entry-Hashes
      * @param table_id
@@ -569,17 +568,17 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         }
 
-        menu_entry("sort_column",       "ui-icon ui-icon-carat-2-n-s",      function(t){ last_slickgrid_contexmenu_col_header.click();} );                  // Menu-Eintrag Sortieren
+        menu_entry("sort_column",       "ui-icon ui-icon-carat-2-n-s",      function(t){ thiz.last_slickgrid_contexmenu_col_header.click();} );                  // Menu-Eintrag Sortieren
         menu_entry("search_filter",     "ui-icon ui-icon-zoomin",           function(t){ switch_slickgrid_filter_row();} );                                 // Menu-Eintrag Filter einblenden / verstecken
         menu_entry("export_csv",        "ui-icon ui-icon-document",         function(t){ grid2CSV(table_id);} );                                            // Menu-Eintrag Export CSV
-        menu_entry("column_sum",        "ui-icon ui-icon-document",         function(t){ show_column_stats(last_slickgrid_contexmenu_column_name);} );      // Menu-Eintrag Spaltensumme
-        menu_entry("field_content",     "ui-icon ui-icon-arrow-4-diag",     function(t){ show_full_cell_content(last_slickgrid_contexmenu_field_content);} ); // Menu-Eintrag Feld-Inhalt
+        menu_entry("column_sum",        "ui-icon ui-icon-document",         function(t){ show_column_stats(thiz.last_slickgrid_contexmenu_column_name);} );      // Menu-Eintrag Spaltensumme
+        menu_entry("field_content",     "ui-icon ui-icon-arrow-4-diag",     function(t){ show_full_cell_content(thiz.last_slickgrid_contexmenu_field_content);} ); // Menu-Eintrag Feld-Inhalt
         menu_entry("line_height_single","ui-icon ui-icon-arrow-2-n-s",      function(t){ options['line_height_single'] = !options['line_height_single']; thiz.calculate_current_grid_column_widths("context menu line_height_single");} );
 
 
         if (options['plotting']){
             // Menu-Eintrag Spalte in Diagramm
-            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
+            menu_entry("plot_column",     "ui-icon ui-icon-image",     function(t){ plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], thiz.last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
             // Menu-Eintrag Alle entfernen aus Diagramm
             menu_entry("remove_all_from_diagram", "ui-icon ui-icon-trash",         function(t){
                     var columns = thiz.grid.getColumns();
@@ -613,14 +612,14 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             onContextMenu : function(event, menu)                                   // dynamisches Anpassen des Context-Menü
             {
                 var cell = $(event.target);
-                last_slickgrid_contexmenu_col_header = null;                        // Initialisierung, um nachfolgend Treffer zu testen
+                thiz.last_slickgrid_contexmenu_col_header = null;                        // Initialisierung, um nachfolgend Treffer zu testen
 
                 if (cell.parents(".slickgrid_header_"+table_id).length > 0){        // Mouse-Event fand in Unterstruktur des Spalten-Headers statt
                     cell = cell.parents(".slickgrid_header_"+table_id);             // Zeiger auf Spaltenheader stellen
                 }
                 if (cell.hasClass("slickgrid_header_"+table_id)){                   // Mouse-Event fand direkt im Spalten-Header oder innerhalb statt
-                    last_slickgrid_contexmenu_col_header = cell;
-                    last_slickgrid_contexmenu_column_name = cell.data('column')['field']
+                    thiz.last_slickgrid_contexmenu_col_header = cell;
+                    thiz.last_slickgrid_contexmenu_column_name = cell.data('column')['field']
                 }
                 if (cell.parents(".slick-cell").length > 0){                        // Mouse-Event fand in Unterstruktur der Zelle statt
                     cell = cell.parents(".slick-cell");                             // Zeiger auf äußerstes DIV der Zelle stellen
@@ -628,15 +627,15 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 if (cell.hasClass("slick-cell")){                                   // Mouse-Event fand in äußerstem DIV der Zelle oder innerhalb statt
                     var slick_header = thiz.gridContainer.find('.slick-header-columns');
                     cell = cell.find(".slick-inner-cell");                          // Inneren DIV mit Spalten-Info suchen
-                    last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');  // merken der Header-Spalte des mouse-Events;
-                    last_slickgrid_contexmenu_column_name = cell.attr('column');
-                    last_slickgrid_contexmenu_field_content = cell.text();
+                    thiz.last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');  // merken der Header-Spalte des mouse-Events;
+                    thiz.last_slickgrid_contexmenu_column_name = cell.attr('column');
+                    thiz.last_slickgrid_contexmenu_field_content = cell.text();
                 }
 
-                if (last_slickgrid_contexmenu_col_header) {                         // konkrete Spalte ist bekannt
-                    var column = thiz.grid.getColumns()[thiz.grid.getColumnIndex(last_slickgrid_contexmenu_column_name)];
+                if (thiz.last_slickgrid_contexmenu_col_header) {                         // konkrete Spalte ist bekannt
+                    var column = thiz.grid.getColumns()[thiz.grid.getColumnIndex(thiz.last_slickgrid_contexmenu_column_name)];
                     jQuery('#header_'+context_menu_id)
-                        .html('Column: <b>'+last_slickgrid_contexmenu_col_header.html()+'</b>')
+                        .html('Column: <b>'+thiz.last_slickgrid_contexmenu_col_header.html()+'</b>')
                         .css('background-color','lightgray');
 
                     jQuery("#"+context_menu_id+"_plot_column_label").html(locale_translate(column['plottable'] ? "slickgrid_context_menu_switch_col_from_diagram" : "slickgrid_context_menu_switch_col_into_diagram"));

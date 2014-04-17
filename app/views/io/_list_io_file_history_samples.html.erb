@@ -2,6 +2,7 @@
    @header = "Sample-Records. Filter: "
    @repeat_controller = :io
    @repeat_action = :list_io_file_history_samples
+   @key_rule_proc = proc{|key| io_file_key_rule(key)}
 %>
 
 <%= render :partial => 'list_groupfilter' %>
@@ -10,7 +11,6 @@
 column_options =
   [
     {:caption=>"Sample-Time",           :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sample interval, rounded on minute", :plot_master_time=>true},
-    {:caption=>"I",                     :data=>proc{|rec| rec.instance_number},  :title=>"RAC-instance (or number of instances if more than one)"},
   ]
 column_options.concat io_file_values_column_options         # Feldliste der numerischen Werte zur Mehrfachverwendung in diversen Views
 
