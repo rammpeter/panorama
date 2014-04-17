@@ -1,0 +1,30 @@
+<%= my_ajax_form_tag url_for(:controller=> :io, :action => :list_iostat_filetype_history, :update_area => :list_iostat_filetype_history_area) do %>
+    <div>
+      <b>I/O History from DBA_Hist_IOStat_Filetype</b>
+    </div>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="float_left">
+      Instance
+      <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+    </div>
+    <div class="float_left">
+      <%= t(:grouping, :default=>"Grouped by") %>
+    </div>
+    <div class="float_left">
+      <select name="groupby">
+        <% iostat_filetype_key_rules.each do |key, value| %>
+            <%=  "<option value='#{key}' #{"selected='selected'" if key=="Instance"}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="float_left">
+      <%= submit_tag("Show I/O history", :title => "Show I/O history") %>
+    </div>
+<% end %>
+
+<div id="list_iostat_filetype_history_area" style="float:left; width:100%; ">
+</div>
+

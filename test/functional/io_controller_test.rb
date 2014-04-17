@@ -119,5 +119,54 @@ class IoControllerTest < ActionController::TestCase
 
   end
 
+  #################### iostat_filetype #######################
+  test "list_iostat_filetype_history" do
+    def do_test(groupby)
+      post :list_iostat_filetype_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
+      assert_response :success
+    end
+
+    iostat_filetype_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_filetype_history_grouping" do
+    def do_test(groupby)
+      post :list_iostat_filetype_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
+      assert_response :success
+    end
+
+    iostat_filetype_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_filetype_history_samples" do
+    def do_test(groupby)
+      post :list_iostat_filetype_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      assert_response :success
+    end
+
+    iostat_filetype_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
+  test "list_iostat_filetype_history_timeline" do
+    def do_test(groupby)
+      post :list_iostat_filetype_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+      assert_response :success
+    end
+
+    iostat_filetype_key_rules.each do |key, value|
+      do_test key
+    end
+
+  end
+
 
 end

@@ -15,7 +15,7 @@
     <div class="float_left">
       <select name="groupby">
         <% iostat_detail_key_rules.each do |key, value| %>
-            <%=  "<option value='#{key}' #{"selected='selected'" if key=="Tablespace"}>#{key}</option>".html_safe %>
+            <%=  "<option value='#{key}' #{"selected='selected'" if key=="Instance"}>#{key}</option>".html_safe %>
         <% end %>
       </select>
     </div>

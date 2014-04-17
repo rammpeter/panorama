@@ -420,5 +420,203 @@ class IoController < ApplicationController
 
   end
 
+  ############################################ iostat_filetype ###########################################################
+
+  # Einstieg in Historie
+  def list_iostat_filetype_history
+    @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
+    @groupby    = params[:groupby]
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+
+    groupfilter = {
+        "DBID"                 => @dbid,
+        "time_selection_end"   => @time_selection_end,
+        "time_selection_start" => @time_selection_start,
+    }
+    groupfilter["Instance"]    = @instance if @instance
+
+    params[:groupfilter] = groupfilter
+    list_iostat_filetype_history_grouping
+  end
+
+  private
+
+  # Liste der Spalten für Selektion in Result-Set (aeusseres SELECT)
+  def iostat_filetype_history_external_column_list
+    "SUM(f.Small_Read_Megabytes)          Small_Read_Megabytes,
+     SUM(f.Small_Write_Megabytes)         Small_Write_Megabytes,
+     SUM(f.Large_Read_Megabytes)          Large_Read_Megabytes,
+     SUM(f.Large_Write_Megabytes)         Large_Write_Megabytes,
+     SUM(f.Small_Read_Reqs)               Small_Read_Reqs,
+     SUM(f.Small_Write_Reqs)              Small_Write_Reqs,
+     SUM(f.Small_Sync_Read_Reqs)          Small_Sync_Read_Reqs,
+     SUM(f.Large_Read_Reqs)               Large_Read_Reqs,
+     SUM(f.Large_Write_Reqs)              Large_Write_Reqs,
+     SUM(Small_Read_ServiceTime)          Small_Read_ServiceTime,
+     SUM(Small_Write_ServiceTime)         Small_Write_ServiceTime,
+     SUM(Small_Sync_Read_Latency)         Small_Sync_Read_Latency,
+     SUM(Large_Read_ServiceTime)          Large_Read_ServiceTime,
+     SUM(Large_Write_ServiceTime)         Large_Write_ServiceTime,
+     SUM(Retries_On_Error)                Retries_On_Error
+    "
+  end
+
+  def iostat_filetype_history_internal_sql_select
+    result = "SELECT s.*, f.FileType_Name,
+             "
+
+    def iostat_filetype_history_internal_sql_select_column(column)
+      "#{column} - LAG(#{column}, 1, #{column}) OVER (PARTITION BY f.DBID, f.Instance_Number, f.FileType_ID ORDER BY f.Snap_ID) #{column},\n"
+    end
+
+    result << iostat_filetype_history_internal_sql_select_column('Small_Read_Megabytes');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Write_Megabytes');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Read_Megabytes');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Write_Megabytes');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Read_Reqs');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Write_Reqs');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Sync_Read_Reqs');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Read_Reqs');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Write_Reqs');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Read_ServiceTime');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Write_ServiceTime');
+    result << iostat_filetype_history_internal_sql_select_column('Small_Sync_Read_Latency');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Read_ServiceTime');
+    result << iostat_filetype_history_internal_sql_select_column('Large_Write_ServiceTime');
+    result << iostat_filetype_history_internal_sql_select_column('Retries_On_Error');
+
+    result << "MIN(f.Snap_ID) KEEP (DENSE_RANK FIRST ORDER BY f.Snap_ID) OVER (PARTITION BY f.Instance_Number) First_Snap_ID /* Erster Treffer zu verwerfen wegen LAG */
+     FROM   Snaps s
+     JOIN   DBA_Hist_IOStat_FileType f ON f.DBID=s.DBID AND f.Instance_Number = s.Instance_Number AND f.Snap_ID=s.Snap_ID
+    "
+    result
+  end
+
+  def include_iostat_filetype_history_default_select_list
+    retval = ""
+    iostat_filetype_key_rules.each do |key, value|
+      retval << ",\nCASE WHEN COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) = 1 THEN TO_CHAR(MIN(#{value[:sql]})) ELSE '< ' || COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) ||' >' END #{value[:sql_alias]}"
+    end
+    retval
+  end
+
+  public
+
+  def list_iostat_filetype_history_grouping
+
+    where_from_groupfilter(params[:groupfilter], params[:groupby], proc{|key| iostat_filetype_key_rule(key)})
+
+    @ios = sql_select_all ["\
+      WITH Snaps AS (SELECT /*+ NO_MERGE */
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
+                     FROM   DBA_Hist_Snapshot s
+                     WHERE  1=1 #{@with_where_string}
+                    )
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             #{iostat_filetype_key_rule(@groupby)[:sql]}           Group_Value,
+             MIN(f.Begin_Interval_Time)                    First_Occurrence,
+             MAX(f.End_Interval_Time)                      Last_Occurrence,
+             #{timestamp_diff_secs('MAX(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs
+             #{include_iostat_filetype_history_default_select_list},
+             COUNT(DISTINCT ROUND(f.Begin_Interval_Time, 'MI')) Samples,
+             #{iostat_filetype_history_external_column_list}
+      FROM   (#{iostat_filetype_history_internal_sql_select}) f
+      WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
+             #{@global_where_string}
+      GROUP BY #{iostat_filetype_key_rule(@groupby)[:sql]}
+      ORDER BY SUM(f.Small_Read_Reqs) DESC
+      " ].concat(@with_where_values).concat(@global_where_values)
+
+    render_partial "list_iostat_filetype_history"
+  end
+
+  # Anzeige der einzelnen Samples der Selektion
+  def list_iostat_filetype_history_samples
+    where_from_groupfilter(params[:groupfilter], nil, proc{|key| iostat_filetype_key_rule(key)})
+
+    @samples = sql_select_all ["\
+      WITH Snaps AS (SELECT /*+ NO_MERGE */
+                            DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Round_Begin_Interval_Time, Begin_Interval_Time,  End_Interval_Time
+                     FROM   DBA_Hist_Snapshot s
+                     WHERE  1=1 #{@with_where_string}
+                    )
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             f.Round_Begin_Interval_Time Begin_Interval_Time,
+             #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
+             #{iostat_filetype_history_external_column_list}
+      FROM   (#{iostat_filetype_history_internal_sql_select}) f
+      WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
+             #{@global_where_string}
+      GROUP BY f.Round_Begin_Interval_Time
+      ORDER BY f.Round_Begin_Interval_Time
+      " ].concat(@with_where_values).concat(@global_where_values)
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> "list_iostat_filetype_history_samples" }'); hideIndicator();"}
+    end
+  end
+
+  #Anzeige Zeitleiste als Diagramm
+  def list_iostat_filetype_history_timeline
+    where_from_groupfilter(params[:groupfilter], params[:groupby], proc{|key| iostat_filetype_key_rule(key)})
+    @data_column_name = params[:data_column_name]
+
+    data_column = nil
+    iostat_filetype_values_column_options.each do |c|
+      data_column = c if c[:caption] == @data_column_name
+    end
+    unless data_column && data_column[:raw_data]
+      respond_to do |format|
+        format.js {render :js => "alert('#{j "Column '#{@data_column_name}' is not supported for diagram"}');" }
+      end
+      return
+    end
+
+
+    ios = sql_select_all ["\
+      WITH Snaps AS (SELECT /*+ NO_MERGE */
+                            DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
+                     FROM   DBA_Hist_Snapshot s
+                     WHERE  1=1 #{@with_where_string}
+                    )
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             #{iostat_filetype_key_rule(@groupby)[:sql]}           Group_Value,
+             Round_End_Interval_Time,
+             #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
+             #{iostat_filetype_history_external_column_list}
+             --#{data_column[:group_operation]}(#{data_column[:data_column]}) Value
+      FROM   (#{iostat_filetype_history_internal_sql_select}) f
+      WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
+             #{@global_where_string}
+      GROUP BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
+      ORDER BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
+                          " ].concat(@with_where_values).concat(@global_where_values)
+
+
+    # Transformieren in darzustellende Werte
+    ios.each do |i|
+      i["diagram_value"] = data_column[:raw_data].call(i)
+    end
+
+    # Anzeige der Filterbedingungen im Caption des Diagrammes
+    @filter = ""
+    @groupfilter.each do |key, value|
+      @filter << "#{key}=\"#{value}\", "
+    end
+    diagram_caption = "Timeline for #{@data_column_name}, Filter: #{@filter}"
+
+    plot_top_x_diagramm(:data_array     => ios,
+                        :time_key_name  => "round_end_interval_time",
+                        :curve_key_name => "group_value",
+                        :value_key_name => "diagram_value",
+                        :top_x          => 20,
+                        :caption        => diagram_caption,
+                        :update_area    => params[:update_area]
+    )
+
+  end
+
+
 end
 
