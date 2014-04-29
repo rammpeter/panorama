@@ -15,6 +15,7 @@ gem 'therubyrhino_jar'
 gem 'multi_json'
 gem 'uglifier'
 gem 'sass'
+gem 'jruby-openssl'
 
 gem 'jquery-rails'
 
