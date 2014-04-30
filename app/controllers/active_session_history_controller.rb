@@ -287,7 +287,7 @@ class ActiveSessionHistoryController < ApplicationController
   def show_prepared_active_session_history
     @groupfilter = {:DBID      => prepare_param_dbid }
     @groupfilter[:Instance]    =  params[:instance]  if params[:instance]
-    @groupfilter[:SQL_ID]      =  params[:sql_id]    if params[:sql_id]
+    @groupfilter['SQL-ID']     =  params[:sql_id]    if params[:sql_id]
     @groupfilter['Session-ID'] =  params[:sid]       if params[:sid]
     @groupfilter['SerialNo']   =  params[:serialno]  if params[:serialno]
 
