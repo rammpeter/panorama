@@ -73,7 +73,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_options(options);                                                  // Options um Defaults erweitern
         init_test_cells();                                                      // hidden DIV-Elemente fuer Groessentest aufbauen
 
-        dataView = new Slick.Data.DataView();
+        var dataView = new Slick.Data.DataView();
         dataView.setItems(data);
         options["searchFilter"] = slickgrid_filter_item_row;                    // merken filter-Funktion für Aktivierung über Menü
         //dataView.setFilter(slickgrid_filter_item_row);
@@ -134,6 +134,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * @param grid  SlickGrid-object
      */
     function initialize_slickgrid(grid){
+        var dataView = grid.getData();
+
         grid.onSort.subscribe(function(e, args) {
             var col = args.sortCol;
             var field = col.field;
