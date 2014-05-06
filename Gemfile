@@ -16,6 +16,7 @@ gem 'multi_json'
 gem 'uglifier'
 gem 'sass'
 gem 'jruby-openssl'
+gem 'bouncy-castle-java'
 
 gem 'jquery-rails'
 

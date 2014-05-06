@@ -749,7 +749,7 @@ class DbaHistoryController < ApplicationController
       WHERE  s.DBID            = ?
       AND    s.Instance_Number = ?
       AND    s.SQL_ID          = ?
-      AND    snap.Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+      AND    snap.End_Interval_time    > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       AND    snap.Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       #{@parsing_schema_name ? "AND    s.Parsing_Schema_Name = ?" : ""  }
       GROUP BY #{@begin_interval_sql}, #{@end_interval_sql}

@@ -20,7 +20,7 @@
 
     def link_column_snap(result, value)
       my_ajax_link_to(value,
-        url_for(:action     => "list_sql_history_snapshots",
+        url_for(:action     => :list_sql_history_snapshots,
                 :instance   => result.instance_number,
                 :sql_id     => result.sql_id,
                 :parsing_schema_name =>result.parsing_schema_name,
