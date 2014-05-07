@@ -15,8 +15,10 @@ gem 'therubyrhino_jar'
 gem 'multi_json'
 gem 'uglifier'
 gem 'sass'
-gem 'jruby-openssl'
-gem 'bouncy-castle-java'
+
+# Require von jruby-openssl nicht notwendig, da Bestandteil von jRuby, explizite Angabe führt zu Fehlermeldung von warbler und rack-Fehler bei Ausführung
+#gem 'jruby-openssl'
+#gem 'bouncy-castle-java'
 
 gem 'jquery-rails'
 
