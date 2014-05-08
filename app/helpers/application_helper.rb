@@ -23,7 +23,7 @@ module ApplicationHelper
   def sql_select_all(sql)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
     binds = []
     if sql.class == Array
-      stmt =sql[0]
+      stmt =sql[0].clone      # Kopieren, da im Stmt nachfolgend Ersetzung von ? durch :A1 .. :A<n> durchgeführt wird
       # Aufbereiten SQL: Ersetzen Bind-Aliases
       bind_index = 0
       while stmt['?']                   # Iteration über Binds
