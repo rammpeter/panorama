@@ -36,8 +36,8 @@ class DbaHistoryController < ApplicationController
              SUM(GC_Buffer_Busy_Delta)          GC_Buffer_Busy_Delta,
              SUM(GC_CR_Blocks_Received_Delta)   GC_CR_Blocks_Received_Delta,
              SUM(GC_CU_Blocks_Received_Delta)   GC_CU_Blocks_Received_Delta,
-             SUM(Space_Used_Delta)              Space_Used_Delta,
-             SUM(Space_Allocated_Delta)         Space_Allocated_Delta,
+             SUM(Max_Space_Used_Total_MB)       Max_Space_Used_Total_MB,
+             SUM(Max_Space_Allocated_Total_MB)  Max_Space_Allocated_Total_MB,
              SUM(Table_Scans_Delta)             Table_Scans_Delta,
              (#{@show_partitions=="1" ?
                "CASE
@@ -106,8 +106,8 @@ class DbaHistoryController < ApplicationController
                      SUM(GC_Buffer_Busy_Delta)          GC_Buffer_Busy_Delta,
                      SUM(GC_CR_Blocks_Received_Delta)   GC_CR_Blocks_Received_Delta,
                      SUM(GC_CU_Blocks_Received_Delta)   GC_CU_Blocks_Received_Delta,
-                     SUM(Space_Used_Delta)              Space_Used_Delta,
-                     SUM(Space_Allocated_Delta)         Space_Allocated_Delta,
+                     MAX(Space_Used_Total)/(1024*1024)  Max_Space_Used_Total_MB,
+                     MAX(Space_Allocated_Total)/(1024*1024) Max_Space_Allocated_Total_MB,
                      SUM(Table_Scans_Delta)             Table_Scans_Delta
               from DBA_HIST_SEG_STAT s
               WHERE  (s.DBID, s.Snap_ID, s.Instance_Number) IN (
@@ -177,8 +177,8 @@ class DbaHistoryController < ApplicationController
                    SUM(GC_Buffer_Busy_Delta)      GC_Buffer_Busy_Delta,
                    SUM(GC_CR_Blocks_Received_Delta) GC_CR_Blocks_Received_Delta,
                    SUM(GC_CU_Blocks_Received_Delta) GC_CU_Blocks_Received_Delta,
-                   SUM(Space_Used_Delta)          Space_Used_Delta,
-                   SUM(Space_Allocated_Delta)     Space_Allocated_Delta,
+                   SUM(Space_Used_Total)/(1024*1024)      Space_Used_Total_MB,
+                   SUM(Space_Allocated_Total)/(1024*1024) Space_Allocated_Total_MB,
                    SUM(Table_Scans_Delta)         Table_Scans_Delta
             FROM   DBA_HIST_SEG_STAT s
             JOIN   DBA_hist_snapshot sn ON sn.DBID = s.DBID AND sn.Instance_Number = s.Instance_Number AND sn.Snap_ID = s.Snap_ID
