@@ -363,7 +363,8 @@ Over all schemas usage can be monitored with following SQL.
 Additional information about index usage can be requested from DBA_Hist_Seg_Stat and DBA_Hist_Active_Sess_History."),
              :sql=> "SELECT /* DB-Tools Ramm: unused indexes */ u.*, i.Num_Rows, i.Distinct_Keys,
                              (SELECT SUM(s.Bytes) FROM DBA_Segments s WHERE s.Owner=u.Owner AND s.Segment_Name=u.Index_Name)/(1024*1024) MBytes,
-                             i.Tablespace_Name, i.Uniqueness
+                             i.Tablespace_Name, i.Uniqueness, i.Index_Type,
+                             (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = u.Owner AND t.Table_Name = u.Table_Name) IOT_Type
                       FROM   (
                               SELECT u.name Owner, io.name Index_Name, t.name Table_Name,
                                      decode(bitand(i.flags, 65536), 0, 'NO', 'YES') Monitoring,
