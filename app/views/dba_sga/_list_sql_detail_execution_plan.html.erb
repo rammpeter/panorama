@@ -38,8 +38,8 @@
                                        "SQL-ID"                => @sql_id,
                                        #"Plan-Hash-Value"       => @mp.plan_hash_value,
                                        "Plan-Line-ID"          => rec.id,
-                                       :time_selection_start   => localeDateTime(rec.min_sample_time),
-                                       :time_selection_end     => localeDateTime(rec.max_sample_time),
+                                       :time_selection_start   => localeDateTime(rec.min_sample_time, :minutes),
+                                       :time_selection_end     => localeDateTime(rec.max_sample_time, :minutes),
                                        :Idle_Wait1             => "PX Deq Credit: send blkd"
                                },
                                :groupby        => "Event",

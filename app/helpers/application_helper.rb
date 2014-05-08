@@ -206,10 +206,15 @@ module ApplicationHelper
   end
 
   # Zeistempel in sprach-lokaler Notation ausgeben
-  def localeDateTime(timestamp)
+  def localeDateTime(timestamp, format = :seconds)
     return '' unless timestamp                    # Leere Ausgabe, wenn nil
     timestamp = timestamp.to_datetime             # Sicherstellen, dass vom Typ DateTime
-    timestamp.strftime(session[:database].strftime_format_with_seconds)
+    case format
+      when :seconds then timestamp.strftime(session[:database].strftime_format_with_seconds)
+      when :minutes then timestamp.strftime(session[:database].strftime_format_with_minutes)
+    else
+      raise "Unknown parameter format = #{format} in localeDateTime"
+    end
   end
 
   # Milli-Sekunden seit 1970

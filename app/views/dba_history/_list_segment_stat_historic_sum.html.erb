@@ -88,6 +88,7 @@ column_options =
     {:caption=>"GC CU blocks received",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_cu_blocks_received_delta))},     :align=>:right, :title=>'Global cache blocks received in cureent mode',:show_pct_hint=>proc{|rec| rec.gc_cu_blocks_received_delta}},
     {:caption=>"Max. space used (MB)",          :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_used_total_mb, 2))},      :align=>:right, :title=>"Max. space used within time range in MByte (sum over partition maxima)",    :show_pct_hint=>proc{|rec| rec.max_space_used_total_mb}},
     {:caption=>"Max. space allocated (MB)",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_allocated_total_mb,2))},  :align=>:right, :title=>"Max. space allocated within time range in MByte (sum over partition maxima)",  :show_pct_hint=>proc{|rec| rec.max_space_allocated_total_mb}},
+    {:caption=>"Space allocated delta (MB)",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.space_allocated_delta_mb,2))},      :align=>:right, :title=>"Difference for space allocated between last and first sample in time range",  :show_pct_hint=>proc{|rec| rec.space_allocated_delta_mb}},
     {:caption=>"Full table scans",              :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.table_scans_delta))},               :align=>:right, :title=>"Number of full table scans",              :show_pct_hint=>proc{|rec| rec.table_scans_delta}},
   ]
 

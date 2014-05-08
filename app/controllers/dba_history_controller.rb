@@ -38,6 +38,7 @@ class DbaHistoryController < ApplicationController
              SUM(GC_CU_Blocks_Received_Delta)   GC_CU_Blocks_Received_Delta,
              SUM(Max_Space_Used_Total_MB)       Max_Space_Used_Total_MB,
              SUM(Max_Space_Allocated_Total_MB)  Max_Space_Allocated_Total_MB,
+             SUM(Space_Allocated_Delta)/(1024*1024) Space_Allocated_Delta_MB,
              SUM(Table_Scans_Delta)             Table_Scans_Delta,
              (#{@show_partitions=="1" ?
                "CASE
@@ -108,6 +109,8 @@ class DbaHistoryController < ApplicationController
                      SUM(GC_CU_Blocks_Received_Delta)   GC_CU_Blocks_Received_Delta,
                      MAX(Space_Used_Total)/(1024*1024)  Max_Space_Used_Total_MB,
                      MAX(Space_Allocated_Total)/(1024*1024) Max_Space_Allocated_Total_MB,
+                     MAX(Space_Allocated_Total) KEEP (DENSE_RANK LAST ORDER BY s.Snap_ID) -
+                     MIN(Space_Allocated_Total) KEEP (DENSE_RANK FIRST ORDER BY s.Snap_ID) Space_Allocated_Delta,
                      SUM(Table_Scans_Delta)             Table_Scans_Delta
               from DBA_HIST_SEG_STAT s
               WHERE  (s.DBID, s.Snap_ID, s.Instance_Number) IN (
