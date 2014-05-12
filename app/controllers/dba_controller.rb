@@ -422,7 +422,8 @@ class DbaController < ApplicationController
     end
 
     @parameters.each do |p|
-      p.value = p.value + " (Caution!!! This is session setting of Panorama-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults.)" if p.name == "cursor_sharing"
+      p.value = p.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults.)"      if p.name == "cursor_sharing"
+      p.value = p.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='nls_length_semantics'; to read real defaults.)" if p.name == "nls_length_semantics"
     end
 
     respond_to do |format|
