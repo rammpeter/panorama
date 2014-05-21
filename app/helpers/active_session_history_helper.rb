@@ -8,7 +8,7 @@ module ActiveSessionHistoryHelper
     unless @session_statistics_key_rules_hash
       @session_statistics_key_rules_hash = {}
       @session_statistics_key_rules_hash["Instance"]    = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
-      @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",         :Name => 'Session/Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
+      @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",        :Name => 'Session/Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
       @session_statistics_key_rules_hash["Transaction"] = {:sql => "RawToHex(s.XID)",     :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if session[:database].version >= "11.2"
       @session_statistics_key_rules_hash["User"]        = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User" }
       @session_statistics_key_rules_hash["SQL-ID"]      = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID', :info_sql  => "(SELECT SUBSTR(t.SQL_Text,1,40) FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)", :info_caption => "SQL-Text (first chars)" }
