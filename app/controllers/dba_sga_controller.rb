@@ -3,7 +3,7 @@ class DbaSgaController < ApplicationController
 
   #require "dba_helper"   # Erweiterung der Controller um Helper-Methoden
   include DbaHelper
-  
+
   # Auflösung/Detaillierung der im Feld MODUL geührten Innformation
   def show_application_info
     info =explain_application_info(params[:org_text])
@@ -229,7 +229,7 @@ class DbaSgaController < ApplicationController
   public
 
   # Erzeugt Daten für execution plan
-  def get_sga_execution_plan(sql_id, instance, child_number)
+  def get_sga_execution_plan(modus, sql_id, instance, child_number)
     plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
           Operation, Options, Object_Owner, Object_Name, Object_Type,
@@ -277,16 +277,15 @@ class DbaSgaController < ApplicationController
                              FROM   gv$Active_Session_History
                              WHERE  SQL_ID  = ?
                              AND    Inst_ID = ?
-                             AND    SQL_Child_Number = ?
+                             #{modus == 'GV$SQL' ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
                              GROUP BY SQL_Plan_Line_ID, SQL_Plan_Hash_Value
                  ) a ON a.SQL_Plan_Line_ID = p.ID AND a.SQL_Plan_Hash_Value = p.Plan_Hash_Value
           " if session[:database].version >= "11.2"}
         WHERE SQL_ID  = ?
         AND   Inst_ID = ?
         AND   Child_Number = ?
-        ORDER BY ID",
-        sql_id, instance, child_number
-        ].concat(session[:database].version >= "11.2" ? [sql_id, instance, child_number] : [])
+        ORDER BY ID"
+        ].concat(session[:database].version >= "11.2" ? [sql_id, instance].concat(modus == 'GV$SQL' ? [child_number] : []) : []).concat([sql_id, instance, child_number])
 
     # Vergabe der exec-Order im Explain
     # iteratives neu durchsuchen der Liste nach folgenden erfuellten Kriterien
@@ -336,7 +335,7 @@ class DbaSgaController < ApplicationController
     @sql_plan_baselines  = get_sql_plan_baselines(@sql)
     @sql_outlines        = get_sql_outlines(@sql)
 
-    @plans               = get_sga_execution_plan(@sql_id, @instance, @child_number)
+    @plans               = get_sga_execution_plan(@modus, @sql_id, @instance, @child_number)
 
     # PGA-Workarea-Nutzung
     @workareas = sql_select_all ["\
@@ -400,14 +399,14 @@ class DbaSgaController < ApplicationController
                                               FROM   gv$SQL
                                               WHERE  Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
 
-      @plans = get_sga_execution_plan(@sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
+      @plans = get_sga_execution_plan('GV$SQLArea', @sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
 
       if @sqls.count == 0
         respond_to do |format|
            format.js { render :js => "alert(\"SQL-ID '#{@sql_id}' not found in GV$SQL for instance #{@instance} !\");" }
         end
       else
-        render_partial
+        render_partial :list_sql_detail_sql_id
       end
     end
 

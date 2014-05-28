@@ -743,9 +743,11 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       WHERE  se.Inst_ID=? AND se.SID=? AND se.Serial#=?
       ", @instance, @sid, @serialno]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_open_cursor_per_session" }');"}
-    end
+    render_partial :list_open_cursor_per_session
+
+    #respond_to do |format|
+    #  format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_open_cursor_per_session" }');"}
+    #end
   end
 
   def show_session_details_waits
