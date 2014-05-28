@@ -20,14 +20,11 @@ public
   # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
-      read_last_login_cookies.each do |db_cookie|
-        if db_cookie[:id].to_i == params[:saved_logins_id].to_i                 # Diese DB wurde in Select-Liste ausgewählt
-          params[:database] = db_cookie                                         # Vorbelegen der Formular-Inhalte mit dieser DB
-          # Entschlüsseln des Passwortes
-          crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-          params[:database][:password] = crypt.decrypt_and_verify(params[:database][:password])
-        end
-      end
+      params[:database] = read_last_login_cookies[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
+      # Entschlüsseln des Passwortes
+      crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+      params[:database][:password] = crypt.decrypt_and_verify(params[:database][:password])
+
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
       raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
       set_database
@@ -249,26 +246,18 @@ private
 
     cookies_last_logins.each do |value|
       cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
-      min_id = value[:id].to_i if  min_id.nil? || value[:id].to_i < min_id     # Kleinste ID finden
     end
     if params[:saveLogin] == "1"
       if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                      # Max. Anzahl Connections in Auswahl-Liste überschritten?
-        cookies_last_logins.each do |value|
-          cookies_last_logins.delete(value) if value[:id].to_i == min_id             # Löschen der ältesten Eintragung
-        end
+        cookies_last_logins.delete(cookies_last_logins.last)                         # Letzten Eintrag loeschen
       end
       database_as_hash = database.to_params
       # Passwort verschlüsseln
       crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
       database_as_hash[:password] = crypt.encrypt_and_sign(database_as_hash[:password])
 
-      cookies_last_logins << database_as_hash  # Aktuellen Eintrag hinzufügen
-      cookies_last_logins.sort_by!{|obj| "#{obj[:sid]}.#{obj[:host]}.#{obj[:user]}"}
-      cookies_last_logins.each_index do |index|
-        value = cookies_last_logins[index]
-        value[:id] = index                                                      # Zur Wiedererkennung des gewünschten Eintrages
-        cookies.permanent[:last_login_id]  = Marshal.dump index if value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user
-      end
+      cookies_last_logins = [database_as_hash] + cookies_last_logins            # Neuen Eintrag an erster Stelle
+
       write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
 
