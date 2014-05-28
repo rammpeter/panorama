@@ -63,7 +63,7 @@
   if @showGroup == "TimeSlice"
     column_options << {:caption=>"Timestamp",  :data=>proc{|rec| link_column(rec, localeDateTime(rec.timestamp))},        :title=>"Beginn des Zeitraumes der Messwerte", :plot_master=>true, :plot_master_time=>"milliSec1970(rec.timestamp)" }
   else
-    column_options << {:caption=>"MsgType",    :data=>proc{|rec| link_column(rec, formattedNumber(rec.id_ofmessagetype))},:title=>"ID_OFMessageType", :data_title=>proc{|rec| "#{rec.id_ofmessagetype}:#{msgType(rec.id_ofmessagetype).name}: Domain=#{msgType(rec.id_ofmessagetype).domain.name}"}}
+    column_options << {:caption=>"MsgType",    :data=>proc{|rec| link_column(rec, formattedNumber(rec.id_ofmessagetype))},:title=>"ID_OFMessageType", :data_title=>proc{|rec| "#{rec.id_ofmessagetype}:#{msgType(rec.id_ofmessagetype).name}: Domain=#{msgType(rec.id_ofmessagetype).domain.name} StandardBulkCount=#{msgType(rec.id_ofmessagetype).standardbulkcount}  MaxBulkCount=#{msgType(rec.id_ofmessagetype).maxbulkcount}"}}
   end
 
   column_options << {:caption=>"I",  :data=>proc{|rec| link_column(rec, formattedNumber(rec.racinstanceid))},  :title=>"RAC-Instance" } if @show_rac
