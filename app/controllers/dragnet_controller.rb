@@ -40,7 +40,8 @@ class DragnetController < ApplicationController
       end
     end
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j my_html_escape(dragnet_sqls[index][:desc]) }');
+      format.js {render :js => "$('##{params[:header_area]}').html('<b>#{j my_html_escape(dragnet_sqls[index][:name]) }</b>');
+                                $('##{params[:update_area]}').html('#{j my_html_escape(dragnet_sqls[index][:desc]) }');
                                 $('##{params[:param_area]}').html('#{j parameter }');"
       }
     end

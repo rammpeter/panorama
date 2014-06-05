@@ -684,7 +684,8 @@ public
 
     result = nil # Default
 
-    if event.include?('gc ') && (p3text == 'id#' || p3text == 'class#')
+    if (event.include?('gc ') || event == 'buffer busy waits'
+       ) && (p3text == 'id#' || p3text == 'class#')
       class_id = case p3text
                    when 'id#' then p3 % 65536
                    when 'class#' then p3

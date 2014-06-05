@@ -387,7 +387,8 @@ class ActiveSessionHistoryController < ApplicationController
                               WHERE  Sample_Time BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') /* Session wartend auf Blocking-Session */
                             )
-              SELECT gr.*
+              SELECT /*+ USE_NL(gr rhh) */
+                     gr.*
                      #{if session[:database].version >= '11.2'
                          ", NVL(NVL(NVL(rhh.Event, rhh.Session_State), NVL(rha.Event, rha.Session_State)), 'INACTIVE') Root_Blocking_Event
                           , NVL(rhh.Module,  rha.Module)   Root_Blocking_Module
@@ -468,8 +469,9 @@ class ActiveSessionHistoryController < ApplicationController
                       GROUP BY Root_Snap_ID, Root_Sample_ID, Root_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status
                       #{', Root_Blocking_Inst_ID' if session[:database].version >= '11.2'}
                     ) gr
+                    JOIN (SELECT ? DBID FROM DUAL) db ON 1=1
                     #{if session[:database].version >= '11.2'
-                   'LEFT OUTER JOIN DBA_Hist_Active_Sess_History rhh ON  rhh.DBID                       = ?
+                   'LEFT OUTER JOIN DBA_Hist_Active_Sess_History rhh ON  rhh.DBID                       = db.DBID
                                                                       AND rhh.Snap_ID                   = gr.Root_Snap_ID  /* Snap-ID innerhalb von RAC-Instanzen ist identisch, diese koennet von anderer Instanz stammen */
                                                                       AND rhh.Instance_Number           = gr.Root_Blocking_Inst_ID
                                                                       AND CAST(rhh.Sample_Time AS DATE) = CAST(gr.Root_Sample_Time AS DATE)
@@ -481,8 +483,8 @@ class ActiveSessionHistoryController < ApplicationController
                       end
                     }
               ORDER BY Seconds_in_Wait_Total DESC
-        ", @dbid, @min_snap_id, @max_snap_id, @time_selection_start, @time_selection_end, @time_selection_start, @time_selection_end
-        ].concat(session[:database].version >= '11.2' ? [@dbid, @dbid] : [])
+        ", @dbid, @min_snap_id, @max_snap_id, @time_selection_start, @time_selection_end, @time_selection_start, @time_selection_end, @dbid
+        ]
 
     render_partial
   end
