@@ -10,9 +10,10 @@
    @time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
 
    def strip_groupfilter                                                        # Groupfilter reduzieren um problematische Filter
-     @groupfilter.delete("Min_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
-     @groupfilter.delete("Max_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
-     @groupfilter
+     groupfilter = @groupfilter.clone
+     groupfilter.delete("Min_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
+     groupfilter.delete("Max_Snap_ID")                                         # Da sich anndere Kriterien geändert haben, kann diese Grenze nicht mehr stimmen
+     groupfilter
    end
 
     @caption = ""

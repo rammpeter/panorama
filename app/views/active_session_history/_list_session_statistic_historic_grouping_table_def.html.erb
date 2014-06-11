@@ -3,17 +3,18 @@
   @update_area = get_unique_area_id
 
   def get_groupfilter(rec, groupby_column, groupby_value)
+    groupfilter = @groupfilter.clone                                            # Sicherstellen ,dass Nachfolger noch relevanten Filter bekommen
     if rec.min_snap_id
-      @groupfilter["Min_Snap_ID"] = rec.min_snap_id
+      groupfilter["Min_Snap_ID"] = rec.min_snap_id
     else
-      @groupfilter.delete("Min_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
+      groupfilter.delete("Min_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
     end
     if rec.max_snap_id
-      @groupfilter["Max_Snap_ID"] = rec.max_snap_id
+      groupfilter["Max_Snap_ID"] = rec.max_snap_id
     else
-      @groupfilter.delete("Max_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
+      groupfilter.delete("Max_Snap_ID")                                        # Den Filter entfernen wenn im aktuellen Result keine Abgrenzung mehr möglich ist
     end
-    @groupfilter.merge({ groupby_column => groupby_value})
+    groupfilter.merge({ groupby_column => groupby_value})
   end
 
   def link_single_rows(rec)
