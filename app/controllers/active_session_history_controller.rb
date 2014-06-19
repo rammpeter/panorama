@@ -29,6 +29,8 @@ class ActiveSessionHistoryController < ApplicationController
     params[:groupfilter]["time_selection_start"]  = @time_selection_start
     params[:groupfilter]["time_selection_end"]    = @time_selection_end
 
+    params[:groupfilter]['Additional Filter']     = params[:filter]  if params[:filter] && params[:filter] != ''
+
     list_session_statistic_historic_grouping      # Weiterleiten Request an Standard-Verarbeitung für weiteres DrillDown
   end # list_session_statistic_historic
 

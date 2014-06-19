@@ -1,7 +1,7 @@
 <% @update_area = get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller=>:active_session_history, :action=>:list_session_statistic_historic, :update_area=>@update_area) do %>
   <div>
-    <b>Session-Statistics aus DBA_Hist_Active_Sess_History</b>
+    <b>Session-Statistics aus DBA_Hist_Active_Sess_History und gv$Active_Session_History</b>
   </div>
 
   <%= include_start_end_timepicker %>
@@ -15,15 +15,9 @@
     Instance
     <%= text_field_tag(:instance, "", :size=>1, :title=>"Filter on RAC-Instance (optional)") %>
   </div>
-  <!--<div class="float_left">
-    Session-ID
-    <%= text_field_tag(:session_id, "", :size=>5, :title=>"optional Filter on Session-ID (like-comparison and case ignored)") %>
-  </div>-->
 
   <div class="float_left">
     Gruppiert nach:
-  </div>
-  <div class="float_left">
       <select name="groupby">
         <% session_statistics_key_rules.each do |key, value| %>
           <%=  "<option value='#{key}' #{"selected='selected'" if key=="Event"}>#{key}</option>".html_safe %>
@@ -32,9 +26,14 @@
   </div>
 
   <div class="float_left">
+    Filter
+    <%= text_field_tag(:filter, "", :size=>10, :title=>"optional additional Filter on Session-ID, Module or Action (like-comparison and case ignored)") %>
+  </div>
+
+  <div class="float_left">
     <%= submit_tag("Waits anzeigen", :title => "Anlistung der verdichteten Session-Waits") %>
   </div>
 <% end %>
-<div id="<%= @update_area %>" style="float:left; width:100%; ">
+<div id="<%= @update_area %>" style="clear: both; width:100%; ">
 </div>
 

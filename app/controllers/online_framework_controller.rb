@@ -258,10 +258,11 @@ private
               SUM(DECODE(ID_GAAttr,7251, Counter, 0)) ElapsedMilliSeconds,
               SUM(DECODE(ID_GAAttr,7862, Counter, 0)) BulkGroups,
               SUM(DECODE(ID_GAAttr,7402, Counter, 0)) SLA_Warnings,
-              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts
+              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts,
+              SUM(DECODE(ID_GAAttr,4160, Counter, 0)) Compressions
        FROM sysp.OnlineAspect
        WHERE ID_Application     = 1343 /* Online-Framework */
-       AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403)
+       AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403, 4160)
        AND   TO_NUMBER(SubKey)  = ?
        AND   Minute >= sysp.OnlineMonitoring.Get_Minute_From_Date(TO_TIMESTAMP(?,'#{sql_datetime_minute_mask}'))
        AND   Minute <= sysp.OnlineMonitoring.Get_Minute_From_Date(TO_TIMESTAMP(?,'#{sql_datetime_minute_mask}'))
@@ -331,10 +332,11 @@ public
               SUM(DECODE(ID_GAAttr,7251, Counter, 0)) ElapsedMilliSeconds,
               SUM(DECODE(ID_GAAttr,7862, Counter, 0)) BulkGroups,
               SUM(DECODE(ID_GAAttr,7402, Counter, 0)) SLA_Warnings,
-              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts
+              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts,
+              SUM(DECODE(ID_GAAttr,4160, Counter, 0)) Compressions
        FROM sysp.OnlineAspect
        WHERE ID_Application     = 1343 /* Online-Framework */                
-       AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403)
+       AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403, 4160)
        AND   Minute             >= ?                                         
        AND   Minute             < ?                                          
        #{' AND RACInstanceID='+@instance.to_s+' ' if @instance}
@@ -401,10 +403,11 @@ public
               SUM(DECODE(ID_GAAttr,7251, Counter, 0)) ElapsedMilliSeconds,
               SUM(DECODE(ID_GAAttr,7862, Counter, 0)) BulkGroups,
               SUM(DECODE(ID_GAAttr,7402, Counter, 0)) SLA_Warnings,
-              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts
+              SUM(DECODE(ID_GAAttr,7403, Counter, 0)) SLA_Alerts,
+              SUM(DECODE(ID_GAAttr,4160, Counter, 0)) Compressions
              FROM sysp.OnlineAspect
              WHERE ID_Application     = 1343 /* Online-Framework */     
-             AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403)
+             AND   ID_GAAttr IN (4532, 6216, 6217, 6218, 6279, 6280, 6281, 6283, 6283, 6284, 7251, 7862, 7402, 7403, 4160)
              AND   Minute >= sysp.OnlineMonitoring.Get_Minute_From_Date(TO_TIMESTAMP(?,'#{sql_datetime_minute_mask}'))
              AND   Minute <= sysp.OnlineMonitoring.Get_Minute_From_Date(TO_TIMESTAMP(?,'#{sql_datetime_minute_mask}'))
             #{(@id_domain && @id_domain!=0) ? 

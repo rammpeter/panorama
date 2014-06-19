@@ -80,6 +80,7 @@ module ActiveSessionHistoryHelper
       @groupfilter_values_hash["SubObject_Name"]        = {:sql => "o.SubObject_Name"}
       @groupfilter_values_hash["Current_Obj_No"]        = {:sql => "s.Current_Obj_No"}
       @groupfilter_values_hash["User-ID"]               = {:sql => "s.User_ID"}
+      @groupfilter_values_hash["Additional Filter"]     = {:sql => "UPPER(s.Session_ID||s.Module||s.Action) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
 
     end
 
