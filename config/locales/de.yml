@@ -100,6 +100,7 @@
   dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
   dragnet_helper_group_logwriter_redo:                      LogWriter-Belastung / Redolog-Aufkommen
+  dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
@@ -285,6 +286,13 @@
   dragnet_helper_57_name:                                   Kritische Anzahl von Child-Cursoren einer SQL-ID
   dragnet_helper_57_param1_name:                            Min. Anzahl Childs je SQL-ID
   dragnet_helper_57_param1_desc:                            Minimale Anzahl Child-Cursoren je SQL-ID für Anzeige
+
+  dragnet_helper_58_desc: |-
+    Bei Nutzung der Funktion NVL für alternative Werte wenn NULL wird der Alternativ-Zweig immer ausgeführt, unabhängig davon, ob der erste Parameter des NVL gleich NULL ist oder nicht.
+    Bei Deklaration aufwendiger Berechnungen als Alternative empfiehlt sich die Nutzung von COALESCE statt NVL, wo der Alternativ-Parameter nur berechnet wird, wenn der Entscheidungsparameter auch wirklich NULL ist.
+  dragnet_helper_58_name:                                   Aufruf von Funktionen mit Parametern in Alternativ-Zweig von NVL
+  dragnet_helper_58_param1_name:                            Min. Laufzeit des SQL in Sekunden
+  dragnet_helper_58_param1_desc:                            Minimale Laufzeit des SQL in Sekunden für Berücksichtigung in der Abfrage
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports

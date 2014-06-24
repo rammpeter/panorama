@@ -57,10 +57,13 @@ if @res.count > 0
             @time_selection_start = (max_alter_org).strftime("%d.%m.%Y %H:%M")
 
             col[:data] = proc{|rec|
-                                inst_id = 1 # Default
+                                inst_id = nil
                                 inst_id = rec["inst_id"]            if rec["inst_id"]
                                 inst_id = rec["instance_number"]    if rec["instance_number"]
                                 inst_id = rec["Instance"]           if rec["Instance"]
+                                inst_id = current_instance_number   if inst_id.nil? # Default wenn nicht anders belegt
+
+
                                 #link_sql_id('exec_dragnet_sql_detail_area', inst_id, my_html_escape(rec[col[:caption]]))
                                 link_historic_sql_id(inst_id,
                                                      my_html_escape(rec[col[:caption]]) ,

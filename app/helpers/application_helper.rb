@@ -145,6 +145,10 @@ module ApplicationHelper
     database != nil ? database.tns : '[Keine]'
   end 
 
+  # ID der Instance auf der der User angemeldet ist
+  def current_instance_number
+    sql_select_one 'SELECT Instance_Number FROM v$Instance'
+  end
 
   def formattedNumber(number,                 # Auszugebende Zahl (Integer oder Float)
                       decimalCount=0,         # Anzahl Dezimalstellen
