@@ -2249,7 +2249,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                              MIN(Min_Sample_Time)           \"Start Tx.\",
                              MAX(Max_Sample_Time)           \"End Tx.\",
                              SUM(Samples)                   \"No. of Samples\",
-                             EXTRACT(day from 24*60*60*(MAX(Max_Sample_Time)-MIN(Min_Sample_Time))) \"Duration (Secs.)\",
+                             ROUND(24*60*60*(CAST(MAX(Max_Sample_Time) AS DATE)-CAST(MIN(Min_Sample_Time) AS DATE))) \"Duration (Secs.)\",
                              MIN(Min_SQL_ID) KEEP (DENSE_RANK FIRST ORDER BY Min_Sample_Time)       \"First SQL-ID\",
                              MAX(Max_SQL_ID) KEEP (DENSE_RANK LAST  ORDER BY Max_Sample_Time)       \"Last SQL-ID\",
                              MIN(Inst_ID)                   \"Instance\",
@@ -2282,8 +2282,8 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                               GROUP BY XID, NVL(Event, Session_State)
                              )
                       GROUP BY XID
-                      HAVING EXTRACT(day from 24*60*60*(MAX(Max_Sample_Time)-MIN(Min_Sample_Time))) > ?
                      ) s
+              WHERE  \"Duration (Secs.)\" > ?
               ORDER BY \"Duration (Secs.)\" DESC
            ",
            :parameter=>[
@@ -2304,7 +2304,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                              MIN(Min_Sample_Time)           \"Start Tx.\",
                              MAX(Max_Sample_Time)           \"End Tx.\",
                              SUM(Samples)                   \"No. of Samples\",
-                             EXTRACT(day from 24*60*60*(MAX(Max_Sample_Time)-MIN(Min_Sample_Time))) \"Duration (Secs.)\",
+                             ROUND(24*60*60*(CAST(MAX(Max_Sample_Time) AS DATE)-CAST(MIN(Min_Sample_Time) AS DATE))) \"Duration (Secs.)\",
                              MIN(Min_SQL_ID) KEEP (DENSE_RANK FIRST ORDER BY Min_Sample_Time)       \"First SQL-ID\",
                              MAX(Max_SQL_ID) KEEP (DENSE_RANK LAST  ORDER BY Max_Sample_Time)       \"Last SQL-ID\",
                              MIN(Inst_ID)                   \"Instance\",
@@ -2338,8 +2338,8 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                               GROUP BY XID, NVL(Event, Session_State)
                              )
                       GROUP BY XID
-                      HAVING EXTRACT(day from 24*60*60*(MAX(Max_Sample_Time)-MIN(Min_Sample_Time))) > ?
                      ) s
+              WHERE  \"Duration (Secs.)\" > ?
               ORDER BY \"Duration (Secs.)\" DESC
            ",
            :parameter=>[
