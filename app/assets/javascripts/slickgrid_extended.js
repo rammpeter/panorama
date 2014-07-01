@@ -166,11 +166,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                     sortFunc  = function(a, b){
                         var fa = convert_german_date(a[field]);
                         var fb = convert_german_date(b[field]);
-                        if (a < b)
+                        if (fa < fb)
                             return -1;
-                        if (a > b)
+                        if (fa > fb)
                             return 1;
-                        if (a === b)
+                        if (fa === fb)
                             return 0;
                     }
                 }

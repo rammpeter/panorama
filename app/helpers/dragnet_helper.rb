@@ -2016,7 +2016,7 @@ Documentation is available here: http://docs.oracle.com/cd/E16655_01/server.121/
                         #{result = '';
                           recs = sql_select_all("SELECT Column_Name FROM All_Tab_Columns WHERE Table_Name = 'V_$SQL_SHARED_CURSOR' AND Data_Type = 'VARCHAR2' AND Data_Length = 1 ORDER BY Column_ID");
                           recs.each do |rec|
-                            result << ", SUM(DECODE(#{rec.column_name}, 'Y', 1, 0)) #{rec.column_name}\n"
+                            result << ", SUM(DECODE(#{rec.column_name}, 'Y', 1, 0)) \"#{rec.column_name.gsub('_', ' ')}\"\n"
                           end
                           result
                          }
