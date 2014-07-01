@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.1.0'
+gem 'rails', '4.1.2'
 
 gem 'activerecord-nulldb-adapter'
 
@@ -18,7 +18,7 @@ gem 'sass'
 
 # Require von jruby-openssl nicht notwendig, da Bestandteil von jRuby, explizite Angabe führt zu Fehlermeldung von warbler und rack-Fehler bei Ausführung
 #gem 'jruby-openssl'
-#gem 'bouncy-castle-java'
+#gem 'bouncy-castle-java', require: false
 
 gem 'jquery-rails'
 
