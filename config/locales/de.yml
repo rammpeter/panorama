@@ -149,7 +149,7 @@
     Absichern von Spalten mit Foreign-Key-Referenzen durch Index kann notwendig sein für:
     - Delete-Performance der referenzierten Tabelle (verhindern FullTable-Scan)
     - Verhindern Lock-Propagierung (shared Lock auf Index statt auf Table)
-  dragnet_helper_5_name:                                    Absicherung von Forein Key-Beziehungen durch Indizes (Ermittlung evtl. fehlender Indizes)
+  dragnet_helper_5_name:                                    Absicherung von Foreign Key-Beziehungen durch Indizes (Ermittlung evtl. fehlender Indizes)
   dragnet_helper_5_param_1_hint:                            Mindestanzahl Rows der referenzierten Tabelle
   dragnet_helper_5_param_1_name:                            Min. Anzahl Rows referenzierte Tabelle
 
