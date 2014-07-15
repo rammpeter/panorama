@@ -664,8 +664,8 @@ DECLARE
 
 BEGIN
   DBMS_OUTPUT.PUT_LINE('===========================================');
-  DBMS_OUTPUT.PUT_LINE('Ermittlung Chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER');
-  DBMS_OUTPUT.PUT_LINE('Sampe-size='||Sample_Size||' rows'));
+  DBMS_OUTPUT.PUT_LINE('Ermittlung Chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER'));
+  DBMS_OUTPUT.PUT_LINE('Sampe-size='||Sample_Size||' rows');
   SELECT Statistic# INTO StatNum FROM v$StatName WHERE Name='consistent gets';
   FOR Rec IN (SELECT Owner, Table_Name, Num_Rows
               FROM   DBA_Tables
@@ -760,7 +760,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                               SELECT /*+ NO_MERGE */ DISTINCT p.DBID, p.Plan_Hash_Value, p.SQL_ID, p.Object_Owner, p.Object_Name /*, p.Access_Predicates, p.Filter_Predicates */
                               FROM  DBA_Hist_SQL_Plan p
                               WHERE Operation = 'TABLE ACCESS'
-                              AND   Options   = 'FULL'
+                              AND   Options LIKE '%FULL'            /* Auch STORAGE FULL der Exadata mit inkludieren */
                               AND   Object_Owner NOT IN ('SYS')
                               AND   Timestamp > SYSDATE-?
                             ) p
@@ -810,7 +810,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                                     JOIN   DBA_Hist_Snapshot ss ON ss.DBID=s.DBID AND ss.Instance_Number=s.Instance_Number AND ss.Snap_ID=s.Snap_ID
                                     JOIN   DBA_Tables t         ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
                                     WHERE  p.Operation = 'TABLE ACCESS'
-                                    AND    p.Options   = 'FULL'
+                                    AND    p.Options LIKE '%FULL'           /* Auch STORAGE FULL der Exadata mit inkludieren */
                                     AND    ss.Begin_Interval_Time > SYSDATE - ?
                                     AND    p.Object_Owner NOT IN ('SYS')
                                     AND    t.Num_Rows > ?
@@ -1328,10 +1328,10 @@ Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full
                       --        (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=p.DBID AND t.SQL_ID=p.SQL_ID) SQLText
                       FROM   (
                               SELECT /*+ NO_MERGE MATERIALIZE FIRST_ROWS ORDERED USE_NL(p1 p2) PARALLEL(p,4)  */ p.DBID, p.SQL_ID, p.Plan_Hash_Value,
-                                     CASE WHEN p1.Options LIKE 'FULL%' THEN p1.Operation ELSE p2.Operation END Operation,
-                                     CASE WHEN p1.Options LIKE 'FULL%' THEN p1.Options ELSE p2.Options END Options,
-                                     CASE WHEN p1.Options LIKE 'FULL%' THEN p1.Object_Owner ELSE p2.Object_Owner END Object_Owner,
-                                     CASE WHEN p1.Options LIKE 'FULL%' THEN p1.Object_Name ELSE p2.Object_Name END Object_Name
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Operation ELSE p2.Operation END Operation,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Options ELSE p2.Options END Options,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Owner ELSE p2.Object_Owner END Object_Owner,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Name ELSE p2.Object_Name END Object_Name
                               FROM (
                                       SELECT  DBID, SQL_ID,
                                               MAX(p.Plan_Hash_Value) KEEP (DENSE_RANK LAST ORDER BY p.Timestamp) Plan_Hash_Value,
@@ -1348,7 +1348,7 @@ Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full
                                                                        AND p2.SQL_ID=p1.SQL_ID
                                                                        AND p2.Plan_Hash_Value=p1.Plan_Hash_Value
                                                                        AND p2.Parent_ID = p1.ID)
-                              WHERE   (p1.Options LIKE 'FULL%' OR p2.Options LIKE 'FULL%')
+                              WHERE   (p1.Options LIKE '%FULL%' OR p2.Options LIKE '%FULL%')
                               ) p
                       JOIN   DBA_Hist_SQLStat ss ON (ss.DBID=p.DBID AND ss.SQL_ID=p.SQL_ID AND ss.Plan_Hash_Value=p.Plan_Hash_Value)
                       JOIN   DBA_Hist_SnapShot s ON (s.Snap_ID=ss.Snap_ID AND s.DBID=ss.DBID AND s.Instance_Number=ss.Instance_Number)
@@ -1521,7 +1521,7 @@ Beispiel: INDEX(Column,0)',
                       FROM   gv$SQL_Plan p
                       JOIN   gv$Active_Session_History h ON h.SQL_ID=p.SQL_ID AND h.Inst_ID=p.Inst_ID AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
                       WHERE  UPPER(Filter_Predicates) LIKE '%IS NULL%'
-                      AND    Options = 'FULL'
+                      AND    Options LIKE '%FULL'
                       GROUP BY p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
                       ORDER BY COUNT(*) DESC
              ",
@@ -2202,35 +2202,42 @@ Often problematic usage of business keys can be detetcted by existence of refere
 Audit trail will usually be recorded in table sys.Aud$.'),
            :sql=>  "
               SELECT /* Panorama-Tool Ramm: Auditing */
-                     '\"AUDIT '||a.Name||'\" missing!'  Problem
+                     '\"AUDIT '||NVL(a.Message, a.Name)||'\" suggested!'  Problem
               FROM
               (
-              SELECT 'CLUSTER'                Name FROM DUAL UNION ALL
-              SELECT 'DATABASE LINK'          Name FROM DUAL UNION ALL
-              SELECT 'DIRECTORY'              Name FROM DUAL UNION ALL
-              SELECT 'INDEX'                  Name FROM DUAL UNION ALL
-              SELECT 'MATERIALIZED VIEW'      Name FROM DUAL UNION ALL
-              SELECT 'OUTLINE'                Name FROM DUAL UNION ALL
-              SELECT 'PROCEDURE'              Name FROM DUAL UNION ALL
-              SELECT 'PROFILE'                Name FROM DUAL UNION ALL
-              SELECT 'PUBLIC DATABASE LINK'   Name FROM DUAL UNION ALL
-              SELECT 'PUBLIC SYNONYM'         Name FROM DUAL UNION ALL
-              SELECT 'ROLE'                   Name FROM DUAL UNION ALL
-              SELECT 'ROLLBACK SEGMENT'       Name FROM DUAL UNION ALL
-              SELECT 'SEQUENCE'               Name FROM DUAL UNION ALL
-              SELECT 'CREATE SESSION'         Name FROM DUAL UNION ALL
-              SELECT 'SYNONYM'                Name FROM DUAL UNION ALL
-              SELECT 'SYSTEM AUDIT'           Name FROM DUAL UNION ALL
-              SELECT 'SYSTEM GRANT'           Name FROM DUAL UNION ALL
-              SELECT 'TABLE'                  Name FROM DUAL UNION ALL
-              SELECT 'ALTER SYSTEM'           Name FROM DUAL UNION ALL
-              SELECT 'TABLESPACE'             Name FROM DUAL UNION ALL
-              SELECT 'TRIGGER'                Name FROM DUAL UNION ALL
-              SELECT 'TYPE'                   Name FROM DUAL UNION ALL
-              SELECT 'USER'                   Name FROM DUAL UNION ALL
-              SELECT 'VIEW'                   Name FROM DUAL)a,
-              DBA_Stmt_Audit_Opts d
-              WHERE a.Name=d.Audit_Option(+) AND d.Audit_Option IS NULL
+              SELECT 'CLUSTER'                Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'DATABASE LINK'          Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'DIRECTORY'              Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'INDEX'                  Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'MATERIALIZED VIEW'      Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'OUTLINE'                Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'PROCEDURE'              Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'PROFILE'                Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'PUBLIC DATABASE LINK'   Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'PUBLIC SYNONYM'         Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'ROLE'                   Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'ROLLBACK SEGMENT'       Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'SEQUENCE'               Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'CREATE SESSION'         Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'SYNONYM'                Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'SYSTEM AUDIT'           Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'SYSTEM GRANT'           Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'TABLE'                  Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'ALTER SYSTEM'           Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'TABLESPACE'             Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'TRIGGER'                Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'TYPE'                   Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'USER'                   Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'VIEW'                   Name, 'BY ACCESS' Success, 'BY ACCESS' Failure, NULL Message FROM DUAL UNION ALL
+              SELECT 'SELECT TABLE'           Name, 'NOT SET'   Success, 'BY ACCESS' Failure, 'SELECT TABLE BY ACCESS WHENEVER NOT SUCCESSFUL' Message FROM DUAL UNION ALL
+              SELECT 'INSERT TABLE'           Name, 'NOT SET'   Success, 'BY ACCESS' Failure, 'INSERT TABLE BY ACCESS WHENEVER NOT SUCCESSFUL' Message FROM DUAL UNION ALL
+              SELECT 'UPDATE TABLE'           Name, 'NOT SET'   Success, 'BY ACCESS' Failure, 'UPDATE TABLE BY ACCESS WHENEVER NOT SUCCESSFUL' Message FROM DUAL UNION ALL
+              SELECT 'DELETE TABLE'           Name, 'NOT SET'   Success, 'BY ACCESS' Failure, 'DELETE TABLE BY ACCESS WHENEVER NOT SUCCESSFUL' Message FROM DUAL
+              )a
+              LEFT OUTER JOIN DBA_Stmt_Audit_Opts d ON  d.Audit_Option = a.Name
+                                                    AND (d.Success = a.Success OR a.Success = 'NOT SET')
+                                                    AND d.Failure = a.Failure  OR a.Failure = 'NOT SET'
+              WHERE d.Audit_Option IS NULL
            ",
            :parameter=>[
            ]
