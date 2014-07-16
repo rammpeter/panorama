@@ -970,13 +970,17 @@ Ab 11g können stored functions mit function result caching für diesen Zweck ge
              :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
 Damit moderate Reduktion von CPU-Belastung und Laufzeit
 ',
-             :sql=> 'SELECT * FROM (
-                              SELECT Inst_ID, Parsing_Schema_Name, Module,
-                                     SQL_ID, Executions, Fetches, End_Of_Fetch_Count,Rows_Processed,
-                                     ROUND(Rows_Processed/Executions,2) Rows_per_Exec,
-                                     ROUND(Rows_Processed/Fetches,2) Rows_per_Fetch,
-                                     ROUND(Elapsed_Time/1000000,2) Elapsed_Time_Secs,
-                                     ROUND(Executions * (MOD(Rows_Processed/Executions, 1000) / (Rows_Processed/Fetches) -1)) Additional_Fetches,
+             :sql=> "SELECT * FROM (
+                              SELECT Inst_ID, Parsing_Schema_Name \"Parsing schema name\",
+                                     Module,
+                                     SQL_ID, Executions, Fetches \"Number of fetches\",
+                                     End_Of_Fetch_Count \"Number of fetches until end\",
+                                     Rows_Processed \"Rows processed\",
+                                     ROUND(Rows_Processed/Executions,2) \"Rows per exec\",
+                                     ROUND(Fetches/Executions,2) \"Fetches per exec\",
+                                     ROUND(Rows_Processed/Fetches,2) \"Rows per fetch\",
+                                     ROUND(Elapsed_Time/1000000,2) \"Elapsed time (secs)\",
+                                     ROUND(Executions * (MOD(Rows_Processed/Executions, 1000) / (Rows_Processed/Fetches) -1)) \"Additional Fetches\",
                                      SQL_FullText
                               FROM   GV$SQLArea s
                               WHERE  Fetches > Executions
@@ -984,23 +988,27 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                               AND    Executions > 0
                               AND    Rows_Processed > 0
                               )
-                              ORDER BY Additional_Fetches DESC NULLS LAST',
+                              WHERE \"Fetches per exec\" > ?
+                              ORDER BY \"Additional Fetches\" DESC NULLS LAST",
+             :parameter=>[{:name=>t(:dragnet_helper_60_param_1_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_60_param_1_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
+             ]
          },
         {
              :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWR-Historie',
              :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
 Damit moderate Reduktion von CPU-Belastung und Laufzeit
 ',
-             :sql=> 'SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
+             :sql=> "SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
                       FROM (
                       SELECT s.Instance_Number Instance, s.DBID, Parsing_Schema_Name, Module,
                              SQL_ID, SUM(Executions_Delta) Executions, SUM(Fetches_Delta) Fetches,
-                             SUM(End_Of_Fetch_Count_Delta) End_Of_Fetch_Count, SUM(Rows_Processed_Delta) Rows_Processed,
-                             ROUND(SUM(Rows_Processed_Delta)/SUM(Executions_Delta),2) Rows_per_Exec,
-                             ROUND(SUM(Rows_Processed_Delta)/SUM(Fetches_Delta),2) Rows_per_Fetch,
-                             ROUND(SUM(Elapsed_Time_Delta)/1000000,2) Elapsed_Time_Secs,
+                             SUM(End_Of_Fetch_Count_Delta) End_Of_Fetch_Count, SUM(Rows_Processed_Delta) \"Rows Processed\",
+                             ROUND(SUM(Rows_Processed_Delta)/SUM(Executions_Delta),2) \"Rows per Exec\",
+                             ROUND(SUM(Fetches_Delta)/SUM(Executions_Delta),2)        \"Fetches per exec\",
+                             ROUND(SUM(Rows_Processed_Delta)/SUM(Fetches_Delta),2)    \"Rows per Fetch\",
+                             ROUND(SUM(Elapsed_Time_Delta)/1000000,2)                 \"Elapsed Time (Secs)\",
                              ROUND(SUM(Executions_delta) * (MOD(SUM(Rows_Processed_Delta)/SUM(Executions_Delta), 1000) /
-                               (SUM(Rows_Processed_Delta)/SUM(Fetches_Delta)) -1)) Additional_Fetches
+                               (SUM(Rows_Processed_Delta)/SUM(Fetches_Delta)) -1))    \"Additional Fetches\"
                       FROM   DBA_Hist_SQLStat s
                       JOIN   DBA_Hist_Snapshot ss ON ss.DBID=s.DBID AND ss.Snap_ID=s.Snap_ID AND ss.Instance_Number=s.Instance_Number
                                                   AND ss.Begin_Interval_Time > SYSDATE - ?
@@ -1010,8 +1018,11 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                       AND    SUM(Executions_Delta) > 0
                       AND    SUM(Rows_Processed_Delta) > 0
                       ) s
-                      ORDER BY Additional_Fetches DESC NULLS LAST',
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+                      WHERE \"Fetches per exec\" > ?
+                      ORDER BY \"Additional Fetches\" DESC NULLS LAST",
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                          {:name=>t(:dragnet_helper_59_param_2_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_59_param_2_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
+             ]
          },
         {
              :name  => 'Statements mit unnötig hoher Ausführungszahl: Unnötig hohe Execute-Anzahl wegen fehlender Array-Verarbeitung',
