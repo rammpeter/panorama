@@ -1042,10 +1042,12 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit.
                       WHERE  ss.Begin_Interval_Time > SYSDATE - ?
                       AND    Parsing_Schema_Name NOT IN ('SYS')
                       GROUP BY s.SQL_ID, s.Instance_Number, Parsing_Schema_Name
-                      HAVING SUM(s.Executions_Delta) > 0
+                      HAVING SUM(s.Executions_Delta) > ?
                       AND    SUM(s.Rows_Processed_Delta) > 0
                       ORDER BY SUM(Executions_Delta)*SUM(Executions_Delta)/SUM(Rows_Processed_Delta) DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                          {:name=>t(:dragnet_helper_61_param_2_name, :default=>'Min. number of executions'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_61_param_2_hint, :default=>'Minimum number of executions for consideration in result') },
+             ]
          },
         {
              :name  => 'Unnötige Ausführung von StatementsSelects/Updates/Deletes ohne Treffer',
@@ -1091,9 +1093,12 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
         {
              :name  => 'Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung SGA)',
              :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
-             :sql=>  "SELECT Inst_ID, SQL_ID, ROUND(Elapsed_Time/1000000,2) Elapsed_Time_Secs, Executions,
-                       Rows_Processed, ROUND(Elapsed_Time/1000000/DECODE(Rows_Processed,0,1,Rows_Processed),4) Secs_per_row,
-                       SQL_FullText
+             :sql=>  "SELECT Inst_ID, Parsing_Schema_Name \"Parsing Schema Name\",
+                             SQL_ID, ROUND(Elapsed_Time/1000000,2) \"Elapsed Time (Secs)\",
+                             Executions,
+                             Rows_Processed,
+                             ROUND(Elapsed_Time/1000000/DECODE(Rows_Processed,0,1,Rows_Processed),4) \"Seconds per row\",
+                             SQL_FullText
                       FROM   gv$SQLArea
                       WHERE  SQL_FullText NOT LIKE '%JDBCDAO%'
                       AND    UPPER(SQL_Text) LIKE 'UPDATE%'
@@ -1105,10 +1110,12 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
         {
              :name  => 'Unnötige Ausführung von Statements:Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung AWR-Historie)',
              :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
-             :sql=>  "SELECT SQL_ID, Executions, Elapsed_Time_Secs, Rows_Processed,
+             :sql=>  "SELECT SQL_ID, Parsing_Schema_Name  \"Parsing Schema Name\",
+                             Executions, Elapsed_Time_Secs  \"Elapsed Time (Secs)\",
+                             Rows_Processed                 \"Rows processed\",
                              ROUND(Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed),4) Secs_Per_Row, SQL_Text
                       FROM (
-                              SELECT /*+ ORDERED */ t.SQL_ID, MIN(SQL_Text) SQL_Text, SUM(Executions_Delta) Executions,
+                              SELECT /*+ ORDERED */ t.SQL_ID, MIN(SQL_Text) SQL_Text, SUM(Executions_Delta) Executions, MAX(s.Parsing_Schema_Name) Parsing_Schema_Name,
                                      ROUND(SUM(Elapsed_Time_Delta)/1000000,2) Elapsed_Time_Secs, SUM(Rows_Processed_Delta) Rows_Processed
                               FROM   (
                                        SELECT /*+ NO_MERGE PARALLEL(t,4) */ DBID, SQL_ID, TO_CHAR(SUBSTR(SQL_Text,1,4000)) SQL_Text
@@ -1133,6 +1140,7 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
              :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query\"*/
                              s.Inst_ID, s.SQL_ID,
+                             s.Parsing_Schema_Name \"Parsing Schema Name\",
                              ROUND(s.Elapsed_Time/10000)/100 Elapsed_Time_Sec,
                              s.Executions,
                              ROUND(s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions)/10000)/100 Elapsed_per_Exec_Sec,
@@ -1149,14 +1157,14 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                       AND   s.SQL_ID  = p.SQL_ID
                       AND   s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) > ? * 1000000 /* > 10 Sekunden */
                       ORDER BY s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) DESC NULLS LAST",
-             :parameter=>[{:name=> 'Minimale elapsed time/Execution', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution für Aufnahme in Selektion'}]
+             :parameter=>[{:name=> 'Minimale elapsed time/Execution (Sec.)', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution in Sekunden für Aufnahme in Selektion'}]
          },
         {
              :name  => 'Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)',
              :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query aus Historie\"*/
                              s.*,
-                             s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) Elapsed_time_Sec_Per_Exec,
+                             ROUND(s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions),2) \"Elapsed time per exec (secs)\",
                              (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID) Statement
                       FROM   (SELECT
                                      s.DBID, s.Instance_Number, s.SQL_ID,

@@ -676,9 +676,7 @@ class DbaHistoryController < ApplicationController
       end
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_sql_detail_execution_plan" }');"}
-    end
+    render_partial 'list_sql_detail_execution_plan'
   end
 
   # Anzeige aller gespeicherter Werte eines konkreten SQL

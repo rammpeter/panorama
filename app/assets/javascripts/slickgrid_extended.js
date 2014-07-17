@@ -470,8 +470,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var vertical_scrollbar_width = 0;
         if (has_slickgrid_vertical_scrollbar())
             vertical_scrollbar_width = scrollbarWidth();
-        if (options['width'] == "auto" && max_table_width+vertical_scrollbar_width < this.gridContainer.parent().width() ) {     // Grid kann noch breiter dargestellt werden
-            this.gridContainer.css('width', max_table_width+vertical_scrollbar_width);  // Gesamtes Grid auf die Breite des Canvas (Summe aller Spalten) setzten
+        if (options['width'] == "auto"){
+            if (max_table_width+vertical_scrollbar_width < current_grid_width)
+                this.gridContainer.css('width', max_table_width+vertical_scrollbar_width);  // Grid kann noch breiter dargestellt werden
+            else
+                this.gridContainer.css('width', current_grid_width);  // Gesamtes Grid auf die Breite des Parents setzen
         }
 
         jQuery('#caption_'+this.gridContainer.attr('id')).css('width', this.gridContainer.width()); // Breite des Caption-Divs auf Breite des Grid setzen

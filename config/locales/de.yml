@@ -293,10 +293,13 @@
   dragnet_helper_58_param1_desc:                            Minimale Laufzeit des SQL in Sekunden für Berücksichtigung in der Abfrage
 
   dragnet_helper_59_param_2_name:                           Minimale Anzahl Fetches je Execution
-  dragnet_helper_59_param_2_hint:                           Minimale Anzahl Fetches je Execution fuer Aufnahme in Result
+  dragnet_helper_59_param_2_hint:                           Minimale Anzahl Fetches je Execution für Aufnahme in Result
 
   dragnet_helper_60_param_1_name:                           Minimale Anzahl Fetches je Execution
-  dragnet_helper_60_param_1_hint:                           Minimale Anzahl Fetches je Execution fuer Aufnahme in Result
+  dragnet_helper_60_param_1_hint:                           Minimale Anzahl Fetches je Execution für Aufnahme in Result
+
+  dragnet_helper_61_param_1_name:                           Minimale Anzahl Executions
+  dragnet_helper_61_param_1_hint:                           Minimale Anzahl Executions für Aufnahme in Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
