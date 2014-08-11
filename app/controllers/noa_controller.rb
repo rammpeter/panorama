@@ -209,7 +209,18 @@ class NoaController < ApplicationController
         "Instance"          => {:sql => "l.Instance_Number" },
         "SID"               => {:sql => "l.SID"},
         "SerialNo"          => {:sql => "l.SerialNo"},
-        "Hide_Non_Blocking" => {:sql => "NVL(l.Blocking_SID, '0') != ?", :already_bound => true }
+        "Hide_Non_Blocking" => {:sql => "NVL(l.Blocking_SID, '0') != ?", :already_bound => true },
+        "Blocking Object"   => {:sql => "LOWER(l.Blocking_Object_Schema)||'.'||l.Blocking_Object_Name" },
+        "SQL-ID"            => {:sql => "l.SQL_ID"},
+        "Module"            => {:sql => "l.Module"},
+        "Objectname"        => {:sql => "l.ObjectName"},
+        "Locktype"          => {:sql => "l.LockType"},
+        "Request"           => {:sql => "l.Request"},
+        "LockMode"          => {:sql => "l.LockMode"},
+        "RowID"             => {:sql => "CAST(l.blocking_rowid AS VARCHAR2(18))"},
+        "B.Instance"        => {:sql => 'l.blocking_Instance_Number'},
+        "B.SID"             => {:sql => 'l.blocking_SID'},
+        "B.SQL-ID"          => {:sql => 'l.blocking_SQL_ID'},
     }[key]
     raise "blocking_locks_groupfilter_values: unknown key '#{key}'" unless retval
     retval
@@ -534,7 +545,7 @@ class NoaController < ApplicationController
 
     @locks= sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             #{@groupkey[:sql]}   Group_Value,
+             #{blocking_locks_groupfilter_values(@groupkey)[:sql]}   Group_Value,
              MIN(SnapshotTS)      Min_SnapshotTS,
              MAX(SnapshotTS)      Max_SnapshotTS,
              SUM(Seconds_In_Wait) Seconds_in_Wait,
@@ -559,7 +570,7 @@ class NoaController < ApplicationController
       FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
       WHERE  1 = 1
       #{@where_string}
-      GROUP BY #{@groupkey[:sql]}
+      GROUP BY #{blocking_locks_groupfilter_values(@groupkey)[:sql]}
       ORDER BY 5 DESC"].concat(@where_values)
 
 

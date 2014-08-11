@@ -38,7 +38,7 @@ class NoaControllerTest < ActionController::TestCase
                                   :maxResultCount => 100  if ENV['DB_VERSION'] >= '11.2'
     assert_response :success
 
-    get :list_db_cache_historic_detail, :format=>:js,
+    xhr :get, :list_db_cache_historic_detail, :format=>:js,
                                         :time_selection_start =>"01.01.2011 00:00",
                                         :time_selection_end =>"01.01.2011 01:00",
                                         :instance  => 1,
@@ -46,14 +46,14 @@ class NoaControllerTest < ActionController::TestCase
                                         :name      => "Employee"  if ENV['DB_VERSION'] >= '11.2'
     assert_response :success
 
-    get :list_db_cache_historic_snap, :format=>:js,
+    xhr :get, :list_db_cache_historic_snap, :format=>:js,
                                       :snapshotts =>"01.01.2011 00:00",
                                       :instance  => "1"  if ENV['DB_VERSION'] >= '11.2'
     assert_response :success
   end
 
   test "diverses" do
-    get :show_object_increase, :format=>:js    if ENV['DB_VERSION'] >= '11.2'
+    xhr :get, :show_object_increase, :format=>:js    if ENV['DB_VERSION'] >= '11.2'
     assert_response :success
   end
 

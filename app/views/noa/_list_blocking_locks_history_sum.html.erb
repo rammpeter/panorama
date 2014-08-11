@@ -20,11 +20,11 @@ def link_column_single(result, value)
   link_column(result, value, {}, "list_blocking_locks_history_single_record", "Anzeige der einzelnen Samples der Gruppierung")
 end
 
-def link_column_grouping(result, value, name, sql)
+def link_column_grouping(result, value, name)
   # Nur als Link anzeigen, wenn mehrere Treffer vorhanden (Muster "< Anzahl >")
   if value[0,1] == '<' && value[value.length-1,1] =='>'
     link_column(result, value,
-                {:groupkey => {:Name=>name, :sql=>sql}},
+                {:groupkey => name},
                 :list_blocking_locks_history_grouping,
                 "Anzeige der Verdichtung nach #{name} aus Samples der Gruppierung"
                )
@@ -69,21 +69,21 @@ column_options =
   [
     {:caption=>"Min.Zeitstempel", :data=>proc{|rec| localeDateTime(rec.min_snapshotts)},                                  :title=>"Kleinster Zeitstempel des Betrachtungsintervalls"},
     {:caption=>"Max.Zeitstempel", :data=>proc{|rec| localeDateTime(rec.max_snapshotts)},                                  :title=>"Größter Zeitstempel des Betrachtungsintervalls"},
-    {:caption=>"Inst.",           :data=>proc{|rec| link_column_grouping(rec, rec.instance_number, 'Instance', 'l.Instance_Number')}, :title=>"Instance der wartenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"SID",             :data=>proc{|rec| link_column_grouping(rec, rec.sid, 'SID', 'l.SID')},                  :title=>"SID der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Inst.",           :data=>proc{|rec| link_column_grouping(rec, rec.instance_number, 'Instance')},          :title=>"Instance der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"SID",             :data=>proc{|rec| link_column_grouping(rec, rec.sid, 'SID')},                           :title=>"SID der wartenden Session (Anzahl wenn mehrere)"},
     {:caption=>"Wait (Sec.)",     :data=>proc{|rec| formattedNumber(rec.seconds_in_wait,0)},                              :title=>"Summe Anzahl Sekunden die Sessions bereits im Wartezustand warten", :align=>"right"},
     {:caption=>"Samples",         :data=>proc{|rec| link_column_single(rec, "< #{formattedNumber(rec.samples,0)} >")},    :title=>"Anzahl aufgezeichneter Samples", :align=>"right"},
-    {:caption=>"SQL-ID",          :data=>proc{|rec| link_column_grouping(rec, rec.sql_id, 'SQL-ID', 'l.SQL_ID')},         :title=>"SQL-ID der wartenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"Module",          :data=>proc{|rec| link_column_grouping(rec, rec.module, 'Module', 'l.module')},         :title=>"Module der wartenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"Objectname",      :data=>proc{|rec| link_column_grouping(rec, rec.objectname, 'Objectname', 'l.objectname')}, :title=>"Objectname der wartenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"LT",              :data=>proc{|rec| link_column_grouping(rec, rec.locktype, 'Locktype', 'l.locktype')},   :title=>"Locktype der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_types(rec.locktype)} },
-    {:caption=>"R",               :data=>proc{|rec| link_column_grouping(rec, rec.request, 'Request', 'l.request')},      :title=>"Angeforderter LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_modes(rec.request)} },
-    {:caption=>"L",               :data=>proc{|rec| link_column_grouping(rec, rec.lockmode, 'LockMode', 'l.lockmode')},   :title=>"Gehaltener LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_modes(rec.lockmode)} },
-    {:caption=>"Blocking Object", :data=>proc{|rec| link_column_grouping(rec, rec.blocking_object, 'Blocking Object', "LOWER(l.Blocking_Object_Schema)||'.'||l.Blocking_Object_Name")}, :title=>"Schema und Name des blockenden Objektes (Anzahl wenn mehrere)"},
-    {:caption=>"RowID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_rowid, 'RowID', 'CAST(l.blocking_rowid AS VARCHAR2(18))')}, :title=>"RowID des blockenden Objektes (Anzahl wenn mehrere)"},
-    {:caption=>"B.Inst.",         :data=>proc{|rec| link_column_grouping(rec, rec.blocking_instance_number, 'B.Instance', 'l.blocking_Instance_Number')}, :title=>"Instance der blockenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"B.SID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sid, 'B.SID', 'l.Blocking_SID')}, :title=>"SID der blockenden Session (Anzahl wenn mehrere)"},
-    {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sql_id, 'B.SQL-ID', 'l.Blocking_SQL_ID')}, :title=>"SQL-ID der blockenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"SQL-ID",          :data=>proc{|rec| link_column_grouping(rec, rec.sql_id, 'SQL-ID')},                     :title=>"SQL-ID der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Module",          :data=>proc{|rec| link_column_grouping(rec, rec.module, 'Module')},                     :title=>"Module der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"Objectname",      :data=>proc{|rec| link_column_grouping(rec, rec.objectname, 'Objectname')},             :title=>"Objectname der wartenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"LT",              :data=>proc{|rec| link_column_grouping(rec, rec.locktype, 'Locktype')},                 :title=>"Locktype der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_types(rec.locktype)} },
+    {:caption=>"R",               :data=>proc{|rec| link_column_grouping(rec, rec.request, 'Request')},                   :title=>"Angeforderter LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_modes(rec.request)} },
+    {:caption=>"L",               :data=>proc{|rec| link_column_grouping(rec, rec.lockmode, 'LockMode')},                 :title=>"Gehaltener LockMode der wartenden Session (Anzahl wenn mehrere)", :data_title=>proc{|rec| lock_modes(rec.lockmode)} },
+    {:caption=>"Blocking Object", :data=>proc{|rec| link_column_grouping(rec, rec.blocking_object, 'Blocking Object')},   :title=>"Schema und Name des blockenden Objektes (Anzahl wenn mehrere)"},
+    {:caption=>"RowID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_rowid, 'RowID')},              :title=>"RowID des blockenden Objektes (Anzahl wenn mehrere)"},
+    {:caption=>"B.Inst.",         :data=>proc{|rec| link_column_grouping(rec, rec.blocking_instance_number, 'B.Instance')}, :title=>"Instance der blockenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"B.SID",           :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sid, 'B.SID')},                :title=>"SID der blockenden Session (Anzahl wenn mehrere)"},
+    {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_column_grouping(rec, rec.blocking_sql_id, 'B.SQL-ID')},          :title=>"SQL-ID der blockenden Session (Anzahl wenn mehrere)"},
   ]
 %>
 
