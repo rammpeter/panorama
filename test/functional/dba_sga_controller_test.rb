@@ -23,7 +23,7 @@ class DbaSgaControllerTest < ActionController::TestCase
   end
 
   test "show_application_info" do
-    get :show_application_info, :format=>:js, :moduletext=>"Application = 128"
+    xhr :get, :show_application_info, :format=>:js, :moduletext=>"Application = 128"
     assert_response :success
   end
 
@@ -42,17 +42,17 @@ class DbaSgaControllerTest < ActionController::TestCase
   end
 
   test "list_sql_detail_sql_id_childno" do
-    get  :list_sql_detail_sql_id_childno, :format=>:js, :instance => "1", :sql_id => @sga_sql_id
+    xhr :get, :list_sql_detail_sql_id_childno, :format=>:js, :instance => "1", :sql_id => @sga_sql_id
     assert_response :success
   end
 
   test "list_sql_detail_sql_id" do
-    get  :list_sql_detail_sql_id , :format=>:js, :instance => "1", :sql_id => @sga_sql_id
+    xhr :get,  :list_sql_detail_sql_id , :format=>:js, :instance => "1", :sql_id => @sga_sql_id
     assert_response :success
   end
 
   test "list_open_cursor_per_sql" do
-    get :list_open_cursor_per_sql, :format=>:js, :instance=>1, :sql_id => @sga_sql_id
+    xhr :get, :list_open_cursor_per_sql, :format=>:js, :instance=>1, :sql_id => @sga_sql_id
     assert_response :success
   end
 
@@ -69,17 +69,17 @@ class DbaSgaControllerTest < ActionController::TestCase
   end
 
   test "show_using_sqls" do
-    get :show_using_sqls, :format=>:js, :ObjectName=>"gv$sql"
+    xhr :get, :show_using_sqls, :format=>:js, :ObjectName=>"gv$sql"
     assert_response :success
   end
 
   test "list_object_nach_file_und_block" do
-    get :list_object_nach_file_und_block, :format=>:js, :fileno=>1, :blockno=>1
+    xhr :get, :list_object_nach_file_und_block, :format=>:js, :fileno=>1, :blockno=>1
     assert_response :success
   end
 
   test "list_cursor_memory" do
-    get :list_cursor_memory, :format=>:js, :instance=>1, :sql_id=>@sga_sql_id
+    xhr :get, :list_cursor_memory, :format=>:js, :instance=>1, :sql_id=>@sga_sql_id
     assert_response :success
   end
 

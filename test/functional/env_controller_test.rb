@@ -29,7 +29,7 @@ class EnvControllerTest < ActionController::TestCase
       menu_entry[:content].each do |m|
         test_menu_entry(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
         if m[:class] == "item" && !controller_action_defined?(m[:controller], m[:action])
-          get :render_menu_action, :format=>:js, :redirect_controller => m[:controller], :redirect_action => m[:action]
+          xhr :get, :render_menu_action, :format=>:js, :redirect_controller => m[:controller], :redirect_action => m[:action]
           assert_response :success
         end
       end

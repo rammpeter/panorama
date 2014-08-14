@@ -8,12 +8,12 @@ class DragnetControllerTest < ActionController::TestCase
   end
 
   test "show_selection"  do
-    get  :show_selection, :format=>:js
+    xhr :get,  :show_selection, :format=>:js
     assert_response :success
   end
 
   test "refresh_selection_hint"  do
-    get :refresh_selection_hint, :format=>:js, :array_index=>0
+    xhr :get, :refresh_selection_hint, :format=>:js, :array_index=>0
     assert_response :success
   end
 

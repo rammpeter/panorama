@@ -13,7 +13,7 @@ class DbaControllerTest < ActionController::TestCase
 
 
   test "dba"       do
-    get  :show_redologs, :format=>:js
+    xhr :get,  :show_redologs, :format=>:js
     assert_response :success
 
     post :list_redologs_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end
@@ -29,10 +29,10 @@ class DbaControllerTest < ActionController::TestCase
 
     post :list_sessions, :format=>:js;   assert_response :success
 
-    get :list_waits_per_event, :format=>:js, :event=>"db file sequential read", :instance=>"1", :update_area=>"hugo";
+    xhr :get, :list_waits_per_event, :format=>:js, :event=>"db file sequential read", :instance=>"1", :update_area=>"hugo";
     assert_response :success
 
-    get  :show_session_detail, :format=>:js, :instance=>@instance, :sid=>@sid, :serialno=>@serialno
+    xhr :get,  :show_session_detail, :format=>:js, :instance=>@instance, :sid=>@sid, :serialno=>@serialno
     assert_response :success
 
     post :show_session_details_waits, :format=>:js, :instance=>@instance, :sid=>@sid, :serialno=>@serialno
@@ -53,18 +53,18 @@ class DbaControllerTest < ActionController::TestCase
     post :show_session_details_waits_object, :format=>:js, :event=>"db file sequential read"
     assert_response :success
 
-    get  :used_objects, :format=>:js
+    xhr :get,  :used_objects, :format=>:js
     assert_response :success
 
     post  :show_explain_plan, :format=>:js, :statement => "SELECT SYSDATE FROM DUAL"
     assert_response :success
 
-    get  :show_session_waits, :format=>:js
+    xhr :get,  :show_session_waits, :format=>:js
     assert_response :success
     #test "show_application" do get  :show_application, :applexec_id => "0";  assert_response :success; end
     #test "show_segment_statistics" do get  :show_segment_statistics;  assert_response :success; end
 
-    get  :segment_stat, :format=>:js
+    xhr :get,  :segment_stat, :format=>:js
     assert_response :success
   end
 

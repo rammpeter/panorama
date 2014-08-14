@@ -23,22 +23,22 @@ class DbaWaitsControllerTest < ActionController::TestCase
 
 
   test "gc_request_latency" do
-    get :gc_request_latency, :format=>:js
+    xhr :get, :gc_request_latency, :format=>:js
     assert_response :success
   end
 
   test "list_gc_request_latency_history" do
-    get :list_gc_request_latency_history, :format=>:js, :instance=>1, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+    xhr :get, :list_gc_request_latency_history, :format=>:js, :instance=>1, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
     assert_response :success
   end
 
   test "show_ges_blocking_enqueue" do
-    get  :show_ges_blocking_enqueue, :format=>:js
+    xhr :get,  :show_ges_blocking_enqueue, :format=>:js
     assert_response :success
   end
 
   test "show_session_wait_object" do
-    get :show_session_wait_object,  :format=>:js, :instance=>1, :event=>"Hugo"
+    xhr :get, :show_session_wait_object,  :format=>:js, :instance=>1, :event=>"Hugo"
     assert_response :success
   end
 

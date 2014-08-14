@@ -6,6 +6,14 @@
         {:caption=>"SQL_ID",   :data=>proc{|rec| link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)},  :title=>"SQL-ID"},
         {:caption=>"Instance", :data=>proc{|rec| rec.instance_number },  :title=>"RAC-Instance SQL is executed on"},
         {:caption=>"User",     :data=>proc{|rec| rec.username },         :title=>"DB user executing SQL"},
+        {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")},
+        {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")},
+        {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs,2) },  :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time range"), :align=>"right"},
+        {:caption=>"Avg. Time waited", :data=>proc{|rec| formattedNumber(rec.time_waited_avg_ms,2)},  :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"},
+        {:caption=>"Total Time waited",:data=>proc{|rec| formattedNumber(rec.time_waited_secs,0) },   :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right"},
+        {:caption=>"Avg. Load",        :data=>proc{|rec| formattedNumber(rec.time_waited_secs.to_f/(rec.sample_dauer_secs>0 ? rec.sample_dauer_secs : rec.max_sample_cycle),2) },  :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"},
+        {:caption=>"Samples",          :data=>proc{|rec| fn(rec.count_samples) }, :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"},
+
     ]
 
 %>

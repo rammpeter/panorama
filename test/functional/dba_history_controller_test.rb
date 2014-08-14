@@ -148,8 +148,8 @@ class DbaHistoryControllerTest < ActionController::TestCase
          :sql_id=>@sga_sql_id, :parsing_schema_name=>@sga_parsing_schema_Name
     # Wegen im Test nicht funktionierendem redirect in html.erb kommt evtl. Status=302 zurück
     # ist aber o.k., da zu testende Funktion vorher durchlaufen wird
-    assert_response 302
-    #assert_response :success
+
+    assert_response :success unless [200, 302].include?(@response.response_code)
   end
 
   test "mutex_statistics_historic" do
@@ -164,11 +164,11 @@ class DbaHistoryControllerTest < ActionController::TestCase
     do_test_list_mutex_statistics_historic(:Waiter)
     do_test_list_mutex_statistics_historic(:Timeline)
 
-    get :list_mutex_statistics_historic_samples, :format=>:js, :instance=>1, :mutex_type=>:Hugo, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
+    xhr :get, :list_mutex_statistics_historic_samples, :format=>:js, :instance=>1, :mutex_type=>:Hugo, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
         :filter=>:Blocking_Session, :filter_session=>@sid
     assert_response :success
 
-    get :list_mutex_statistics_historic_samples, :format=>:js, :instance=>1, :mutex_type=>:Hugo, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
+    xhr :get, :list_mutex_statistics_historic_samples, :format=>:js, :instance=>1, :mutex_type=>:Hugo, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
         :filter=>:Requesting_Session, :filter_session=>@sid
     assert_response :success
   end

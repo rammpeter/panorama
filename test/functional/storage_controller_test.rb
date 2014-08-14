@@ -13,7 +13,7 @@ class StorageControllerTest < ActionController::TestCase
 
   test "storage_controller" do
 
-    get  :datafile_usage, :format=>:js
+    xhr :get,  :datafile_usage, :format=>:js
     assert_response :success
 
     post :list_materialized_view_action, :format=>:js, :registered_mviews => "Hugo"
@@ -25,40 +25,40 @@ class StorageControllerTest < ActionController::TestCase
     post :list_materialized_view_action, :format=>:js, :mview_logs => "Hugo"
     assert_response :success;
 
-    get :list_registered_materialized_views, :format=>:js
+    xhr :get, :list_registered_materialized_views, :format=>:js
     assert_response :success;
 
-    get :list_registered_materialized_views, :format=>:js, :snapshot_id=>1
+    xhr :get, :list_registered_materialized_views, :format=>:js, :snapshot_id=>1
     assert_response :success;
 
-    get :list_all_materialized_views, :format=>:js
+    xhr :get, :list_all_materialized_views, :format=>:js
     assert_response :success;
 
-    get :list_all_materialized_views, :format=>:js, :owner=>"Hugo", :name=>"Hugo"
+    xhr :get, :list_all_materialized_views, :format=>:js, :owner=>"Hugo", :name=>"Hugo"
     assert_response :success;
 
-    get :list_materialized_view_logs, :format=>:js
+    xhr :get, :list_materialized_view_logs, :format=>:js
     assert_response :success;
 
-    get :list_materialized_view_logs, :format=>:js, :log_owner=>"Hugo", :log_name=>"Hugo"
+    xhr :get, :list_materialized_view_logs, :format=>:js, :log_owner=>"Hugo", :log_name=>"Hugo"
     assert_response :success;
 
-    get :list_snapshot_logs,  :format=>:js, :snapshot_id=>1
+    xhr :get, :list_snapshot_logs,  :format=>:js, :snapshot_id=>1
     assert_response :success;
 
-    get :list_snapshot_logs,  :format=>:js,  :log_owner=>"Hugo", :log_name=>"Hugo"
+    xhr :get, :list_snapshot_logs,  :format=>:js,  :log_owner=>"Hugo", :log_name=>"Hugo"
     assert_response :success;
 
-    get :list_registered_mview_query_text, :format=>:js, :mview_id=>1
+    xhr :get, :list_registered_mview_query_text, :format=>:js, :mview_id=>1
     assert_response :success;
 
-    get :list_mview_query_text, :format=>:js, :owner=>"Hugo", :name=>"Hugo"
+    xhr :get, :list_mview_query_text, :format=>:js, :owner=>"Hugo", :name=>"Hugo"
     assert_response :success;
 
-    get :list_real_num_rows, :format=>:js, :owner=>"sys", :name=>"user$"
+    xhr :get, :list_real_num_rows, :format=>:js, :owner=>"sys", :name=>"user$"
     assert_response :success;
 
-    get  :tablespace_usage, :format=>:js
+    xhr :get,  :tablespace_usage, :format=>:js
     assert_response :success
   end
 

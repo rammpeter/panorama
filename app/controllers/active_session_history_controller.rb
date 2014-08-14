@@ -195,7 +195,16 @@ class ActiveSessionHistoryController < ApplicationController
 
     @sql_ids = sql_select_all ["\
       SELECT /*+ ORDERED Panorama-Tool Ramm */
-             s.SQL_ID, s.Instance_Number, u.UserName
+             s.SQL_ID, s.Instance_Number, u.UserName,
+             AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
+             SUM(s.Sample_Cycle)              Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
+             MAX(s.Sample_Cycle)              Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
+             COUNT(1)                         Count_Samples,
+             MIN(Sample_Time)                 First_Occurrence,
+             MAX(Sample_Time)                 Last_Occurrence,
+             -- So komisch wegen Konvertierung Timestamp nach Date für Subtraktion
+             (TO_DATE(TO_CHAR(MAX(Sample_Time), 'DD.MM.YYYY HH24:MI:SS'), 'DD.MM.YYYY HH24:MI:SS') -
+              TO_DATE(TO_CHAR(MIN(Sample_Time), 'DD.MM.YYYY HH24:MI:SS'), 'DD.MM.YYYY HH24:MI:SS'))*(24*60*60) Sample_Dauer_Secs
       FROM   (SELECT /*+ NO_MERGE ORDERED */
                      10 Sample_Cycle, DBID, Instance_Number, #{get_ash_default_select_list}
               FROM   DBA_Hist_Active_Sess_History s
