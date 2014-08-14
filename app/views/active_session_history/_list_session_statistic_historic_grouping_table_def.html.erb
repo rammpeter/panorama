@@ -86,16 +86,21 @@
     end
   end
 
+  # Berechnung average load aus rec
+  def avg_load(rec)
+    rec.time_waited_secs.to_f/(rec.sample_dauer_secs>0 ? rec.sample_dauer_secs : rec.max_sample_cycle)
+  end
+
   @column_options = []
   @column_options << {:caption=>session_statistics_key_rule(@groupby)[:Name],         :data=>proc{|rec| show_groupkey_value(rec) },                        :title=>session_statistics_key_rule(@groupby)[:Title], :data_title=>session_statistics_key_rule(@groupby)[:Data_Title]}
   @column_options << {:caption=>session_statistics_key_rule(@groupby)[:info_caption], :data=>proc{|rec| show_info(rec.info) },                       :title=>"Nähere Info zu Gruppierungskriterium #{@groupby}", :data_title=>proc{|rec| rec.info_hint} } if session_statistics_key_rule(@groupby)[:info_caption]
   @column_options << {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")}
   @column_options << {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")}
   @column_options << {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs,2) },  :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time range"), :align=>"right"}
-  @column_options << {:caption=>"Avg. Time waited", :data=>proc{|rec| formattedNumber(rec.time_waited_avg_ms,2)},  :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"}
-  @column_options << {:caption=>"Total Time waited",:data=>proc{|rec| formattedNumber(rec.time_waited_secs,0) },   :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right"}
-  @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| formattedNumber(rec.time_waited_secs.to_f/(rec.sample_dauer_secs>0 ? rec.sample_dauer_secs : rec.max_sample_cycle),2) },  :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
-  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) }, :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"}
+  @column_options << {:caption=>"Avg. Time waited", :data=>proc{|rec| fn(rec.time_waited_avg_ms,2)},    :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"}
+  @column_options << {:caption=>"Total Time waited",:data=>proc{|rec| fn(rec.time_waited_secs,0) },     :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right", :show_pct_hint=>proc{|rec| rec.time_waited_secs}}
+  @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| fn(avg_load(rec),2) },            :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
+  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"}
 
   session_statistics_key_rules.each do |key, value|
     unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen

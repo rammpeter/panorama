@@ -610,6 +610,7 @@ public
 
         # Title erweitern um %-Anteil von Spaltensumme
         if col[:sum] && col[:sum] != 0    # Ausgabe %-Anteil und spaltensumme im title, title oder data_title sollten dafür gesetzt sein
+          title << col[:title] if title == '' && col[:title]    # title einbetten wenn kein data_title gesetzt ist. Ansonsten wird title erst in HTML-Anzeige vom Header geerbt wenn kein data_title oder show_pct_hint gesetzt ist
           recval = col[:show_pct_hint].call(rec)
           title << " #{formattedNumber((recval ? recval : 0) * 100.to_f / col[:sum], 2) } % of column sum: #{formattedNumber(col[:sum])}"
         end
