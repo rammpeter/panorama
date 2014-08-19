@@ -2373,6 +2373,32 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                {:name=> 'Minimale Transaktionsdauer in Sekunden', :size=>8, :default=>300, :title=> 'Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion'},
            ]
       },
+      {
+          :name  => t(:dragnet_helper_61_name, :default=> 'Possibly unnecessary update of primary key columns'),
+          :desc  => t(:dragnet_helper_61_desc, :default=>'Primary key columns should normally be immutable, especially if they are referenced from foreign keys.
+Setting primary key columns with identical values causes unnecessary effort for index maintenance.
+Therefore primary key columns should not occur in SET-clause of UPDATE statements.
+           '),
+          :sql=> "
+              SELECT SQL_ID, Object_Owner, Object_Name, Column_Name, Executions, Elapsed_Time_Secs, SUBSTR(SQL_FullText, 1, 200)
+              FROM   (SELECT x.*, UPPER(SUBSTR(SQL_FullText, Set_Position, Where_Position - Set_Position)) Set_Klausel
+                      FROM   (
+                              SELECT p.Object_Owner, p.Object_Name, p.SQL_ID, cc.Column_Name, t.SQL_FullText, INSTR(UPPER(SQL_FullText), 'SET') Set_Position, INSTR(UPPER(SQL_FullText), 'WHERE') Where_Position,
+                                     t.Executions, t.Elapsed_Time/(100000) Elapsed_Time_Secs
+                              FROM   (SELECT Inst_ID, Object_Owner, Object_Name, SQL_ID
+                                      FROM   gv$SQL_PLan
+                                      WHERE  Operation = 'UPDATE'
+                                      GROUP BY Inst_ID, Object_Owner, Object_Name, SQL_ID -- Gruppieren ueber Children
+                                     ) p
+                              JOIN   DBA_Constraints c ON c.Owner = p.Object_Owner AND c.Table_Name = p.Object_Name AND c.Constraint_Type = 'P'
+                              JOIN   DBA_Cons_Columns cc ON cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name
+                              JOIN   gv$SQLArea t ON t.Inst_ID = p.Inst_ID AND t.SQL_ID = p.SQL_ID
+                             ) x
+                     ) x
+              WHERE REGEXP_INSTR(Set_Klausel, '[ ,]'||Column_Name||'[ =]') > 0
+              ORDER BY Elapsed_Time_Secs DESC
+          ",
+      },
     ]
   end
 
