@@ -223,6 +223,14 @@ column_options =
 })
 %>
 
-
-
+<div class="float_left">
+    <%= my_ajax_submit_tag('DB-Cache',
+                           url_for(:update_area => @update_area,
+                                   :action      => :list_db_cache_by_object_id,
+                                   :controller  => :dba_sga,
+                                   :object_id    => @attribs[0].table_object_id
+                           ),
+                           :title => "Usage of DB-cache for object #{@owner}.#{@table_name}")
+    %>
+</div>
 <div id="<%= @update_area %>" style="clear:both;"></div>

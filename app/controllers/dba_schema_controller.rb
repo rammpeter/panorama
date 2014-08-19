@@ -196,7 +196,7 @@ class DbaSchemaController < ApplicationController
         raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
     end
 
-    @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time
+    @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID
                                 FROM DBA_Tables t
                                 JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
                                 WHERE t.Owner = ? AND t.Table_Name = ?

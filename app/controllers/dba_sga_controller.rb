@@ -493,13 +493,24 @@ class DbaSgaController < ApplicationController
     @sysdate = (sql_select_all "SELECT SYSDATE FROM DUAL")[0].sysdate
     @db_cache_global_sums = sql_select_all ["
       SELECT /* Panorama-Tool Ramm */
-        Status, Count(*) Blocks  
-        FROM GV$BH
-        WHERE Inst_ID=?
-        GROUP BY Status                    
+             x.Status, SUM(Blocks) Blocks,
+             SUM(x.Blocks * ts.BlockSize)/(1024*1024) MB_Total
+      FROM   (SELECT Inst_ID, Status, TS#, Count(*) Blocks
+              FROM GV$BH
+              WHERE Inst_ID=?
+              GROUP BY Inst_ID, Status, TS#
+             ) x
+      LEFT OUTER JOIN   sys.TS$ ts ON ts.TS# = x.TS#
+      GROUP BY x.Inst_ID, x.Status
       ", @instance];
-      
-    # Konkrete Objekte im Cache  
+
+    @total_status_blocks = 0                  # Summation der Blockanzahl des Caches
+    @db_cache_global_sums.each do |c|
+      @total_status_blocks += c.blocks
+    end
+
+
+    # Konkrete Objekte im Cache
     @objects = sql_select_all ["
       SELECT /*+ RULE */ /* Panorama-Tool Ramm */
         NVL(o.Owner,'[UNKNOWN]') Owner,                       
@@ -509,6 +520,7 @@ class DbaSgaController < ApplicationController
         MIN(CASE WHEN o.Object_Type LIKE 'INDEX%' THEN
                   (SELECT Table_Name FROM ALL_Indexes i WHERE i.Owner = o.Owner AND i.Index_Name = o.Object_Name)
         ELSE NULL END) Table_Name, -- MIN statt Aufnahme in GROUP BY
+        SUM(bh.Blocks * ts.BlockSize) / (1024*1024) Size_MB,
         SUM(bh.Blocks)      Blocks,
         SUM(bh.DirtyBlocks) DirtyBlocks,
         SUM(bh.TempBlocks)  TempBlocks,
@@ -815,6 +827,40 @@ class DbaSgaController < ApplicationController
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j output }');"}
     end
+  end
+
+  # List cache-Entries of object
+  def list_db_cache_by_object_id
+    @object_row = sql_select_first_row ['SELECT * FROM DBA_Objects WHERE Object_ID=?', params[:object_id]]
+    raise "No object found in DBA_Objects for Object_ID=#{params[:object_id]}" unless @object_row
+
+    @caches = sql_select_all ["
+      SELECT x.Inst_ID,
+             SUM(x.Blocks * ts.BlockSize)/(1024*1024) MB_Total,
+             SUM(x.Blocks * ts.BlockSize)/(SELECT Value FROM gv$SGA s WHERE s.Inst_ID = x.Inst_ID AND s.Name = 'Database Buffers')*100 Pct,
+             SUM(Blocks) Blocks,
+             SUM(Dirty)  Dirty,
+             SUM(xcur)   xcur,
+             SUM(scur)   scur,
+             SUM(cr)     cr,
+             SUM(read)   read
+      FROM   (
+              SELECT c.Inst_ID, TS#, COUNT(*) Blocks,
+                     SUM(DECODE(c.Dirty, 'Y', 1, 0)) Dirty,
+                     SUM(DECODE(c.Status, 'xcur', 1, 0)) xcur,
+                     SUM(DECODE(c.Status, 'scur', 1, 0)) scur,
+                     SUM(DECODE(c.Status, 'cr', 1, 0)) cr,
+                     SUM(DECODE(c.Status, 'read', 1, 0)) read
+              FROM   DBA_Objects o
+              JOIN   gv$BH c ON c.Objd = o.Data_Object_ID
+              WHERE  o.Object_ID = ?
+              GROUP BY c.Inst_ID, TS#
+             ) x
+      JOIN   sys.TS$ ts ON ts.TS# = x.TS#
+      GROUP BY Inst_ID
+    ", params[:object_id]]
+
+    render_partial :list_db_cache_by_object_id
   end
 
 end
