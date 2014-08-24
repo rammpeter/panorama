@@ -26,7 +26,7 @@
 /* eigener DIV innerhalb der Zelle des slickGrid, füllt parent komplett aus */
 .slick-inner-cell {
     font-family: sans-serif;
-    font-size: 11.5;
+    font-size: 12px;
     overflow: hidden;
     width:100%;
     height:100%;

@@ -3,7 +3,10 @@ Panorama::Application.routes.draw do
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-  root :to => 'env#index'
+
+  # random-Names fuer root-Route, da bei Existenz lib/Panorama/engine.rb die Routen dopplelt gesetzt werden uns dabei folgender Fehler auftritt:
+  # ArgumentError: Invalid route name, already in use: 'root'
+  root :to => 'env#index', as: "default_panorama_root"+Random.rand(1000).to_s
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'

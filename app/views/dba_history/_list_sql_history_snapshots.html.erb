@@ -4,14 +4,14 @@
 def link_column_detail(rec, value)
   my_ajax_link_to(value,
     url_for(:action     => "list_sql_detail_historic",
-            :dbid       => session[:database].dbid,
+            :dbid       => session[:database][:dbid],
             :instance   => @instance,
             :sql_id     => @sql_id,
             :parsing_schema_name =>@parsing_schema_name,
             :min_snap_id=> rec.min_snap_id,
             :max_snap_id=> rec.max_snap_id,
-            :time_selection_start => rec.begin_interval_time.strftime(session[:database].strftime_format_with_minutes),
-            :time_selection_end   => rec.end_interval_time.strftime(session[:database].strftime_format_with_minutes),  # 1 Tag weiter
+            :time_selection_start => rec.begin_interval_time.strftime(strftime_format_with_minutes),
+            :time_selection_end   => rec.end_interval_time.strftime(strftime_format_with_minutes),  # 1 Tag weiter
             :update_area=> @update_area
           ),
    :title=>"Anzeige der Details des Statements für diesen Zeitraum aus DBA_Hist_SQLStat (unterhalb)")

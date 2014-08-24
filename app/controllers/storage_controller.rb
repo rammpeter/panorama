@@ -58,7 +58,7 @@ class StorageController < ApplicationController
       UNION ALL
       SELECT 'Redo Inst='||Inst_ID           Tablespace_Name,
              'Redo-Logfile'             Contents,
-             #{ if session[:database].version >= "11.2"
+             #{ if session[:database][:version] >= "11.2"
                   "MIN(BlockSize)"
                 else
                   0
@@ -342,7 +342,7 @@ class StorageController < ApplicationController
                 ) f ON f.FILE_ID = d.FILE_ID AND f.Tablespace_Name = d.Tablespace_Name -- DATA und Temp verwenden File_ID redundant
       ORDER BY 1 ASC")
 
-    if session[:database].version >= "11.2"
+    if session[:database][:version] >= "11.2"
       @file_usage = sql_select_all "\
         SELECT f.*,
                NVL(d.File_Name, t.File_Name) File_Name,

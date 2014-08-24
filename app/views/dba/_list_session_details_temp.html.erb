@@ -9,7 +9,7 @@
       {:caption=>"Seg.Type",       :data=>proc{|rec| rec.segtype},                                                   :title=>"segment type"},
       {:caption=>"Extents",        :data=>proc{|rec| formattedNumber(rec.extents)}     , :align=>"right"     },
       {:caption=>"Blocks",         :data=>proc{|rec| formattedNumber(rec.blocks)}, :align=>"right"          },
-      {:caption=>"MBytes",         :data=>proc{|rec| formattedNumber(rec.blocks * session[:database].db_block_size / (1024*1024), 3)}, :align=>"right"           },
+      {:caption=>"MBytes",         :data=>proc{|rec| formattedNumber(rec.blocks * session[:database][:db_block_size] / (1024*1024), 3)}, :align=>"right"           },
     ]
 
 %>

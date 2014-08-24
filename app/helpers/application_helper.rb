@@ -8,6 +8,7 @@ module ApplicationHelper
   include DiagramHelper
   include HtmlHelper
   include ActionView::Helpers::SanitizeHelper
+  include DatabaseHelper
 
  #def list_tns_names
  #
@@ -141,8 +142,11 @@ module ApplicationHelper
 
   # Genutzt zur Anzeige im zentralen Screen
   def current_tns 
-    database = session[:database]
-    database != nil ? database.tns : '[Keine]'
+    if session[:database] && session[:database].class.name == 'Database'
+      tns
+    else
+      '[Keine]'
+    end
   end 
 
   # ID der Instance auf der der User angemeldet ist
@@ -154,8 +158,8 @@ module ApplicationHelper
                       decimalCount=0,         # Anzahl Dezimalstellen
                       supress_0_value=false   # Unterdrücken der Ausgabe bei number=0 ?
                      )
-    decimal_delimiter   = session[:database].numeric_decimal_separator
-    thousands_delimiter = session[:database].numeric_thousands_separator
+    decimal_delimiter   = numeric_decimal_separator
+    thousands_delimiter = numeric_thousands_separator
     return '' unless number;  # Leere Ausgabe bei nil
     number = number.to_f if number.instance_of?(String) || number.instance_of?(BigDecimal)   # Numerisches Format erzwingen
     number = number.round(decimalCount) if number.instance_of?(Float) # Ueberlauf von Stellen kompensieren
@@ -196,26 +200,13 @@ module ApplicationHelper
   end
 
 
-  # locale-spezifische Ersetzungen
-  def sql_datetime_minute_mask
-    session[:database].translate_sql_datetime_minute_mask
-  end
-
-  def sql_datetime_second_mask
-    session[:database].translate_sql_datetime_second_mask
-  end
-
-  def human_datetime_minute_mask
-    session[:database].translate_human_datetime_minute_mask
-  end
-
   # Zeistempel in sprach-lokaler Notation ausgeben
   def localeDateTime(timestamp, format = :seconds)
     return '' unless timestamp                    # Leere Ausgabe, wenn nil
     timestamp = timestamp.to_datetime             # Sicherstellen, dass vom Typ DateTime
     case format
-      when :seconds then timestamp.strftime(session[:database].strftime_format_with_seconds)
-      when :minutes then timestamp.strftime(session[:database].strftime_format_with_minutes)
+      when :seconds then timestamp.strftime(strftime_format_with_seconds)
+      when :minutes then timestamp.strftime(strftime_format_with_minutes)
     else
       raise "Unknown parameter format = #{format} in localeDateTime"
     end
@@ -264,7 +255,7 @@ module ApplicationHelper
   # Aufbereiten des Parameters "dbid" aus Request, return session-default wenn kein plausibler Wert
   def prepare_param_dbid
     retval = params[:dbid]
-    retval = session[:database].dbid unless retval
+    retval = session[:database][:dbid] unless retval
     retval
   end
 
@@ -371,7 +362,7 @@ module ApplicationHelper
     if session[:time_selection_start] && session[:time_selection_start] != ''
       session[:time_selection_start]
     else
-      "#{Date.today.strftime(session[:database].strftime_format_with_days)} 00:00"
+      "#{Date.today.strftime(strftime_format_with_days)} 00:00"
     end
   end
 
@@ -380,7 +371,7 @@ module ApplicationHelper
     if session[:time_selection_end] && session[:time_selection_end] != ''
       session[:time_selection_end]
     else
-      "#{Date.today.strftime(session[:database].strftime_format_with_days)} 13:00"
+      "#{Date.today.strftime(strftime_format_with_days)} 13:00"
     end
   end
 
@@ -462,7 +453,7 @@ public
     output << "  multiple_y_axes:      #{global_options[:multiple_y_axes]},"
     output << "  show_y_axes:          #{global_options[:show_y_axes]},"
     output << "  line_height_single:   #{global_options[:line_height_single]},"
-    output << "  locale:               '#{session[:database].locale}',"
+    output << "  locale:               '#{session[:database][:locale]}',"
     output << '}'
     output
 
@@ -583,7 +574,7 @@ public
         end
         if col[:isDate]  && stripped_celldata && stripped_celldata.length > 0
           if stripped_celldata.length >= 10
-            case session[:database].locale
+            case session[:database][:locale]
               when 'de' then
                 col[:isDate] = false if stripped_celldata[2,1] != '.' || stripped_celldata[5,1] != '.' # Test auf Trennzeichen der Datum-Darstellung
               when 'en' then
@@ -707,7 +698,7 @@ public
     # Ermitteln Kurztext per DB aus SQL-ID
     def get_sql_shorttext_by_sql_id(sql_id)
       # Connect zur DB nachhollen wenn noch auf NullAdapter steht, da Zugriff auf gecachte Werte ohne DB-Connect möglich ist
-      session[:database].open_oracle_connection if ActiveRecord::Base.connection.class != ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
+      open_oracle_connection if ActiveRecord::Base.connection.class != ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
 
       # erster Versuch direkt aus SGA zu lesen
       sqls = sql_select_all ["\
@@ -722,7 +713,7 @@ public
                    FROM   DBA_Hist_SQLText
                    WHERE  DBID   = ?
                    AND    SQL_ID = ?",
-                   session[:database].dbid, sql_id]
+                   session[:database][:dbid], sql_id]
       end
 
       if sqls.size == 0

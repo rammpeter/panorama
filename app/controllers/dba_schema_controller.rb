@@ -340,10 +340,10 @@ class DbaSchemaController < ApplicationController
     @owner      = params[:owner]
     @table_name = params[:table_name]
 
-    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database].version >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
+    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database][:version] >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
     part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
 
-    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database].version >= "11.2" && part_tab.interval}"
+    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:database][:version] >= "11.2" && part_tab.interval}"
 
     @partitions = sql_select_all ["\
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
@@ -361,10 +361,10 @@ class DbaSchemaController < ApplicationController
     @owner      = params[:owner]
     @index_name = params[:index_name]
 
-    part_ind = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database].version >= "11.2"} FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
+    part_ind = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:database][:version] >= "11.2"} FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
     part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
 
-    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if session[:database].version >= "11.2" && part_ind.interval}"
+    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if session[:database][:version] >= "11.2" && part_ind.interval}"
 
     @partitions = sql_select_all ["\
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)

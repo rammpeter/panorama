@@ -20,6 +20,8 @@ class DbaSgaControllerTest < ActionController::TestCase
                "BufferGets",
                "ClusterWaits"
     ]
+
+    @object_id = sql_select_one "SELECT objd FROM v$BH WHERE RowNum < 2"
   end
 
   test "show_application_info" do
@@ -97,6 +99,11 @@ class DbaSgaControllerTest < ActionController::TestCase
 
   test "list_db_cache_advice_historic" do
     post :list_db_cache_advice_historic, :format=>:js, :instance=>1, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+    assert_response :success
+  end
+
+  test "list_db_cache_by_object_id" do
+    post :list_db_cache_by_object_id, :format=>:js, :object_id=>@object_id
     assert_response :success
   end
 

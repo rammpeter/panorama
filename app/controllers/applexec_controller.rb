@@ -1,5 +1,6 @@
 # encoding: utf-8
 class ApplexecController < ApplicationController
+  #include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
 
   def show_running_jobs
 

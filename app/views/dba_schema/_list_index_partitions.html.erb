@@ -22,8 +22,8 @@
       {:caption=> 'Last analyzed',          :data=>proc{|rec| localeDateTime rec.last_analyzed},  :title=> 'Date on which this partition was most recently analyzed'},
     ]
 
-    column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if session[:database].version >= '11.2'
-    column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if session[:database].version >= '11.2'
+    column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if session[:database][:version] >= '11.2'
+    column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if session[:database][:version] >= '11.2'
 
     gen_slickgrid(@partitions, column_options, {
       :caption => "Partitions of index #{@owner}.#{@index_name} #{@partition_expression}",

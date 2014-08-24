@@ -66,7 +66,7 @@ end
         <tr>
           <td title="Time per db block read from disk / Avg. disk transfer speed in MB/sec. per session (if using PQ)">ms/disk read, transfer speed (MB/sec.)</td>
           <td title="Time per db block read from disk in milliseconds" align="right"><%= formattedNumber((@sql.disk_reads && @sql.disk_reads>0 ? @sql.user_io_wait_time_secs*1000/@sql.disk_reads : 0),2) %></td>
-          <td title="Avg. disk transfer speed in MB/sec. per session (if using PQ)" align="right"><%= formattedNumber((@sql.user_io_wait_time_secs && @sql.user_io_wait_time_secs>0 ? @sql.disk_reads * session[:database].db_block_size / (1024*1024) / @sql.user_io_wait_time_secs : 0),2) %></td>
+          <td title="Avg. disk transfer speed in MB/sec. per session (if using PQ)" align="right"><%= formattedNumber((@sql.user_io_wait_time_secs && @sql.user_io_wait_time_secs>0 ? @sql.disk_reads * session[:database][:db_block_size] / (1024*1024) / @sql.user_io_wait_time_secs : 0),2) %></td>
         </tr>
         <%= show_both_values("Buffer gets", @sql.buffer_gets,0, "Number of total DB-blocks read") %>
         <%= show_both_values("Elapsed time (sec), incl. parallel query slaves", @sql.elapsed_time_secs,2, "Runtime total in Seconds, sum over all PQ-processes")%>

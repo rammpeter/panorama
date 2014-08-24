@@ -10,7 +10,7 @@
        my_ajax_link_to(value,
              url_for(:action => "show_oferrormessage",
                      :id_ofmessagetype => @ofmessagetype.id.to_i,
-                     :time_selection_start  => rec.timestamp.strftime(session[:database].strftime_format_with_minutes),
+                     :time_selection_start  => rec.timestamp.strftime(strftime_format_with_minutes),
                      :timeSlice  => @timeSlice,
                      :update_area => @update_area),
            :title=>"Anzeige der Fehlermeldungen des Messagetypes und Zeitraumes (unterhalb)")

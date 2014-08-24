@@ -24,7 +24,7 @@ column_options =
 ]
 %>
 
-<%= gen_slickgrid(@sqls, column_options, {:max_height=>450}) %>
+<%= gen_slickgrid(@sqls, column_options, {:caption=>"SQL statements accessing #{@object_owner}.#{@object_name}", :max_height=>450}) %>
 
 <div id="show_using_sqls_detail_area" style="float:left; width:100%;">
 </div>

@@ -1,3 +1,6 @@
+
+require_relative '../application'     # explizites require erforderlich bei Nutzung als Engine in anderer App
+
 Panorama::Application.configure do
   # Log error messages when you accidentally call methods on nil.
   #config.whiny_nils = true              # deprecated 21.07.13 Ramm
@@ -43,3 +46,4 @@ Panorama::Application.configure do
   config.assets.debug = true
 
 end
+

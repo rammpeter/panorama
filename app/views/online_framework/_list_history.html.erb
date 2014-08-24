@@ -39,7 +39,7 @@
       if @showGroup == "TimeSlice"
         my_ajax_link_to(value,
             url_for(:action => "show_oferrormessage",
-                    :time_selection_start  => rec.timestamp.strftime(session[:database].strftime_format_with_minutes),
+                    :time_selection_start  => rec.timestamp.strftime(strftime_format_with_minutes),
                     :timeSlice  => @timeSlice,
                     :id_domain => @id_domain,
                     :update_area => @update_area ),

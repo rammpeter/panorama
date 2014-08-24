@@ -211,7 +211,7 @@ class DbaSgaController < ApplicationController
 
   # Existierende SQL-Plan Baselines, Parameter: Result-Zeile eines selects
   def get_sql_plan_baselines(sql_row)
-    if session[:database].version >= "11.2"
+    if session[:database][:version] >= "11.2"
       sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
                     sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
     else
@@ -259,7 +259,7 @@ class DbaSgaController < ApplicationController
           ELSE NULL END Num_Rows,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
           #{", a.DB_Time_Seconds, a.CPU_Seconds, a.Waiting_Seconds, a.Read_IO_Requests, a.Write_IO_Requests,
-               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time  " if session[:database].version >= "11.2"}
+               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time  " if session[:database][:version] >= "11.2"}
         FROM  gV$SQL_Plan_Statistics_All p
         #{" LEFT OUTER JOIN (SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
                                     COUNT(*)                                                   DB_Time_Seconds,
@@ -279,12 +279,12 @@ class DbaSgaController < ApplicationController
                              #{modus == 'GV$SQL' ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
                              GROUP BY SQL_Plan_Line_ID, SQL_Plan_Hash_Value
                  ) a ON a.SQL_Plan_Line_ID = p.ID AND a.SQL_Plan_Hash_Value = p.Plan_Hash_Value
-          " if session[:database].version >= "11.2"}
+          " if session[:database][:version] >= "11.2"}
         WHERE SQL_ID  = ?
         AND   Inst_ID = ?
         AND   Child_Number = ?
         ORDER BY ID"
-        ].concat(session[:database].version >= "11.2" ? [sql_id, instance].concat(modus == 'GV$SQL' ? [child_number] : []) : []).concat([sql_id, instance, child_number])
+        ].concat(session[:database][:version] >= "11.2" ? [sql_id, instance].concat(modus == 'GV$SQL' ? [child_number] : []) : []).concat([sql_id, instance, child_number])
 
     # Vergabe der exec-Order im Explain
     # iteratives neu durchsuchen der Liste nach folgenden erfuellten Kriterien
@@ -568,16 +568,17 @@ class DbaSgaController < ApplicationController
   end # list_db_cache_content
 
   def show_using_sqls
-    object_owner = params[:ObjectOwner]
-    object_owner = nil if object_owner == ""
+    @object_owner = params[:ObjectOwner]
+    @object_owner = nil if @object_owner == ""
+    @object_name = params[:ObjectName]
     @instance = prepare_param_instance
 
     wherestr = "p.Object_Name LIKE UPPER(?)"
-    whereval = [params[:ObjectName]]
+    whereval = [@object_name]
 
-    if object_owner
+    if @object_owner
       wherestr << " AND p.Object_Owner=UPPER(?)"
-      whereval << object_owner
+      whereval << @object_owner
     end
 
     if @instance
@@ -710,7 +711,7 @@ class DbaSgaController < ApplicationController
 
   # Result Cache
   def list_result_cache
-    if session[:database].version < "11.1"
+    if session[:database][:version] < "11.1"
       respond_to do |format|
         format.js {render :js => "$('##{params[:update_area]}').html('<h2>This funktion is available only for Oracle 11g and above</h2>');"}
       end

@@ -48,7 +48,7 @@ module DbaHelper
 
   # Ermitteln des Betroffenen Objektes aus Parametern von v$session_wait
   def object_nach_wait_parameter(instance, event, p1, p1raw, p1text, p2, p2raw, p2text, p3, p3raw, p3text)
-    wordsize = session[:database].wordsize    # Wortbreite in Byte
+    wordsize = session[:database][:wordsize]    # Wortbreite in Byte
     case
       when (p1text=="file#" || p1text=="file number") && (p2text=="block#" || p2text=="first dba") then
         result = object_nach_file_und_block(p1, p2, instance)
@@ -70,7 +70,7 @@ module DbaHelper
       when p1text == "idn" && p2text == "value" && p3text == "where"
         if event.match('cursor: ') then
           cursor_rec = sql_select_first_row ["SELECT /*+ Panorama-Tool Ramm */ SQL_ID, Parsing_Schema_Name, SQL_Text FROM gv$SQL WHERE Inst_ID=? AND Hash_Value=?", instance, p1.to_i]
-          "Blocking-SID=#{p2.to_i/2**(4*session[:database].wordsize) }, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
+          "Blocking-SID=#{p2.to_i/2**(4*session[:database][:wordsize]) }, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
         else   # Mutex etc.
           # P1 = “idn” = Unique Mutex Identifier. Hash value of library cache object protected by mutex or hash bucket number.
           # P2 = “value” = “Blocking SID | Shared refs” = Top 2 (4 on 64bit) bytes contain SID of blocker. This session is currently holding the mutex exclusively or modifying it. Lower bytes represent the number of shared references when the mutex is in-flux

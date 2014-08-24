@@ -1,6 +1,7 @@
 # encoding: utf-8
 class EnvController < ApplicationController
-  layout "default"
+  layout 'application'
+  #include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
   include EnvHelper
   include LicensingHelper
 
@@ -8,12 +9,15 @@ class EnvController < ApplicationController
   def index
     I18n.locale = :de                   # Default
     I18n.locale =  Marshal.load cookies[:locale]  if cookies[:locale]
-    I18n.locale = session[:database].locale       if session[:database]
+    I18n.locale = session[:database][:locale]       if session[:database] && session[:database].class.name == 'Database'
 
     session[:last_used_menu_controller] = "env"
     session[:last_used_menu_action]     = "index"
     session[:last_used_menu_caption]    = "Start"
     session[:last_used_menu_hint]       = t :menu_env_index_hint, :default=>"Start of application without connect to database"
+  rescue Exception=>e
+    session[:database] = nil                                                    # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
+    raise e                                                                     # Werfen der Exception
   end
 
 public
@@ -52,7 +56,7 @@ public
         sql_select_all "SELECT /* Panorama Tool Ramm */ * FROM X$#{table_name_suffix} WHERE RowNum < 1"
         return true
       rescue Exception => e
-        msg << "<div> User '#{@database.user}' hat kein Leserecht auf X$#{table_name_suffix} ! Damit sind einige Funktionen von Panorama nicht nutzbar!<br/>"
+        msg << "<div> User '#{@database[:user]}' hat kein Leserecht auf X$#{table_name_suffix} ! Damit sind einige Funktionen von Panorama nicht nutzbar!<br/>"
         msg << "#{e.message}<br/><br/>"
         msg << "Workaround:<br/>"
         msg << "Variante 1: Anmelden mit Rolle SYSDBA<br/>"
@@ -65,6 +69,7 @@ public
       end
     end
 
+session[:hugo] = {:tns => 'TNSPeter', :Test=>'Peter Test'}
 
     I18n.locale = params[:database][:locale]      # fuer laufende Action Sprache aktiviert
     cookies.permanent[:locale] = Marshal.dump params[:database][:locale]  # Default für erste Seite
@@ -76,26 +81,26 @@ public
 
     @database = Database.new( params[ :database ] ? params[ :database ] : params )
 
-    if !@database.host || @database.host == ""  # Hostname nicht belegt, dann TNS-Alias auswerten
-      tns_record = read_tnsnames[@database.tns]   # Hash mit Attributen aus tnsnames.ora für gesuchte DB
+    if !@database[:host] || @database[:host] == ""  # Hostname nicht belegt, dann TNS-Alias auswerten
+      tns_record = read_tnsnames[@database[:tns]]   # Hash mit Attributen aus tnsnames.ora für gesuchte DB
       unless tns_record
         respond_to do |format|
-          format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{@database.tns}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
+          format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{@database[:tns]}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
         set_dummy_db_connection
         return
       end
-      @database.host      = tns_record[:hostName]   # Erweitern um Attribute aus tnsnames.ora
-      @database.port      = tns_record[:port]       # Erweitern um Attribute aus tnsnames.ora
-      @database.sid       = tns_record[:sidName]    # Erweitern um Attribute aus tnsnames.ora
-      @database.sid_usage = tns_record[:sidUsage]   # :SID oder :SERVICE_NAME
+      @database[:host]      = tns_record[:hostName]   # Erweitern um Attribute aus tnsnames.ora
+      @database[:port]      = tns_record[:port]       # Erweitern um Attribute aus tnsnames.ora
+      @database[:sid]       = tns_record[:sidName]    # Erweitern um Attribute aus tnsnames.ora
+      @database[:sid_usage] = tns_record[:sidUsage]   # :SID oder :SERVICE_NAME
     else # Host, Port, SID auswerten
-      @database.sid_usage = :SID   # Erst mit SID versuchen, zweiter Versuch dann als ServiceName
-      @database.tns       = "#{@database.host}:#{@database.port}:#{@database.sid}"   # Evtl. existierenden TNS-String mit Angaben von Host etc. ueberschreiben
+      @database[:sid_usage] = :SID   # Erst mit SID versuchen, zweiter Versuch dann als ServiceName
+      @database[:tns]       = "#{@database[:host]}:#{@database[:port]}:#{@database[:sid]}"   # Evtl. existierenden TNS-String mit Angaben von Host etc. ueberschreiben
     end
 
     # Temporaerer Schutz des Produktionszuganges bis zur Implementierung LDAP-Autorisierung    
-    if @database.host.upcase.rindex("DM03-SCAN") && @database.sid.upcase.rindex("NOADB")
+    if @database[:host].upcase.rindex("DM03-SCAN") && @database[:sid].upcase.rindex("NOADB")
       if params[:database][:authorization]== nil  || params[:database][:authorization]==""
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "zusätzliche Autorisierung erforderlich fuer NOA-Produktionssystem"}'); $('#login_dialog_authorization').show(); $('#login_dialog').effect('shake', { times:3 }, 100);"}
@@ -111,7 +116,8 @@ public
         return
       end
     end
-    @database.open_oracle_connection   # Oracle-Connection aufbauen
+    session[:database] = @database  # Temporär hier schon setzen, damit nachfolgender open_oracle_connection darauf aufbauen kann
+    open_oracle_connection   # Oracle-Connection aufbauen
 
     # Test der Connection und ruecksetzen auf vorherige wenn fehlschlaegt
     begin
@@ -120,7 +126,7 @@ public
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
         @database.switch_sid_usage
-        @database.open_oracle_connection   # Oracle-Connection aufbauen
+        open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       end
     rescue Exception => e
@@ -128,9 +134,9 @@ public
       respond_to do |format|
         format.js {render :js => "$('#content_for_layout').html('#{j "Fehler bei Anmeldung an DB: <br>
                                                                       #{e.message}<br>
-                                                                      Host: #{@database.host}<br>
-                                                                      Port: #{@database.port}<br>
-                                                                      SID: #{@database.sid}"
+                                                                      Host: #{@database[:host]}<br>
+                                                                      Port: #{@database[:port]}<br>
+                                                                      SID: #{@database[:sid]}"
                                                                   }');
                                     $('#login_dialog').effect('shake', { times:3 }, 100);
                                  "
@@ -147,7 +153,7 @@ public
       @dbids         = []   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
       @platform_name = ""   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
       # Einlesen der DBID der Database, gleichzeitig Test auf Zugriffsrecht auf DataDictionary
-      @database.read_initial_db_values
+      read_initial_db_values
       @banners = sql_select_all "SELECT /* Panorama Tool Ramm */ Banner FROM V$Version"
       @instance_data = sql_select_all "SELECT /* Panorama Tool Ramm */ gi.*, i.Instance_Number Instance_Connected,
                                                       (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET') NLS_CharacterSet,
@@ -170,7 +176,7 @@ public
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div> User '#{@database.user}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
+      @dictionary_access_msg << "<div> User '#{@database[:user]}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
       </div>"
     end
 
@@ -178,10 +184,10 @@ public
 
     session[:database] = @database
     write_connection_to_cookie @database
-    @license_ok = check_license(@instance_name, @host_name, @database.port)
+    @license_ok = check_license(@instance_name, @host_name, @database[:port])
 
     timepicker_regional = ""
-    if session[:database].locale == "de"  # Deutsche Texte für DateTimePicker
+    if session[:database][:locale] == "de"  # Deutsche Texte für DateTimePicker
       timepicker_regional = "prevText: '<zurück',
                                     nextText: 'Vor>',
                                     monthNames: ['Januar','Februar','März','April','Mai','Juni', 'Juli','August','September','Oktober','November','Dezember'],
@@ -193,16 +199,16 @@ public
                                     closeText: 'Auswählen',"
     end
     respond_to do |format|
-      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database.tns},Host=#{@database.host},Port=#{@database.port},#{@database.sid_usage}=#{@database.sid}, User=#{@database.user}'>#{@database.user}@#{@database.tns}</span>"}');
+      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{@database[:tns]},Host=#{@database[:host]},Port=#{@database[:port]},#{@database[:sid_usage]}=#{@database[:sid]}, User=#{@database[:user]}'>#{@database[:user]}@#{@database[:tns]}</span>"}');
                                 $('#main_menu').html('#{j render_to_string :partial =>"build_main_menu" }');
                                 $.timepicker.regional = { #{timepicker_regional}
                                     ampm: false,
                                     firstDay: 1,
-                                    dateFormat: '#{session[:database].timepicker_dateformat }'
+                                    dateFormat: '#{timepicker_dateformat }'
                                  };
                                 $.timepicker.setDefaults($.timepicker.regional);
-                                numeric_decimal_separator = '#{session[:database].numeric_decimal_separator}';
-                                var session_locale = '#{session[:database].locale}';
+                                numeric_decimal_separator = '#{numeric_decimal_separator}';
+                                var session_locale = '#{session[:database][:locale]}';
                                 $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#login_dialog').dialog('close');
                                 "
@@ -245,7 +251,7 @@ private
     min_id = nil
 
     cookies_last_logins.each do |value|
-      cookies_last_logins.delete(value) if value && value[:sid] == database.sid && value[:host] == database.host && value[:user] == database.user    # Aktuellen eintrag entfernen
+      cookies_last_logins.delete(value) if value && value[:sid] == database[:sid] && value[:host] == database[:host] && value[:user] == database[:user]    # Aktuellen eintrag entfernen
     end
     if params[:saveLogin] == "1"
       if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                      # Max. Anzahl Connections in Auswahl-Liste überschritten?
@@ -274,9 +280,9 @@ private
 public
   # DBID explizit setzen wenn mehrere verschiedene in Historie vorhande
   def set_dbid
-    session[:database].dbid = params[:dbid]
+    session[:database][:dbid] = params[:dbid]
     respond_to do |format|
-       format.js {render :js => "$('##{params[:update_area]}').html('#{j "DBID for access on AWR history set to #{session[:database].dbid }"}');"}
+       format.js {render :js => "$('##{params[:update_area]}').html('#{j "DBID for access on AWR history set to #{session[:database][:dbid] }"}');"}
     end
   end
 

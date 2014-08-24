@@ -10,7 +10,7 @@
        my_ajax_link_to(value,
             url_for(:action                => :show_oferrormessage,
                      :id_ofmessagetype      => rec.id_ofmessagetype,
-                     :time_selection_start  => @startTimestamp.strftime(session[:database].strftime_format_with_minutes),
+                     :time_selection_start  => @startTimestamp.strftime(strftime_format_with_minutes),
                      :timeSlice             => @timeSlice,
                      :update_area            => :timeslice_details_detail_area
             ),

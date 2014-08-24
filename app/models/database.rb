@@ -1,26 +1,26 @@
 # encoding: utf-8
 # Pseudo-Model zur Speicherung der Anmeldeinformation
 
-class Database
+class Database < Hash
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's
 
-  attr_accessor :id, :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale,
-                :db_block_size, :version, :wordsize
+#  attr_accessor :id, :user, :password, :privilege, :host, :port, :sid, :sid_usage, :dbid, :authorization, :locale,
+#                :db_block_size, :version, :wordsize
 
   def initialize( params = {} )
-    @tns      = params[:tns]
-    @user     = params[:user]
-    @password = params[:password]
-    @privilege= params[:privilege]
-    @host     = params[:host]
-    @port     = params[:port]
-    @sid      = params[:sid]
-    @sid_usage= :SID
-    @dbid     = params[:dbid]         # Database ID aus V$Database
-    @authorization = params[:authorization]  # Autorisierung für spezielle DB's
-    @locale   = params[:locale]
-    @version  = params[:version]         # DB-Version Oracle
-    @wordsize = params[:wordsize]         # Wortbreite in Byte (4/8 für 32/64 bit)
+    self[:tns]      = params[:tns]
+    self[:user]     = params[:user]
+    self[:password] = params[:password]
+    self[:privilege]= params[:privilege]
+    self[:host]     = params[:host]
+    self[:port]     = params[:port]
+    self[:sid]      = params[:sid]
+    self[:sid_usage]= :SID
+    self[:dbid]     = params[:dbid]         # Database ID aus V$Database
+    self[:authorization] = params[:authorization]  # Autorisierung für spezielle DB's
+    self[:locale]   = params[:locale]
+    self[:version]  = params[:version]         # DB-Version Oracle
+    self[:wordsize] = params[:wordsize]         # Wortbreite in Byte (4/8 für 32/64 bit)
   end
 
   def tns=(param)
@@ -30,39 +30,42 @@ class Database
   # Rueck-Konvertierung in params-Hash
   def to_params
     {
-      :id       => id,
-      :user     => @user,
-      :password => @password,
-      :privilege=> @privilege,
-      :host     => @host,
-      :port     => @port,
-      :sid      => @sid,
-      :authorization => @authorization,
-      :locale   => @locale,
-      :version  => @version,
-      :wordsize => @wordsize,
+      :id       => self[:id],
+      :user     => self[:user],
+      :password => self[:password],
+      :privilege=> self[:privilege],
+      :host     => self[:host],
+      :port     => self[:port],
+      :sid      => self[:sid],
+      :authorization => self[:authorization],
+      :locale   => self[:locale],
+      :version  => self[:version],
+      :wordsize => self[:wordsize],
     }
   end
 
-  def raw_tns
-    "#{self.host}:#{self.port}:#{self.sid}"
+
+
+  def switch_sid_usage
+    if self[:sid_usage] == :SID
+      self[:sid_usage] = :SERVICE_NAME
+    else
+      self[:sid_usage] == :SID if self[:sid_usage] == :SERVICE_NAME
+    end
   end
 
+=begin
   # Notation für Anzeige und Connect per Ruby
   def tns
-    if @tns
-      @tns
+    if self[:tns]
+      self[:tns]
     else
       raw_tns
     end
   end
 
-  def switch_sid_usage
-    if @sid_usage == :SID
-      @sid_usage = :SERVICE_NAME
-    else
-      @sid_usage == :SID if @sid_usage == :SERVICE_NAME
-    end
+  def raw_tns
+    "#{self[:host]}:#{self[:port]}:#{self[:sid]}"
   end
 
   # Notation für Connect per JRuby
@@ -80,6 +83,7 @@ class Database
     self.version       = sql_select_one "SELECT /* Panorama Tool Ramm */ Version FROM V$Instance"
     self.wordsize      = sql_select_one "SELECT DECODE (INSTR (banner, '64bit'), 0, 4, 8) FROM v$version WHERE Banner LIKE '%Oracle Database%'"
   end
+
 
   def open_oracle_connection
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
@@ -111,6 +115,8 @@ class Database
     Rails.logger.error e.message
     raise e
   end
+
+
 
   # Format für JQuery-UI Plugin DateTimePicker
   def timepicker_dateformat
@@ -175,6 +181,7 @@ class Database
     end
   end
 
+
   def numeric_thousands_separator
     case self.locale
       when "de" then "."
@@ -190,6 +197,7 @@ class Database
       else "," # Deutsche Variante als default
     end
   end
+=end
 
 
 end

@@ -26,6 +26,8 @@ class ApplicationController < ActionController::Base
 
   # Ausführung vor jeden Request
   def open_connection
+    session[:database].symbolize_keys!    # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
+
     # Präziser before_filter mit Test auf controller
     return if (controller_name == 'env' && ['index', 'set_database', 'set_database_by_id'].include?(action_name) )                  ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
@@ -43,7 +45,7 @@ class ApplicationController < ActionController::Base
     # Neue Connection auf Basis Oracle aufbauen mit durch Anwender gegebener DB
     if session[:database]
       # Initialisierungen
-       I18n.locale = session[:database].locale      # fuer laufende Action Sprache aktiviert
+       I18n.locale = session[:database][:locale]      # fuer laufende Action Sprache aktiviert
 
       # Protokollieren der Aufrufe in lokalem File
       real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
@@ -51,12 +53,12 @@ class ApplicationController < ActionController::Base
       begin
         # Ausgabe Logging-Info in File für Usage-Auswertung
         filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{session[:database].raw_tns} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')}\n")}
+        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{session[:database][:raw_tns]} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')}\n")}
       rescue Exception => e
         logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
 
-      session[:database].open_oracle_connection   # Oracle-Connection aufbauen
+      open_oracle_connection   # Oracle-Connection aufbauen
 
       # Registrieren mit Name an Oracle-DB
       #ActiveRecord::Base.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
@@ -72,7 +74,7 @@ class ApplicationController < ActionController::Base
     session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
-    alert(e, "Error while connecting to #{session[:database].raw_tns}")         # Explizit anzeige des Connect-Problemes als Popup-Message
+    alert(e, "Error while connecting to #{session[:database][:raw_tns]}")         # Explizit anzeige des Connect-Problemes als Popup-Message
   end
 
   # Ausfüherung nach jedem Request ohne Ausnahme

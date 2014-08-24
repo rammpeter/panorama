@@ -1,3 +1,5 @@
+require_relative '../application'     # explizites require erforderlich bei Nutzung als Engine in anderer App
+
 Panorama::Application.configure do
 
   # Log error messages when you accidentally call methods on nil

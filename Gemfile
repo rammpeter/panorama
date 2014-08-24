@@ -1,24 +1,15 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'rails', '4.1.2'
+# Declare your gem's dependencies in hugo.gemspec.
+# Bundler will treat runtime dependencies like base dependencies, and
+# development dependencies will be added by default to the :development group.
+gemspec
 
-gem 'activerecord-nulldb-adapter'
+# Declare any dependencies that are still in development here instead of in
+# your gemspec. These might include edge Rails or gems from your path or
+# Git. Remember to move these dependencies to your gemspec before releasing
+# your gem to rubygems.org.
 
-gem 'activerecord-oracle_enhanced-adapter'
-gem "memcache-client"
 
-# JavaScript-Runtime für Server-Seite, wenn kein lokaler installiert ist wie z.B. nodejs (oft unter Linux der Fall)
-# See https://github.com/sstephenson/execjs#readme for more supported runtimes
-gem 'therubyrhino'
-gem 'therubyrhino_jar'
 
-gem 'multi_json'
-gem 'uglifier'
-gem 'sass'
-
-# Require von jruby-openssl nicht notwendig, da Bestandteil von jRuby, explizite Angabe führt zu Fehlermeldung von warbler und rack-Fehler bei Ausführung
-#gem 'jruby-openssl'
-#gem 'bouncy-castle-java', require: false
-
-gem 'jquery-rails'
 

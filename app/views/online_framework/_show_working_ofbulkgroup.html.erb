@@ -6,8 +6,8 @@
         url_for(:action => :show_msgtype_details,
                 :id_ofmessagetype => rec.id_ofmessagetype,
                 :timeSlice => 20,
-                :time_selection_start => (Time.now - 60*60*3).strftime(session[:database].strftime_format_with_minutes),
-                :time_selection_end   => Time.now.strftime(session[:database].strftime_format_with_minutes),
+                :time_selection_start => (Time.now - 60*60*3).strftime(strftime_format_with_minutes),
+                :time_selection_end   => Time.now.strftime(strftime_format_with_minutes),
                 :update_area => @update_area),
         :title=>"Anzeige der Historie des MessageTypes (unterhalb)")
   end

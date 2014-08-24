@@ -109,15 +109,15 @@
   end
 
 
-  @column_options << {:caption=>"Avg. Temp",:data=>proc{|rec| formattedNumber(rec.avg_temp_mb,2)},             :title=>"Avg. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database].version >= "11.2"
-  @column_options << {:caption=>"Max. Temp",:data=>proc{|rec| formattedNumber(rec.max_temp_mb,2)},             :title=>"Max. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database].version >= "11.2"
-  @column_options << {:caption=>"CPU-Time", :data=>proc{|rec| formattedNumber(rec.tm_delta_cpu_time_secs)},    :title=>"Sum of time in seconds the scanned sessions spent on CPU before capture", :align=>"right"}                          if session[:database].version >= "11.2"
-  @column_options << {:caption=>"DB-Time",  :data=>proc{|rec| formattedNumber(rec.tm_delta_db_time_secs)},     :title=>"Sum of time in seconds the scanned sessions spent on database calls before capture", :align=>"right"}             if session[:database].version >= "11.2"
-  @column_options << {:caption=>"Rd. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_requests)},    :title=>"Number of read I/O requests made by the scanned sessions before capture", :align=>"right"}                        if session[:database].version >= "11.2"
-  @column_options << {:caption=>"Wr. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_requests)},   :title=>"Number of write I/O requests made by the scanned sessions before capture", :align=>"right"}                       if session[:database].version >= "11.2"
-  @column_options << {:caption=>"Rd. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_kbytes)},      :title=>"Number of I/O kBytes read by the scanned sessions before capture", :align=>"right"}                               if session[:database].version >= "11.2"
-  @column_options << {:caption=>"Wr. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_kbytes)},     :title=>"Number of I/O kBytes written by the scanned sessions before capture", :align=>"right"}                            if session[:database].version >= "11.2"
-  @column_options << {:caption=>"IC. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_interconnect_io_kbytes)}, :title=>"Number of I/O kBytes sent over the I/O interconnect by the scanned sessions before capture", :align=>"right"} if session[:database].version >= "11.2"
+  @column_options << {:caption=>"Avg. Temp",:data=>proc{|rec| formattedNumber(rec.avg_temp_mb,2)},             :title=>"Avg. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"Max. Temp",:data=>proc{|rec| formattedNumber(rec.max_temp_mb,2)},             :title=>"Max. amount of temp. tablespace allocated in MB", :align=>"right"}                          if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"CPU-Time", :data=>proc{|rec| formattedNumber(rec.tm_delta_cpu_time_secs)},    :title=>"Sum of time in seconds the scanned sessions spent on CPU before capture", :align=>"right"}                          if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"DB-Time",  :data=>proc{|rec| formattedNumber(rec.tm_delta_db_time_secs)},     :title=>"Sum of time in seconds the scanned sessions spent on database calls before capture", :align=>"right"}             if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"Rd. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_requests)},    :title=>"Number of read I/O requests made by the scanned sessions before capture", :align=>"right"}                        if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"Wr. Rq.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_requests)},   :title=>"Number of write I/O requests made by the scanned sessions before capture", :align=>"right"}                       if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"Rd. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_read_io_kbytes)},      :title=>"Number of I/O kBytes read by the scanned sessions before capture", :align=>"right"}                               if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"Wr. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_write_io_kbytes)},     :title=>"Number of I/O kBytes written by the scanned sessions before capture", :align=>"right"}                            if session[:database][:version] >= "11.2"
+  @column_options << {:caption=>"IC. kB.",  :data=>proc{|rec| formattedNumber(rec.delta_interconnect_io_kbytes)}, :title=>"Number of I/O kBytes sent over the I/O interconnect by the scanned sessions before capture", :align=>"right"} if session[:database][:version] >= "11.2"
 
 %>
 

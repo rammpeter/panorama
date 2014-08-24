@@ -1,6 +1,6 @@
 <h2><%= t :env_current_database, :default=>"current database" %></h2>
 
-<%= "TNS=#{@database.tns}, Host=#{@database.host}, Port=#{@database.port}, #{@database.sid_usage}=#{@database.sid}" %>
+<%= "TNS=#{@database[:tns]}, Host=#{@database[:host]}, Port=#{@database[:port]}, #{@database[:sid_usage]}=#{@database[:sid]}" %>
 <br/><br/>
 
 <%  @banners.each do |b| %>
@@ -74,7 +74,7 @@ Please contact one of the following people for license:<br>
                         ) do %>
             <select name="dbid">
                 <% @dbids.each do |d| %>
-                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:database].dbid}>DBID=#{d.dbid} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)}</option>".html_safe %>
+                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:database][:dbid]}>DBID=#{d.dbid} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)}</option>".html_safe %>
                 <% end %>
             </select>
             <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
