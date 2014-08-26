@@ -120,7 +120,7 @@ Warbler::Config.new do |config|
   config.webserver = 'jetty'
 
   # Value of RAILS_ENV for the webapp -- default as shown below
-  # config.webxml.rails.env = ENV['RAILS_ENV'] || 'production'
+  config.webxml.rails.env = ENV['RAILS_ENV'] || 'production'
 
   # Application booter to use, one of :rack, :rails, or :merb (autodetected by default)
   # config.webxml.booter = :rails
@@ -148,9 +148,9 @@ Warbler::Config.new do |config|
   # since 1 runtime(default for threadsafe mode) will be enough.
   # Setzen von config.webxml.jruby.min.runtimes = 2 führt zu u.g. Fehler im Glassfish
   # org.jruby.rack.RackInitializationException: library `fcntl' could not be loaded: java.lang.NullPointerException
-  config.webxml.jruby.min.runtimes = 4
+  config.webxml.jruby.min.runtimes = 2
 
-  config.webxml.jruby.max.runtimes = 4
+  config.webxml.jruby.max.runtimes = 2
 
   # Sicherstellen, dass neue Runtime vollständig geladen werden konnte
   #config.webxml.jruby.runtime.acquire.timeout = 20
