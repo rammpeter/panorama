@@ -20,8 +20,8 @@ module DatabaseHelper
 
   # Notation für Connect per JRuby
   def jdbc_thin_url
-    sid_separator = ":" # Default, if session[:database][:sid_usage] == :SID
-    sid_separator = "/" if session[:database][:sid_usage] == :SERVICE_NAME
+    sid_separator = ":" # Default, if session[:database][:sid_usage].to_sym == :SID
+    sid_separator = "/" if session[:database][:sid_usage].to_sym == :SERVICE_NAME
     raise "Keine Deutung (#{session[:database][:sid_usage]}) für #{session[:database][:sid]} bekannt ob SID oder SERVICE_NAME" unless sid_separator
     "jdbc:oracle:thin:@#{session[:database][:host]}:#{session[:database][:port]}#{sid_separator}#{session[:database][:sid]}"
   end
