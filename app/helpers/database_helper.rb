@@ -3,8 +3,18 @@
 # Hilfsmethoden mit Bezug auf die aktuell verbundene Datenbank sowie verbundene Einstellunen wie Sprache
 module DatabaseHelper
 
-  # Notation für Anzeige und Connect per Ruby
-  def tns
+
+  def database_helper_switch_sid_usage
+    if session[:database][:sid_usage] == :SID
+      session[:database][:sid_usage] = :SERVICE_NAME
+    else
+      session[:database][:sid_usage] == :SID if session[:database][:sid_usage] == :SERVICE_NAME
+    end
+  end
+
+
+    # Notation für Anzeige und Connect per Ruby
+  def database_helper_tns
     if session[:database][:tns]
       session[:database][:tns]
     else
@@ -17,7 +27,7 @@ module DatabaseHelper
     "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"
   end
 
-
+private
   # Notation für Connect per JRuby
   def jdbc_thin_url
     sid_separator = ":" # Default, if session[:database][:sid_usage].to_sym == :SID
@@ -26,6 +36,7 @@ module DatabaseHelper
     "jdbc:oracle:thin:@#{session[:database][:host]}:#{session[:database][:port]}#{sid_separator}#{session[:database][:sid]}"
   end
 
+public
 
   # Einlesen diverser Parameter der DB, die spaeter noch laufend gebraucht werden
   def read_initial_db_values
@@ -148,7 +159,5 @@ module DatabaseHelper
       else "," # Deutsche Variante als default
     end
   end
-
-
 
 end

@@ -7,9 +7,12 @@ class EnvController < ApplicationController
 
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
+    session[:database] = nil   if session[:database].class.name != 'Hash'
+
+
     I18n.locale = :de                   # Default
     I18n.locale =  Marshal.load cookies[:locale]  if cookies[:locale]
-    I18n.locale = session[:database][:locale]       if session[:database] && session[:database].class.name == 'Database'
+    I18n.locale = session[:database][:locale]       if session[:database] && session[:database].class.name == 'Hash'
 
     session[:last_used_menu_controller] = "env"
     session[:last_used_menu_action]     = "index"
@@ -79,7 +82,7 @@ session[:hugo] = {:tns => 'TNSPeter', :Test=>'Peter Test'}
     session[:last_used_menu_caption]    = "Login"
     session[:last_used_menu_hint]       = t :menu_env_set_database_hint, :default=>"Start of application after connect to database"
 
-    @database = Database.new( params[ :database ] ? params[ :database ] : params )
+    @database = params[:database].to_h.symbolize_keys
 
     if !@database[:host] || @database[:host] == ""  # Hostname nicht belegt, dann TNS-Alias auswerten
       tns_record = read_tnsnames[@database[:tns]]   # Hash mit Attributen aus tnsnames.ora für gesuchte DB
@@ -125,7 +128,7 @@ session[:hugo] = {:tns => 'TNSPeter', :Test=>'Peter Test'}
       begin
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
-        @database.switch_sid_usage
+        database_helper_switch_sid_usage
         open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       end
@@ -254,15 +257,14 @@ private
       cookies_last_logins.delete(value) if value && value[:sid] == database[:sid] && value[:host] == database[:host] && value[:user] == database[:user]    # Aktuellen eintrag entfernen
     end
     if params[:saveLogin] == "1"
-      if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                      # Max. Anzahl Connections in Auswahl-Liste überschritten?
-        cookies_last_logins.delete(cookies_last_logins.last)                         # Letzten Eintrag loeschen
+      if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                 # Max. Anzahl Connections in Auswahl-Liste überschritten?
+        cookies_last_logins.delete(cookies_last_logins.last)                    # Letzten Eintrag loeschen
       end
-      database_as_hash = database.to_params
       # Passwort verschlüsseln
       crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-      database_as_hash[:password] = crypt.encrypt_and_sign(database_as_hash[:password])
+      database[:password] = crypt.encrypt_and_sign(database[:password])
 
-      cookies_last_logins = [database_as_hash] + cookies_last_logins            # Neuen Eintrag an erster Stelle
+      cookies_last_logins = [database] + cookies_last_logins                    # Neuen Eintrag an erster Stelle
 
       write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end

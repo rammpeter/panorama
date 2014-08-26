@@ -26,7 +26,7 @@ class ApplicationController < ActionController::Base
 
   # Ausführung vor jeden Request
   def open_connection
-    session[:database].symbolize_keys! if session[:database]   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
+    session[:database].symbolize_keys! if session[:database] && session[:database].class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Präziser before_filter mit Test auf controller
     return if (controller_name == 'env' && ['index', 'set_database', 'set_database_by_id'].include?(action_name) )                  ||

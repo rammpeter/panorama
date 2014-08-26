@@ -143,7 +143,7 @@ module ApplicationHelper
   # Genutzt zur Anzeige im zentralen Screen
   def current_tns 
     if session[:database] && session[:database].class.name == 'Database'
-      tns
+      database_helper_tns
     else
       '[Keine]'
     end

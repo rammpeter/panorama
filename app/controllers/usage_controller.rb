@@ -1,5 +1,7 @@
 # encoding: utf-8
 class UsageController < ApplicationController
+  layout false        # Aufruf der Seite ohne Layout
+
   def info
    session[:database] = Database.new unless session[:database]
     fill_usage_info
