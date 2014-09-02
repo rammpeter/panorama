@@ -28,9 +28,6 @@ public
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
       params[:database] = read_last_login_cookies[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
-      # Entschlüsseln des Passwortes
-      crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-      params[:database][:password] = crypt.decrypt_and_verify(params[:database][:password])
 
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
       raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
@@ -51,7 +48,16 @@ public
 
   end
 
-  # Aufgerufen aus dem Anmelde-Dialog für DB
+  # Aufgerufen aus dem Anmelde-Dialog für DB mit Angabe der Login-Info
+  def set_database_by_params
+    # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
+    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    params[:database][:password] = crypt.encrypt_and_sign(params[:database][:password])
+
+    set_database
+  end
+
+  # Erstes Anmelden an DB
   def set_database
     # Test auf Lesbarkeit von X$-Tabellen
     def x_memory_table_accessible?(table_name_suffix, msg)
@@ -71,8 +77,6 @@ public
         return false
       end
     end
-
-session[:hugo] = {:tns => 'TNSPeter', :Test=>'Peter Test'}
 
     I18n.locale = params[:database][:locale]      # fuer laufende Action Sprache aktiviert
     cookies.permanent[:locale] = Marshal.dump params[:database][:locale]  # Default für erste Seite
@@ -260,9 +264,6 @@ private
       if cookies_last_logins.length > MAX_CONNECTIONS_IN_COOKIE                 # Max. Anzahl Connections in Auswahl-Liste überschritten?
         cookies_last_logins.delete(cookies_last_logins.last)                    # Letzten Eintrag loeschen
       end
-      # Passwort verschlüsseln
-      crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-      database[:password] = crypt.encrypt_and_sign(database[:password])
 
       cookies_last_logins = [database] + cookies_last_logins                    # Neuen Eintrag an erster Stelle
 
@@ -290,3 +291,4 @@ public
 
 
 end
+

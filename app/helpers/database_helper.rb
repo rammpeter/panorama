@@ -49,6 +49,10 @@ public
 
 
   def open_oracle_connection
+    # Entschlüsseln des Passwortes
+    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    local_password = crypt.decrypt_and_verify(session[:database][:password])
+
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
       ActiveRecord::Base.establish_connection(
@@ -56,7 +60,7 @@ public
           :driver   => "oracle.jdbc.driver.OracleDriver",
           :url      => jdbc_thin_url,
           :username => session[:database][:user],
-          :password => session[:database][:password],
+          :password => local_password,
           :privilege => session[:database][:privilege],
           :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
       )
@@ -66,7 +70,7 @@ public
           :adapter  => "oracle_enhanced",
           :database => session[:database][:tns],
           :username => session[:database][:user],
-          :password => session[:database][:password],
+          :password => local_password,
           :privilege => session[:database][:privilege],
           :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
       )

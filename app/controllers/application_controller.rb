@@ -29,7 +29,7 @@ class ApplicationController < ActionController::Base
     session[:database].symbolize_keys! if session[:database] && session[:database].class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == 'env' && ['index', 'set_database', 'set_database_by_id'].include?(action_name) )                  ||
+    return if (controller_name == 'env' && ['index', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 

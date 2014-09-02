@@ -1,8 +1,7 @@
 module Panorama
   class Engine < ::Rails::Engine
-    # Keine Namespace-Isolation verwenden
-    #isolate_namespace Panorama
-
+    # Keine Namespace-Isolation für Engine verwenden
+    # isolate_namespace Panorama
   end
 end
 
