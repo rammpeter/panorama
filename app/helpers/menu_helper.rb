@@ -1,5 +1,7 @@
 # encoding: utf-8
 module MenuHelper
+  include MenuExtensionHelper   # Helper-File, das von diese Engine nutzenden Apps überschrieben/überblendet werden kann
+
 
   # Bereitstellung Menü-Einträge als Array von hashes, Hash mit Spezialhandling-DB als Parameter
   def menu_content
@@ -135,32 +137,7 @@ module MenuHelper
     },
     ]
 
-    noa_menu = [
-        { :class=> 'menu', :caption=> 'NOA diverses', :content=>[
-            {:class=> 'item', :caption=> 'Table-Abhaengigkeiten',         :controller=> 'table_dependencies',  :action=> 'show_frame',            :hint=> 'Mittelbare und unmittelbare referentielle Abhängigkeiten von Tabellen'},
-            {:class=> 'item', :caption=> 'Aktuell laufende Jobs',         :controller=> 'applexec',            :action=> 'show_running_jobs',     :hint=> 'Aktuell laufende Jobs laut sysp.ApplExecution'},
-            { :class=> 'menu', :caption=> 'Laufzeit-Analyse', :content=>[
-                {:class=> 'item', :caption=> 'Einzelwerte je LV',         :controller=> 'customer_applexec',   :action=> 'laufzeiten',            :hint=> 'Laufzeit-Auswertung je LV'},
-                {:class=> 'item', :caption=> 'Summen historisch',         :controller=> 'runtime',             :action=> 'show_summary_history',  :hint=> 'Laufzeit-summen je LV'},
-                ]
-            },
-            ]
-        },
-        { :class=> 'menu', :caption=> 'NOA Online-FW', :content=>[
-            {:class=> 'item', :caption=> 'Übersicht Queue',               :controller=> 'online_framework',    :action=> 'show_overview',           :hint=> 'Übersicht über wartende Messages des Online-FW'},
-            {:class=> 'item', :caption=> 'Durchsatz historisch',          :controller=> 'online_framework',    :action=> 'show_history',            :hint=> 'Historischer durchsatz des Online-FW'},
-            {:class=> 'item', :caption=> 'Bulkgroup-Info',                :controller=> 'online_framework',    :action=> 'show_working_ofbulkgroup',:hint=> 'Info zu wartenden und aktiv verarbeiteten Bulkgroups'},
-            {:class=> 'item', :caption=> 'Worker Infos',                  :controller=> 'online_worker',       :action=> 'start_working',           :hint=> 'Unsupported'},
-            {:class=> 'item', :caption=> 'Übersicht externe Queue',       :controller=> 'online_framework',    :action=> 'show_external_queue',     :hint=> 'Übersicht über auf Übertragung nach journal.OFMessage wartende Messages des Online-FW in Tabelle journal.OFExtServiceMessage'},
-            ]
-        },
-    ]
-
-    noa_menu[0][:content] << {:class=> 'item', :caption=> 'Wachstum von Objekten', :controller=> 'noa', :action=> 'show_object_increase', :hint=> 'Wachstum von Objekten in gegebenem Zeitraum'} if showNOAObjectIncrease
-
-
-    main_menu.concat noa_menu if showNOAMenu
-    main_menu
+    extend_main_menu main_menu      # Erweitern des Menues in die Panorama-Engine nutzender App durch Überblenden von menu_extension_helper.rb
   end
 
 
@@ -181,14 +158,6 @@ private
 
   end
 
-  def showNOAMenu
-    # Test auf spezielle Projekt-DB
-    sql_select_one("SELECT /* Panorama Tool Ramm */ COUNT(*) FROM All_Users WHERE UserName = 'NOA'") > 0
-  end
-
-  def showNOAObjectIncrease # Test auf Vorhandensein einer Tabelle
-    sql_select_one("SELECT /* Panorama Tool Ramm */ COUNT(*) FROM All_Tables WHERE Owner='DBADMIN' AND Table_Name='OG_SEG_SPACE_IN_TBS'") > 0
-  end
 
 public
   # Test ob Controller die Aktion definiert hat, Controller-Name mit _ statt CamelCase

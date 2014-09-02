@@ -1,6 +1,7 @@
 # encoding: utf-8
 class HelpController < ApplicationController
   include ApplicationHelper
+  include MenuHelper
   layout "help_layout"
 
   def overview
