@@ -4,7 +4,7 @@
   my_ajax_link_to("RowID=#{@rowid}",
                   url_for(:action           => :show_rowid_details,
                           :update_area      => @update_area,
-                          :waitingforobject => @waitingforobject,
+                          :data_object_id   => @data_object_id,
                           :waitingforrowid  => @rowid
                          ),
                   :title=>t(:dba_list_rowid_link_hint, :default=>"Columns and row-value of table's primary key'")

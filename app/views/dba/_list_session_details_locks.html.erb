@@ -18,7 +18,7 @@
         my_ajax_link_to(rec.waitingforrowid,
                             url_for(:action => :show_rowid_details,
                                     :update_area      => update_area,
-                                    :waitingforobject => rec.waitingforobject,
+                                    :data_object_id   => rec.waitingfordata_object_id,
                                     :waitingforrowid  => rec.waitingforrowid
                                    ),
                 :title => "Details zur RowID"

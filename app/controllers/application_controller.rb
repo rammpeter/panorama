@@ -102,5 +102,16 @@ protected
     end
 
   end
+
+
+  # Ausgabe einer Popup-Message,
+  # Nach Aufruf von show_popup_message muss mittels return die Verarbeitung der Controller-Methode abgebrochen werden (Vermeiden doppeltes rendern)
+
+  def show_popup_message(message)
+    respond_to do |format|
+      format.js { render :js => "alert('#{j "#{message}"}');" }
+    end
+
+  end
   
 end

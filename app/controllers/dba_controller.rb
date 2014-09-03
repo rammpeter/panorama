@@ -182,7 +182,8 @@ class DbaController < ApplicationController
   end
 
   def convert_to_rowid
-    @waitingforobject = params[:waitingforobject] # schema.objectname
+    #    @waitingforobject = params[:waitingforobject] # schema.objectname
+    @data_object_id = params[:data_object_id]
 
     @rowid = sql_select_one ["SELECT RowIDTOChar(DBMS_RowID.RowID_Create(1, ?, ?, ?, ?)) FROM DUAL",
                              params[:data_object_id].to_i,
@@ -264,43 +265,46 @@ class DbaController < ApplicationController
 
   # Extrahieren des PKey und seines Wertes für RowID
   def show_rowid_details
-    waitingforobject = params[:waitingforobject]               # schema.Tablename
-    schema    = waitingforobject[0,waitingforobject.index(".")]   # extrahierter Schema-name
-    object_name = waitingforobject[waitingforobject.index(".")+1,waitingforobject.length] # extrahierter Object-Name
     rowid     = params[:waitingforrowid]
 
-    object_rec = sql_select_all(["\
-                   SELECT Object_Type Object_Type
-                   FROM   All_Objects
-                   WHERE  Owner = UPPER(?)
-                   AND    Object_Name = UPPER(?)",
-                   schema, object_name])[0]
+    object_rec = sql_select_first_row ["\
+                   SELECT Owner, Object_Name, SubObject_Name, Object_Type
+                   FROM   DBA_Objects
+                   WHERE  Data_Object_ID = ?
+                   ",
+                   params[:data_object_id]]
 
-    raise "No object found with name #{waitingforobject}" unless object_rec
-
-    if object_rec.object_type.match("INDEX")
-      table_name = sql_select_all(["\
-                     SELECT Table_Name
-                     FROM   All_Indexes
-                     WHERE  Owner = UPPER(?)
-                     AND    Index_Name = ?",
-                     schema, object_name])[0].table_name
-    else
-      table_name = object_name
+    unless object_rec
+      show_popup_message "No object found for Data_Object_ID=#{params[:data_object_id]}"
+      return
     end
 
-    pstmt = sql_select_all("\
+    if object_rec.object_type.match("INDEX")
+      table_name = sql_select_first_row(["\
+                     SELECT Table_Name
+                     FROM   All_Indexes
+                     WHERE  Owner = ?
+                     AND    Index_Name = ?",
+                     object_rec.owner, object_rec.object_name]).table_name
+    else
+      table_name = object_rec.object_name
+    end
+
+    pstmt = sql_select_all ["\
              SELECT Column_Name                                              
              FROM   All_Ind_Columns                                          
-             WHERE  Index_Owner   = UPPER('"+schema+"')                      
+             WHERE  Index_Owner   = ?
              AND    Index_Name =                                             
                     (SELECT Index_Name                                       
                      FROM   All_Constraints                                  
-                     WHERE  Owner      = UPPER('"+schema+"')                 
-                     AND    Table_Name = UPPER('"+table_name+"')
+                     WHERE  Owner      = ?
+                     AND    Table_Name = UPPER(?)
                      AND    Constraint_Type = 'P'                            
-                    )")
-    raise "Kein Primary Key gefunden für Object '#{schema}.#{object_name} / Tabelle #{table_name}" if pstmt.length == 0
+                    )", object_rec.owner, object_rec.owner, table_name]
+    if pstmt.length == 0
+      show_popup_message "Kein Primary Key gefunden für Object '#{object_rec.owner}.#{object_rec.object_name} / Tabelle #{table_name}"
+      return
+    end
 
     # Ermittlung der Primary-Key-Spalten der Tabelle
     pkey_cols = ""
@@ -314,8 +318,13 @@ class DbaController < ApplicationController
       pkey_cols << s.column_name
     end
 
-    pkey_sql = "SELECT #{pkey_cols} Line FROM #{schema}.#{table_name} WHERE RowID=?"
-    pkey_vals = sql_select_all([pkey_sql, rowid])
+    pkey_sql = "SELECT #{pkey_cols} Line FROM #{object_rec.owner}.#{table_name} WHERE RowID=?"
+    begin
+      pkey_vals = sql_select_all([pkey_sql, rowid])
+    rescue Exception => e
+      show_popup_message "Error accessing data for RowID='#{rowid}'\n\n#{e.message}"
+      return
+    end
     raise "Keine Daten gefunden für SQL: #{pkey_sql}" if pkey_vals.length == 0
 
     result = "Tabelle #{table_name}, PKey (#{pkey_cols}) = '#{pkey_vals[0].line}'"
@@ -817,7 +826,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         END                                                         WaitingForObject,           
         CASE WHEN s.LockWait IS NOT NULL AND l.Request != 0 AND s.Row_Wait_Obj# != -1  THEN     
           RowIDTOChar(DBMS_RowID.RowID_Create(1, o.Data_Object_ID, s.Row_Wait_File#, s.Row_Wait_Block#, s.Row_Wait_Row#))
-        END                                                         WaitingForRowID,             
+        END                                                         WaitingForRowID,
+        o.Data_Object_ID                                            WaitingForData_Object_ID,
         l.ctime Seconds_In_Lock,
         l.ID1, l.ID2,
         /* Request!=0 indicates waiting for resource determinded by ID1, ID2 */                 
