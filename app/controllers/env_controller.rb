@@ -52,8 +52,7 @@ public
   # Aufgerufen aus dem Anmelde-Dialog für DB mit Angabe der Login-Info
   def set_database_by_params
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
-    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-    params[:database][:password] = crypt.encrypt_and_sign(params[:database][:password])
+    params[:database][:password]  = database_helper_encrypt_value(params[:database][:password])
 
     set_database
   end

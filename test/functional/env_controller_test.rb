@@ -9,14 +9,16 @@ class EnvControllerTest < ActionController::TestCase
   end
 
   test "should connect to test-db" do
-    post :set_database, :format=>:js, :database => session[:database].to_params
+    database = session[:database]
+    database[:password] = database_helper_decrypt_value(database[:password])
+    post :set_database_by_params, :format=>:js, :database => database
     assert_response :success
   end
 
   test "should throw oracle-error from test-db" do
-    params = session[:database].to_params
+    params = session[:database]
     params[:password] = "hugo"
-    post :set_database, :format=>:js, :database => params
+    post :set_database_by_params, :format=>:js, :database => params
     assert_response :success
     expected_fehler_text = "Fehler bei Anmeldung an DB"
     assert @response.body.include?(expected_fehler_text),
@@ -43,7 +45,7 @@ class EnvControllerTest < ActionController::TestCase
 
 
   test "set_dbid" do
-    post :set_dbid, :format=>:js, :dbid =>session[:database].dbid   # Alten Wert erneut setzen um andere Tests nicht zu gefährden
+    post :set_dbid, :format=>:js, :dbid =>session[:database][:dbid]   # Alten Wert erneut setzen um andere Tests nicht zu gefährden
   end
 
 end

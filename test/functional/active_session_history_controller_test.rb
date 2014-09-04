@@ -16,11 +16,11 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
                                     FROM   DBA_Hist_Snapshot
                                     WHERE  DBID = ?
                                     AND    Begin_Interval_Time BETWEEN ? AND ?
-                                   ", session[:database].dbid, max_alter_org, min_alter_org]
+                                   ", session[:database][:dbid], max_alter_org, min_alter_org]
       @min_snap_id = snaps.min_snap_id
       @max_snap_id = snaps.max_snap_id
       @groupfilter = {
-                :DBID            => session[:database].dbid,
+                :DBID            => session[:database][:dbid],
                 :time_selection_start => @time_selection_start,
                 :time_selection_end   => @time_selection_end,
                 :Min_Snap_ID     => @min_snap_id,
@@ -128,7 +128,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   test "list_prepared_active_session_history" do
     post :list_prepared_active_session_history, :format=>:js, :groupby=>"SQL-ID",
          :groupfilter => {
-                         :DBID     => session[:database].dbid,
+                         :DBID     => session[:database][:dbid],
                          :Instance => 1,
                          "SQL-ID"  => @sga_sql_id
          },

@@ -35,7 +35,6 @@ class ActiveSupport::TestCase
   # damit wird bei Connect auf diese DB zurückgegriffen
 
   def connect_oracle_db
-    database = Database.new {}
 
     raise "Environment-Variable DB_VERSION not set" unless ENV['DB_VERSION']
     Rails.logger.info "Starting Test with configuration test_#{ENV['DB_VERSION']}"
@@ -44,18 +43,20 @@ class ActiveSupport::TestCase
     test_config = Panorama::Application.config.database_configuration["test_#{ENV['DB_VERSION']}"]
     test_url = test_config['test_url'].split(":")
 
-    database.host     = test_url[3].delete "@"
-    database.port     = test_url[4]
-    database.sid      = test_url[5]
-    database.user     = test_config["test_username"]
-    database.password = test_config["test_password"]
-    #database.tns      = test_config["database"]
+    session[:database] = {}
+    session[:database][:sid_usage] = :SERVICE_NAME
+    session[:database][:host]     = test_url[3].delete "@"
+    session[:database][:port]     = test_url[4]
+    session[:database][:sid]      = test_url[5]
+    session[:database][:user]     = test_config["test_username"]
+
+    # Passwort verschlüsseln in session
+    session[:database][:password] = database_helper_encrypt_value(test_config["test_password"])
 
     # puts "Test for #{ENV['DB_VERSION']} with #{database.user}/#{database.password}@#{database.host}:#{database.port}:#{database.sid}"
-    database.open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
-    database.read_initial_db_values
-    database.locale = "de"
-    session[:database]= database
+    open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
+    read_initial_db_values
+    session[:database][:locale] = "de"
     session[:dba_hist_blocking_locks_owner] = "journal"
     session[:dba_hist_cache_objects_owner] = "journal"
   end

@@ -22,6 +22,17 @@ module DatabaseHelper
     end
   end
 
+  # Verschlüsseln eines Wertes
+  def database_helper_encrypt_value(raw_value)
+    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    crypt.encrypt_and_sign(raw_value)
+  end
+
+  # Entschlüsseln des Wertes
+  def database_helper_decrypt_value(encrypted_value)
+    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    crypt.decrypt_and_verify(encrypted_value)
+  end
 
   def raw_tns
     "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"
@@ -50,8 +61,7 @@ public
 
   def open_oracle_connection
     # Entschlüsseln des Passwortes
-    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
-    local_password = crypt.decrypt_and_verify(session[:database][:password])
+    local_password = database_helper_decrypt_value(session[:database][:password])
 
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"

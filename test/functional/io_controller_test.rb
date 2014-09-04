@@ -13,7 +13,7 @@ class IoControllerTest < ActionController::TestCase
     @time_selection_end = min_alter_org.strftime("%d.%m.%Y %H:%M")
     @time_selection_start = (max_alter_org).strftime("%d.%m.%Y %H:%M")
     @groupfilter = {
-              :DBID            => session[:database].dbid,
+              :DBID            => session[:database][:dbid],
               :time_selection_start => @time_selection_start,
               :time_selection_end   => @time_selection_end,
       }
