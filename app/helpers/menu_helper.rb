@@ -129,10 +129,10 @@ module MenuHelper
             {:class=> 'item', :caption=>t(:menu_addition_dragnet_caption, :default=> 'Dragnet investigation'), :controller=> 'dragnet', :action=> 'show_selection', :hint=>t(:menu_addition_dragnet_hint, :default=> 'Dragnet investigation for performance bottlenecks')   },
         ].concat(
             showBlockingLocksMenu ?
-                [{:class=> 'item', :caption=> 'Historie Blocking Locks',    :controller=> 'noa',                 :action=> 'show_blocking_locks_history', :hint=> 'Historische Auswertung Blocking DB-Locks'}] : []
+                [{:class=> 'item', :caption=> 'Historie Blocking Locks',    :controller=> 'addition',                 :action=> 'show_blocking_locks_history', :hint=> 'Historische Auswertung Blocking DB-Locks'}] : []
         ).concat(
             showDbCacheMenu ?
-                [{:class=> 'item', :caption=> 'DB-Cache-Ressourcen',           :controller=> 'noa',                 :action=> 'db_cache_ressourcen',     :hint=> 'Historische Auswertung DB-Cache-Auslastung'}] : []
+                [{:class=> 'item', :caption=> 'DB-Cache-Ressourcen',           :controller=> 'addition',                 :action=> 'db_cache_ressourcen',     :hint=> 'Historische Auswertung DB-Cache-Auslastung'}] : []
         )
     },
     ]
