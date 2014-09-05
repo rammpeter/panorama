@@ -4,8 +4,6 @@
                         :title=>"Ausahl der Tabelle deren abhängige Tabellen gesucht werden") %>        
   <%= collection_select(:filter_user, :username, @filter_users, :username, :username, {}, 
                         :title=>"Eingrenzung der Ergebnis-Suche auf folgendes Schema") %>        
-  Nur Stammdaten
-  <%= check_box_tag(:onlyMasterData, 1, true, :title=>"Nur Abhängigkeiten von Stammdaten-Tabellen anzeigen") %>
   <%= submit_tag("Abhängigkeiten anzeigen", :title => "Anzeige der Abhängigkeiten") %>
 
 <% end %>
