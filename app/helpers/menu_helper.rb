@@ -74,7 +74,7 @@ module MenuHelper
             },
             ]
         },
-        { :class=> 'menu', :caption=> 'Storage', :content=>[
+        { :class=> 'menu', :caption=> 'Schema / Storage', :content=>[
             {:class=> 'item', :caption=>t(:menu_storage_storage_summary_caption, :default=> 'Disk-storage summary'), :controller=>:storage,             :action=>:tablespace_usage,  :hint=>t(:menu_storage_storage_summary_hint, :default=> 'Overview over disk space/tablespace usage by schema') },
             {:class=> 'item', :caption=>t(:menu_storage_datafile_caption, :default=> 'Datafile-usage'),     :controller=>:storage,             :action=>:datafile_usage,    :hint=>t(:menu_storage_datafile_hint, :default=> 'Show data-files of DB')   },
             { :class=> 'menu', :caption=> 'UNDO-TS', :content=>[
@@ -85,6 +85,7 @@ module MenuHelper
             },
             {:class=> 'item', :caption=> 'Tablespace-Objects', :controller=>:dba_schema,       :action=>:show_object_size,  :hint=>t(:menu_dba_schema_ts_objects_hint, :default=> 'DB-objects by size, utilization and wastage') },
             {:class=> 'item', :caption=> 'Materialized view structures',         :controller=>:storage,   :action=> 'show_materialized_views',  :hint=>t(:menu_storage_matview_hint, :default=> 'Show structure of materialzed views and MV-logs')   },
+            {:class=> 'item', :caption=> 'Table-Abhaengigkeiten',         :controller=> 'table_dependencies',  :action=> 'show_frame',            :hint=> 'Mittelbare und unmittelbare referentielle Abhängigkeiten von Tabellen'},
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_io_caption, :default=> 'I/O analysis'), :content=>[
