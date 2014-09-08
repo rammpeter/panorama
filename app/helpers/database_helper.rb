@@ -95,7 +95,7 @@ public
 
   # Format für JQuery-UI Plugin DateTimePicker
   def timepicker_dateformat
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "dd.mm.yy"
       when "en" then "yy-mm-dd"
       else "dd.mm.yy"
@@ -104,7 +104,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf Tag
   def strftime_format_with_days
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "%d.%m.%Y"
       when "en" then "%Y-%m-%d"
       else "%d.%m.%Y"
@@ -113,7 +113,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf sekunden
   def strftime_format_with_seconds
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "%d.%m.%Y %H:%M:%S"
       when "en" then "%Y-%m-%d %H:%M:%S"
       else "%d.%m.%Y %H:%M:%S"
@@ -122,7 +122,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf Minuten
   def strftime_format_with_minutes
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "%d.%m.%Y %H:%M"
       when "en" then "%Y-%m-%d %H:%M"
       else "%d.%m.%Y %H:%M"     # Deutsche Variante als default
@@ -131,7 +131,7 @@ public
 
   # Ersetzung in TO_CHAR / TO_DATE in SQL
   def sql_datetime_second_mask
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "DD.MM.YYYY HH24:MI:SS"
       when "en" then "YYYY-MM-DD HH24:MI:SS"
       else "DD.MM.YYYY HH24:MI:SS" # Deutsche Variante als default
@@ -140,7 +140,7 @@ public
 
   # Ersetzung in TO_CHAR / TO_DATE in SQL
   def sql_datetime_minute_mask
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "DD.MM.YYYY HH24:MI"
       when "en" then "YYYY-MM-DD HH24:MI"
       else "DD.MM.YYYY HH24:MI" # Deutsche Variante als default
@@ -149,7 +149,7 @@ public
 
   # Menschenlesbare Ausgabe in Hints etc
   def human_datetime_minute_mask
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "TT.MM.JJJJ HH:MI"
       when "en" then "YYYY-MM-DD HH:MI"
       else "TT.MM.JJJJ HH24:MI" # Deutsche Variante als default
@@ -158,7 +158,7 @@ public
 
 
   def numeric_thousands_separator
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then "."
       when "en" then ","
       else "." # Deutsche Variante als default
@@ -167,7 +167,7 @@ public
 
 
   def numeric_decimal_separator
-    case session[:database][:locale]
+    case session[:locale]
       when "de" then ","
       when "en" then "."
       else "," # Deutsche Variante als default

@@ -6,14 +6,16 @@ class EnvController < ApplicationController
   include MenuHelper
   include LicensingHelper
 
+  private
+  # Merken locale für weitere Verwendung
+  def register_locale(locale)
+    session[:locale] = locale
+  end
+
+  public
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
-    session[:database] = nil   if session[:database].class.name != 'Hash'
-
-
-    I18n.locale = :de                   # Default
-    I18n.locale =  Marshal.load cookies[:locale]  if cookies[:locale]
-    I18n.locale = session[:database][:locale]       if session[:database] && session[:database].class.name == 'Hash'
+    session[:database] = nil   if session[:database].class.name != 'Hash'       # Abwärtskompatibilität zu Vorversion
 
     session[:last_used_menu_controller] = "env"
     session[:last_used_menu_action]     = "index"
@@ -24,7 +26,15 @@ class EnvController < ApplicationController
     raise e                                                                     # Werfen der Exception
   end
 
-public
+  # Wechsel der Sprache in Anmeldedialog
+  def set_locale
+    register_locale(params[:locale])
+
+    respond_to do |format|
+      format.js {render :js => "window.location.reload();" }                    # Reload der Sganzen Seite
+    end
+  end
+
   # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
@@ -54,6 +64,7 @@ public
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
     params[:database][:password]  = database_helper_encrypt_value(params[:database][:password])
 
+    session[:locale] = params[:locale]                                          # Wert initial setzen auf Vorgabe
     set_database
   end
 
@@ -77,9 +88,6 @@ public
         return false
       end
     end
-
-    I18n.locale = params[:database][:locale]      # fuer laufende Action Sprache aktiviert
-    cookies.permanent[:locale] = Marshal.dump params[:database][:locale]  # Default für erste Seite
 
     session[:last_used_menu_controller] = "env"
     session[:last_used_menu_action]     = "set_database"
@@ -194,7 +202,7 @@ public
     @license_ok = check_license(@instance_name, @host_name, @database[:port])
 
     timepicker_regional = ""
-    if session[:database][:locale] == "de"  # Deutsche Texte für DateTimePicker
+    if session[:locale] == "de"  # Deutsche Texte für DateTimePicker
       timepicker_regional = "prevText: '<zurück',
                                     nextText: 'Vor>',
                                     monthNames: ['Januar','Februar','März','April','Mai','Juni', 'Juli','August','September','Oktober','November','Dezember'],
@@ -215,7 +223,7 @@ public
                                  };
                                 $.timepicker.setDefaults($.timepicker.regional);
                                 numeric_decimal_separator = '#{numeric_decimal_separator}';
-                                var session_locale = '#{session[:database][:locale]}';
+                                var session_locale = '#{session[:locale]}';
                                 $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#login_dialog').dialog('close');
                                 "

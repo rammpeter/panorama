@@ -344,13 +344,23 @@
   list_sql_detail_sql_id_childno_active_session_history_title: Anzeige der "Active Session History"-Einträge dieser SQL-ID
 
   login_authorization_hint:                                 Zusätzliche Autorisierung für spezielle Applikationen (z.B. NOA)
-  login_database_host_hint:                                 Host-name. Übersteuert TNS-Alias wenn belegt
+  login_caption:                                            Bitte gespeicherte Anmeldung auswählen oder<br>konkrete Anmeldeinformationen eingeben
+  login_database_host_hint:                                 Host-Name bzw. IP-Ardesse
+  login_database_sid_hint:                                  SID oder Service-Name der Datenbank
   login_lang_caption:                                       Sprache
   login_locale_title:                                       Auswahl Applikations-Sprache
+  login_mode_caption:                                       Modus DB-Auswahl
+  login_mode_title:                                         Auswahl Modus zur Identifikation der Datenbank
   login_role_caption:                                       Rolle
   login_save_login_caption:                                 Login speichern?
   login_save_login_hint:                                    Login-Info speichern für wiederholte Verwendung?
+  login_saved_delete_confirmation:                          Wirklich die gespeicherte DB-Connect-Info löschen?
+  login_saved_delete_caption:                               Löschen
+  login_saved_delete_title:                                 Die ausgewählte gespeicherte DB-Verbindung löschen
+  login_saved_login_title:                                  Mit der gespeicherten DB-Verbindung anmelden
+  login_saved_logins_title:                                 Gespeicherte DB-Verbindungen aus früherer Nutzung
   login_submit_caption:                                     Anmelden
+  login_tns_hint:                                           Auswahl Oracle TNS-Alias (aus tnsnames.ora des Servers)
 
   menu_current_caption:                                     Aktuell
 

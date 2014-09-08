@@ -50,24 +50,23 @@
         <div id="login_dialog" class="shadow">
           <table width="100%">
             <tr>
-              <th colspan="5" style="border-style: solid; border-width: 1px;border-color: gray; padding: 5px;">
-                Bitte gespeicherte Anmeldung auswaehlen oder<br/>konkrete Anmeldeinformationen eingeben
+              <th style="border-style: solid; border-width: 1px;border-color: gray; padding: 5px;">
+                <%= t(:login_caption, :default=>"Please choose saved connection or<br>insert your connection info").html_safe %>
               </th>
             </tr>
-            <tr><td colspan="5" style=""> </td></tr>
             <tr>
-              <td  colspan="5">
+              <td>
                 <%  cookies_last_logins = read_last_login_cookies %>
 
                 <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_id), :remote=>true, :id=>:formSavedLogin do %>
-                    <select name="saved_logins_id" title="Saved logins">
+                    <select name="saved_logins_id"  autocomplete="off" title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">
                       <% cookies_last_logins.each_index do |index| %>
                           <% database = cookies_last_logins[index] %>
                           <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:sid]} ( #{database[:user]} ) - #{database[:host]} : #{database[:port]} " %></option>
                       <% end %>
                     </select>
-                    <%= submit_tag "Login", :name => "login", :title => "Login with selected saved credentials".html_safe %>
-                    <%= submit_tag "Delete", :name => "delete", :title => "Delete selected saved login information", data: { confirm: 'Do you really want to delete this saved login credential?' } %>
+                    <%= submit_tag t(:login_submit_caption, :default=>"Login"), :name => "login", :title => t(:login_saved_login_title, :default=>"Login with selected saved credentials") %>
+                    <%= submit_tag t(:login_saved_delete_caption, :default=>"Delete"), :name => "delete", :title => t(:login_saved_delete_title, :default=>"Delete selected saved login information"), data: { confirm: t(:login_saved_delete_confirmation, :default=>"Do you really want to delete this saved login credential?") } %>
                 <% end %>
               </td>
             </tr>
@@ -76,28 +75,59 @@
           <%= form_tag "env/set_database_by_params", :remote => true, :id=>:formLoginDialog do %>
               <table width="100%">
                 <tr>
-                  <th title="Auswahl TNS-Alias oder Angabe Host/Port/SID">TNS</th>
-                  <td><%= collection_select('database', 'tns', read_tnsnames.keys.sort, :to_s, :to_s, {}, {:title=>"Oracle TNS-Connect-String (serverseitig)" }) %></td>
-                  <td colspan="2">
-                    <table>
-                      <tr>
-                        <th title="Host-name. Übersteuert TNS-Alias wenn belegt">Host</th>
-                        <td colspan="2"><%= text_field( 'database', 'host', :size=>15, :title=>t(:login_database_host_hint, :default=>"hostname. covers TNS-Alias if this field has content") ) %></td>
-                      </tr>
-                      <tr>
-                        <th>Port</th>
-                        <td colspan="2"><%= text_field( 'database', 'port', :size=>15, :title=>"Port-Nummer" ) %></td>
-                      </tr>
-                      <tr>
-                        <th>SID/Service</th>
-                        <td colspan="2"><%= text_field( 'database', 'sid', :size=>15, :title=>"SID der Datenbank" ) %></td>
-                      </tr>
-                    </table>
+                  <th><%= t :login_lang_caption, :default=>"Language" %></th>
+                  <td align="center">
+                    <%
+                       sprachen = {:de=>"deutsch", :en=>"english"}
+                       @locale_options = ""
+                       sprachen.each do |key, value|
+                         @locale_options << "<option #{I18n.locale==key ? "selected" : ""} value='#{key}'>#{value}</option>"
+                       end
+                    %>
+                    <!-- Wechsel der Sprache und neu laden der gesamten Seite -->
+                    <select name="database[locale]"  autocomplete="off" onchange="jQuery.ajax({type: 'POST', url:'env/set_locale', data: {locale: this.value} });", title="<%= t(:login_locale_title, :default=>"Select application language")%>">
+                    <%= @locale_options.html_safe %>
+                    </select>
                   </td>
+                </tr>
+                <tr>
+                  <th><%= t(:login_mode_caption, :default=>"DB identification mode") %></th>
+                  <td align="center">
+                    <select name="database[modus]"  autocomplete="off" onchange="if (this.value == 'tns') { jQuery('.login_tns').css('display', ''); jQuery('.login_host').css('display', 'none');} else {jQuery('.login_tns').css('display', 'none'); jQuery('.login_host').css('display', '');}"  title="<%= t(:login_mode_title, :default=>"Select mode for identification of database")%>">
+                        <option selected="selected" value="tns">tnsnames.ora</option>
+                        <option value="host">Host, Port, SID / Service</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr class="login_tns">
+                  <th title="<%= t :login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)" %>">TNS-Alias</th>
+                  <td align="center"><%= collection_select('database', 'tns', read_tnsnames.keys.sort, :to_s, :to_s, {}, {:title=>t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") }) %></td>
+                </tr>
+                <tr class="login_host" style="display: none">
+                  <th title="Host-name. Übersteuert TNS-Alias wenn belegt">Host</th>
+                  <td align="center"><%= text_field( 'database', 'host', :size=>20, :title=>t(:login_database_host_hint, :default=>"hostname or IP adress") ) %></td>
+                </tr>
+                <tr class="login_host" style="display: none">
+                  <th>Port</th>
+                  <td align="center"><%= text_field( 'database', 'port', :size=>20, :title=>"Port-Nummer" ) %></td>
+                </tr>
+                <tr class="login_host" style="display: none">
+                  <th>SID/Service</th>
+                  <td align="center"><%= text_field( 'database', 'sid', :size=>20, :title=>t(:login_database_sid_hint, :default=>"SID or service name of database")) %></td>
                 </tr>
                 <tr>
                   <th>User</th>
                   <td align="center"><%= text_field( 'database', 'user', :size=>20, :title=>"Oracle-User" )  %></td>
+                </tr>
+                <tr>
+                  <th>Password</th>
+                  <td align="center"><%= password_field( 'database', 'password', :size=>20, :title=>"Oracle-Password" ) %> </td>
+                </tr>
+                <tr id="login_dialog_authorization" style="display:none; ">
+                  <th>Autorisierung</th>
+                  <td align="center"><%= password_field( 'database', 'authorization', :title=>t(:login_authorization_hint, :default=>"Additional authoriztion for special applications (like NOA)") ) %> </td>
+                </tr>
+                <tr>
                   <th><%= t :login_role_caption, :default=>"Role" %></th>
                   <td align="center">
                     <select name="database[privilege]" title="Select database role">
@@ -108,28 +138,11 @@
                   </td>
                 </tr>
                 <tr>
-                  <th>Password</th>
-                  <td align="center"><%= password_field( 'database', 'password', :size=>20, :title=>"Oracle-Password" ) %> </td>
-                  <th><%= t :login_lang_caption, :default=>"Language" %></th>
-                  <%
-                     sprachen = {:de=>"deutsch", :en=>"english"}
-                     @locale_options = ""
-                     sprachen.each do |key, value|
-                       @locale_options << "<option #{I18n.locale==key ? "selected" : ""} value='#{key}'>#{value}</option>"
-                     end
-                  %>
-                  <td align="center"><%= select('database', 'locale', [["deutsch", "de"], ["english", "en"]], {},{:title=>t(:login_locale_title, :default=>"Select application language")} ) %></td>
-                </tr>
-                <tr id="login_dialog_authorization" style="display:none; ">
-                  <th>Autorisierung</th>
-                  <td colspan="3" align="center"><%= password_field( 'database', 'authorization', :title=>t(:login_authorization_hint, :default=>"Additional authoriztion for special applications (like NOA)") ) %> </td>
-                </tr>
-                <tr>
                   <th><%= t :login_save_login_caption, :default=>"Save login?" %></th>
-                  <td colspan="3" align="center"><%= check_box_tag(:saveLogin, 1, true, :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
+                  <td align="center"><%= check_box_tag(:saveLogin, 1, true, :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
                 </tr>
                 <tr>
-                  <td colspan="4" align="center">
+                  <td colspan="2" align="center">
                     <%= submit_tag t(:login_submit_caption, :default=>"Login"), :id => "submit_login_dialog" %>
                   </td>
                 </tr>
@@ -147,33 +160,8 @@
             </div>
         </div>
         <div style="height: 50px;"></div> <!-- Platzhalter für Höhe des absolut positionierten divs "head" -->
-        <div id="content_for_layout" style="float:left; width:100%; " >
-            <h1>Panorama für Oracle</h1>
-            <h3>Analyse-Werkzeug für DBA und Software-Entwickler</h3>
-            <B>
-            Bietet Unterstützung für:
-            <ul>
-              <li>Performance-Optimierung von Applikationen</li>
-              <li>Analyse von Laufzeiten und Wartezust&auml;nden</li>
-              <li>Aufbereitung der internen Informationen von Oracle-DB</li>
-
-            </ul>
-          </B>
-          <BR><BR>
-
-          Das Tool ist angepasst für die Browser: Mozilla Firefox, Google Chrome und Apple Safari<BR>
-          Microsoft Internet Explorer wird nur rudimentär untertützt<BR><BR>
-
-          <span style="color:red;">Teile der Anwendung erfordern Lizensierung des "Diagnostic Pack" der Oracle-DB !</span><BR><BR>
-
-          Der zur Anmeldung genutzte Oracle-User benötigt das Recht "SELECT ANY DICTIONARY".<BR><BR>
-
-          Bug-Reports, Hinweise und Anforderungen bitte per Mail an:<BR> <a href="mailto:Peter.Ramm@ottogroup.com">Peter.Ramm@ottogroup.com</a><BR><BR>
-          18.08.2014  Version 1.18<BR>
-          Peter Ramm, Otto Group Solution Provider (OSP) Dresden GmbH<BR>
-          Tel.: 0351-49723-150<BR><BR>
-          <BR>
-          <BR>
+        <div id="content_for_layout" style="clear: both; width:100%; " >
+            <%= render :partial => 'start_screen_before_login' %>
         </div>
 
         <!-- Verlaufsdialog zur Anzeige bei Wartezustaenden -->

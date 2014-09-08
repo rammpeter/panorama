@@ -28,8 +28,11 @@ class ApplicationController < ActionController::Base
   def open_connection
     session[:database].symbolize_keys! if session[:database] && session[:database].class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
+    session[:locale] = "de" unless session[:locale]
+    I18n.locale = session[:locale]      # fuer laufende Action Sprache aktiviert
+
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == 'env' && ['index', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
+    return if (controller_name == 'env' && ['index', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 
@@ -45,7 +48,6 @@ class ApplicationController < ActionController::Base
     # Neue Connection auf Basis Oracle aufbauen mit durch Anwender gegebener DB
     if session[:database]
       # Initialisierungen
-       I18n.locale = session[:database][:locale]      # fuer laufende Action Sprache aktiviert
 
       # Protokollieren der Aufrufe in lokalem File
       real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
