@@ -1,3 +1,4 @@
 module Panorama
-  VERSION = "1.0.3"
+  VERSION = "2.0.1"
+  RELEASE_DATE = Date.parse('2014-09-09')
 end
