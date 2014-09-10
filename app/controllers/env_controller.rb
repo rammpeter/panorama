@@ -96,7 +96,7 @@ class EnvController < ApplicationController
 
     @database = params[:database].to_h.symbolize_keys
 
-    if !@database[:host] || @database[:host] == ""  # Hostname nicht belegt, dann TNS-Alias auswerten
+    if @database[:modus] == 'tns'                    # TNS-Alias auswerten
       tns_record = read_tnsnames[@database[:tns]]   # Hash mit Attributen aus tnsnames.ora für gesuchte DB
       unless tns_record
         respond_to do |format|
@@ -140,15 +140,29 @@ class EnvController < ApplicationController
       begin
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
+        Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+        Rails.logger.error e.message
+        Rails.logger.error 'Switching between SID and SERVICE_NAME'
+
         database_helper_switch_sid_usage
         open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
-        sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
+        begin
+          sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
+        rescue Exception => e    # 3. Versuch mit alternativer SID-Deutung
+          Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+          Rails.logger.error e.message
+          Rails.logger.error 'Error persists, switching back between SID and SERVICE_NAME'
+          database_helper_switch_sid_usage
+          open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
+          sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"    # Provozieren der ursprünglichen Fehlermeldung wenn auch zweiter Versuch fehlschlägt
+        end
       end
     rescue Exception => e
       set_dummy_db_connection
       respond_to do |format|
         format.js {render :js => "$('#content_for_layout').html('#{j "Fehler bei Anmeldung an DB: <br>
                                                                       #{e.message}<br>
+                                                                      URL:  '#{jdbc_thin_url}'<br>
                                                                       Host: #{@database[:host]}<br>
                                                                       Port: #{@database[:port]}<br>
                                                                       SID: #{@database[:sid]}"

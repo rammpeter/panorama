@@ -44,8 +44,18 @@ class EnvControllerTest < ActionController::TestCase
   end
 
 
-  test "set_dbid" do
+  test "Diverses" do
+    get :index, :format=>:js
+    assert_response :success
+
+    post :set_locale, :format=>:js, :locale=>'de'
+    assert_response :success
+
+    post :set_locale, :format=>:js, :locale=>'en'
+    assert_response :success
+
     post :set_dbid, :format=>:js, :dbid =>session[:database][:dbid]   # Alten Wert erneut setzen um andere Tests nicht zu gefährden
+    assert_response :success
   end
 
 end

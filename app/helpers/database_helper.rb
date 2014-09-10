@@ -8,7 +8,7 @@ module DatabaseHelper
     if session[:database][:sid_usage] == :SID
       session[:database][:sid_usage] = :SERVICE_NAME
     else
-      session[:database][:sid_usage] == :SID if session[:database][:sid_usage] == :SERVICE_NAME
+      session[:database][:sid_usage] = :SID
     end
   end
 
@@ -87,7 +87,7 @@ public
       Rails.logger.info "Database: TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
     end
 
-  rescue Exception => e
+  rescue Exception => e                   # Exception kommt i.d.R. erst bei erstem DB-Zugriff
     Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
     Rails.logger.error e.message
     raise e
