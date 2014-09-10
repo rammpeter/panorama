@@ -153,7 +153,7 @@ class EnvController < ApplicationController
           Rails.logger.error e.message
           Rails.logger.error 'Error persists, switching back between SID and SERVICE_NAME'
           database_helper_switch_sid_usage
-          open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
+          open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zurück zwischen SID und ServiceName
           sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"    # Provozieren der ursprünglichen Fehlermeldung wenn auch zweiter Versuch fehlschlägt
         end
       end
