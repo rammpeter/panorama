@@ -195,6 +195,7 @@ class ActiveSessionHistoryController < ApplicationController
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
     @sql_ids = sql_select_all ["\
+      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              s.SQL_ID, s.Instance_Number, u.UserName,
              AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
@@ -217,12 +218,18 @@ class ActiveSessionHistoryController < ApplicationController
               FROM   gv$Active_Session_History
              )s
       LEFT OUTER JOIN All_Users             u   ON u.User_ID   = s.User_ID  -- LEFT OUTER JOIN verursacht Fehler
+      -- erst p2 abfragen, da bei Request=3 in row_wait_obj# das als vorletztes gelockte Object stehen kann
+      LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
+      LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
       WHERE  1=1
       #{@global_where_string}
       GROUP BY s.DBID, s.SQL_ID, s.Instance_Number, u.UserName
       ORDER BY SUM(s.Sample_Cycle) DESC
      "
-                              ].concat(@dba_hist_where_values).concat(@global_where_values)
+                              ].concat(@dba_hist_where_values).append(@dbid).concat(@global_where_values)
 
     render_partial
   end

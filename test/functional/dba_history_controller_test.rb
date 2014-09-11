@@ -15,7 +15,6 @@ class DbaHistoryControllerTest < ActionController::TestCase
     @max_snap_id = sql_select_one ["SELECT  /* Panorama-Tool Ramm */ MAX(Snap_ID)
                                    FROM    DBA_Hist_Snapshot
                                    WHERE   Begin_Interval_Time <= ?", time_selection_end ]
-    #connect_sqlite_db       # Restaurieren der SQL-Lite Connetion für start der Aktionen
   end
 
 
