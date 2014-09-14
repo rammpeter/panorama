@@ -1,5 +1,5 @@
-Panorama for Oracle
-===================
+Panorama
+========
 
 Web-tool for monitoring performance issues of Oracle databases.
 Provides easy access to several internal information.<br>
