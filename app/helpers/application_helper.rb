@@ -137,6 +137,9 @@ module ApplicationHelper
       tnsnames[tns_name] = {:hostName => hostName, :port => port, :sidName => sidName, :sidUsage =>sid_usage }
     end
     tnsnames
+  rescue Exception => e
+    Rails.logger.error "Error processing tnsnames.ora: #{e.message}"
+    tnsnames
   end
 
   # Genutzt zur Anzeige im zentralen Screen

@@ -40,7 +40,8 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   spec.add_dependency  'multi_json'
   spec.add_dependency  'uglifier'
   spec.add_dependency  'sass'
-  spec.add_dependency 'jquery-rails'
+  spec.add_dependency  'jquery-rails'
+  spec.add_dependency  'tzinfo-data'    # Fixes error " No source of timezone data could be found " on windows systems
 
 # Require von jruby-openssl nicht notwendig, da Bestandteil von jRuby, explizite Angabe führt zu Fehlermeldung von warbler und rack-Fehler bei Ausführung
 #gem 'jruby-openssl'
