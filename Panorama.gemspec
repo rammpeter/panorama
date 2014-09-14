@@ -18,7 +18,7 @@ Provides easy access to several internal information.
 Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 }
   spec.homepage      = "https://github.com/rammpeter/Panorama"
-  spec.license       = "MIT"
+  spec.license       = "GNU General Public License"
 
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   #spec.files         = `git ls-files -z`.split("\x0")
