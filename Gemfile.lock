@@ -7,7 +7,7 @@ PATH
       jquery-rails
       memcache-client
       multi_json
-      rails (~> 4.1.5)
+      rails (= 4.1.6)
       sass
       therubyrhino
       therubyrhino_jar
