@@ -213,7 +213,6 @@ class EnvController < ApplicationController
 
     session[:database] = @database
     write_connection_to_cookie @database
-    @license_ok = check_license(@instance_name, @host_name, @database[:port])
 
     timepicker_regional = ""
     if session[:locale] == "de"  # Deutsche Texte für DateTimePicker
@@ -256,19 +255,6 @@ class EnvController < ApplicationController
     end
   end
 
-  def show_licensed_databases
-    output = ""
-    license_list.each do |l|
-      output << "SID=#{l[:sid]}"
-      output << ", Host=#{l[:host]}" if l[:host]
-      output << ", Port=#{l[:port]}" if l[:port]
-      output << "<br>"
-    end
-
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j output}');" }
-    end
-  end
 
 private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
@@ -294,13 +280,6 @@ private
 
   end
 
-  def check_license(sid, host, port)
-    return false unless sid
-    license_list.each do |l|
-      return true if sid.upcase==l[:sid].upcase && ( l[:host].nil? || host.upcase.match(l[:host].upcase) ) && ( l[:port].nil? || port==l[:port] )
-    end
-    false
-  end
 
 public
   # DBID explizit setzen wenn mehrere verschiedene in Historie vorhande

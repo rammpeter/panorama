@@ -322,18 +322,6 @@
   env_handling_hint_2:                                      Sortieren nach mehreren Spalten durch aufeinanderfolgende Sortierung nach einzelnen Spalten
   env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü
   env_licensing_header:                                     Lizensierung
-  env_license_ok_msg:                                       Datenbank-Instanz %{sid} ist lizensiert für Nutzung mit Panorama.
-  env_license_wrong_msg: |-
-    Die Datenbank-Instanz %{sid} ist nicht lizensiert für die Nutzung mit Panorama!<br><br>
-    Bitte testen Sie Panorama für Ihre Zwecke.<br>
-    Wenn Sie die Nutzung von Panorama fortsetzten möchten, lizensieren sie das Produkt bitte für Ihre Datenbank-Instanz.<br><br>
-    Bitte kontaktieren Sie eine der folgenden Personen:<br>
-    %{p1}<br>
-    %{p2}<br>
-    %{p3}<br>
-
-  env_licensed_db_caption:                                  Aktuell lizensierte Datenbanken
-  env_licensed_db_hint:                                     Zeige aktuell lizensierte Datenbanken
 
   help_no_help_available:                                   Bisher leider keine Hilfe vorhanden für
 

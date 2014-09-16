@@ -41,30 +41,7 @@ Platform: <%= @platform_name%>
 <% end %>
 
 <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
-<% if @license_ok %>
-    <%= t(:env_license_ok_msg, :default=>"Database instance %{sid} is licensed for usage with Panorama.", :sid=>@instance_name) %>
-<% else %>
-    <span style="color:red; font-size: larger;"> <%= t(:env_license_wrong_msg, :default=>"Database %{sid} is not licensed for usage with Panorama!<br><br>
-Please try out Panorama for your purposes.<br>
-If you will proceed using Panorama, please gain valid usage license for your database.<br><br>
-Please contact one of the following people for license:<br>
-%{p1}<br>
-%{p2}<br>
-%{p3}<br>
-",                                                     :sid=>@instance_name,
-                                                       :p1=>"<a href='mailto:Peter.Ramm@ottogroup.com'>Peter Ramm</a>",
-                                                       :p2=>"<a href='mailto:Juergen.Jagla@ottogroup.com'>Juergen Jagla</a>",
-                                                       :p3=>"<a href='mailto:Bernd.Wulf2@ottogroup.com'>Bernd Wulf</a>"
-                                                      ).html_safe %></span><BR><BR>
-    <%= my_ajax_link_to(t(:env_licensed_db_caption, :default=>"currently licensed databases"),
-                        url_for(:action=>:show_licensed_databases,
-                                :update_area=>:licensed_databases_area
-                        ),
-                        :title=>t(:env_licensed_db_hint, :default=>"Show all licensed databases")
-        )
-    %>
-    <div id="licensed_databases_area"></div>
-<% end %>
+<%= render :partial => 'licensing' %>
 
 <% if @dbids.count > 1 %>
     <h2>Data for multiple database IDs is recorded in AWR history</h2>

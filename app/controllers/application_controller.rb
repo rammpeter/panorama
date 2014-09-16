@@ -10,6 +10,8 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception                  # cross site scripting verhindern
 
+  #force_ssl
+
 
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's 
 
