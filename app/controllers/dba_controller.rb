@@ -365,21 +365,28 @@ class DbaController < ApplicationController
     end
 
     @redologs = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ ss.Begin_Interval_Time, l.*
-      FROM   (
-              SELECT DBID, Snap_ID, Instance_Number, COUNT(*) Log_Number,
-                     SUM(CASE WHEN Archived='NO' THEN 1 ELSE 0 END) Not_Archived,
-                     SUM(CASE WHEN Status='CURRENT' THEN 1 ELSE 0 END) Current_No,
-                     SUM(CASE WHEN Status='ACTIVE' THEN 1 ELSE 0 END) Active_no
-              FROM   DBA_Hist_Log
-              WHERE  DBID = ?
-              AND Instance_Number = Thread#  -- im gv$-View werden jeweils die Logs der anderen Instanzen noch einmal in jeder Instance mit Thread# getzeigt, dies verhindert die Dopplung
-              GROUP BY DBID, Snap_ID, Instance_Number
-             ) l
-      JOIN   DBA_Hist_Snapshot ss ON ss.DBID=l.DBID AND ss.Snap_ID=l.Snap_ID AND ss.Instance_Number=l.Instance_Number
-      WHERE  ss.Begin_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-      AND    ss.Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') #{wherestr}
-      ORDER BY ss.Begin_Interval_Time, l.Instance_Number
+      SELECT /* Panorama-Tool Ramm */ x.*,
+             x.LogSwitches * x.Members * x.Avg_Size_MB LogWrites_MB
+      FROM   (SELECT ss.Begin_Interval_Time, l.*,
+                     l.MaxSequenceNo - LAG(l.MaxSequenceNo, 1, l.MaxSequenceNo) OVER (PARTITION BY l.Instance_Number ORDER BY ss.Begin_Interval_Time) LogSwitches
+              FROM   (
+                      SELECT DBID, Snap_ID, Instance_Number, COUNT(*) Log_Number,
+                             SUM(CASE WHEN Archived='NO' THEN 1 ELSE 0 END)     Not_Archived,
+                             SUM(CASE WHEN Status='CURRENT' THEN 1 ELSE 0 END)  Current_No,
+                             SUM(CASE WHEN Status='ACTIVE' THEN 1 ELSE 0 END)   Active_no,
+                             Avg(Members)                                       Members,
+                             AVG(Bytes)/ (1024*1024)                            Avg_Size_MB,
+                             MAX(Sequence#)                                     MaxSequenceNo
+                      FROM   DBA_Hist_Log
+                      WHERE  DBID = ?
+                      AND Instance_Number = Thread#  -- im gv$-View werden jeweils die Logs der anderen Instanzen noch einmal in jeder Instance mit Thread# getzeigt, dies verhindert die Dopplung
+                      GROUP BY DBID, Snap_ID, Instance_Number
+                     ) l
+              JOIN   DBA_Hist_Snapshot ss ON ss.DBID=l.DBID AND ss.Snap_ID=l.Snap_ID AND ss.Instance_Number=l.Instance_Number
+              WHERE  ss.Begin_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+              AND    ss.Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') #{wherestr}
+            ) x
+      ORDER BY x.Begin_Interval_Time, x.Instance_Number
       ", @dbid, @time_selection_start, @time_selection_end].concat whereval
 
 
