@@ -17,7 +17,8 @@ class ApplicationController < ActionController::Base
 
   # open_connection immer ausfuehren, ausser bei auswahl der Connection selbst
   before_filter :open_connection # , :except -Liste wird direkt in open_connection gehandelt
-  after_filter  :close_connection
+  after_filter  :after_request
+
   rescue_from Exception, :with => :global_exception_handler
 
   # Abfangen aller Exceptions während Verarbeitung von Controller-Actions
@@ -78,7 +79,13 @@ class ApplicationController < ActionController::Base
     session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
-    alert(e, "Error while connecting to #{session[:database][:raw_tns] if session[:database]}")         # Explizit anzeige des Connect-Problemes als Popup-Message
+    raise "Error while connecting to #{session[:database][:raw_tns] if session[:database]}"         # Explizit anzeige des Connect-Problemes als Popup-Message
+  end
+
+  # Aktivitäten nach Requestbearbeitung
+  def after_request
+    # Connection beibehalten nach Request fuer evtl. Verarbeitung des nächsten Request auf selber Connection
+    # close_connection
   end
 
   # Ausfüherung nach jedem Request ohne Ausnahme
@@ -90,17 +97,20 @@ class ApplicationController < ActionController::Base
 protected  
   # Ausgabe der Meldungen einer Exception
   def alert(exception, header='')
-    logger.error exception.message
-    exception.backtrace.each do |bt|
-      logger.error bt
+    if exception
+      logger.error exception.message
+      exception.backtrace.each do |bt|
+        logger.error bt
+      end
+      message = exception.message
+      message << "\n\n"
+      #message << caller.to_s
+      exception.backtrace.each do |bt|
+        message << bt
+      end
+    else
+      message = 'ApplicationController.alert: Exception = nil'
     end
-    message = exception.message
-    message << "\n\n"
-    #message << caller.to_s
-    exception.backtrace.each do |bt|
-      message << bt
-    end
-
     respond_to do |format|
       format.js { render :js => "alert('#{j "#{header}\n\n#{message}"}');" } # Optional zu erweitern um caller.to_s
     end

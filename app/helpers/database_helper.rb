@@ -60,22 +60,38 @@ public
 
 
   def open_oracle_connection
-    # Entschlüsseln des Passwortes
-    local_password = database_helper_decrypt_value(session[:database][:password])
-
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
-      ActiveRecord::Base.establish_connection(
-          :adapter  => "oracle_enhanced",
-          :driver   => "oracle.jdbc.driver.OracleDriver",
-          :url      => jdbc_thin_url,
-          :username => session[:database][:user],
-          :password => local_password,
-          :privilege => session[:database][:privilege],
-          :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
-      )
-      Rails.logger.info "Database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+
+      config = ActiveRecord::Base.connection.instance_variable_get(:@config)  # Aktuelle config, kann reduziert sein auf :adapter bei NullDB
+
+      # Connect nur ausführen wenn bisherige DB-Connection nicht der gewünschten entspricht
+      if ActiveRecord::Base.connection.class.name != 'ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter' ||
+          config[:adapter]  != 'oracle_enhanced' ||
+          config[:driver]   != 'oracle.jdbc.driver.OracleDriver' ||
+          config[:url]      != jdbc_thin_url ||
+          config[:username] != session[:database][:user]
+
+        # Entschlüsseln des Passwortes
+        local_password = database_helper_decrypt_value(session[:database][:password])
+
+        ActiveRecord::Base.establish_connection(
+            :adapter  => "oracle_enhanced",
+            :driver   => "oracle.jdbc.driver.OracleDriver",
+            :url      => jdbc_thin_url,
+            :username => session[:database][:user],
+            :password => local_password,
+            :privilege => session[:database][:privilege],
+            :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
+        )
+        Rails.logger.info "Connecting database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+      else
+        Rails.logger.info "Using connected database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+      end
+
     else
+      raise "Native ruby (RUBY_ENGINE=#{RUBY_ENGINE}) is no longer supported! Please use JRuby runtime environment! Call contact for support request if needed."
+=begin
       ActiveRecord::Base.establish_connection(
           :adapter  => "oracle_enhanced",
           :database => session[:database][:tns],
@@ -85,6 +101,7 @@ public
           :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
       )
       Rails.logger.info "Database: TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+=end
     end
 
   rescue Exception => e                   # Exception kommt i.d.R. erst bei erstem DB-Zugriff

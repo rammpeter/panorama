@@ -101,6 +101,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             .data('slickgridextended', this)                                        // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
             .css('margin-top', '2px')
             .css('margin-bottom', '2px')
+            .addClass('slick-shadow')
         ;
 
         // Grid durch Schieber am unteren Ende horitontal resizable gestalten
@@ -281,7 +282,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         // Caption setzen
         if (options['caption'] && options['caption'] != ""){
-            var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption'></div>").insertBefore('#'+container_id);
+            var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
             caption.html(options['caption'])
         }
     }   // initialize_slickgrid

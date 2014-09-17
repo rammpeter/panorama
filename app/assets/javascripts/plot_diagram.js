@@ -35,6 +35,7 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
         .html('<div id="'+head_id+'" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>'+
             '<div id="'+canvas_id+'" style="float:left; width:100%; height: '+canvas_height+'px; background-color: white; "></div>'
         );
+    plot_area.parent().addClass('slick-shadow');
 
     // Header-Bereich belegen
     jQuery('#'+head_id)

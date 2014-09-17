@@ -700,7 +700,7 @@ public
     # Ermitteln Kurztext per DB aus SQL-ID
     def get_sql_shorttext_by_sql_id(sql_id)
       # Connect zur DB nachhollen wenn noch auf NullAdapter steht, da Zugriff auf gecachte Werte ohne DB-Connect möglich ist
-      open_oracle_connection if ActiveRecord::Base.connection.class != ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
+      open_oracle_connection
 
       # erster Versuch direkt aus SGA zu lesen
       sqls = sql_select_all ["\

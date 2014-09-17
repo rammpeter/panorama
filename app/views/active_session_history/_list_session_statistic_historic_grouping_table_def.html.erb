@@ -59,7 +59,7 @@
       if value == "< 0 >"
         ""
       else
-        my_ajax_link_to("<div style=\"white-space: nowrap;\">#{html_escape(value)}</div>".html_safe,     # Verhindern Zeilenumbruch in Anzeige
+        my_ajax_link_to("<span style=\"white-space: nowrap;\">#{html_escape(value)}</span>".html_safe,     # Verhindern Zeilenumbruch in Anzeige
           url_for({:action       => :list_session_statistic_historic_grouping,
                    :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
                    :groupby      => add_url[:groupby],
