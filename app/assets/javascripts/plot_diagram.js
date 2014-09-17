@@ -32,10 +32,10 @@ function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_a
     // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
     plot_area
         .css("background-color", "white")
-        .html('<div id="'+head_id+'" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>'+
-            '<div id="'+canvas_id+'" style="float:left; width:100%; height: '+canvas_height+'px; background-color: white; "></div>'
-        );
-    plot_area.parent().addClass('slick-shadow');
+        .html('<div id="'+head_id+'" class="slick-shadow" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>'+
+            '<div id="'+canvas_id+'" class="slick-shadow" style="float:left; width:100%; height: '+canvas_height+'px; background-color: white; margin-bottom: 10px; "></div>'
+        )
+    ;
 
     // Header-Bereich belegen
     jQuery('#'+head_id)
