@@ -16,6 +16,7 @@ column_options = [
         {:caption=>"Client",        :data=>proc{|rec| show_client(rec)},   },
         {:caption=>"Controller",    :data=>proc{|rec| rec.Controller},   },
         {:caption=>"Action",        :data=>proc{|rec| rec.Action},   },
+        {:caption=>"URL",           :data=>proc{|rec| rec.URL},             :title=> 'Attached host:port:sid/servicename'},
         ]
 
    caption = "Einzel-Records, Filter: "

@@ -18,7 +18,7 @@ module DatabaseHelper
     if session[:database][:tns]
       session[:database][:tns]
     else
-      raw_tns
+      database_helper_raw_tns
     end
   end
 
@@ -34,8 +34,12 @@ module DatabaseHelper
     crypt.decrypt_and_verify(encrypted_value)
   end
 
-  def raw_tns
-    "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"
+  def database_helper_raw_tns
+    if session[:database]
+      "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"
+    else
+      "session[:database] not set!"
+    end
   end
 
 private

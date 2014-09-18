@@ -127,12 +127,14 @@ class UsageController < ApplicationController
         controller = recs[3]
         action     = recs[4]
         ts         = recs[5]
+        url        = recs[6]
         rec = {:Database   => db,
                :IP_Address => ip,
                :Month      => month,
                :Controller => controller,
                :Action     => action,
-               :Timestamp  => ts
+               :Timestamp  => ts,
+               :URL        => url
         }
 
         filtered = true

@@ -55,15 +55,16 @@ class ApplicationController < ActionController::Base
       # Protokollieren der Aufrufe in lokalem File
       real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
       real_action_name     = params[:last_used_menu_action]     ? params[:last_used_menu_action]     : action_name
+
+      open_oracle_connection   # Oracle-Connection aufbauen
+
       begin
         # Ausgabe Logging-Info in File für Usage-Auswertung
         filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{session[:database][:raw_tns]} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')}\n")}
+        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ActiveRecord::Base.connection.current_database} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
       rescue Exception => e
         logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
-
-      open_oracle_connection   # Oracle-Connection aufbauen
 
       # Registrieren mit Name an Oracle-DB
       #ActiveRecord::Base.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
@@ -79,7 +80,7 @@ class ApplicationController < ActionController::Base
     session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
-    raise "Error while connecting to #{session[:database][:raw_tns] if session[:database]}"         # Explizit anzeige des Connect-Problemes als Popup-Message
+    raise "Error while connecting to #{database_helper_raw_tns}"         # Explizit anzeige des Connect-Problemes als Popup-Message
   end
 
   # Aktivitäten nach Requestbearbeitung
