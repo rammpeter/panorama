@@ -1,4 +1,3 @@
-<h1>Oracle Initialisierungs-Parameter</h1>
 <%= @hint %>
 
 <%
@@ -17,7 +16,7 @@ column_options =
 %>
 
 <%=
-    gen_slickgrid(@parameters, column_options, :max_height=>600)
+    gen_slickgrid(@parameters, column_options, {:caption => 'Oracle Initialisierungs-Parameter', :max_height=>600})
 %>
 
 

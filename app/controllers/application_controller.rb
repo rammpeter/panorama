@@ -61,7 +61,7 @@ class ApplicationController < ActionController::Base
       begin
         # Ausgabe Logging-Info in File für Usage-Auswertung
         filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ActiveRecord::Base.connection.current_database} #{Time.now.year}/#{Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
+        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ActiveRecord::Base.connection.current_database} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
       rescue Exception => e
         logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
