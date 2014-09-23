@@ -84,7 +84,8 @@
 
   dba_show_sessions_caption:                                Anzeige Sessions
   dba_show_sessions_instance_hint:                          Einschränkung auf RAC-Instance (optional)
-  dba_show_sessions_filter_hint:                            LIKE-Filter auf Session-ID, Process-ID oder Username von Client/Shadow-Process (optional)
+  dba_show_sessions_filter_hint: |-
+    Optionaler LIKE-Filter für  Client/Shadow-Process auf: Session-ID, Process-ID, Username, Client-Info, Module, Action, Maschine, Programm
   dba_show_sessions_only_active_caption:                    Nur Aktive
   dba_show_sessions_only_active_hint:                       Nur aktive Sessions anzeigen
   dba_show_sessions_only_db_link_caption:                   Nur DB-Link

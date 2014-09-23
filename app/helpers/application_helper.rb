@@ -527,10 +527,12 @@ public
 
     # Defaults für global_options
     global_options[:caption]            = escape_js_chars(global_options[:caption])    # Sonderzeichen in caption escapen
-    if global_options[:caption_style]
-      global_options[:caption]            = "<span style=\"#{global_options[:caption_style]}\">#{global_options[:caption]}</span>"
-    else
-      global_options[:caption]            = "<span style=\"font-weight: bold;\">#{global_options[:caption]}</span>"
+    if global_options[:caption]
+      if global_options[:caption_style]
+        global_options[:caption]            = "<span style=\"#{global_options[:caption_style]}\">#{global_options[:caption]}</span>"
+      else
+        global_options[:caption]            = "<span style=\"font-weight: bold;\">#{global_options[:caption]}</span>"
+      end
     end
     global_options[:width]              = '100%'                                unless global_options[:width]         # Default für Weite wenn nichts anderes angegeben
     global_options[:width]              = :auto                                 if global_options[:width] == 'auto'   # Symbol verwenden

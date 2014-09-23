@@ -23,7 +23,7 @@
   </div>
   <div class="float_left">
     Filter
-    <%= text_field_tag(:filter, "", :size=>12, :title=>t(:dba_show_sessions_filter_hint, :default=>"Like-filter on session-ID, process-ID or username of client/shadow-process (optional)")) %>
+    <%= text_field_tag(:filter, "", :size=>12, :title=>t(:dba_show_sessions_filter_hint, :default=>"Optional like-filter for client/shadow-process on: session-ID, process-ID, username, client info, module, action, machine, program")) %>
   </div>
   <div class="float_left">
     <%= submit_tag(t(:dba_show_sessions_submit_caption, :default=>"Show sessions"), :title => t(:dba_show_sessions_submit_hint, :default=>"Show sessions according to given filters")) %>
