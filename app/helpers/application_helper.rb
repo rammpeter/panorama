@@ -257,7 +257,7 @@ module ApplicationHelper
   # Aufbereiten des Parameters "dbid" aus Request, return session-default wenn kein plausibler Wert
   def prepare_param_dbid
     retval = params[:dbid]
-    retval = session[:database][:dbid] unless retval
+    retval = session[:dbid] unless retval
     retval
   end
 
@@ -717,7 +717,7 @@ public
                    FROM   DBA_Hist_SQLText
                    WHERE  DBID   = ?
                    AND    SQL_ID = ?",
-                   session[:database][:dbid], sql_id]
+                   session[:dbid], sql_id]
       end
 
       if sqls.size == 0

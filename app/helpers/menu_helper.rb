@@ -196,7 +196,7 @@ private
 
 
   def build_menu_entry(menu_entry)
-    if menu_entry[:min_db_version] && session[:database][:version] <  menu_entry[:min_db_version]
+    if menu_entry[:min_db_version] && session[:version] <  menu_entry[:min_db_version]
       return ''                                                                    # Keine Anzeige, da Funktion von DB-Version noch nicht unterstützt wird
     end
     output = ''
@@ -206,7 +206,7 @@ private
     '
     menu_entry[:content].each do |m|
       output << build_menu_entry(m) if m[:class] == 'menu'
-      unless m[:min_db_version] && session[:database][:version] <  m[:min_db_version] # Prüfung auf unterstützte DB-Version
+      unless m[:min_db_version] && session[:version] <  m[:min_db_version] # Prüfung auf unterstützte DB-Version
         output << "<li>#{ menu_link_remote(m[:caption], m[:controller], m[:action], m[:hint]) }</li>" if m[:class] == 'item'
       end
     end
@@ -219,7 +219,7 @@ private
 public
   # Aufbau des HTML-Menües, Hash mit DB-Namen für Spezialbehandlung
   def build_menu_html
-    return '' if session[:database].nil? || session[:database][:version].nil?       # Abbrechen des Menüaufbaus, wenn die Versions-Strukturen gar nicht gefüllt sind
+    return '' if session[:database].nil? || session[:version].nil?       # Abbrechen des Menüaufbaus, wenn die Versions-Strukturen gar nicht gefüllt sind
 
     output = "<ul class='sf-menu sf-js-enabled sf-shadow'>"
     menu_content.each do |m|      # Aufruf Methode application_helper.menu_content

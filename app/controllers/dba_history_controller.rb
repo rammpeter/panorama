@@ -465,7 +465,7 @@ class DbaHistoryController < ApplicationController
     if sql_statement
       @sql_statement      = sql_statement.sql_text
       @sql_profiles       = sql_select_all ["SELECT * FROM DBA_SQL_Profiles       WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
-      if session[:database][:version] >= "11.2"
+      if session[:version] >= "11.2"
         @sql_plan_baselines = sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR Signature = TO_NUMBER(?)", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
       else
         @sql_plan_baselines = []
@@ -575,7 +575,7 @@ class DbaHistoryController < ApplicationController
         mp[:plans] << p if p.dbid == mp.dbid && p.plan_hash_value == mp.plan_hash_value && p.parsing_schema_name == mp.parsing_schema_name
       end
 
-      if session[:database][:version] >= "11.2"     # Ab 11.2 sind ASH-Records mit Verweis auf Zeile des Ausführungsplans versehen
+      if session[:version] >= "11.2"     # Ab 11.2 sind ASH-Records mit Verweis auf Zeile des Ausführungsplans versehen
         ash = sql_select_all ["\SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
                                         SQL_PLan_Line_ID,
                                         COUNT(*)                                                   DB_Time_Seconds,

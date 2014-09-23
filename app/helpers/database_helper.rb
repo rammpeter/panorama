@@ -53,22 +53,18 @@ private
 
 public
 
-  # Einlesen diverser Parameter der DB, die spaeter noch laufend gebraucht werden
-  def read_initial_db_values
-    session[:database][:dbid]          = sql_select_one "SELECT /* Panorama Tool Ramm */ DBID FROM v$Database"
-    session[:database][:db_block_size] = sql_select_one "SELECT /* Panorama Tool Ramm */ TO_NUMBER(Value) FROM v$parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE'"
-    session[:database][:version]       = sql_select_one "SELECT /* Panorama Tool Ramm */ Version FROM V$Instance"
-    session[:database][:wordsize]      = sql_select_one "SELECT DECODE (INSTR (banner, '64bit'), 0, 4, 8) FROM v$version WHERE Banner LIKE '%Oracle Database%'"
-  end
-
-
-
   def open_oracle_connection
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
 
-      config = ActiveRecord::Base.connection.instance_variable_get(:@config)  # Aktuelle config, kann reduziert sein auf :adapter bei NullDB
-
+      begin
+        config = ActiveRecord::Base.connection.instance_variable_get(:@config)  # Aktuelle config, kann reduziert sein auf :adapter bei NullDB
+      rescue Exception => e
+        Rails.logger.warn "Error: ActiveRecord::Base.connection.instance_variable_get(:@config): #{e.message}"
+        Rails.logger.warn "Resetting connection to dummy"
+        set_dummy_db_connection
+        config = {}
+      end
       # Connect nur ausführen wenn bisherige DB-Connection nicht der gewünschten entspricht
       if ActiveRecord::Base.connection.class.name != 'ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter' ||
           config[:adapter]  != 'oracle_enhanced' ||
@@ -77,8 +73,12 @@ public
           config[:username] != session[:database][:user]
 
         # Entschlüsseln des Passwortes
-        local_password = database_helper_decrypt_value(session[:database][:password])
-
+        begin
+          local_password = database_helper_decrypt_value(session[:database][:password])
+        rescue Exception => e
+          Rails.logger.warn "Error in open_oracle_connection decrypting pasword: #{e.message}"
+          raise "Encryption key for stored password in cookie has changed at server side! Please connect giving username and password."
+        end
         ActiveRecord::Base.establish_connection(
             :adapter  => "oracle_enhanced",
             :driver   => "oracle.jdbc.driver.OracleDriver",

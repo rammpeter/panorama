@@ -69,7 +69,7 @@ column_options =
   {:caption=> 'T',                :data=>proc{|rec| rec.temporary},                        :title=> 'Temporary table ?'},
   {:caption=> 'Compr.',           :data=>proc{|rec| rec.compression},                      :title=> 'Whether table compression is enabled or not'},
 ]
-column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_for},        :title=> 'Compress what kind of operations'} if session[:database][:version] >= '11.2'
+column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_for},        :title=> 'Compress what kind of operations'} if session[:version] >= '11.2'
 
 %>
 

@@ -10,7 +10,7 @@ column_options =
   {:caption=>"C",               :data=>proc{|rec| rec.child_number},     :title=>"Child-Number"},
 
 ]
-column_options << {:caption=>"Reason",  :data=>proc{|rec| j rec.reasons},       :title=>"Ein oder mehrere Hinterungsgründe für Nichtnutzung Shared Cursor"} if session[:database][:version] > "11"
+column_options << {:caption=>"Reason",  :data=>proc{|rec| j rec.reasons},       :title=>"Ein oder mehrere Hinterungsgründe für Nichtnutzung Shared Cursor"} if session[:version] > "11"
 
 %>
 <%= gen_slickgrid(@reasons, column_options) %>
