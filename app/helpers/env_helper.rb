@@ -43,7 +43,7 @@ module EnvHelper
     # Transformation der lesbaren Bezeichner in cookie-Kürzel
     write_cookie = cookies_last_logins.map {|o| {:h=>o[:host], :p=>o[:port], :s=>o[:sid], :u=>o[:user], :w=>o[:password], :a=>o[:authorization], :g=>(o[:sid_usage] == :SID ? 1 : 0) } }
 
-    while Marshal.dump(write_cookie).length > 2000 do                           # Größe des Cookies überschreitet 3 kByte
+    while Marshal.dump(write_cookie).length > 1500 do                           # Größe des Cookies überschreitet x kByte
       write_cookie.delete(write_cookie.last)                                    # Letzten Eintrag loeschen
     end
 
