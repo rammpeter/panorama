@@ -55,9 +55,7 @@ class EnvController < ApplicationController
 
     if params[:delete]                                                          # Button DELETE gedrückt, Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
       cookies_last_logins = read_last_login_cookies
-      cookies_last_logins.each do |c|
-        cookies_last_logins.delete c if c[:id].to_i == params[:saved_logins_id].to_i
-      end
+      cookies_last_logins.delete_at(params[:saved_logins_id].to_i)
 
       write_last_login_cookies(cookies_last_logins)
       respond_to do |format|
