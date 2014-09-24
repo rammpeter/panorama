@@ -627,5 +627,191 @@ class AdditionController < ApplicationController
   end
 
 
+  def show_object_increase
+    @tablespaces = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT Tablespace_Name Name FROM DBA_Tablespaces ORDER BY Name")
+    @schemas     = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT UserName Name FROM All_Users ORDER BY Name")
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"show_object_increase" }');"}
+    end
+  end
+
+
+  def list_object_increase
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    list_object_increase_detail if params[:detail]
+    list_object_increase_timeline if params[:timeline]
+  end
+
+  private
+  # in welchem Schema liegt Tabelle OG_SEG_SPACE_IN_TBS
+  def schema_of_OG_SEG_SPACE_IN_TBS
+    schemas = sql_select_all "SELECT Owner FROM All_Tables WHERE Table_Name='OG_SEG_SPACE_IN_TBS'"
+    raise "Tabelle OG_SEG_SPACE_IN_TBS findet sich in mehreren Schemata: erwartet wird genau ein Schema mit dieser Tabelle! #{schemas}" if schemas.count > 1
+    raise "Tabelle OG_SEG_SPACE_IN_TBS in keinem Schema der DB gefunden" if schemas.count == 0
+    schemas[0].owner
+  end
+
+  public
+
+  def list_object_increase_detail
+    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    wherestr = ""
+    whereval = []
+
+    if params[:schema][:name] != '[Alle]'
+      wherestr << " AND Owner=? "
+      whereval << params[:schema][:name]
+    end
+
+    if params[:tablespace][:name] != '[Alle]'
+      wherestr << " AND Last_TS=? "
+      whereval << params[:tablespace][:name]
+    end
+
+
+    @incs = sql_select_all ["
+        SELECT s.*, End_Mbytes-Start_MBytes Aenderung_Abs,
+        CASE WHEN Start_MBytes != 0 THEN (End_MBytes/Start_MBytes-1)*100 END Aenderung_Pct
+        FROM   (SELECT /*+ PARALLEL(s,2) */
+                       Owner, Segment_Name, Segment_Type,
+                       MAX(Tablespace_Name) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) Last_TS,
+                       MIN(Gather_Date) Date_Start,
+                       MAX(Gather_Date) Date_End,
+                       MIN(MBytes) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) Start_Mbytes,
+                       MAX(MBytes) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) End_Mbytes
+                FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+                WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
+                AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
+                GROUP BY Owner, Segment_Name, Segment_Type
+               ) s
+        WHERE  Start_MBytes != End_MBytes
+        #{wherestr}
+        ORDER BY End_Mbytes-Start_MBytes DESC",
+                            @time_selection_start, @time_selection_end
+                           ].concat(whereval)
+
+    render_partial "list_object_increase_detail"
+  end
+
+  def list_object_increase_timeline
+    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    groupby = params[:gruppierung][:tag]
+
+    wherestr = ""
+    whereval = []
+
+    if params[:schema][:name] != '[Alle]'
+      wherestr << " AND Owner=? "
+      whereval << params[:schema][:name]
+    end
+
+    if params[:tablespace][:name] != '[Alle]'
+      wherestr << " AND Last_TS=? "
+      whereval << params[:tablespace][:name]
+    end
+
+
+    sizes = sql_select_all ["
+        SELECT /*+ PARALLEL(s,2) */
+               Gather_Date,
+               #{groupby} GroupBy,
+               SUM(MBytes) MBytes
+        FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+        WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
+        AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
+        #{wherestr}
+        GROUP BY Gather_Date, #{groupby}
+        ORDER BY Gather_Date, #{groupby}",
+                            @time_selection_start, @time_selection_end
+                           ].concat(whereval)
+
+
+    column_options =
+        [
+            {:caption=>"Datum",           :data=>proc{|rec| localeDateTime(rec.gather_date)},   :title=>"Zeitpunkt der Aufzeichnung der Größe"},
+        ]
+
+    @sizes = []
+    columns = {}
+    record = {:gather_date=>sizes[0].gather_date} if sizes.length > 0   # 1. Record mit Vergleichsdatum
+    sizes.each do |s|
+      if record[:gather_date] != s.gather_date  # Gruppenwechsel Datum
+        @sizes << record
+        record = {:gather_date=>s.gather_date}  # Neuer Record
+      end
+      record[:total] = 0 unless record[:total]
+      record[:total] += s.mbytes
+      record[s.groupby] = s.mbytes
+      columns[s.groupby] = 1  if s.mbytes > 0  # Spalten unterdrücken ohne werte
+    end
+    @sizes << record if sizes.length > 0  # letzten Record sichern
+
+    column_options =
+        [
+            {:caption=>"Datum",           :data=>proc{|rec| localeDateTime(rec[:gather_date])},   :title=>"Zeitpunkt der Aufzeichnung der Größe", :plot_master_time=>true},
+            {:caption=>"Total MB",        :data=>proc{|rec| formattedNumber(rec[:total])},        :title=>"Größe Total in MB", :align=>"right" }
+        ]
+
+    columns.each do |key, value|
+      column_options << {:caption=>key, :data=>"formattedNumber(rec['#{key}'])", :title=>"Größe für '#{key}' in MB", :align=>"right" }
+    end
+
+    output = gen_slickgrid(@sizes, column_options, {
+        :multiple_y_axes  => false,
+        :show_y_axes      => true,
+        :plot_area_id     => :list_object_increase_timeline_diagramm,
+        :max_height       => 450,
+        :caption          => "Zeitleiste nach #{groupby} aus #{@schema}.OG_SEG_SPACE_IN_TBS"
+    })
+    output << "</div><div id='list_object_increase_timeline_diagramm'></div>".html_safe
+
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j output }');"}
+    end
+  end
+
+  def list_object_increase_object_timeline
+    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    save_session_time_selection
+    owner = params[:owner]
+    name  = params[:name]
+
+    @sizes = sql_select_all ["
+        SELECT /*+ PARALLEL(s,2) */
+               Gather_Date,
+               MBytes
+        FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+        WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
+        AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
+        AND    Owner        = ?
+        AND    Segment_Name = ?
+        ORDER BY Gather_Date",
+                             @time_selection_start, @time_selection_end, owner, name ]
+
+    column_options =
+        [
+            {:caption=>"Datum",           :data=>proc{|rec| localeDateTime(rec.gather_date)},   :title=>"Zeitpunkt der Aufzeichnung der Größe", :plot_master_time=>true},
+            {:caption=>"Größe MB",        :data=>proc{|rec| formattedNumber(rec.mbytes)},        :title=>"Größe des Objektes in MB", :align=>"right" }
+        ]
+
+    output = gen_slickgrid(@sizes,
+                           column_options,
+                           {
+                               :multiple_y_axes => false,
+                               :show_y_axes     => true,
+                               :plot_area_id    => :list_object_increase_object_timeline_diagramm,
+                               :caption         => "Größenentwicklung #{owner}.#{name} aufgezeichnet in #{@schema}.OG_SEG_SPACE_IN_TBS",
+                               :max_height      => 450
+                           }
+    )
+    output << '<div id="list_object_increase_object_timeline_diagramm"></div>'.html_safe
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j output }');"}
+    end
+  end
+
 
 end

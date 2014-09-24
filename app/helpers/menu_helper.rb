@@ -134,6 +134,9 @@ module MenuHelper
         ).concat(
             showDbCacheMenu ?
                 [{:class=> 'item', :caption=> 'DB-Cache-Ressourcen',           :controller=> 'addition',                 :action=> 'db_cache_ressourcen',     :hint=> 'Historische Auswertung DB-Cache-Auslastung'}] : []
+        ).concat(
+            showObjectIncrease ?
+                [{:class=> 'item', :caption=> 'Wachstum von Objekten',           :controller=> 'addition',                 :action=> 'show_object_increase',     :hint=> 'Wachstum von Objekten in gegebenem Zeitraum'}] : []
         )
     },
     ]
@@ -157,6 +160,10 @@ private
     Rails.logger.info "MenuHelper.showDbCacheMenu: #{res.anzahl} different schemas have table DBA_HIST_CACHE_OBJECTS, function hidden" if res.anzahl > 1
     res.anzahl == 1     # Nur verwenden, wenn genau ein Schema die Daten enthält
 
+  end
+
+  def showObjectIncrease # Test auf Vorhandensein einer Tabelle in irgendeinem Schema
+    sql_select_one("SELECT /* Panorama Tool Ramm */ COUNT(*) FROM All_Tables WHERE Table_Name='OG_SEG_SPACE_IN_TBS'") > 0
   end
 
 
