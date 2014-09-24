@@ -6,6 +6,9 @@ class EnvController < ApplicationController
   include MenuHelper
   include LicensingHelper
 
+  # Verhindern "ActionController::InvalidAuthenticityToken" bei erstem Aufruf der Seite
+  protect_from_forgery except: :index
+
   private
   # Merken locale für weitere Verwendung
   def register_locale(locale)

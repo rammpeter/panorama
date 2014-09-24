@@ -24,19 +24,14 @@ module EnvHelper
     rescue Exception => e
       Rails.logger.warn "read_last_login_cookies: #{e.message}"
       cookies_last_logins = []      # Cookie neu initialisieren wenn Fehler beim Auslesen
+      write_last_login_cookies(cookies_last_logins)   # Zurückschreiben in cookie-store
     end
-    cookies_last_logins = [] unless cookies_last_logins.instance_of?(Array)  # Falscher Typ des Cookies?
-=begin
-    # Vergabe des neuen Feldes ID für alte Cookies, die noch keine ID enthalten
-    new_id = 0
-    cookies_last_logins.each do |value|
-      new_id = new_id + 1
-      unless value[:id]
-        value[:id] = new_id
-        write_last_login_cookies(cookies_last_logins)                         # Persistieren der ID-Vergabe
-      end
+
+    unless cookies_last_logins.instance_of?(Array)  # Falscher Typ des Cookies?
+      cookies_last_logins = []
+      write_last_login_cookies(cookies_last_logins)   # Zurückschreiben in cookie-store
     end
-=end
+
     # Transformation der cookie-Kürzel in lesbare Bezeichner
     cookies_last_logins.map{|c| {:host=>c[:h], :port=>c[:p], :sid=>c[:s], :user=>c[:u], :password=>c[:w], :authorization=>c[:a], :sid_usage=>(c[:g]==1 ? :SID : :SERVICE_NAME)} }
   end
