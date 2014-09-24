@@ -16,6 +16,8 @@ class EnvControllerTest < ActionController::TestCase
   end
 
   test "should throw oracle-error from test-db" do
+    set_dummy_db_connection
+    real_passwd = session[:database][:password]
     params = session[:database]
     params[:password] = "hugo"
     post :set_database_by_params, :format=>:js, :database => params
@@ -23,6 +25,10 @@ class EnvControllerTest < ActionController::TestCase
     expected_fehler_text = "Fehler bei Anmeldung an DB"
     assert @response.body.include?(expected_fehler_text),
       "erwarteter Fehlertext '#{expected_fehler_text}' nicht in Response '#{@response.body}'"
+
+    # Rücksetzen Connection, damit nächster Zugriff reconnect ausführt
+    session[:database][:password] = real_passwd
+    set_dummy_db_connection
   end
 
   # Test aller generischer Menü-Einträge ohne korrespondierende Action im Controller
