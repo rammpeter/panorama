@@ -57,7 +57,7 @@ class ActiveSupport::TestCase
     # puts "Test for #{ENV['DB_VERSION']} with #{database.user}/#{database.password}@#{database.host}:#{database.port}:#{database.sid}"
     open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
     read_initial_db_values
-    session[:database][:locale] = "de"
+    session[:locale] = "de"
     session[:dba_hist_blocking_locks_owner] = "journal"
     session[:dba_hist_cache_objects_owner] = "journal"
   end
