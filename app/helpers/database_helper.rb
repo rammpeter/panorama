@@ -173,7 +173,16 @@ public
     case session[:locale]
       when "de" then "TT.MM.JJJJ HH:MI"
       when "en" then "YYYY-MM-DD HH:MI"
-      else "TT.MM.JJJJ HH24:MI" # Deutsche Variante als default
+      else "TT.MM.JJJJ HH:MI" # Deutsche Variante als default
+    end
+  end
+
+  # Menschenlesbare Ausgabe in Hints etc
+  def human_datetime_day_mask
+    case session[:locale]
+      when "de" then "TT.MM.JJJJ"
+      when "en" then "YYYY-MM-DD"
+      else "TT.MM.JJJJ" # Deutsche Variante als default
     end
   end
 

@@ -53,8 +53,8 @@ if @res.count > 0
           when col[:caption].downcase == 'sql_id' || col[:caption].downcase == "sql-id" || col[:caption].downcase["sql_id"] || col[:caption].downcase["sql-id"] then
             min_alter_org = Time.new
             max_alter_org = min_alter_org-10000
-            @time_selection_end = min_alter_org.strftime("%d.%m.%Y %H:%M")
-            @time_selection_start = (max_alter_org).strftime("%d.%m.%Y %H:%M")
+            @time_selection_end = localeDateTime(min_alter_org, :minutes)
+            @time_selection_start = localeDateTime(max_alter_org, :minutes)
 
             col[:data] = proc{|rec|
                                 inst_id = nil
@@ -67,8 +67,8 @@ if @res.count > 0
                                 #link_sql_id('exec_dragnet_sql_detail_area', inst_id, my_html_escape(rec[col[:caption]]))
                                 link_historic_sql_id(inst_id,
                                                      my_html_escape(rec[col[:caption]]) ,
-                                                     (Time.new-80000).strftime("%d.%m.%Y %H:%M"),
-                                                     Time.new.strftime("%d.%m.%Y %H:%M"),
+                                                     localeDateTime((Time.new-80000), :minutes),
+                                                     localeDateTime(Time.new, :minutes),
                                                      :exec_dragnet_sql_detail_area
                                 )
 

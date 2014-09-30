@@ -172,10 +172,7 @@
 
         <div id="error_dialog" style="background-color: white;">
           <div id="error_dialog_content">
-            <div id="error_dialog_status"></div>
-            <div id="error_dialog_response"></div>
           </div>
-          <input value="<%= t(:show_details, :default=>'Show details') %>" type="submit" onclick="jQuery('#error_dialog_response > #container').show();"/>
           <input value="<%= t(:close, :default=>'Close') %>" type="submit" onclick="jQuery('#error_dialog').dialog('close');"/>
         </div>
 

@@ -207,6 +207,7 @@ module ApplicationHelper
     return '' unless timestamp                    # Leere Ausgabe, wenn nil
     timestamp = timestamp.to_datetime             # Sicherstellen, dass vom Typ DateTime
     case format
+      when :days    then timestamp.strftime(strftime_format_with_days)
       when :seconds then timestamp.strftime(strftime_format_with_seconds)
       when :minutes then timestamp.strftime(strftime_format_with_minutes)
     else

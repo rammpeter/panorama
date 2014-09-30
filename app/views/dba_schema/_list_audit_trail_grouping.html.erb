@@ -5,8 +5,8 @@
      my_ajax_link_to(fn(rec.audits),
                      url_for(:controller   => :dba_schema,
                              :action       => :list_audit_trail,
-                             :time_selection_start  => rec.begin_timestamp.strftime(strftime_format_with_minutes),
-                             :time_selection_end    => rec.max_timestamp.strftime(strftime_format_with_minutes),
+                             :time_selection_start  => localeDateTime(rec.begin_timestamp, :minutes),
+                             :time_selection_end    => localeDateTime(rec.max_timestamp, :minutes),
                              :sessionid    => @sessionid,           # optionaler Filter
                              :os_user      => @os_user,             # optionaler Filter
                              :db_user      => @db_user,             # optionaler Filter
@@ -23,8 +23,8 @@
      my_ajax_link_to(fn(value),
                      url_for(:controller   => :dba_schema,
                              :action       => :list_audit_trail,
-                             :time_selection_start  => rec.begin_timestamp.strftime(strftime_format_with_minutes),
-                             :time_selection_end    => rec.max_timestamp.strftime(strftime_format_with_minutes),
+                             :time_selection_start  => localeDateTime(rec.begin_timestamp, :minutes),
+                             :time_selection_end    => localeDateTime(rec.max_timestamp, :minutes),
                              :grouping     => @grouping,
                              :top_x        => @top_x,
                              :sessionid    => @sessionid,           # optionaler Filter

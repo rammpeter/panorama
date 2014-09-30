@@ -10,8 +10,8 @@ def link_column_detail(rec, value)
             :parsing_schema_name =>@parsing_schema_name,
             :min_snap_id=> rec.min_snap_id,
             :max_snap_id=> rec.max_snap_id,
-            :time_selection_start => rec.begin_interval_time.strftime(strftime_format_with_minutes),
-            :time_selection_end   => rec.end_interval_time.strftime(strftime_format_with_minutes),  # 1 Tag weiter
+            :time_selection_start => localeDateTime(rec.begin_interval_time, :minutes),
+            :time_selection_end   => localeDateTime(rec.end_interval_time, :minutes),  # 1 Tag weiter
             :update_area=> @update_area
           ),
    :title=>"Anzeige der Details des Statements für diesen Zeitraum aus DBA_Hist_SQLStat (unterhalb)")

@@ -9,11 +9,11 @@
   </div>
   <div class="float_left">
     Tag 1
-    <%= text_field_tag(:tag1, Date.today.strftime("%d.%m.%Y"), :size=>8, :title => "Erster Tag des Vergleiches im Format '#{human_datetime_minute_mask}'") %>
+    <%= text_field_tag(:tag1, localeDateTime(Date.today, :days), :size=>8, :title => "Erster Tag des Vergleiches im Format '#{human_datetime_day_mask}'") %>
   </div>
   <div class="float_left">
     Tag 2
-    <%= text_field_tag(:tag2, Date.today.strftime("%d.%m.%Y"), :size=>8, :title => "Zweiter Tag des Vergleiches im Format '#{human_datetime_minute_mask}'") %>
+    <%= text_field_tag(:tag2, localeDateTime(Date.today, :days), :size=>8, :title => "Zweiter Tag des Vergleiches im Format '#{human_datetime_day_mask}'") %>
   </div>
   <div class="float_left">
     Filter

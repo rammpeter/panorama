@@ -148,10 +148,14 @@ function bind_ajax_callbacks() {
             hideIndicator();
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
-            //jQuery("#error_dialog_content").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>'+jqXHR.responseText);
-            jQuery("#error_dialog_status").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
-            jQuery("#error_dialog_response").html(jqXHR.responseText);
-            jQuery("#error_dialog_response > #container").hide();
+            jQuery("#error_dialog_content").html('<div id="error_dialog_status">Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/></div>'+
+                '<div id="error_dialog_response">'+jqXHR.responseText+'</div>');
+
+            //jQuery("#error_dialog_status").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
+            //jQuery("#error_dialog_response").html(jqXHR.responseText);
+            jQuery("#error_dialog_response > #container").hide();       // gerendert durch actionpack/.../diagnostics.erb, Stacktrace ausblenden
+            // Button für Anzeige Details, ausblenden nach Aktivierung
+            jQuery('#error_dialog_content').append('<input value="Show details" type="submit" onclick="jQuery(\'#error_dialog_response > #container\').show(); jQuery(this).hide();"/>');
             jQuery("#error_dialog").dialog("open");
         })
     ;
