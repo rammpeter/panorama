@@ -1,7 +1,9 @@
 ﻿de:
 # Globale Texte ohne Bezug zu erb
+  close:                                                    Schliessen
   content:                                                  Inhalt
   day:                                                      Tag
+  error:                                                    Fehler
   generally:                                                Generell
   grouping:                                                 Gruppierung
   help:                                                     Hilfe

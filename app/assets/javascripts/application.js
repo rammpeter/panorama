@@ -148,7 +148,10 @@ function bind_ajax_callbacks() {
             hideIndicator();
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
-            jQuery("#error_dialog_content").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>'+jqXHR.responseText);
+            //jQuery("#error_dialog_content").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>'+jqXHR.responseText);
+            jQuery("#error_dialog_status").html('Error : '+thrownError+'<br/>Status='+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
+            jQuery("#error_dialog_response").html(jqXHR.responseText);
+            jQuery("#error_dialog_response > #container").hide();
             jQuery("#error_dialog").dialog("open");
         })
     ;
