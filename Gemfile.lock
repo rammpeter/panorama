@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    Panorama (2.0.7)
+    Panorama (2.0.8)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -60,7 +60,7 @@ GEM
       mime-types (>= 1.16, < 3)
     memcache-client (1.8.5)
     mime-types (2.3)
-    minitest (5.4.1)
+    minitest (5.4.2)
     multi_json (1.10.1)
     rack (1.5.2)
     rack-test (0.6.2)
@@ -99,7 +99,7 @@ GEM
     tilt (1.4.1)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2014.7)
+    tzinfo-data (1.2014.8)
       tzinfo (>= 1.0.0)
     uglifier (2.5.3)
       execjs (>= 0.3.0)

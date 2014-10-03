@@ -37,7 +37,7 @@ class ApplicationController < ActionController::Base
     I18n.locale = session[:locale]      # fuer laufende Action Sprache aktiviert
 
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == 'env' && ['index', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
+    return if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 

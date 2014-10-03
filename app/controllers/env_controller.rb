@@ -1,4 +1,6 @@
 # encoding: utf-8
+
+
 class EnvController < ApplicationController
   layout 'application'
   #include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
@@ -32,6 +34,20 @@ class EnvController < ApplicationController
   rescue Exception=>e
     session[:database] = nil                                                    # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
     raise e                                                                     # Werfen der Exception
+  end
+
+  # Auffüllen SELECT mit OPTION aus tns-Records
+  def get_tnsnames_records
+    tnsnames = read_tnsnames
+
+    result = ''
+    tnsnames.keys.sort.each do |key|
+      result << "jQuery('#database_tns').append('<option value=\"#{key}\">'+rpad('#{key}', 180, 'database_tns')+'&nbsp;&nbsp;#{tnsnames[key][:hostName]}:#{tnsnames[key][:port]}:#{tnsnames[key][:sidName]}</value>');\n"
+    end
+
+    respond_to do |format|
+      format.js {render :js => result }
+    end
   end
 
   # Wechsel der Sprache in Anmeldedialog

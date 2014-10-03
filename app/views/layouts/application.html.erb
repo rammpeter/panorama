@@ -33,6 +33,8 @@
               ;
 
               register_tooltip(jQuery(document));                                     // Jquery-UI Tooltips verwenden
+
+              jQuery.ajax({type: 'GET', url:'env/get_tnsnames_records'});
           });
       </script>
 
@@ -101,7 +103,12 @@
                 </tr>
                 <tr class="login_tns">
                   <th title="<%= t :login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)" %>">TNS-Alias</th>
-                  <td align="center"><%= collection_select('database', 'tns', read_tnsnames.keys.sort, :to_s, :to_s, {}, {:title=>t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") }) %></td>
+                  <% @tnsnames = read_tnsnames %>
+                  <td align="center">
+                    <select id="database_tns" name="database[tns]" style="width: 400px;" title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">
+                      <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_records -->
+                    </select>
+               </td>
                 </tr>
                 <tr class="login_host" style="display: none">
                   <th title="Host-name. Übersteuert TNS-Alias wenn belegt">Host</th>
@@ -177,7 +184,8 @@
         </div>
 
         <div id="initializer_dummy">
-          <input id="datetimedummy" type="text" >
+          <input id="datetimedummy" type="text" style="visibility: hidden;">
+          <div id="length_control_dummy" style="width: 10px; visibility: hidden"></div>  <!-- Element für Javascript-Funktion rpad -->
         </div>
 
     </body>

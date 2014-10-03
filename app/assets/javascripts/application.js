@@ -161,6 +161,18 @@ function bind_ajax_callbacks() {
     ;
 }
 
+function rpad(org_string, max_length, compare_obj_id){
+    var obj = jQuery('#length_control_dummy');
+    var compare_obj = jQuery('#'+compare_obj_id);
+    obj.css('font-size',    compare_obj.css('font-size'));      // Attribute anpassen mit Zielobjekt
+    obj.css('font-family',  compare_obj.css('font-family'));    // Attribute anpassen mit Zielobjekt
+    obj.html(org_string);
+    while (obj.prop("scrollWidth") < max_length){
+        org_string += '&nbsp;';
+        obj.html(org_string);
+    }
+    return org_string;
+}
 
 
 
