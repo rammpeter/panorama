@@ -42,7 +42,7 @@ class EnvController < ApplicationController
 
     result = ''
     tnsnames.keys.sort.each do |key|
-      result << "jQuery('#database_tns').append('<option value=\"#{key}\">'+rpad('#{key}', 180, 'database_tns')+'&nbsp;&nbsp;#{tnsnames[key][:hostName]}:#{tnsnames[key][:port]}:#{tnsnames[key][:sidName]}</value>');\n"
+      result << "jQuery('#database_tns').append('<option value=\"#{key}\">'+rpad('#{key}', 180, 'database_tns')+'&nbsp;&nbsp;#{tnsnames[key][:hostName]} : #{tnsnames[key][:port]} : #{tnsnames[key][:sidName]}</value>');\n"
     end
 
     respond_to do |format|
