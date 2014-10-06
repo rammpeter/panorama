@@ -331,7 +331,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 // Zwei table für volle Zeichenbreite
                 '<div class="slick-inner-cell" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; overflow: hidden;"></div></nobr></div>'+
                 // Zwei table für umgebrochene Zeichenbreite
-                '<table style="visibility:hidden; position:absolute; width:1;"><tr><td class="slick-inner-cell"  style="padding: 0; margin: 0;"><div id="' + test_cell_wrap_id + '"></div></td></tr></table>' +
+                '<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick-inner-cell"  style="padding: 0; margin: 0;"><div id="' + test_cell_wrap_id + '"></div></td></tr></table>' +
                 '</div>'
         );
 
