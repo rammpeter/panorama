@@ -1008,7 +1008,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 test_cell_wrap.attr('class', column['cssClass']);                   // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
                 if (test_cell_wrap.width()  > column['max_wrap_width']){
                     //console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.width()+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
-                    column['max_wrap_width']  = test_cell_wrap.width();
+                    if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
+                        column['max_wrap_width']  = column['max_wrap_width_allowed']
+                    else
+                        column['max_wrap_width']  = test_cell_wrap.width();
                     thiz.slickgrid_render_needed = 1;
                 }
                 if (fullvalue != value)                                             // Enthält Zelle einen mit tags dekorierten Wert ?
