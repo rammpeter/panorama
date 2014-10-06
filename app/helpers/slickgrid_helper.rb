@@ -48,7 +48,6 @@ module SlickgridHelper
         output << ' plot_master:  1,'               if col[:plot_master]
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
-puts "################### max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
         if col[:isFloat]
           output << " sort_type: 'float',"
         else
