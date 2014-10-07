@@ -331,7 +331,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 // Zwei table für volle Zeichenbreite
                 '<div class="slick-inner-cell" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; overflow: hidden;"></div></nobr></div>'+
                 // Zwei table für umgebrochene Zeichenbreite
-                '<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick-inner-cell"  style="padding: 0; margin: 0;"><div id="' + test_cell_wrap_id + '"></div></td></tr></table>' +
+                //'<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick-inner-cell"  style="padding: 0; margin: 0;"><div id="' + test_cell_wrap_id + '"></div></td></tr></table>' +
+                '<div id="' + test_cell_wrap_id + '" style="visibility:hidden; position:absolute; width:1px; padding: 0; margin: 0;" class="slick-inner-cell"></div>' +
                 '</div>'
         );
 
@@ -776,9 +777,13 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         thiz.gridContainer.after(test_header_outer);                             // Einbinden in DOM-Baum
         var test_header         = test_header_outer.find('#test_header');       // Objekt zum Test der realen string-Breite
 
-        // TABLE für umgebrochene Zeichenbreite
-        var test_header_wrap_outer = jQuery('<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick_header_column ui-widget-header" style="font-size: 100%; padding: 0; margin: 0;"><div id="test_header_wrap"></div></td></tr></table>');
-        thiz.gridContainer.after(test_header_wrap_outer);
+        // Alte Variante mit TABLE für umgebrochene Zeichenbreite
+        //var test_header_wrap_outer = jQuery('<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick_header_column ui-widget-header" style="font-size: 100%; padding: 0; margin: 0;"><div id="test_header_wrap"></div></td></tr></table>');
+        //thiz.gridContainer.after(test_header_wrap_outer);                       // Nach Container unsichtbar einbinden
+        //var test_header_wrap  = test_header_wrap_outer.find('#test_header_wrap'); // Objekt zum Test der realen string-Breite für td
+
+        var test_header_wrap_outer = jQuery('<div><div id="test_header_wrap" style="visibility:hidden; position:absolute; width:1px; padding: 0; margin: 0;" class="slick_header_column ui-widget-header"></div></div>');
+        thiz.gridContainer.after(test_header_wrap_outer);                       // Nach Container unsichtbar einbinden
         var test_header_wrap  = test_header_wrap_outer.find('#test_header_wrap'); // Objekt zum Test der realen string-Breite für td
 
         var column;                                                             // aktuell betrachtete Spalte
@@ -800,7 +805,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             column['header_nowrap_width']  = test_header.prop("scrollWidth");   // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
 
             test_header_wrap.html(column['name']);
-            column['max_wrap_width']      = test_header_wrap.width();
+            column['max_wrap_width']      = test_header_wrap.prop("scrollWidth");
 
             column['max_nowrap_width']    = column['max_wrap_width']            // Normbreite der Spalte mit Mindestbreite des Headers initialisieren (lieber Header umbrechen als Zeilen einer anderen Spalte)
         }
@@ -1006,12 +1011,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             if (!column['no_wrap']  && test_cell.prop("scrollWidth") > column['max_wrap_width']){     // Nur Aufrufen, wenn max_wrap_width sich auch vergrößern kann (aktuelle Breite > bisher größte Wrap-Breite)
                 test_cell_wrap.html(fullvalue);                                     // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
                 test_cell_wrap.attr('class', column['cssClass']);                   // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
-                if (test_cell_wrap.width()  > column['max_wrap_width']){
-                    //console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.width()+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
+                if (test_cell_wrap.prop("scrollWidth")  > column['max_wrap_width']){
+                    console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.prop("scrollWidth")+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
                     if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
                         column['max_wrap_width']  = column['max_wrap_width_allowed']
                     else
-                        column['max_wrap_width']  = test_cell_wrap.width();
+                        column['max_wrap_width']  = test_cell_wrap.prop("scrollWidth");
                     thiz.slickgrid_render_needed = 1;
                 }
                 if (fullvalue != value)                                             // Enthält Zelle einen mit tags dekorierten Wert ?
