@@ -777,7 +777,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var test_header         = test_header_outer.find('#test_header');       // Objekt zum Test der realen string-Breite
 
         // TABLE für umgebrochene Zeichenbreite
-        var test_header_wrap_outer = jQuery('<table style="visibility:hidden; position:absolute; width:1;"><tr><td class="slick_header_column ui-widget-header" style="padding: 0; margin: 0;"><div id="test_header_wrap"></div></td></tr></table>');
+        var test_header_wrap_outer = jQuery('<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick_header_column ui-widget-header" style="font-size: 100%; padding: 0; margin: 0;"><div id="test_header_wrap"></div></td></tr></table>');
         thiz.gridContainer.after(test_header_wrap_outer);
         var test_header_wrap  = test_header_wrap_outer.find('#test_header_wrap'); // Objekt zum Test der realen string-Breite für td
 
