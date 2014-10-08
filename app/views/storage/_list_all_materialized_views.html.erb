@@ -32,6 +32,18 @@ def link_snapshot_logs(rec)
                   :title=>"Show query text of materialized view")
 end
 
+def link_registered_mv(rec)
+  if rec.registered == 'N'
+    rec.registered
+  else
+      my_ajax_link_to(rec.registered,
+                      url_for(:action          => :list_registered_materialized_views,
+                              :snapshot_id     => rec.mview_id,
+                              :update_area     => @update_area
+                      ),
+                      :title=>"Show details of registered materialized view")
+  end
+end
 
 column_options =
   [
@@ -50,7 +62,7 @@ column_options =
     {:caption=>"Refresh group",         :data=>proc{|rec| rec.refresh_group},       :title=>"All snapshots in a given refresh group get refreshed in the same transaction"},
     {:caption=>"Last refresh type",     :data=>proc{|rec| rec.last_refresh_type},   :title=>"Method used for the most recent refresh: COMPLETE - Most recent refresh was complete, FAST - Most recent refresh was fast (incremental), NA - Materialized view has not yet been refreshed (for example, if it was created DEFERRED)"},
     {:caption=>"Last refresh date",     :data=>proc{|rec| localeDateTime rec.last_refresh_date}, :title=>"Date on which the materialized view was most recently refreshed. Blank if not yet populated."},
-    {:caption=>"R.",                    :data=>proc{|rec| rec.registered},          :title=>"Is materialized view registered in DBA_Registered_MViews"},
+    {:caption=>"R.",                    :data=>proc{|rec| link_registered_mv(rec) },:title=>"Is materialized view registered in DBA_Registered_MViews"},
     {:caption=>"Logs",                  :data=>proc{|rec| link_snapshot_logs(rec)}, :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
     {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
     {:caption=>"Fast refresh oper.",    :data=>proc{|rec| rec.fr_operations},       :title=>"If REGENERATE, then the fast refresh operations have not been generated"},
