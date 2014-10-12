@@ -496,6 +496,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         if (!this.last_height_calculation_with_horizontal_scrollbar && horizontal_scrollbar_width > 0)
             this.force_height_calculation = true;
 
+        console.log('Header-Calc');
+
         // Hoehen von Header so setzen, dass der komplette Inhalt dargestellt wird
         this.gridContainer.find(".slick-header-columns").children().each(function(){
             var scrollHeight = jQuery(this).prop("scrollHeight");
@@ -846,7 +848,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
 
     trace_log = function(msg){
-        if (true){
+        if (false){
             console.log(msg);                                                           // Aktivieren trace-Ausschriften
         }
     }
