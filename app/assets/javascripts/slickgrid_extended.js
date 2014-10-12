@@ -47,7 +47,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     var test_cell_wrap                  = null;                                 // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
     var data_view                       = null;
     var columnFilters                   = {};                                   // aktuelle Filter-Kriterien der Daten
-    var force_height_calculation        = false;                                // true aktiviert Neuberechnung der Grid-Höhe
+    this.force_height_calculation       = false;                                // true aktiviert Neuberechnung der Grid-Höhe
+    this.last_height_calculation_with_horizontal_scrollbar = false;
     var last_slickgrid_contexmenu_col_header    = null;                         // globale Variable mit jQuery-Objekt des Spalten-Header der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_column_name   = '';                           // globale Variable mit Spalten-Name der Spalte, in der Context-Menu zuletzt gerufen wurd
     var last_slickgrid_contexmenu_field_content = '';                           // globale Variable mit Inhalt des Feldes auf dem Context-Menu aufgerufen wurde
@@ -488,9 +489,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var header_height = options['headerHeight']                                 // alter Wert
         var row_height    = options['rowHeight']                                    // alter Wert
         var v_padding     = 4;                                                      // Vertiale Erweiterung der Spaltenhöhe um Padding
+
         var horizontal_scrollbar_width = 0;
-        if (current_table_width+vertical_scrollbar_width > this.gridContainer.parent().width() )   // nuss horizontaler Scrollbar existieren?
+        if (current_table_width /*+vertical_scrollbar_width */ > this.gridContainer.parent().width() )    // nuss horizontaler Scrollbar existieren?
             horizontal_scrollbar_width = scrollbarWidth();
+        if (!this.last_height_calculation_with_horizontal_scrollbar && horizontal_scrollbar_width > 0)
+            this.force_height_calculation = true;
 
         // Hoehen von Header so setzen, dass der komplette Inhalt dargestellt wird
         this.gridContainer.find(".slick-header-columns").children().each(function(){
@@ -518,17 +522,19 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         if (row_height != options['rowHeight'] || header_height != options['headerHeight'] || this.force_height_calculation){
             options['rowHeight']    = row_height;
             options['headerHeight'] = header_height;
-            this.force_height_calculation = false;                              // einmaliger Zwang zur erneuten Höhenberechnung
+            this.force_height_calculation = false;                              // rücksetzen einmaliger Zwang zur erneuten Höhenberechnung
 
-            var total_height =      options['headerHeight']                         // innere Höhe eines Headers
-                    + 8                                               // padding top und bottom=4 des Headers
-                    + 2                                               // border=1 top und bottom des headers
-                    + (options['rowHeight'] * this.grid.getDataLength() )  // Höhe aller Datenzeilen
+            var total_height =      options['headerHeight']                     // innere Höhe eines Headers
+                    + 8                                                         // padding top und bottom=4 des Headers
+                    + 2                                                         // border=1 top und bottom des headers
+                    + (options['rowHeight'] * this.grid.getDataLength() )       // Höhe aller Datenzeilen
                     + horizontal_scrollbar_width
                     + (options["showHeaderRow"] ? options["headerRowHeight"] : 0)
-                ;                                                 // Linie über und unter dem Scrollbar
+                ;
 
-            this.gridContainer.data('total_height', total_height);                          // Speichern am DIV-Objekt für Zugriff aus anderen Funktionen
+            this.last_height_calculation_with_horizontal_scrollbar = horizontal_scrollbar_width > 0;
+
+            this.gridContainer.data('total_height', total_height);              // Speichern am DIV-Objekt für Zugriff aus anderen Funktionen
 
             //console.log("Height calculation:");
             //console.log("margin="+(this.gridContainer.outerHeight(true) - this.gridContainer.outerHeight()));
@@ -539,15 +545,16 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             //console.log("totalcanvas="+(options['rowHeight']) * grid.getDataLength());
             //console.log("total_height="+total_height);
 
-            var final_height = total_height+scrollbarWidth();                      // Höhe des Grids nach Abschluss der Operationen
-
             if (options['maxHeight'] && options['maxHeight'] < total_height)
-                final_height = options['maxHeight'];                                // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
+                total_height = options['maxHeight'];                            // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
 
-            this.gridContainer.height(final_height);                                        // Grid immer mit zusätzlicher Scrollbar-Höhe aufbauen
+            if (this.gridContainer.height() != total_height){                   // wirklich neue Höhe errechnet ?
+                this.gridContainer.height(total_height);                        // Aktivieren Höhe incl. setzen vertikalem Scrollbar wenn nötig
+                this.grid.setOptions(options);                                  // Setzen der veränderten options am Grid
+                this.grid.setColumns(columns);                                  // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
+            }
 
-            this.grid.setOptions(options);                                               // Setzen der veränderten options am Grid
-            this.grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
+
         }
         trace_log("end calculate_current_grid_column_widths "+caller);
     }
@@ -736,14 +743,20 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     function adjust_real_grid_height(){
         // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Plastz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
         var total_height = thiz.gridContainer.data('total_height');             // gespeicherte Inhaltes-Höhe aus calculate_current_grid_column_widths
+        console.log('adjust_real_grid_height: total_height old='+total_height+' thiz.gridContainer.height()='+thiz.gridContainer.height());
         if (total_height < thiz.gridContainer.height())                         // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
             thiz.gridContainer.height(total_height);
     }
 
-// Justieren des Grids nach Abshcluss der Resize-Operation mit unterem Schieber
+// Justieren des Grids nach Abschluss der Resize-Operation mit unterem Schieber
     function finish_vertical_resize(){
         thiz.calculate_current_grid_column_widths('finish_vertical_resize');    // Neuberechnen breiten (neue Situation bzgl. vertikalem Scrollbar)
         adjust_real_grid_height();                                              // Limitieren Höhe
+
+        // Ab jetzt die gesetzte Höhe als Vorgabewert verwenden
+        var options = thiz.grid.getOptions();
+        options['maxHeight'] = thiz.gridContainer.height();
+        thiz.setOptions(options);
     }
 
     /**
@@ -833,7 +846,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
 
     trace_log = function(msg){
-        if (false){
+        if (true){
             console.log(msg);                                                           // Aktivieren trace-Ausschriften
         }
     }
@@ -1012,7 +1025,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 test_cell_wrap.html(fullvalue);                                     // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
                 test_cell_wrap.attr('class', column['cssClass']);                   // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
                 if (test_cell_wrap.prop("scrollWidth")  > column['max_wrap_width']){
-                    console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.prop("scrollWidth")+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
+                    //console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.prop("scrollWidth")+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
                     if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
                         column['max_wrap_width']  = column['max_wrap_width_allowed']
                     else
@@ -1078,6 +1091,8 @@ function resize_slickGrids(){
     jQuery('.slickgrid_top').each(function(index, element){
         var gridContainer = jQuery(element);
         if (gridContainer.data('last_resize_width') && gridContainer.data('last_resize_width') != gridContainer.width() && gridContainer.data('slickgrid')) { // nur durchrechnen, wenn sich wirklich Breite ändert und grid bereits initialisiert ist
+            // darf nur in Rekalkulation der Höhe laufen wenn sich Spaltebreiten verändern
+            // für vertikalen Resize muss Höhenberechnung übersprungen werden
             gridContainer.data('slickgridextended').calculate_current_grid_column_widths("resize_slickGrids");
             gridContainer.data('last_resize_width', gridContainer.width());                       // persistieren Aktuelle Breite
         }
