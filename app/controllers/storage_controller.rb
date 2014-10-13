@@ -5,7 +5,7 @@ class StorageController < ApplicationController
   # Groesse und Füllung der Tabelspaces
   def tablespace_usage
     @tablespaces = sql_select_all("\
-      SELECT /* NOA-Tools Ramm */
+      SELECT /* Panorama-Tool Ramm */
              t.TableSpace_Name,
              t.contents,
              t.Block_Size                   BlockSize,
@@ -19,7 +19,7 @@ class StorageController < ApplicationController
       FROM  DBA_Tablespaces t
       LEFT OUTER JOIN
             (
-            SELECT /* NOA-Tools Ramm */
+            SELECT /* Panorama-Tool Ramm */
                    f.TABLESPACE_NAME,
                    Sum(f.BYTES)/1048576     MBFree
             FROM   DBA_FREE_SPACE f
@@ -99,7 +99,7 @@ class StorageController < ApplicationController
     @totals << total_sum
 
     @schemas = sql_select_all("\
-      SELECT /* NOA-Tools Ramm */ Owner Schema, Type Segment_Type, SUM(Bytes)/1048576 MBytes
+      SELECT /* Panorama-Tool Ramm */ Owner Schema, Type Segment_Type, SUM(Bytes)/1048576 MBytes
       FROM (
         SELECT s.Owner,
                DECODE(s.Segment_Type,
@@ -123,7 +123,7 @@ class StorageController < ApplicationController
       HAVING SUM(Bytes) > 1048576 -- nur > 1 MB selektieren
       ORDER BY 3 DESC")
 
-    @segments = sql_select_all "SELECT /* NOA-Tools Ramm */ Segment_Type,
+    @segments = sql_select_all "SELECT /* Panorama-Tool Ramm */ Segment_Type,
                                        SUM(Bytes)/1048576   MBytes
                                 FROM  (SELECT s.Bytes,
                                               s.Segment_Type || DECODE(i.Index_Type, 'IOT - TOP', ' IOT-PKey', '') Segment_Type

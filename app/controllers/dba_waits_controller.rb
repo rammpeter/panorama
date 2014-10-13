@@ -31,7 +31,7 @@ class DbaWaitsController < ApplicationController
       where_string = " WHERE " + where_string if where_string != ""
 
       sql_select_all ["\
-        SELECT /* NOA-Tools Ramm */                             
+        SELECT /* Panorama-Tool Ramm */
               NVL(se.Inst_ID, sw.Inst_ID)   Inst_ID,            
               NVL(se.Event, sw.Event)       Event,              
               NVL(se.Total_Waits, 0)        Total_Waits,        
@@ -104,7 +104,7 @@ class DbaWaitsController < ApplicationController
     @inst_id = prepare_param_instance
     @event   = params[:event]
     @session_waits = sql_select_all ["\
-        SELECT /* NOA-Tools Ramm */                             
+        SELECT /* Panorama-Tool Ramm */
           Event, Inst_ID, Sid, Wait_Time, Seconds_in_Wait, State,
           p1text, p1, RawToHex(p1raw) P1Raw, 
           p2text, p2, RawToHex(p2raw) P2Raw, 

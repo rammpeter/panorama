@@ -4,13 +4,13 @@ class DbaSchemaController < ApplicationController
   def show_object_size
     @tablespaces = sql_select_all("\
       SELECT '[Alle]' Name FROM DUAL UNION ALL                  
-      SELECT /* NOA-Tools Ramm */                               
+      SELECT /* Panorama-Tool Ramm */
         TABLESPACE_NAME Name                                    
       FROM DBA_TableSpaces                                      
       ORDER BY 1 ");
     @schemas = sql_select_all("\
       SELECT '[Alle]' Name FROM DUAL UNION ALL                  
-      SELECT /* NOA-Tools Ramm */                               
+      SELECT /* Panorama-Tool Ramm */
         UserName Name                                           
       FROM DBA_Users
       ORDER BY 1 ");

@@ -9,6 +9,7 @@ module ApplicationHelper
   include ActionView::Helpers::SanitizeHelper
   include DatabaseHelper
   include SlickgridHelper
+  include ExplainApplicationInfoHelper
 
  #def list_tns_names
  #
@@ -458,45 +459,6 @@ module ApplicationHelper
   end
 
   protected
-  # Application-Spezifisch: Extrahieren weiterer Info aus Kurzbezeichnern
-  def explain_application_info(org_text)
-    retval = {}    # Default
-    return retval unless org_text
-
-    if org_text.match('Application = ')
-      appl = SyspApplication.get_cached_instance(org_text.split(' ')[2].to_i)
-      if appl
-        retval[:short_info] = appl.name
-        retval[:long_info]  = "#{appl.description}  >> Team: #{appl.developmentteam.name}"
-      else
-        retval[:short_info] = "Application not found for #{org_text}"
-      end
-    end
-
-    if org_text.match('ID_WSMethod = ')
-      ws = Wsmethod.get_cached_instance(org_text.split(' ')[2].to_i)
-      if ws
-        retval[:short_info] = ws.name
-        retval[:long_info]  = "#{ws.name}"
-      else
-        retval[:short_info] = "WSMethod not found for #{org_text}"
-      end
-    end
-
-    if org_text.match('ID_OFMsgType = ')
-      mt = Ofmessagetype.get_cached_instance(org_text.split(' ')[2].to_i, session[:database].hash)
-      if mt
-        retval[:short_info] = mt.name
-        retval[:long_info]  = "#{mt.description} >> Domain: #{mt.domain.name}"
-      else
-        retval[:short_info] = "OFMessagetype not found for #{org_text}"
-      end
-    end
-
-
-
-    retval
-  end
 
   def get_sga_sql_statement(instance, sql_id)  # Ermittlung formatierter SQL-Text
 

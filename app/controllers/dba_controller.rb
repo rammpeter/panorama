@@ -336,7 +336,7 @@ class DbaController < ApplicationController
 
   def show_redologs
     @redologs = sql_select_all("\
-      SELECT /* NOA-Tools Ramm */
+      SELECT /* Panorama-Tool Ramm */
         Inst_ID,
         TO_CHAR(Group#) GroupNo,                                
         (Bytes/1024) KByte,                                     
@@ -450,7 +450,7 @@ class DbaController < ApplicationController
   # Aktuell genutzt Objekte
   def used_objects
     @objects = sql_select_all("\
-      SELECT /* NOA-Tools Ramm */
+      SELECT /* Panorama-Tool Ramm */
              a.Inst_ID,
              a.SID, 
              s.SERIAL# sn, 
@@ -472,7 +472,7 @@ class DbaController < ApplicationController
   # Latch-Waits wegen cache buffers chains
   def latch_cache_buffers_chains
     @waits = sql_select_all("\
-      SELECT /*+ FIRST_ROWS */ /* NOA-Tools Ramm */               
+      SELECT /*+ FIRST_ROWS */ /* Panorama-Tool Ramm */
         ln.Name,                                                  
         o.Owner,                                                  
         o.Object_Name,                                            
@@ -505,7 +505,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   # Waits wegen db_file_sequential_read
   def wait_db_file_sequential_read
     @waits = sql_select_all "\
-      SELECT /* NOA-Tools Ramm */                                 
+      SELECT /* Panorama-Tool Ramm */
         w.SID,                                                    
         w.Seq# SerialNo,                                          
         Wait_Time,                                                
@@ -560,7 +560,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     end
 
     @sessions = sql_select_all ["\
-      SELECT /* NOA-Tools Ramm */                                                                                                         
+      SELECT /* Panorama-Tool Ramm */
         s.SID||','||s.Serial# SidSn,
         s.SID,
         s.Serial# SerialNo,                                                                                          
@@ -972,7 +972,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     def get_values  # ermitteln der Aktuellen Werte
       # Sortierung des Results muss mit Methode smaller korrelieren
       sql_select_all ["\
-        SELECT /* NOA-Tools Ramm */                             
+        SELECT /* Panorama-Tool Ramm */
           Inst_ID, Owner, Object_Name, SubObject_Name,          
           Object_Type, Value                                    
         FROM  GV$Segment_Statistics                             
@@ -1052,7 +1052,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
   def temp_usage
     @data = sql_select_all "\
-        SELECT /* NOA-Tools Ramm */ t.INST_ID,
+        SELECT /* Panorama-Tool Ramm */ t.INST_ID,
         s.SID,
         s.Serial# SerialNo,
         s.UserName,

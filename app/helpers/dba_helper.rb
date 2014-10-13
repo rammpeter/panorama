@@ -14,7 +14,7 @@ module DbaHelper
     end
 
     result = sql_select_all ["\
-      SELECT /*+ ORDERED USE_NL(b o) */ /* NOA-Tools Ramm */
+      SELECT /*+ ORDERED USE_NL(b o) */ /* Panorama-Tool Ramm */
              o.Owner||'.'||o.Object_Name||':'||o.SubObject_Name||' ('||o.Object_Type||')'  Value  
       FROM   gv$bh b
       JOIN   DBA_Objects o ON o.data_object_id = b.objd
@@ -31,7 +31,7 @@ module DbaHelper
     # Zweiter Versuch über DBA_Extents, wenn gesuchter Block nicht im Cache
     if result.length == 0
       result = sql_select_all ["\
-        SELECT /* NOA-Tools Ramm */                                     
+        SELECT /* Panorama-Tool Ramm */
                Owner||'.'||SEGMENT_NAME||':'||Partition_Name||' ('||Segment_Type||')'  Value  
         FROM   DBA_Extents e                                            
         WHERE  e.File_ID = ?                                            
@@ -58,7 +58,7 @@ module DbaHelper
         p1raw = p1.to_i.to_s(16).upcase unless p1raw   # Rück-Konvertierung aus p1 wenn raw nicht belegt ist
         # Auslesen Objekt über Cache-Block
         result = sql_select_one ["\
-          SELECT /*+ ORDERED USE_NL(b o) */ /* NOA-Tools Ramm */
+          SELECT /*+ ORDERED USE_NL(b o) */ /* Panorama-Tool Ramm */
                  o.Owner||'.'||o.Object_Name||':'||o.SubObject_Name||' ('||o.Object_Type||')'  Value
           FROM   X$BH b
           JOIN   DBA_Objects o ON o.data_object_id = b.obj
