@@ -548,13 +548,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             if (options['maxHeight'] && options['maxHeight'] < total_height)
                 total_height = options['maxHeight'];                            // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
 
-            if (this.gridContainer.height() != total_height){                   // wirklich neue Höhe errechnet ?
-                this.gridContainer.height(total_height);                        // Aktivieren Höhe incl. setzen vertikalem Scrollbar wenn nötig
-                this.grid.setOptions(options);                                  // Setzen der veränderten options am Grid
-                this.grid.setColumns(columns);                                  // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
-            }
-
-
+            this.gridContainer.height(total_height);                            // Aktivieren Höhe incl. setzen vertikalem Scrollbar wenn nötig
+            this.grid.setOptions(options);                                      // Setzen der veränderten options am Grid
+            this.grid.setColumns(columns);                                      // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit evtl. wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
         }
         trace_log("end calculate_current_grid_column_widths "+caller);
     };
