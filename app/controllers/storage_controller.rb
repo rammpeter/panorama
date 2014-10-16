@@ -327,13 +327,15 @@ class StorageController < ApplicationController
              NVL(f.BYTES,0)/1048576            MBFree,
              (d.BYTES-NVL(f.BYTES,0))/1048576  MBUsed,
              d.BYTES/1048576                   FileSize,
-             (d.Bytes-NVL(f.Bytes,0))/d.BYTES  PctUsed
+             (d.Bytes-NVL(f.Bytes,0))/d.BYTES  PctUsed,
+             MaxBytes/1048576                  MaxMB,
+             Increment_By/1048576              Increment_ByMB
       FROM   (SELECT File_Name, File_ID, Tablespace_Name, Bytes, Blocks,
-                     Status, AutoExtensible, Online_Status
+                     Status, AutoExtensible, MaxBytes, Increment_By, Online_Status
               FROM   DBA_Data_Files
               UNION ALL
               SELECT File_Name, File_ID, Tablespace_Name, Bytes, Blocks,
-                     Status, AutoExtensible, '[UNKNOWN]' Online_Status
+                     Status, AutoExtensible, MaxBytes, Increment_By, '[UNKNOWN]' Online_Status
               FROM   DBA_Temp_Files
              )d
       LEFT JOIN (SELECT File_ID, Tablespace_Name, SUM(Bytes) Bytes

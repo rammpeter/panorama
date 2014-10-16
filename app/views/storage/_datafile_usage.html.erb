@@ -10,6 +10,8 @@ column_options =
     {:caption=>"% used",           :data=>proc{|rec| formattedNumber(rec.pctused*100,1)},   :title=>"Prozentuale Auslastung", :align=>:right},
     {:caption=>"FileName",         :data=>proc{|rec| rec.file_name},                        :title=>"Filename des Datafiles"},
     {:caption=>"Auto-Ext.",        :data=>proc{|rec| rec.autoextensible},                   :title=>"Auto-Extensible"},
+    {:caption=>'Max. MB',          :data=>proc{|rec| fn(rec.maxmb)},                        :title=>"Maximum size in MB if auto extensible"},
+    {:caption=>'Incr. MB',         :data=>proc{|rec| fn(rec.increment_bymb)},               :title=>"Increment size in MB if auto extensible"},
     {:caption=>"Status",           :data=>proc{|rec| rec.online_status},                    :title=>"Online-Status"},
   ]
 
