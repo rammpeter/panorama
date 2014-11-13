@@ -31,8 +31,8 @@
                                      "SQL-ID"                => @sql_id,
                                      "Plan-Hash-Value"       => @mp.plan_hash_value,
                                      "Plan-Line-ID"          => rec.id,
-                                     :time_selection_start   => localeDateTime(@mp.first_occurrence),
-                                     :time_selection_end     => localeDateTime(@mp.last_occurrence),
+                                     :time_selection_start   => localeDateTime(@mp.first_occurrence, :minutes),
+                                     :time_selection_end     => localeDateTime(@mp.last_occurrence, :minutes),
                                      :Min_Snap_ID            => @mp.min_snap_id,
                                      :Max_Snap_ID            => @mp.max_snap_id,
                                      :Idle_Wait1             => "PX Deq Credit: send blkd"
