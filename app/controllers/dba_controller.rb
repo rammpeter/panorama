@@ -9,6 +9,7 @@ class DbaController < ApplicationController
     @max_result_size = params[:max_result_size].to_i
 
     @dml_locks = sql_select_all(["\
+      WITH RawLock AS (SELECT /*+ MATERIALIZE NO_MERGE */ * FROM gv$Lock)
       SELECT /* Panorama-Tool Ramm */ *
       FROM   (
               SELECT /*+ ORDERED */
@@ -46,7 +47,7 @@ class DbaController < ApplicationController
                bs.Inst_ID             Blocking_Instance_Number,
                bs.SID                 Blocking_SID,
                bs.Serial#             Blocking_SerialNo
-              FROM    gv$lock l
+              FROM    RawLock l
               JOIN    gv$session s              ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID
               JOIN    GV$Process p              ON p.Inst_ID = s.Inst_ID AND p.Addr = s.pAddr
               LEFT OUTER JOIN gv$Session bs     ON bs.Inst_ID = s.Blocking_Instance AND bs.SID = s.Blocking_Session
@@ -83,7 +84,8 @@ class DbaController < ApplicationController
   def list_blocking_dml_locks
 
     @locks = sql_select_all "\
-      WITH Locks AS (
+      WITH RawLock AS (SELECT /*+ MATERIALIZE NO_MERGE */ * FROM gv$Lock),
+           Locks AS (
               SELECT /*+ LEADING(l) */ /* Panorama-Tool Ramm */
                      l.Inst_ID,
                      s.SID,
@@ -132,7 +134,7 @@ class DbaController < ApplicationController
                      bs.OSUser              Blocking_OSUser,
                      bs.Process             Blocking_Process,
                      bs.Program             Blocking_Program
-               FROM gv$lock l
+               FROM RawLock l
                JOIN gv$session s ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID
                LEFT OUTER JOIN gv$Session bs ON bs.Inst_ID = s.Blocking_Instance AND bs.SID = s.Blocking_Session
                -- Object der blockenden Session
@@ -823,6 +825,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     @serialno = params[:serialno]
 
     @locks =  sql_select_all ["\
+      WITH RawLock AS (SELECT /*+ MATERIALIZE NO_MERGE */ * FROM gv$Lock)
       SELECT /*+ ORDERED */ /* Panorama-Tool Ramm */
         RowNum,
         CASE                                                                                    
@@ -847,7 +850,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         bs.Inst_ID             Blocking_Instance_Number,
         bs.SID                 Blocking_SID,
         bs.Serial#             Blocking_SerialNo
-      FROM    gv$lock l
+      FROM    RawLock l
       JOIN    gv$session s ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID
       LEFT OUTER JOIN gv$Session bs ON bs.Inst_ID = s.Blocking_Instance AND bs.SID = s.Blocking_Session
       -- Join über der session bekanntes Objekt auf das gewartet wird, alternativ über dem Wait bekanntes Objekt

@@ -301,14 +301,22 @@
   dragnet_helper_60_param_1_name:                           Minimale Anzahl Fetches je Execution
   dragnet_helper_60_param_1_hint:                           Minimale Anzahl Fetches je Execution für Aufnahme in Result
 
-  dragnet_helper_61_param_1_name:                           Minimale Anzahl Executions
-  dragnet_helper_61_param_1_hint:                           Minimale Anzahl Executions für Aufnahme in Result
 
   dragnet_helper_61_desc: |-
     Primärschlüssel-Spalten sollten i.d.R. unveränderlich sein, insbesondere wenn drauf referenziert wird.
     Das Überschreiben mit iddentischen Werten verursacht unnötig Aufwand für Index-Maintenance.
     Daher sollten Primärschlüssel-Spalten nicht in der SET-Klausel von Updates enthalten sein.
   dragnet_helper_61_name:                                   Evtl. unnötiger Update von Primärschlüssel-Spalten
+  dragnet_helper_61_param_1_name:                           Minimale Anzahl Executions
+  dragnet_helper_61_param_1_hint:                           Minimale Anzahl Executions für Aufnahme in Result
+
+  dragnet_helper_62_desc: |-
+    Länger inaktive Sessions mit offenen Transaktionen können Hinweis sein auf:
+    - nicht abgeschlossene manuelle Aktivitäten z.B. aus Transkationssteuerung über GUI
+    - an Connection-Pools zurückgegebene Sessions ohne abgeschlossene Transaktion
+  dragnet_helper_62_name:                                   Inaktive Sessions mit offenen DML-Transaktionen
+  dragnet_helper_62_param_1_name:                           Minimale Dauer (Sekunden) seit letzter Aktivät der Session
+  dragnet_helper_62_param_1_hint:                           Minimale Dauer in Sekunden seit dem Ende der letzten Aktivtät der Session
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports

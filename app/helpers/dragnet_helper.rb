@@ -2399,6 +2399,44 @@ Therefore primary key columns should not occur in SET-clause of UPDATE statement
               ORDER BY Elapsed_Time_Secs DESC
           ",
       },
+      {
+          :name  => t(:dragnet_helper_62_name, :default=>'Longer inactive sessions with continued active transactions'),
+          :desc  => t(:dragnet_helper_62_desc, :default=>'Longer inactive sessions with continued active transactions may indicate to:
+- not finished manual activities, e.g. transaction control by GUI
+- sessions returned to connection pools without finished transaction
+           '),
+          :sql=>  "
+            WITH /* Test auf nicht commitete inaktive Sessions im Connection-Pool, Ramm 25.11.14 */
+                 Sessions AS (SELECT /*+ MATERIALIZE NO_MERGE FULL(s) */
+                                    Inst_ID, SID, Serial#, Status, UserName, Machine, OSUser, Prev_SQL_ID,
+                                    Prev_Exec_Start, Module, Action, Logon_Time, Last_Call_ET
+                             FROM   gv$Session s
+                             WHERE  Status = 'INACTIVE'
+                             AND    Last_Call_ET > ?
+                            ),
+                 Locks AS (SELECT /*+ MATERIALIZE NO_MERGE FULL(l) */
+                                 Inst_ID, SID, Type, Request, LMode, ID1, ID2
+                          FROM   gv$Lock l
+                         )
+            SELECT /*+ FULL(s) FULL(l) USE_HASH(s l) */
+                   s.Inst_ID, s.SID, s.Serial#, s.UserName, s.Machine, s.OSUser,
+                   s.Prev_SQL_ID  \"SQL-ID of last activity\",
+                   s.Prev_Exec_Start  \"Start time of last activity\",
+                   s.Module, s.Action,
+                   s.Logon_Time,
+                   s.Last_Call_ET \"Seconds since last activity\",
+                   l.Type         \"Lock type\",
+                   l.Request, l.LMode, lo.Owner, lo.Object_Name, l.ID1, l.ID2
+            FROM   Sessions s
+            JOIN   Locks l ON l.Inst_ID = s.Inst_ID AND l.SID = s.SID
+            LEFT OUTER JOIN DBA_Objects lo ON lo.Object_ID = l.ID1
+            WHERE  s.UserName NOT IN ('SYS')
+            AND    l.Type NOT IN ('AE', 'PS', 'TO')
+           ",
+          :parameter=>[
+              {:name=> t(:dragnet_helper_62_param_1_name, :default=>'Minimum duration (seconds) since last activity of session'), :size=>8, :default=>60, :title=> t(:dragnet_helper_62_param_1_hint, :default=>'Minimum duration (seconds) since end of last activity of session')},
+          ]
+      },
     ]
   end
 
