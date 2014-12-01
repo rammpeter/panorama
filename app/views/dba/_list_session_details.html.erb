@@ -177,6 +177,19 @@ column_options =
         )
       %>
   </div>
+  <div class="float_left">
+    <%=
+        my_ajax_submit_tag("Optimizer Env.",
+                           url_for(:controller   => :dba,
+                                   :action       => :list_session_optimizer_environment,
+                                   :instance     => @instance,
+                                   :sid          => @sid,
+                                   :update_area  => @update_area
+                           ),
+                           :title=> "Show audit optimizer environment for this session"
+        )
+    %>
+  </div>
 
   <div class="float_left">
     <input type="submit" title="Schliessen der Statement-Anzeige" value="Schliessen" onclick="jQuery('#<%= @prev_update_area %>').html('');">

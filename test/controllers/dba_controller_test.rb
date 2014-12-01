@@ -50,6 +50,9 @@ class DbaControllerTest < ActionController::TestCase
     post :list_session_statistic, :format=>:js, :instance=>@instance, :sid=>@sid
     assert_response :success
 
+    post :list_session_optimizer_environment, :format=>:js, :instance=>@instance, :sid=>@sid
+    assert_response :success
+
     post :show_session_details_waits_object, :format=>:js, :event=>"db file sequential read"
     assert_response :success
 

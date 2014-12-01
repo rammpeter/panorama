@@ -27,16 +27,16 @@
 
     column_options =
     [
-      {:caption=>"Locked Object",  :data=>"rec.object",                                                     :title=>"Gelocktes Objekt"},
-      {:caption=>"LT",             :data=>"rec.locktype",    :data_title=>'Locktype: #{lock_types(rec.locktype)}',    :title=>"Lock-Type"},
-      {:caption=>"ID1",            :data=>"rec.id1",                                                        :title=>"ID1 aus gv$Lock"},
-      {:caption=>"ID2",            :data=>"rec.id2",                                                        :title=>"ID2 aus gv$Lock"},
-      {:caption=>"R",              :data=>"rec.request",     :data_title=>'#{lock_modes(rec.request)}',     :title=>"Request"},
-      {:caption=>"L",              :data=>"rec.lockmode",    :data_title=>'#{lock_modes(rec.lockmode)}',    :title=>"Lock-Mode"},
-      {:caption=>"Blocking SID",   :data=>"link_blocking_sid(rec)",                                         :title=>"Blocking SID"},
-      {:caption=>"Blocking Object",:data=>"rec.waitingforobject",                                           :title=>"Blocking Object"},
-      {:caption=>"Blocking RowID", :data=>"link_blocking_rowid(rec)",                                       :title=>"Blocking RowID"},
-      {:caption=>"Lock Sec.",      :data=>proc{|rec| fn(rec.seconds_in_lock)},                              :title=>"Seconds since lock was granted", :align=>:right},
+      {:caption=>"Locked Object",  :data=>proc{|rec| rec.object },                                                      :title=>"Gelocktes Objekt"},
+      {:caption=>"LT",             :data=>proc{|rec| rec.locktype },    :data_title=>proc{|rec| "Locktype: #{lock_types(rec.locktype)}" },    :title=>"Lock-Type"},
+      {:caption=>"ID1",            :data=>proc{|rec| rec.id1 },                                                         :title=>"ID1 aus gv$Lock"},
+      {:caption=>"ID2",            :data=>proc{|rec| rec.id2 },                                                         :title=>"ID2 aus gv$Lock"},
+      {:caption=>"R",              :data=>proc{|rec| rec.request },     :data_title=>proc{|rec| "#{lock_modes(rec.request)}" },     :title=>"Request"},
+      {:caption=>"L",              :data=>proc{|rec| rec.lockmode },    :data_title=>proc{|rec| "#{lock_modes(rec.lockmode)}" },    :title=>"Lock-Mode"},
+      {:caption=>"Blocking SID",   :data=>proc{|rec| link_blocking_sid(rec) },                                          :title=>"Blocking SID"},
+      {:caption=>"Blocking Object",:data=>proc{|rec| rec.waitingforobject },                                            :title=>"Blocking Object"},
+      {:caption=>"Blocking RowID", :data=>proc{|rec| link_blocking_rowid(rec) },                                        :title=>"Blocking RowID"},
+      {:caption=>"Lock Sec.",      :data=>proc{|rec| fn(rec.seconds_in_lock) },                                         :title=>"Seconds since lock was granted", :align=>:right},
     ]
 
 %>

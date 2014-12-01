@@ -25,6 +25,7 @@ module KeyExplanationHelper
   def lock_types(search_lock_type)
     unless @@locktypes
       @@locktypes = {
+       'AB' => 'A general class of locks used by auto BMR for various purposes',
        'AD' => 'ASM Disk AU Lock',
        'AE' => 'Application Edition Enqueue',
        'AF' => 'Advisor Framework',
@@ -33,11 +34,13 @@ module KeyExplanationHelper
        'AO' => 'MultiWriter Object Access',
        'AR' => 'ASM Relocation Lock',
        'AS' => 'Service Operations',
+       'AU' => 'Lock held to synchronize access XML to audit index file',
        'AT' => 'Lock held for the ALTER TABLE statement',
        'AV' => 'AVD DG Number Lock',
        'AW' => 'Analytic Workspace',
        'AY' => 'KSXA Test Affinity Dictionary',
        'BB' => 'Global Transaction Branch',
+       'BF' => 'Synchronize access to a bloom filter in a parallel statement',
        'BL' => 'Buffer hash table instance',
        'BR' => 'Backup/Restore',
        'CA' => 'Calibration',
@@ -109,11 +112,21 @@ module KeyExplanationHelper
        'WL' => 'Being-written redo log instance',
        'WG' => 'Write gather local enqueue',
        'WM' => 'WLM Plan Operations',
+       'WP' => 'This enqueue handles concurrency between purging and baselines',
+       'WR' => 'Coordinates access to logs by Async LNS and ARCH/FG',
        'WS' => 'LogWriter Standby',
        'XB' => 'ASM Group Block Lock',
+       'XC' => 'Synchronization access to XDB configuration',
        'XH' => 'AQ Notification No-Proxy',
        'XL' => 'ASM Extent Fault Lock',
-       'XR' => 'Quiesce / Force Logging'
+       'XQ' => 'ASM extent relocation',
+       'XR' => 'Quiesce / Force Logging',
+       'XY' => 'Lock used for internal testing',
+       'Y'  => 'Synchronizes accesses to the contents of library cache objects',
+       'ZA' => 'Lock held for adding partition to Aud table',
+       'ZF' => 'Lock held for adding partition to Fga table',
+       'ZG' => 'Coordinates file group operations',
+       'ZZ' => 'Lock held for updating Global context hash tables'
       }
       ('A'..'P').each{|x| @@locktypes["L#{x}"] = 'library cache lock instance (namespace=second character)'
       }

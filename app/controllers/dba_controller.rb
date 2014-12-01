@@ -910,6 +910,17 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     end
   end
 
+  def list_session_optimizer_environment
+    @env = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             Name, SQL_Feature, IsDefault, Value
+      FROM   gV$SES_OPTIMIZER_ENV
+      WHERE  Inst_ID = ?
+      AND    SID = ?
+      ", params[:instance], params[:sid]]
+
+    render_partial
+  end
 
 
   # Ermitteln Object aus Parametern von v$session_wait
