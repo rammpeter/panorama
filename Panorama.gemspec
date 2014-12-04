@@ -28,7 +28,7 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   spec.require_paths = ["lib"]
 
   #spec.add_dependency "rails", "~> 4.1.6"	# Use this rails version or above		
-  spec.add_dependency "rails", "= 4.1.6"	# Use exactly this rails version
+  spec.add_dependency "rails", "= 4.1.8"	# Use exactly this rails version
   spec.add_dependency 'activerecord-nulldb-adapter'
   spec.add_dependency 'activerecord-oracle_enhanced-adapter'
   spec.add_dependency 'memcache-client'
