@@ -254,20 +254,24 @@ class StorageController < ApplicationController
   def list_snapshot_logs
     where_string = ""
     where_values = []
+    @grid_caption = ""
 
     if params[:snapshot_id]
       where_string << " AND l.Snapshot_ID = ?"
       where_values << params[:snapshot_id]
+      @grid_caption << " Snapshot-ID='#{params[:snapshot_id]}'"
     end
 
     if params[:log_owner]
       where_string << " AND l.Log_Owner = ?"
       where_values << params[:log_owner]
+      @grid_caption << " Log-Owner='#{params[:log_owner]}'"
     end
 
     if params[:log_table]
       where_string << " AND l.Log_Table = ?"
       where_values << params[:log_table]
+      @grid_caption << " Log-Table='#{params[:log_table]}'"
     end
 
     @snaps = sql_select_all ["\
