@@ -16,7 +16,7 @@ def link_text(rec, value)
 end
 
 def link_real_num_rows(rec)
-  update_area = "list_registered_materialized_view_logs_#{(rec.owner+rec.name).hash.abs}"
+  update_area = "list_registered_materialized_view_logs_#{rec.hash.abs}"
   my_ajax_link_to(rec.mbytes ? (rec.num_rows ? fn(rec.num_rows) : "[No analyze]") : nil,
                   url_for(:action          => :list_real_num_rows,
                           :owner           => rec.owner,
