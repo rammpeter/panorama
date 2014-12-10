@@ -75,7 +75,7 @@
             </tr>
           </table>
           <br/>
-          <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_params, :format=>:js), :remote => true, :id=>:formLoginDialog do %>
+          <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_params), :remote => true, :id=>:formLoginDialog do %>
               <table width="100%">
                 <tr>
                   <th><%= t :login_lang_caption, :default=>"Language" %></th>
