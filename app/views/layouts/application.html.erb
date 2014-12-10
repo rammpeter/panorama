@@ -12,7 +12,7 @@
               bind_ajax_callbacks();                                                  // Callbacks für jeden Ajax-Aufruf binden
               jQuery("#ajax_indicator").dialog({ autoOpen:false, modal:true, title:'Loading ...' });
               jQuery("#login_dialog")
-                      .dialog({ autoOpen:true, modal:true, width:650, draggable:true, title:'Panorama: Login auf Ziel-DB'})
+                      .dialog({ autoOpen:false, modal:true, width:650, draggable:true, title:'Panorama: Login auf Ziel-DB'})
                   //        .position({ my: "center center", at: "center center", of: window })
               ;
               jQuery("#submit_login_dialog").focus();
@@ -32,9 +32,10 @@
                       .hide()
               ;
 
-              register_tooltip(jQuery(document));                                     // Jquery-UI Tooltips verwenden
+              register_tooltip(jQuery(document));                               // Jquery-UI Tooltips verwenden
 
-              jQuery.ajax({type: 'GET', url:'env/get_tnsnames_records'});
+              jQuery.ajax({type: 'GET', url:'env/get_tnsnames_records', async: false});
+              jQuery('#login_dialog').dialog('open');                           // Erst jetzt den Anmeldedialog oeffnen
           });
       </script>
 
@@ -74,7 +75,7 @@
             </tr>
           </table>
           <br/>
-          <%= form_tag "env/set_database_by_params", :remote => true, :id=>:formLoginDialog do %>
+          <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_params, :format=>:js), :remote => true, :id=>:formLoginDialog do %>
               <table width="100%">
                 <tr>
                   <th><%= t :login_lang_caption, :default=>"Language" %></th>
@@ -173,7 +174,7 @@
 
         <!-- Verlaufsdialog zur Anzeige bei Wartezustaenden -->
         <div id="ajax_indicator" style="background-color: #A9BCF5; ">
-          <div align="center" style="margin-top:20; margin-bottom: 20;"><img src="assets/ajax-loader.gif"></div>
+          <div align="center" style="margin-top:20px; margin-bottom: 20px;"><img src="assets/ajax-loader.gif"></div>
         </div>
 
 
