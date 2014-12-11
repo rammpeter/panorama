@@ -35,9 +35,11 @@ public
       (
         SELECT  DISTINCT
           child.Owner       ChildOwner,
-          child.Owner||'.'||child.Table_Name  ChildTable,
+          child.Table_Name  ChildTable,
+          child.Owner||'.'||child.Table_Name ChildOwnerTable,
           parent.Owner      ParentOwner,
-          parent.Owner||'.'||parent.Table_Name ParentTable
+          parent.Table_Name ParentTable,
+          parent.Owner||'.'||parent.Table_Name ParentOwnerTable
         FROM  all_constraints child,
               all_constraints parent
         WHERE   child.Constraint_Type='R'
@@ -45,8 +47,8 @@ public
         AND     parent.Owner           = child.R_Owner
         AND     parent.Table_Name != child.Table_Name       /* keine Selbstreferenzen */
       ) x
-      CONNECT BY NOCYCLE PRIOR ChildTable = ParentTable
-      START WITH ParentTable='"+@username+"."+@tablename+"'"
+      CONNECT BY NOCYCLE PRIOR ChildOwnerTable = ParentOwnerTable
+      START WITH ParentOwnerTable='"+@username+"."+@tablename+"'"
 
     respond_to do |format|
       format.js {render :js => "$('#dependencies').html('#{j render_to_string :partial=>"show_dependencies" }');"}

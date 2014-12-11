@@ -1,11 +1,13 @@
-<h1>Anzeige der Anhängigen Tabellen einer gegebenen Tabelle </h1>
+<h1>Anzeige der relational abhängigen Tabellen einer gegebenen Tabelle </h1>
 
 <div id="schema_selection" style="float:left; ">
 <%= my_ajax_form_tag "table_dependencies/select_schema" do %>
-  <%= collection_select(:all_user, :username, @all_users, :username, :username, {}, :title=>"Auswahl Schema für Tabelle deren abhängige Tabellen gesucht werden") %>        
-
-  <%= submit_tag("Tabellen anzeigen", :title => "Anzeige der Tabellen des Schemas") %>
-
+    <div class="float_left" title="Auswahl Schema für Tabelle deren abhängige Tabellen gesucht werden">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+      <%= collection_select(:all_user, :username, @all_users, :username, :username, {}) %>
+    </div>
+    <div class="float_left">
+      <%= submit_tag("Tabellen anzeigen", :title => "Anzeige der Tabellen des Schemas") %>
+    </div>
 <% end %>
 </div>
 <div id="table_selection" style="float:left; ">

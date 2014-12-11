@@ -1,0 +1,56 @@
+<%
+   @update_area = get_unique_area_id
+   def link_ind_partitions(rec)
+     if rec.partition_number == 0
+       rec.partition_number
+     else
+       my_ajax_link_to("#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}",
+                       url_for({:action       => :list_index_partitions,
+                                :owner        => rec.owner,
+                                :index_name   => rec.index_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show partitions of index #{rec.index_name}"
+       )
+     end
+   end
+
+   column_options =
+           [
+                   {:caption=> 'Name',             :data=>proc{|rec| rec.index_name},                  :title=> 'Name of index'},
+                   {:caption=> 'Columns',          :data=>proc{|rec| rec.column_names},                :title=> 'Indexes columns / expressions'},
+                   {:caption=> 'Type',             :data=>proc{|rec| rec.index_type},                  :title=> 'Type of index'},
+                   {:caption=> 'Unique',           :data=>proc{|rec| rec.uniqueness},                  :title=> 'Uniqueness status of the index: UNIQUE,  NONUNIQUE or BITMAP'},
+                   {:caption=> 'Compr.',           :data=>proc{|rec| "#{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"},  :title=> 'Compression an number of key columns for compression'},
+                   {:caption=> 'TS',               :data=>proc{|rec| rec.subpartition_ts_name ? rec.subpartition_ts_name : (rec.partition_ts_name ? rec.partition_ts_name : rec.tablespace_name)},             :title=> 'Tablespace name'},
+                   {:caption=> 'Pct Free',         :data=>proc{|rec| fn(rec.subpartition_pct_free ? rec.subpartition_pct_free : (rec.partition_pct_free ? rec.partition_pct_free : rec.pct_free))},                :title=> 'Percent free', :align=>:right},
+                   {:caption=> 'Ini Trans',        :data=>proc{|rec| fn(rec.subpartition_ini_trans ? rec.subpartition_ini_trans : (rec.partition_ini_trans ? rec.partition_ini_trans : rec.ini_trans))},               :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
+                   {:caption=> 'Max Trans',        :data=>proc{|rec| fn(rec.subpartition_max_trans ? rec.subpartition_max_trans : (rec.partition_max_trans ? rec.partition_max_trans : rec.max_trans))},               :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
+                   {:caption=> 'Rows',             :data=>proc{|rec| fn(rec.num_rows)},                     :title=> 'Number of rows calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Size (MB)',        :data=>proc{|rec| fn(rec.size_mb, 2)},              :title=> 'Current object size in megabytes', :align=>:right},
+                   {:caption=> 'B',                :data=>proc{|rec| fn(rec.blevel)},                  :title=> 'B-tree level', :align=>:right},
+                   {:caption=> 'Leaf blocks',      :data=>proc{|rec| fn(rec.leaf_blocks)},             :title=> 'Number of leaf blocks in the index calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},           :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, :data_title=>proc{|rec| "%t, #{fn((rec.num_rows||=0)/(rec.distinct_keys.nil? || rec.distinct_keys == 0 ? 1 : rec.distinct_keys),1)} rows per key" }},
+                   {:caption=> 'Avg. leaf blocks / key', :data=>proc{|rec| fn(rec.avg_leaf_blocks_per_key)}, :title=> 'The average number of leaf blocks per key calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Avg. data blocks / key', :data=>proc{|rec| fn(rec.avg_data_blocks_per_key)}, :title=> 'The average number of data blocks per key calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Cluster.',         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=> 'A measurement of the amount of (dis)order of the table this index is for', :align=>:right},
+                   {:caption=> 'Status',           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=> 'Index-Status'},
+                   {:caption=> 'Dg.',              :data=>proc{|rec| fn(rec.degree)},                   :title=> 'Default parallel degree of table', :align=>:right},
+                   {:caption=> 'Part.',            :data=>proc{|rec| link_ind_partitions(rec)},         :title=> 'Number of index partitions and subpartitions', :align=>:right},
+                   {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of index creation'},
+                   {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on index'},
+                   {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=> 'The date of the most recent time this table was analyzed'},
+                   {:caption=> 'Use',              :data=>proc{|rec| rec.used},                          :title=> 'Usage of index detected? From sys.Object_Usage', :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| 'background-color:coral;' if rec.used=='NO'
+                   } },
+                   {:caption=> 'F. Stat.',         :data=>proc{|rec| rec.funcidx_status},               :title=> 'Is the Function-based Index DISABLED or ENABLED?'},
+           ]
+
+%>
+
+<%= gen_slickgrid(@indexes, column_options, {
+                                  :caption => "Indexes of #{@table_type} #{@owner}.#{@table_name}",
+                                  :height => :auto
+                          })
+%>
+
+<div id="<%= @update_area %>"></div>

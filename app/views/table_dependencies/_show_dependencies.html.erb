@@ -1,10 +1,13 @@
 
 <%
+
+  @update_area = get_unique_area_id
+
    column_options =
            [
-                   {:caption=>"Level",  :data=>proc{|rec| fn(rec.level)},       :align => :right,              :title=>"Hierarchie-Level ( Tiefe der Abhängigkeit)"},
-                   {:caption=>"Abhängige Tabelle",  :data=>proc{|rec| rec.childtable},                         :title=>"Tabelle mit einer referentiellen Abhängigkeit"},
-                   {:caption=>"Abhängig von Tabelle",  :data=>proc{|rec| rec.parenttable},                         :title=>"Tabelle von der die erstgenannte referentiell abhänigig ist"},
+                   {:caption=>"Level",                  :data=>proc{|rec| fn(rec.level)},       :align => :right,                                   :title=>"Hierarchie-Level ( Tiefe der Abhängigkeit)"},
+                   {:caption=>"Abhängige Tabelle",      :data=>proc{|rec| link_table_structure(@update_area, rec.childowner, rec.childtable) },     :title=>"Tabelle mit einer referentiellen Abhängigkeit"},
+                   {:caption=>"Abhängig von Tabelle",   :data=>proc{|rec| link_table_structure(@update_area, rec.parentowner, rec.parenttable)},    :title=>"Tabelle von der die erstgenannte referentiell abhänigig ist"},
 
            ]
 
@@ -12,3 +15,6 @@
 
 <%= gen_slickgrid(@dependencies, column_options, :caption => "Abhängigkeiten für Tabelle #{@username}.#{@tablename}") %>
 
+
+<div id="<%= @update_area %>">
+</div>

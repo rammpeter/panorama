@@ -22,8 +22,10 @@
     </div>
     <div class="float_left" style="border:1px solid gray;">
       <div class="float_left">
+        <div title="Gruppierung der Werte auf Zeitleiste">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
           Gruppierung
-          <%= select :gruppierung, :tag, [['Objekt-Typ', 'Segment_Type'], ['Schema', 'Owner'], ['Tablespace', 'Tablespace_Name'] ], {:selected=>'Type'}, {:title=>'Gruppierung der Werte auf Zeitleiste'} %>
+          <%= select :gruppierung, :tag, [['Objekt-Typ', 'Segment_Type'], ['Schema', 'Owner'], ['Tablespace', 'Tablespace_Name'] ], {:selected=>'Type'} %>
+        </div>
       </div>
       <div class="float_left">
           <%= submit_tag("Zeitleiste anzeigen", :title => "Anlistung der zeitlichen Entwicklung der Größen je Gruppierung", :name=>"timeline") %>

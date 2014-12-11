@@ -2,7 +2,9 @@
 
 <% @update_area = get_unique_area_id %>
 
-<%=  my_html_escape(@comment).html_safe %>
+<div class="slick-shadow" style="background-color: lightyellow">
+    <%=  my_html_escape(@comment).html_safe %>
+</div>
 
 <%
 column_options =
@@ -79,63 +81,10 @@ column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_
 })
 %>
 
-<%
-   def link_ind_partitions(rec)
-     if rec.partition_number == 0
-       rec.partition_number
-     else
-       my_ajax_link_to("#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}",
-                       url_for({:action       => :list_index_partitions,
-                                :owner        => rec.owner,
-                                :index_name   => rec.index_name,
-                                :update_area  => @update_area,
-                               }),
-                       :title=>"Show partitions of index #{rec.index_name}"
-         )
-     end
-   end
-
-column_options =
-[
-  {:caption=> 'Name',             :data=>proc{|rec| rec.index_name},                  :title=> 'Name of index'},
-  {:caption=> 'Columns',          :data=>proc{|rec| rec.column_names},                :title=> 'Indexes columns / expressions'},
-  {:caption=> 'Type',             :data=>proc{|rec| rec.index_type},                  :title=> 'Type of index'},
-  {:caption=> 'Unique',           :data=>proc{|rec| rec.uniqueness},                  :title=> 'Uniqueness status of the index: UNIQUE,  NONUNIQUE or BITMAP'},
-  {:caption=> 'Compr.',           :data=>proc{|rec| "#{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"},  :title=> 'Compression an number of key columns for compression'},
-  {:caption=> 'TS',               :data=>proc{|rec| rec.subpartition_ts_name ? rec.subpartition_ts_name : (rec.partition_ts_name ? rec.partition_ts_name : rec.tablespace_name)},             :title=> 'Tablespace name'},
-  {:caption=> 'Pct Free',         :data=>proc{|rec| fn(rec.subpartition_pct_free ? rec.subpartition_pct_free : (rec.partition_pct_free ? rec.partition_pct_free : rec.pct_free))},                :title=> 'Percent free', :align=>:right},
-  {:caption=> 'Ini Trans',        :data=>proc{|rec| fn(rec.subpartition_ini_trans ? rec.subpartition_ini_trans : (rec.partition_ini_trans ? rec.partition_ini_trans : rec.ini_trans))},               :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
-  {:caption=> 'Max Trans',        :data=>proc{|rec| fn(rec.subpartition_max_trans ? rec.subpartition_max_trans : (rec.partition_max_trans ? rec.partition_max_trans : rec.max_trans))},               :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
-  {:caption=> 'Rows',             :data=>proc{|rec| fn(rec.num_rows)},                     :title=> 'Number of rows calculated by last analyze run', :align=>:right},
-  {:caption=> 'Size (MB)',        :data=>proc{|rec| fn(rec.size_mb, 2)},              :title=> 'Current object size in megabytes', :align=>:right},
-  {:caption=> 'B',                :data=>proc{|rec| fn(rec.blevel)},                  :title=> 'B-tree level', :align=>:right},
-  {:caption=> 'Leaf blocks',      :data=>proc{|rec| fn(rec.leaf_blocks)},             :title=> 'Number of leaf blocks in the index calculated by last analyze run', :align=>:right},
-  {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},           :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, :data_title=>proc{|rec| "%t, #{fn((rec.num_rows||=0)/(rec.distinct_keys.nil? || rec.distinct_keys == 0 ? 1 : rec.distinct_keys),1)} rows per key" }},
-  {:caption=> 'Avg. leaf blocks / key', :data=>proc{|rec| fn(rec.avg_leaf_blocks_per_key)}, :title=> 'The average number of leaf blocks per key calculated by last analyze run', :align=>:right},
-  {:caption=> 'Avg. data blocks / key', :data=>proc{|rec| fn(rec.avg_data_blocks_per_key)}, :title=> 'The average number of data blocks per key calculated by last analyze run', :align=>:right},
-  {:caption=> 'Cluster.',         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=> 'A measurement of the amount of (dis)order of the table this index is for', :align=>:right},
-  {:caption=> 'Status',           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=> 'Index-Status'},
-  {:caption=> 'Dg.',              :data=>proc{|rec| fn(rec.degree)},                   :title=> 'Default parallel degree of table', :align=>:right},
-  {:caption=> 'Part.',            :data=>proc{|rec| link_ind_partitions(rec)},         :title=> 'Number of index partitions and subpartitions', :align=>:right},
-  {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of index creation'},
-  {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on index'},
-  {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=> 'The date of the most recent time this table was analyzed'},
-  {:caption=> 'Use',              :data=>proc{|rec| rec.used},                          :title=> 'Usage of index detected? From sys.Object_Usage', :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| 'background-color:coral;' if rec.used=='NO'
-  } },
-  {:caption=> 'F. Stat.',         :data=>proc{|rec| rec.funcidx_status},               :title=> 'Is the Function-based Index DISABLED or ENABLED?'},
-]
-
-%>
-
-<%= gen_slickgrid(@indexes, column_options, {
-      :caption => "Indexes of #{@table_type} #{@owner}.#{@table_name}",
-      :height => :auto
-})
-%>
 
 <% if @viewtext %>
 <h4>Viewtext of <%= @table_type %> <%= @owner %>.<%= @table_name %></h4>
-<pre style="background-color: lightyellow"><%=  @viewtext %></pre>
+<pre class="slick-shadow" style="background-color: lightyellow"><%=  @viewtext %></pre>
 <% end %>
 
 <% if @unique_constraints.count > 0 %>
@@ -158,71 +107,57 @@ column_options =
 
 <% end %>
 
-<% if @check_constraints.count > 0 %>
-    <%=
-        column_options =
-                [
-                        {:caption=> 'Constraint name',       :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
-                        {:caption=> 'Check condition',       :data=>proc{|rec| rec.search_condition},            :title=> 'Check condition'},
-                        {:caption=> 'Status',                :data=>proc{|rec| rec.status},                      :title=> 'Status'},
-                        {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
-                        {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
-                        {:caption=> 'Last change',           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
-                ]
 
-        gen_slickgrid(@check_constraints, column_options, {
-                :caption => "Check constraints for  #{@table_type} #{@owner}.#{@table_name}",
-                :height => :auto
-        })
-    %>
-<% end %>
-
-<%=
-    column_options =
-    [
-      {:caption=> 'Constraint name',             :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
-      {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
-      {:caption=> 'Referenced table owner',      :data=>proc{|rec| rec.r_owner},                     :title=> 'Owner of referenced table'},
-      {:caption=> 'Referenced table name',       :data=>proc{|rec| link_table_structure(@update_area, rec.r_owner, rec.r_table_name, rec.r_table_name) }, :title=> 'Name of referenced table'},
-      {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Referenced constraint name'},
-      {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
-      {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule'},
-      {:caption=> 'Status',                      :data=>proc{|rec| rec.status},                      :title=> 'Status'},
-      {:caption=> 'Deferred',                    :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
-      {:caption=> 'Validated',                   :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
-      {:caption=> 'Num. rows',                   :data=>proc{|rec| fn(rec.r_num_rows)},              :title=> 'Number of rows of referenced table', :align=>:right},
-      {:caption=> 'Last change',                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
-    ]
-
-    gen_slickgrid(@references, column_options, {
-      :caption => "Foreign key references from  #{@table_type} #{@owner}.#{@table_name}",
-      :height => :auto
-})
-%>
-
-<%=
-    column_options =
-    [
-      {:caption=> 'Referencing table owner',     :data=>proc{|rec| rec.owner},                       :title=> 'Owner of referencing table'},
-      {:caption=> 'Referencing table name',      :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.table_name, rec.table_name) }, :title=> 'Name of referencing table'},
-      {:caption=> 'Referencing constraint name', :data=>proc{|rec| rec.constraint_name},             :title=> 'Referencing constraint name'},
-      {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
-      {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Constraint name'},
-      {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
-      {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule'},
-      {:caption=> 'Status',                      :data=>proc{|rec| rec.status},                      :title=> 'Status'},
-      {:caption=> 'Deferred',                    :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
-      {:caption=> 'Validated',                   :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
-      {:caption=> 'Num. rows',                   :data=>proc{|rec| fn(rec.num_rows)},                :title=> 'Number of rows of referencing table', :align=>:right},
-      {:caption=> 'Last change',                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
-    ]
-
-    gen_slickgrid(@referencing, column_options, {
-      :caption => "Foreign keys referencing to  #{@table_type} #{@owner}.#{@table_name}",
-      :height => :auto
-})
-%>
-
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@indexes} Indexes",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_indexes,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show indexes for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@check_constraints} Check Constraints",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_check_constraints,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show check constraints for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@references_from} References from",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_references_from,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show foreign key references from table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@references_to} References to",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_references_to,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show foreign key references to table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@triggers} Triggers",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_triggers,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show triggers for table #{@owner}.#{@table_name}")
+  %>
+</div>
 <div class="float_left">
     <%= my_ajax_submit_tag('DB-Cache',
                            url_for(:update_area => @update_area,

@@ -1,9 +1,15 @@
 <%= my_ajax_form_tag url_for(:action => "find_dependencies", :username => @username) do %>
-  <%=@username%>.
-  <%= collection_select(:all_table, :table_name, @all_tables, :table_name, :table_name, {}, 
-                        :title=>"Ausahl der Tabelle deren abhängige Tabellen gesucht werden") %>        
-  <%= collection_select(:filter_user, :username, @filter_users, :username, :username, {}, 
-                        :title=>"Eingrenzung der Ergebnis-Suche auf folgendes Schema") %>        
-  <%= submit_tag("Abhängigkeiten anzeigen", :title => "Anzeige der Abhängigkeiten") %>
+    <div class="float_left">
+      <%=@username%>.
+    </div>
+    <div class="float_left" title="Ausahl der Tabelle deren abhängige Tabellen gesucht werden">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+        <%= collection_select(:all_table, :table_name, @all_tables, :table_name, :table_name, {}) %>
+    </div>
+    <div class="float_left" title="Eingrenzung der Ergebnis-Suche auf folgendes Schema">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+        <%= collection_select(:filter_user, :username, @filter_users, :username, :username, {}) %>
+    </div>
+    <div class="float_left">
+      <%= submit_tag("Abhängigkeiten anzeigen", :title => "Anzeige der Abhängigkeiten") %>
+    </div>
 
 <% end %>

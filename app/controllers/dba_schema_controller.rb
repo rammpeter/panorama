@@ -222,6 +222,67 @@ class DbaSchemaController < ApplicationController
 
     @size_mb = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
 
+    @indexes = sql_select_one ['SELECT COUNT(*) FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?', @owner, @table_name]
+
+    if @table_type == "materialized view"
+      @viewtext = sql_select_one ["SELECT m.query
+                                   FROM   sys.dba_mviews m
+                                   WHERE  Owner      = ?
+                                   AND    MView_Name = ?
+                                   ", @owner, @table_name]
+    end
+
+    @unique_constraints = sql_select_all ["\
+      SELECT c.*
+      FROM   All_Constraints c
+      WHERE  c.Constraint_Type = 'U'
+      AND    c.Owner = ?
+      AND    c.Table_Name = ?
+      ", @owner, @table_name]
+
+    @check_constraints = sql_select_one ["SELECT COUNT(*) FROM All_Constraints WHERE Constraint_Type = 'C' AND Owner = ? AND Table_Name = ? AND Generated != 'GENERATED NAME' /* Ausblenden implizite NOT NULL Constraints */", @owner, @table_name]
+
+    @references_from = sql_select_one ["SELECT COUNT(*) FROM All_Constraints WHERE Constraint_Type = 'R' AND Owner = ? AND Table_Name = ?", @owner, @table_name]
+
+    @references_to = sql_select_one ["\
+      SELECT COUNT(*)
+      FROM   All_Constraints r
+      JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      WHERE  c.Constraint_Type = 'R'
+      AND    r.Owner      = ?
+      AND    r.Table_Name = ?
+      ", @owner, @table_name]
+
+    @triggers = sql_select_one ["SELECT COUNT(*) FROM All_Triggers WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+
+    render_partial "list_table_description"
+  end
+
+  def list_table_partitions
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
+    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:version] >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
+    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
+
+    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:version] >= "11.2" && part_tab.interval}"
+
+    @partitions = sql_select_all ["\
+      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
+                   FROM   DBA_Segments s
+                   WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
+                  ) Size_MB
+      FROM DBA_Tab_Partitions p
+      WHERE p.Table_Owner = ? AND p.Table_Name = ?
+      ", @owner, @table_name]
+
+    render_partial
+  end
+
+  def list_indexes
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
     @indexes = sql_select_all ["\
                  SELECT /*+ Panorama Ramm */ i.*, p.Partition_Number, sp.SubPartition_Number, Partition_TS_Name, SubPartition_TS_Name,
                         Partition_Status, SubPartition_Status, Partition_Pct_Free, SubPartition_Pct_Free,
@@ -283,21 +344,13 @@ class DbaSchemaController < ApplicationController
 
     end
 
-    if @table_type == "materialized view"
-      @viewtext = sql_select_one ["SELECT m.query
-                                   FROM   sys.dba_mviews m
-                                   WHERE  Owner      = ?
-                                   AND    MView_Name = ?
-                                   ", @owner, @table_name]
-    end
+    render_partial
+  end
 
-    @unique_constraints = sql_select_all ["\
-      SELECT c.*
-      FROM   All_Constraints c
-      WHERE  c.Constraint_Type = 'U'
-      AND    c.Owner = ?
-      AND    c.Table_Name = ?
-      ", @owner, @table_name]
+
+  def list_check_constraints
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
 
     @check_constraints = sql_select_all ["\
       SELECT c.*
@@ -307,6 +360,13 @@ class DbaSchemaController < ApplicationController
       AND    c.Table_Name = ?
       AND    Generated != 'GENERATED NAME' -- Ausblenden implizite NOT NULL Constraints
       ", @owner, @table_name]
+
+    render_partial
+  end
+
+  def list_references_from
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
 
     @references = sql_select_all ["\
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows,
@@ -320,41 +380,53 @@ class DbaSchemaController < ApplicationController
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
+    render_partial
+  end
+
+  def list_references_to
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
     @referencing = sql_select_all ["\
       SELECT c.*, ct.Num_Rows,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
              (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
-      FROM   All_Constraints r
-      JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
-      JOIN   All_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
+      FROM   DBA_Constraints r
+      JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      JOIN   DBA_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    r.Owner      = ?
       AND    r.Table_Name = ?
       ", @owner, @table_name]
 
-
-      render_partial "list_table_description"
+    render_partial
   end
 
-  def list_table_partitions
+  def list_triggers
     @owner      = params[:owner]
     @table_name = params[:table_name]
 
-    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:version] >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
-    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
-
-    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:version] >= "11.2" && part_tab.interval}"
-
-    @partitions = sql_select_all ["\
-      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
-                   FROM   DBA_Segments s
-                   WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
-                  ) Size_MB
-      FROM DBA_Tab_Partitions p
-      WHERE p.Table_Owner = ? AND p.Table_Name = ?
+    @triggers = sql_select_all ["\
+      SELECT t.*
+      FROM   DBA_Triggers t
+      WHERE  t.Table_Owner = ?
+      AND    t.Table_Name  = ?
       ", @owner, @table_name]
 
     render_partial
+  end
+
+  def list_trigger_body
+    body = sql_select_one ["\
+      SELECT Trigger_Body
+      FROM   DBA_Triggers
+      WHERE  Owner = ?
+      AND    Trigger_Name  = ?
+      ", params[:owner], params[:trigger_name]]
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{my_html_escape(body).html_safe}');"}
+    end
   end
 
   def list_index_partitions

@@ -13,8 +13,10 @@
         <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
     </div>
     <div class="float_left">
+      <div title="<%= t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time range")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
         <%=  t(:grouping, :default=>"Grouping") %>
-        <%= select :grouping, :tag, [[t(:second, :default=>"second"), 'SS'], [t(:minute, :default=>"minute"), 'MI'], [t(:hour, :default=>"hour"), 'HH24'], [t(:day, :default=>"day"), 'DD'] ], {:selected=>'MI'}, {:title=>t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time range")} %>
+        <%= select :grouping, :tag, [[t(:second, :default=>"second"), 'SS'], [t(:minute, :default=>"minute"), 'MI'], [t(:hour, :default=>"hour"), 'HH24'], [t(:day, :default=>"day"), 'DD'] ], {:selected=>'MI'} %>
+      </div>
     </div>
     <div class="float_left">
         <%= submit_tag(t(:dba_history_show_sysmetric_submit_detail_caption, :default=>"Show details"), :title => t(:dba_history_show_sysmetric_submit_detail_hint, :default=>"Show details of SysMetric-history from DBA_Hist_SysMetric_History/GV$SysMetric_History"), :name=>"detail") %>

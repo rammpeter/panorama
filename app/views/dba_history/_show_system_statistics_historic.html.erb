@@ -1,4 +1,4 @@
-<h3>Historie der System-Statistics aus DBA_Hist_SysStat (<a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/stats002.htm#i375475">hier nähere Erklärungen</a>)</a></h3>
+<h3>Historie der System-Statistics aus DBA_Hist_SysStat (<a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14237/stats002.htm#i375475">hier nähere Erklärungen</a></h3>
 
 <%= my_ajax_form_tag "dba_history/list_system_statistics_historic" do%>
     <div class="float_left">
@@ -9,8 +9,10 @@
             <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
         </div>
       <div class="float_left">
-        Stat.-Class
-        <%= collection_select(:stat_class, :bit, @statclasses, :bit, :name, {}, {:title=>"Restrict result to statistic class"}) %>
+        <div title="Restrict result to statistic class">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+            Stat.-Class
+            <%= collection_select(:stat_class, :bit, @statclasses, :bit, :name, {}) %>
+        </div>
       </div>
 
     </div>
@@ -21,8 +23,10 @@
     </div>
     <div class="float_left" style="border:1px solid gray; padding-left: 5px;">
         <div class="float_left">
+          <div title="Verdichtung der Werte auf Zeitabschnitt (kleinster Zyklus ist AWR-Snapshot)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
             Verdichtung
-            <%= select :verdichtung, :tag, [['Minute', 'MI'], ['Stunde', 'HH24'], ['Tag', 'DD'] ], {:selected=>'MI'}, {:title=>'Verdichtung der Werte auf Zeitabschnitt (kleinster Zyklus ist AWR-Snapshot)'} %>
+            <%= select :verdichtung, :tag, [['Minute', 'MI'], ['Stunde', 'HH24'], ['Tag', 'DD'] ], {:selected=>'MI'} %>
+          </div>
         </div>
         <div class="float_left">
             <%= submit_tag("Details der System-Statistics anzeigen", :title => "Details anzeigen", :name=>"full") %>

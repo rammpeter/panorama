@@ -28,12 +28,14 @@
     </div>
     <div class="float_left">
       Grouping
-      <select name="grouping" title="Group result by time cycle (none for not grouping)">
-        <option selected value='none'>[none]</option>
-        <option value='MI'>Minute</option>
-        <option value='HH24'>Hour</option>
-        <option value='DD'>Day</option>
-      </select>
+      <div title="Group result by time cycle (none for not grouping)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+          <select name="grouping">
+            <option selected value='none'>[none]</option>
+            <option value='MI'>Minute</option>
+            <option value='HH24'>Hour</option>
+            <option value='DD'>Day</option>
+          </select>
+      </div>
     </div>
     <div class="float_left">
       Top x for group

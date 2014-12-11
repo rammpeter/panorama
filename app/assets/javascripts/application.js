@@ -61,7 +61,7 @@ function register_tooltip(jquery_object){
         hide: {
             effect: "slideUp"
         }
-    }).off('focusin');
+    });
 }
 
 

@@ -1,0 +1,25 @@
+<%=
+    @update_area = get_unique_area_id
+    column_options =
+            [
+                    {:caption=> 'Constraint name',             :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                    {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
+                    {:caption=> 'Referenced table owner',      :data=>proc{|rec| rec.r_owner},                     :title=> 'Owner of referenced table'},
+                    {:caption=> 'Referenced table name',       :data=>proc{|rec| link_table_structure(@update_area, rec.r_owner, rec.r_table_name, rec.r_table_name) }, :title=> 'Name of referenced table'},
+                    {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Referenced constraint name'},
+                    {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
+                    {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule'},
+                    {:caption=> 'Status',                      :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+                    {:caption=> 'Deferred',                    :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+                    {:caption=> 'Validated',                   :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+                    {:caption=> 'Num. rows',                   :data=>proc{|rec| fn(rec.r_num_rows)},              :title=> 'Number of rows of referenced table', :align=>:right},
+                    {:caption=> 'Last change',                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
+            ]
+
+    gen_slickgrid(@references, column_options, {
+                                     :caption => "Foreign key references from  #{@table_type} #{@owner}.#{@table_name}",
+                                     :height => :auto
+                             })
+%>
+
+<div id="<%= @update_area %>"></div>

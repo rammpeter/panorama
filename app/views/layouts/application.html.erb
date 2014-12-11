@@ -62,12 +62,14 @@
                 <%  cookies_last_logins = read_last_login_cookies %>
 
                 <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_id), :remote=>true, :id=>:formSavedLogin do %>
-                    <select name="saved_logins_id"  autocomplete="off" title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">
-                      <% cookies_last_logins.each_index do |index| %>
-                          <% database = cookies_last_logins[index] %>
-                          <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:sid]} ( #{database[:user]} ) - #{database[:host]} : #{database[:port]} " %></option>
-                      <% end %>
-                    </select>
+                    <div class="float_left" title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                      <select name="saved_logins_id"  autocomplete="off" >
+                        <% cookies_last_logins.each_index do |index| %>
+                            <% database = cookies_last_logins[index] %>
+                            <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:sid]} ( #{database[:user]} ) - #{database[:host]} : #{database[:port]} " %></option>
+                        <% end %>
+                      </select>
+                    </div>
                     <%= submit_tag t(:login_submit_caption, :default=>"Login"), :name => "login", :title => t(:login_saved_login_title, :default=>"Login with selected saved credentials") %>
                     <%= submit_tag t(:login_saved_delete_caption, :default=>"Delete"), :name => "delete", :title => t(:login_saved_delete_title, :default=>"Delete selected saved login information"), data: { confirm: t(:login_saved_delete_confirmation, :default=>"Do you really want to delete this saved login credential?") } %>
                 <% end %>
@@ -88,28 +90,34 @@
                        end
                     %>
                     <!-- Wechsel der Sprache und neu laden der gesamten Seite -->
-                    <select name="database[locale]"  autocomplete="off" onchange="jQuery.ajax({type: 'POST', url:'env/set_locale', data: {locale: this.value} });", title="<%= t(:login_locale_title, :default=>"Select application language")%>">
-                    <%= @locale_options.html_safe %>
-                    </select>
+                    <div title="<%= t(:login_locale_title, :default=>"Select application language")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                        <select name="database[locale]"  autocomplete="off" onchange="jQuery.ajax({type: 'POST', url:'env/set_locale', data: {locale: this.value} });">
+                        <%= @locale_options.html_safe %>
+                        </select>
+                    </div>
                   </td>
                 </tr>
                 <tr>
                   <th><%= t(:login_mode_caption, :default=>"DB identification mode") %></th>
                   <td align="center">
-                    <select name="database[modus]"  autocomplete="off" onchange="if (this.value == 'tns') { jQuery('.login_tns').css('display', ''); jQuery('.login_host').css('display', 'none');} else {jQuery('.login_tns').css('display', 'none'); jQuery('.login_host').css('display', '');}"  title="<%= t(:login_mode_title, :default=>"Select mode for identification of database")%>">
-                        <option selected="selected" value="tns">tnsnames.ora</option>
-                        <option value="host">Host, Port, SID / Service</option>
-                    </select>
+                    <div title="<%= t(:login_mode_title, :default=>"Select mode for identification of database")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                        <select name="database[modus]"  autocomplete="off" onchange="if (this.value == 'tns') { jQuery('.login_tns').css('display', ''); jQuery('.login_host').css('display', 'none');} else {jQuery('.login_tns').css('display', 'none'); jQuery('.login_host').css('display', '');}">
+                            <option selected="selected" value="tns">tnsnames.ora</option>
+                            <option value="host">Host, Port, SID / Service</option>
+                        </select>
+                    </div>
                   </td>
                 </tr>
                 <tr class="login_tns">
                   <th title="<%= t :login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)" %>">TNS-Alias</th>
                   <% @tnsnames = read_tnsnames %>
                   <td align="center">
-                    <select id="database_tns" name="database[tns]" style="width: 400px;" title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">
-                      <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_records -->
-                    </select>
-               </td>
+                    <div title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                        <select id="database_tns" name="database[tns]" style="width: 400px;">
+                          <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_records -->
+                        </select>
+                    </div>
+                </td>
                 </tr>
                 <tr class="login_host" style="display: none">
                   <th title="Host-name. Übersteuert TNS-Alias wenn belegt">Host</th>
@@ -138,11 +146,13 @@
                 <tr>
                   <th><%= t :login_role_caption, :default=>"Role" %></th>
                   <td align="center">
-                    <select name="database[privilege]" title="Select database role">
-                      <option value="normal" selected="selected">Normal</option>
-                      <option value="sysoper">SysOper</option>
-                      <option value="sysdba">SysDba</option>
-                    </select>
+                    <div title="Select database role">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                        <select name="database[privilege]">
+                          <option value="normal" selected="selected">Normal</option>
+                          <option value="sysoper">SysOper</option>
+                          <option value="sysdba">SysDba</option>
+                        </select>
+                    </div>
                   </td>
                 </tr>
                 <tr>
