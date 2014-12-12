@@ -940,7 +940,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     ActiveRecord::Base.connection.execute "EXPLAIN PLAN SET Statement_ID='Panorama' FOR " + statement
     @plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Operation, Options, Object_Name, Optimizer,
+          Operation, Options, Object_Owner, Object_Name, Optimizer,
           Access_Predicates, Filter_Predicates,
           Other_Tag, Distribution
         FROM  Plan_Table p
