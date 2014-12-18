@@ -1023,7 +1023,7 @@ FROM (
 
     output = gen_slickgrid(@stats, column_options,
                      {:plot_area_id => "list_system_statistics_historic_plot_area",
-                      :caption      => "System-Statistik von #{@time_selection_start} bis #{@time_selection_end}",
+                      :caption      => "System-Statistic from #{@time_selection_start} until #{@time_selection_end}",
                       :max_height   => 450,
                       #:div_style => "float:left; width:100%; max-height:450px; overflow:scroll;"
                      }

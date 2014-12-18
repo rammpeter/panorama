@@ -112,10 +112,10 @@ class ActiveSessionHistoryController < ApplicationController
               Wait_Class, Wait_Time, Time_waited, Program, Module, Action, Client_ID, Current_Obj# Current_Obj_No, Current_File#  Current_File_No, Current_Block# Current_Block_No, RawToHex(XID) XID,
               PLSQL_Entry_Object_ID, PLSQL_Entry_SubProgram_ID, PLSQL_Object_ID, PLSQL_SubProgram_ID, Service_Hash, QC_Session_ID, QC_Instance_ID '
     if session[:version] >= '11.2'
-      retval << ", NVL(SQL_ID, Top_Level_SQL_ID) SQL_ID,  -- Wenn keine SQL-ID, dann wenigstens Top-Level SQL-ID zeigen
+      retval << ", NVL(SQL_ID, Top_Level_SQL_ID) SQL_ID,  /* Wenn keine SQL-ID, dann wenigstens Top-Level SQL-ID zeigen */
                  Is_SQLID_Current, Top_Level_SQL_ID, SQL_Plan_Line_ID, SQL_Plan_Operation, SQL_Plan_Options, SQL_Exec_ID, SQL_Exec_Start,
                  Blocking_Inst_ID, Current_Row# Current_Row_No, Remote_Instance# Remote_Instance_No, Machine, Port, PGA_Allocated, Temp_Space_Allocated,
-                 TM_Delta_Time/1000000 TM_Delta_Time_Secs, TM_Delta_CPU_Time/1000 TM_Delta_CPU_Time_ms, TM_Delta_DB_Time/1000 TM_Delta_DB_Time_ms,
+                 TM_Delta_Time/1000000 TM_Delta_Time_Secs, TM_Delta_CPU_Time/1000000 TM_Delta_CPU_Time_Secs, TM_Delta_DB_Time/1000000 TM_Delta_DB_Time_Secs,
                  Delta_Time/1000000 Delta_Time_Secs, Delta_Read_IO_Requests, Delta_Write_IO_Requests,
                  Delta_Read_IO_Bytes/1024 Delta_Read_IO_kBytes, Delta_Write_IO_Bytes/1024 Delta_Write_IO_kBytes, Delta_Interconnect_IO_Bytes/1024 Delta_Interconnect_IO_kBytes,
                  DECODE(In_Connection_Mgmt,   'Y', ', connection management') ||
@@ -158,12 +158,20 @@ class ActiveSessionHistoryController < ApplicationController
              peo.Owner PEO_Owner, peo.Object_Name PEO_Object_Name, peo.Procedure_Name PEO_Procedure_Name, peo.Object_Type PEO_Object_Type,
              po.Owner PO_Owner,   po.Object_Name  PO_Object_Name,  po.Procedure_Name  PO_Procedure_Name,  po.Object_Type  PO_Object_Type,
              sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID,
+             TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
+             TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs TM_DB_Time_Secs_Sample_Cycle,
+
+             Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs  Read_IO_Requests_Sample_Cycle,
+             Delta_Write_IO_Requests      * Sample_Cycle / Delta_Time_Secs  Write_IO_Requests_Sample_Cycle,
+             Delta_Read_IO_kBytes         * Sample_Cycle / Delta_Time_Secs  Read_IO_kBytes_Sample_Cycle,
+             Delta_Write_IO_kBytes        * Sample_Cycle / Delta_Time_Secs  Write_IO_kBytes_Sample_Cycle,
+             Delta_Interconnect_IO_kBytes * Sample_Cycle / Delta_Time_Secs  Interconn_kBytes_Sample_Cycle,
              RowNum Row_Num
       FROM   (SELECT /*+ NO_MERGE ORDERED */
                      10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
               FROM   DBA_Hist_Active_Sess_History s
               LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
-              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
+              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
               #{@dba_hist_where_string}
               UNION ALL
               SELECT 1 Sample_Cycle, Inst_ID Instance_Number,#{get_ash_default_select_list}
@@ -254,8 +262,9 @@ class ActiveSessionHistoryController < ApplicationController
              AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
              SUM(s.Sample_Cycle)          Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
              MAX(s.Sample_Cycle)          Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
-             #{'SUM(TM_Delta_CPU_Time_ms)/1000 Tm_Delta_CPU_Time_Secs,
-                SUM(TM_Delta_DB_Time_ms)/1000  Tm_Delta_DB_Time_Secs,
+             #{'
+                SUM(TM_Delta_CPU_Time_Secs) TM_CPU_Time_Secs,  /* CPU-Time innerhalb des Sample-Cycle */
+                SUM(TM_Delta_DB_Time_Secs)  TM_DB_Time_Secs,
                 SUM(Delta_Read_IO_Requests)  Delta_Read_IO_Requests,
                 SUM(Delta_Write_IO_Requests) Delta_Write_IO_Requests,
                 SUM(Delta_Read_IO_kBytes)    Delta_Read_IO_kBytes,
