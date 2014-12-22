@@ -22,7 +22,7 @@ development:
 #  adapter:  oracle_enhanced
 #  url:      jdbc:oracle:thin:@linux-ramm-macpro:1521:RAMMMAC
 #  #url:      jdbc:oracle:thin:@pepsi01.puc.ov.otto.de:1521:NOADB2
-#  #url:      jdbc:oracle:thin:@ramm-1.osp-dd.de:1521:RAMM
+#  url:      jdbc:oracle:thin:@ramm.osp-dd.de:1521:RAMM
 #  driver:   oracle.jdbc.driver.OracleDriver
 #  username: noa
 #  password: noa

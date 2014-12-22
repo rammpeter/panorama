@@ -71,8 +71,11 @@ class ApplicationController < ActionController::Base
       # Registrieren mit Name an Oracle-DB
       #ActiveRecord::Base.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
       ActiveRecord::Base.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
-                                                  [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil), "#{controller_name}/#{action_name}"]]
+                                                  [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil, ActiveRecord::Type::Value.new), "#{controller_name}/#{action_name}"]]
       )
+
+      #ActiveRecord::Base.connection.exec_update("call dbms_application_info.set_Module('Panorama', ?)", nil, ["#{controller_name}/#{action_name}"])
+
     else  # Keine DB bekannt
        raise 'Keine DB ausgewählt! Bitte rechts oben DB auswählen'
     end
@@ -82,7 +85,7 @@ class ApplicationController < ActionController::Base
     session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
-    raise "Error while connecting to #{database_helper_raw_tns}"         # Explizit anzeige des Connect-Problemes als Popup-Message
+    raise # "Error while connecting to #{database_helper_raw_tns}"         # Explizit anzeige des Connect-Problemes als Popup-Message
   end
 
   # Aktivitäten nach Requestbearbeitung

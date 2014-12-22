@@ -661,8 +661,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   end
   
   def show_session_detail
-    @instance    =  prepare_param_instance
-    @sid         =  params[:sid].to_i
+    @instance    = prepare_param_instance
+    @sid         = params[:sid].to_i
     @serialno    = params[:serialno].to_i
     @update_area = params[:update_area]
 
@@ -676,7 +676,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
            FROM   GV$Session s
            JOIN   GV$process p ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
            WHERE  s.Inst_ID=? AND s.SID=? AND s.Serial#=?",
-           @instance, params[:sid], params[:serialno] ]
+           @instance, @sid, @serialno ]
     @dbsession    = nil
     @current_sql  = nil
     @previous_sql = nil

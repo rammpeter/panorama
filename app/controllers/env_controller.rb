@@ -116,10 +116,11 @@ class EnvController < ApplicationController
     session[:last_used_menu_caption]    = "Login"
     session[:last_used_menu_hint]       = t :menu_env_set_database_hint, :default=>"Start of application after connect to database"
 
-    session[:database] = params[:database].to_h.symbolize_keys
+    session[:database] = params[:database].symbolize_keys
 
     if params[:database][:modus] == 'tns'                    # TNS-Alias auswerten
-      tns_record = read_tnsnames[session[:database][:tns]]   # Hash mit Attributen aus tnsnames.ora für gesuchte DB
+      tns_records = read_tnsnames                            # Hash mit Attributen aus tnsnames.ora für gesuchte DB
+      tns_record = tns_records[session[:database][:tns]]
       unless tns_record
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{session[:database][:tns]}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}

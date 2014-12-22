@@ -36,7 +36,13 @@ module ApplicationHelper
           raise "bind value at position #{bind_index} is NULL for '#{bind_alias}' in binds-array for sql: #{stmt}"
         end
         raise "bind value at position #{bind_index} missing for '#{bind_alias}' in binds-array for sql: #{stmt}" if sql.count <= bind_index
-        binds << [ActiveRecord::ConnectionAdapters::Column.new(bind_alias, nil), sql[bind_index]]
+        binds << [
+            ActiveRecord::ConnectionAdapters::Column.new(bind_alias,
+                                                         nil,
+                                                         ActiveRecord::Type::Value.new    # Neu ab Rails 4.2.0, Abstrakter Typ muss angegeben werden
+                                                         ),
+            sql[bind_index]
+        ]
       end
     else
       if sql.class == String
