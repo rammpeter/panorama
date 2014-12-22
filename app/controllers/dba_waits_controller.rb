@@ -276,4 +276,55 @@ class DbaWaitsController < ApplicationController
     end
   end
 
+
+  def list_cpu_usage_historic
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @instance = prepare_param_instance
+
+    where_string = "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') AND s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')"
+    where_values = [@time_selection_start, @time_selection_end]
+
+    if @instance
+      where_string << ' AND s.Instance_Number = ?'
+      where_values << @instance
+    end
+
+    @grouping = params[:grouping]
+
+    case @grouping
+      when 'dd'   then @sample_seconds = 86400
+      when 'hh24' then @sample_seconds = 1440
+      when 'mi'   then @sample_seconds = 60
+    end
+
+    ash_select_list = 'Sample_Time, Event, Session_State,
+                       TM_Delta_CPU_Time/1000000 CPU_Time_Secs,
+                       TM_Delta_DB_Time/1000000  DB_Time_Secs   '
+
+    @waits = sql_select_all ["\
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             -- Beginn eines zu betrachtenden Zeitabschnittes
+             TRUNC(s.Sample_Time, '#{params[:grouping]}')   Start_Sample,
+             COUNT(1)                                       Count_Samples,
+             SUM(s.CPU_Time_Secs)                           CPU_Time_Secs,
+             SUM(s.DB_Time_Secs)                            DB_Time_Secs,
+             SUM(CASE WHEN NVL(Event, Session_State)='ON CPU' THEN Sample_Cycle ELSE 0 END) On_CPU_Secs
+      FROM   (SELECT /*+ NO_MERGE ORDERED */
+                     10 Sample_Cycle, Instance_Number, #{ash_select_list}
+              FROM   DBA_Hist_Active_Sess_History s
+              LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
+              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
+              #{@dba_hist_where_string}
+              UNION ALL
+              SELECT 1 Sample_Cycle,  Inst_ID Instance_Number, #{ash_select_list}
+              FROM   (SELECT s.Inst_ID Instance_Number, s.* FROM gv$Active_Session_History s) s
+             )s
+      WHERE  #{where_string}
+      GROUP BY TRUNC(Sample_Time, '#{params[:grouping]}')
+      ORDER BY 1
+    "].concat where_values
+
+    render_partial
+  end
+
 end
