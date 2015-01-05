@@ -28,12 +28,7 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   spec.require_paths = ["lib"]
 
   #spec.add_dependency "rails", "~> 4.1.6"	# Use this rails version or above		
-<<<<<<< HEAD
   spec.add_dependency "rails", "= 4.2.0"	# Use exactly this rails version
-=======
-#  spec.add_dependency "rails", "= 4.1.8"	# Use exactly this rails version
-  spec.add_dependency "rails", "= 4.2.0"	# Anpassung Oracle-Adapter an 3. Parameter cast_type von Column.initialize fehlt noch
->>>>>>> a002f48fee5bb70ac048fab3ed93d657a42d00ff
   spec.add_dependency 'activerecord-nulldb-adapter'
   spec.add_dependency 'activerecord-oracle_enhanced-adapter'     # lokal in Gemfile überschreiben mit : gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
   spec.add_dependency 'memcache-client'

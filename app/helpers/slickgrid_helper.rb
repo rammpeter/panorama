@@ -7,7 +7,8 @@ module SlickgridHelper
 
   # Entfernen aller umhüllenden Tags, umwandeln html-Ersetzungen
   def strip_inner_html(content)
-    result = content.clone.to_s
+    result = content.dup       # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
+
     ActionController::Base.helpers.strip_tags(result).
         gsub('&nbsp;', ' ').
         gsub('&amp;', '&')
