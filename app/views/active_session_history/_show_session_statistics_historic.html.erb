@@ -6,18 +6,18 @@
 
   <%= include_start_end_timepicker %>
 
-  <div class="float_left">
+  <div class="float_left" title="Idle-Waits (z.B. PX Deq Credit: send blkd) in Betrachtung berücksichtigen?">
     Idle-Waits
-    <%= check_box_tag(:idle_waits, 1, false, :title=>"Idle-Waits (z.B. PX Deq Credit: send blkd) in Betrachtung berücksichtigen? ") %>
+    <%= check_box_tag(:idle_waits, 1, false) %>
   </div>
 
-  <div class="float_left">
+  <div class="float_left" title="Filter on RAC-Instance (optional)">
     Instance
-    <%= text_field_tag(:instance, "", :size=>1, :title=>"Filter on RAC-Instance (optional)") %>
+    <%= text_field_tag(:instance, "", :size=>1) %>
   </div>
 
-  <div class="float_left">
-    Gruppiert nach:
+  <div class="float_left" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+    <%= t(:grouping, :default=>'Grouping')%>
       <select name="groupby">
         <% session_statistics_key_rules.each do |key, value| %>
           <%=  "<option value='#{key}' #{"selected='selected'" if key=="Event"}>#{key}</option>".html_safe %>
@@ -25,9 +25,9 @@
       </select>
   </div>
 
-  <div class="float_left">
+  <div class="float_left" title="optional additional Filter on Session-ID, Module, Action, Program or Machine (like-comparison and case ignored)">
     Filter
-    <%= text_field_tag(:filter, "", :size=>10, :title=>"optional additional Filter on Session-ID, Module, Action, Program or Machine (like-comparison and case ignored)") %>
+    <%= text_field_tag(:filter, "", :size=>10) %>
   </div>
 
   <div class="float_left">

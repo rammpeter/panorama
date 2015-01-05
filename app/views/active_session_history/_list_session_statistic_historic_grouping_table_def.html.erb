@@ -57,25 +57,23 @@
   def link_column_grouping(rec, value, add_url)
     if value.to_s.match("<.*>")
       if value == "< 0 >"
-        ""
+        return ""               # keine weitere Anzeige
       else
-        my_ajax_link_to("<span style=\"white-space: nowrap;\">#{html_escape(value)}</span>".html_safe,     # Verhindern Zeilenumbruch in Anzeige
-          url_for({:action       => :list_session_statistic_historic_grouping,
-                   :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
-                   :groupby      => add_url[:groupby],
-                   :update_area  => @update_area,
-                  }
-          ),
-          :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s"
-        )
+        show_value = "<span style=\"white-space: nowrap;\">#{html_escape(value)}</span>".html_safe
       end
     else
-      case add_url[:groupby]
-          when "SQL-ID" then  link_column_sql_id(rec)
-      else
-          value           # Nur wert anzeigen ohen Link wenn keine sinnvolle Funktion mehr dahinter
-      end
+      show_value = value           # Nur Wert anzeigen mit Umbruch wenn keine sinnvolle Funktion mehr dahinter
     end
+
+    my_ajax_link_to(show_value,     # Verhindern Zeilenumbruch in Anzeige
+      url_for({:action       => :list_session_statistic_historic_grouping,
+               :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
+               :groupby      => add_url[:groupby],
+               :update_area  => @update_area,
+              }
+      ),
+      :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s"
+    )
   end
 
   def show_info(value)

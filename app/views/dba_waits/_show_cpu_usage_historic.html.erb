@@ -1,0 +1,30 @@
+<% @update_area = get_unique_area_id %>
+<%= my_ajax_form_tag url_for(:controller=>:dba_waits, :action=>:list_cpu_usage_historic, :update_area=>@update_area) do %>
+    <div>
+      <b>CPU-Usage and DB-Time from Active Session History (table DBA_Hist_Active_Sess_History)</b>
+    </div>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="float_left" title="Filter on RAC-Instance (optional)">
+      Instance
+      <%= text_field_tag(:instance, "", :size=>1) %>
+    </div>
+
+    <div class="float_left" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping') %>
+      <select name="grouping">
+        <option value='dd'          ><%= t(:day,    :default=>'Day')   %></option>
+        <option value='hh24'        ><%= t(:hour,   :default=>'Hour')  %></option>
+        <option value='mi' selected ><%= t(:minute, :default=>'Minute')%></option>
+      </select>
+    </div>
+
+
+    <div class="float_left">
+      <%= submit_tag('Show', :title => 'Show usage info') %>
+    </div>
+<% end %>
+<div id="<%= @update_area %>" style="clear: both; width:100%; ">
+</div>
+

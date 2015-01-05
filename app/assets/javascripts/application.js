@@ -25,8 +25,9 @@ var session_locale = "en";
 var one_time_suppress_indicator = false;                                        // Unterdrückend er Anzeige des Indicators für einen Aufruf
 
 function showIndicator() {
-    if (!one_time_suppress_indicator)                                           // Einmaliges Unterdrücken der Anzeige Indikator
+    if (!one_time_suppress_indicator){
         jQuery("#ajax_indicator").dialog("open");
+    }                                           // Einmaliges Unterdrücken der Anzeige Indikator
     else
         one_time_suppress_indicator = false;                                    // Zurücksetzen auf Default
 }

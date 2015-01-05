@@ -221,6 +221,10 @@ table a:active{
 	color:#000;
 }
 
+/* Suppress close button on UI-Dialog */
+.no-close .ui-dialog-titlebar-close {
+    display: none;
+}
 
 
 

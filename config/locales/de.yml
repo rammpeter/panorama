@@ -6,6 +6,7 @@
   error:                                                    Fehler
   generally:                                                Generell
   grouping:                                                 Gruppierung
+  grouping_hint:                                            Gruppierung der Anzeige nach Attribut
   help:                                                     Hilfe
   hour:                                                     Stunde
   link_historic_sql_id_coming_soon:                         Hier erscheint gleich der Text des SQL, bitte Maus erneut über Objekt führen
@@ -439,6 +440,7 @@
   menu_wait_mutex_historic_hint:                            Aufbereitete historische Informationen aus GV$Mutex_Sleep_History seit Start der Instance
   menu_wait_segment_current_hint:                           Aktuelle Waits nach DB-Objekten
   menu_wait_segment_historic_hint:                          Historisierte Waits nach DB-Objekten
+  menu_wait_session_cpu_hint:                               Historische CPU-Usage und DB-Time aus DBA_Hist_Active_Sess_History
   menu_wait_session_current_hint:                           Alle aktuelle Session-Waits
   menu_wait_session_historic_hint:                          Aufbereitete Active-Session-Informationen aus DBA_Hist_Active_Sess_History
   menu_wait_special_caption:                                Spezielle Event-Auswertungen

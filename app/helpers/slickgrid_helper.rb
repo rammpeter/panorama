@@ -7,7 +7,8 @@ module SlickgridHelper
 
   # Entfernen aller umhüllenden Tags, umwandeln html-Ersetzungen
   def strip_inner_html(content)
-    ActionController::Base.helpers.strip_tags(content).
+    result = content.clone.to_s
+    ActionController::Base.helpers.strip_tags(result).
         gsub('&nbsp;', ' ').
         gsub('&amp;', '&')
   end
