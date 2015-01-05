@@ -1,9 +1,9 @@
 # Disable Rake-environment-task framework detection by uncommenting/setting to false
-# Warbler.framework_detection = false
-
+#Warbler.framework_detection = false
 
 # Warbler web application assembly configuration file
 Warbler::Config.new do |config|
+
   # Features: additional options controlling how the jar is built.
   # Currently the following features are supported:
   # - gemjar: package the gem repository in a jar file in WEB-INF/lib
