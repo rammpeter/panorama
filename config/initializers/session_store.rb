@@ -1,5 +1,4 @@
 # Be sure to restart your server when you modify this file.
-
 Rails.application.config.session_store :cookie_store, key: '_Panorama_session'
 
 # Session in memory speichern mit Lifetime = html-Session
