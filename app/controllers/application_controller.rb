@@ -77,7 +77,10 @@ class ApplicationController < ActionController::Base
       #ActiveRecord::Base.connection.exec_update("call dbms_application_info.set_Module('Panorama', ?)", nil, ["#{controller_name}/#{action_name}"])
 
     else  # Keine DB bekannt
-       raise 'Keine DB ausgewählt! Bitte rechts oben DB auswählen'
+puts "#################################"
+puts session.class.name
+puts session
+       raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner.')
     end
 
     # Request-Counter je HTML-Session als Hilsmittel für eindeutige html-IDs

@@ -8,13 +8,14 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.0.21)
+    Panorama (2.0.23)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
       memcache-client
       multi_json
       rails (= 4.2.0)
+      rails-html-sanitizer
       sass
       therubyrhino
       therubyrhino_jar
