@@ -79,7 +79,7 @@ class ApplicationController < ActionController::Base
     else  # Keine DB bekannt
 puts "#################################"
 puts session.class.name
-puts session
+puts session.inspect
        raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner.')
     end
 
