@@ -1,7 +1,7 @@
 
 require_relative '../application'     # explizites require erforderlich bei Nutzung als Engine in anderer App
 
-Panorama::Application.configure do
+Rails.pplication.configure do
   # Log error messages when you accidentally call methods on nil.
   #config.whiny_nils = true              # deprecated 21.07.13 Ramm
 
@@ -45,5 +45,14 @@ Panorama::Application.configure do
   # number of complex assets.
   config.assets.debug = true
 
+  # Adds additional error checking when serving assets at runtime.
+  # Checks for improperly declared sprockets dependencies.
+  # Raises helpful error messages.
+  config.assets.raise_runtime_errors = true
+
+  # Raises error for missing translations
+  # config.action_view.raise_on_missing_translations = true
 end
+
+
 

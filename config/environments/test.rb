@@ -1,6 +1,6 @@
 require_relative '../application'     # explizites require erforderlich bei Nutzung als Engine in anderer App
 
-Panorama::Application.configure do
+Rails.application.configure do
 
   # Log error messages when you accidentally call methods on nil
   # config.whiny_nils = # deprecated 21.07.13 Ramm
@@ -37,11 +37,11 @@ Panorama::Application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
+  # Randomize the order test cases are executed.
+  config.active_support.test_order = :random
+
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
-  # Execution order for tests, alternative :sorted
-  config.active_support.test_order = :random
-
-
 end
+
