@@ -26,7 +26,16 @@ class ApplicationController < ActionController::Base
   # Abfangen aller Exceptions während Verarbeitung von Controller-Actions
   def global_exception_handler(exception)
     close_connection  # Umsetzen der Connection auf NullDB bei Auftreten von Exception während Verarbeitung (after_Filter wird nicht mehr durchlaufen)
-    raise exception   # Standard-Behandlung der Exceptions
+
+    #respond_to do |format|
+    #  format.js {render :js => "$('#list_segment_stat_hist_sum_area').html('#{j render_to_string :partial=>"list_segment_stat_historic_sum" }');" }
+    #end
+
+    @exception = exception                                                      # Sichtbarkeit im template
+    @request   = request
+    render :partial =>'application/error_message', :status=>500
+
+    #raise exception   # Standard-Behandlung der Exceptions
   end
 
   # Ausführung vor jeden Request

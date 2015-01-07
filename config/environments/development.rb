@@ -1,7 +1,7 @@
 
 require_relative '../application'     # explizites require erforderlich bei Nutzung als Engine in anderer App
 
-Rails.pplication.configure do
+Rails.application.configure do
   # Log error messages when you accidentally call methods on nil.
   #config.whiny_nils = true              # deprecated 21.07.13 Ramm
 
