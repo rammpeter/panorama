@@ -8,9 +8,6 @@
 <h2>
   <%= h @exception.message %>
 </h2>
-<h2>
-  <%= h @exception.cause.message if @exception.cause && !@exception.message[@exception.cause.message] %>
-</h2>
 
 <div>
   <input id="error_dialog_show_backtrace" value="Show stack trace" type="submit" style="margin-bottom: 5px; margin-top: 5px"
