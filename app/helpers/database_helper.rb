@@ -24,13 +24,13 @@ module DatabaseHelper
 
   # Verschlüsseln eines Wertes
   def database_helper_encrypt_value(raw_value)
-    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    crypt = ActiveSupport::MessageEncryptor.new(Rails.application.config.secret_key_base)
     crypt.encrypt_and_sign(raw_value)
   end
 
   # Entschlüsseln des Wertes
   def database_helper_decrypt_value(encrypted_value)
-    crypt = ActiveSupport::MessageEncryptor.new(Panorama::Application.config.secret_key_base)
+    crypt = ActiveSupport::MessageEncryptor.new(Rails.application.config.secret_key_base)
     crypt.decrypt_and_verify(encrypted_value)
   end
 
