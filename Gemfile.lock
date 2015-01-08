@@ -1,11 +1,13 @@
 GIT
   remote: https://github.com/rammpeter/Panorama_Gem
-  revision: 82a82ff99c1991a8337faf9e1f8c1f4b5965da1d
+  revision: c9c9cf9aa3b0a55917ecbb0ed5153d3ab60d7047
   specs:
-    Panorama (2.0.24)
+    Panorama (2.0.28)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
+      krypt-core
+      krypt-provider-jdk
       memcache-client
       multi_json
       rails (= 4.2.0)
@@ -70,6 +72,9 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (1.8.1-java)
+    krypt-core (0.0.2-java)
+      krypt-provider-jdk (= 0.0.2)
+    krypt-provider-jdk (0.0.2)
     loofah (2.0.1)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
