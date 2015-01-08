@@ -16,7 +16,6 @@ PATH
       krypt-provider-jdk
       memcache-client
       multi_json
-      nokogiri
       rails (= 4.2.0)
       rails-html-sanitizer
       sass
