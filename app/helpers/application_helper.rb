@@ -515,7 +515,9 @@ module ApplicationHelper
 
   # Eindeutigen Bezeichner fuer DIV-ID in html-Struktur
   def get_unique_area_id
-    session[:request_counter] = 0 if session[:request_counter] > 10000    # Sicherstellen, das keine Kumulation ohne Ende
+    session[:request_counter] = 0 if session[:request_counter] > 10000          # Sicherstellen, das keine Kumulation ohne Ende
+    session[:request_counter] += 1                                              # Eindeutigkeit sicherstellen durch Weiterzählen auch innerhalb eines Requests
+
     "a#{session[:request_counter]}"
   end
 

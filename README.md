@@ -5,7 +5,8 @@ Web-tool for monitoring performance issues of Oracle databases.
 Provides easy access to several internal information.<br>
 Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
-Here you can find more information about Panorama and download link for bundled web archive file: http://rammpeter.github.io/
+Here you can find more information about Panorama (including download link for instant runnable bundled web archive file):
+http://rammpeter.github.io/
 
 <b>RubyOnRails-Application:</b>
 - immmediately startable as Java war-File with built-in Jetty application Server. ( java -jar Panorama.war )
@@ -13,10 +14,9 @@ Here you can find more information about Panorama and download link for bundled 
 
 <b>Preconditions for Server machine:</b>
 - if using tnsnames.ora it should be in $ORACLE_HOME/network/admin or below $TNS_ADMIN 
-- Java runtime environment Java 6 or 7
+- Java runtime environment Java 7 or 8
+- Some problems may occur with IBM JVM. If so please use JVM from SUN/Oracle.
 
-If Java Cryptography Extension (JCE) is not installed you may get this error under some circumstances:<br>
-<pre>Illegal key size: possibly you need to install Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for your JRE</pre><br>
-In this case you have to install Java Cryptography Extension (JCE).<br>
-JCE files for Oracle-JVM are available here: http://www.oracle.com/technetwork/java/javase/downloads/index.html<br>
-JCE-Files for IBM JVM are available here: http://pic.dhe.ibm.com/infocenter/java7sdk/v7r0/index.jsp?topic=%2Fcom.ibm.java.security.component.70.doc%2Fsecurity-component%2Fintroduction.html
+This GitHub-project is intended to provide function as Rails engine which can be embedded in other Rails application.
+Runnable Rails application with Panorama-gem embedded as engine you find at https://github.com/rammpeter/Panorama
+
