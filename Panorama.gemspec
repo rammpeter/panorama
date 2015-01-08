@@ -49,6 +49,12 @@ Aims to issues that are inadequately analyzed and presented by other existing to
 #gem 'jruby-openssl'
 #gem 'bouncy-castle-java', require: false
 
+  # some Linux systems require krypt gem to fix following error
+  # jruby.home/lib/ruby/shared/krypt/provider/jdk.rb:33 warning: no super class for `Krypt::Provider::JDK', Object assumed
+  spec.add_dependency 'krypt-core'
+  spec.add_dependency 'krypt-provider-jdk'
+
+  spec.add_dependency 'nokogiri'      # XML-Parser, required on Linux systems for running in jetty app server
 
 
   spec.add_development_dependency "bundler", "~> 1.6"
