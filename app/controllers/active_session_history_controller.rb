@@ -118,7 +118,7 @@ class ActiveSessionHistoryController < ApplicationController
                  TM_Delta_Time/1000000 TM_Delta_Time_Secs, TM_Delta_CPU_Time/1000000 TM_Delta_CPU_Time_Secs, TM_Delta_DB_Time/1000000 TM_Delta_DB_Time_Secs,
                  Delta_Time/1000000 Delta_Time_Secs, Delta_Read_IO_Requests, Delta_Write_IO_Requests,
                  Delta_Read_IO_Bytes/1024 Delta_Read_IO_kBytes, Delta_Write_IO_Bytes/1024 Delta_Write_IO_kBytes, Delta_Interconnect_IO_Bytes/1024 Delta_Interconnect_IO_kBytes,
-                 DECODE(In_Connection_Mgmt,   'Y', ', connection management') ||
+                 SUBSTR(DECODE(In_Connection_Mgmt,   'Y', ', connection management') ||
                  DECODE(In_Parse,             'Y', ', parse') ||
                  DECODE(In_Hard_Parse,        'Y', ', hard parse') ||
                  DECODE(In_SQL_Execution,     'Y', ', SQL exec') ||
@@ -132,7 +132,7 @@ class ActiveSessionHistoryController < ApplicationController
                  DECODE(Capture_Overhead,     'Y', ', capture overhead') ||
                  DECODE(Replay_Overhead,      'Y', ', replay overhead') ||
                  DECODE(Is_Captured,          'Y', ', session captured') ||
-                 DECODE(Is_Replayed,          'Y', ', session replayed') Modus
+                 DECODE(Is_Replayed,          'Y', ', session replayed'), 3) Modus
                 "
     else
       retval << ', SQL_ID' # für 10er DB keine Top_Level_SQL_ID verfügbar
@@ -160,7 +160,6 @@ class ActiveSessionHistoryController < ApplicationController
              sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID,
              TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
              TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs TM_DB_Time_Secs_Sample_Cycle,
-
              Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs  Read_IO_Requests_Sample_Cycle,
              Delta_Write_IO_Requests      * Sample_Cycle / Delta_Time_Secs  Write_IO_Requests_Sample_Cycle,
              Delta_Read_IO_kBytes         * Sample_Cycle / Delta_Time_Secs  Read_IO_kBytes_Sample_Cycle,

@@ -32,6 +32,7 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Data-File"]   = {:sql => "s.Current_File_No",   :sql_alias => "file_no",            :Name => 'Data-File#',    :Title => "Data-file number", :info_sql => "(SELECT f.File_Name||' TS='||f.Tablespace_Name FROM DBA_Data_Files f WHERE f.File_ID=s.Current_File_No)", :info_caption => "Tablespace-Name" }
       @session_statistics_key_rules_hash["Program"]     = {:sql => "s.Program",           :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
       @session_statistics_key_rules_hash["Machine"]     = {:sql => "s.Machine",           :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if session[:version] >= "11.2"
     end
     @session_statistics_key_rules_hash
   end
