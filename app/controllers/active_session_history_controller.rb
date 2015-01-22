@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'jruby/profiler'
+#require 'jruby/profiler'
 
 
 class ActiveSessionHistoryController < ApplicationController
@@ -309,12 +309,12 @@ class ActiveSessionHistoryController < ApplicationController
       end
     }
 
-    profile_data = JRuby::Profiler.profile do
+    #profile_data = JRuby::Profiler.profile do
       render_partial :list_session_statistic_historic_grouping
-    end
+    #end
 
-    profile_printer = JRuby::Profiler::FlatProfilePrinter.new(profile_data)
-    profile_printer.printProfile(STDOUT)
+    #profile_printer = JRuby::Profiler::FlatProfilePrinter.new(profile_data)
+    #profile_printer.printProfile(STDOUT)
   end
 
   # Auswahl von/bis
