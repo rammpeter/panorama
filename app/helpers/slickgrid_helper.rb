@@ -24,11 +24,10 @@ module SlickgridHelper
   def escape_js_chars(input)      # Javascript-kritische Zeichen escapen in Strings
     return nil unless input
     input = input.dup  if input.frozen?          # Kopie des Objektes verwenden für Umgehung runtime-Error, wenn object frozen
-    input.gsub!("'", '&#39;')    # einfache Hochkommas im Text fuer html als doppelte escapen für weitere Verwendung
-    input.gsub!("\n", '<br>')    # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
-    #input.gsub!("<", "&lt;")
-    #input.gsub!(">", "&gt;")
-    input
+
+    input.
+        gsub("'", '&#39;').    # einfache Hochkommas im Text fuer html als doppelte escapen für weitere Verwendung
+        gsub!("\n", '<br>')    # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
   end
 
   def eval_with_rec (input, rec)  # Ausführen eval mit Ausgabe des Inputs in Exception
