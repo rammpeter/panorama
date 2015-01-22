@@ -7,9 +7,16 @@ module SlickgridHelper
 
   # Entfernen aller umhüllenden Tags, umwandeln html-Ersetzungen
   def strip_inner_html(content)
-    result = content.dup       # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
+    content = content.dup if content.frozen?      # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
 
-    ActionController::Base.helpers.strip_tags(result).
+    #
+    # Stripping html from string is expensive operation
+    # Rails provides santitize and strip_tags which is slightly slow
+    # Nokogiri is 2 times faster than strip_tags, but should only be called if string contains tags
+    # content = Nokogiri::HTML(content).text if content['<'] && content['>']
+
+    # Regular expression is 2 times faster than Nokogiri
+    content.gsub(%r{</?[^>]+?>}, '').
         gsub('&nbsp;', ' ').
         gsub('&amp;', '&')
   end
@@ -193,12 +200,12 @@ module SlickgridHelper
       metadata = ''
       column_options.each do |col|
         if col[:data].class == Proc
-          celldata = (col[:data].call(rec)).to_s                                # Inhalt eines Feldes incl. html-Code für Link, Style etc.
+          celldata = (col[:data].call(rec)).to_s                                # Inhalt eines Feldes incl. html-Code für Link, Style etc., Ressourcen-Intensiv
         else
           celldata = eval_with_rec("#{col[:data]}.to_s", rec)                   # Inhalt eines Feldes incl. html-Code für Link, Style etc.
         end
 
-        stripped_celldata = strip_inner_html(celldata)                          # Inhalt des Feldes befreit von html-tags
+        stripped_celldata = strip_inner_html(celldata)                          # Inhalt des Feldes befreit von html-tags, Ressourcen-Intensiv
 
         # SortType ermitteln
         if col[:isFloat] && stripped_celldata && stripped_celldata.length > 0   # Spalte testen, kann numerisch sein
