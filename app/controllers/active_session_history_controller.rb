@@ -1,4 +1,7 @@
 # encoding: utf-8
+require 'jruby/profiler'
+
+
 class ActiveSessionHistoryController < ApplicationController
   #include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
   include ActiveSessionHistoryHelper
@@ -306,7 +309,12 @@ class ActiveSessionHistoryController < ApplicationController
       end
     }
 
-    render_partial :list_session_statistic_historic_grouping
+    profile_data = JRuby::Profiler.profile do
+      render_partial :list_session_statistic_historic_grouping
+    end
+
+    profile_printer = JRuby::Profiler::FlatProfilePrinter.new(profile_data)
+    profile_printer.printProfile(STDOUT)
   end
 
   # Auswahl von/bis

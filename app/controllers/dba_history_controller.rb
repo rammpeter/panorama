@@ -1226,7 +1226,7 @@ FROM (
 
     column_options =
     [
-      {:caption=>"Intervall",   :data=>proc{|rec| localeDateTime(rec[:begin_time]) }, :title=>"Beginn des Zeitintervalls", :plot_master=>true, :plot_master_time=>"milliSec1970(rec[:begin_time])" }
+      {:caption=>"Intervall",   :data=>proc{|rec| localeDateTime(rec[:begin_time]) }, :title=>"Beginn des Zeitintervalls", :plot_master_time=>true }
     ]
     columns.each do |key, value|
       column_options << {:caption=>value[:metric_name], :data=>proc{|rec| formattedNumber(rec[key] ? rec[key][:value] : 0, 2) }, :title=>"#{value[:metric_name]}: #{value[:metric_unit]}", :data_title=>proc{|rec| rec[key] ? "#{value[:metric_name]}: #{value[:metric_unit]}: min.value=#{formattedNumber(rec[key][:minvalue],2)}, max.value=#{formattedNumber(rec[key][:maxvalue],2)}" : ""}, :align=>"right" }
@@ -1753,6 +1753,38 @@ FROM (
     response = {:sql_short_text => get_cached_sql_shorttext_by_sql_id(params[:sql_id])}
     response = response.to_json
     render :json => response, :status => 200
+  end
+
+
+  def show_resource_limits_historic
+    @names = sql_select_all 'SELECT /* Panorama-Tool Ramm */ DISTINCT Resource_Name FROM DBA_Hist_Resource_Limit'
+    render_partial
+  end
+
+  def list_resource_limits_historic
+    @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
+    @resource_name = params[:resource][:name]
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+
+    @limits = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             ROUND(ss.End_Interval_Time, 'MI')    End_Interval,
+             SUM(rl.Current_Utilization)          Current_Utilization,
+             SUM(rl.Max_Utilization)              Max_Utilization,
+             SUM(rl.Initial_Allocation)           Initial_Allocation,
+             SUM(rl.Limit_Value)                  Limit_Value
+      FROM   DBA_Hist_Snapshot ss
+      JOIN   DBA_Hist_Resource_Limit rl ON rl.DBID=ss.DBID AND rl.Snap_ID=ss.Snap_ID AND rl.Instance_Number=ss.Instance_Number
+      WHERE  ss.End_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+      AND    ss.End_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+      AND    rl.Resource_Name = ?
+      #{ @instance ? " AND ss.Instance_Number=#{@instance}" : ''}
+      GROUP BY ROUND(ss.End_Interval_Time, 'MI')
+      ORDER BY ROUND(ss.End_Interval_Time, 'MI') DESC
+     ", @time_selection_start, @time_selection_end, @resource_name ]
+
+    render_partial
   end
 
 end #DbaHistoryController

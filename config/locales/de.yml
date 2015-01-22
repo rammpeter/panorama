@@ -428,7 +428,7 @@
   menu_storage_undo_usage_caption:                          UNDO Segmente
   menu_storage_undo_usage_hint:                             Aktuelle Nutzung von UNDO-Space nach Segmenten
 
-  menu_wait_caption:                                        Wait-Analyse
+  menu_wait_caption:                                        Analysen / Statistiken
   menu_wait_db_file_sequential_read_hint: |-
     Aktuelle Wait-Auslöser 'db file sequential read' (Vorsicht: Langsam auf großen Systemen)
   menu_wait_enqueue_caption:                                Enqueue-Statistiken
@@ -440,6 +440,8 @@
   menu_wait_latch_statistics_historic_hint:                 Aufbereitete historische Informationen aus DBA_Hist_Latch
   menu_wait_mutex_caption:                                  Mutex-Statistiken
   menu_wait_mutex_historic_hint:                            Aufbereitete historische Informationen aus GV$Mutex_Sleep_History seit Start der Instance
+  menu_wait_resource_limits_historic_caption:               Ressourcen-Limits historisch
+  menu_wait_resource_limits_historic_hint:                  Historische Nutzung und Limits von Ressourcen aus DBA_Hist_Resource_Limit
   menu_wait_segment_current_hint:                           Aktuelle Waits nach DB-Objekten
   menu_wait_segment_historic_hint:                          Historisierte Waits nach DB-Objekten
   menu_wait_session_cpu_hint:                               Historische CPU-Usage und DB-Time aus DBA_Hist_Active_Sess_History

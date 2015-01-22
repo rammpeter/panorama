@@ -1,7 +1,7 @@
 <%
 column_options =
   [
-    {:caption=>"Start_Time",       :data=>proc{|rec| localeDateTime(rec.begin_interval_time) },     :title=>"Start-time of interval", :plot_master=>true, :plot_master_time=>"milliSec1970(rec.begin_interval_time)" },
+    {:caption=>"Start_Time",       :data=>proc{|rec| localeDateTime(rec.begin_interval_time) },     :title=>"Start-time of interval", :plot_master_time=>true },
     {:caption=>"I",                :data=>proc{|rec| rec.instance_number },                         :title=>"RAC-instance"},
     {:caption=>"Groups",           :data=>proc{|rec| formattedNumber(rec.log_number) },             :title=>"Total number of redo log groups",                              :align=>:right},
     {:caption=>"Current",          :data=>proc{|rec| formattedNumber(rec.current_no) },             :title=>"Number of redo log groups in state 'CURRENT'",                 :align=>:right},

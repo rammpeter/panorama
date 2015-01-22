@@ -41,7 +41,7 @@ column_options =
 column_options =
   [
     {:caption=>"I",                     :data=>proc{|rec| rec.instance_number},                             :title=>"RAC-Instance"},
-    {:caption=>"Timestamp",             :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},          :title=>"Beginn des Betrachtungsintervalls", :plot_master=>true, :plot_master_time=>"milliSec1970(rec.begin_interval_time)" },
+    {:caption=>"Timestamp",             :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},          :title=>"Beginn des Betrachtungsintervalls", :plot_master_time=>true },
     {:caption=>"CR Receive Time",       :data=>proc{|rec| link_column_cr(rec, formattedNumber(rec.gc_cr_block_receive_time/100)) },  :align=>:right,  :title=>"Global cache consistent read blocks receive_time (Sekunden)"},
     {:caption=>"CR Blocks Received",    :data=>proc{|rec| link_column_cr(rec, formattedNumber(rec.gc_cr_blocks_received)) },         :align=>:right,  :title=>"Global cache consistent read blocks received"},
     {:caption=>"Avg. CR Receive Time",  :data=>proc{|rec| link_column_cr(rec, formattedNumber(rec.avg_cr_receive_time_ms,2)) },      :align=>:right,  :title=>"Global cache consistent read average receive time (Millisekunden)"},

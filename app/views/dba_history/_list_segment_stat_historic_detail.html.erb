@@ -1,7 +1,7 @@
 <%
 column_options =
   [
-    {:caption=>"Zeit",      :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},         :title=>"Beginn des SnapShot", :plot_master=>true, :plot_master_time=>"milliSec1970(rec.begin_interval_time)" },
+    {:caption=>"Zeit",      :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},         :title=>"Beginn des SnapShot", :plot_master_time=>true },
     {:caption=>"Logical reads",   :data=>proc{|rec| formattedNumber(rec.logical_reads_delta)},        :title=>"Logical Reads",       :align=>'right'},
     {:caption=>"Buffer busy waits",       :data=>proc{|rec| formattedNumber(rec.buffer_busy_waits_delta)},    :title=>"Buffer Busy Waits",   :align=>'right'},
     {:caption=>"Block changes",   :data=>proc{|rec| formattedNumber(rec.db_block_changes_delta)},     :title=>"DB Block Changes",    :align=>'right'},

@@ -1,0 +1,31 @@
+<h3>Resource usage and limits from DBA_Hist_Resource_Limit</h3>
+
+<% @update_area = get_unique_area_id %>
+
+<%=
+    my_ajax_form_tag url_for(:controller  => :dba_history,
+                             :action      => :list_resource_limits_historic,
+                             :update_area => @update_area
+                     ) do%>
+    <%= include_start_end_timepicker %>
+    <div class="float_left" title="RAC-Instance (optional)">
+      RAC-Instance
+      <%= text_field_tag(:instance, session[:instance], :size=>3) %>
+    </div>
+
+    <div class="float_left">
+      <div title="Restrict result to resource name">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+        Resource name
+        <%= collection_select(:resource, :name, @names, :resource_name, :resource_name, {}) %>
+      </div>
+    </div>
+
+
+    <div class="float_left">
+      <%= submit_tag('Show', :title => 'Show resource limits') %>
+    </div>
+<% end %>
+
+<div id="<%= @update_area%>" style="clear:both">
+</div>
+

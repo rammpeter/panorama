@@ -46,8 +46,7 @@ if @res.count > 0
           when isDate then
             col[:data] = proc{|rec| localeDateTime(rec[col[:caption]])}
             unless chart_x_axis_found
-              col[:plot_master] = true
-              col[:plot_master_time] = proc{|rec| rec[col[:caption]] ? milliSec1970(rec[col[:caption]]) : nil }
+              col[:plot_master_time] = true
               chart_x_axis_found = true
             end
           when col[:caption].downcase == 'sql_id' || col[:caption].downcase == "sql-id" || col[:caption].downcase["sql_id"] || col[:caption].downcase["sql-id"] then
