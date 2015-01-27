@@ -216,6 +216,7 @@ class EnvController < ApplicationController
                                                JOIN  v$Database d ON 1=1
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
                                       "
+
       @instance_data.each do |i|
         if i.instance_connected
           @instance_name = i.instance_name

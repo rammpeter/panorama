@@ -62,7 +62,6 @@ column_options =
   {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelisierung (Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
   {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>"Zugrifskriterium auf Objekt", :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}"} },
   {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>"Filterkriterium für Objekt",  :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
-  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },          :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>300, :style=>"word-wrap: break-word;" },
   {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-Space prognostiziert in MB", :align=>:right},
   {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-Distribution-Strategie" },
 ]
@@ -74,6 +73,7 @@ column_options <<  {:caption=>"IC",          :data=>proc{|rec| show_percentage(r
 
 
 column_options.concat [
+  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>300, :style=>"word-wrap: break-word;" },
   {:caption=>"Starts",      :data=>proc{|rec| fn(rec.starts/sql_starts)         if rec.starts },         :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.starts)         }, Last=#{fn(rec.last_starts)}" },              :title=>"Anzahl Starts der Operation je Ausführung des SQL" },
   {:caption=>"Rows",        :data=>proc{|rec| fn(rec.output_rows/sql_starts)    if rec.output_rows },    :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.output_rows)    }, Last=#{fn(rec.last_output_rows)}" },         :title=>"Anzahl produzierte Rows der Operation je Ausführung des SQL" },
   {:caption=>"CR",          :data=>proc{|rec| fn(rec.cr_buffer_gets/sql_starts) if rec.cr_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "Total=#{fn(rec.cr_buffer_gets) }, Last=#{fn(rec.last_cr_buffer_gets)}" },      :title=>"Anzahl Buffer gets in consistend mode der Operation während letzter Ausführung, meist für Queries" },

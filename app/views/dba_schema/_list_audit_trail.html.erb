@@ -30,7 +30,7 @@
     {:caption=> 'Action',            :data=>proc{|rec| rec.action_name},                         :title=> 'Action name'},
     {:caption=> 'Object',            :data=>proc{|rec| "#{rec.owner}.#{rec.obj_name}" if rec.owner || rec.obj_name},  :title=> 'Owner an name of affected object'},
     {:caption=> 'I',                 :data=>proc{|rec| rec.instance_number},                     :title=> 'Instance number as specified by the INSTANCE_NUMBER initialization parameter'},
-    {:caption=> 'Session-ID',        :data=>proc{|rec| link_session(rec)},                       :title=> 'ID of database session'},
+    {:caption=> 'Session-ID',        :data=>proc{|rec| link_session(rec)},                       :title=> 'ID of database session (AUDSID)'},
     {:caption=> 'SQL-Text',          :data=>proc{|rec| link_sql_text(rec)},                      :title=> 'SQL-Text'},
     {:caption=> 'B',                 :data=>proc{|rec| rec.sql_bind},                            :title=> 'Bind variable data of the query'},
     {:caption=> 'N.O.',              :data=>proc{|rec| "#{rec.new_owner}.#{rec.new_name}" if rec.new_owner || rec.new_name},  :title=> 'Owner an name after rename'},

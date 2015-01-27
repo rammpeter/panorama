@@ -5,7 +5,10 @@
   </div>
 
   <%= include_start_end_timepicker %>
-
+    <div class="float_left" title="optional filter for session-ID (AUDSID) (exact match)">
+      Session-ID
+      <%= text_field_tag(:sessionid, '', :size=>10) %>
+    </div>
     <div class="float_left">
       OS-User
       <%= text_field_tag(:os_user, "", :size=>10, :title=>"Filter for OS-user of client machine (like-comparison and case ignored)") %>
@@ -26,20 +29,18 @@
       Action
       <%= text_field_tag(:action_name, "", :size=>10, :title=>"Filter for name of recorded action (like-comparison and case ignored)") %>
     </div>
-    <div class="float_left">
+    <div class="float_left" title="Group result by time cycle (none for not grouping)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
       Grouping
-      <div title="Group result by time cycle (none for not grouping)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
           <select name="grouping">
             <option selected value='none'>[none]</option>
             <option value='MI'>Minute</option>
             <option value='HH24'>Hour</option>
             <option value='DD'>Day</option>
           </select>
-      </div>
     </div>
-    <div class="float_left">
+    <div class="float_left" title="Count for top x hits to show as columns (only relevant if 'Grouping' is not 'none')">
       Top x for group
-      <%= text_field_tag(:top_x, "5", :size=>5, :title=>"Count for top x hits to show as columns (only relevant if 'Grouping' is not 'none')") %>
+      <%= text_field_tag(:top_x, "5", :size=>5) %>
     </div>
     <div class="float_left">
     <%= submit_tag("Show audit trail", :title => "Show audit trail records") %>
