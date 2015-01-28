@@ -1924,7 +1924,7 @@ Optional muss die Länge des untersuchten Substrings variert werden.',
                        FROM   (
                                SELECT COUNT(*) Variationen, Inst_ID, MIN(Parsing_Schema_Name) UserName, COUNT(DISTINCT Parsing_Schema_Name) Anzahl_User,
                                       SUBSTR(s.SQL_Text, 1, Len.Substr_Len) SubSQL_Text,
-                                      SUM(Sharable_Mem+Persistent_Mem+Runtime_Mem) Memory,
+                                      ROUND(SUM(Sharable_Mem+Persistent_Mem+Runtime_Mem)/(1024*1024),3) \"Memory (MB)\",
                                       MIN(s.SQL_ID) SQL_ID,
                                       MIN(TO_DATE(s.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS')) Min_First_Load,
                                       MIN(Last_Load_Time) Min_Last_Load,
@@ -1937,7 +1937,7 @@ Optional muss die Länge des untersuchten Substrings variert werden.',
                                HAVING COUNT(*) > 10
                               ) g
                        JOIN gv$SQLArea s ON s.Inst_ID = g.Inst_ID AND s.SQL_ID = g.SQL_ID
-                       ORDER BY g.Memory DESC NULLS LAST
+                       ORDER BY \"Memory (MB)\" DESC NULLS LAST
              ",
              :parameter=>[{:name=> 'Anzahl Zeichen für Vergleich der SQLs', :size=>8, :default=>60, :title=> 'Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)'}]
          },
