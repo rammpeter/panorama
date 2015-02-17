@@ -126,7 +126,7 @@
                   <% @tnsnames = read_tnsnames %>
                   <td align="center">
                     <div title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
-                        <select id="database_tns" name="database[tns]" style="width: 400px;">
+                        <select id="database_tns" name="database[tns]" style="width: 95%;">
                           <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_records -->
                         </select>
                     </div>
