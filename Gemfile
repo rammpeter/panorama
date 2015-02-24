@@ -1,11 +1,9 @@
 source 'https://rubygems.org'
 
-source 'https://rubygems.org'
-
 # Alle Abhängigkeiten von Panorama-Gem übernehmen
 
 # Variante für build war-file
-gem 'Panorama', :git => 'https://github.com/rammpeter/Panorama_Gem'
+gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
 
 # Development-Variante mit direktem File-Zugriff
 #gem 'Panorama', path: '~/Documents/Projekte/Panorama_OpenSource'
