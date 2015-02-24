@@ -33,6 +33,14 @@ class ApplicationController < ActionController::Base
 
     @exception = exception                                                      # Sichtbarkeit im template
     @request   = request
+
+    Rails.logger.error @exception.class.name
+    if @request.parameters['controller']
+      Rails.logger.error "#{@request.parameters['controller'].camelize}Controller#{"##{@request.parameters['action']}" if @request.parameters['action'] }"
+    end
+
+    Rails.logger.error @exception.message
+
     render :partial =>'application/error_message', :status=>500
 
     #raise exception   # Standard-Behandlung der Exceptions

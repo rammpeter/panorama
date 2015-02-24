@@ -1,0 +1,13 @@
+<h2>Describe database object</h2>
+
+<% @update_area = get_unique_area_id %>
+<%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_table_description, :update_area => @update_area) do %>
+    Object-Owner
+    <%= text_field_tag(:owner, "", :size=>40, :title=>'Schema name of object (optional)') %>
+    Object-Name
+    <%= text_field_tag(:segment_name, "", :size=>40, :title=>'Object name (table, index, materialized view)') %>
+    <%= submit_tag('Describe', :title => 'Describe database object (table, index, materialized view)') %>
+<% end %>
+
+<div id="<%= @update_area %>"></div>
+

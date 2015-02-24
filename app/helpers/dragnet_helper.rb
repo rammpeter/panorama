@@ -1282,51 +1282,59 @@ Selektion beleuchtet die AWR-Historie.',
 Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.',
              :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
                       ProcLines AS (
-                              SELECT /*+ NO_MERGE MATERIALIZE */ p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type
-                              FROM   DBA_Procedures p
-                              WHERE  p.Object_Type IN ('FUNCTION', 'PACKAGE')
-                              AND    p.Parallel = 'NO'
-                              AND    Owner NOT IN ('SYS', 'WMSYS', 'PERFSTAT')
-                              AND    (Object_Type != 'PACKAGE' OR Procedure_Name IS NOT NULL)
-                       )
-                      SELECT /*+ ORDERED PARALLEL(p,4) PARALLEL(s,4)*/
-                             s.FullText, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, s.Elapsed_Secs, s.Fundort
-                      FROM   (
-                              SELECT /*+ NO_MERGE MATERIALIZE */ UPPER(SQL_FullText) FullText, Elapsed_Time/1000000 Elapsed_Secs, 'SGA' Fundort
-                              FROM gv$SQL s
-                              WHERE UPPER(s.SQL_FullText) LIKE '%PARALLEL%'
-                              UNION ALL
-                              SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(t,4) */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort
+                            SELECT /*+ NO_MERGE MATERIALIZE */ *
+                            FROM   (
+                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name SuchText
+                                    FROM   DBA_Procedures p
+                                    WHERE  p.Object_Type = 'FUNCTION'
+                                    UNION ALL
+                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
+                                    FROM   DBA_Procedures p
+                                    JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name AND a.Position = 0
+                                    WHERE  p.Object_Type = 'PACKAGE'
+                                   )
+                            WHERE  Owner NOT IN ('SYS', 'WMSYS', 'PERFSTAT', 'CTXSYS', 'XDB', 'EXFSYS')
+                            AND    Parallel = 'NO'
+                       ),
+                      SQLs AS (
+                              SELECT /*+ NO_MERGE MATERIALIZE  */  *
                               FROM   (
-                                      SELECT /*+ NO_MERGE PARALLEL(s,4) PARALLEL(ss,4) */
-                                             s.DBID, s.SQL_ID, SUM(s.Elapsed_Time_Delta)/1000000 Elapsed_Secs
-                                      FROM   DBA_Hist_SQLStat s
-                                      JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
-                                      WHERE  ss.Begin_Interval_Time > SYSDATE - ?
-                                      GROUP BY s.DBID, s.SQL_ID
-                                     ) s
-                              JOIN DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
-                              WHERE  UPPER(t.SQL_Text) LIKE '%PARALLEL%'
-                             ) s,
+                                      SELECT /*+ NO_MERGE */ UPPER(SQL_FullText) FullText, Elapsed_Time/1000000 Elapsed_Secs, 'SGA' Fundort, S.SQL_ID
+                                      FROM gv$SQL s
+                                      WHERE UPPER(s.SQL_FullText) LIKE '%PARALLEL%'   /* Hint im SQL verwendet */
+                                      UNION ALL
+                                      SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(t,4) */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort, s.SQL_ID
+                                      FROM   (
+                                              SELECT /*+ NO_MERGE PARALLEL(s,4) PARALLEL(ss,4) */
+                                                     s.DBID, s.SQL_ID, Plan_Hash_Value, SUM(s.Elapsed_Time_Delta)/1000000 Elapsed_Secs
+                                              FROM   DBA_Hist_SQLStat s
+                                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
+                                              WHERE  ss.Begin_Interval_Time > SYSDATE - ?
+                                              GROUP BY s.DBID, s.SQL_ID, Plan_Hash_Value
+                                             ) s
+                                      JOIN DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
+                                      WHERE  UPPER(t.SQL_Text) LIKE '%PARALLEL%'     /* Hint im SQL verwendet */
+                                     )
+                              WHERE  NOT REGEXP_LIKE(FullText, '^[[:space:]]*BEGIN')
+                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*DECLARE')
+                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*EXPLAIN')
+                              AND    INSTR(FullText, 'DBMS_STATS') = 0              /* Aussschluss Table-Analyse*/
+                              AND    Elapsed_Secs > ?
+                      )
+                      SELECT /*+ PARALLEL(p,4) PARALLEL(s,4) */
+                             s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, s.Elapsed_Secs, s.Fundort
+                      FROM   SQLs s,
                              ProcLines p
                       -- INSTR-Test vorab, da schneller als RegExp_Like
                       -- Match auf ProcName vorangestellt und gefolgt von keinem Buchstaben
-                      WHERE  NOT REGEXP_LIKE(FullText, '^[[:space:]]*BEGIN')
-                      AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*DECLARE')
-                      AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*EXPLAIN')
-                      AND  ( (    p.Object_Type != 'PACKAGE'
-                              AND INSTR(FullText, p.Object_Name) > 0
-                              AND REGEXP_LIKE(FullText,'[^A-Z_]'||p.Object_Name||'[^A-Z_]')
-                             )
-                             OR
-                             (    p.Object_Type = 'PACKAGE'
-                              AND INSTR(FullText, p.Procedure_Name) > 0
-                              AND INSTR(FullText, p.Object_Name) > 0
-                              AND REGEXP_LIKE(FullText,'[^A-Z_]'||p.Object_Name||'.'||p.Procedure_Name||'[^A-Z_]')
-                             )
-                           )
-                      ORDER BY Elapsed_Secs DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+                      WHERE  INSTR(s.FullText, p.SuchText) > 0
+                      -- AND REGEXP_LIKE(s.FullText,'[^A-Z_]'||p.SuchText||'[^A-Z_]')
+                      ORDER BY Elapsed_Secs DESC NULLS LAST
+                      ",
+             :parameter=>[
+                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                 {:name=>'Minimum sum of elapsed time in seconds', :size=>8, :default=>100, :title=>'Minimum sum of elapsed time in second for considered SQL' },
+             ]
          },
         {
              :name  => 'Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen',

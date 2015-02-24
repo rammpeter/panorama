@@ -154,8 +154,16 @@ class DbaSchemaController < ApplicationController
   end # objekte_nach_groesse
 
   def list_table_description
-    @owner        = params[:owner]
-    @segment_name = params[:segment_name]
+    @owner        = params[:owner].upcase         if params[:owner]
+    @segment_name = params[:segment_name].upcase  if params[:segment_name]
+
+    if @owner.nil? || @owner == ''
+      objects = sql_select_all ["SELECT * FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=?", @segment_name]
+      @owner = objects[0].owner if objects.count == 1
+      if objects.count > 1
+        raise "Object exists in multiple schemas, please specify owner!\n#{objects.map{|o| o.owner}}"
+      end
+    end
 
     objects = sql_select_all ["SELECT * FROM DBA_Objects WHERE Owner=? AND Object_Name=?", @owner, @segment_name]
     raise "Object #{@owner}.#{@segment_name} does not exist in database" if objects.count == 0
