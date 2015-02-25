@@ -4,6 +4,9 @@ export PANORAMA_USAGE_LOG=$PANORAMA_HOME/Usage.log
 export LOG=$PANORAMA_HOME/Panorama_jetty.log
 echo "Starting Panorama with jetty, logfile is $LOG"
 
+# Entfernen evtl. aller work-Relikte
+rm -rf ./work/*
+
 # -Xcompile.invokedynamic=true sichert für Java7, dass folgender Fehler eliminiert wird: java.lang.ClassNotFoundException: org.jruby.ext.krypt.asn1.RubyAsn1
 # -Djruby.compile.invokedynamic=true statt -Xcompile.invokedynamic=true da dies für IBM-JRE 7 nicht erlaubt ist
 
