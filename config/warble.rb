@@ -125,7 +125,7 @@ Warbler::Config.new do |config|
   # config.excludes.
   # config.webinf_files += FileList["jboss-web.xml"]
   # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList['jetty-web.xml']
+  config.webinf_files += FileList['winstone.properties', 'jetty-web.xml']
 
 
   # Files to be included in the root of the webapp.  Note that files in public
@@ -140,8 +140,9 @@ Warbler::Config.new do |config|
   # * <tt>winstone</tt> (default) - Winstone 0.9.10 from sourceforge
   # * <tt>jenkins-ci.winstone</tt> - Improved Winstone from Jenkins CI
   # * <tt>jetty</tt> - Embedded Jetty from Eclipse
-  config.webserver = 'jetty'
-  #config.webserver = 'jenkins-ci.winstone'
+  # config.webserver = 'jetty'
+  config.webserver = 'jenkins-ci.winstone'
+  # config.webserver = 'winstone'
 
   # Value of RAILS_ENV for the webapp -- default as shown below
   config.webxml.rails.env = ENV['RAILS_ENV'] || 'production'

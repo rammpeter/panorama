@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: 2761c5d3eca546f8a865e5573176c12152445700
+  revision: 6358721289e234a595416348cc0ebdab100f447c
   specs:
-    Panorama (2.0.33)
+    Panorama (2.0.34)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -20,7 +20,7 @@ GIT
 
 GIT
   remote: http://github.com/rsim/oracle-enhanced
-  revision: 518dc3cf6a1f6e3593751d30d392518dc69d1a3a
+  revision: 417ddb04cef6c1523a1384bb7d7076fcf27e4b78
   branch: rails42
   specs:
     activerecord-oracle_enhanced-adapter (1.5.5)
@@ -118,7 +118,7 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (10.4.2)
-    sass (3.4.12)
+    sass (3.4.13)
     sprockets (2.12.3)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -138,7 +138,7 @@ GEM
       thread_safe (~> 0.1)
     tzinfo-data (1.2015.1)
       tzinfo (>= 1.0.0)
-    uglifier (2.7.0)
+    uglifier (2.7.1)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
 
