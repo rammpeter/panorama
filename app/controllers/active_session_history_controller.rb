@@ -50,7 +50,7 @@ class ActiveSessionHistoryController < ApplicationController
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     singles= sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED Panorama-Tool Ramm */
+      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              -- Beginn eines zu betrachtenden Zeitabschnittes
              TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400 Start_Sample,
              NVL(TO_CHAR(#{session_statistics_key_rule(@groupby)[:sql]}), 'NULL') Criteria,
@@ -153,7 +153,7 @@ class ActiveSessionHistoryController < ApplicationController
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED Panorama-Tool Ramm */
+      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              s.*,
              u.UserName, '' SQL_Operation,
              o.Owner, o.Object_Name,o.SubObject_Name, o.Data_Object_ID,
@@ -204,9 +204,10 @@ class ActiveSessionHistoryController < ApplicationController
     where_from_groupfilter(params[:groupfilter], nil)
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
+
     @sql_ids = sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED Panorama-Tool Ramm */
+      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              s.SQL_ID, s.Instance_Number, u.UserName,
              AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
              SUM(s.Sample_Cycle)              Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
@@ -252,7 +253,7 @@ class ActiveSessionHistoryController < ApplicationController
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED Panorama-Tool Ramm */
+      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,
              #{if session_statistics_key_rule(@groupby)[:info_sql]
                  session_statistics_key_rule(@groupby)[:info_sql]
