@@ -39,6 +39,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       when "Entry-PL/SQL" then 'Hugo'
       when "PL/SQL"       then 'Hugo'
       when "Module"       then 'Module1'
+      when 'Modus'        then 'SQL exec'
       when "Action"       then 'Action1'
       when "Event"        then 'db file sequential read'
       when "Wait-Class"   then 'IO'
