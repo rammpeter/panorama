@@ -1312,12 +1312,17 @@ FROM (
               parsing_schema_name, instance, sql_id]
       testrec = test[0]
 
-      # SQL existiert in SGA für das gesuchte Schema oder für genau ein anderes, dann List-Funktion in anderem Controller aufrufen
-      if testrec.schema_hits > 0 || testrec.schema_count == 1
+
+      if testrec.schema_hits > 0 || testrec.schema_count == 1                                                           # SQL existiert in SGA für das gesuchte Schema oder für genau ein anderes, dann List-Funktion in anderem Controller aufrufen
         redirect_to :controller => "DbaSga", :action => "list_sql_detail_sql_id",
                     :instance => instance, :sql_id => sql_id, :update_area =>params[:update_area]
       else
-        list_sql_text(params[:update_area], dbid, sql_id)
+        if testrec.total > 0                                                                                            # Mehrdeutig, erst mal Liste zur Auswahl
+          redirect_to :controller => "DbaSga", :action => "list_sql_area_sql_id",
+                      :maxResultCount => 100, :instance => instance, :sql_id => sql_id, :topSort => 'ElapsedTimePerExecute', :update_area =>params[:update_area]
+        else
+          list_sql_text(params[:update_area], dbid, sql_id)
+        end
       end
     end
   end #show_sql_info_for_interval

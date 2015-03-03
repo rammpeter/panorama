@@ -18,7 +18,8 @@
   column_options << {:caption=>"P",           :data=>proc{|rec| rec.plans },                                           :title=>"Number of different execution plans in SGA of instance for this SQL_ID",  :align=>:right, :data_style=>proc{|rec| 'background-color:coral;' if rec.plans > 1 }  }
   column_options << {:caption=>"Plan hash value", :data=>proc{|rec| rec.plan_hash_value},                              :title=>"Plan hash value (unique hash value for execution plan)", :align=>:right}    if @modus=="GV$SQL"
   column_options << {:caption=>"Last active", :data=>proc{|rec| localeDateTime(rec.last_active_time)},                 :title=>"Last active time" }
-  column_options << {:caption=>"User",        :data=>proc{|rec| rec.username[0,5]+(rec.username.length>5 ? "." : "")}, :title=>"Username", :data_title=>proc{|rec| "Username = #{rec.username}"} }
+  column_options << {:caption=>"User",        :data=>proc{|rec| rec.username },                                        :title=>"User who originally built this child cursor" }
+  column_options << {:caption=>"Parse",       :data=>proc{|rec| rec.parsing_schema_name},                              :title=>"Parsing schema name that was used to originally build this child cursor" }
   column_options << {:caption=>"Execs",       :data=>proc{|rec| formattedNumber(rec.executions)},                      :title=>"Anzahl Ausfuehrungen", :align=>"right"}
   column_options << {:caption=>"Elapsed",     :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs)},               :title=>"Total elapsed time in Sec.", :align=>"right"}
   column_options << {:caption=>"Ela./Ex.",    :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute,4)}, :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right"}
