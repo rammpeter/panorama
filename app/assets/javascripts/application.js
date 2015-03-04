@@ -25,15 +25,16 @@ var session_locale = "en";
 var one_time_suppress_indicator = false;                                        // Unterdrückend er Anzeige des Indicators für einen Aufruf
 
 function showIndicator() {
-    if (!one_time_suppress_indicator){
+    if (!one_time_suppress_indicator){                                          // Einmaliges Unterdrücken der Anzeige Indikator, Ruecksetzen durch hideIndicator
         jQuery("#ajax_indicator").dialog("open");
-    }                                           // Einmaliges Unterdrücken der Anzeige Indikator
-    else
-        one_time_suppress_indicator = false;                                    // Zurücksetzen auf Default
+    }
 }
 
 function hideIndicator() {
-    jQuery("#ajax_indicator").dialog("close");
+    if (!one_time_suppress_indicator)                                           // einmalig Loeschen des Indikators überspringen, beim naechsten Mal wieder Loeschen
+        jQuery("#ajax_indicator").dialog("close");
+    else
+        one_time_suppress_indicator = false;                                    // Zurücksetzen auf Default
 }
 
 var tooltip_document_body = null;
