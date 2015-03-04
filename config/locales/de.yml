@@ -78,6 +78,16 @@
 
   dba_list_rowid_link_hint:                                 Felder und Werte des Primary der Tabelle
 
+  dba_segment_stat_caption:                                 Objekt-spezifische Statistiken aus V$Segment_Statistics
+  dba_segment_stat_only_sample_change_caption:              Nur Änderungen während Sample
+  dba_segment_stat_only_sample_change_hint:                 Nur Objekte anzeigen deren Daten sich zwischen den Samples änderten
+
+  dba_segment_stat_partition_caption:                       Partitionen anzeigen
+  dba_segment_stat_partition_hint:                          Objekt-Info auf Partitionsebene anzeigen
+  dba_segment_stat_sample_length_hint:                      Distanz zwischen den zwei sample-snapshots in Sekunden
+  dba_segment_stat_show_caption:                            Statistik anzeigen
+  dba_segment_stat_show_hint:                               Anzeige der Statistik für Objekte
+
   dba_show_locks_caption:                                   Locks anlisten
   dba_show_locks_all_locks_caption:                         Alle Locks
   dba_show_locks_all_locks_hint:                            Alle Locks anlisten? Sonst AE- und PS-Locks unterdrücken.

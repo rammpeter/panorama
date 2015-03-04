@@ -968,6 +968,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
   
   def show_segment_statistics
+    @show_partitions = params[:show_partition_info] == '1'
+
     def smaller(obj1, obj2)
       return true   if obj1.inst_id < obj2.inst_id
       return false  if obj1.inst_id > obj2.inst_id
@@ -980,18 +982,21 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       return true   if !obj1.subobject_name && obj2.subobject_name  # NULL < Wert
       return false  if !obj2.subobject_name  # NULL < Wert
       return true   if obj1.subobject_name < obj2.subobject_name
-      return false 
+      return false
     end
     
     def get_values  # ermitteln der Aktuellen Werte
       # Sortierung des Results muss mit Methode smaller korrelieren
       sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Inst_ID, Owner, Object_Name, SubObject_Name,          
-          Object_Type, Value                                    
-        FROM  GV$Segment_Statistics                             
-        WHERE Statistic_Name=?                                  
-        AND   Value != 0                                        
+          Inst_ID, Owner, Object_Name, SubObject_Name, Object_Type, SUM(Value) Value
+        FROM   (
+                SELECT Inst_ID, Owner, Object_Name, #{@show_partitions ? 'SubObject_Name' : 'NULL SubObject_Name'}, Object_Type, Value
+                FROM  GV$Segment_Statistics
+                WHERE Statistic_Name=?
+                AND   Value != 0
+               )
+        GROUP BY Inst_ID, Object_Type, Owner, Object_Name, SubObject_Name
         ORDER BY Inst_ID, Object_Type, Owner, Object_Name, SubObject_Name",
         params[:statistic_name][:statistic_name]
         ]
@@ -1002,16 +1007,14 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
     @header = params[:statistic_name][:statistic_name]
 
-    @column_options =
-       [
-         {:caption=>"Inst",        :data=>"rec.inst_id",             :title=>"RAC-Instance"},
-         {:caption=>"Type",        :data=>"rec.object_type",         :title=>"Object-Type"},
-         {:caption=>"Owner",       :data=>"rec.owner",               :title=>"Object-Owner"},
-         {:caption=>"Name",        :data=>"rec.object_name",         :title=>"Object-Name"},
-         {:caption=>"Sub-Name",    :data=>"rec.subobject_name",      :title=>"Sub-Object-Name"},
-         {:caption=>"Sample",      :data=>proc{|rec| formattedNumber(rec.sample)}, :title=>"Statistik-Wert innerhalb der Sample-Dauer",    :align=>"right"},
-         {:caption=>"Total",       :data=>proc{|rec| formattedNumber(rec.total)},  :title=>"Statistik-Wert global sei Instance-Start",     :align=>"right"},
-       ]
+    @column_options = []
+    @column_options << {:caption=>"Inst",        :data=>"rec.inst_id",             :title=>"RAC-Instance"}
+    @column_options << {:caption=>"Type",        :data=>"rec.object_type",         :title=>"Object-Type"}
+    @column_options << {:caption=>"Owner",       :data=>"rec.owner",               :title=>"Object-Owner"}
+    @column_options << {:caption=>"Name",        :data=>"rec.object_name",         :title=>"Object-Name"}
+    @column_options << {:caption=>"Sub-Name",    :data=>"rec.subobject_name",      :title=>"Sub-Object-Name"} if @show_partitions
+    @column_options << {:caption=>"Sample",      :data=>proc{|rec| formattedNumber(rec.sample)}, :title=>"Statistik-Wert innerhalb der Sample-Dauer",    :align=>"right"}
+    @column_options << {:caption=>"Total",       :data=>proc{|rec| formattedNumber(rec.total)},  :title=>"Statistik-Wert global sei Instance-Start",     :align=>"right"}
 
     data1 = get_values    # Snapshot vor SampleTime
     sampletime = params[:sample_length].to_i
@@ -1056,7 +1059,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
     @data = @data.sort {|x,y| y.sample <=> x.sample }
 
-    output = gen_slickgrid(@data, @column_options, {:caption=>@header, :width=>"auto"})
+    output = gen_slickgrid(@data, @column_options, {:caption=>@header, :width=>"auto",  :max_height=>450})
 
     respond_to do |format|
       format.js {render :js => "$('#segment_statistics_detail').html('#{j output}');"}
