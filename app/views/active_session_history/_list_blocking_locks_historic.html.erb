@@ -45,7 +45,7 @@ def link_column_blocked(rec, value)
             :sample_id            => rec.root_sample_id,
             :min_snap_id          => @min_snap_id,
             :max_snap_id          => @max_snap_id,
-            :time_selection       => localeDateTime(rec.root_sample_time),
+            :time_selection       => localeDateTime(rec.root_rounded_sample_time),
             :time_selection_start => @time_selection_start,
             :time_selection_end   => @time_selection_end,
             :blocking_instance    => rec["root_blocking_inst_id"] ? rec.root_blocking_inst_id : nil,
@@ -77,7 +77,7 @@ end
 
 
     column_options = []
-    column_options << {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(rec.root_sample_time) },                 :title=>"Zeitstempel der Aufzeichnung der Locks"}
+    column_options << {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(rec.root_rounded_sample_time) },                 :title=>"Zeitstempel der Aufzeichnung der Locks"}
     column_options << {:caption=>"B.User",          :data=>proc{|rec| rec.root_blocking_username },                           :title=>"User-Name der blockenden Session" }             if session[:version] >= '11.2'
     column_options << {:caption=>"B.SID",           :data=>proc{|rec| link_column_blocking_sid(rec) },                        :title=>"SID der blockenden Session", :data_title=>proc{|rec| "SerialNo=#{rec.root_blocking_session_serialno}#{", Program=#{rec.root_blocking_program}" if session[:version] >= '11.2'}" } }
     column_options << {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_historic_sql_id(rec.root_blocking_inst_id, rec.root_blocking_sql_id, @time_selection_start, @time_selection_end, @update_area, rec.root_blocking_username)},                              :title=>"SQL-ID der blockenden Session" }             if session[:version] >= '11.2'
