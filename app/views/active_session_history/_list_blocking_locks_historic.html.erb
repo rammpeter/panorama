@@ -1,5 +1,4 @@
 <%
-
   @update_area = get_unique_area_id
 
 # Generische Funktion für Link
@@ -16,7 +15,7 @@
                                   :time_selection_end   => @time_selection_end,
                                   :Min_Snap_ID          => @min_snap_id,
                                   :Max_Snap_ID          => @max_snap_id,
-                          }.merge(rec["root_blocking_inst_id"] ? {:Instance =>rec.root_blocking_inst_id}: {}) ,
+                          }.merge(rec["root_blocking_inst_id"] ? {:Instance =>rec.root_blocking_inst_id}: {}) ,         # root_blocking_inst_id erst ab 11.2
                 :groupby      => 'Session/Sn.',
                 :update_area  => @update_area
               ),
@@ -42,7 +41,6 @@ def link_column_blocked(rec, value)
   my_ajax_link_to(value,
    url_for( :action               => :list_blocking_locks_historic_detail,
             :update_area          => @update_area,
-            :sample_id            => rec.root_sample_id,
             :min_snap_id          => @min_snap_id,
             :max_snap_id          => @max_snap_id,
             :time_selection       => localeDateTime(rec.root_rounded_sample_time),
@@ -77,7 +75,7 @@ end
 
 
     column_options = []
-    column_options << {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(rec.root_rounded_sample_time) },                 :title=>"Zeitstempel der Aufzeichnung der Locks"}
+    column_options << {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(rec.root_rounded_sample_time) },         :title=>t(:active_session_history_list_blocking_locks_historic_snapshot_hint, :default=>'Snapshot timestamp (rounded to 1 or 10 seconds)') }
     column_options << {:caption=>"B.User",          :data=>proc{|rec| rec.root_blocking_username },                           :title=>"User-Name der blockenden Session" }             if session[:version] >= '11.2'
     column_options << {:caption=>"B.SID",           :data=>proc{|rec| link_column_blocking_sid(rec) },                        :title=>"SID der blockenden Session", :data_title=>proc{|rec| "SerialNo=#{rec.root_blocking_session_serialno}#{", Program=#{rec.root_blocking_program}" if session[:version] >= '11.2'}" } }
     column_options << {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_historic_sql_id(rec.root_blocking_inst_id, rec.root_blocking_sql_id, @time_selection_start, @time_selection_end, @update_area, rec.root_blocking_username)},                              :title=>"SQL-ID der blockenden Session" }             if session[:version] >= '11.2'

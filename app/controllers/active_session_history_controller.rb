@@ -401,7 +401,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     @locks = sql_select_all [
         "WITH /* Panorama-Tool Ramm */
-                   TSSel AS ( SELECT 10 Sample_Cycle, Sample_ID,
+                   TSSel AS ( SELECT 10 Sample_Cycle,
                                      /* auf 10 Sekunden genau gerundete Zeit */
                                      TRUNC(h.Sample_Time+INTERVAL '5' SECOND, 'MI') + TRUNC(TO_NUMBER(TO_CHAR(h.Sample_Time+INTERVAL '5' SECOND, 'SS'))/10)/8640  Rounded_Sample_Time,
                                      Snap_ID, h.Instance_Number, Session_ID, Session_Serial#,
@@ -416,7 +416,7 @@ class ActiveSessionHistoryController < ApplicationController
                               AND    h.Sample_Time BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') /* Session wartend auf Blocking-Session */
                               UNION ALL
-                              SELECT 1 Sample_Cycle, Sample_ID,
+                              SELECT 1 Sample_Cycle,
                                      CAST(Sample_Time + INTERVAL '0.5' SECOND AS DATE) Rounded_Sample_Time, /* auf eine Sekunde genau gerundete Zeit */
                                      NULL Snap_ID, h.Inst_ID Instance_Number, Session_ID, Session_Serial#,
                                      Blocking_Session,Blocking_Session_Serial#, Blocking_Session_Status, Current_File#, Current_Block#,
@@ -439,7 +439,7 @@ class ActiveSessionHistoryController < ApplicationController
                        end
                      }
               FROM   (
-                      SELECT Root_Snap_ID, Root_Sample_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial# Root_Blocking_Session_SerialNo,
+                      SELECT Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial# Root_Blocking_Session_SerialNo,
                              Root_Blocking_Session_Status,
                              #{if session[:version] >= '11.2'
                                  'Root_Blocking_Inst_ID,
@@ -477,8 +477,7 @@ class ActiveSessionHistoryController < ApplicationController
                              CASE WHEN COUNT(DISTINCT u.UserName)           > 1 THEN '< '||COUNT(DISTINCT u.UserName)          ||' >' ELSE MIN(u.UserName)           END Root_UserName,
                              CASE WHEN COUNT(DISTINCT Root_Event)                > 1 THEN '< '||COUNT(DISTINCT Root_Event)     ||' >' ELSE MIN(Root_Event)           END Root_Event
                       FROM   (
-                              SELECT CONNECT_BY_ROOT Sample_ID                Root_Sample_ID,
-                                     CONNECT_BY_ROOT Rounded_Sample_Time      Root_Rounded_Sample_Time,
+                              SELECT CONNECT_BY_ROOT Rounded_Sample_Time      Root_Rounded_Sample_Time,
                                      CONNECT_BY_ROOT Blocking_Session         Root_Blocking_Session,
                                      CONNECT_BY_ROOT Blocking_Session_Serial# Root_Blocking_Session_Serial#,
                                      CONNECT_BY_ROOT Blocking_Session_Status  Root_Blocking_Session_Status,
@@ -500,12 +499,12 @@ class ActiveSessionHistoryController < ApplicationController
                       LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = l.Root_Real_Current_Object_No
                       LEFT OUTER JOIN DBA_Users u   ON u.User_ID = l.Root_User_ID
                       WHERE NOT EXISTS (SELECT 1 FROM TSSel i    /* Nur die Knoten ohne Parent-Blocker darstellen */
-                                        WHERE  i.Sample_ID       = l.Root_Sample_ID
-                                        AND    i.Session_ID      = l.Root_Blocking_Session
-                                        AND    i.Session_Serial# = l.Root_Blocking_Session_Serial#
-                                        /* AND    i.Instance_Number = l.Root_Blocking_Inst_ID -- 11g only  */
+                                        WHERE  i.Rounded_Sample_Time  = l.Root_Rounded_Sample_Time
+                                        AND    i.Session_ID           = l.Root_Blocking_Session
+                                        AND    i.Session_Serial#      = l.Root_Blocking_Session_Serial#
+                                       #{'AND  i.Instance_number      = l.Root_Blocking_Inst_ID' if session[:version] >= '11.2'}
                                        )
-                      GROUP BY Root_Snap_ID, Root_Sample_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status
+                      GROUP BY Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status
                       #{', Root_Blocking_Inst_ID' if session[:version] >= '11.2'}
                     ) gr
                     JOIN (SELECT ? DBID FROM DUAL) db ON 1=1
@@ -533,13 +532,12 @@ class ActiveSessionHistoryController < ApplicationController
     save_session_time_selection
     @min_snap_id                = params[:min_snap_id]
     @max_snap_id                = params[:max_snap_id]
-    @sample_id                  = params[:sample_id]
     @time_selection             = params[:time_selection]
     @blocking_instance          = params[:blocking_instance]
     @blocking_session           = params[:blocking_session]
     @blocking_session_serialno  = params[:blocking_session_serialno]
 
-    wherevalues = [ @dbid, @min_snap_id, @max_snap_id, @sample_id, @sample_id]
+    wherevalues = [ @dbid, @min_snap_id, @max_snap_id, @time_selection , @time_selection ]
     wherevalues << @blocking_session          if @blocking_session
     wherevalues << @blocking_session_serialno if @blocking_session
     wherevalues << @blocking_instance         if @blocking_session && session[:version] >= '11.2'
@@ -549,7 +547,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     @locks = sql_select_all [
         "WITH /* Panorama-Tool Ramm */
-                   TSel AS ( SELECT 10 Sample_Cycle, Sample_ID, Sample_Time,
+                   TSel AS ( SELECT 10 Sample_Cycle,
                                      h.Instance_Number, Session_ID, Session_Serial#, Current_File#, Current_Block#,
                                      Blocking_Session,Blocking_Session_Serial#, Blocking_Session_Status, #{'Blocking_Inst_ID, Current_Row#, ' if session[:version] >= '11.2'}
                                      p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, SQL_Child_Number, User_ID, Event
@@ -558,15 +556,15 @@ class ActiveSessionHistoryController < ApplicationController
                               WHERE  (v.Min_Sample_Time IS NULL OR h.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
                               AND    h.DBID = ?
                               AND    h.Snap_ID BETWEEN ? AND ?
-                              AND    h.Sample_ID = ?
+                              AND    TRUNC(h.Sample_Time+INTERVAL '5' SECOND, 'MI') + TRUNC(TO_NUMBER(TO_CHAR(h.Sample_Time+INTERVAL '5' SECOND, 'SS'))/10)/8640  = TO_DATE(?, '#{sql_datetime_second_mask}')
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') -- Session wartend auf Blocking-Session
                               UNION ALL
-                              SELECT 1 Sample_Cycle, Sample_ID, Sample_Time,
+                              SELECT 1 Sample_Cycle,
                                      h.Inst_ID, Session_ID, Session_Serial#, Current_File#, Current_Block#,
                                      Blocking_Session,Blocking_Session_Serial#, Blocking_Session_Status, #{'Blocking_Inst_ID, Current_Row#, ' if session[:version] >= '11.2'}
                                      p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, SQL_Child_Number, User_ID, Event
                               FROM   gv$Active_Session_History h
-                              WHERE  Sample_ID = ?
+                              WHERE  CAST(Sample_Time + INTERVAL '0.5' SECOND AS DATE) = TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') -- Session wartend auf Blocking-Session
                             )
         SELECT o.Session_Serial# Session_SerialNo, u.UserName,
@@ -605,10 +603,9 @@ class ActiveSessionHistoryController < ApplicationController
                                LEVEL cLevel,
                                l.*
                         FROM   tSel l
-                        CONNECT BY NOCYCLE PRIOR Sample_ID       = Sample_ID
-                                       AND PRIOR Session_ID      = Blocking_Session
+                        CONNECT BY NOCYCLE PRIOR Session_ID      = Blocking_Session
                                        AND PRIOR Session_Serial# = Blocking_Session_Serial#
-                                       -- AND PRIOR instance_number = blocking_Inst_ID -- 11g only
+                                    #{'AND PRIOR Instance_number = Blocking_Inst_ID' if session[:version] >= '11.2'}
                         START WITH #{@blocking_session ? "Blocking_Session = ? AND Blocking_Session_Serial# = ? #{' AND Blocking_Inst_ID = ?' if session[:version] >= '11.2'}" : "Blocking_Session_Status='GLOBAL'"}
                        )
                 LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = Root_Real_Current_Object_No
