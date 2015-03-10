@@ -54,7 +54,7 @@
   active_session_history_show_top_ten_hint:                 Anzeige der Top 10 nach total time waited in Zeitleiste, jeweils ein Punkt im Graph für die Summe über %{sec} Sekunden
   active_session_history_total_time_waited_hint:            Summe Time waited in Sekunden (Sample-Zyklus(1/10 Sekunden) * Samples)
 
-  application_connection_no_db_choosen:                     Keine DB ausgewählt! Bitte rechts oben DB auswählen
+  application_connection_no_db_choosen:                     Keine DB ausgewählt! Bitte rechts oben DB auswählen! (Speicherung von Browser-Cookies ist erforderlich)
 
   ajax_helper_link_sql_id_title_prefix:                     Anzeige der Details in SGA für
 
