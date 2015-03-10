@@ -55,7 +55,6 @@
 
 <% # Parameter für nachfolgendes Partial list_groupfilter
    @header = "#{t :active_session_history_list_session_statistic_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
-   @repeat_controller = :io
    @repeat_action = :list_iostat_detail_history_grouping
    @key_rule_proc = proc{|key| iostat_detail_key_rule(key)}
 

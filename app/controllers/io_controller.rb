@@ -2,6 +2,20 @@
 class IoController < ApplicationController
   include IoHelper
 
+  # Redudant zu Methode aus ActiveSessionHistoryController, da send nur innerhalb des gleichen Controllers praktikabel
+  def refresh_time_selection
+    params[:groupfilter][:time_selection_start] = params[:time_selection_start] if params[:time_selection_start]
+    params[:groupfilter][:time_selection_end]   = params[:time_selection_end]   if params[:time_selection_end]
+    params[:groupfilter].each do |key, value|
+      params[:groupfilter].delete(key) if params[key] && key!='time_selection_start' && key!='time_selection_end' # Element aus groupfilter loeschen, dass namentlich im param-Hash genannt ist
+    end
+
+    send(params[:repeat_action])              # Ersetzt redirect_to, da dies in Kombination winstone + FireFox nicht sauber funktioniert (Get-Request wird über Post verarbeitet)
+
+    #redirect_to url_for(:controller => params[:repeat_controller],:action => params[:repeat_action], :params => params, :method=>:post)
+  end
+
+
   # Hilfsmethode
   def where_from_groupfilter (groupfilter, groupby, key_rule_function)
     @groupfilter = groupfilter             # Instanzvariablen zur nachfolgenden Nutzung

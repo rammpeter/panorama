@@ -1,4 +1,4 @@
-<!-- Vom Aufrufer zu belegen: @header, @groupfilter, @last_action, @repeat_controller, @repeat_action, @key_rule_proc
+<!-- Vom Aufrufer zu belegen: @header, @groupfilter, @last_action, @repeat_action, @key_rule_proc
 -->
 
 <%
@@ -9,12 +9,11 @@
    @time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
 
    @caption = ""
-   @caption << (my_ajax_form_tag url_for(:controller => :active_session_history, :action        => :refresh_time_selection,
+   @caption << (my_ajax_form_tag url_for(:controller => :io, :action        => :refresh_time_selection,
                                          :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
                                          :groupfilter   => @groupfilter,            # Groupfilter des letzten Aufrufes wiederverwenden, reduziert um Fehlerquellen
                                          :update_area   => params[:update_area],         # Update_area des letzten Aufrufes wiederverwenden
-                                         :repeat_controller => @repeat_controller ? @repeat_controller : :io, # Möglichkeit, den Controller zu wechseln
-                                         :repeat_action => @repeat_action             # Zuletzt aufgerufene action wiederholen
+                                         :repeat_action => @repeat_action             # Zuletzt aufgerufene Action im selben Controller wiederholen
                                  ) do
      form_content = ""
      form_content << "<div style=\"float:left;\">"

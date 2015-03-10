@@ -88,8 +88,8 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   end
 
   test "refresh_time_selection" do
-    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :repeat_controller=>:active_session_history, :repeat_action => :list_session_statistic_historic_grouping
-    assert_response 302   # redirect_to schwierig im Test?
+    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :repeat_action => :list_session_statistic_historic_grouping
+    assert_response :success   # redirect_to schwierig im Test?
   end
 
   test "list_session_statistic_historic_single_record" do

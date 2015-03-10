@@ -70,6 +70,12 @@ class IoControllerTest < ActionController::TestCase
 
   end
 
+  test "refresh_time_selection" do
+    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :repeat_action => :list_io_file_history_grouping
+    assert_response :success   # redirect_to schwierig im Test?
+  end
+
+
   #################### iostat_detail #######################
   test "list_iostat_detail_history" do
     def do_test(groupby)
