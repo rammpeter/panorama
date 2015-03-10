@@ -349,7 +349,8 @@ class ActiveSessionHistoryController < ApplicationController
       params[:groupfilter].delete(key) if params[key] && key!='time_selection_start' && key!='time_selection_end' # Element aus groupfilter loeschen, dass namentlich im param-Hash genannt ist
     end
 
-    redirect_to :controller => params[:repeat_controller],:action => params[:repeat_action], :params => params
+
+    redirect_to url_for(:controller => params[:repeat_controller],:action => params[:repeat_action], :params => params)
     #send params[:repeat_action]    # Methode erneut aufrufen
   end
 
