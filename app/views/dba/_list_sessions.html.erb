@@ -28,6 +28,8 @@
     {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>"Instance-ID"},
     {:caption=>"SID/SN",           :data=>proc{|rec| link_session(rec)},              :title=>"SID, SerialNo"},
     {:caption=>"Status",           :data=>proc{|rec| rec.status},                     :title=>"Session-Status"},
+    {:caption=>"Wait event",       :data=>proc{|rec| rec.wait_event},                 :title=>'Wait-Event'},
+    {:caption=>"W",                :data=>proc{|rec| fn(rec.seconds_in_wait)},        :title=>'Wait time in current event in seconds', :align=>:right},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                   :title=>"Oracle-Username"},
     {:caption=>"Proc",             :data=>proc{|rec| rec.spid},                       :title=>"Prozess-ID Oracle Shadow-Prozess auf DB-Server"},
     {:caption=>"Machine",          :data=>proc{|rec| rec.machine},                    :title=>"Client-Maschine"},

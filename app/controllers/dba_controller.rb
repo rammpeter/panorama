@@ -604,7 +604,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         Open_Cursor, Open_Cursor_SQL,
         wa.Operation_Type, wa.Policy, wa.Active_Time_Secs, wa.Work_Area_Size_MB,
         wa.Expected_Size_MB, wa.Actual_Mem_Used_MB, wa.Max_Mem_Used_MB, wa.Number_Passes,
-        wa.WA_TempSeg_Size_MB
+        wa.WA_TempSeg_Size_MB,
+        CASE WHEN w.State = 'WAITING' THEN w.Event ELSE 'ON CPU' END Wait_Event, w.Seconds_In_Wait
       FROM    GV$session s
       JOIN    (SELECT Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
                FROM   gv$Open_Cursor
@@ -652,6 +653,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
               FROM   gv$Sort_Usage
               GROUP BY Inst_ID, Session_Addr
              ) temp ON temp.Inst_ID = s.Inst_ID AND temp.Session_Addr = s.sAddr
+      LEFT OUTER JOIN gv$Session_Wait w ON w.Inst_ID = s.Inst_ID AND w.SID = s.SID
       WHERE 1=1 #{where_string}
       ORDER BY 1 ASC"].concat(where_values)
 

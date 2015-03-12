@@ -71,7 +71,7 @@ class IoControllerTest < ActionController::TestCase
   end
 
   test "refresh_time_selection" do
-    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :repeat_action => :list_io_file_history_grouping
+    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :grooupby=>'Instance', :repeat_action => :list_io_file_history_grouping
     assert_response :success   # redirect_to schwierig im Test?
   end
 
