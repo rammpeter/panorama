@@ -489,3 +489,5 @@
   show_mutex_statistics_historic_timeline_hint:             Mutex-Sleep-Historie zeitlich gruppiert
   show_mutex_statistics_historic_waiter_hint:               Mutex-Sleep-Historie Gruppiert nach Waiter-Sessions
 
+  storage_tablespace_usage_header_caption:                  Storage-Objekte für Datenbank
+

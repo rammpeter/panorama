@@ -1,4 +1,4 @@
-<h2>Tablespace-Objekte der Datenbank <%= session[:database][:sid] %> <%= localeDateTime(Time.now, :minutes) %> </h2>
+<h2><%= t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')%>  <%= session[:database][:sid] %> <%= localeDateTime(Time.now, :minutes) %> </h2>
 
 <%
 def total_data_style(rec)
@@ -27,7 +27,7 @@ column_options =
 
 %>
 
-<%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto nach Segment-Typen", :width=>:auto}) %>
+<%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto in TS nach Segment-Typen", :width=>:auto}) %>
 
 <%
 column_options =
@@ -48,6 +48,21 @@ column_options =
 
 <%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Nutzung", :width=>:auto}) %>
 
+<% if @fra_usage.length > 0 %>
+
+<%
+   column_options =
+           [
+                   {:caption=>"File type",  :data=>proc{|rec| rec.file_type},                    :title=>'File type within fast recovery area'},
+                   {:caption=>"MBytes",     :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MB',        :align=>:right},
+                   {:caption=>"% used",     :data=>proc{|rec| fn(rec.percent_space_used,2)},     :title=>'Percentage used from total',        :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto}) %>
+
+<% end %>
 
 <%
 column_options =

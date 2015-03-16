@@ -76,6 +76,11 @@ class StorageController < ApplicationController
       ORDER BY 4 DESC NULLS LAST
       ")
 
+
+    @fra_size_bytes = sql_select_one("SELECT Value FROM v$Parameter WHERE Name='db_recovery_file_dest_size'").to_i
+    @flashback_log = sql_select_first_row "SELECT * FROM v$Flashback_Database_Log"
+    @fra_usage = sql_select_all "SELECT * FROM v$Flash_Recovery_Area_Usage WHERE Percent_Space_Used > 0 ORDER BY Percent_Space_Used DESC"
+
     totals = {}
     total_sum = {"contents"=>"TOTAL", "mbtotal"=>0, "mbfree"=>0, "mbused"=>0}
     total_sum.extend SelectHashHelper
@@ -88,8 +93,20 @@ class StorageController < ApplicationController
       totals[t.contents]["mbused"] += t.mbused
       total_sum["mbtotal"] += t.mbtotal
       total_sum["mbfree"]  += t.mbfree
-      total_sum["mbused"] += t.mbused
+      total_sum["mbused"]  += t.mbused
     end
+
+    if @fra_size_bytes > 0 &&  !@flashback_log.nil?
+      totals['Flashback Log'] = {}
+      totals['Flashback Log']['mbtotal'] = @flashback_log.flashback_size / (1024*1024).to_i
+      totals['Flashback Log']['mbfree'] = 0
+      totals['Flashback Log']['mbused'] =  totals['Flashback Log']['mbtotal']
+
+      total_sum["mbtotal"] += totals['Flashback Log']['mbtotal']
+      total_sum["mbfree"]  += 0
+      total_sum["mbused"]  += totals['Flashback Log']['mbtotal']
+    end
+
     @totals = []
     totals.each do |key, value|
       value["contents"] = key
