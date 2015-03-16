@@ -46,10 +46,10 @@
             end
         end
         form_content << "<td>"
-        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>14, :id=>@time_selection_start_id, :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
+        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
         form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
         form_content << "</td><td>"
-        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>14, :id=>@time_selection_end_id,   :title => "#{t :time_selection_start_hint, :default=>"Start of considered time range in format '#{human_datetime_minute_mask}'"}")
+        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>15, :id=>@time_selection_end_id,   :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
         form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
         form_content << "</td>"
 

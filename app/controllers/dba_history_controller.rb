@@ -681,24 +681,34 @@ class DbaHistoryController < ApplicationController
 
   # Anzeige aller gespeicherter Werte eines konkreten SQL
   def list_sql_history_snapshots
-    update_area  = params[:update_area]
+    @prev_update_area    = params[:update_area]
     @instance            = prepare_param_instance
     @dbid                = prepare_param_dbid
     @sql_id              = params[:sql_id]
     @parsing_schema_name = params[:parsing_schema_name]
     @time_selection_start = params[:time_selection_start]
     @time_selection_end   = params[:time_selection_end]
+    @groupby              = params[:groupby]
 
-    params[:groupby]     = "snap" unless params[:groupby]  # Default
-    case params[:groupby].to_s
+    @groupby = 'snap' unless @groupby   # Default
+    case @groupby.to_s
+      when "snap" then        # Direkte Anzeige der Snapshots
+        @begin_interval_sql = "snap.Begin_Interval_Time"
+        @end_interval_sql   = "snap.End_Interval_Time"
+      when "hour" then
+        @begin_interval_sql = "TRUNC(snap.Begin_Interval_Time, 'HH24')"
+        @end_interval_sql   = "TRUNC(snap.Begin_Interval_Time, 'HH24') + INTERVAL '1' HOUR"
       when "day" then
         @begin_interval_sql = "TRUNC(snap.Begin_Interval_Time)"
         @end_interval_sql   = "TRUNC(snap.Begin_Interval_Time) + INTERVAL '1' DAY"
-      when "snap" then
-        @begin_interval_sql = "snap.Begin_Interval_Time"
-        @end_interval_sql   = "snap.End_Interval_Time"
+      when "week" then
+        @begin_interval_sql = "TRUNC(snap.Begin_Interval_Time, 'IW')"
+        @end_interval_sql   = "TRUNC(snap.Begin_Interval_Time, 'IW') + INTERVAL '7' DAY"
+      when "month" then
+        @begin_interval_sql = "TRUNC(snap.Begin_Interval_Time, 'MM')"
+        @end_interval_sql   = "TRUNC(snap.Begin_Interval_Time, 'MM') + INTERVAL '1' MONTH"
       else
-        raise "Unsupported value for parameter :groupby (#{params[:groupby]})"
+        raise "Unsupported value for parameter :groupby (#{@groupby})"
     end
 
     if @time_selection_start == nil || @time_selection_end == nil
@@ -757,9 +767,7 @@ class DbaHistoryController < ApplicationController
       ORDER BY #{@begin_interval_sql}
       ", @dbid, @instance, @sql_id, @time_selection_start, @time_selection_end].concat(@parsing_schema_name ? [@parsing_schema_name] : [])                      )
 
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_sql_history_snapshots" }');"}
-    end
+    render_partial :list_sql_history_snapshots
   end #list_sql_history_snapshots
 
   # Ermittlung der Treffer

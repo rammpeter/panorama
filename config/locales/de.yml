@@ -12,6 +12,7 @@
   link_historic_sql_id_coming_soon:                         Hier erscheint gleich der Text des SQL, bitte Maus erneut über Objekt führen
   link_historic_sql_id_hint_prefix:                         Anzeige der Details des
   minute:                                                   Minute
+  month:                                                    Monat
   of:                                                       des
   second:                                                   Sekunde
   show:                                                     Anzeigen
@@ -20,6 +21,8 @@
   time_selection_start_hint:                                Start des Betrachtungszeitraumes im Format
   time_selection_end_caption:                               Ende
   time_selection_end_hint:                                  Ende des Betrachtungszeitraumes im Format
+  week:                                                     Woche
+  without:                                                  ohne
 
 # Dialogspezifische Texte (alphabetisch)
   active_session_history_load_hint:                         Durchschn. Anzahl wartender Sessions gemittelt über Zeit zwischen erstem und letzten Auftreten
@@ -67,6 +70,17 @@
   dba_history_list_sql_detail_historic_last_plan_hash_hint: Hash-Value des letzten Explain-Plans
   dba_history_list_sql_detail_historic_module_action_hint:  Module und Action der Session, von der Statement zuletzt geparst wurde
   dba_history_list_sql_detail_historic_plan_count_hint:     Anzahl unterschiedliche Ausführungspläne im Zeitraum
+
+  dba_history_list_sql_history_snapshots_caption:           Aufkommen an Daten aus DBA_Hist_SQL_Stat von für SQL-ID = '%{sql_id}' Instance = %{instance}
+  dba_history_list_sql_history_snapshots_execs_hint:        Anzahl der Ausführungen des SQL im Intervall
+  dba_history_list_sql_history_snapshots_first_occurrence_caption:      Erstes Auftreten
+  dba_history_list_sql_history_snapshots_first_occurrence_hint:         Erstes Auftreten des SQL im Intervall
+  dba_history_list_sql_history_snapshots_last_occurrence_caption:       Letztes Auftreten
+  dba_history_list_sql_history_snapshots_last_occurrence_hint:          Letztes Auftreten des SQL im Intervall
+  dba_history_list_sql_history_snapshots_link_sql_detail_hint:          Anzeige der Details des Statements für diesen Zeitraum aus DBA_Hist_SQLStat (unterhalb)
+  dba_history_list_sql_history_snapshots_start_hint:        Beginn des betrachteten Intervalls
+  dba_history_list_sql_history_snapshots_start_data_hint:   Beginn des betrachteten Intervalls, Ende = %{end_interval}
+
   dba_history_show_sysmetric_historic_grouping_hint:        Verdichtung der Werte auf Zeitabschnitt
   dba_history_show_sysmetric_historic_header:               SysMetric-Historie aus DBA_Hist_SysMetric_History/GV$SysMetric_History oder DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary
   dba_history_show_sysmetric_submit_detail_caption:         Anzeige Details

@@ -14,7 +14,8 @@ def link_column_detail(rec, value)
             :time_selection_end   => localeDateTime(rec.end_interval_time, :minutes),  # 1 Tag weiter
             :update_area=> @update_area
           ),
-   :title=>"Anzeige der Details des Statements für diesen Zeitraum aus DBA_Hist_SQLStat (unterhalb)")
+   :title=>t(:dba_history_list_sql_history_snapshots_link_sql_detail_hint, :default=>'Show details for SQL from DBA_Hist_SQLStat within interval (below)')
+  )
 end
 
 
@@ -22,17 +23,17 @@ end
 
 column_options =
   [
-          {:caption=>"Start",          :data=>proc{|rec| link_column_detail(rec, localeDateTime(rec.begin_interval_time)) }, :title=>"Beginn des Intervalls des Snapshot",  :plot_master_time=>true },
-          {:caption=>"Erstes Auftreten", :data=>proc{|rec| localeDateTime(rec.first_occurrence) },             :title=>"Erstes Auftreten des SQL im Intervall"},
-          {:caption=>"Letztes Auftreten", :data=>proc{|rec| localeDateTime(rec.last_occurrence) },             :title=>"Letztes Auftreten des SQL im Intervall"},
+          {:caption=>"Start",          :data=>proc{|rec| link_column_detail(rec, localeDateTime(rec.begin_interval_time)) }, :title=>t(:dba_history_list_sql_history_snapshots_start_hint, :default=>'Begin of considered interval'), :data_title=>proc{|rec| t(:dba_history_list_sql_history_snapshots_start_data_hint, :default=>'Begin of considered interval, end = %{end_interval}', :end_interval=>localeDateTime(rec.end_interval_time) )},  :plot_master_time=>true },
+          {:caption=>t(:dba_history_list_sql_history_snapshots_first_occurrence_caption, :default=>'First occurrence'),     :data=>proc{|rec| localeDateTime(rec.first_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_first_occurrence_hint, :default=>'First occurrence of SQL in interval')},
+          {:caption=>t(:dba_history_list_sql_history_snapshots_last_occurrence_caption, :default=>'Last occurrence'), :data=>proc{|rec| localeDateTime(rec.last_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_last_occurrence_hint, :default=>'Last occurrence of SQL in interval')},
           {:caption=>"Plans",          :data=>proc{|rec| formattedNumber(rec.execution_plans) },               :title=>"Number of different execution plans in time range", :align=>"right" },
           {:caption=>"Plan hash value",:data=>proc{|rec| rec.first_plan_hash_value },                          :title=>"Plan hash value of first sample in time range" },
           {:caption=>"Opt. env hash value",:data=>proc{|rec| rec.first_opt_env_hash_value },                   :title=>"Optimizer env hash value of first sample in time range" },
-          {:caption=>"Execs",          :data=>proc{|rec| formattedNumber(rec.executions) },                    :title=>"Anzahl Ausfuehrungen im Zeitraum", :align=>"right" },
+          {:caption=>"Execs",          :data=>proc{|rec| formattedNumber(rec.executions) },                    :title=>t(:dba_history_list_sql_history_snapshots_execs_hint, :default=>'Number of executions of SQL in interval'), :align=>"right" },
           {:caption=>"Elapsed",        :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs) },             :title=>"Total elapsed time in Sec.", :align=>"right" },
           {:caption=>"Ela./Ex.",       :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute, 4) },  :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right" },
-          {:caption=>"CPU",            :data=>proc{|rec| formattedNumber(rec.cpu_time_secs) },                 :title=>"CPU-Zeit gesamt in Sekunden, Summe über alle PQ-Prozesse", :align=>"right" },
-          {:caption=>"App.",           :data=>proc{|rec| formattedNumber(rec.application_wait_time_secs) },    :title=>"Application Wait-Time in Sekunden, incl. Row Lock waits", :align=>"right" },
+          {:caption=>"CPU",            :data=>proc{|rec| formattedNumber(rec.cpu_time_secs) },                 :title=>"CPU-time total in seconds, sum over all PQ-Processes", :align=>"right" },
+          {:caption=>"App.",           :data=>proc{|rec| formattedNumber(rec.application_wait_time_secs) },    :title=>"Application wait time in seconds, incl. row lock waits", :align=>"right" },
           {:caption=>"Con.",           :data=>proc{|rec| formattedNumber(rec.concurrency_wait_time_secs) },    :title=>"Concurrency Wait Time (sec)", :align=>"right" },
           {:caption=>"Clu.",           :data=>proc{|rec| formattedNumber(rec.cluster_wait_time_secs) },        :title=>"Cluster-Wait-Time im RAC in Sekunden, Summe über alle PQ-Prozesse", :align=>"right" },
           {:caption=>"I/O",            :data=>proc{|rec| formattedNumber(rec.user_io_wait_time_secs) },        :title=>"User-IO Wait Time (sec)", :align=>"right" },
@@ -51,7 +52,65 @@ column_options =
 
 %>
 <%=
-caption = "Aufkommen an Daten aus DBA_Hist_SQL_Stat von #{@time_selection_start} bis #{@time_selection_end} für SQL-ID = '#{@sql_id}' Instance = #{@instance}"
+caption = t(:dba_history_list_sql_history_snapshots_caption, :default=>"Historic snapshots from DBA_Hist_SQL_Stat for SQL-ID = '%{sql_id}' Instance = %{instance}", :sql_id=>@sql_id, :instance=>@instance)
+caption << '<br><div style="font-weight: normal;">'
+
+@time_selection_start_id = "time_selection_start_#{session[:request_counter]}"
+@time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
+
+grouping_options = {
+        :snap   => "[AWR-cycle]",
+        :hour   => t(:hour, :default => 'Hour'),
+        :day    => t(:day,  :default => 'Day'),
+        :week   => t(:week, :default => 'Week'),
+        :month  => t(:month,:default => 'Month'),
+}
+
+
+
+
+caption << (my_ajax_form_tag url_for(:controller => :dba_history, :action        => :list_sql_history_snapshots,
+                                      :parsing_schema_name     => @parsing_schema_name,
+                                      :sql_id         => @sql_id,
+                                      :update_area   => @prev_update_area,                   # Update_area des letzten Aufrufes wiederverwenden
+                              ) do
+  form_content = ''
+  form_content << '<span title="RAC-Instance">Instance '
+  form_content << text_field_tag(:instance, @instance, :size=>4)
+  form_content << '</span>'
+
+  form_content << '&nbsp;&nbsp;&nbsp;'
+  form_content << "<span title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'\">"
+  form_content << t(:time_selection_start_caption, :default => 'Start') << '&nbsp;'
+  form_content << text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
+  form_content << '</span>'
+
+  form_content << '&nbsp;&nbsp;&nbsp;'
+  form_content << t(:time_selection_end_caption, :default => 'End')   << '&nbsp;'
+  form_content << text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id, :title => "#{t(:time_selection_end_hint, :default=>'End of considered time range in format')} '#{human_datetime_minute_mask}'")
+
+  form_content << '&nbsp;&nbsp;&nbsp;'
+  form_content << "<span title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">#{t(:grouping, :default=>'Grouping')} "
+  form_content << '<select name="groupby">'
+  grouping_options.each do |key, value|
+    form_content << "<option value=\"#{key}\" #{"selected='selected'" if key.to_s==@groupby}>#{value}</option>"
+  end
+  form_content << "</select>"
+
+  form_content << '&nbsp;&nbsp;&nbsp;'
+  form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
+  form_content.html_safe
+end)
+caption << "</div>"
+
+
+
+
+
+
+
+
+
 gen_slickgrid(@hist, column_options, {  :plot_area_id => "#{@update_area}_plot_area",
                                         :div_style   => "float:left; width:100%; max-height:450px; overflow:scroll;",
                                         :caption     => caption.html_safe,
@@ -65,3 +124,9 @@ gen_slickgrid(@hist, column_options, {  :plot_area_id => "#{@update_area}_plot_a
 
 <div id="<%= @update_area %>" style="float:left; width:100%; ">
 </div>
+
+<script type="text/javascript">
+    $("#<%= @time_selection_start_id %>").datetimepicker();
+    $("#<%= @time_selection_end_id   %>").datetimepicker();
+</script>
+

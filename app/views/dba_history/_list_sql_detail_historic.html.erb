@@ -113,7 +113,7 @@ column_options = [
 }) %>
 
 <br><b>Zusätzliche Informationen</b><br><br>
-<div style="float:left; ">
+<div class="float_left">
     <%= my_ajax_submit_tag("Execution-Plan (#{@sql.plan_hash_value_count})",
      url_for(:update_area          => @update_area,
              :action               => :list_sql_history_execution_plan,
@@ -128,7 +128,7 @@ column_options = [
     %>
 </div>
 &nbsp;
-<div style="float:left; ">
+<div class="float_left">
     <%=
         if @user_id
           user_id_filter = {"User-ID" =>@user_id}
@@ -155,7 +155,7 @@ column_options = [
   %>
 </div>
 &nbsp;
-<div style="float:left; ">
+<div class="float_left">
   <%= my_ajax_submit_tag("Komplette Zeitleiste des SQL",
    url_for(:update_area => @update_area,
            :action      => :list_sql_history_snapshots,
@@ -170,7 +170,7 @@ column_options = [
   %>
 </div>
   &nbsp;
-  <div style="float:left; ">
+  <div class="float_left">
     <%= my_ajax_submit_tag("SQL in aktueller SGA",
      url_for(:update_area    => @update_area,
              :controller     => :dba_sga,
