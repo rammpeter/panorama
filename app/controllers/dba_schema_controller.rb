@@ -215,9 +215,11 @@ class DbaSchemaController < ApplicationController
     @columns = sql_select_all ["\
                  SELECT /*+ Panorama Ramm */
                        c.*, co.Comments,
-                       NVL(c.Data_Precision, c.Char_Length)||CASE WHEN c.Char_Used='B' THEN ' Bytes' WHEN c.Char_Used='C' THEN ' Chars' ELSE '' END Precision
+                       NVL(c.Data_Precision, c.Char_Length)||CASE WHEN c.Char_Used='B' THEN ' Bytes' WHEN c.Char_Used='C' THEN ' Chars' ELSE '' END Precision,
+                       l.Segment_Name LOB_Segment
                 FROM   DBA_Tab_Columns c
                 JOIN   DBA_Col_Comments co ON co.Owner = c.Owner AND co.Table_Name = c.Table_Name AND co.Column_Name = c.Column_Name
+                LEFT OUTER JOIN DBA_Lobs l ON l.Owner = c.Owner AND l.Table_Name = c.Table_Name AND l.Column_Name = c.Column_Name
                 WHERE  c.Owner = ? AND c.Table_Name = ?
                 ORDER BY c.Column_ID
                ", @owner, @table_name]
@@ -228,7 +230,21 @@ class DbaSchemaController < ApplicationController
       @partition_count = 0
     end
 
-    @size_mb = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
+    @size_mb_table = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
+
+
+    @size_mb_total = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024)
+                                      FROM DBA_Segments
+                                      WHERE (Owner, Segment_Name) IN (
+                                          SELECT ? , ? FROM DUAL
+                                          UNION ALL
+                                          SELECT Owner, Index_Name FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?
+                                          UNION ALL
+                                          SELECT Owner, Segment_Name FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?
+                                      )",
+                                     @owner, @table_name, @owner, @table_name, @owner, @table_name
+                                    ]
+
 
     @indexes = sql_select_one ['SELECT COUNT(*) FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?', @owner, @table_name]
 
@@ -262,6 +278,8 @@ class DbaSchemaController < ApplicationController
       ", @owner, @table_name]
 
     @triggers = sql_select_one ["SELECT COUNT(*) FROM All_Triggers WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+
+    @lobs = sql_select_one ["SELECT COUNT(*) FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     render_partial "list_table_description"
   end
@@ -458,6 +476,37 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+
+  def list_lobs
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+    @segment_name = params[:segment_name]
+
+    where_string = ''
+    where_values = []
+
+    if @owner && @owner != ''
+      where_string << ' AND l.Owner = ?'
+      where_values << @owner
+    end
+
+    if @table_name && @table_name != ''
+      where_string << ' AND l.Table_Name = ?'
+      where_values << @table_name
+    end
+
+    if @segment_name && @segment_name != ''
+      where_string << ' AND l.Segment_Name = ?'
+      where_values << @segment_name
+    end
+
+    @lobs = sql_select_all ["\
+      SELECT /*+ Panorama Ramm */ l.*, (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = l.Owner AND s.Segment_Name = l.Segment_Name) Size_MB
+      FROM   DBA_Lobs l
+      WHERE  1=1 #{where_string}"].concat(where_values)
+
+    render_partial
+  end
 
   def list_audit_trail
     where_string = ""

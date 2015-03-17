@@ -7,6 +7,18 @@
 </div>
 
 <%
+
+   def link_lob(rec)
+       my_ajax_link_to(rec.lob_segment,
+                          url_for(:update_area => @update_area,
+                                  :action      => :list_lobs,
+                                  :owner       => @owner,
+                                  :table_name  => @table_name,
+                                  :segment_name=> rec.lob_segment
+                          ),
+                          :title => "Show LOB-segment for column")
+    end
+
 column_options =
 [
   {:caption=> 'Col.Name',          :data=>proc{|rec| rec.column_name},                         :title=> 'Column-Name'},
@@ -19,6 +31,7 @@ column_options =
   {:caption=> 'Nulls',             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=> 'Number of null values in column',     :align=>:right},
   {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes',     :align=>:right},
   {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
+  {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segement for LOB columns'},
 ]
 %>
 
@@ -55,7 +68,8 @@ column_options =
   {:caption=> 'IniTrans',         :data=>proc{|rec| fn(rec.ini_trans)},                    :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
   {:caption=> 'MaxTrans',         :data=>proc{|rec| fn(rec.max_trans)},                    :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
   {:caption=> 'Rows',             :data=>proc{|rec| fn(rec.num_rows)},                     :title=> 'Number of rows calculated by last analyze run', :align=>:right},
-  {:caption=> 'Size (MB)',        :data=>proc{|rec| fn(@size_mb, 2)},                      :title=> 'Current object size in megabytes', :align=>:right},
+  {:caption=> 'Size (MB) Table',  :data=>proc{|rec| fn(@size_mb_table, 2)},                :title=> 'Current table size in megabytes', :align=>:right},
+  {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right},
   {:caption=> 'Blocks',           :data=>proc{|rec| fn(rec.blocks)},                       :title=> 'Number of allocated blocks calculated by last analyze run', :align=>:right},
   {:caption=> 'Empty',            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=> 'Number of empty (never used) blocks calculated by last analyze run', :align=>:right},
   {:caption=> 'Avg. Space',       :data=>proc{|rec| fn(rec.avg_space)},                    :title=> 'Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run', :align=>:right},
@@ -156,6 +170,16 @@ column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_
                                  :table_name  => @table_name
                          ),
                          :title => "Show triggers for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@lobs} LOBs",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_lobs,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show LOB-segments for table #{@owner}.#{@table_name}")
   %>
 </div>
 <div class="float_left">
