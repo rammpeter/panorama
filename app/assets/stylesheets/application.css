@@ -189,7 +189,7 @@ thead th{
 }
 tbody td,tbody th{
 	font-size:85%;
-	padding: 4px;
+    padding: 4px;
 	background:#eee;
     word-wrap: break-word;
 }
