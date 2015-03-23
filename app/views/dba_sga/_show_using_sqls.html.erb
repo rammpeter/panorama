@@ -1,6 +1,9 @@
 <%
+   @update_area = get_unique_area_id
+
+
   def link_sql(rec)
-    link_sql_id(:show_using_sqls_detail_area, rec.inst_id, rec.sql_id, rec.child_number, rec.parsing_schema_name)
+    link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.child_number, rec.parsing_schema_name)
   end
 
 column_options =
@@ -24,7 +27,25 @@ column_options =
 ]
 %>
 
-<%= gen_slickgrid(@sqls, column_options, {:caption=>"SQL statements accessing #{@object_owner}.#{@object_name}", :max_height=>450}) %>
+<%= gen_slickgrid(@sqls, column_options, {:caption=>"SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)", :max_height=>450}) %>
 
-<div id="show_using_sqls_detail_area" style="float:left; width:100%;">
+<%=
+    my_ajax_form_tag(url_for(:controller    =>:dba_history,
+                             :action        => :show_using_sqls_historic,
+                             :ObjectOwner   =>  @object_owner,
+                             :ObjectName    => @object_name,
+                             :update_area   => @update_area
+                     )
+    )  do
+%>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="float_left">
+      <%= submit_tag('Show historic SQLs', :title => "Search AWR history between timestamps for SQLs accessing #{@object_owner}.#{@object_name} (by DBA_Hist_SQL_Plan)") %>
+    </div>
+<% end %>
+
+
+<div id="<%= @update_area %>" style="float:left; width:100%;">
 </div>

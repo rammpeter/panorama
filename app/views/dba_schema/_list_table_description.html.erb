@@ -192,4 +192,15 @@ column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_
                            :title => "Usage of DB-cache for object #{@owner}.#{@table_name}")
     %>
 </div>
+<div class="float_left">
+  <%= my_ajax_submit_tag('SQLs',
+                         url_for(:update_area => @update_area,
+                                 :controller  => :dba_sga,
+                                 :action      => :show_using_sqls,
+                                 :ObjectOwner => @owner,
+                                 :ObjectName  => @table_name,
+                         ),
+                         :title => "List SQLs in SGA (via gv$SQL_Plan) accessing #{@owner}.#{@table_name}")
+  %>
+</div>
 <div id="<%= @update_area %>" style="clear:both;"></div>

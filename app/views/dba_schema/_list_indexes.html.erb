@@ -17,7 +17,7 @@
    end
 
    def link_using_sqls(rec)
-       my_ajax_link_to(fn(rec.sql_count),
+       my_ajax_link_to('Show',
                        url_for({:controller   => :dba_sga,
                                 :action       => :show_using_sqls,
                                 :ObjectOwner => rec.owner,
@@ -53,9 +53,9 @@
                    {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of index creation'},
                    {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on index'},
                    {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=> 'The date of the most recent time this table was analyzed'},
-                   {:caption=> 'Use',              :data=>proc{|rec| rec.used},                          :title=> 'Usage of index detected? From sys.Object_Usage', :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| 'background-color:coral;' if rec.used=='NO'} },
-                   {:caption=> 'SQLs',             :data=>proc{|rec| link_using_sqls(rec)},             :title=> 'Number of SQLs in SGA using this index', :align=>:right},
                    {:caption=> 'F. Stat.',         :data=>proc{|rec| rec.funcidx_status},               :title=> 'Is the Function-based Index DISABLED or ENABLED?'},
+                   {:caption=> 'Use',              :data=>proc{|rec| rec.used},                          :title=> 'Usage of index detected? From sys.Object_Usage', :data_title=>proc{|rec| "%t: monitoring index = #{rec.monitoring}, start monitoring = #{rec.start_monitoring}, end monitoring = #{rec.end_monitoring}"}, :data_style=>proc{|rec| 'background-color:coral;' if rec.used=='NO'} },
+                   {:caption=> 'SQLs',             :data=>proc{|rec| link_using_sqls(rec)},             :title=> 'Click link to show SQLs in SGA using this index'},
            ]
 
 %>
