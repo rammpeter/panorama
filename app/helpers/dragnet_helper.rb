@@ -718,6 +718,7 @@ Usable with Oracle 11g and above only.',
                                    ) h ON h.Inst_ID=p.Inst_ID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
                             LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                             WHERE  p.Operation = 'TABLE ACCESS' AND p.Options = 'BY INDEX ROWID'
+                            AND    p.Object_Owner NOT IN ('SYS', 'SYSTEM')
                             AND    NVL(t.Num_Rows, 0) < ?
                            ) x
                     WHERE  Seconds_Per_Object  > ?
@@ -747,6 +748,7 @@ Usable with Oracle 11g and above only.',
                                    ) h ON h.DBID = p.DBID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
                             LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                             WHERE  p.Operation = 'TABLE ACCESS' AND p.Options = 'BY INDEX ROWID'
+                            AND    p.Object_Owner NOT IN ('SYS', 'SYSTEM')
                             AND    NVL(t.Num_Rows, 0) < ?
                            )
                     WHERE  Seconds_Per_Object  > ?
