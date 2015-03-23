@@ -320,7 +320,8 @@ class DbaSchemaController < ApplicationController
                         DECODE(bitand(io.flags, 65536), 0, 'NO', 'YES') Monitoring,
                         DECODE(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
                         ou.start_monitoring, ou.end_monitoring,
-                        do.Created, do.Last_DDL_Time
+                        do.Created, do.Last_DDL_Time,
+                        (SELECT COUNT(DISTINCT SQL_ID) from gv$SQL_Plan p WHERE p.Object_Owner=i.Owner AND p.Object_Name=i.Index_Name) SQL_Count
                  FROM   DBA_Indexes i
                  JOIN   sys.user$   u  ON u.Name  = i.owner
                  JOIN   sys.Obj$    o  ON o.Owner# = u.User# AND o.Name = i.Index_Name
