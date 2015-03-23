@@ -28,7 +28,7 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   spec.require_paths = ["lib"]
 
   #spec.add_dependency "rails", "~> 4.1.6"	# Use this rails version or above		
-  spec.add_dependency "rails", "= 4.2.0"	# Use exactly this rails version
+  spec.add_dependency "rails", "= 4.2.1"	# Use exactly this rails version
   spec.add_dependency 'rails-html-sanitizer'
   spec.add_dependency 'activerecord-nulldb-adapter'
   spec.add_dependency 'activerecord-oracle_enhanced-adapter'     # lokal in Gemfile überschreiben mit : gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
