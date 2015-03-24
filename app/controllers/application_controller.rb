@@ -44,7 +44,7 @@ class ApplicationController < ActionController::Base
     curr_line_no=0
     @exception.backtrace.each do |bt|
       Rails.logger.error bt if curr_line_no < 20                                # report First 20 lines of stacktrace in log
-      curr_line_no++
+      curr_line_no += 1
     end
 
 
