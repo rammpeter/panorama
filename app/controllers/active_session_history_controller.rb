@@ -322,13 +322,16 @@ class ActiveSessionHistoryController < ApplicationController
   # Vorbelegungen von diversen Filtern durch Übergabe im Param-Hash
   def show_prepared_active_session_history
     @groupfilter = {:DBID       => prepare_param_dbid }
+
     @groupfilter[:Instance]     =  params[:instance]  if params[:instance]
     @groupfilter['SQL-ID']      =  params[:sql_id]    if params[:sql_id]
     @groupfilter['Session/Sn.'] =  "#{params[:sid]}, #{params[:serialno]}"       if params[:sid] &&  params[:serialno]
+    @groupfilter['Action']      =  params[:action]    if params[:action]
 
     @groupby = 'Hugo' # Default
     @groupby = 'SQL-ID' if params[:sql_id]
     @groupby = 'Session/Sn.' if params[:sid] &&  params[:serialno]
+    @groupby = 'Action' if params[:action]
 
     render_partial
   end
