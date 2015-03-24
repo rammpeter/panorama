@@ -326,12 +326,12 @@ class ActiveSessionHistoryController < ApplicationController
     @groupfilter[:Instance]     =  params[:instance]  if params[:instance]
     @groupfilter['SQL-ID']      =  params[:sql_id]    if params[:sql_id]
     @groupfilter['Session/Sn.'] =  "#{params[:sid]}, #{params[:serialno]}"       if params[:sid] &&  params[:serialno]
-    @groupfilter['Action']      =  params[:action]    if params[:action]
+    @groupfilter['Action']      =  params[:module_action]    if params[:module_action]
 
     @groupby = 'Hugo' # Default
     @groupby = 'SQL-ID' if params[:sql_id]
     @groupby = 'Session/Sn.' if params[:sid] &&  params[:serialno]
-    @groupby = 'Action' if params[:action]
+    @groupby = 'Action' if params[:module_action]
 
     render_partial
   end
