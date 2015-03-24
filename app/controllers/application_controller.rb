@@ -41,6 +41,13 @@ class ApplicationController < ActionController::Base
 
     Rails.logger.error @exception.message
 
+    curr_line_no=0
+    @exception.backtrace.each do |bt|
+      Rails.logger.error bt if curr_line_no < 20                                # report First 20 lines of stacktrace in log
+      curr_line_no++
+    end
+
+
     render :partial =>'application/error_message', :status=>500
 
     #raise exception   # Standard-Behandlung der Exceptions
