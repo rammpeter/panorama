@@ -1447,6 +1447,36 @@ Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
+            :name  => t(:dragnet_helper_63_name, :default=>'Parallel Query: Degree of parallelism (number of attached PQ servers) higher than limit for single SQL execution'),
+            :desc  => t(:dragnet_helper_63_desc, :default=>'Number of avilable PQ servers is a limited resource, so default degree of parallelism is often to high for production use, especially on multi-core machines.
+Overallocation of PQ servers may result in serial processing og other SQLs estimated to process in parallel.'),
+            :sql=>   "SELECT Instance_Number, SQL_ID, MIN(Sample_Time) First_Occurrence, MAX(Sample_Time) Last_Occurrence,
+                             COUNT(DISTINCT QC_Session_ID)    Different_Coordinator_Sessions,
+                             SUM(Executions)                  SQL_Executions,
+                             u.UserName,
+                             SUM(10)                          Active_Seconds,
+                             SUM(10*DOP)                      Elapsed_PQ_Seconds_Total,
+                             MIN(DOP)                         Min_Degree_of_Parallelism,
+                             MAX(DOP)                         Max_Degree_of_Parallelism,
+                             ROUND(AVG(DOP))                  Avg_Degree_of_Parallelism
+                      FROM   (
+                              SELECT Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#,
+                               sql_id, MIN(sample_time) Sample_Time, COUNT(*) dop, MIN(User_ID) User_ID, COUNT(DISTINCT SQL_Exec_ID) Executions
+                              FROM dba_hist_active_sess_history
+                              WHERE  QC_Session_ID IS NOT NULL
+                              AND    Sample_Time > SYSDATE - ?
+                              GROUP BY Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#, Sample_ID, SQL_ID
+                              HAVING count(*) > 16
+                             ) g
+                      LEFT OUTER JOIN DBA_Users u ON U.USER_ID = g.User_ID
+                      GROUP BY Instance_Number, SQL_ID, u.UserName
+                      ORDER BY MAX(DOP) DESC
+                      ",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=>t(:dragnet_helper_63_param_2_name, :default=>'Limit for number of PQ servers'), :size=>8, :default=>16, :title=>t(:dragnet_helper_63_param_2_hint, :default=>'Limit for number of PQ servers: exceedings of this value are shown here') },
+            ]
+        },
+        {
              :name  => 'Identifikation von Statements mit wechselndem Ausführungsplan aus Historie',
              :desc  => 'mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
 Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements

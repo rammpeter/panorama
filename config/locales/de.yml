@@ -348,6 +348,16 @@
   dragnet_helper_62_param_1_name:                           Minimale Dauer (Sekunden) seit letzter Aktivät der Session
   dragnet_helper_62_param_1_hint:                           Minimale Dauer in Sekunden seit dem Ende der letzten Aktivtät der Session
 
+  dragnet_helper_63_desc: |-
+    Die Anzahl der verfügbaren PQ-Server ist eine limitierte Resoure, damit ist der Default-Degree der Parallelisierung oft zu hoch für produktive Anwendung,
+    besonders auf Maschinen mit vielen CPU-Kernen.
+    Die Überbuchung der PQ-Server kann zur seriellen Abarbeitung anderer als parallel abgearbeitet erwarteter SQLs führen.
+  dragnet_helper_63_name: |-
+    Parallel Query: Degree der Parallelisierung (Anzahl genutzter PQ Server) höher als Limit für einfache SQL-Ausführung
+  dragnet_helper_63_param_2_name:                           Limit für Anzahl PQ-Server
+  dragnet_helper_63_param_2_hint:                           Limit für Anzahl PQ-Server, Überschreitungen werden hier angezeigt
+
+
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
   dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks
@@ -363,6 +373,14 @@
   env_handling_hint_2:                                      Sortieren nach mehreren Spalten durch aufeinanderfolgende Sortierung nach einzelnen Spalten
   env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü
   env_licensing_header:                                     Lizensierung
+
+  env_set_database_xmem_line1:                              User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind einige wenige Funktionen von Panorama nicht nutzbar!
+  env_set_database_xmem_line2: |-
+    Variante 1: Anmelden mit Rolle SYSDBA
+  env_set_database_xmem_line3: |-
+    Variante 2: Ausführen als User SYS
+  env_set_database_xmem_line4: |-
+    Damit wird X$%{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY
 
   help_no_help_available:                                   Bisher leider keine Hilfe vorhanden für
 

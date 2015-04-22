@@ -98,14 +98,14 @@ class EnvController < ApplicationController
         sql_select_all "SELECT /* Panorama Tool Ramm */ * FROM X$#{table_name_suffix} WHERE RowNum < 1"
         return true
       rescue Exception => e
-        msg << "<div> User '#{session[:database][:user]}' hat kein Leserecht auf X$#{table_name_suffix} ! Damit sind einige Funktionen von Panorama nicht nutzbar!<br/>"
+        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>session[:database][:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
         msg << "#{e.message}<br/><br/>"
         msg << "Workaround:<br/>"
-        msg << "Variante 1: Anmelden mit Rolle SYSDBA<br/>"
-        msg << "Variante 2: Ausführen als User SYS<br/>"
+        msg << "#{t(:env_set_database_xmem_line2, :default=>'Alternative 1: Connect with role SYSDABA')}<br/>"
+        msg << "#{t(:env_set_database_xmem_line3, :default=>'Alternative 2: Execute as user SYS')}<br/>"
         msg << "> create view X_$#{table_name_suffix} as select * from X$#{table_name_suffix};<br/>"
         msg << "> create public synonym X$#{table_name_suffix} for sys.X_$#{table_name_suffix};<br/>"
-        msg << "Damit wird X$#{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY"
+        msg << t(:env_set_database_xmem_line4, :table_name_suffix=>table_name_suffix, :default=>'This way X$%{table_name_suffix} becomes available with role SELECT ANY DICTIONARY')
         msg << "</div>"
         return false
       end
