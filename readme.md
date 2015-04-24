@@ -17,5 +17,5 @@ http://rammpeter.github.io/
 - Java runtime environment Java 6 or above
 - Some problems may occur with IBM JVM. If so please use JVM from SUN/Oracle.
 
-This GitHub-project is intended to build a bundled web archive file with integrated JETTY application server.
+This GitHub-project is intended to build a bundled web archive file with integrated WINSTONE application server.
 Function is included as Rails-engine via Panorama-gem at https://github.com/rammpeter/Panorama_Gem
