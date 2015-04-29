@@ -284,7 +284,7 @@ class DbaController < ApplicationController
     if object_rec.object_type.match("INDEX")
       table_name = sql_select_first_row(["\
                      SELECT Table_Name
-                     FROM   All_Indexes
+                     FROM   DBA_Indexes
                      WHERE  Owner = ?
                      AND    Index_Name = ?",
                      object_rec.owner, object_rec.object_name]).table_name
@@ -294,11 +294,11 @@ class DbaController < ApplicationController
 
     pstmt = sql_select_all ["\
              SELECT Column_Name                                              
-             FROM   All_Ind_Columns                                          
+             FROM   DBA_Ind_Columns
              WHERE  Index_Owner   = ?
              AND    Index_Name =                                             
                     (SELECT Index_Name                                       
-                     FROM   All_Constraints                                  
+                     FROM   DBA_Constraints
                      WHERE  Owner      = ?
                      AND    Table_Name = UPPER(?)
                      AND    Constraint_Type = 'P'                            

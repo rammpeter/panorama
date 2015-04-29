@@ -43,41 +43,41 @@ class DbaHistoryController < ApplicationController
              (#{@show_partitions=="1" ?
                "CASE
                 WHEN o.Object_Type = 'TABLE' 
-                     THEN (SELECT Num_Rows FROM All_Tables t
+                     THEN (SELECT Num_Rows FROM DBA_Tables t
                              WHERE t.Owner      = o.Owner
                              AND   t.Table_Name = o.Object_Name)
                 WHEN o.Object_Type = 'TABLE PARTITION'
-                     THEN (SELECT Num_Rows FROM All_Tab_Partitions t
+                     THEN (SELECT Num_Rows FROM DBA_Tab_Partitions t
                              WHERE t.Table_Owner = o.Owner
                              AND   t.Table_Name = o.Object_Name
                              AND   t.Partition_Name = o.SubObject_Name)
                 WHEN o.Object_Type = 'TABLE SUBPARTITION'
-                     THEN (SELECT Num_Rows FROM All_Tab_SubPartitions t
+                     THEN (SELECT Num_Rows FROM DBA_Tab_SubPartitions t
                              WHERE t.Table_Owner = o.Owner
                              AND   t.Table_Name = o.Object_Name
                              AND   t.SubPartition_Name = o.SubObject_Name)
                 WHEN o.Object_Type = 'INDEX'
-                     THEN (SELECT Num_Rows FROM All_Indexes i
+                     THEN (SELECT Num_Rows FROM DBA_Indexes i
                              WHERE i.Owner      = o.Owner
                              AND   i.Index_Name = o.Object_Name)
                 WHEN o.Object_Type = 'INDEX PARTITION'
-                     THEN (SELECT Num_Rows FROM All_Ind_Partitions i
+                     THEN (SELECT Num_Rows FROM DBA_Ind_Partitions i
                              WHERE i.Index_Owner = o.Owner
                              AND   i.Index_Name = o.Object_Name
                              AND   i.Partition_Name = o.SubObject_Name)
                 WHEN o.Object_Type = 'INDEX SUBPARTITION'
-                     THEN (SELECT Num_Rows FROM All_Ind_SubPartitions i
+                     THEN (SELECT Num_Rows FROM DBA_Ind_SubPartitions i
                              WHERE i.Index_Owner = o.Owner
                              AND   i.Index_Name = o.Object_Name
                              AND   i.SubPartition_Name = o.SubObject_Name)
                 ELSE NULL END"  :
                "CASE
                   WHEN o.Object_Type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION') THEN
-                    (SELECT Num_Rows FROM All_Tables t
+                    (SELECT Num_Rows FROM DBA_Tables t
                     WHERE t.Owner = o.Owner
                     AND   t.Table_Name = o.Object_Name)
                   WHEN o.Object_Type IN ('INDEX', 'INDEX PARTITION', 'INDEX SUBPARTITION') THEN
-                    (SELECT Num_Rows FROM All_Indexes i
+                    (SELECT Num_Rows FROM DBA_Indexes i
                     WHERE i.Owner = o.Owner
                     AND   i.Index_Name = o.Object_Name)
                 ELSE NULL END"
@@ -478,7 +478,7 @@ class DbaHistoryController < ApplicationController
       @sql_outlines       = []
     end
 
-    userid_list = sql_select_all(["SELECT /* Panorama-Tool Ramm */ User_ID FROM All_Users WHERE UserName=?", @parsing_schema_name])
+    userid_list = sql_select_all(["SELECT /* Panorama-Tool Ramm */ User_ID FROM DBA_Users WHERE UserName=?", @parsing_schema_name])
     @user_id = (userid_list[0]).user_id if userid_list.length > 0
 
     respond_to do |format|
@@ -537,8 +537,8 @@ class DbaHistoryController < ApplicationController
                                 p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
                                 p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
-                                CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM All_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
-                                      WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM All_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
+                                CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
+                                      WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
                                 ELSE NULL END Num_Rows,
                                 (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes,
                                 Count(*) OVER (PARTITION BY p.Parent_ID, p.Operation, p.Options, p.Object_Owner,    -- p.ID nicht abgleichen, damit Verschiebungen im Plan toleriert werden

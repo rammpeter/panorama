@@ -3,7 +3,7 @@ class TableDependenciesController < ApplicationController
 
 public
   def show_frame
-    @all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM All_Tables ORDER BY Owner"
+    @all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_Tables ORDER BY Owner"
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "table_dependencies/show_frame" }');"}
     end
@@ -11,11 +11,11 @@ public
   
   def select_schema
     @username = params["username"] ? params["username"] : params[:all_user][:username]
-    @all_tables = sql_select_all ['SELECT * FROM All_Tables WHERE Owner = ? ORDER BY Table_Name', @username]
+    @all_tables = sql_select_all ['SELECT * FROM DBA_Tables WHERE Owner = ? ORDER BY Table_Name', @username]
     # Schema-Filter für Ergebnisanzeige
     @filter_users = []
     @filter_users << ({ :username => "[Alle]"}.extend SelectHashHelper)
-    all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM All_Tables ORDER BY Owner"
+    all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_Tables ORDER BY Owner"
     all_users.each do |user|
       @filter_users << user
     end
@@ -29,7 +29,7 @@ public
     @tablename = params[:all_table][:table_name]
     @filter_user = params[:filter_user][:username]
 
-    noa_users = sql_select_all "SELECT * FROM All_Users ORDER BY UserName"
+    noa_users = sql_select_all "SELECT * FROM DBA_Users ORDER BY UserName"
     @dependencies = sql_select_all "\
       SELECT Level, x.*, RowNum RN FROM
       (
@@ -40,8 +40,8 @@ public
           parent.Owner      ParentOwner,
           parent.Table_Name ParentTable,
           parent.Owner||'.'||parent.Table_Name ParentOwnerTable
-        FROM  all_constraints child,
-              all_constraints parent
+        FROM  DBA_constraints child,
+              DBA_constraints parent
         WHERE   child.Constraint_Type='R'
         AND     parent.Constraint_Name = child.R_Constraint_Name
         AND     parent.Owner           = child.R_Owner

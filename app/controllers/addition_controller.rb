@@ -629,7 +629,7 @@ class AdditionController < ApplicationController
 
   def show_object_increase
     @tablespaces = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT Tablespace_Name Name FROM DBA_Tablespaces ORDER BY Name")
-    @schemas     = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT UserName Name FROM All_Users ORDER BY Name")
+    @schemas     = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT UserName Name FROM DBA_Users ORDER BY Name")
 
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"show_object_increase" }');"}

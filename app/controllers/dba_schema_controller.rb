@@ -258,26 +258,26 @@ class DbaSchemaController < ApplicationController
 
     @unique_constraints = sql_select_all ["\
       SELECT c.*
-      FROM   All_Constraints c
+      FROM   DBA_Constraints c
       WHERE  c.Constraint_Type = 'U'
       AND    c.Owner = ?
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
-    @check_constraints = sql_select_one ["SELECT COUNT(*) FROM All_Constraints WHERE Constraint_Type = 'C' AND Owner = ? AND Table_Name = ? AND Generated != 'GENERATED NAME' /* Ausblenden implizite NOT NULL Constraints */", @owner, @table_name]
+    @check_constraints = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'C' AND Owner = ? AND Table_Name = ? AND Generated != 'GENERATED NAME' /* Ausblenden implizite NOT NULL Constraints */", @owner, @table_name]
 
-    @references_from = sql_select_one ["SELECT COUNT(*) FROM All_Constraints WHERE Constraint_Type = 'R' AND Owner = ? AND Table_Name = ?", @owner, @table_name]
+    @references_from = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'R' AND Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @references_to = sql_select_one ["\
       SELECT COUNT(*)
-      FROM   All_Constraints r
-      JOIN   All_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
+      FROM   DBA_Constraints r
+      JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
       WHERE  c.Constraint_Type = 'R'
       AND    r.Owner      = ?
       AND    r.Table_Name = ?
       ", @owner, @table_name]
 
-    @triggers = sql_select_one ["SELECT COUNT(*) FROM All_Triggers WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+    @triggers = sql_select_one ["SELECT COUNT(*) FROM DBA_Triggers WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @lobs = sql_select_one ["SELECT COUNT(*) FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
@@ -380,7 +380,7 @@ class DbaSchemaController < ApplicationController
 
     @check_constraints = sql_select_all ["\
       SELECT c.*
-      FROM   All_Constraints c
+      FROM   DBA_Constraints c
       WHERE  c.Constraint_Type = 'C'
       AND    c.Owner = ?
       AND    c.Table_Name = ?
@@ -396,11 +396,11 @@ class DbaSchemaController < ApplicationController
 
     @references = sql_select_all ["\
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
-      FROM   All_Constraints c
-      JOIN   All_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
-      JOIN   All_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
+      FROM   DBA_Constraints c
+      JOIN   DBA_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
+      JOIN   DBA_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       WHERE  c.Constraint_Type = 'R'
       AND    c.Owner      = ?
       AND    c.Table_Name = ?
@@ -415,8 +415,8 @@ class DbaSchemaController < ApplicationController
 
     @referencing = sql_select_all ["\
       SELECT c.*, ct.Num_Rows,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM All_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
+             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
       FROM   DBA_Constraints r
       JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
       JOIN   DBA_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name

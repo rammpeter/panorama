@@ -2132,7 +2132,7 @@ Documentation is available here: http://docs.oracle.com/cd/E16655_01/server.121/
           :sql=>   "SELECT /* Panorama-Tool Ramm  */
                          Inst_ID, SQL_ID, COUNT(*) Child_Count
                         #{result = '';
-                          recs = sql_select_all("SELECT Column_Name FROM All_Tab_Columns WHERE Table_Name = 'V_$SQL_SHARED_CURSOR' AND Data_Type = 'VARCHAR2' AND Data_Length = 1 ORDER BY Column_ID");
+                          recs = sql_select_all("SELECT Column_Name FROM DBA_Tab_Columns WHERE Table_Name = 'V_$SQL_SHARED_CURSOR' AND Data_Type = 'VARCHAR2' AND Data_Length = 1 ORDER BY Column_ID");
                           recs.each do |rec|
                             result << ", SUM(DECODE(#{rec.column_name}, 'Y', 1, 0)) \"#{rec.column_name.gsub('_', ' ')}\"\n"
                           end
@@ -2368,7 +2368,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
            "),
            :sql=>  "
               SELECT s.*,
-                     (SELECT UserName FROM All_Users u WHERE u.User_ID = s.User_ID) UserName
+                     (SELECT UserName FROM DBA_Users u WHERE u.User_ID = s.User_ID) UserName
               FROM   (
                       SELECT RAWTOHEX(XID)                  \"Transaction-ID\",
                              MIN(Min_Sample_Time)           \"Start Tx.\",
@@ -2423,7 +2423,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
            "),
            :sql=>  "
               SELECT s.*,
-                     (SELECT UserName FROM All_Users u WHERE u.User_ID = s.User_ID) UserName
+                     (SELECT UserName FROM DBA_Users u WHERE u.User_ID = s.User_ID) UserName
               FROM   (
                       SELECT RAWTOHEX(XID)                  \"Transaction-ID\",
                              MIN(Min_Sample_Time)           \"Start Tx.\",

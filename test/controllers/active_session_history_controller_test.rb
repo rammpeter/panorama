@@ -88,8 +88,16 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   end
 
   test "refresh_time_selection" do
-    post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :repeat_action => :list_session_statistic_historic_grouping
-    assert_response :success   # redirect_to schwierig im Test?
+
+    def do_test(groupby)
+      post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby, :repeat_action => :list_session_statistic_historic_grouping
+      assert_response :success   # redirect_to schwierig im Test?
+    end
+
+    session_statistics_key_rules.each do |key, value|
+      do_test(key)
+    end
+
   end
 
   test "list_session_statistic_historic_single_record" do

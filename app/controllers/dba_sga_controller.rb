@@ -87,7 +87,7 @@ class DbaSgaController < ApplicationController
                 c.Child_Count, c.Plans
                 #{modus=="GV$SQL" ? ", s.Child_Number" : ", c.Child_Number" }
            FROM #{modus} s
-           JOIN ALL_USERS u ON u.User_ID = s.Parsing_User_ID
+           JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
            JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, COUNT(DISTINCT Plan_Hash_Value) Plans
                  FROM   GV$SQL GROUP BY Inst_ID, SQL_ID
                 ) c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
@@ -254,8 +254,8 @@ class DbaSgaController < ApplicationController
           Last_CU_Buffer_Gets, CU_Buffer_Gets, Last_Disk_Reads, Disk_Reads, Last_Disk_Writes, Disk_Writes,
           Last_Elapsed_Time/1000 Last_Elapsed_Time, Elapsed_Time/1000 Elapsed_Time,
           p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
-          CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM All_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
-                WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM All_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
+          CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
+                WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
           ELSE NULL END Num_Rows,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
           #{", a.DB_Time_Seconds, a.CPU_Seconds, a.Waiting_Seconds, a.Read_IO_Requests, a.Write_IO_Requests,
@@ -518,7 +518,7 @@ class DbaSgaController < ApplicationController
         #{@show_partitions=="1" ? "o.SubObject_Name" : "''"} SubObject_Name,
         MIN(o.Object_Type) Object_Type,  -- MIN statt Aufnahme in GROUP BY
         MIN(CASE WHEN o.Object_Type LIKE 'INDEX%' THEN
-                  (SELECT Table_Name FROM ALL_Indexes i WHERE i.Owner = o.Owner AND i.Index_Name = o.Object_Name)
+                  (SELECT Table_Name FROM DBA_Indexes i WHERE i.Owner = o.Owner AND i.Index_Name = o.Object_Name)
         ELSE NULL END) Table_Name, -- MIN statt Aufnahme in GROUP BY
         SUM(bh.Blocks * ts.BlockSize) / (1024*1024) Size_MB,
         SUM(bh.Blocks)      Blocks,
@@ -737,8 +737,8 @@ class DbaSgaController < ApplicationController
     @usage = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
              o.*,
-             (SELECT UserName FROM All_Users WHERE User_ID = o.Min_User_ID) Min_Creator,
-             (SELECT UserName FROM All_Users WHERE User_ID = o.Max_User_ID) Max_Creator
+             (SELECT UserName FROM DBA_Users WHERE User_ID = o.Min_User_ID) Min_Creator,
+             (SELECT UserName FROM DBA_Users WHERE User_ID = o.Max_User_ID) Max_Creator
       FROM   (SELECT
                      o.Inst_ID, o.Status, o.Name, o.NameSpace,
                      SUM(Space_Overhead)/1024    Space_Overhead_KB,
