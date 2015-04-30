@@ -475,33 +475,36 @@ class DbaHistoryController < ApplicationController
       return
     end
 
-    @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured, Value_String,
-             NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
-      FROM   DBA_Hist_SQLBind
-      WHERE  DBID            = ?
-      AND    SQL_ID          = ?
-      AND    (Snap_ID, Instance_Number) IN (SELECT MAX(Snap_ID), MAX(Instance_Number) KEEP (DENSE_RANK LAST ORDER BY Snap_ID)
-                                            FROM   DBA_Hist_SQLBind
-                                            WHERE  DBID   = ?
-                                            AND    SQL_ID = ?
-                                            AND    Snap_ID BETWEEN ? AND ?
-                                            #{'AND Instance_Number=?' if @instance}
-                                           )
-      ORDER BY Position
-      ", @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
+    if  @sql.hit_count == 0
+      @binds = []
+    else
+      @binds = sql_select_all ["\
+        SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured, Value_String,
+               NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
+        FROM   DBA_Hist_SQLBind
+        WHERE  DBID            = ?
+        AND    SQL_ID          = ?
+        AND    (Snap_ID, Instance_Number) IN (SELECT MAX(Snap_ID), MAX(Instance_Number) KEEP (DENSE_RANK LAST ORDER BY Snap_ID)
+                                              FROM   DBA_Hist_SQLBind
+                                              WHERE  DBID   = ?
+                                              AND    SQL_ID = ?
+                                              AND    Snap_ID BETWEEN ? AND ?
+                                              #{'AND Instance_Number=?' if @instance}
+                                             )
+        ORDER BY Position
+        ", @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
 
 
-    sql_statement = sql_select_first_row(["\
-     SELECT /* Panorama-Tool Ramm */ SQL_Text,
-                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 0) Exact_Signature,
-                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 1) Force_Signature
-     FROM DBA_Hist_SQLText
-     WHERE dbid = ?
-     AND   SQL_ID = ?",
-     @dbid, @sql_id
-    ])
-
+      sql_statement = sql_select_first_row(["\
+       SELECT /* Panorama-Tool Ramm */ SQL_Text,
+                   DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 0) Exact_Signature,
+                   DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 1) Force_Signature
+       FROM DBA_Hist_SQLText
+       WHERE dbid = ?
+       AND   SQL_ID = ?",
+       @dbid, @sql_id
+      ])
+    end
 
     if sql_statement
       @sql_statement      = sql_statement.sql_text

@@ -28,11 +28,7 @@
     end
 
     def link_column_sql(rec, value)
-      if rec.instance_count == 1                                                # Genau eine konkrete Instance
-        link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)
-      else
-        link_instance_selection(rec.sql_id, rec)                                # erst konkrete Instance auswählen
-      end
+      link_historic_sql_id((rec.instance_count == 1 ? rec.instance_number : nil), rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)
     end
 
     def link_column_snap(result, value)

@@ -46,9 +46,6 @@ class DbaSgaControllerTest < ActionController::TestCase
   test "list_sql_detail_sql_id_childno" do
     xhr :get, :list_sql_detail_sql_id_childno, :format=>:js, :instance => "1", :sql_id => @sga_sql_id
     assert_response :success
-
-    xhr :get, :list_sql_detail_sql_id_childno, :format=>:js, :sql_id => @sga_sql_id
-    assert_response :success
   end
 
   test "list_sql_detail_sql_id" do
