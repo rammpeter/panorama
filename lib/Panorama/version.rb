@@ -1,5 +1,5 @@
 module Panorama
-  VERSION = '2.0.54'
+  VERSION = '2.0.55'
   RELEASE_DATE = Date.parse('2015-04-30')
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day
