@@ -135,6 +135,11 @@ class DbaSgaController < ApplicationController
     where_string = ""
     where_values = []
 
+    if instance
+      where_string << " AND s.Inst_ID = ?"
+      where_values << instance
+    end
+
     if object_status
       where_string << " AND s.Object_Status = ?"
       where_values << object_status
@@ -178,9 +183,8 @@ class DbaSgaController < ApplicationController
                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 1) Force_Signature
            FROM #{modus} s
            LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Programm
-           WHERE s.Inst_ID = ?
-           AND   s.SQL_ID  = ? #{where_string}
-           ", instance, sql_id].concat where_values
+           WHERE s.SQL_ID  = ? #{where_string}
+           ", sql_id].concat where_values
     if sql.nil? && object_status
       sql = fill_sql_sga_stat(modus, instance, sql_id, nil, child_number, parsing_schema_name)
       sql[:warning_message] = "No SQL found with Object_Status='#{object_status}' in #{modus}. Filter Object_Status is supressed now." if sql
@@ -350,7 +354,8 @@ class DbaSgaController < ApplicationController
 
     # Bindevariablen des Cursors
     @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Name, Position, DataType_String, Last_Captured, Value_String, Child_Number
+      SELECT /* Panorama-Tool Ramm */ Name, Position, DataType_String, Last_Captured, Value_String, Child_Number,
+             NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
       FROM   gv$SQL_Bind_Capture c
       WHERE  Inst_ID = ?
       AND    SQL_ID  = ?
@@ -381,33 +386,50 @@ class DbaSgaController < ApplicationController
 
     # Liste der Child-Cursoren
     @sqls = fill_sql_area_list("GV$SQL", @instance, nil, @sql_id, 100, "ElapsedTimeTotal")
+
+    if @sqls.count == 0
+      respond_to do |format|
+        format.js { render :js => "alert(\"SQL-ID '#{@sql_id}' not found in GV$SQL for instance = #{@instance} !\");" }
+      end
+      return
+    end
+
+
+      # Test auf unterschiedliche Instances in Treffern,  Hash[@sqls.map{|s| [s.int_id, 1]}].count sollte dies auch tun
+    instances = {}
+    @sqls.each do |s|
+      instances[s.inst_id] = 1
+    end
+    if instances.count > 1
+      list_sql_area_sql_id                                                      # Auswahl der konkreten Instance aus Liste auslösen
+      return
+    end
+
+    @instance = @sqls[0].inst_id                                                # ab hier kann es nur Records einer Instance geben
+
     if @sqls.count == 1     # Nur einen Child-Cursor gefunden, dann direkt weiterleiten an Anzeige auf Child-Ebene
       @list_sql_sga_stat_msg = "Nur ein Child-Record gefunden in gv$SQL, daher gleich direkte Anzeige auf Child-Ebene"
+      params[:instance]     = @instance
       params[:child_number] = @sqls[0].child_number
       list_sql_detail_sql_id_childno  # Anzeige der Child-Info
-    else
-      @sql = fill_sql_sga_stat("GV$SQLArea", @instance, params[:sql_id], @object_status)
-      @sql_statement         = get_sga_sql_statement(@instance, params[:sql_id])
-      @sql_profiles          = get_sql_profiles(@sql)
-      @sql_plan_baselines    = get_sql_plan_baselines(@sql)
-      @sql_outlines          = get_sql_outlines(@sql)
-      @open_cursors          = get_open_cursor_count(@instance, @sql_id)
-
-      sql_child_info = sql_select_first_row ["SELECT COUNT(DISTINCT plan_hash_value) Plan_Count,
-                                                     MIN(Child_Number) Min_Child_Number
-                                              FROM   gv$SQL
-                                              WHERE  Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
-
-      @plans = get_sga_execution_plan('GV$SQLArea', @sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
-
-      if @sqls.count == 0
-        respond_to do |format|
-           format.js { render :js => "alert(\"SQL-ID '#{@sql_id}' not found in GV$SQL for instance #{@instance} !\");" }
-        end
-      else
-        render_partial :list_sql_detail_sql_id
-      end
+      return
     end
+
+    @sql = fill_sql_sga_stat("GV$SQLArea", @instance, params[:sql_id], @object_status)
+    @sql_statement         = get_sga_sql_statement(@instance, params[:sql_id])
+    @sql_profiles          = get_sql_profiles(@sql)
+    @sql_plan_baselines    = get_sql_plan_baselines(@sql)
+    @sql_outlines          = get_sql_outlines(@sql)
+    @open_cursors          = get_open_cursor_count(@instance, @sql_id)
+
+    sql_child_info = sql_select_first_row ["SELECT COUNT(DISTINCT plan_hash_value) Plan_Count,
+                                                   MIN(Child_Number) Min_Child_Number
+                                            FROM   gv$SQL
+                                            WHERE  Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
+
+    @plans = get_sga_execution_plan('GV$SQLArea', @sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
+
+    render_partial :list_sql_detail_sql_id
 
   end
 

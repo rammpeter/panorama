@@ -255,7 +255,14 @@ class DbaHistoryController < ApplicationController
                  when nil then nil
                  when "" then nil
                  else params[:sql_id].strip
-              end
+               end
+
+    topSort          = params[:topSort]
+    topSort          = 'ElapsedTimeTotal' if topSort.nil? || topSort == ''
+    maxResultCount   = params[:maxResultCount]
+    maxResultCount   = nil if  maxResultCount == ''
+    groupby_instance = params[:groupby_instance] && params[:groupby_instance] != ''
+
     save_session_time_selection                   # Werte puffern fuer spaetere Wiederverwendung
 
     where_string_instance  = ""                         # Filter-Text für nachfolgendes Statement
@@ -274,14 +281,16 @@ class DbaHistoryController < ApplicationController
       where_string_aussen << " AND UPPER(SQL_TEXT) LIKE UPPER('%'||?||'%')"
       where_values << filter
     end
-    where_values << params[:maxResultCount]
+    where_values << maxResultCount if maxResultCount
     @sqls= sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */ *
       FROM (SELECT t.SQL_Text Full_SQL_Text,
                    SUBSTR(t.SQL_Text, 1, 40) SQL_Text, 
                    s.*
       FROM (
-          SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, s.Instance_number,
+          SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID,
+                 CASE WHEN COUNT(DISTINCT s.Instance_number) = 1 THEN MIN(s.Instance_Number) ELSE NULL END Instance_Number,
+                 COUNT(DISTINCT s.Instance_number)  Instance_Count,
                  NVL(Parsing_Schema_Name, '[UNKNOWN]')  Parsing_Schema_Name, /* sollte immer gleich sein in Gruppe */
                  SUM(Executions_Delta)              Executions,
                  SUM(Elapsed_Time_Delta)/1000000    Elapsed_Time_Secs,
@@ -321,13 +330,13 @@ class DbaHistoryController < ApplicationController
           JOIN   DBA_Hist_SQLStat s   ON s.DBID=snap.DBID AND s.Instance_Number=snap.Instance_Number AND s.Snap_ID BETWEEN snap.Start_Snap_ID AND snap.End_Snap_ID
           JOIN   DBA_Hist_Snapshot ss ON ss.DBID=s.DBID   AND ss.Instance_Number=s.Instance_Number   AND ss.Snap_ID = s.Snap_ID -- konkreter Snapshot des SQL
           #{where_string_innen}
-          GROUP BY s.DBID, s.SQL_ID, s.Instance_number, s.Parsing_Schema_Name
+          GROUP BY s.DBID, s.SQL_ID, s.Parsing_Schema_Name #{', s.Instance_Number' if groupby_instance}
            ) s, DBA_Hist_SQLText t
       WHERE t.DBID   = s.DBID
       AND   t.SQL_ID = s.SQL_ID
       #{where_string_aussen}
       ORDER BY
-      #{case params[:topSort]
+      #{case topSort
               when "ElapsedTimePerExecute" then "ELAPSED_TIME_SECS_PER_EXECUTE DESC"
               when "ElapsedTimeTotal"      then "ELAPSED_TIME_Secs DESC"
               when "ExecutionCount"        then "Executions DESC"
@@ -340,9 +349,9 @@ class DbaHistoryController < ApplicationController
         else  "[Unknown]"
         end } 
       )
-      WHERE ROWNUM < ?
+      #{'WHERE ROWNUM < ?' if maxResultCount}
       ORDER BY
-      #{case params[:topSort]
+      #{case topSort
               when "ElapsedTimePerExecute" then "ELAPSED_TIME_SECS_PER_EXECUTE DESC"
               when "ElapsedTimeTotal"      then "ELAPSED_TIME_Secs DESC"
               when "ExecutionCount"        then "Executions DESC"
@@ -366,9 +375,7 @@ class DbaHistoryController < ApplicationController
       @sum_buffer_gets   += s.buffer_gets   if s.buffer_gets
     end
 
-    respond_to do |format|
-      format.js {render :js => "$('#list_sql_historic_area').html('#{j render_to_string :partial=>"list_sql_area_historic" }');"}
-    end
+    render_partial :list_sql_area_historic
   end #list_sql_area_historic
 
   def list_sql_detail_historic
@@ -376,13 +383,39 @@ class DbaHistoryController < ApplicationController
     @instance    = prepare_param_instance
     @sql_id      = params[:sql_id]
     @parsing_schema_name = params[:parsing_schema_name]
-    @parsing_schema_name = '[UNKNOWN]' if @parsing_schema_name.nil?
-    @min_snap_id = params[:min_snap_id]
-    @max_snap_id = params[:max_snap_id]
+    @parsing_schema_name = nil if @parsing_schema_name == ''
+
+    params[:time_selection_start] = params[:time_selection_start][0, sql_datetime_minute_mask.length-2]  # evtl. Sekunden abschneiden von Zeitstempel, -2 wegen HH24 bringt nur 2 stellen
+    params[:time_selection_end]   = params[:time_selection_end][0, sql_datetime_minute_mask.length-2]
+
     save_session_time_selection   # werte in session puffern
     @dbid        = prepare_param_dbid
 
     @sql= sql_select_first_row ["\
+
+
+         WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE ORDERED USE_NL(s start_s end_s) INDEX(start_s) INDEX(end_s) */
+                               s.DBID, s.Instance_Number, s.Start_Snap_ID, s.End_Snap_ID,
+                               start_s.Begin_Interval_Time Start_Time, end_s.End_Interval_Time End_Time,
+                               (SELECT /* NO_MERGE FIRST_ROWS(10) */ MIN(h.Sample_Time) FROM DBA_Hist_Active_Sess_History h
+                                WHERE  h.DBID = s.DBID AND h.Instance_Number = s.Instance_Number AND h.SQL_ID = ? AND h.Snap_ID BETWEEN s.Start_Snap_ID AND s.End_Snap_ID
+                               ) Min_Sample_Time,
+                               (SELECT /* NO_MERGE FIRST_ROWS(10) */ MAX(h.Sample_Time) FROM DBA_Hist_Active_Sess_History h
+                                WHERE  h.DBID = s.DBID AND h.Instance_Number = s.Instance_Number AND h.SQL_ID = ? AND h.Snap_ID BETWEEN s.Start_Snap_ID AND s.End_Snap_ID
+                               ) Max_Sample_Time
+                       FROM   (
+                                SELECT /*+ NO_MERGE */ DBID, Instance_Number,
+                                       NVL(MAX(CASE WHEN Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) /* StartMin */,
+                                           MIN(CASE WHEN Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) /* StartMax */) Start_Snap_ID,
+                                       NVL(MIN(CASE WHEN End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) /* EndMax */,
+                                           MAX(CASE WHEN End_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) /* EndMin */) End_Snap_ID
+                                FROM   DBA_Hist_Snapshot
+                                WHERE  DBID=? #{'AND Instance_Number=?' if @instance}
+                                GROUP BY Instance_Number, DBID
+                               ) s
+                        JOIN   DBA_Hist_Snapshot start_s ON start_s.DBID=s.DBID AND start_s.Instance_Number=s.Instance_Number AND start_s.Snap_ID = s.Start_Snap_ID
+                        JOIN   DBA_Hist_Snapshot end_s   ON end_s.DBID=s.DBID   AND end_s.Instance_Number=s.Instance_Number   AND end_s.Snap_ID = s.End_Snap_ID
+                       )
          SELECT /*+ NO_MERGE ORDERED Panorama-Tool Ramm */
                  NVL(MIN(Parsing_Schema_Name), '[UNKNOWN]')  Parsing_Schema_Name,
                  MAX(s.Plan_Hash_Value) KEEP (DENSE_RANK LAST ORDER BY s.Snap_ID) Last_Plan_Hash_Value,
@@ -411,44 +444,52 @@ class DbaHistoryController < ApplicationController
                  SUM(CCWait_Delta)/1000000          Concurrency_Wait_Time_secs,
                  SUM(IOWait_Delta)/1000000          User_IO_Wait_Time_secs,
                  SUM(PLSExec_Time_Delta)/1000000    PLSQL_Exec_Time_secs,
-                 MIN(snap.Begin_Interval_Time)      First_Occurrence,
-                 MAX(snap.End_Interval_Time)        Last_Occurrence,
+                 MIN(snaps.Start_Time)              First_Occurrence,
+                 MAX(snaps.End_Time)                Last_Occurrence,
+                 MIN(snaps.Min_Sample_Time)         Min_Sample_Time,
+                 MAX(snaps.Max_Sample_Time)         Max_Sample_Time,
                  MAX(s.Module) KEEP (DENSE_RANK LAST ORDER BY s.Snap_ID) Last_Module,
                  MAX(s.Action) KEEP (DENSE_RANK LAST ORDER BY s.Snap_ID) Last_Action,
-                 MIN(snap.Begin_Interval_Time)      Start_Time,
-                 MAX(snap.End_Interval_Time)        End_Time
-          FROM   DBA_Hist_SQLStat s
-          JOIN   Dba_Hist_Snapshot snap ON snap.DBID = s.DBID AND snap.Instance_Number=s.Instance_Number AND snap.Snap_ID = s.Snap_ID
-          WHERE  s.DBID = ?
-          AND    s.Instance_Number = ?
-          AND    s.SQL_ID = ?
-          AND    NVL(s.Parsing_Schema_Name, '[UNKNOWN]') = ?
-          AND    s.Snap_ID BETWEEN ? AND ?
+                 MIN(snaps.Start_Snap_ID)           Min_Snap_ID,                /* evtl. ueber mehrere Instances hinweg */
+                 MAX(snaps.End_Snap_ID)             Max_Snap_ID,                /* evtl. ueber mehrere Instances hinweg */
+                 MIN(s.Parsing_Schema_Name)         Min_Parsing_Schema_Name,
+                 COUNT(DISTINCT Parsing_Schema_Name) Parsing_Schema_Count,      /* muss eindeutig sein */
+                 COUNT(*)                          Hit_Count
+         FROM   Snaps
+          JOIN   DBA_Hist_SQLStat s ON s.DBID = Snaps.DBID AND s.Instance_Number = Snaps.Instance_Number AND s.Snap_ID BETWEEN Snaps.Start_Snap_ID AND Snaps.End_Snap_ID
+          WHERE  s.SQL_ID = ?
+          #{'AND s.Parsing_Schema_Name = ?' if @parsing_schema_name}
           ",
-          @dbid, @instance, @sql_id, @parsing_schema_name, @min_snap_id, @max_snap_id ]
-    raise("Keine SQL-Historie gefunden in DBA_Hist_SQLStat für SQL-ID=#{sql_id}, Instance=#{@instance}, Zeitraum von #{@time_selection_start} bis #{@time_selection_end}") unless @sql
+                                @sql_id, @sql_id, @time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid].
+              concat(@instance ? [@instance] : []).
+              concat([@sql_id]).concat(@parsing_schema_name ? [@parsing_schema_name] : [])
 
-    @wait_time_range = sql_select_first_row ["\
-      SELECT /*+ NO_MERGE FIRST_ROWS(10) Panorama-Tool Ramm */
-             MIN(Sample_Time) Min_Sample_Time,
-             MAX(Sample_Time) Max_Sample_Time
-      FROM   DBA_Hist_Active_Sess_History
-      WHERE  DBID = ?
-      AND    Instance_Number = ?
-      AND    SQL_ID = ?
-      AND    Snap_ID BETWEEN ? AND ?
-      ", @dbid, @instance, @sql_id, @min_snap_id, @max_snap_id]
+    if @sql.parsing_schema_count > 1
+      list_sql_area_historic                                                    # auf Auswahl eines konkreten Parsing Schema verzweigen
+      return
+    end
 
+    if @sql.hit_count == 0 && @parsing_schema_name                              # Keine SQL-Statistik getroffen
+      params[:parsing_schema_name] = nil
+      list_sql_detail_historic                                                  # noch einmal über alle parsing schema names versuchen
+      return
+    end
 
     @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Name, Position, DataType_String, Last_Captured, Value_String
+      SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured, Value_String,
+             NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
       FROM   DBA_Hist_SQLBind
       WHERE  DBID            = ?
-      AND    Instance_Number = ?
       AND    SQL_ID          = ?
-      AND    Snap_ID         = ?
+      AND    (Snap_ID, Instance_Number) IN (SELECT MAX(Snap_ID), MAX(Instance_Number) KEEP (DENSE_RANK LAST ORDER BY Snap_ID)
+                                            FROM   DBA_Hist_SQLBind
+                                            WHERE  DBID   = ?
+                                            AND    SQL_ID = ?
+                                            AND    Snap_ID BETWEEN ? AND ?
+                                            #{'AND Instance_Number=?' if @instance}
+                                           )
       ORDER BY Position
-      ", @dbid, @instance, @sql_id,  @max_snap_id]
+      ", @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
 
 
     sql_statement = sql_select_first_row(["\
@@ -478,12 +519,9 @@ class DbaHistoryController < ApplicationController
       @sql_outlines       = []
     end
 
-    userid_list = sql_select_all(["SELECT /* Panorama-Tool Ramm */ User_ID FROM DBA_Users WHERE UserName=?", @parsing_schema_name])
-    @user_id = (userid_list[0]).user_id if userid_list.length > 0
+    @user_id = sql_select_one(["SELECT /* Panorama-Tool Ramm */ User_ID FROM DBA_Users WHERE UserName=?", @parsing_schema_name]) if @parsing_schema_name
 
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_sql_detail_historic" }');"}
-    end
+    render_partial :list_sql_detail_historic
   end #list_sql_detail_historic
 
 
@@ -686,6 +724,7 @@ class DbaHistoryController < ApplicationController
     @dbid                = prepare_param_dbid
     @sql_id              = params[:sql_id]
     @parsing_schema_name = params[:parsing_schema_name]
+    @parsing_schema_name = nil if @parsing_schema_name == ''
     @time_selection_start = params[:time_selection_start]
     @time_selection_end   = params[:time_selection_end]
     @groupby              = params[:groupby]
@@ -716,8 +755,8 @@ class DbaHistoryController < ApplicationController
                                            TO_CHAR(MAX(End_Interval_Time), '#{sql_datetime_minute_mask}') Time_Selection_End
                                     FROM    DBA_Hist_Snapshot
                                     WHERE   DBID            = ?
-                                    AND     Instance_Number = ?
-                                   ", @dbid, @instance]
+                                    #{' AND     Instance_Number = ?' if @instance}
+                                   ", @dbid].concat(@instance ? [@instance] : [])
       @time_selection_start =alter.time_selection_start
       @time_selection_end =alter.time_selection_end
     end
@@ -758,14 +797,17 @@ class DbaHistoryController < ApplicationController
       FROM   DBA_Hist_SQLStat s
       JOIN   dba_hist_snapshot snap ON snap.DBID = s.DBID AND snap.Instance_Number= s.instance_number AND snap.Snap_ID = s.Snap_ID
       WHERE  s.DBID            = ?
-      AND    s.Instance_Number = ?
       AND    s.SQL_ID          = ?
       AND    snap.End_Interval_time    > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       AND    snap.Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       #{@parsing_schema_name ? "AND    s.Parsing_Schema_Name = ?" : ""  }
+      #{@instance            ? "AND    s.Instance_Number     = ?" : ""  }
       GROUP BY #{@begin_interval_sql}, #{@end_interval_sql}
       ORDER BY #{@begin_interval_sql}
-      ", @dbid, @instance, @sql_id, @time_selection_start, @time_selection_end].concat(@parsing_schema_name ? [@parsing_schema_name] : [])                      )
+      ", @dbid, @sql_id, @time_selection_start, @time_selection_end].
+                               concat(@parsing_schema_name ? [@parsing_schema_name] : []).
+                               concat(@instance            ? [@instance]            : [])
+    )
 
     render_partial :list_sql_history_snapshots
   end #list_sql_history_snapshots
@@ -1250,106 +1292,6 @@ FROM (
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j output }');"}
-    end
-  end
-
-
-  # Ersten und letzten Snapshot ermitteln für Vorgabezeiten im Format lt. sql_datetime_minute_mask
-  def detect_snapshot_borders(instance, time_selection_start, time_selection_end)
-    sql_select_first_row [ "SELECT  s.DBID, s.Instance_Number, NVL(StartMin, StartMax) Start_Snap_ID, NVL(EndMax, EndMin) End_Snap_ID,
-                                                  start_s.Begin_Interval_Time Start_Time, end_s.End_Interval_Time End_Time
-                                          FROM    (
-                                                   SELECT DBID, Instance_Number,
-                                                          MAX(CASE WHEN Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) StartMin,
-                                                          MIN(CASE WHEN Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) StartMax,
-                                                          MAX(CASE WHEN End_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) EndMin,
-                                                          MIN(CASE WHEN End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) EndMax
-                                                   FROM   DBA_Hist_Snapshot
-                                                   WHERE  DBID=? AND Instance_Number=?
-                                                   GROUP BY Instance_Number, DBID
-                                                  ) s
-                                          JOIN    DBA_Hist_Snapshot start_s ON start_s.DBID=s.DBID AND start_s.Instance_Number=s.Instance_Number AND start_s.Snap_ID = NVL(StartMin, StartMax)
-                                          JOIN    DBA_Hist_Snapshot end_s   ON end_s.DBID=s.DBID   AND end_s.Instance_Number=s.Instance_Number   AND end_s.Snap_ID = NVL(EndMax, EndMin)
-                                          ", time_selection_start, time_selection_start, time_selection_end, time_selection_end, prepare_param_dbid, instance]
-  end
-
-
-  # Anzeige der maximalen verfügbaren SQL-Info für Zeitraum
-  def show_sql_info_for_interval
-    instance  = prepare_param_instance
-    dbid      = prepare_param_dbid
-    sql_id    = params[:sql_id]
-    params[:time_selection_start] = params[:time_selection_start][0, sql_datetime_minute_mask.length-2]  # evtl. Sekunden abschneiden von Zeitstempel, -2 wegen HH24 bringt nur 2 stellen
-    params[:time_selection_end]   = params[:time_selection_end][0, sql_datetime_minute_mask.length-2]
-    time_selection_start = params[:time_selection_start]   # Max. Alter als Zeitsmpel "DD.MM.YYYY HH24:MI"
-    time_selection_end   = params[:time_selection_end]     # Min. Alter als Zeitsmpel "DD.MM.YYYY HH24:MI", alternativ auch ohne Sekunden
-    parsing_schema_name  = params[:parsing_schema_name]
-
-    if time_selection_start && time_selection_start!="" && time_selection_end && time_selection_end!=""  # Nur in Historie einsteigen, wenn Max- und Min-Alter belegt sind
-      time_result =  detect_snapshot_borders(instance, time_selection_start, time_selection_end)
-
-      if time_result.start_snap_id && time_result.end_snap_id    # Max.Snap_ID gefunden ab Beginn des Zeitraumes
-        # Prüfen, ob im Zeitraum SQL-Historie existiert fuer Schema
-        test = sql_select_all ["\
-              SELECT /* Panorama-Tool Ramm */ NVL(SUM(CASE WHEN Parsing_Schema_Name = ? THEN 1 ELSE 0 END),0) Schema_Hits,
-                     MIN(Parsing_Schema_Name) Parsing_Schema_Name, COUNT(DISTINCT Parsing_Schema_Name) Schema_Count
-              FROM   DBA_Hist_SQLStat s
-              WHERE  s.DBID = ? AND s.Instance_Number = ? AND s.Snap_ID BETWEEN ? AND ? AND s.SQL_ID = ?",
-              parsing_schema_name , dbid, instance, time_result.start_snap_id, time_result.end_snap_id, sql_id ]
-        testrec = test[0]
-      else
-        testrec = nil     #Time_Selection_xx nicht belegt, damit kein Zugriff auf Historie möglich, weiter suchen in SGA
-      end
-    else
-      testrec = nil     # Time_Selection_xx nicht belegt, damit kein Zugriff auf Historie möglich, weiter suchen in SGA
-    end
-
-    if testrec && (testrec.schema_hits > 0 || testrec.schema_count == 1)  # SQL-Historie existiert im Zeitraum fuer das gesuchte Schema oder genau einmal fuer irgendein Schema
-      params[:min_snap_id] = time_result.start_snap_id
-      params[:max_snap_id] = time_result.end_snap_id
-      params[:parsing_schema_name]  = testrec.parsing_schema_name if testrec.schema_hits == 0 # Ab jetzt das vorgefundene Schema verwenden statt dem gegebenen
-
-      list_sql_detail_historic   # Aufruf Action mit params-Hash
-    else
-      test = sql_select_all ["\
-              SELECT /* Panorama-Tool Ramm */ COUNT(*) Total,
-                     NVL(SUM(CASE WHEN Parsing_Schema_Name = ? THEN 1 ELSE 0 END),0) Schema_Hits,
-                     MIN(Parsing_Schema_Name) Parsing_Schema_Name, COUNT(DISTINCT Parsing_Schema_Name) Schema_Count
-              FROM   gv$SQL s
-              WHERE  s.Inst_ID = ? AND  s.SQL_ID = ?",
-              parsing_schema_name, instance, sql_id]
-      testrec = test[0]
-
-
-      if testrec.schema_hits > 0 || testrec.schema_count == 1                                                           # SQL existiert in SGA für das gesuchte Schema oder für genau ein anderes, dann List-Funktion in anderem Controller aufrufen
-        redirect_to :controller => "DbaSga", :action => "list_sql_detail_sql_id",
-                    :instance => instance, :sql_id => sql_id, :update_area =>params[:update_area]
-      else
-        if testrec.total > 0                                                                                            # Mehrdeutig, erst mal Liste zur Auswahl
-          redirect_to :controller => "DbaSga", :action => "list_sql_area_sql_id",
-                      :maxResultCount => 100, :instance => instance, :sql_id => sql_id, :topSort => 'ElapsedTimePerExecute', :update_area =>params[:update_area]
-        else
-          list_sql_text(params[:update_area], dbid, sql_id)
-        end
-      end
-    end
-  end #show_sql_info_for_interval
-
-
-
-  # Anzeige des Statements zu gegebener SQL-ID ohne Zeitbezug
-  def list_sql_text(update_area, dbid, sql_id)
-    sql= sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */
-             SQL_Text
-      FROM   DBA_Hist_SQLText
-      WHERE  DBID = ?
-      AND    SQL_ID = ?
-      ", dbid, sql_id]
-
-    raise "Kein Statement-Text gefunden in DBA_Hist_SQLText für DBID=#{dbid} und SQL_ID=#{sql_id}" if sql.length == 0
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j "<pre>#{sql[0].sql_text}</pre>" }');"}
     end
   end
 

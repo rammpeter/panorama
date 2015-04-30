@@ -59,9 +59,16 @@ class DbaHistoryControllerTest < ActionController::TestCase
     do_test_list_sql_area_historic "ClusterWaits"
 
     post :list_sql_detail_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
-         :sql_id=>@sga_sql_id, :instance=>1, :parsing_schema_name=>@sga_parsing_schema_Name,
-         :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id
+         :sql_id=>@sga_sql_id
      assert_response :success
+
+    post :list_sql_detail_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
+         :sql_id=>@sga_sql_id, :instance=>1
+    assert_response :success
+
+    post :list_sql_detail_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
+         :sql_id=>@sga_sql_id, :parsing_schema_name=>@sga_parsing_schema_Name
+    assert_response :success
 
     post :list_sql_history_snapshots, :format=>:js, :sql_id=>@sga_sql_id, :instance=>1, :parsing_schema_name=>@sga_parsing_schema_Name, :groupby=>:day
     assert_response :success
@@ -139,16 +146,6 @@ class DbaHistoryControllerTest < ActionController::TestCase
     do_test("MI")
     do_test("HH24")
     do_test("DD")
-  end
-
-
-  test "show_sql_info_for_interval" do
-    post :show_sql_info_for_interval, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1,
-         :sql_id=>@sga_sql_id, :parsing_schema_name=>@sga_parsing_schema_Name
-    # Wegen im Test nicht funktionierendem redirect in html.erb kommt evtl. Status=302 zurück
-    # ist aber o.k., da zu testende Funktion vorher durchlaufen wird
-
-    assert_response :success unless [200, 302].include?(@response.response_code)
   end
 
   test "mutex_statistics_historic" do

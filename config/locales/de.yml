@@ -65,6 +65,8 @@
   dba_history_list_segment_stat_historic_sum_link_wait_hint: Detaillierung der angefallenen Wartezeiten des Objektes
   dba_history_list_segment_stat_historic_sum_sqls_hint:     Anzahl SQLs für dieses Objekt in kompletter AWR-Historie unanhängig von gewähltem Zeitraum
 
+  dba_history_list_sql_area_historic_link_column_snap_title:    Anzeige der Werte der einzelnen AWR-Snapshots (unterhalb)
+
   dba_history_list_sql_detail_historic_bind_name:           Name der Vindevariablen im Statement
   dba_history_list_sql_detail_historic_bind_pos:            Position der Bindevariablen im Statement
   dba_history_list_sql_detail_historic_last_plan_hash_hint: Hash-Value des letzten Explain-Plans

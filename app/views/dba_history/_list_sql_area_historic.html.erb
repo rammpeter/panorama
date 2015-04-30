@@ -14,8 +14,25 @@
 <%
    @update_area = get_unique_area_id
 
+
+    def link_instance_selection(value, rec)
+      my_ajax_link_to(value,
+                      url_for(:action               => :list_sql_area_historic,
+                              :sql_id               => rec.sql_id,
+                              :groupby_instance     => true,
+                              :time_selection_start => @time_selection_start,
+                              :time_selection_end   => @time_selection_end,
+                              :update_area=> @update_area
+                      ),
+                      :title=>'Show separate values per RAC instance' )
+    end
+
     def link_column_sql(rec, value)
-      link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)
+      if rec.instance_count == 1                                                # Genau eine konkrete Instance
+        link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name, value)
+      else
+        link_instance_selection(rec.sql_id, rec)                                # erst konkrete Instance auswählen
+      end
     end
 
     def link_column_snap(result, value)
@@ -28,19 +45,27 @@
                 :time_selection_end   => @time_selection_end,
                 :update_area=> @update_area
               ),
-       :title=>"Anzeige der Werte der einzelnen Snapshots (unterhalb)")
+       :title=>t(:dba_history_list_sql_area_historic_link_column_snap_title, :default=>'Show values of single AWR snapshots (below)') )
     end
+
+   def list_instance(rec)
+     if rec.instance_count == 1                                                 # Genau eine konkrete Instance
+       rec.instance_number
+     else
+       link_instance_selection("< #{rec.instance_count} >", rec)
+     end
+   end
 
    column_options =
     [
-          {:caption=>"I",           :data=>proc{|rec| rec.instance_number }, :title=>"Instance-ID" },
+          {:caption=>"I",           :data=>proc{|rec| list_instance(rec) }, :title=>'Instance-ID if only one RAC instance affected or number of affected instances "< 2 >"' },
     ]
     # Anzeige Attribute aus explain plan bei Nutzung des Views für Result von show_using_sqls_historic
     column_options << {:caption=>"Operation",      :data=>proc{|rec| "#{rec.operation} #{rec.options}"}, :title=>"Operation", :data_title=>proc{|rec| "Operation: #{rec.other_tag}"} } if @sqls.count>0 && @sqls[0]["operation"] && @sqls[0]["options"]
     column_options.concat [
           {:caption=>"SQL-ID",      :data=>proc{|rec| link_column_sql(rec, rec.sql_id) },                                   :title=>"SQL-ID" },
           {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text },                                        :title=>"SQL-Text" },
-          {:caption=>"User",        :data=>proc{|rec| rec.parsing_schema_name[0,8]+(rec.parsing_schema_name.length>8   ? "." : "") }, :title=>"Username", :data_title=>proc{|rec| rec.parsing_schema_name} },
+          {:caption=>"Parsing schema",   :data=>proc{|rec| rec.parsing_schema_name[0,8]+(rec.parsing_schema_name.length>8   ? "." : "") }, :title=>'Parsing schema name', :data_title=>proc{|rec| "%t = #{rec.parsing_schema_name}"} },
           {:caption=>"Erstes Auftreten", :data=>proc{|rec| localeDateTime(rec.first_occurrence) },                          :title=>"Erstes Auftreten" },
           {:caption=>"Letztes Auftreten",:data=>proc{|rec| localeDateTime(rec.last_occurrence) },                           :title=>"Letztes Auftreten" },
           {:caption=>"Execs",       :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.executions)) },             :title=>"Anzahl Ausführungen", :align=>"right" },

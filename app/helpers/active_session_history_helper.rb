@@ -113,6 +113,10 @@ module ActiveSessionHistoryHelper
     @dba_hist_where_string  = ""             # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für DBA_Hist_Active_Sess_History
     @dba_hist_where_values = []              # Filter-werte für nachfolgendes Statement für DBA_Hist_Active_Sess_History
 
+    @groupfilter.each do |key,value|
+      @groupfilter.delete(key) if value.nil? || value == ''
+    end
+
     @groupfilter.each {|key,value|
       sql = groupfilter_value(key, value)[:sql]
       if key == "DBID" || key == "Min_Snap_ID" || key == "Max_Snap_ID"    # Werte nur gegen HistTabelle binden

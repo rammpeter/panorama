@@ -14,7 +14,7 @@ def show_single_value(name, param, decimals, title="", second_value="-", second_
 end
 %>
 
-<h3>Statement-Details von <%= localeDateTime @sql.start_time %> bis <%= localeDateTime @sql.end_time %> Instance = <%= @instance %></h3>
+<h3>Statement-Details von <%= localeDateTime @sql.first_occurrence %> bis <%= localeDateTime @sql.last_occurrence %> Instance = <%= @instance %></h3>
 <table border="0">
   <tr>
     <td valign="top"class="monospace"><%= @sql_statement %></td>
@@ -58,7 +58,7 @@ end
           <td align="right" title="Hash-value of last optimizer environment"><%= @sql.last_optimizer_env_hash_value %></td>
           <td align="center" title="Number of different optimizer environments in time range"><%= @sql.optimizer_env_hash_value_count %> </td>
         </tr>
-        <%= show_single_value("Executions", @sql.executions,0, "Number of executions in time range", @parsing_schema_name, "Parsing Schema-Name") %>
+        <%= show_single_value("Executions / Parsing schema", @sql.executions,0, "Number of executions in time range", @sql.min_parsing_schema_name, "Parsing Schema-Name") %>
         <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time range")%>
         <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time range") %>
         <%= show_both_values("Rows processed", @sql.rows_processed,0, "Number of rows processed in time range") %>
@@ -79,12 +79,12 @@ end
         <tr>
           <td title="First occurrence in AWR-snapshot or active session history">First Occurrence</td>
           <td title="Begin of AWR-snapshot of first occurrence"><%= localeDateTime(@sql.first_occurrence) %></td>
-          <td title="Earliest sample in active session history"><%= localeDateTime(@wait_time_range.min_sample_time) %></td>
+          <td title="Earliest sample in active session history"><%= localeDateTime(@sql.min_sample_time) %></td>
         </tr>
         <tr>
           <td title="Last occurrence in AWR-snapshot or active session history">Last Occurrence</td>
           <td title="End of AWR-snapshot of last occurrence"><%= localeDateTime(@sql.last_occurrence) %></td>
-          <td title="Latest sample in active session history"><%= localeDateTime(@wait_time_range.max_sample_time) %></td>
+          <td title="Latest sample in active session history"><%= localeDateTime(@sql.max_sample_time) %></td>
         </tr>
         <%= show_single_value("Hit ratio", @sql.hit_ratio,2, "Ratio cache-hits / buffer gets") %>
         <%= show_single_value("Parse calls", @sql.parse_calls,0) %>
@@ -100,11 +100,16 @@ end
 
 <%=
 column_options = [
+        {:caption=>"I",          :data=>proc{|rec| rec.instance_number},                        :title=>'RAC-Instance' },
     {:caption=>"Pos",           :data=>proc{|rec| formattedNumber(rec.position)},   :title=>t(:dba_history_list_sql_detail_historic_bind_pos, :default=>"Position of bind variable in statement"), :align=>"right"},
     {:caption=>"Name",          :data=>proc{|rec| rec.name},                        :title=>t(:dba_history_list_sql_detail_historic_bind_name, :default=>"Name of bind variable in statement") },
     {:caption=>"Typ",           :data=>proc{|rec| rec.datatype_string},             :title=>"data type of bind variable"},
     {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)}, :title=>"time of last capture"},
     {:caption=>"Value",         :data=>proc{|rec| rec.value_string},                :title=>"Value of bind variable represented as string"},
+    {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
+    {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
+    {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
+    {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
   ]
 
  gen_slickgrid(@binds, column_options, {
@@ -143,8 +148,8 @@ column_options = [
              :groupfilter=>{:DBID                   => @dbid,
                             :Idle_Wait1             => "PX Deq Credit: send blkd",
                             :Instance               => @instance,
-                            :Min_Snap_ID            => @min_snap_id,
-                            :Max_Snap_ID            => @max_snap_id,
+                            :Min_Snap_ID            => @sql.min_snap_id,
+                            :Max_Snap_ID            => @sql.max_snap_id,
                             :time_selection_start   => @time_selection_start,
                             :time_selection_end     => @time_selection_end ,
                             "SQL-ID"                => @sql_id
@@ -169,8 +174,8 @@ column_options = [
   :title => "Anlistung der kompletten gespeicherten Zeitleiste des SQL ")
   %>
 </div>
-  &nbsp;
-  <div class="float_left">
+&nbsp;
+<div class="float_left">
     <%= my_ajax_submit_tag("SQL in aktueller SGA",
      url_for(:update_area    => @update_area,
              :controller     => :dba_sga,
@@ -180,6 +185,6 @@ column_options = [
             ),
     :title => "Anlistung der Daten des SQL in der aktuellen SGA der DB (wenn vorhanden)")
     %>
-  </div>
-<div id="<%= @update_area %>" style="float:left; width:100%;">
+</div>
+<div id="<%= @update_area %>" style="clear:both; width:100%;">
 </div>

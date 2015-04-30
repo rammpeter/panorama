@@ -55,6 +55,10 @@ column_options =
   {:caption=>"Typ",             :data=>proc{|rec| rec.datatype_string},                 :title=>"Datentyp der Bindevariablen"},
   {:caption=>"Last captured",   :data=>proc{|rec| localeDateTime(rec.last_captured)},   :title=>"Zeitpunkt der letzten Aufnahme"},
   {:caption=>"Value",           :data=>proc{|rec| rec.value_string},                    :title=>"Wert der Bindevariablen in String-Repräsentation"},
+  {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
+  {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
+  {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
+  {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
 ]
 %>
 <%= gen_slickgrid(@binds, column_options, {:caption => "Bindevariablen der letzten Ausführung", :max_height => 450, :width=>:auto}) %>

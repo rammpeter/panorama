@@ -41,17 +41,9 @@
 
   # Aus Gruppenlink direkt SQL-Details aufrufen, wenn eideutige Aussage zu SQL_ID und Username und Instance
   def link_column_sql_id(rec)
-    if rec.username && rec.username.match("<.*>") || rec.instance_number.to_s.match("<.*>")
-      my_ajax_link_to(rec.sql_id,
-                      url_for({:action       => :list_sql_id_links,
-                               :groupfilter  => get_groupfilter(rec, "SQL-ID", rec.sql_id),
-                               :update_area  => @update_area,
-                              }
-                      ),
-                      :title=>"Show SQL details for different instances / users")
-    else
-        link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
-    end
+     link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area,
+                         (rec.username && rec.username.match('<.*>'))  ? nil : rec.username
+    )
   end
 
   def link_column_grouping(rec, value, add_url)

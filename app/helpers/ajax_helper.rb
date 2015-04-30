@@ -59,7 +59,7 @@ module AjaxHelper
     prefix = "#{t(:link_historic_sql_id_hint_prefix, :default=>"Show details of")} SQL-ID=#{sql_id} : "
     my_ajax_link_to(value ? value : sql_id,
      url_for( :controller => :DbaHistory,
-              :action     => :show_sql_info_for_interval,
+              :action     => :list_sql_detail_historic,
               :update_area=> update_area,
               :instance   => instance,
               :sql_id     => sql_id,

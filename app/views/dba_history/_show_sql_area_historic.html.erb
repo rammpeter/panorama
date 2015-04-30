@@ -1,6 +1,6 @@
 
 
-<%= my_ajax_form_tag "dba_history/list_sql_area_historic" do %>
+<%= my_ajax_form_tag url_for(:controller=>:dba_history, :action=>:list_sql_area_historic, :update_area=>:list_sql_historic_area) do %>
   <div class="float_left">
     <b>SQL's aus DBA_Hist_SQLStat</b>
   </div>

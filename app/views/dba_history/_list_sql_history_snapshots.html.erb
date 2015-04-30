@@ -70,13 +70,17 @@ grouping_options = {
 
 
 caption << (my_ajax_form_tag url_for(:controller => :dba_history, :action        => :list_sql_history_snapshots,
-                                      :parsing_schema_name     => @parsing_schema_name,
                                       :sql_id         => @sql_id,
                                       :update_area   => @prev_update_area,                   # Update_area des letzten Aufrufes wiederverwenden
                               ) do
   form_content = ''
   form_content << '<span title="RAC-Instance">Instance '
   form_content << text_field_tag(:instance, @instance, :size=>4)
+  form_content << '</span>'
+
+  form_content << '&nbsp;&nbsp;&nbsp;'
+  form_content << '<span title="Parsing schema name">Schema '
+  form_content << text_field_tag(:parsing_schema_name, @parsing_schema_name, :size=>10)
   form_content << '</span>'
 
   form_content << '&nbsp;&nbsp;&nbsp;'

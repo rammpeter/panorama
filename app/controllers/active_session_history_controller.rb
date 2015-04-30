@@ -199,51 +199,6 @@ class ActiveSessionHistoryController < ApplicationController
     render_partial
   end # list_session_statistic_historic_single_record
 
-  # Anzeige der verschiedenen SQL-IDs je Instance/User falls bislang noch nicht eindeutig
-  def list_sql_id_links
-    where_from_groupfilter(params[:groupfilter], nil)
-    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
-
-
-    @sql_ids = sql_select_all ["\
-      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
-      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
-             s.SQL_ID, s.Instance_Number, u.UserName,
-             AVG(Wait_Time+Time_Waited)/1000  Time_Waited_Avg_ms,
-             SUM(s.Sample_Cycle)              Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
-             MAX(s.Sample_Cycle)              Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
-             COUNT(1)                         Count_Samples,
-             MIN(Sample_Time)                 First_Occurrence,
-             MAX(Sample_Time)                 Last_Occurrence,
-             -- So komisch wegen Konvertierung Timestamp nach Date für Subtraktion
-             (TO_DATE(TO_CHAR(MAX(Sample_Time), 'DD.MM.YYYY HH24:MI:SS'), 'DD.MM.YYYY HH24:MI:SS') -
-              TO_DATE(TO_CHAR(MIN(Sample_Time), 'DD.MM.YYYY HH24:MI:SS'), 'DD.MM.YYYY HH24:MI:SS'))*(24*60*60) Sample_Dauer_Secs
-      FROM   (SELECT /*+ NO_MERGE ORDERED */
-                     10 Sample_Cycle, DBID, Instance_Number, #{get_ash_default_select_list}
-              FROM   DBA_Hist_Active_Sess_History s
-              LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
-              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
-              #{@dba_hist_where_string}
-              UNION ALL
-              SELECT 1 Sample_Cycle, #{@dbid} DBID, Inst_ID Instance_Number, #{get_ash_default_select_list}
-              FROM   gv$Active_Session_History
-             )s
-      LEFT OUTER JOIN DBA_Users             u   ON u.User_ID   = s.User_ID  -- LEFT OUTER JOIN verursacht Fehler
-      -- erst p2 abfragen, da bei Request=3 in row_wait_obj# das als vorletztes gelockte Object stehen kann
-      LEFT OUTER JOIN DBA_Objects o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
-      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
-      LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
-      LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
-      WHERE  1=1
-      #{@global_where_string}
-      GROUP BY s.DBID, s.SQL_ID, s.Instance_Number, u.UserName
-      ORDER BY SUM(s.Sample_Cycle) DESC
-     "
-                              ].concat(@dba_hist_where_values).append(@dbid).concat(@global_where_values)
-
-    render_partial
-  end
 
   # Generische Funktion zum Anlisten der verdichteten Einzel-Records eines Gruppierungskriteriums nach GroupBy
   def list_session_statistic_historic_grouping
