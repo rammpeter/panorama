@@ -18,8 +18,8 @@ module ActiveSessionHistoryHelper
                                                            :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module' }
       @session_statistics_key_rules_hash["PL/SQL"]      = {:sql => "po.Object_Type||CASE WHEN po.Owner IS NOT NULL THEN ' ' END||po.Owner||CASE WHEN po.Object_Name IS NOT NULL THEN '. ' END||po.Object_Name||CASE WHEN po.Procedure_Name IS NOT NULL THEN '. ' END||po.Procedure_Name",
                                                                                           :sql_alias => "plsql_module",       :Name => 'PL/SQL',        :Title => 'currently executed PL/SQL module' }
-      @session_statistics_key_rules_hash["Module"]      = {:sql => "s.Module",            :sql_alias => "module",             :Name => 'Module',        :Title => 'Module' }
-      @session_statistics_key_rules_hash["Action"]      = {:sql => "s.Action",            :sql_alias => "action",             :Name => 'Action',        :Title => 'Action' }
+      @session_statistics_key_rules_hash["Module"]      = {:sql => "TRIM(s.Module)",      :sql_alias => "module",             :Name => 'Module',        :Title => 'Module' }
+      @session_statistics_key_rules_hash["Action"]      = {:sql => "TRIM(s.Action)",      :sql_alias => "action",             :Name => 'Action',        :Title => 'Action' }
       @session_statistics_key_rules_hash["Event"]       = {:sql => "NVL(s.Event, s.Session_State)", :sql_alias => "event",    :Name => 'Event',         :Title => 'Event (Session-State, wenn Event = NULL)', :info_sql  => "MIN(s.Wait_Class)", :info_caption => "Wait-Class", :Data_Title => '#{explain_wait_event(rec.event)}' }
       @session_statistics_key_rules_hash["Wait-Class"]  = {:sql => "NVL(s.Wait_Class, 'CPU')", :sql_alias => "wait_class",    :Name => 'Wait-Class',    :Title => 'Wait-Class' }
       @session_statistics_key_rules_hash["DB-Object"]   = {:sql => "LOWER(o.Owner)||'.'||o.Object_Name", :sql_alias  => "current_object", :Name => 'DB-Object',
@@ -30,8 +30,8 @@ module ActiveSessionHistoryHelper
                                                             :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
       @session_statistics_key_rules_hash["Service"]     = {:sql => "sv.Service_Name",     :sql_alias => "service",            :Name => 'Service',       :Title =>'TNS-Service' }
       @session_statistics_key_rules_hash["Data-File"]   = {:sql => "s.Current_File_No",   :sql_alias => "file_no",            :Name => 'Data-File#',    :Title => "Data-file number", :info_sql => "(SELECT f.File_Name||' TS='||f.Tablespace_Name FROM DBA_Data_Files f WHERE f.File_ID=s.Current_File_No)", :info_caption => "Tablespace-Name" }
-      @session_statistics_key_rules_hash["Program"]     = {:sql => "s.Program",           :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
-      @session_statistics_key_rules_hash["Machine"]     = {:sql => "s.Machine",           :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["Program"]     = {:sql => "TRIM(s.Program)",     :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
+      @session_statistics_key_rules_hash["Machine"]     = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
       @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if session[:version] >= "11.2"
     end
     @session_statistics_key_rules_hash
