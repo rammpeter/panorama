@@ -7,9 +7,9 @@
     <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Top-Nutzung") %>
   </div>
   <%= include_start_end_timepicker %>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
-    <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+    <%= text_field_tag(:instance, session[:instance], :size=>1) %>
   </div>
   <div class="float_left">
     Partitions

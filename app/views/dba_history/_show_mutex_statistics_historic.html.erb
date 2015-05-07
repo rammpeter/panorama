@@ -11,9 +11,9 @@
 
   <%= include_start_end_timepicker %>
 
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
-    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+    <%= text_field_tag(:instance, "", :size=>1) %>
   </div>
   <div class="float_left">
     <%= submit_tag("Blocker-Sessions", :title =>t(:show_mutex_statistics_historic_blocker_hint, :default=>"Mutex-Sleep-History grouped by blocker-sessions"), :name=>"Blocker") %>

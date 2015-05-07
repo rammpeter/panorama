@@ -2,9 +2,9 @@
   <div class="float_left">
     <b>SGA-Komponenten aus gv$SGAStat</b>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
-    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance") %>
+    <%= text_field_tag(:instance, "", :size=>1) %>
   </div>
   <div class="float_left">
   <%= submit_tag("SGA Komponenten", :title => "Anlistung der SGA-Komponenten") %>

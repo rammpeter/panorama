@@ -12,13 +12,13 @@
     Filter
     <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
-    <%= text_field_tag(:instance, "", :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+    <%= text_field_tag(:instance, "", :size=>1) %>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional)') %>">
     SQL-ID
-    <%= text_field_tag(:sql_id, "", :size=>12, :title=>"Einschränkung auf SQL-ID (optional)") %>
+    <%= text_field_tag(:sql_id, "", :size=>12) %>
   </div>
   <div class="float_left">
   <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>

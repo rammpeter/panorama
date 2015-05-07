@@ -6,9 +6,9 @@
     </div>
     <%= include_start_end_timepicker %>
 
-    <div class="float_left">
+    <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
         Instance
-        <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"Einschränkung auf RAC-Instance (optional)") %>
+        <%= text_field_tag(:instance, session[:instance], :size=>1) %>
     </div>
     <div class="float_left">
         <%= submit_tag("Show redo log info", :title => "Show historic redo log info") %>
