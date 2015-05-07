@@ -480,8 +480,16 @@ class DbaHistoryController < ApplicationController
     else
       @binds = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured, Value_String,
-               NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
-        FROM   DBA_Hist_SQLBind
+               NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length,
+               (SELECT COUNT(*)
+                FROM   DBA_Hist_SQLBind i
+                WHERE  i.DBID            = b.DBID
+                AND    i.Snap_ID BETWEEN ? AND ?
+                AND    i.Instance_Number = b.Instance_Number
+                AND    i.SQL_ID          = b.SQL_ID
+                AND    i.Position        = b.Position
+               ) Samples
+        FROM   DBA_Hist_SQLBind b
         WHERE  DBID            = ?
         AND    SQL_ID          = ?
         AND    (Snap_ID, Instance_Number) IN (SELECT MAX(Snap_ID), MAX(Instance_Number) KEEP (DENSE_RANK LAST ORDER BY Snap_ID)
@@ -492,7 +500,7 @@ class DbaHistoryController < ApplicationController
                                               #{'AND Instance_Number=?' if @instance}
                                              )
         ORDER BY Position
-        ", @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
+        ", @sql.min_snap_id, @sql.max_snap_id, @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
 
 
       sql_statement = sql_select_first_row(["\

@@ -98,6 +98,21 @@ end
 
 <%= render :partial=>"dba_sga/list_sql_profiles" %>
 
+<%
+def link_bind_samples(rec)
+  my_ajax_link_to(fn(rec.samples),
+                  url_for(:action               => :list_bind_samples_historic,
+                          :sql_id               => @sql_id,
+                          :instance             => rec.instance_number,
+                          :position             => rec.position,
+                          :min_snap_id          => @sql.min_snap_id,
+                          :max_snap_id          => @sql.max_snap_id,
+                          :update_area=> @update_area
+                  ),
+                  :title=>'List all samples for this bind position in time range' )
+end
+%>
+
 <%=
 column_options = [
         {:caption=>"I",          :data=>proc{|rec| rec.instance_number},                        :title=>'RAC-Instance' },
@@ -110,7 +125,8 @@ column_options = [
     {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
     {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
     {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
-  ]
+    {:caption=>"Samples",       :data=>proc{|rec| link_bind_samples(rec)},                  :title=>'Number of samples for this bind position in time range'},
+]
 
  gen_slickgrid(@binds, column_options, {
         :caption => "Bindevariablen der letzten Ausführung",
