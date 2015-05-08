@@ -535,6 +535,30 @@ class DbaHistoryController < ApplicationController
     render_partial :list_sql_detail_historic
   end #list_sql_detail_historic
 
+  def list_bind_samples_historic
+    @instance    = prepare_param_instance         # optional
+    @sql_id      = params[:sql_id]
+    @position    = params[:position]
+    @min_snap_id = params[:min_snap_id]
+    @max_snap_id = params[:max_snap_id]
+    @dbid        = prepare_param_dbid
+
+    @binds = sql_select_all ["\
+        SELECT /* Panorama-Tool Ramm */ Name, DataType_String, Last_Captured, Value_String,
+               NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
+        FROM   DBA_Hist_SQLBind b
+        WHERE  b.DBID            = ?
+        AND    b.Instance_Number = ?
+        AND    b.SQL_ID          = ?
+        AND    b.Snap_ID BETWEEN ? AND ?
+        AND    b.Position        = ?
+        ORDER BY Last_Captured
+        ", @dbid, @instance, @sql_id, @min_snap_id, @max_snap_id, @position]
+
+    render_partial
+  end
+
+
 
   def list_sql_history_execution_plan
     update_area  = params[:update_area]

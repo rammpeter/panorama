@@ -129,11 +129,11 @@ column_options = [
 ]
 
  gen_slickgrid(@binds, column_options, {
-        :caption => "Bindevariablen der letzten Ausführung",
+        :caption => t(:dba_history_list_sql_detail_historic_binds_caption, :default=>'Last captured bind variables'),
         :width => :auto
 }) %>
 
-<br><b>Zusätzliche Informationen</b><br><br>
+<br><b><%= t(:additional_infos, :default=>'Additional information') %></b><br><br>
 <div class="float_left">
     <%= my_ajax_submit_tag("Execution-Plan (#{@sql.plan_hash_value_count})",
      url_for(:update_area          => @update_area,

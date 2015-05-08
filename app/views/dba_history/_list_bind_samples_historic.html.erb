@@ -1,0 +1,16 @@
+<%=
+    column_options = [
+            {:caption=>"Name",          :data=>proc{|rec| rec.name},                        :title=>t(:dba_history_list_sql_detail_historic_bind_name, :default=>"Name of bind variable in statement") },
+            {:caption=>"Typ",           :data=>proc{|rec| rec.datatype_string},             :title=>"data type of bind variable"},
+            {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)}, :title=>"time of last capture"},
+            {:caption=>"Value",         :data=>proc{|rec| rec.value_string},                :title=>"Value of bind variable represented as string"},
+            {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
+            {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
+            {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
+            {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
+   ]
+
+    gen_slickgrid(@binds, column_options, {
+                                :caption => "Captured bind variables for SQL-ID='#{@sql_id}', position=#{@position}  ",
+                                :width => :auto
+                        }) %>

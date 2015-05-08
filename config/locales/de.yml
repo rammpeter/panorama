@@ -1,5 +1,6 @@
 ﻿de:
 # Globale Texte ohne Bezug zu erb
+  additional_infos:                                         Zusätzliche Informationen
   close:                                                    Schliessen
   content:                                                  Inhalt
   day:                                                      Tag
@@ -71,6 +72,7 @@
 
   dba_history_list_sql_detail_historic_bind_name:           Name der Vindevariablen im Statement
   dba_history_list_sql_detail_historic_bind_pos:            Position der Bindevariablen im Statement
+  dba_history_list_sql_detail_historic_binds_caption:       Zuletzt aufgezeichnete Bindevariablen
   dba_history_list_sql_detail_historic_last_plan_hash_hint: Hash-Value des letzten Explain-Plans
   dba_history_list_sql_detail_historic_module_action_hint:  Module und Action der Session, von der Statement zuletzt geparst wurde
   dba_history_list_sql_detail_historic_plan_count_hint:     Anzahl unterschiedliche Ausführungspläne im Zeitraum
