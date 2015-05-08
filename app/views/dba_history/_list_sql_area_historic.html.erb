@@ -62,26 +62,26 @@
           {:caption=>"SQL-ID",      :data=>proc{|rec| link_column_sql(rec, rec.sql_id) },                                   :title=>"SQL-ID" },
           {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text },                                        :title=>"SQL-Text" },
           {:caption=>"Parsing schema",   :data=>proc{|rec| rec.parsing_schema_name[0,8]+(rec.parsing_schema_name.length>8   ? "." : "") }, :title=>'Parsing schema name', :data_title=>proc{|rec| "%t = #{rec.parsing_schema_name}"} },
-          {:caption=>"Erstes Auftreten", :data=>proc{|rec| localeDateTime(rec.first_occurrence) },                          :title=>"Erstes Auftreten" },
-          {:caption=>"Letztes Auftreten",:data=>proc{|rec| localeDateTime(rec.last_occurrence) },                           :title=>"Letztes Auftreten" },
-          {:caption=>"Execs",       :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.executions)) },             :title=>"Anzahl Ausführungen", :align=>"right" },
+          {:caption=>t(:first_occurrence_caption, :default=>'First occurrence'), :data=>proc{|rec| localeDateTime(rec.first_occurrence)}, :title=>t(:first_occurrence_hint, :default=>'First occurrence within considered time range') },
+          {:caption=>t(:last_occurrence_caption, :default=>'Last occurrence'),:data=>proc{|rec| localeDateTime(rec.last_occurrence) },    :title=>t(:last_occurrence_hint, :default=>'Last occurrence within considered time range') },
+          {:caption=>"Execs",       :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.executions)) },             :title=>t(:dba_history_list_sql_area_historic_execs_hint, :default=>'Number of executions'), :align=>"right" },
           {:caption=>"Elapsed",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs)) },      :title=>"Total elapsed time in Sec.", :align=>"right" },
-          {:caption=>"Ela./Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs_per_execute,4)) },     :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right" },
-          {:caption=>"CPU",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.cpu_time_secs)) },          :title=>"CPU-Time in Sekunden", :align=>"right",    :data_title=>proc{|rec| "CPU-Time in Sekunden: #{@sum_cpu_time_secs && @sum_cpu_time_secs>0 && rec.cpu_time_secs ? formattedNumber(rec.cpu_time_secs*100.0/@sum_cpu_time_secs,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
-          {:caption=>"Disk Reads",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads)) },             :title=>"Total Disk Reads", :align=>"right",        :data_title=>proc{|rec| "Total Disk Reads: #{@sum_disk_reads && @sum_disk_reads>0 && rec.disk_reads ? formattedNumber(rec.disk_reads*100.0/@sum_disk_reads,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
+          {:caption=>"Ela./Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs_per_execute,4)) },     :title=>"Elapsed time per execute in sec. (incl. parallel query slaves)", :align=>"right" },
+          {:caption=>"CPU",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.cpu_time_secs)) },          :title=>"CPU-time in sec.", :align=>"right",    :data_title=>proc{|rec| "CPU-time in sec.: #{@sum_cpu_time_secs && @sum_cpu_time_secs>0 && rec.cpu_time_secs ? formattedNumber(rec.cpu_time_secs*100.0/@sum_cpu_time_secs,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
+          {:caption=>"Disk Reads",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads)) },             :title=>"Total disk reads", :align=>"right",        :data_title=>proc{|rec| "Total disk reads: #{@sum_disk_reads && @sum_disk_reads>0 && rec.disk_reads ? formattedNumber(rec.disk_reads*100.0/@sum_disk_reads,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
           {:caption=>"Disk/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads_per_execute,3)) },     :title=>"Disk Reads per Execute", :align=>"right" },
           {:caption=>"Buffer Gets", :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets)) },            :title=>"Total Buffer Gets", :align=>"right",       :data_title=>proc{|rec| "Total Buffer Gets: #{@sum_buffer_gets && @sum_buffer_gets>0 && rec.buffer_gets ? formattedNumber(rec.buffer_gets*100.0/@sum_buffer_gets,2) : "x"} % Anteil an Summe aller gezeigten SQL"} },
           {:caption=>"Buffer/Ex.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets_per_exec,2)) },     :title=>"Buffer Gets per execute", :align=>"right" },
-          {:caption=>"Rows proc.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed)) },         :title=>"Anzahl Rows processed", :align=>"right" },
-          {:caption=>"Rows/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed_per_execute,2)) },     :title=>"Anzahl Rows processed per Execute", :align=>"right" },
-          {:caption=>"Parses",      :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.parse_calls)) },            :title=>"Anzahl Parse-Calls", :align=>"right" },
+          {:caption=>"Rows proc.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed)) },         :title=>"Number of rows processed", :align=>"right" },
+          {:caption=>"Rows/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed_per_execute,2)) },     :title=>"Number of rows processed per execute", :align=>"right" },
+          {:caption=>"Parses",      :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.parse_calls)) },            :title=>"Number of parse calls", :align=>"right" },
   ]
 
 %>
 <%=
     gen_slickgrid(@sqls, column_options, {
         :max_height => 450,
-        :caption    => "Statement-Historie aus DBA_Hist_SQLStat ausgeführt zwischen #{@start_time} und #{@end_time} #{"mit Zugriff auf Objekt '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
+        :caption    => "Statement history from DBA_Hist_SQLStat executed between #{@start_time} and #{@end_time} #{"with access on object '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
 })
 %>
 

@@ -5,12 +5,16 @@
   content:                                                  Inhalt
   day:                                                      Tag
   error:                                                    Fehler
+  first_occurrence_caption:                                 Erstes Auftreten
+  first_occurrence_hint:                                    Erstes Auftreten im betrachteten Zeitraum
   generally:                                                Generell
   grouping:                                                 Gruppierung
   grouping_hint:                                            Gruppierung der Anzeige nach Attribut
   help:                                                     Hilfe
   hour:                                                     Stunde
   instance_optional_filter_hint:                            Einschränkung/Filterung auf RAC-Instance (optional)
+  last_occurrence_caption:                                  Letztes Auftreten
+  last_occurrence_hint:                                     Letztes Auftreten im betrachteten Zeitraum
   link_historic_sql_id_coming_soon:                         Hier erscheint gleich der Text des SQL, bitte Maus erneut über Objekt führen
   link_historic_sql_id_hint_prefix:                         Anzeige der Details des
   minute:                                                   Minute
@@ -18,7 +22,8 @@
   of:                                                       des
   second:                                                   Sekunde
   show:                                                     Anzeigen
-  sqlid_optional_filter_hint:                               Einschränkung/Filterung auf RAC-Instance (optional)
+  sorted_by:                                                Sortiert nach
+  sqlid_optional_filter_hint:                               Einschränkung/Filterung auf konkrete SQL-ID (optional)
   tables:                                                   Tabellen
   time_selection_start_caption:                             Start
   time_selection_start_hint:                                Start des Betrachtungszeitraumes im Format
@@ -68,6 +73,7 @@
   dba_history_list_segment_stat_historic_sum_link_wait_hint: Detaillierung der angefallenen Wartezeiten des Objektes
   dba_history_list_segment_stat_historic_sum_sqls_hint:     Anzahl SQLs für dieses Objekt in kompletter AWR-Historie unanhängig von gewähltem Zeitraum
 
+  dba_history_list_sql_area_historic_execs_hint:                Anzahl Ausführungen
   dba_history_list_sql_area_historic_link_column_snap_title:    Anzeige der Werte der einzelnen AWR-Snapshots (unterhalb)
 
   dba_history_list_sql_detail_historic_bind_name:           Name der Vindevariablen im Statement
@@ -86,6 +92,13 @@
   dba_history_list_sql_history_snapshots_link_sql_detail_hint:          Anzeige der Details des Statements für diesen Zeitraum aus DBA_Hist_SQLStat (unterhalb)
   dba_history_list_sql_history_snapshots_start_hint:        Beginn des betrachteten Intervalls
   dba_history_list_sql_history_snapshots_start_data_hint:   Beginn des betrachteten Intervalls, Ende = %{end_interval}
+
+  dba_history_show_sql_area_historic_caption:                   SQL's aus DBA_Hist_SQLStat
+  dba_history_show_sql_area_historic_filter_hint:               Filter-string muss in betrachteten SQL-Statements enthalten sein. Wildcards (%,_) können benutzt werden. (optional)
+  dba_history_show_sql_area_historic_max_result_count_caption:  Anzahl Treffer
+  dba_history_show_sql_area_historic_max_result_count_hint:     Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung)
+  dba_history_show_sql_area_historic_submit_caption:            SQL anzeigen
+  dba_history_show_sql_area_historic_submit_hint:               Anlistung der SQL nach Suchkriterien
 
   dba_history_show_sysmetric_historic_grouping_hint:        Verdichtung der Werte auf Zeitabschnitt
   dba_history_show_sysmetric_historic_header:               SysMetric-Historie aus DBA_Hist_SysMetric_History/GV$SysMetric_History oder DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary

@@ -2,18 +2,18 @@
 
 <%= my_ajax_form_tag url_for(:controller=>:dba_history, :action=>:list_sql_area_historic, :update_area=>:list_sql_historic_area) do %>
   <div class="float_left">
-    <b>SQL's from DBA_Hist_SQLStat</b>
+    <b><%=t(:dba_history_show_sql_area_historic_caption, :default=>"SQL's from DBA_Hist_SQLStat") %></b>
   </div>
-  <div class="float_left">
-    Anzahl Treffer
-    <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Sortierung") %>
+  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_max_result_count_hint, :default=>'Restrict result size to number of lines (after sort)')%>">
+    <%= t(:dba_history_show_sql_area_historic_max_result_count_caption, :default=>'Hit limit') %>
+    <%= text_field_tag(:maxResultCount, "100", :size=>5) %>
   </div>
 
   <%= include_start_end_timepicker %>
 
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_filter_hint, :default=>'Filter string must be found in considered SQL statement. Wildcards (%,_) can be used in filter. (optional)') %>">
     Filter
-    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
+    <%= text_field_tag(:filter, "", :size=>20) %>
   </div>
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
@@ -24,11 +24,11 @@
     <%= text_field_tag(:sql_id, "", :size=>12) %>
   </div>
   <div class="float_left">
-  <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
+  <%= submit_tag(t(:dba_history_show_sql_area_historic_submit_caption, :default=>'Show SQL'), :title => t(:dba_history_show_sql_area_historic_submit_hint, :default=>'Show SQL statements according to filter conditions')) %>
   </div>
   <div class="float_left">
     <div class="float_left">
-      Sortiert nach:
+      <%= t(:sorted_by, :default=>'Sorted by') %>:
     </div>
     <div class="float_left">
       <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
