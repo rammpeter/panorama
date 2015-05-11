@@ -150,10 +150,14 @@
 
   dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
+  dragnet_helper_group_index_partitioning:                  Empfehlungen für Index-Partitionierung
   dragnet_helper_group_logwriter_redo:                      LogWriter-Belastung / Redolog-Aufkommen
+  dragnet_helper_group_optimal_index_storage:               Sicherstellen optimaler Storage-Parameter für Indizes
   dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
+  dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
+  dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
 
   dragnet_helper_param_history_backward_name:               Betrachtung der Historie rückwärts in Tagen
@@ -162,7 +166,7 @@
   dragnet_helper_1_desc: |-
     Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
     Mit PCTFree < 10 (insbesondere = 0) sind Probleme mit automatischer Ausbalancierung zu erwarten, insbesondere beim Insert der Daten in vorsortierter Folge
-  dragnet_helper_1_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Index PCTFree >= 10
+  dragnet_helper_1_name:                                    Sicherstellen Index PCTFree >= 10
   dragnet_helper_1_param_1_name:                            Schwellwert für PctFree Index
   dragnet_helper_1_param_1_hint:                            Selektion von Indizes, die diesen Wert für PctFree unterschreiten
   dragnet_helper_1_param_2_name:                            Schwellwert für PctFree Index-Partition
@@ -173,7 +177,7 @@
   dragnet_helper_2_desc: |-
     Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
     Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
-  dragnet_helper_2_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Test auf mögliche Komprimierung
+  dragnet_helper_2_name:                                    Test auf empfehlenswerte Index-Komprimierung
   dragnet_helper_2_param_1_hint:                            Mindestanzahl Zeilen des Index je DISTINCT Key
   dragnet_helper_2_param_2_name:                            Schwellwert für Index-Größe (MB)
   dragnet_helper_2_param_2_hint:                            Selection von Indizes, deren Größe in MB diesen Wert überschreitet
@@ -182,7 +186,7 @@
     Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
     Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
     Bei komprimiertem Index sollten alle Verweise auf Data-Blocks eines Keys in einen Leaf-Block passen
-  dragnet_helper_3_name:                                    Sicherstellen optimaler Storage-Parameter für Indizes, Index-Komnprimierung, Test auf Leaf-Blocks
+  dragnet_helper_3_name:                                    Empfehlungen für Index-Komnprimierung, Test auf Leaf-Blocks
   dragnet_helper_3_param_1_hint:                            Mindestanzahl Leaf-Blocks / Key
 
   dragnet_helper_4_desc: |-
@@ -211,27 +215,29 @@
     Inbesondere bei Referenzen sehr großer Tabellen auf sehr kleine Stammtabellen ist der Aufwand für die Indizierung oft nicht gerechtfertigt.
     Auf Grund der geringen Selektivität dieser Indizes sind sie außer der Absicherung des Foreign Keys kaum zur Zugriffsoptimierung zu gebrauchen.
 
-  dragnet_helper_7_name:                                    Identifikation unnötiger Indizes (Nicht für Zugriffe oder Absicherung von Eindeutigkeit benutzte Indizes)
+  dragnet_helper_7_name:                                    Identifikation nicht für Zugriffe oder Absicherung von Eindeutigkeit benutzte Indizes
   dragnet_helper_7_desc: |-
     Für Indizes, die nicht für Absicherung von Eindeutigkeit und nicht für Datenzugriff genutzt werden, kann die Frage nach der Daseinsberechtigung des Index gestellt werden.
     Die Berechtigung kann trotzdem zur Absicherung von Foreign Keys gegeben sein, auch wenn im Betrachtungszeitraum keine Zugriffe stattfanden.
     Letztlich Sicherheit über Nutzung gibt 'ALTER INDEX ... MONITORING USAGE' sowie Kontrolle über V$OBJECT_USAGE.
     Weitere Informationen zur Nutzung bringt Anzeige 'Segment statistics historisch' und Analyse der ActiveSessionHistory über Spalte 'Time waited'.
 
-  dragnet_helper_8_name:                                    "Identifikation unnötiger Indizess: Doppelt indizierte Spalten"
+  dragnet_helper_8_name:                                    Identifikation von Indizes mit doppelt indizierte Spalten
   dragnet_helper_8_desc: |-
     Mehrfach indizierte Spalten bringen nur Nutzen im Such-Zugriff, wenn weitere Felder die Selektivität des Index verfeinern.
     Die Indizierung einer Spalte, die bereits durch einen mehrspaltigen Index indiziert ist, ist oftmals überflüssig, z.B. zur Absicherung von Foreign Keys.
     Alternativ kann mehrfache Indizierung der selben Spalte in verschiedenen Composite-Indizes jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
 
-  dragnet_helper_9_name:                                    "Identifikation unnötiger Indizes: Erkennung nicht genutzter Indizes durch System-Monitoring"
+  dragnet_helper_9_name:                                    Erkennung nicht genutzter Indizes durch System-Monitoring
   dragnet_helper_9_desc: |-
     Die DB Protokolliert die Nutzung (Zugriff) von Indizes die vorab durch 'ALTER INDEX ... MONITORING USAGE' deklariert wurden.
     Das Ergebnis der Nutzungsprotokollierung ist je Schema in Tabelle v$Object_Usage einsehbar.
     Schemaübergreifend ist die Nutzung mit diese Selektion sichtbar.
+    Achtung: Auch die Ausführung von GATHER_INDEX_STATS zählt als Nutzung, selbts wenn der Index nie durch andere Selects genutzt wurde.
+
     Weitere Informationen zur Nutzung bringt Anzeige 'Segment statistics historisch' und Analyse der ActiveSessionHistory über Spalte 'Time waited'.
 
-  dragnet_helper_10_name:                                   "Identifikation unnötiger Indizes: Indizes mit unnötigen Spalten mit geringer Selektivität"
+  dragnet_helper_10_name:                                   Identifikation von Indizes mit unnötigen Spalten mit geringer Selektivität
   dragnet_helper_10_desc: |-
     Bei MultiColumn-Indizes mit hoher Selektivität einzelner Spalten wird durch weitere Spalten im Index die Selektivität nicht weiter signifikant verbessert
     Sinn machen zusätzliche Spalten mit niedriger Selektivität nur wenn sie:
@@ -240,25 +246,25 @@
     Ist der o.g. Sinn nicht gegeben, können zusätzliche Spalten mit niedriger Selektivität ersatzlos entfallen.
     Fur Eliminierung von 'table access by rowid' genutzte Indizes (alle Daten aus Index) sind in Selektion nicht enthalten.
 
-  dragnet_helper_11_name:                                   "Partitionierung von Indizes: Local-Partitionierung für NonUnique-Indizes"
+  dragnet_helper_11_name:                                   Local-Partitionierung für NonUnique-Indizes
   dragnet_helper_11_desc: |-
     Für Partitionierte Tabellen Indizes nach Möglichkeit auch partitionieren (LOCAL), insbesondere dann wenn die Partitionen unterschiedlich aktuelle Dateninhalte physisch trennen.
     Durch Partitionierung kann oftmals der BLevel des Index reduziert werden.
     Für Unqiue Indizes gilt dies nur dann, wenn das Partitionierungskriterium mit den ersten Feld(ern) des Index übereinstimmt.
     Negativ wirkt sich allerdings der n-fache Zugriff auf Index bei Suche aus, wenn Partition-Key ungleich dem indizierten Feld ist und Partition-Key nicht Bestandteil des Filters ist.
 
-  dragnet_helper_12_name:                                   "Partitionierung von Indizes: Local-Partitionierung von Unique Indizes mit Partition-Key=Index-Spalte"
+  dragnet_helper_12_name:                                   Local-Partitionierung von Unique Indizes mit Partition-Key=Index-Spalte
   dragnet_helper_12_desc: |-
     Unqiue Indizes lassen sich auch local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
     Somit kann auch für Zugriffe über diese Indizes Partition-Pruning auf Index-Ebene genutzt werden sowie möglicherweise der BLevel des Index reduziert werden.
 
-  dragnet_helper_13_name:                                   "Partitionierung von Indizes: Local-Partitionierung mit Overhead im Zugriff"
+  dragnet_helper_13_name:                                   Local-Partitionierung mit Overhead im Zugriff
   dragnet_helper_13_desc: |-
     Local-Partitionierung nach Spalten, die nicht im Index indiziert sind, führt zum Zugriff auf alle Partitionen des Index bei Range Scan oder Unique Scan.
     Bei frequenter Nutzung des Index führt dies bei großen Partitionsanzahlen zu unnötig hohen Buffer Gets.
     Global Partitionierung nach dem Index-Kriterium kann dieses Verhalten abstellen.
 
-  dragnet_helper_14_name:                                   "Identifikation unnötiger Indizes: Nur ein oder wenige Schlüssel-Werte im Index"
+  dragnet_helper_14_name:                                   "Identifikation von Indizes mit nur einem oder wenigen Schlüssel-Werten im Index"
   dragnet_helper_14_desc: |-
     Für Indizes mit nur einem oder wenigen Schlüsseln kann die Sinnfrage gestellt werden.
     Ausnahme: Index auch mit nur einem Schlüssel kann sinnvoll sein zur Differenzierung zwischen NULL und NOT NULL.
@@ -375,6 +381,20 @@
   dragnet_helper_63_param_2_name:                           Limit für Anzahl PQ-Server
   dragnet_helper_63_param_2_hint:                           Limit für Anzahl PQ-Server, Überschreitungen werden hier angezeigt
 
+  dragnet_helper_64_desc: |-
+    Für niemals für Selektionen genutzte Tabellen kann kritisch die Daseinsberechtigung hinterfragt werden.
+    Dies beinhaltet auch Tabellen, die zwar geschrieben aber nie gelesen werden.
+  dragnet_helper_64_name:                                   Ermittlung nicht genutzter Tabellen
+  dragnet_helper_64_param_1_hint:                           Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Match im SQL-Text'
+  dragnet_helper_64_param_1_name:                           Betrachtung der AWR-Historie für SQL rückwärts in Tagen
+  dragnet_helper_64_param_2_hint:                           Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Vorkommen im Explain-Plan'
+  dragnet_helper_64_param_2_name:                           Betrachtung der AWR-Historie für Plan rückwärts in Tagen
+
+  dragnet_helper_65_desc: |-
+    In vielen Konstellationen ist wichtig, nicht mehr produktive Altdaten auch wieder aus dem System zu entfernen.
+    Bei größerem Abstand der Ermittlung von analyze-Info hilft u.g. Statement zum Ermitteln von Lücken im Housekeeping.
+    Es werden ausgewiesen die Inserts und Updates seit der letzten Tabellen-Analyse für Tabellen ohne Deletes.
+  dragnet_helper_65_name:                                   Fehlendes Housekeeping bei Massendaten
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports

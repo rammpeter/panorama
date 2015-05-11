@@ -18,6 +18,7 @@
 //= require jquery.contextmenu.js
 //= require superfish/hoverIntent
 //= require superfish/superfish
+//= require jstree
 //= require_tree .
 
 // global gültige Variable im js, wird von EnvController.setDatabase gesetzt entsprechend der Spracheinstellung

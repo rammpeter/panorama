@@ -13,6 +13,7 @@
  *= require jquery-ui-1.10.3.custom
  *= require slick.grid
  *= require superfish
+ *= require jstree
  *= require_tree .
  */
 
@@ -188,7 +189,7 @@ thead th{
 
 }
 tbody td,tbody th{
-	font-size:85%;
+	font-size: small;
     padding: 4px;
 	background:#eee;
     word-wrap: break-word;
