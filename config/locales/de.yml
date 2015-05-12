@@ -152,6 +152,7 @@
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
   dragnet_helper_group_index_partitioning:                  Empfehlungen für Index-Partitionierung
   dragnet_helper_group_logwriter_redo:                      LogWriter-Belastung / Redolog-Aufkommen
+  dragnet_helper_group_optimizable_full_scans:              Optimierbare Full-Scan Operationen
   dragnet_helper_group_optimal_index_storage:               Sicherstellen optimaler Storage-Parameter für Indizes
   dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
@@ -160,8 +161,14 @@
   dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
 
-  dragnet_helper_param_history_backward_name:               Betrachtung der Historie rückwärts in Tagen
+  dragnet_helper_param_executions_hint:                     Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion
+  dragnet_helper_param_executions_name:                     Minmale Anzahl Executions
+
   dragnet_helper_param_history_backward_hint:               Anzahl Tage rückwärts von jetzt für Auswertung der Historie
+  dragnet_helper_param_history_backward_name:               Betrachtung der Historie rückwärts in Tagen
+
+  dragnet_helper_param_minimal_rows_hint:                   Minimale Anzahl Rows in Table für Aufnahme in Selektion
+  dragnet_helper_param_minimal_rows_name:                   Minimale Anzahl Rows in Table
 
   dragnet_helper_1_desc: |-
     Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
@@ -227,6 +234,8 @@
     Mehrfach indizierte Spalten bringen nur Nutzen im Such-Zugriff, wenn weitere Felder die Selektivität des Index verfeinern.
     Die Indizierung einer Spalte, die bereits durch einen mehrspaltigen Index indiziert ist, ist oftmals überflüssig, z.B. zur Absicherung von Foreign Keys.
     Alternativ kann mehrfache Indizierung der selben Spalte in verschiedenen Composite-Indizes jedoch der Optimierung von Join-Beziehungen dienen bzw. der vollständigen Abdeckung eines Zugriffs ohne Table-Access
+  dragnet_helper_8_param_1_hint:                            Minimale Anzahl Rows des Index für Berücksichtigung in Auswertung
+  dragnet_helper_8_param_1_name:                            Minmale Anzahl Rows des Index
 
   dragnet_helper_9_name:                                    Erkennung nicht genutzter Indizes durch System-Monitoring
   dragnet_helper_9_desc: |-
@@ -385,7 +394,7 @@
     Für niemals für Selektionen genutzte Tabellen kann kritisch die Daseinsberechtigung hinterfragt werden.
     Dies beinhaltet auch Tabellen, die zwar geschrieben aber nie gelesen werden.
   dragnet_helper_64_name:                                   Ermittlung nicht genutzter Tabellen
-  dragnet_helper_64_param_1_hint:                           Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Match im SQL-Text'
+  dragnet_helper_64_param_1_hint:                           Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Match im SQL-Text
   dragnet_helper_64_param_1_name:                           Betrachtung der AWR-Historie für SQL rückwärts in Tagen
   dragnet_helper_64_param_2_hint:                           Anzahl Tage rückwärts von jetzt für Auswertung der AWR-Historie bzgl. Vorkommen im Explain-Plan'
   dragnet_helper_64_param_2_name:                           Betrachtung der AWR-Historie für Plan rückwärts in Tagen
@@ -395,6 +404,51 @@
     Bei größerem Abstand der Ermittlung von analyze-Info hilft u.g. Statement zum Ermitteln von Lücken im Housekeeping.
     Es werden ausgewiesen die Inserts und Updates seit der letzten Tabellen-Analyse für Tabellen ohne Deletes.
   dragnet_helper_65_name:                                   Fehlendes Housekeeping bei Massendaten
+
+  dragnet_helper_66_desc: |-
+    Ungenutzte Spalten, die nur NULL-Werte enthalten, können möglicherweise entfernt werden.
+    Jede NULL-Spalte eines Records belegt ein Byte, wenn nicht alle nachfolgenden Spalten auch NULL sind.
+    Ab 11g können statt dessen virtuelle Spalten definiert werden, wenn Struktur fest vorausgesetzt wird (SAP etc.).
+  dragnet_helper_66_name:                                   Ermittlung nicht genutzter Spalten (alle Werte = NULL)
+
+  dragnet_helper_67_desc: |-
+    Für Spalten großer Tabellen mit wenigen DISTINCT-Werten kann Sinn hinterfragt werden, evtl. redundante Aussage zu weiteren Spalten der Tabelle,
+    die in Stammdaten hinter n:1-Relationen verlagert werden kann (Normalisierung)
+  dragnet_helper_67_name:                                   Ermittlung wenig aussagefähiger Spalten
+  dragnet_helper_67_param_1_hint:
+  dragnet_helper_67_param_1_name:
+
+  dragnet_helper_68_desc: |-
+    Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
+  dragnet_helper_68_name:                                   Unused markierte jedoch nicht physisch gelöschte Spalten
+
+  dragnet_helper_69_desc: |-
+    chained rows verursachen das Nachlesen von Migrationsblöcken bei Zugriff auf einen Record, der nicht vollständig im aktuellen Block enthalten ist.
+    Durch Anpassen PCTFREE sowie Reorganisation der betroffenen Tabelle lassen sich chained rows vermeiden.
+
+    Die Selektion ist nicht direkt ausführbar. Bitte PL/SQL-Code kopieren und extern in SQL*Plus ausführen !!!
+  dragnet_helper_69_name:                                   Ermittlung von chained rows von Tabellen
+
+  dragnet_helper_70_desc: |-
+    IndexFullScan-Operationen auf großen Indizes können oftmals erfolgreich auf parallelen DirectRead per IndexFastFullScan umgesetzt werden, wenn die Sortierung des Index für das Result nicht relevant ist.
+    Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die Hints /*+ PARALLEL_INDEX(Alias, Degree) INDEX_FFS(Alias) */ zu verwenden.
+  dragnet_helper_70_name:                                   Optimierbare Index Full-Scan Operationen
+
+  dragnet_helper_71_desc: |-
+    FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
+    Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
+  dragnet_helper_71_name:                                   Optimierbare FullTableScan-Operationen nach Executions
+
+  dragnet_helper_72_desc: |-
+    FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
+    Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
+  dragnet_helper_72_name:                                   Optimierbare FullTableScan-Operationen nach Executions und Rows_Processed
+
+  dragnet_helper_73_desc: |-
+    Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung der referenzierenden Tabelle verursacht.
+  dragnet_helper_73_name:                                   Optimierbare FullTableScan-Operationen bei lang laufenden Foreign-Key-Prüfungen bei Delete
+
+  dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports

@@ -253,7 +253,7 @@ Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat
                       AND        d.Table_Owner NOT IN ('SYSMAN','SYS', 'XDB', 'SYSTEM')
                       ORDER BY ix.Num_Rows DESC NULLS LAST
                       ",
-            :parameter=>[{:name=> 'Minmale Anzahl Rows des Index', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows des Index für Berücksichtigung in Auswertung'}]
+            :parameter=>[{:name=> t(:dragnet_helper_8_param_1_name, :default=>'Minmum number of rows for index'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_8_param_1_hint, :default=>'Minimum number of rows of index for consideration in result')}]
         },
         {
             :name  => t(:dragnet_helper_9_name, :default=> 'Detection of unused indexes by system monitoring'),
@@ -542,6 +542,54 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
                       WHERE m.Deletes = 0 AND m.Truncated = 'NO'
                       ORDER BY m.Inserts+m.Updates+m.Deletes DESC NULLS LAST",
         },
+        {
+            :name  => t(:dragnet_helper_66_name, :default=>'Detection of not used columns (all values = NULL)'),
+            :desc  => t(:dragnet_helper_66_desc, :default=>'Unused columns with only NULL-values Spalten can possibly be removed.
+Each NULL-value of a record claims one byte if not all subsequent columns of that record are also NULL.
+Starting from 11g you can use virtual columns instead if this table structure is precondition (SAP etc.).
+'),
+            :sql=> "SELECT /* DB-Tools Ramm  Spalten mit komplett  NULL-Values */
+                             c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct
+                      FROM   DBA_Tab_Columns c
+                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                      WHERE  c.Num_Nulls = t.Num_Rows
+                      AND    t.Num_Rows  > 0   -- Tabelle enthaelt auch Daten
+                      AND    c.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS', 'SYSMAN', 'MDSYS')
+                      ORDER BY t.Num_Rows DESC NULLS LAST",
+        },
+        {
+            :name  => t(:dragnet_helper_67_name, :default=>'Detection of less informative columns'),
+            :desc  => t(:dragnet_helper_67_desc, :default=>'For columns of large tables with less DISTINCT-values meaning can be questioned.
+May be it their value is redundant to other columns of that table. In this case you can extract this column as separate master-data table with n:1-relation (normalization).
+'),
+            :sql=> "SELECT /* DB-Tools Ramm Spalten mit wenig Distinct-Values */
+                             c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct,
+                             ROUND((c.Avg_Col_Len*(Num_Rows-Num_Nulls)+Num_Nulls)/(1024*1024),2) Megabyte
+                      FROM   DBA_Tab_Columns c
+                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                      WHERE  NVL(c.Num_Distinct,0) != 0
+                      AND    NVL(t.Num_Rows,0) > ?
+                      AND    c.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS')
+                      ORDER BY c.Num_Distinct, t.Num_Rows DESC NULLS LAST",
+            :parameter=>[{:name=>t(:dragnet_helper_param_minimal_rows_name, :default=>'Minimum number of rows in table'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_param_minimal_rows_hint, :default=>'Minimum number of rows in table for consideration in selection')}]
+        },
+        {
+            :name  => t(:dragnet_helper_68_name, :default=>'Unused marked but not physical deleted columns'),
+            :desc  => t(:dragnet_helper_68_desc, :default=>'For as unused marked columns it may be worth to reorganize the table by ALTER TABLE DROP UNSED COLUMNS or recreation of table.
+'),
+            :sql=> 'SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
+                      FROM   DBA_Unused_Col_Tabs cs
+                      JOIN   DBA_Tables t ON t.Owner = cs.Owner AND t.Table_Name = cs.Table_Name
+                      ORDER BY t.Num_Rows*cs.Count DESC NULLS LAST',
+        },
+        {
+            :name  => 'Dropped tables in recycle bin',
+            :desc  => "Use 'PURGE RECYCLEBIN' to free space of dropped tables from recycle bin",
+            :sql=> "SELECT /* Panorama-Tool Ramm */ *
+                      FROM   DBA_Tables
+                      WHERE  Dropped = 'YES'
+                      ORDER BY Num_Rows DESC NULLS LAST",
+        },
 
     ]
   end # unused_tables
@@ -612,50 +660,11 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
             :parameter=>[{:name=>t(:dragnet_helper_5_param_1_name, :default=> 'Min. no. of rows of referenced table'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_5_param_1_hint, :default=> 'Minimum number of rows of referenced table') },]
         },
         {
-             :name  => 'Ermittlung nicht genutzter Spalten (NULL)',
-             :desc  => 'Ungenutzte Spalten, die nur NULL-Werte enthalten, können möglicherweise entfernt werden.
-Jede NULL-Spalte eines Records belegt ein Byte, wenn nicht alle nachfolgenden Spalten auch NULL sind.
-Ab 11g können statt dessen virtuelle Spalten definiert werden, wenn Struktur fest vorausgesetzt wird (SAP ??).
-',
-             :sql=> "SELECT /* DB-Tools Ramm  Spalten mit komplett  NULL-Values */
-                             c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct
-                      FROM   DBA_Tab_Columns c
-                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
-                      WHERE  c.Num_Nulls = t.Num_Rows
-                      AND    t.Num_Rows  > 0   -- Tabelle enthaelt auch Daten
-                      AND    c.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS', 'SYSMAN', 'MDSYS')
-                      ORDER BY t.Num_Rows DESC NULLS LAST",
-         },
-        {
-             :name  => 'Ermittlung wenig aussagefähiger Spalten',
-             :desc  => 'Für Spalten mit wenigen DISTINCT-Werten kann Sinn hinterfragt werden, evtl. redundante Aussage zu weiteren Spalten der Tabelle, die in Stammdaten hinter n:1-Relationen verlagert werden kann (Normalisierung)
-',
-             :sql=> "SELECT /* DB-Tools Ramm Spalten mit wenig Distinct-Values */
-                             c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct,
-                             ROUND((c.Avg_Col_Len*(Num_Rows-Num_Nulls)+Num_Nulls)/(1024*1024),2) Megabyte
-                      FROM   DBA_Tab_Columns c
-                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
-                      WHERE  NVL(c.Num_Distinct,0) != 0
-                      AND    NVL(t.Num_Rows,0) > ?
-                      AND    c.Owner NOT IN ('SYS', 'SYSTEM', 'WMSYS')
-                      ORDER BY c.Num_Distinct, t.Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=> 'Minimale Anzahl Rows in Table', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows in Table für Aufnahme in Selektion'}]
-         },
-        {
-             :name  => 'Unused gesetzte jedoch nicht gelöschte Spalten',
-             :desc  => 'Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
-',
-             :sql=> 'SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
-                      FROM   DBA_Unused_Col_Tabs cs
-                      JOIN   DBA_Tables t ON t.Owner = cs.Owner AND t.Table_Name = cs.Table_Name
-                      ORDER BY t.Num_Rows*cs.Count DESC NULLS LAST',
-         },
-        {
-             :name  => 'Ermittlung von chained rows',
-             :desc  => 'chained rows verursachen das Nachlesen von Migrationsblöcken bei Zugriff auf einen Record, der nicht vollständig im aktuellen Block enthalten ist.
-Durch Anpassen PCTFREE sowie Reorganisation der betroffenen Tabelle lassen sich chained rows vermeiden.
+             :name  => t(:dragnet_helper_69_name, :default=>'Detection of chained rows of tables'),
+             :desc  => t(:dragnet_helper_69_desc, :default=>'chained rows causes additional read of migrated rows in separate DB-blocks while accessing a record which is not completely contained in current block.
+Chained rows can be avoided by adjusting PCTFREE and reorganization of affected table.
 
-Die Selektion ist nicht direkt ausführbar. Bitte PL/SQL-Code kopieren und extern in SQL*Plus ausführen !!!',
+This seslection cannot be directly executed. Please copy PL/SQL-Code and execute external in SQL*Plus !!!'),
              :sql=> "
 SET SERVEROUT ON;
 
@@ -716,14 +725,6 @@ BEGIN
 END;
 /
              ",
-         },
-        {
-             :name  => 'Dropped tables in recycle bin',
-             :desc  => "Use 'PURGE RECYCLEBIN' to free space of dropped tables from recycle bin",
-             :sql=> "SELECT /* Panorama-Tool Ramm */ *
-                      FROM   DBA_Tables
-                      WHERE  Dropped = 'YES'
-                      ORDER BY Num_Rows DESC NULLS LAST",
          },
         {
             :name  => 'Table access by rowid replaceable by index lookup (from current SGA)',
@@ -787,20 +788,18 @@ Usable with Oracle 11g and above only.',
                          {:name=> 'Minimum number of seconds in wait', :size=>8, :default=>100, :title=> 'Mimimum number of seconds in wait for table access by rowid on this table to be worth to consider.'}]
         },
         ]
-  end
+  end # sqls_potential_db_structures
 
   ####################################################################################################################
 
-
-
-  def sqls_wrong_execution_plan
+  def optimizable_full_scans
     [
         {
-             :name  => 'Optimierbare IndexFullScan-Operationen',
-             :desc  => 'IndexFullScan-Operationen auf großen Indizes können oftmals erfolgreich auf parallelen DirectRead per IndexFastFullScan umgesetzt werden, wenn die Sortierung des Index für das Result nicht relevant ist.
-Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die Hints /*+ PARALLEL_INDEX(Alias, Degree) INDEX_FFS(Alias) */ zu verwenden.
-',
-             :sql=> "SELECT /* DB-Tools Ramm IndexFullScan */ * FROM (
+            :name  => t(:dragnet_helper_70_name, :default=>'Optimizable index full scan operations'),
+            :desc  => t(:dragnet_helper_70_desc, :default=>'Index full scan operations on large indexes often may be successfully switched to parallel direct path read per index fast full, if sort order of result does not matter.
+If optimizer does not decide to do so himself, you can use hints /*+ PARALLEL_INDEX(Alias, Degree) INDEX_FFS(Alias) */.
+'),
+            :sql=> "SELECT /* DB-Tools Ramm IndexFullScan */ * FROM (
                       SELECT p.SQL_ID, s.Parsing_Schema_Name, p.Object_Owner, p.Object_Name,
                              (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name
                              ) Num_Rows_Index, s.Instance_Number,
@@ -834,14 +833,15 @@ Wenn der Optimizer die entscheidung nicht eigenständig trifft, sind hierzu die 
                              GROUP BY s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_Number) s
                       WHERE s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                       ) ORDER BY Num_Rows_Index DESC NULLS LAST, Elapsed_Secs DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+        },
         {
-             :name  => 'Optimierbare FullTableScan-Operationen: Full-Table-Scans nach Executions',
-             :desc  => 'FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
-Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
-',
-             :sql=> "SELECT /* DB-Tools Ramm FullTableScan */ p.SQL_ID, p.Object_Owner, p.Object_Name,
+            :name  => t(:dragnet_helper_71_name, :default=>'Optimizable full table scan operations by executions'),
+            :desc  => t(:dragnet_helper_71_desc, :default=>'Access by full table scan is critical if only small parts of table are relevant for selection, otherwise are adequate for processing of whole table data.
+They are out of place for OLTP-like access (small access time, many executions).
+'),
+            :sql=> "WITH Backward AS (SELECT ? Days FROM Dual)
+                     SELECT /* DB-Tools Ramm FullTableScan */ p.SQL_ID, p.Object_Owner, p.Object_Name,
                               (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name) Num_Rows,
                               s.Elapsed_Secs, s.Executions, s.Disk_Reads, s.Buffer_Gets, s.Rows_Processed,
                              (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=p.DBID AND t.SQL_ID=p.SQL_ID) SQLText
@@ -851,7 +851,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                               WHERE Operation = 'TABLE ACCESS'
                               AND   Options LIKE '%FULL'            /* Auch STORAGE FULL der Exadata mit inkludieren */
                               AND   Object_Owner NOT IN ('SYS')
-                              AND   Timestamp > SYSDATE-?
+                              AND   Timestamp > SYSDATE-(SELECT Days FROM Backward)
                             ) p
                       JOIN  (SELECT s.DBID, s.SQL_ID, s.Plan_Hash_Value,
                                     ROUND(SUM(Elapsed_Time_Delta)/1000000,2) Elapsed_Secs,
@@ -862,7 +862,7 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                              FROM   DBA_Hist_SQLStat s
                              JOIN   (SELECT /*+ NO_MERGE */ DBID, Instance_Number, MIN(Snap_ID) Snap_ID
                                      FROM   DBA_Hist_SnapShot ss
-                                     WHERE  Begin_Interval_Time > SYSDATE-?
+                                     WHERE  Begin_Interval_Time > SYSDATE-(SELECT Days FROM Backward)
                                      GROUP BY DBID, Instance_Number
                                     ) MaxSnap ON MaxSnap.DBID            = s.DBID
                                              AND   MaxSnap.Instance_Number = s.Instance_Number
@@ -871,16 +871,16 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                              HAVING SUM(Executions_Delta) > ?  -- Nur vielfache Ausfuehrung mit Full Scan stellt Problem dar
                             ) s ON s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                       ORDER BY Executions*Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=> 'Betrachtung der Historie Execution Plan rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein'},
-                          {:name=> 'Betrachtung der SQL-Ausführungs-Historie rückwärts in Tagen', :size=>8, :default=>8, :title=> 'Anzahl Tage rückwärts von jetzt für Auswertung der Historie, beide Werte sollten identisch sein'},
-                          {:name=> 'Minmale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion'}]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in result')},
+            ]
+        },
         {
-             :name  => 'Optimierbare FullTableScan-Operationen: Full-Table-Scans nach Executions und Rows_Processed',
-             :desc  => 'FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
-Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
-',
-             :sql=> "SELECT /* DB-Tools Ramm FullTableScans */ * FROM (
+            :name  => t(:dragnet_helper_72_name, :default=>'Optimizable full table scans operations by executions and rows processed'),
+            :desc  => t(:dragnet_helper_72_desc, :default=>'Access by full table scan is critical if only small parts of table are relevant for selection, otherwise are adequate for processing of whole table data.
+They are out of place for OLTP-like access (small access time, many executions).
+'),
+                        :sql=> "SELECT /* DB-Tools Ramm FullTableScans */ * FROM (
                             SELECT i.SQL_ID, i.Object_Owner, i.Object_Name, ROUND(i.Rows_Processed/i.Executions,2) Rows_per_Exec,
                                    i.Num_Rows, i.Elapsed_Time_Secs, i.Executions, i.Disk_Reads, i.Buffer_Gets, i.Rows_Processed,
                                    (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=i.DBID AND t.SQL_ID=i.SQL_ID) SQL_Text
@@ -910,14 +910,15 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                      )
                      WHERE  SQL_Text NOT LIKE '%dbms_stats%'
                      ORDER BY Rows_per_Exec/Num_Rows/Executions",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Minmale Anzahl Rows der Tabelle',             :size=>8, :default=>100, :title=> 'Minimale Anzahl Rows der Tabelle für Aufnahme in Selektion'},
-                          {:name=> 'Minmale Anzahl Executions',                   :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion'}]
-         },
+                        :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                                     {:name=>t(:dragnet_helper_param_minimal_rows_name, :default=>'Minimum number of rows in table'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_param_minimal_rows_hint, :default=>'Minimum number of rows in table for consideration in selection')},
+                                     {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in result')},
+                        ]
+        },
         {
-             :name  => 'Optimierbare FullTableScan-Operationen: Lang laufende Foreign-Key-Prüfungen bei Delete',
-             :desc  => 'Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung verursacht.',
-             :sql=>  "SELECT /*+ USE_NL(s t) */ t.SQL_Text Full_SQL_Text,
+            :name  => t(:dragnet_helper_73_name, :default=>'Optimizable full table scan operations at long running foreign key checks by deletes'),
+            :desc  => t(:dragnet_helper_73_desc, :default=>'Long running foreign key checks at deletes are often caused by missing indexes at referencing table.'),
+            :sql=>  "SELECT /*+ USE_NL(s t) */ t.SQL_Text Full_SQL_Text,
                              TO_CHAR(SUBSTR(t.SQL_Text, 1, 40)) SQL_Text,
                              s.*
                              FROM (
@@ -949,8 +950,16 @@ Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugr
                        JOIN  DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
                        WHERE UPPER(t.SQL_Text) LIKE '%SELECT%ALL_ROWS%COUNT(1)%'
                        ORDER BY \"Elapsed Time (s) per Execute\" DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+        },
+
+
+    ]
+  end # optimizable_full_scans
+
+
+  def sqls_wrong_execution_plan
+    [
         {
              :name  => 'Übermäßige Anzahl Zugriffe auf Cache-Buffer',
              :desc  => "Zugriffe auf DB-Blöcke im Cache der DB (db-block-gets, consistent reads) werden dann kritisch hinsichtlich des provozierens von 'cache buffers chains'-Latchwaits wenn:
@@ -2658,7 +2667,10 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
           },
           {
               :name     => t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'),
-              :entries  => sqls_wrong_execution_plan
+              :entries  => [{   :name    => t(:dragnet_helper_group_optimizable_full_scans, :default=>'Optimizable full-scan operations'),
+                                :entries => optimizable_full_scans
+                            },
+              ].concat(sqls_wrong_execution_plan)
           },
           {
               :name     => t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'),
