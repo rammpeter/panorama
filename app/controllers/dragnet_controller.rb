@@ -37,7 +37,7 @@ class DragnetController < ApplicationController
         result[result.length-1] = ' '                                           # letztes Komma entfernen
         result << "]"
       else
-        result << ", \"icon\":\"/assets/application-monitor.png\""
+        result << ", \"icon\":\"assets/application-monitor.png\""
       end
       result << "},"
       result
