@@ -2190,12 +2190,12 @@ Documentation is available here: http://docs.oracle.com/cd/E16655_01/server.121/
   def dragnet_sqls_logwriter_redo
     [
     {
-         :name  => 'Schreibende Zugriffe nach Executions (Aktuelle SGA)',
-         :desc  => 'Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
-Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
-Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
-Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
-Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-',
+         :name  => t(:dragnet_helper_74_name, :default=>'Write access by executions (current SGA)'),
+         :desc  => t(:dragnet_helper_74_desc, :default=>'Delays during log buffer write by log writer lead to „log file sync“ wait events, especially during commit.
+Writing operations (Insert/Update/Delete) which cannot write into log buffer during „log file sync“ lead to „log buffer space“ wait events.
+Requests for block transfer in RAC environment lead to „gc buffer busy“ wait events, if requested blocks in delivering RAC-instance are affected by simultaneous „log buffer space“ or „log file sync“ events.
+The likelihood of „log buffer space“ events depends from frequency of writing operations. This selection determines heavy frequented write SQLs as candidates for deeper consideration.
+Solution can be the aggregation of multiple writes (bulk-processing).'),
          :sql=>  "SELECT /* DB-Tools Ramm: Schreibende Zugriffe nach Executes */
                          Inst_ID, SQL_ID, Parsing_Schema_Name, Executions, Rows_Processed, ROUND(Rows_Processed/Executions,2) \"Rows per Exec\",
                          ROUND(Elapsed_Time/1000000) Elapsed_Time_Secs, SQL_Text
@@ -2204,15 +2204,15 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                   AND    Executions > 0
                   AND    Rows_Processed > ?
                   ORDER BY Executions DESC NULLS LAST",
-         :parameter=>[{:name=> 'Minimale Anzahl geschriebene Rows', :size=>8, :default=>100000, :title=> 'Minimale anzahl geschriebene Rows für Aufnahme in Selektion'}]
+         :parameter=>[{:name=> t(:dragnet_helper_74_param_1_name, :default=>'Minimum number of written rows'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_74_param_1_hint, :default=>'Minimum number of written rows for consideration in result')}]
      },
     {
-         :name  => 'Schreibende Zugriffe nach Executions (AWR-Historie)',
-         :desc  => 'Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
-Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
-Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
-Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
-Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen-',
+         :name  => t(:dragnet_helper_75_name, :default=>'Write access by executions (AWR history)'),
+         :desc  => t(:dragnet_helper_75_desc, :default=>'Delays during log buffer write by log writer lead to „log file sync“ wait events, especially during commit.
+Writing operations (Insert/Update/Delete) which cannot write into log buffer during „log file sync“ lead to „log buffer space“ wait events.
+Requests for block transfer in RAC environment lead to „gc buffer busy“ wait events, if requested blocks in delivering RAC-instance are affected by simultaneous „log buffer space“ or „log file sync“ events.
+The likelihood of „log buffer space“ events depends from frequency of writing operations. This selection determines heavy frequented write SQLs as candidates for deeper consideration.
+Solution can be the aggregation of multiple writes (bulk-processing).'),
          :sql=>  "SELECT /* DB-Tools Ramm: Schreibende Zugriffe nach Executes */
                          s.Instance_Number, s.SQL_ID, s.Executions, s.Rows_Processed,
                          ROUND(s.Rows_Processed/s.Executions,2) \"Rows per Exec\", t.SQL_Text, TO_CHAR(SUBSTR(t.SQL_Text,1,100))
@@ -2229,7 +2229,7 @@ Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei 
                   AND    s.Rows_Processed > ?
                   ORDER BY Executions DESC NULLS LAST",
          :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                      {:name=> 'Minimale Anzahl geschriebene Rows', :size=>8, :default=>100000, :title=> 'Minimale anzahl geschriebene Rows für Aufnahme in Selektion'}]
+                      {:name=> t(:dragnet_helper_75_param_2_name, :default=>'Minimum number of written rows'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_75_param_2_hint, :default=>'Minimum number of written rows for consideration in result')}]
     },
     {
          :name  => 'Commit / Rollback - Aufkommen',

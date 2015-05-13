@@ -415,8 +415,6 @@
     Für Spalten großer Tabellen mit wenigen DISTINCT-Werten kann Sinn hinterfragt werden, evtl. redundante Aussage zu weiteren Spalten der Tabelle,
     die in Stammdaten hinter n:1-Relationen verlagert werden kann (Normalisierung)
   dragnet_helper_67_name:                                   Ermittlung wenig aussagefähiger Spalten
-  dragnet_helper_67_param_1_hint:
-  dragnet_helper_67_param_1_name:
 
   dragnet_helper_68_desc: |-
     Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
@@ -447,6 +445,26 @@
   dragnet_helper_73_desc: |-
     Lang laufende Foreign Key-Prüfungen bei Delete werden oftmals durch fehlende Indizierung der referenzierenden Tabelle verursacht.
   dragnet_helper_73_name:                                   Optimierbare FullTableScan-Operationen bei lang laufenden Foreign-Key-Prüfungen bei Delete
+
+  dragnet_helper_74_desc: |-
+    Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
+    Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
+    Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
+    Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
+    Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen.
+  dragnet_helper_74_name:                                   Schreibende Zugriffe nach Executions (Aktuelle SGA)
+  dragnet_helper_74_param_1_hint:                           Minimale anzahl geschriebene Rows für Aufnahme in Selektion
+  dragnet_helper_74_param_1_name:                           Minimale Anzahl geschriebene Rows
+
+  dragnet_helper_75_desc: |-
+    Verzögerungen beim Wegschreiben des Logbuffers durch Logwriter führen zu „log file sync“-Wait-Events, z.B. bei Commit.
+    Schreibende Operationen (Insert/Update/Delete), die während „log file sync“ nicht in Logbuffer schreiben können, führen zu „log buffer space“-Wait-Events.
+    Anforderungen auf Blocktransfer im RAC-Verbund führen zu „gc buffer busy“-Wait-Events, wenn die betreffenden Blöcke in der liefernden Instanz gerade von „log buffer space“ bzw. „log file sync“ betroffen sind.
+    Die Wahrscheinlichkeit eines „log buffer space“-Events ist von der Häufigkeit schreibender Operationen abhängig. Die folgenden Selektionen ermitteln häufig ausgeführte schreibende Statements als Kandidaten.
+    Lösung besteht in der Zusammenfassung mehrerer Records (Bulk-Berarbeitung) bei Schreibzugriffen.
+  dragnet_helper_75_name:                                   Schreibende Zugriffe nach Executions (AWR-Historie)
+  dragnet_helper_75_param_2_hint:                           Minimale anzahl geschriebene Rows für Aufnahme in Selektion
+  dragnet_helper_75_param_2_name:                           Minimale Anzahl geschriebene Rows
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
