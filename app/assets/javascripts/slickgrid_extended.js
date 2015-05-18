@@ -285,6 +285,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             var caption = jQuery("<div id='caption_"+container_id.replace(/#/, "")+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
             caption.html(options['caption'])
         }
+
+        dataView.setFilter(options["data_filter"]);                       // optinaler Filter auf Daten
+
     }   // initialize_slickgrid
 
     /**
@@ -348,7 +351,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * @returns {boolean}   show row according to filter
      */
     function slickgrid_filter_item_row(item) {
-        for (var columnId in columnFilters) {
+         for (var columnId in columnFilters) {
             if (columnId !== undefined && columnFilters[columnId] !== "") {
                 var c = thiz.grid.getColumns()[thiz.grid.getColumnIndex(columnId)];
                 if (c.sort_type == "float" &&  item[c.field] != columnFilters[columnId]) {
@@ -667,7 +670,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var options = thiz.grid.getOptions();
         if (options["showHeaderRow"]) {
             thiz.grid.setHeaderRowVisibility(false);
-            thiz.grid.getData().setFilter(null);
+            thiz.grid.getData().setFilter(options["data_filter"]);              // Ruecksetzen auf externen data_filter falls gesetzt, sonst null
         } else {
             thiz.grid.setHeaderRowVisibility(true);
             thiz.grid.getData().setFilter(options["searchFilter"]);

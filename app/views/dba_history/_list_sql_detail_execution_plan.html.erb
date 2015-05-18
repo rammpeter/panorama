@@ -1,8 +1,31 @@
+<script type="text/javascript">
+    function toggle_expand(a_id, rec_id, depth){
+        var anchor = $('#'+a_id);
+        if (anchor.data('collapsed')){
+            anchor.data('collapsed', false);
+            anchor.html('<img src="assets/expand.gif"/>');
+        } else {
+            anchor.data('collapsed', true);
+            anchor.html('<img src="assets/collapse.gif"/>');
+        }
+    }
+
+    function filter_collapsed_item_rows(item) {
+        return true;
+        if (item['id'] > 5)
+            return false;
+        else
+            return true;
+    }
+
+</script>
+
 <% @update_area = get_unique_area_id %>
 <%= 'No execution plan found' if @multiplans.count == 0 %>
 <% @multiplans.each do |mp|
      @plans = mp[:plans]
      @mp = mp
+     @toggle_id_prefix = get_unique_area_id
 %>
 
 
@@ -44,10 +67,26 @@
      )
    end
 
+   def list_operation(rec)
+     tab = ""
+     toggle_id = "#{@toggle_id_prefix}_#{rec.id}"
+
+     rec.depth.downto(1) {
+       tab << "<span style=\"display:inline-block; height:9px;width:9px; text-align: center;\"></span>&nbsp;"
+     }
+     if rec.is_parent
+        tab << "<a id=\"#{toggle_id}\" onclick=\"toggle_expand('#{toggle_id}', #{rec.id}, #{rec.depth});\"><img src=\"assets/expand.gif\"/></a>"
+     else
+       tab << "<span style=\"display:inline-block; height:9px;width:9px; text-align: center;\">|</span>"
+     end
+     tab << "&nbsp;"
+     "<span style=\"color: lightgray;\">#{tab}</span>#{rec.operation} #{rec.options}".html_safe
+   end
 
   column_options =
     [
-      {:caption=>'Operation',   :data=>proc{|rec| tab = ""; rec.depth.downto(2) {tab += " |&nbsp;"}; "<span style=\"color: lightgray;\">#{tab}</span>#{rec.operation} #{rec.options}".html_safe}, :no_wrap=>true, :title=>"Art des Zugriffs"},
+      {:caption=>'Operation',   :data=>proc{|rec| list_operation(rec)},         :no_wrap=>true, :title=>"Art des Zugriffs"},
+        {:caption=>'Parent',      :data=>proc{|rec| rec.is_parent ? 1 : 0 },         :title=>"Art des Zugriffs"},
       {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>"ID der Operation",             :data_title=>proc{|rec| "Parent_ID=#{rec.parent_id}"} },
       {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>"Reihenfolge der Operation",    :data_title=>proc{|rec| "ID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
       {:caption=>'Object-name', :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) },   :title=>"Name des Objekts",             :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
@@ -98,10 +137,13 @@
     <%= gen_slickgrid(@plans, column_options, {
             :caption =>@caption.html_safe,
             :width=>:auto,
-            :line_height_single => true
+            :line_height_single => true,
+            :data_filter => 'filter_collapsed_item_rows'
             #:max_height=>800
     }) %>
+
 
 <% end %>
 
 <div id="<%= @update_area %>" style="clear:both; width:100%; "></div>
+

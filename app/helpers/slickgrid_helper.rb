@@ -85,6 +85,7 @@ module SlickgridHelper
     output << "  multiple_y_axes:      #{global_options[:multiple_y_axes]},"
     output << "  show_y_axes:          #{global_options[:show_y_axes]},"
     output << "  line_height_single:   #{global_options[:line_height_single]},"
+    output << "  data_filter:          #{global_options[:data_filter]},"      if global_options[:data_filter]
     output << "  locale:               '#{session[:locale]}',"
     output << '}'
     output
@@ -145,6 +146,7 @@ module SlickgridHelper
   #     :show_y_axes          => Anzeige der y-Achsen links im Diagramm? (true|false)
   #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :label, :icon, :action
   #     :line_height_single   => Einzeilige Anzeige in Zeile der Tabelle oder mehrzeilige Anzeige wenn durch Umburch im Feld nötig (true|false)
+  #     :data_filter          => Name der JavaScript-Methode für filtern der angezeigten Zeilen: Methode muss einen Parameter "item" besitzen mit aktuell zu prüfender Zeile
 
   def gen_slickgrid(data, column_options, global_options={})
 

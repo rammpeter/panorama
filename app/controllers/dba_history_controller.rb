@@ -705,6 +705,7 @@ class DbaHistoryController < ApplicationController
             pos_array.each {|x|                                      # Suchen, ob noch ein Child zum Parent existiert in verbliebener Menge
               if mp[:plans][i].id == mp[:plans][x].parent_id                   # Doch noch ein Child zum Parent gefunden
                 is_parent = true
+                mp[:plans][i][:is_parent] = true                     # Merken Status als Knoten
                 break                                                # Braucht nicht weiter gesucht werden
               end
             }
