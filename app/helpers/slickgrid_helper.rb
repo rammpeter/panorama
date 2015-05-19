@@ -147,6 +147,7 @@ module SlickgridHelper
   #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :label, :icon, :action
   #     :line_height_single   => Einzeilige Anzeige in Zeile der Tabelle oder mehrzeilige Anzeige wenn durch Umburch im Feld nötig (true|false)
   #     :data_filter          => Name der JavaScript-Methode für filtern der angezeigten Zeilen: Methode muss einen Parameter "item" besitzen mit aktuell zu prüfender Zeile
+  #     :grid_id              => DOM-ID des DIV-Elementes für slickgrid
 
   def gen_slickgrid(data, column_options, global_options={})
 
@@ -179,8 +180,12 @@ module SlickgridHelper
 
     calculate_column_options(column_options, data)    # Berechnen diverser Spaltenparameter
 
-    id_num = rand(99999999)  # Zufallszahl für html-ID
-    table_id  = "grid_#{id_num}"
+    if global_options[:grid_id]
+      table_id = global_options[:grid_id]
+    else
+      table_id  = "grid_#{rand(99999999)}"                                      # Zufallszahl für html-ID
+    end
+
 
     output = ''
     output << "<div id='#{table_id}' style='"

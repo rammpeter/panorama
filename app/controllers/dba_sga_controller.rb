@@ -44,6 +44,9 @@ class DbaSgaController < ApplicationController
   end
 
   def fill_sql_area_list(modus, instance, filter, sql_id, max_result_count, top_sort) # Wird angesprungen aus Vor-Methode
+    max_result_count = 100 unless max_result_count
+    top_sort         = 'ElapsedTimeTotal' unless top_sort
+
     where_string = ""
     where_values = []
 
@@ -62,6 +65,8 @@ class DbaSgaController < ApplicationController
 
     where_values << max_result_count
 
+puts "############## #{top_sort}"
+    puts "############## #{max_result_count}"
     sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */ *
       FROM (SELECT  SUBSTR(LTRIM(SQL_TEXT),1,40) SQL_Text,
@@ -93,13 +98,8 @@ class DbaSgaController < ApplicationController
                 ) c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
           WHERE 1 = 1 -- damit nachfolgende Klauseln mit AND beginnen können
             #{where_string}
-            "+
-          case top_sort
-            when "BufferGetsPerRow"     then " AND Rows_Processed>0"
-          else
-            ""
-          end + "
-          ORDER BY "+ 
+            #{" AND Rows_Processed>0" if top_sort == 'BufferGetsPerRow'}
+          ORDER BY #{
             case top_sort
               when "ElapsedTimePerExecute"then "s.ELAPSED_TIME/DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS) DESC"
               when "ElapsedTimeTotal"     then "s.ELAPSED_TIME DESC"
@@ -111,9 +111,9 @@ class DbaSgaController < ApplicationController
               when "BufferGets"           then "s.Buffer_gets DESC"
               when "ClusterWaits"         then "s.Cluster_Wait_Time DESC"
               when "LastActive"           then "s.Last_Active_Time DESC"
-            end + " )  \n\
+            end} )
   WHERE ROWNUM < ?
-  ORDER BY "+
+  ORDER BY #{
         case top_sort
           when "ElapsedTimePerExecute"then "ELAPSED_TIME_SECS_PER_EXECUTE DESC"
           when "ElapsedTimeTotal"     then "ELAPSED_TIME_SECS DESC"
@@ -125,7 +125,7 @@ class DbaSgaController < ApplicationController
           when "BufferGets"           then "Buffer_gets DESC"
           when "ClusterWaits"         then "Cluster_Wait_Time_Secs DESC"
           when "LastActive"           then "Last_Active_Time DESC"
-        end
+        end}"
     ].concat(where_values)
   end
 
@@ -385,7 +385,7 @@ class DbaSgaController < ApplicationController
     @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
 
     # Liste der Child-Cursoren
-    @sqls = fill_sql_area_list("GV$SQL", @instance, nil, @sql_id, 100, "ElapsedTimeTotal")
+    @sqls = fill_sql_area_list("GV$SQL", @instance, nil, @sql_id, 100, nil)
 
     if @sqls.count == 0
       respond_to do |format|

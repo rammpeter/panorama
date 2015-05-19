@@ -1,11 +1,16 @@
 <script type="text/javascript">
-    function toggle_expand(a_id, rec_id, depth){
+    function toggle_expand(a_id, rec_id, depth, grid_id){
         var anchor = $('#'+a_id);
-        if (anchor.data('collapsed')){
-            anchor.data('collapsed', false);
+        //alert(grid_id);
+        var data_view = $('#'+grid_id).data('slickgrid').getData();
+        var grid_data    = data_view.getItems();
+        var row = grid_data[rec_id];
+
+        if (row['collapsed']){
+            row['collapsed'] = false;
             anchor.html('<img src="assets/expand.gif"/>');
         } else {
-            anchor.data('collapsed', true);
+            row['collapsed'] = true;
             anchor.html('<img src="assets/collapse.gif"/>');
         }
     }
@@ -26,6 +31,7 @@
      @plans = mp[:plans]
      @mp = mp
      @toggle_id_prefix = get_unique_area_id
+     @grid_id          = get_unique_area_id                                     # DOM-ID des DIVs mit SlickGrid
 %>
 
 
@@ -75,7 +81,7 @@
        tab << "<span style=\"display:inline-block; height:9px;width:9px; text-align: center;\"></span>&nbsp;"
      }
      if rec.is_parent
-        tab << "<a id=\"#{toggle_id}\" onclick=\"toggle_expand('#{toggle_id}', #{rec.id}, #{rec.depth});\"><img src=\"assets/expand.gif\"/></a>"
+        tab << "<a id=\"#{toggle_id}\" onclick=\"toggle_expand('#{toggle_id}', #{rec.id}, #{rec.depth}, '#{@grid_id}');\"><img src=\"assets/expand.gif\"/></a>"
      else
        tab << "<span style=\"display:inline-block; height:9px;width:9px; text-align: center;\">|</span>"
      end
@@ -135,10 +141,11 @@
 %>
 
     <%= gen_slickgrid(@plans, column_options, {
-            :caption =>@caption.html_safe,
-            :width=>:auto,
+            :caption            => @caption.html_safe,
+            :width              => :auto,
             :line_height_single => true,
-            :data_filter => 'filter_collapsed_item_rows'
+            :data_filter        => 'filter_collapsed_item_rows',
+            :grid_id            => @grid_id
             #:max_height=>800
     }) %>
 
