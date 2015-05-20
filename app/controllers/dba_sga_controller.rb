@@ -300,6 +300,10 @@ puts "############## #{top_sort}"
     pos_array = []
     0.upto(plans.length-1) {|i|  pos_array << i }
 
+    plans.each do |p|
+      p[:is_parent] = false                                                     # Vorbelegung
+    end
+
     curr_execorder = 1                                             # Startwert
     while pos_array.length > 0                                     # Bis alle Records im PosArray mit Folge versehen sind
       pos_array.each {|i|                                          # Iteration ueber Verbliebene Records
@@ -307,6 +311,7 @@ puts "############## #{top_sort}"
         pos_array.each {|x|                                        # Suchen, ob noch ein Child zum Parent existiert in verbliebener Menge
           if plans[i].id == plans[x].parent_id                     # Doch noch ein Child zum Parent gefunden
             is_parent = true
+            plans[i][:is_parent] = true                            # Merken Status als Knoten
             break                                                  # Braucht nicht weiter gesucht werden
           end
         }

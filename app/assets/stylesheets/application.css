@@ -236,9 +236,11 @@ table a:active{
 }
 .toggle.expand {
     background: url(expand.gif) no-repeat center center;
+    cursor: pointer;
 }
 .toggle.collapse {
     background: url(collapse.gif) no-repeat center center;
+    cursor: pointer;
 }
 .toggle.vertical-line {
     background: url(vertical-line.png) no-repeat center center;
