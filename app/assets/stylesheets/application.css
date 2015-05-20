@@ -227,5 +227,28 @@ table a:active{
     display: none;
 }
 
+/* treeview for explain plan */
+.toggle {
+    height: 12px;
+    width: 12px;
+    display: inline-block;
+    text-align: center;
+}
+.toggle.expand {
+    background: url(expand.gif) no-repeat center center;
+}
+.toggle.collapse {
+    background: url(collapse.gif) no-repeat center center;
+}
+.toggle.vertical-line {
+    background: url(vertical-line.png) no-repeat center center;
+}
+.toggle.corner-line {
+    background: url(corner-line.png) no-repeat center center;
+}
+.toggle.vertical-corner-line {
+    background: url(vertical-corner-line.png) no-repeat center center;
+}
+
 
 
