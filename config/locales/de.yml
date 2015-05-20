@@ -466,6 +466,11 @@
   dragnet_helper_75_param_2_hint:                           Minimale anzahl geschriebene Rows für Aufnahme in Selektion
   dragnet_helper_75_param_2_name:                           Minimale Anzahl geschriebene Rows
 
+  dragnet_helper_76_desc: |-
+    Auf Basis der Active Session History lassen sich Ausreiser der DB-Laufzeit je Modul ausweisen.
+    Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festgelegt (DD=Tag, HH24=Stunde etc.)
+  dragnet_helper_76_name:                                   Erheblich größere Laufzeit je Module gegenüber Durchschnitt über längere Zeit
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen

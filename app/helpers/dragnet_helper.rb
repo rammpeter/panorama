@@ -2289,9 +2289,9 @@ Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben
   def sqls_conclusion_application
     [
       {
-           :name  => 'Erheblich größere Laufzeit je Module gegenüber Durchschnitt über längere Zeit',
-           :desc  => 'Auf Basis der Active Session History lassen sich Ausreiser der DB-Laufzeit je Modul ausweisen.
-Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festgelegt (DD=Tag, HH24=Stunde etc.)',
+           :name  => t(:dragnet_helper_76_name, :default=>'Substantial larger runtime per module compared to average over longer time range'),
+           :desc  => t(:dragnet_helper_76_desc, :default=>'Based on active session history are shown outlier on databaase runtime per module je Module.
+Units for time consideration are defined by date format picture of TRUNC-function (DD=day, HH24=hour etc.)'),
            :sql=>  "WITH Modules AS (
                SELECT /*+ PARALLEL(h,2) */
                       TRUNC(Sample_Time, picture)  Time_Range_Start,
