@@ -2649,61 +2649,55 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
   #       :default    Default-Wert
   #       :title      MouseOver-Hint
 
-  @@dragnet_sql_list = []
   def dragnet_sql_list
+    [
+      {   :name     => t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'),
+          :entries  => [{  :name    => t(:dragnet_helper_group_optimal_index_storage, :default => 'Ensure optimal storage parameter for indexes'),
+                           :entries => optimal_index_storage
+                        },
+                        {  :name    => t(:dragnet_helper_group_unnecessary_indexes, :default => 'Detection of possibly unnecessary indexes'),
+                           :entries => unnecessary_indexes
+                        },
+                        {  :name    => t(:dragnet_helper_group_index_partitioning, :default => 'Recommendations for index partitioning'),
+                           :entries => index_partitioning
+                        },
+                        {  :name    => t(:dragnet_helper_group_unused_tables, :default => 'Detection of unused tables or columns'),
+                           :entries => unused_tables
+                        },
 
-    if @@dragnet_sql_list.length == 0                                           # einmalige globale Belegung
-      @@dragnet_sql_list = [
-          {   :name     => t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'),
-              :entries  => [{  :name    => t(:dragnet_helper_group_optimal_index_storage, :default => 'Ensure optimal storage parameter for indexes'),
-                               :entries => optimal_index_storage
-                            },
-                            {  :name    => t(:dragnet_helper_group_unnecessary_indexes, :default => 'Detection of possibly unnecessary indexes'),
-                               :entries => unnecessary_indexes
-                            },
-                            {  :name    => t(:dragnet_helper_group_index_partitioning, :default => 'Recommendations for index partitioning'),
-                               :entries => index_partitioning
-                            },
-                            {  :name    => t(:dragnet_helper_group_unused_tables, :default => 'Detection of unused tables or columns'),
-                               :entries => unused_tables
-                            },
-
-              ].concat(sqls_potential_db_structures)
-          },
-          {
-              :name     => t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'),
-              :entries  => [{   :name    => t(:dragnet_helper_group_optimizable_full_scans, :default=>'Optimizable full-scan operations'),
-                                :entries => optimizable_full_scans
-                            },
-                            {   :name    => t(:dragnet_helper_group_problems_with_parallel_query, :default=>'Potential problems with parallel query'),
-                                :entries => problems_with_parallel_query
-                            },
-              ].concat(sqls_wrong_execution_plan)
-          },
-          {
-              :name     => t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'),
-              :entries  => dragnet_sqls_tuning_sga_pga
-          },
-          {
-              :name     => t(:dragnet_helper_group_cursor_redundancies,      :default=> 'Redundant cursors / usage of bind variables'),
-              :entries  => sqls_cursor_redundancies
-          },
-          {
-              :name     => t(:dragnet_helper_group_logwriter_redo,           :default=> 'Logwriter load / redo impact'),
-              :entries  => dragnet_sqls_logwriter_redo
-          },
-          {
-              :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'),
-              :entries  => sqls_conclusion_application
-          },
-          {
-              :name     => t(:dragnet_helper_group_pl_sql_usage,   :default=> 'PL/SQL-usage hints'),
-              :entries  => pl_sql_usage
-          },
-      ]
-    end
-
-    @@dragnet_sql_list
+          ].concat(sqls_potential_db_structures)
+      },
+      {
+          :name     => t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'),
+          :entries  => [{   :name    => t(:dragnet_helper_group_optimizable_full_scans, :default=>'Optimizable full-scan operations'),
+                            :entries => optimizable_full_scans
+                        },
+                        {   :name    => t(:dragnet_helper_group_problems_with_parallel_query, :default=>'Potential problems with parallel query'),
+                            :entries => problems_with_parallel_query
+                        },
+          ].concat(sqls_wrong_execution_plan)
+      },
+      {
+          :name     => t(:dragnet_helper_group_tuning_sga_pga,           :default=> 'Tuning of / load rejection from SGA, PGA'),
+          :entries  => dragnet_sqls_tuning_sga_pga
+      },
+      {
+          :name     => t(:dragnet_helper_group_cursor_redundancies,      :default=> 'Redundant cursors / usage of bind variables'),
+          :entries  => sqls_cursor_redundancies
+      },
+      {
+          :name     => t(:dragnet_helper_group_logwriter_redo,           :default=> 'Logwriter load / redo impact'),
+          :entries  => dragnet_sqls_logwriter_redo
+      },
+      {
+          :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'),
+          :entries  => sqls_conclusion_application
+      },
+      {
+          :name     => t(:dragnet_helper_group_pl_sql_usage,   :default=> 'PL/SQL-usage hints'),
+          :entries  => pl_sql_usage
+      },
+    ]
 
   end
 
