@@ -1161,10 +1161,10 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
             ]
         },
         {
-            :name  => 'Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen',
-            :desc  => "Teile von parallel verarbeiteten Statements können trotzdem seriell abgearbeitet werden und die Ergebnisse des Teilschrittes werden per Broadcast parallelisiert.
-Für kleinere Datenstrukturen ist dies oft so gewollt, für größere Datenstrukturen fehlen möglicherweise PARALLEL-Anweisungen.
-Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.",
+            :name  => t(:dragnet_helper_82_name, :default=>'Statements with parallel query and serial processing of process parts'),
+            :desc  => t(:dragnet_helper_82_desc, :default=>"Parts of parallel processed statements my be executed serially and results of these subprocesses are parallelized by broadcast.
+For small data structures it is often wanted, for large data structures it may be due to missing PARALLEL-hints.
+This Selection lists all statements with 'PARALLEL_FROM_SERIAL'-processing after full-scan on objects as candidates for forgotten parallelising."),
             :sql=>  "SELECT /* DB-Tools Ramm PARALLEL_FROM_SERIAL in PQ */ * FROM (
                       SELECT /*+ NO_MERGE */ a.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=a.DBID AND t.SQL_ID=a.SQL_ID) SQLText,
                              CASE

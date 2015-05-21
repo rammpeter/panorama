@@ -18,10 +18,10 @@ class DragnetControllerTest < ActionController::TestCase
   end
 
   test "exec_dragnet_sql"  do
-    post  :exec_dragnet_sql, :format=>:js, :dragnet=>{:selection=>0}, "Schwellwert für PctFree Index"=>10, "Schwellwert für PctFree Index-Partition"=>10, "Minimale Anzahl Rows" => 10
+    post  :exec_dragnet_sql, :format=>:js, :dragnet_hidden_entry_id=>"_0_0_0", "Schwellwert für PctFree Index"=>10, "Schwellwert für PctFree Index-Partition"=>10, "Minimale Anzahl Rows" => 10
     assert_response :success
 
-    post  :exec_dragnet_sql, :format=>:js, :dragnet=>{:selection=>0}, "Schwellwert für PctFree Index"=>10, "Schwellwert für PctFree Index-Partition"=>10, "Minimale Anzahl Rows" => 10 , :commit_show => 'hugo'
+    post  :exec_dragnet_sql, :format=>:js, :dragnet_hidden_entry_id=>"_0_0_0", "Schwellwert für PctFree Index"=>10, "Schwellwert für PctFree Index-Partition"=>10, "Minimale Anzahl Rows" => 10 , :commit_show => 'hugo'
     assert_response :success
   end
 end

@@ -500,6 +500,14 @@
     Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.
   dragnet_helper_81_name:                                   Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE
 
+  dragnet_helper_82_desc: |-
+    Teile von parallel verarbeiteten Statements können trotzdem seriell abgearbeitet werden und die Ergebnisse des Teilschrittes werden per Broadcast parallelisiert.
+    Für kleinere Datenstrukturen ist dies oft so gewollt, für größere Datenstrukturen fehlen möglicherweise PARALLEL-Anweisungen.
+    Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.
+  dragnet_helper_82_name:                                   Parallele Statements mit serieller Abarbeitung von Teilprozessen
+
+
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
