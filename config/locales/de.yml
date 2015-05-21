@@ -156,6 +156,7 @@
   dragnet_helper_group_optimal_index_storage:               Sicherstellen optimaler Storage-Parameter für Indizes
   dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
+  dragnet_helper_group_problems_with_parallel_query:        Eventuelle Probleme mit Parallel Query
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
   dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
   dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
@@ -169,6 +170,9 @@
 
   dragnet_helper_param_minimal_rows_hint:                   Minimale Anzahl Rows in Table für Aufnahme in Selektion
   dragnet_helper_param_minimal_rows_name:                   Minimale Anzahl Rows in Table
+
+  dragnet_helper_param_minimal_ela_per_exec_hint:           Minimale elapsed time per execution in Sekunden für Aufnahme in Selektion
+  dragnet_helper_param_minimal_ela_per_exec_name:           Minimale elapsed time/Execution (Sec.)
 
   dragnet_helper_1_desc: |-
     Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
@@ -470,6 +474,15 @@
     Auf Basis der Active Session History lassen sich Ausreiser der DB-Laufzeit je Modul ausweisen.
     Die Betrachtungseinheit wird über date format picture der TRUNC-Funktion festgelegt (DD=Tag, HH24=Stunde etc.)
   dragnet_helper_76_name:                                   Erheblich größere Laufzeit je Module gegenüber Durchschnitt über längere Zeit
+
+  dragnet_helper_77_desc: |-
+    Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.
+  dragnet_helper_77_name:                                   Langlaufende Statements ohne Nutzung Parallel Query (Auswertung SGA)
+
+  dragnet_helper_78_desc: |-
+    Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.
+  dragnet_helper_78_name:                                   Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

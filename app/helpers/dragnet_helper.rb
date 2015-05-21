@@ -957,6 +957,64 @@ They are out of place for OLTP-like access (small access time, many executions).
     ]
   end # optimizable_full_scans
 
+  def problems_with_parallel_query
+    [
+        {
+            :name  => t(:dragnet_helper_77_name, :default=>'Long running queries without usage of parallel query (Evaluation of SGA)'),
+            :desc  => t(:dragnet_helper_77_desc, :default=>'For long running queries usage of parallel query feature may dramatically reduce runtime.'),
+            :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query\"*/
+                             s.Inst_ID, s.SQL_ID,
+                             s.Parsing_Schema_Name \"Parsing Schema Name\",
+                             ROUND(s.Elapsed_Time/10000)/100 Elapsed_Time_Sec,
+                             s.Executions,
+                             ROUND(s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions)/10000)/100 Elapsed_per_Exec_Sec,
+                             First_Load_Time, Last_Load_Time, Last_Active_Time,
+                             s.SQL_FullText
+                      FROM (
+                            SELECT Inst_ID, SQL_ID
+                            FROM   GV$SQL_Plan
+                            GROUP BY Inst_ID, SQL_ID
+                            HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) = 0
+                           ) p,
+                           GV$SQLArea s
+                      WHERE s.Inst_ID = p.Inst_ID
+                      AND   s.SQL_ID  = p.SQL_ID
+                      AND   s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) > ? * 1000000 /* > 10 Sekunden */
+                      ORDER BY s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) DESC NULLS LAST",
+            :parameter=>[{:name=> t(:dragnet_helper_param_minimal_ela_per_exec_name, :default=>'Minimum elapsed time/execution (sec.)'), :size=>8, :default=>20, :title=> t(:dragnet_helper_param_minimal_ela_per_exec_hint, :default=>'Minimum elapsed time per execution in seconds for consideration in selection')}]
+        },
+        {
+            :name  => t(:dragnet_helper_77_name, :default=>'Long running queries without usage of parallel query (Evaluation of AWR history)'),
+            :desc  => t(:dragnet_helper_77_desc, :default=>'For long running queries usage of parallel query feature may dramatically reduce runtime.'),
+            :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query aus Historie\"*/
+                             s.*,
+                             ROUND(s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions),2) \"Elapsed time per exec (secs)\",
+                             (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID) Statement
+                      FROM   (SELECT
+                                     s.DBID, s.Instance_Number, s.SQL_ID,
+                                     ROUND(SUM(s.Elapsed_Time_Delta)/10000)/100 Elapsed_Time_Sec,
+                                     SUM(s.Executions_Delta) Executions,
+                                     MIN(ss.Begin_Interval_time) First_Occurrence,
+                                     MAX(ss.Begin_Interval_Time) Last_Occurrence
+                              FROM   (
+                                      SELECT /*+ NO_MERGE */ DBID, SQL_ID, Plan_Hash_Value
+                                      FROM   DBA_Hist_SQL_Plan p
+                                      GROUP BY DBID, SQL_ID, Plan_Hash_Value
+                                      HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) = 0
+                                     ) p
+                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
+                              WHERE  ss.Begin_Interval_Time > SYSDATE - ?
+                              GROUP BY s.DBID, s.Instance_Number, s.SQL_ID
+                             ) s
+                      WHERE  s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) > ? /* > 50 Sekunden */
+                      ORDER BY s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) DESC NULLS LAST",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=> t(:dragnet_helper_param_minimal_ela_per_exec_name, :default=>'Minimum elapsed time/execution (sec.)'), :size=>8, :default=>20, :title=> t(:dragnet_helper_param_minimal_ela_per_exec_hint, :default=>'Minimum elapsed time per execution in seconds for consideration in selection')}]
+        },
+
+    ]
+  end # problems_with_parallel_query
 
   def sqls_wrong_execution_plan
     [
@@ -1232,59 +1290,6 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                            )
                       ORDER BY Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed) DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
-         },
-        {
-             :name  => 'Langlaufende Statements ohne Nutzung Parallel Query (Auswertung SGA)',
-             :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
-             :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query\"*/
-                             s.Inst_ID, s.SQL_ID,
-                             s.Parsing_Schema_Name \"Parsing Schema Name\",
-                             ROUND(s.Elapsed_Time/10000)/100 Elapsed_Time_Sec,
-                             s.Executions,
-                             ROUND(s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions)/10000)/100 Elapsed_per_Exec_Sec,
-                             First_Load_Time, Last_Load_Time, Last_Active_Time,
-                             s.SQL_FullText
-                      FROM (
-                            SELECT Inst_ID, SQL_ID
-                            FROM   GV$SQL_Plan
-                            GROUP BY Inst_ID, SQL_ID
-                            HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) = 0
-                           ) p,
-                           GV$SQLArea s
-                      WHERE s.Inst_ID = p.Inst_ID
-                      AND   s.SQL_ID  = p.SQL_ID
-                      AND   s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) > ? * 1000000 /* > 10 Sekunden */
-                      ORDER BY s.Elapsed_Time/DECODE(s.Executions,0,1,s.Executions) DESC NULLS LAST",
-             :parameter=>[{:name=> 'Minimale elapsed time/Execution (Sec.)', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution in Sekunden für Aufnahme in Selektion'}]
-         },
-        {
-             :name  => 'Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)',
-             :desc  => 'Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.',
-             :sql=>  "SELECT /*+ ORDERED USE_HASH(s) \"DB-Tools Ramm ohne Parallel Query aus Historie\"*/
-                             s.*,
-                             ROUND(s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions),2) \"Elapsed time per exec (secs)\",
-                             (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID) Statement
-                      FROM   (SELECT
-                                     s.DBID, s.Instance_Number, s.SQL_ID,
-                                     ROUND(SUM(s.Elapsed_Time_Delta)/10000)/100 Elapsed_Time_Sec,
-                                     SUM(s.Executions_Delta) Executions,
-                                     MIN(ss.Begin_Interval_time) First_Occurrence,
-                                     MAX(ss.Begin_Interval_Time) Last_Occurrence
-                              FROM   (
-                                      SELECT /*+ NO_MERGE */ DBID, SQL_ID, Plan_Hash_Value
-                                      FROM   DBA_Hist_SQL_Plan p
-                                      GROUP BY DBID, SQL_ID, Plan_Hash_Value
-                                      HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) = 0
-                                     ) p
-                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
-                              WHERE  ss.Begin_Interval_Time > SYSDATE - ?
-                              GROUP BY s.DBID, s.Instance_Number, s.SQL_ID
-                             ) s
-                      WHERE  s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) > ? /* > 50 Sekunden */
-                      ORDER BY s.Elapsed_Time_Sec/DECODE(s.Executions, 0, 1, s.Executions) DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Minimale elapsed time/Execution', :size=>8, :default=>20, :title=> 'Minimale elapsed time per execution für Aufnahme in Selektion'}]
          },
         {
              :name  => 'Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung SGA)',
@@ -2669,6 +2674,9 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
               :name     => t(:dragnet_helper_group_wrong_execution_plan,     :default=> 'Detection of SQL with problematic execution plan'),
               :entries  => [{   :name    => t(:dragnet_helper_group_optimizable_full_scans, :default=>'Optimizable full-scan operations'),
                                 :entries => optimizable_full_scans
+                            },
+                            {   :name    => t(:dragnet_helper_group_problems_with_parallel_query, :default=>'Potential problems with parallel query'),
+                                :entries => problems_with_parallel_query
                             },
               ].concat(sqls_wrong_execution_plan)
           },

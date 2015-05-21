@@ -151,26 +151,25 @@ column_options = [
 &nbsp;
 <div class="float_left">
     <%=
-        if @user_id
-          user_id_filter = {"User-ID" =>@user_id}
-        else
-          user_id_filter = {}
-        end
+        groupfilter = {:DBID                   => @dbid,
+                       :Idle_Wait1             => "PX Deq Credit: send blkd",
+                       :Min_Snap_ID            => @sql.min_snap_id,
+                       :Max_Snap_ID            => @sql.max_snap_id,
+                       :time_selection_start   => @time_selection_start,
+                       :time_selection_end     => @time_selection_end ,
+                       "SQL-ID"                => @sql_id
+        }
+
+        groupfilter[:Instance] = @instance if @instance
+        groupfilter['User-ID'] = @user_id if @user_id
+
 
         my_ajax_submit_tag("Active Session History",
      url_for(:update_area => @update_area,
              :action      => :list_session_statistic_historic_grouping,
              :controller  => :active_session_history,
-             :groupfilter=>{:DBID                   => @dbid,
-                            :Idle_Wait1             => "PX Deq Credit: send blkd",
-                            :Instance               => @instance,
-                            :Min_Snap_ID            => @sql.min_snap_id,
-                            :Max_Snap_ID            => @sql.max_snap_id,
-                            :time_selection_start   => @time_selection_start,
-                            :time_selection_end     => @time_selection_end ,
-                            "SQL-ID"                => @sql_id
-                           }.merge(user_id_filter),
-             :groupby    => "SQL-ID"
+             :groupfilter => groupfilter,
+             :groupby     => "SQL-ID"
             ),
      :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time range") )
   %>
