@@ -483,6 +483,22 @@
     Für langlaufende Statements kann unter Umständen die Nutzung des Features Parallel Query die Laufzeit drastisch reduzieren.
   dragnet_helper_78_name:                                   Langlaufende Statements ohne Nutzung Parallel Query (Auswertung AWR-Historie)
 
+  dragnet_helper_79_desc: |-
+    Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
+    Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
+    Selektion beleuchtet die aktuelle SGA.
+  dragnet_helper_79_name:                                   Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung SGA)
+
+  dragnet_helper_80_desc: |-
+    Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
+    Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
+    Selektion beleuchtet die AWR-Historie.
+  dragnet_helper_80_name:                                   Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung AWR-Historie)
+
+  dragnet_helper_81_desc: |-
+    Nicht per PARALLEL_ENABLE zur parallelen Verarbeitung zugelassene stored functions führen zur Serialisierung der Verarbeitung bei Verwendung der Parallel Query-Option im Statement.
+    Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.
+  dragnet_helper_81_name:                                   Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

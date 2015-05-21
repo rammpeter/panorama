@@ -65,8 +65,6 @@ class DbaSgaController < ApplicationController
 
     where_values << max_result_count
 
-puts "############## #{top_sort}"
-    puts "############## #{max_result_count}"
     sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */ *
       FROM (SELECT  SUBSTR(LTRIM(SQL_TEXT),1,40) SQL_Text,

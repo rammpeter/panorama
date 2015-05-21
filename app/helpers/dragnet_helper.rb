@@ -1012,6 +1012,233 @@ They are out of place for OLTP-like access (small access time, many executions).
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                          {:name=> t(:dragnet_helper_param_minimal_ela_per_exec_name, :default=>'Minimum elapsed time/execution (sec.)'), :size=>8, :default=>20, :title=> t(:dragnet_helper_param_minimal_ela_per_exec_hint, :default=>'Minimum elapsed time per execution in seconds for consideration in selection')}]
         },
+        {
+            :name  => t(:dragnet_helper_79_name, :default=>'Statements with parallel query but with not parallelized contents (evaluation of SGA)'),
+            :desc  => t(:dragnet_helper_79_desc, :default=>'If using parallelel query accidentally not parallelized accesses on large structures may dramatically increase runtime of statement.
+Leading INDEX-RANGE-SCAN for cascading nested loop joins should be transferred to WITH … /*+ MATERIALIZE */ and selected in main statement in parallel.
+Selection considers current SGA.'),
+            :sql=>  "SELECT /*+ \"DBTools Ramm Nichtparallel Anteile bei PQ\" */ p.*,
+                             s.Last_active_Time,
+                             s.Executions,
+                             s.Elapsed_Time/1000000 Elapsed_Secs,
+                             s.SQL_FullText
+                      FROM   (
+                              SELECT /*+ NO_MERGE */
+                                     CASE WHEN Operation = 'INDEX' THEN
+                                          (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name = ps.Object_Name)
+                                          WHEN Operation = 'TABLE ACCESS' THEN
+                                          (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name = ps.Object_Name)
+                                     ELSE 0 END Num_Rows,
+                                     ps.*
+                              FROM   (
+                                      SELECT Inst_ID, SQL_ID
+                                      FROM   gv$SQL_PLan
+                                      WHERE  Other_Tag LIKE 'PARALLEL%'
+                                      AND    Object_Owner != 'SYS'
+                                      GROUP BY Inst_ID, SQL_ID
+                                     ) pp,
+                                     (
+                                      SELECT Inst_ID, SQL_ID, Operation, Options, Object_Owner, Object_Name
+                                      FROM   gv$SQL_PLan
+                                      WHERE  (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
+                                      AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
+                                      AND    Operation NOT LIKE 'UPDATE%'
+                                      AND    Operation NOT LIKE 'SELECT%'
+                                      AND    Object_Owner != 'SYS'
+                                     ) ps
+                              WHERE  ps.Inst_ID = pp.Inst_ID
+                              AND    ps.SQL_ID  = pp.SQL_ID
+                            ) p
+                      JOIN  GV$SQLArea s ON s.Inst_ID=p.Inst_ID AND s.SQL_ID=p.SQL_ID
+                      WHERE s.SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%'
+                      ORDER BY Num_Rows DESC NULLS LAST",
+        },
+        {
+            :name  => t(:dragnet_helper_80_name, :default=>'Statements with parallel query but with not parallelized contents (evaluation of AWR history)'),
+            :desc  => t(:dragnet_helper_80_desc, :default=>'If using parallelel query accidentally not parallelized accesses on large structures may dramatically increase runtime of statement.
+Leading INDEX-RANGE-SCAN for cascading nested loop joins should be transferred to WITH … /*+ MATERIALIZE */ and selected in main statement in parallel.
+Selection considers AWR history.'),
+            :sql=>  "SELECT /* DB-Tools Ramm Nichparallel Anteile bei PQ */ * FROM (
+                      SELECT /*+ NO_MERGE */ x.*, ps.Operation, ps.Options, ps.Object_Type, ps.Object_Owner, ps.Object_Name,
+                             CASE
+                             WHEN ps.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name=ps.Object_Name)
+                             WHEN ps.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name=ps.Object_Name)
+                             ELSE NULL END Num_Rows,
+                            (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=x.DBID AND t.SQL_ID=x.SQL_ID) SQLText
+                      FROM
+                             (
+                              SELECT /*+ NO_MERGE ORDERED */
+                                     p.DBID, p.SQL_ID, p.Plan_Hash_Value,
+                                     MIN(s.Parsing_Schema_Name) Parsing_Schema_Name,
+                                     ROUND(SUM(s.Elapsed_Time_Delta)/1000000,2) Elapsed_Secs,
+                                     SUM(s.Executions_Delta) Executions,
+                                     ROUND(SUM(s.Elapsed_Time_Delta)/1000000 / DECODE(SUM(s.Executions_Delta), 0, 1, SUM(s.Executions_Delta)),2) Elapsed_Secs_Per_Exec,
+                                     MAX(ss.Begin_Interval_Time) Last_Occurence
+                              FROM   (
+                                      SELECT /*+ PARALLEL(DBA_Hist_SQL_Plan,2) */ DBID, SQL_ID, Plan_Hash_Value
+                                      FROM   DBA_Hist_SQL_Plan
+                                      WHERE  Object_Owner != 'SYS'
+                                      GROUP BY DBID, SQL_ID, Plan_Hash_Value
+                                      HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) > 0  -- enthält parallele Anteile
+                                      AND    SUM(CASE WHEN (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
+                                                      AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
+                                                      AND    Operation NOT LIKE 'UPDATE%'
+                                                      AND    Operation NOT LIKE 'SELECT%'
+                                                      THEN 1 ELSE 0 END) > 1 -- enthält nicht parallelisierte Zugriffe
+                                     ) p
+                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                              JOIN   DBA_Hist_Snapshot ss ON ss.Snap_ID = s.Snap_ID AND ss.DBID = p.DBID AND ss.Instance_Number = s.Instance_Number
+                                                             AND ss.Begin_Interval_Time > SYSDATE - ?
+                              GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value
+                             ) x
+                      JOIN   DBA_Hist_SQL_Plan ps ON ps.DBID = x.DBID AND ps.SQL_ID = x.SQL_ID AND ps.Plan_Hash_Value = x.Plan_Hash_Value
+                                                     AND (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
+                                                     AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
+                                                     AND    Operation NOT LIKE 'UPDATE%'
+                                                     AND    Operation NOT LIKE 'SELECT%'
+                                                     AND    ps.Object_Type IS NOT NULL
+                      ) ORDER BY Elapsed_Secs_Per_Exec * Num_Rows DESC NULLS LAST",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+        },
+        {
+            :name  => t(:dragnet_helper_81_name, :default=>'SQLs executed in parallel but with usage of stored functions without PARALLEL_ENABLE'),
+            :desc  => t(:dragnet_helper_81_desc, :default=>'Stored functions not for parallel execution per pragma PARALLEL_ENABLE lead  to serial processing if statements that should be executed in parallel.
+Listed functions should be checked if they can be expanded by pragma PARALLEL_ENABLE.'),
+            :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
+                      ProcLines AS (
+                            SELECT /*+ NO_MERGE MATERIALIZE */ *
+                            FROM   (
+                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name SuchText
+                                    FROM   DBA_Procedures p
+                                    WHERE  p.Object_Type = 'FUNCTION'
+                                    UNION ALL
+                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
+                                    FROM   DBA_Procedures p
+                                    JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name AND a.Position = 0
+                                    WHERE  p.Object_Type = 'PACKAGE'
+                                   )
+                            WHERE  Owner NOT IN ('SYS', 'WMSYS', 'PERFSTAT', 'CTXSYS', 'XDB', 'EXFSYS')
+                            AND    Parallel = 'NO'
+                       ),
+                      SQLs AS (
+                              SELECT /*+ NO_MERGE MATERIALIZE  */  *
+                              FROM   (
+                                      SELECT /*+ NO_MERGE */ UPPER(SQL_FullText) FullText, Elapsed_Time/1000000 Elapsed_Secs, 'SGA' Fundort, S.SQL_ID
+                                      FROM gv$SQL s
+                                      WHERE UPPER(s.SQL_FullText) LIKE '%PARALLEL%'   /* Hint im SQL verwendet */
+                                      UNION ALL
+                                      SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(t,4) */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort, s.SQL_ID
+                                      FROM   (
+                                              SELECT /*+ NO_MERGE PARALLEL(s,4) PARALLEL(ss,4) */
+                                                     s.DBID, s.SQL_ID, Plan_Hash_Value, SUM(s.Elapsed_Time_Delta)/1000000 Elapsed_Secs
+                                              FROM   DBA_Hist_SQLStat s
+                                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
+                                              WHERE  ss.Begin_Interval_Time > SYSDATE - ?
+                                              GROUP BY s.DBID, s.SQL_ID, Plan_Hash_Value
+                                             ) s
+                                      JOIN DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
+                                      WHERE  UPPER(t.SQL_Text) LIKE '%PARALLEL%'     /* Hint im SQL verwendet */
+                                     )
+                              WHERE  NOT REGEXP_LIKE(FullText, '^[[:space:]]*BEGIN')
+                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*DECLARE')
+                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*EXPLAIN')
+                              AND    INSTR(FullText, 'DBMS_STATS') = 0              /* Aussschluss Table-Analyse*/
+                              AND    Elapsed_Secs > ?
+                      )
+                      SELECT /*+ PARALLEL(p,4) PARALLEL(s,4) */
+                             s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, s.Elapsed_Secs, s.Fundort
+                      FROM   SQLs s,
+                             ProcLines p
+                      -- INSTR-Test vorab, da schneller als RegExp_Like
+                      -- Match auf ProcName vorangestellt und gefolgt von keinem Buchstaben
+                      WHERE  INSTR(s.FullText, p.SuchText) > 0
+                      -- AND REGEXP_LIKE(s.FullText,'[^A-Z_]'||p.SuchText||'[^A-Z_]')
+                      ORDER BY Elapsed_Secs DESC NULLS LAST
+                      ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                {:name=>'Minimum sum of elapsed time in seconds', :size=>8, :default=>100, :title=>'Minimum sum of elapsed time in second for considered SQL' },
+            ]
+        },
+        {
+            :name  => 'Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen',
+            :desc  => "Teile von parallel verarbeiteten Statements können trotzdem seriell abgearbeitet werden und die Ergebnisse des Teilschrittes werden per Broadcast parallelisiert.
+Für kleinere Datenstrukturen ist dies oft so gewollt, für größere Datenstrukturen fehlen möglicherweise PARALLEL-Anweisungen.
+Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.",
+            :sql=>  "SELECT /* DB-Tools Ramm PARALLEL_FROM_SERIAL in PQ */ * FROM (
+                      SELECT /*+ NO_MERGE */ a.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=a.DBID AND t.SQL_ID=a.SQL_ID) SQLText,
+                             CASE
+                             WHEN Operation='TABLE ACCESS' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=Object_Owner AND t.Table_Name=Object_Name)
+                             WHEN Operation='INDEX' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=Object_Owner AND i.Index_Name=Object_Name)
+                             ELSE NULL END Num_Rows
+                      FROM (
+                      SELECT /*+ ORDERED NO_MERGE */ p.DBID, p.SQL_ID, MIN(p.Operation) Operation,
+                              MIN(p.Options) Options, MIN(p.Object_Owner) Object_Owner, MIN(p.Object_Name) Object_Name,
+                              SUM(ss.Elapsed_Time_Delta)/1000000 Elapsed_Time_Secs,
+                              SUM(ss.Executions_Delta) Executions--,
+                      --        (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=p.DBID AND t.SQL_ID=p.SQL_ID) SQLText
+                      FROM   (
+                              SELECT /*+ NO_MERGE MATERIALIZE FIRST_ROWS ORDERED USE_NL(p1 p2) PARALLEL(p,4)  */ p.DBID, p.SQL_ID, p.Plan_Hash_Value,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Operation ELSE p2.Operation END Operation,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Options ELSE p2.Options END Options,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Owner ELSE p2.Object_Owner END Object_Owner,
+                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Name ELSE p2.Object_Name END Object_Name
+                              FROM (
+                                      SELECT  DBID, SQL_ID,
+                                              MAX(p.Plan_Hash_Value) KEEP (DENSE_RANK LAST ORDER BY p.Timestamp) Plan_Hash_Value,
+                                              MAX(p.ID) KEEP (DENSE_RANK LAST ORDER BY p.Timestamp) ID
+                                      FROM DBA_Hist_SQL_Plan p
+                                      WHERE   p.Other_Tag = 'PARALLEL_FROM_SERIAL'
+                                      GROUP BY DBID, SQL_ID
+                                   ) p
+                              LEFT OUTER JOIN DBA_Hist_SQL_Plan p1 ON (    p1.DBID=p.DBID
+                                                                       AND p1.SQL_ID=p.SQL_ID
+                                                                       AND p1.Plan_Hash_Value=p.Plan_Hash_Value
+                                                                       AND p1.Parent_ID = p.ID)
+                              LEFT OUTER JOIN DBA_Hist_SQL_Plan p2 ON (    p2.DBID=p1.DBID
+                                                                       AND p2.SQL_ID=p1.SQL_ID
+                                                                       AND p2.Plan_Hash_Value=p1.Plan_Hash_Value
+                                                                       AND p2.Parent_ID = p1.ID)
+                              WHERE   (p1.Options LIKE '%FULL%' OR p2.Options LIKE '%FULL%')
+                              ) p
+                      JOIN   DBA_Hist_SQLStat ss ON (ss.DBID=p.DBID AND ss.SQL_ID=p.SQL_ID AND ss.Plan_Hash_Value=p.Plan_Hash_Value)
+                      JOIN   DBA_Hist_SnapShot s ON (s.Snap_ID=ss.Snap_ID AND s.DBID=ss.DBID AND s.Instance_Number=ss.Instance_Number)
+                      WHERE  s.Begin_Interval_Time > SYSDATE-?
+                      GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value
+                      ) a)
+                      ORDER BY Elapsed_Time_Secs*NVL(Num_Rows,1) DESC NULLS LAST",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+        },
+        {
+            :name  => t(:dragnet_helper_63_name, :default=>'Parallel Query: Degree of parallelism (number of attached PQ servers) higher than limit for single SQL execution'),
+            :desc  => t(:dragnet_helper_63_desc, :default=>'Number of avilable PQ servers is a limited resource, so default degree of parallelism is often to high for production use, especially on multi-core machines.
+Overallocation of PQ servers may result in serial processing og other SQLs estimated to process in parallel.'),
+            :sql=>   "SELECT Instance_Number, SQL_ID, MIN(Sample_Time) First_Occurrence, MAX(Sample_Time) Last_Occurrence,
+                             COUNT(DISTINCT QC_Session_ID)    Different_Coordinator_Sessions,
+                             SUM(Executions)                  SQL_Executions,
+                             u.UserName,
+                             SUM(10)                          Active_Seconds,
+                             SUM(10*DOP)                      Elapsed_PQ_Seconds_Total,
+                             MIN(DOP)                         Min_Degree_of_Parallelism,
+                             MAX(DOP)                         Max_Degree_of_Parallelism,
+                             ROUND(AVG(DOP))                  Avg_Degree_of_Parallelism
+                      FROM   (
+                              SELECT Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#,
+                               sql_id, MIN(sample_time) Sample_Time, COUNT(*) dop, MIN(User_ID) User_ID, COUNT(DISTINCT SQL_Exec_ID) Executions
+                              FROM dba_hist_active_sess_history
+                              WHERE  QC_Session_ID IS NOT NULL
+                              AND    Sample_Time > SYSDATE - ?
+                              GROUP BY Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#, Sample_ID, SQL_ID
+                              HAVING count(*) > 16
+                             ) g
+                      LEFT OUTER JOIN DBA_Users u ON U.USER_ID = g.User_ID
+                      GROUP BY Instance_Number, SQL_ID, u.UserName
+                      ORDER BY MAX(DOP) DESC
+                      ",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=>t(:dragnet_helper_63_param_2_name, :default=>'Limit for number of PQ servers'), :size=>8, :default=>16, :title=>t(:dragnet_helper_63_param_2_hint, :default=>'Limit for number of PQ servers: exceedings of this value are shown here') },
+            ]
+        },
 
     ]
   end # problems_with_parallel_query
@@ -1291,233 +1518,6 @@ Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer 
                       ORDER BY Elapsed_Time_Secs/DECODE(Rows_Processed, 0, 1, Rows_Processed) DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
-        {
-             :name  => 'Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung SGA)',
-             :desc  => 'Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
-Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
-Selektion beleuchtet die aktuelle SGA.',
-             :sql=>  "SELECT /*+ \"DBTools Ramm Nichtparallel Anteile bei PQ\" */ p.*,
-                             s.Last_active_Time,
-                             s.Executions,
-                             s.Elapsed_Time/1000000 Elapsed_Secs,
-                             s.SQL_FullText
-                      FROM   (
-                              SELECT /*+ NO_MERGE */
-                                     CASE WHEN Operation = 'INDEX' THEN
-                                          (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name = ps.Object_Name)
-                                          WHEN Operation = 'TABLE ACCESS' THEN
-                                          (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name = ps.Object_Name)
-                                     ELSE 0 END Num_Rows,
-                                     ps.*
-                              FROM   (
-                                      SELECT Inst_ID, SQL_ID
-                                      FROM   gv$SQL_PLan
-                                      WHERE  Other_Tag LIKE 'PARALLEL%'
-                                      AND    Object_Owner != 'SYS'
-                                      GROUP BY Inst_ID, SQL_ID
-                                     ) pp,
-                                     (
-                                      SELECT Inst_ID, SQL_ID, Operation, Options, Object_Owner, Object_Name
-                                      FROM   gv$SQL_PLan
-                                      WHERE  (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
-                                      AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
-                                      AND    Operation NOT LIKE 'UPDATE%'
-                                      AND    Operation NOT LIKE 'SELECT%'
-                                      AND    Object_Owner != 'SYS'
-                                     ) ps
-                              WHERE  ps.Inst_ID = pp.Inst_ID
-                              AND    ps.SQL_ID  = pp.SQL_ID
-                            ) p
-                      JOIN  GV$SQLArea s ON s.Inst_ID=p.Inst_ID AND s.SQL_ID=p.SQL_ID
-                      WHERE s.SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%'
-                      ORDER BY Num_Rows DESC NULLS LAST",
-         },
-        {
-             :name  => 'Probleme bei Nutzung Parallel Query: Parallelisierte Statements mit nicht parallelisierten Anteilen (Auswertung AWR-Historie)',
-             :desc  => 'Bei Nutzung Parallel Query können versehentlich nicht parallelisierte Zugriffe auf größere Strukturen die Laufzeit des Statements drastisch verlängern.
-Steuernde INDEX-RANGE-SCAN für NestedLoop-Kaskaden auslagern in WITH … /*+ MATERIALIZE */ und parallelisieren.
-Selektion beleuchtet die AWR-Historie.',
-             :sql=>  "SELECT /* DB-Tools Ramm Nichparallel Anteile bei PQ */ * FROM (
-                      SELECT /*+ NO_MERGE */ x.*, ps.Operation, ps.Options, ps.Object_Type, ps.Object_Owner, ps.Object_Name,
-                             CASE
-                             WHEN ps.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name=ps.Object_Name)
-                             WHEN ps.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name=ps.Object_Name)
-                             ELSE NULL END Num_Rows,
-                            (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=x.DBID AND t.SQL_ID=x.SQL_ID) SQLText
-                      FROM
-                             (
-                              SELECT /*+ NO_MERGE ORDERED */
-                                     p.DBID, p.SQL_ID, p.Plan_Hash_Value,
-                                     MIN(s.Parsing_Schema_Name) Parsing_Schema_Name,
-                                     ROUND(SUM(s.Elapsed_Time_Delta)/1000000,2) Elapsed_Secs,
-                                     SUM(s.Executions_Delta) Executions,
-                                     ROUND(SUM(s.Elapsed_Time_Delta)/1000000 / DECODE(SUM(s.Executions_Delta), 0, 1, SUM(s.Executions_Delta)),2) Elapsed_Secs_Per_Exec,
-                                     MAX(ss.Begin_Interval_Time) Last_Occurence
-                              FROM   (
-                                      SELECT /*+ PARALLEL(DBA_Hist_SQL_Plan,2) */ DBID, SQL_ID, Plan_Hash_Value
-                                      FROM   DBA_Hist_SQL_Plan
-                                      WHERE  Object_Owner != 'SYS'
-                                      GROUP BY DBID, SQL_ID, Plan_Hash_Value
-                                      HAVING SUM(CASE WHEN Other_Tag LIKE 'PARALLEL%' THEN 1 ELSE 0 END) > 0  -- enthält parallele Anteile
-                                      AND    SUM(CASE WHEN (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
-                                                      AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
-                                                      AND    Operation NOT LIKE 'UPDATE%'
-                                                      AND    Operation NOT LIKE 'SELECT%'
-                                                      THEN 1 ELSE 0 END) > 1 -- enthält nicht parallelisierte Zugriffe
-                                     ) p
-                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                              JOIN   DBA_Hist_Snapshot ss ON ss.Snap_ID = s.Snap_ID AND ss.DBID = p.DBID AND ss.Instance_Number = s.Instance_Number
-                                                             AND ss.Begin_Interval_Time > SYSDATE - ?
-                              GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value
-                             ) x
-                      JOIN   DBA_Hist_SQL_Plan ps ON ps.DBID = x.DBID AND ps.SQL_ID = x.SQL_ID AND ps.Plan_Hash_Value = x.Plan_Hash_Value
-                                                     AND (Other_Tag IS NULL OR Other_Tag NOT LIKE 'PARALLEL%')
-                                                     AND    Operation NOT IN ('PX COORDINATOR', 'SORT', 'VIEW', 'MERGE JOIN')
-                                                     AND    Operation NOT LIKE 'UPDATE%'
-                                                     AND    Operation NOT LIKE 'SELECT%'
-                                                     AND    ps.Object_Type IS NOT NULL
-                      ) ORDER BY Elapsed_Secs_Per_Exec * Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
-         },
-        {
-             :name  => 'Probleme bei Nutzung Parallel Query: Parallel ausgeführte SQL mit Nutzung Stored Functions ohne PARALLEL_ENABLE',
-             :desc  => 'Nicht per PARALLEL_ENABLE zur parallelen Verarbeitung zugelassene stored functions führen zur Serialisierung der Verarbeitung bei Verwendung der Parallel Query-Option im Statement.
-Für die angelisteten Funktionen ist Erweiterung um Attribut PARALLEL_ENABLE zu untersuchen.',
-             :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
-                      ProcLines AS (
-                            SELECT /*+ NO_MERGE MATERIALIZE */ *
-                            FROM   (
-                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name SuchText
-                                    FROM   DBA_Procedures p
-                                    WHERE  p.Object_Type = 'FUNCTION'
-                                    UNION ALL
-                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
-                                    FROM   DBA_Procedures p
-                                    JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name AND a.Position = 0
-                                    WHERE  p.Object_Type = 'PACKAGE'
-                                   )
-                            WHERE  Owner NOT IN ('SYS', 'WMSYS', 'PERFSTAT', 'CTXSYS', 'XDB', 'EXFSYS')
-                            AND    Parallel = 'NO'
-                       ),
-                      SQLs AS (
-                              SELECT /*+ NO_MERGE MATERIALIZE  */  *
-                              FROM   (
-                                      SELECT /*+ NO_MERGE */ UPPER(SQL_FullText) FullText, Elapsed_Time/1000000 Elapsed_Secs, 'SGA' Fundort, S.SQL_ID
-                                      FROM gv$SQL s
-                                      WHERE UPPER(s.SQL_FullText) LIKE '%PARALLEL%'   /* Hint im SQL verwendet */
-                                      UNION ALL
-                                      SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(t,4) */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort, s.SQL_ID
-                                      FROM   (
-                                              SELECT /*+ NO_MERGE PARALLEL(s,4) PARALLEL(ss,4) */
-                                                     s.DBID, s.SQL_ID, Plan_Hash_Value, SUM(s.Elapsed_Time_Delta)/1000000 Elapsed_Secs
-                                              FROM   DBA_Hist_SQLStat s
-                                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
-                                              WHERE  ss.Begin_Interval_Time > SYSDATE - ?
-                                              GROUP BY s.DBID, s.SQL_ID, Plan_Hash_Value
-                                             ) s
-                                      JOIN DBA_Hist_SQLText t ON t.DBID = s.DBID AND t.SQL_ID = s.SQL_ID
-                                      WHERE  UPPER(t.SQL_Text) LIKE '%PARALLEL%'     /* Hint im SQL verwendet */
-                                     )
-                              WHERE  NOT REGEXP_LIKE(FullText, '^[[:space:]]*BEGIN')
-                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*DECLARE')
-                              AND    NOT REGEXP_LIKE(FullText, '^[[:space:]]*EXPLAIN')
-                              AND    INSTR(FullText, 'DBMS_STATS') = 0              /* Aussschluss Table-Analyse*/
-                              AND    Elapsed_Secs > ?
-                      )
-                      SELECT /*+ PARALLEL(p,4) PARALLEL(s,4) */
-                             s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, s.Elapsed_Secs, s.Fundort
-                      FROM   SQLs s,
-                             ProcLines p
-                      -- INSTR-Test vorab, da schneller als RegExp_Like
-                      -- Match auf ProcName vorangestellt und gefolgt von keinem Buchstaben
-                      WHERE  INSTR(s.FullText, p.SuchText) > 0
-                      -- AND REGEXP_LIKE(s.FullText,'[^A-Z_]'||p.SuchText||'[^A-Z_]')
-                      ORDER BY Elapsed_Secs DESC NULLS LAST
-                      ",
-             :parameter=>[
-                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                 {:name=>'Minimum sum of elapsed time in seconds', :size=>8, :default=>100, :title=>'Minimum sum of elapsed time in second for considered SQL' },
-             ]
-         },
-        {
-             :name  => 'Probleme bei Nutzung Parallel Query: Parallele Statements mit serieller Abarbeitung von Teilprozessen',
-             :desc  => "Teile von parallel verarbeiteten Statements können trotzdem seriell abgearbeitet werden und die Ergebnisse des Teilschrittes werden per Broadcast parallelisiert.
-Für kleinere Datenstrukturen ist dies oft so gewollt, für größere Datenstrukturen fehlen möglicherweise PARALLEL-Anweisungen.
-Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.",
-             :sql=>  "SELECT /* DB-Tools Ramm PARALLEL_FROM_SERIAL in PQ */ * FROM (
-                      SELECT /*+ NO_MERGE */ a.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=a.DBID AND t.SQL_ID=a.SQL_ID) SQLText,
-                             CASE
-                             WHEN Operation='TABLE ACCESS' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=Object_Owner AND t.Table_Name=Object_Name)
-                             WHEN Operation='INDEX' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=Object_Owner AND i.Index_Name=Object_Name)
-                             ELSE NULL END Num_Rows
-                      FROM (
-                      SELECT /*+ ORDERED NO_MERGE */ p.DBID, p.SQL_ID, MIN(p.Operation) Operation,
-                              MIN(p.Options) Options, MIN(p.Object_Owner) Object_Owner, MIN(p.Object_Name) Object_Name,
-                              SUM(ss.Elapsed_Time_Delta)/1000000 Elapsed_Time_Secs,
-                              SUM(ss.Executions_Delta) Executions--,
-                      --        (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=p.DBID AND t.SQL_ID=p.SQL_ID) SQLText
-                      FROM   (
-                              SELECT /*+ NO_MERGE MATERIALIZE FIRST_ROWS ORDERED USE_NL(p1 p2) PARALLEL(p,4)  */ p.DBID, p.SQL_ID, p.Plan_Hash_Value,
-                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Operation ELSE p2.Operation END Operation,
-                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Options ELSE p2.Options END Options,
-                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Owner ELSE p2.Object_Owner END Object_Owner,
-                                     CASE WHEN p1.Options LIKE '%FULL%' THEN p1.Object_Name ELSE p2.Object_Name END Object_Name
-                              FROM (
-                                      SELECT  DBID, SQL_ID,
-                                              MAX(p.Plan_Hash_Value) KEEP (DENSE_RANK LAST ORDER BY p.Timestamp) Plan_Hash_Value,
-                                              MAX(p.ID) KEEP (DENSE_RANK LAST ORDER BY p.Timestamp) ID
-                                      FROM DBA_Hist_SQL_Plan p
-                                      WHERE   p.Other_Tag = 'PARALLEL_FROM_SERIAL'
-                                      GROUP BY DBID, SQL_ID
-                                   ) p
-                              LEFT OUTER JOIN DBA_Hist_SQL_Plan p1 ON (    p1.DBID=p.DBID
-                                                                       AND p1.SQL_ID=p.SQL_ID
-                                                                       AND p1.Plan_Hash_Value=p.Plan_Hash_Value
-                                                                       AND p1.Parent_ID = p.ID)
-                              LEFT OUTER JOIN DBA_Hist_SQL_Plan p2 ON (    p2.DBID=p1.DBID
-                                                                       AND p2.SQL_ID=p1.SQL_ID
-                                                                       AND p2.Plan_Hash_Value=p1.Plan_Hash_Value
-                                                                       AND p2.Parent_ID = p1.ID)
-                              WHERE   (p1.Options LIKE '%FULL%' OR p2.Options LIKE '%FULL%')
-                              ) p
-                      JOIN   DBA_Hist_SQLStat ss ON (ss.DBID=p.DBID AND ss.SQL_ID=p.SQL_ID AND ss.Plan_Hash_Value=p.Plan_Hash_Value)
-                      JOIN   DBA_Hist_SnapShot s ON (s.Snap_ID=ss.Snap_ID AND s.DBID=ss.DBID AND s.Instance_Number=ss.Instance_Number)
-                      WHERE  s.Begin_Interval_Time > SYSDATE-?
-                      GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value
-                      ) a)
-                      ORDER BY Elapsed_Time_Secs*NVL(Num_Rows,1) DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
-         },
-        {
-            :name  => t(:dragnet_helper_63_name, :default=>'Parallel Query: Degree of parallelism (number of attached PQ servers) higher than limit for single SQL execution'),
-            :desc  => t(:dragnet_helper_63_desc, :default=>'Number of avilable PQ servers is a limited resource, so default degree of parallelism is often to high for production use, especially on multi-core machines.
-Overallocation of PQ servers may result in serial processing og other SQLs estimated to process in parallel.'),
-            :sql=>   "SELECT Instance_Number, SQL_ID, MIN(Sample_Time) First_Occurrence, MAX(Sample_Time) Last_Occurrence,
-                             COUNT(DISTINCT QC_Session_ID)    Different_Coordinator_Sessions,
-                             SUM(Executions)                  SQL_Executions,
-                             u.UserName,
-                             SUM(10)                          Active_Seconds,
-                             SUM(10*DOP)                      Elapsed_PQ_Seconds_Total,
-                             MIN(DOP)                         Min_Degree_of_Parallelism,
-                             MAX(DOP)                         Max_Degree_of_Parallelism,
-                             ROUND(AVG(DOP))                  Avg_Degree_of_Parallelism
-                      FROM   (
-                              SELECT Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#,
-                               sql_id, MIN(sample_time) Sample_Time, COUNT(*) dop, MIN(User_ID) User_ID, COUNT(DISTINCT SQL_Exec_ID) Executions
-                              FROM dba_hist_active_sess_history
-                              WHERE  QC_Session_ID IS NOT NULL
-                              AND    Sample_Time > SYSDATE - ?
-                              GROUP BY Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#, Sample_ID, SQL_ID
-                              HAVING count(*) > 16
-                             ) g
-                      LEFT OUTER JOIN DBA_Users u ON U.USER_ID = g.User_ID
-                      GROUP BY Instance_Number, SQL_ID, u.UserName
-                      ORDER BY MAX(DOP) DESC
-                      ",
-            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=>t(:dragnet_helper_63_param_2_name, :default=>'Limit for number of PQ servers'), :size=>8, :default=>16, :title=>t(:dragnet_helper_63_param_2_hint, :default=>'Limit for number of PQ servers: exceedings of this value are shown here') },
-            ]
-        },
         {
              :name  => 'Identifikation von Statements mit wechselndem Ausführungsplan aus Historie',
              :desc  => 'mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.

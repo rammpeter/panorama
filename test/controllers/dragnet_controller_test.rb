@@ -7,11 +7,6 @@ class DragnetControllerTest < ActionController::TestCase
     set_session_test_db_context{}
   end
 
-  test "show_selection"  do
-    xhr :get,  :show_selection, :format=>:js
-    assert_response :success
-  end
-
   test "get_selection_list"  do
     xhr :get, :get_selection_list, :format=>:json
     assert_response :success
