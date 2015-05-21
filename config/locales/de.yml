@@ -158,6 +158,7 @@
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
   dragnet_helper_group_problems_with_parallel_query:        Eventuelle Probleme mit Parallel Query
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
+  dragnet_helper_group_unnecessary_executions:              Eventuell unnötige Ausührungen von SQL-Statements
   dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
   dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
@@ -506,6 +507,10 @@
     Das SQL listet alle Statements mit 'PARALLEL_FROM_SERIAL'-Verarbeitung nach Full-Scan auf Objekten als Kandidaten für vergessene Parallelisierung.
   dragnet_helper_82_name:                                   Parallele Statements mit serieller Abarbeitung von Teilprozessen
 
+  dragnet_helper_83_desc: |-
+    Für Select- / Update- / Delete-Statements, deren Zugriffskriterien niemals zu Treffern führen, kann evtl. die Sinnfrage gestellt werden.
+    Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer das erwartete und zu testende Resultat ist.
+  dragnet_helper_83_name:                                   Evtl. unnötige Ausführung von Statements wenn Selects/Updates/Deletes immer ohne Treffer
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
