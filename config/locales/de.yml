@@ -512,12 +512,30 @@
     Es könnte sich aber auch um seltene Prüfungen handeln, bei denen kein Treffer das erwartete und zu testende Resultat ist.
   dragnet_helper_83_name:                                   Evtl. unnötige Ausführung von Statements wenn Selects/Updates/Deletes immer ohne Treffer
 
+  dragnet_helper_84_desc: |-
+    Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion,
+    die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.
+  dragnet_helper_84_name:                                   Evtl. unnötige Ausführung von Statements wenn Updates unnötigem Filter in WHERE-Bedingung haben (Auswertung SGA)
+
+  dragnet_helper_85_desc: |-
+    Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion,
+    die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.
+  dragnet_helper_85_name:                                   Evtl. unnötige Ausführung von Statements wenn Updates unnötigem Filter in WHERE-Bedingung haben (Auswertung AWR-Historie)
+
+  dragnet_helper_86_desc: |-
+    Die Abfrage mit IS NULL als WHERE-Bedingung führt oftmals zu FullTableScan obwohl evtl. nur wenige NULL-Records selektiert werden.
+    Lösung kann sein: Indizierung des mit IS NULL abgefragten Feldes durch speziellen Index, der auch NULL-Werte indiziert und Nutzung des Funktionsausdruckes im Select an Stelle von IS NULL.
+    Beispiel: Indizierung von NVL(Column,0)
+  dragnet_helper_86_name:                                   Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)
+
+
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
-  dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks
+  dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks und Nutzung von Anti-Pattern
   dragnet_show_selection_select_hint:                       Auswahl des Rasterfahndungs-SQL
   dragnet_show_selection_show_sql_hint:                     Anzeige des auszuführenden SQL-Statements
 

@@ -952,6 +952,21 @@ They are out of place for OLTP-like access (small access time, many executions).
                        ORDER BY \"Elapsed Time (s) per Execute\" DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
         },
+        {
+            :name  => t(:dragnet_helper_86_name, :default=>'Long running full table scans caused by IS NULL selection (from 11g)'),
+            :desc  => t(:dragnet_helper_86_desc, :default=>'Selections with IS NULL in WHERE-condition often lead to fall table scan, although there are less NULL-Records to select.
+Solution can be: indexing of column accessed by IS NULL with function based index which also contains records with NUL value and usage of function expression in select instead of IS NULL.
+Example: Indexing with NVL(Column,0)'),
+            :sql=>  "SELECT p.Inst_ID, p.SQL_ID, MIN(h.Sample_Time) First_Occurrence, MAX(h.Sample_Time) Last_Occurrence, COUNT(*) Wait_Time_Secs,
+                             p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
+                      FROM   gv$SQL_Plan p
+                      JOIN   gv$Active_Session_History h ON h.SQL_ID=p.SQL_ID AND h.Inst_ID=p.Inst_ID AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
+                      WHERE  UPPER(Filter_Predicates) LIKE '%IS NULL%'
+                      AND    Options LIKE '%FULL'
+                      GROUP BY p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
+                      ORDER BY COUNT(*) DESC
+             ",
+        },
 
 
     ]
@@ -1289,8 +1304,9 @@ Otherwise they can be treated as check statements that never expect hits in norm
                          {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in selection')}]
         },
         {
-            :name  => 'Unnötige Ausführung von Statements: Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung SGA)',
-            :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
+            :name  => t(:dragnet_helper_84_name, :default=>'Possibly unnecessary execution of statements if updates have unnecessary filter in WHERE-condition (examination of SGA)'),
+            :desc  => t(:dragnet_helper_84_desc, :default=>'Single-row update-statements with limiting filter in WHERE-condition of update often may be accelaerated by moving filter to prior data selection.
+This selection can be executed more effective as mass data operation, optional with usage of parallel query.'),
             :sql=>  "SELECT Inst_ID, Parsing_Schema_Name \"Parsing Schema Name\",
                              SQL_ID, ROUND(Elapsed_Time/1000000,2) \"Elapsed Time (Secs)\",
                              Executions,
@@ -1306,8 +1322,9 @@ Otherwise they can be treated as check statements that never expect hits in norm
                       ORDER BY Elapsed_Time/DECODE(Rows_Processed,0,1,Rows_Processed) DESC NULLS LAST",
         },
         {
-            :name  => 'Unnötige Ausführung von Statements: Updates mit unnötigem Filter in WHERE-Bedingung (Auswertung AWR-Historie)',
-            :desc  => 'Single-Row-Update-Statements mit einschränkendem Filter in WHERE-Bedingung des Updates lassen sich oft beschleunigen durch Verlagerung des Filters in vorherige Selektion, die als Massendatenoperation effektiver ausgeführt und optional mittels ParallelQuery parallelisiert werden kann.',
+            :name  => t(:dragnet_helper_85_name, :default=>'Possibly unnecessary execution of statements if updates have unnecessary filter in WHERE-condition (examination of AWH history)'),
+            :desc  => t(:dragnet_helper_85_desc, :default=>'Single-row update-statements with limiting filter in WHERE-condition of update often may be accelaerated by moving filter to prior data selection.
+This selection can be executed more effective as mass data operation, optional with usage of parallel query.'),
             :sql=>  "SELECT SQL_ID, Parsing_Schema_Name  \"Parsing Schema Name\",
                              Executions, Elapsed_Time_Secs  \"Elapsed Time (Secs)\",
                              Rows_Processed                 \"Rows processed\",
@@ -1678,21 +1695,6 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
                        FROM   (SELECT /*+ NO_MERGE */ * FROM v$SQL_PLan WHERE Filter_Predicates LIKE '%INTERNAL_FUNCTION%') p
                        JOIN   (SELECT /*+ NO_MERGE */ * FROM v$SQLArea) s ON s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
                        ORDER BY Elapsed_Time DESC NULLS LAST
-             ",
-         },
-         {
-             :name  => 'Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)',
-             :desc  => 'Die Abfrage mit IS NULL führt oftmals zu FullTableScan obwohl evtl. nur wenige NULL-Records selektiert werden.
-Lösung kann sein: Indizierung des mit IS NULL abgefragten Feldes durch speziellen Index, der auch NULL-Values enthält.
-Beispiel: INDEX(Column,0)',
-             :sql=>  "SELECT p.Inst_ID, p.SQL_ID, MIN(h.Sample_Time) First_Occurrence, MAX(h.Sample_Time) Last_Occurrence, COUNT(*) Wait_Time_Secs,
-                             p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
-                      FROM   gv$SQL_Plan p
-                      JOIN   gv$Active_Session_History h ON h.SQL_ID=p.SQL_ID AND h.Inst_ID=p.Inst_ID AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
-                      WHERE  UPPER(Filter_Predicates) LIKE '%IS NULL%'
-                      AND    Options LIKE '%FULL'
-                      GROUP BY p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Type, p.Object_Owner, p.Object_Name, p.Filter_Predicates
-                      ORDER BY COUNT(*) DESC
              ",
          },
          {
