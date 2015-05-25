@@ -123,6 +123,14 @@
   dba_segment_stat_show_caption:                            Statistik anzeigen
   dba_segment_stat_show_hint:                               Anzeige der Statistik für Objekte
 
+  dba_sga_show_sql_area_caption:                            Ressourcenintensive Statements aus
+  dba_sga_show_sql_area_filter_hint:                        Filter-string muss in betrachteten SQL-Statements enthalten sein. Wildcards (%,_) können benutzt werden. (optional)
+  dba_sga_show_sql_area_max_result_count_caption:           Anzahl Treffer
+  dba_sga_show_sql_area_max_result_count_hint:              Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung)
+  dba_sga_show_sql_area_sort_last_active_hint:              Sortiert nach Zeitpunkt der letzten Ausführung des SQL
+  dba_sga_show_sql_area_submit_caption:                     SQL anzeigen
+  dba_sga_show_sql_area_submit_hint:                        Anlistung der SQL nach Suchkriterien
+
   dba_show_locks_caption:                                   Locks anlisten
   dba_show_locks_all_locks_caption:                         Alle Locks
   dba_show_locks_all_locks_hint:                            Alle Locks anlisten? Sonst AE- und PS-Locks unterdrücken.

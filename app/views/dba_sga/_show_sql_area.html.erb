@@ -1,31 +1,37 @@
 <% @update_area = get_unique_area_id %>
 
 <%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>@action, :update_area=>@update_area) do %>
-  <div class="float_left">
-    <b>Ressourcenintensive Statements aus <%= @source_table %></b>
-  </div>
-  <div class="float_left">
-    Anzahl Treffer
-    <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Sortierung") %>
-  </div>
-  <div class="float_left">
-    Filter
-    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
-  </div>
-  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
-    Instance
-    <%= text_field_tag(:instance, "", :size=>1) %>
-  </div>
-  <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional)') %>">
-    SQL-ID
-    <%= text_field_tag(:sql_id, "", :size=>12) %>
-  </div>
-  <div class="float_left">
-  <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
-  </div>
+    <div class="float_left">
+        <b><%= t(:dba_sga_show_sql_area_caption, :default=>'Resource-intensive SQL statements from')%> <%= @source_table %></b>
+    </div>
+
+    <div class="float_left" title="<%= t(:dba_sga_show_sql_area_max_result_count_hint, :default=>'Restrict result size to number of lines (after sort)')%>">
+      <%= t(:dba_sga_show_sql_area_max_result_count_caption, :default=>'Hit limit') %>
+      <%= text_field_tag(:maxResultCount, "100", :size=>5) %>
+    </div>
+
+    <div class="float_left" title="<%= t(:dba_sga_show_sql_area_filter_hint, :default=>'Filter string must be found in considered SQL statement. Wildcards (%,_) can be used in filter. (optional)') %>">
+      Filter
+      <%= text_field_tag(:filter, "", :size=>20) %>
+    </div>
+
+    <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+      Instance
+      <%= text_field_tag(:instance, "", :size=>1) %>
+    </div>
+
+    <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional)') %>">
+      SQL-ID
+      <%= text_field_tag(:sql_id, "", :size=>12) %>
+    </div>
+
+    <div class="float_left">
+      <%= submit_tag(t(:dba_sga_show_sql_area_submit_caption, :default=>'Show SQL'), :title => t(:dba_sga_show_sql_area_submit_hint, :default=>'Show SQL statements according to filter conditions')) %>
+    </div>
+
   <div class="float_left" style="width:100%; ">
     <div class="float_left">
-      Sortiert nach:
+      <%= t(:sorted_by, :default=>'Sorted by') %>:
     </div>
     <div class="float_left">
       <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
@@ -63,7 +69,7 @@
       <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
       Cluster waits total
     </div>
-    <div class="float_left" title="Sortiert nach Zeitpunkt der letzten Ausführung des SQL">
+    <div class="float_left" title="<%= t(:dba_sga_show_sql_area_sort_last_active_hint, :default=>'Sorted by timestamp of last execution of SQL')%>">
       <%= radio_button_tag(:topSort, :LastActive, false) %>
       LastActive
     </div>
