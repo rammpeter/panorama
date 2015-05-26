@@ -400,7 +400,7 @@ class ActiveSessionHistoryController < ApplicationController
                      }
               FROM   (
                       SELECT Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial# Root_Blocking_Session_SerialNo,
-                             Root_Blocking_Session_Status, Decode(Is_Cycle, 1, 'Y') Deadlock,
+                             Root_Blocking_Session_Status, Decode(SUM(Is_Cycle), 0, NULL, 'Y') Deadlock, SUM(Is_Cycle) Is_Cycle_Sum,
                              #{if session[:version] >= '11.2'
                                  'Root_Blocking_Inst_ID,
                                   CASE WHEN COUNT(DISTINCT l.Current_File#)  = 1 THEN MIN(l.Current_File#)  ELSE NULL END Current_File_No,
@@ -464,7 +464,7 @@ class ActiveSessionHistoryController < ApplicationController
                              ) l
                       LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = l.Root_Real_Current_Object_No
                       LEFT OUTER JOIN DBA_Users u   ON u.User_ID = l.Root_User_ID
-                      GROUP BY Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status, Is_Cycle
+                      GROUP BY Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status
                       #{', Root_Blocking_Inst_ID' if session[:version] >= '11.2'}
                     ) gr
                     JOIN (SELECT ? DBID FROM DUAL) db ON 1=1
@@ -477,6 +477,13 @@ class ActiveSessionHistoryController < ApplicationController
                     LEFT OUTER JOIN gv$Active_Session_History rha     ON  rha.Inst_ID                   = gr.Root_Blocking_Inst_ID
                                                                       AND CAST(rha.Sample_Time + INTERVAL '0.5' SECOND AS DATE) = gr.Root_Rounded_Sample_Time   /* auf eine Sekunde gerundete Zeot */
                                                                       AND rha.Session_ID                = gr.Root_Blocking_Session
+                    WHERE (NOT EXISTS (SELECT 1 FROM TSSel i    /* Nur die Knoten ohne Parent-Blocker darstellen */
+                                        WHERE  i.Rounded_Sample_Time  = gr.Root_Rounded_Sample_Time
+                                        AND    i.Session_ID           = gr.Root_Blocking_Session
+                                        AND    i.Session_Serial#      = gr.Root_Blocking_Session_SerialNo
+                                        #{'AND    i.Instance_number      = gr.Root_Blocking_Inst_ID' if session[:version] >= '11.2'}
+                                       ) OR Is_Cycle_Sum > 0   /* wenn cycle, dann Existenz eines Samples mit weiterer Referenz auf Blocking Session tolerieren */
+                          )
                    "
                       end
                     }
@@ -527,7 +534,7 @@ class ActiveSessionHistoryController < ApplicationController
                               WHERE  CAST(Sample_Time + INTERVAL '0.5' SECOND AS DATE) = TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') -- Session wartend auf Blocking-Session
                             )
-        SELECT o.Session_Serial# Session_SerialNo, u.UserName, Decode(Is_Cycle, 1, 'Y') Deadlock,
+        SELECT o.Session_Serial# Session_SerialNo, u.UserName,
                o.*,
                CASE WHEN o.Wait_Time+o.Time_Waited > 0 THEN
                     (o.Wait_Time+o.Time_Waited)/1000000
@@ -537,7 +544,7 @@ class ActiveSessionHistoryController < ApplicationController
                cs.*
         FROM   TSel o
         JOIN   (-- Alle gelockten Sessions incl. mittelbare
-                SELECT Root_Instance_Number, Root_Session_ID, Root_Session_SerialNo, Is_Cycle,
+                SELECT Root_Instance_Number, Root_Session_ID, Root_Session_SerialNo, DECODE(SUM(Is_Cycle), 0, NULL, 'Y') Deadlock,
                        COUNT(DISTINCT CASE WHEN cLevel>1 THEN Session_ID ELSE NULL END) Blocked_Sessions_Total,
                        COUNT(DISTINCT CASE WHEN cLevel=2 THEN Session_ID ELSE NULL END) Blocked_Sessions_Direct,
                        SUM(CASE WHEN CLevel>1 THEN
@@ -581,7 +588,7 @@ class ActiveSessionHistoryController < ApplicationController
                         START WITH #{@blocking_session ? "Blocking_Session = ? AND Blocking_Session_Serial# = ? #{' AND Blocking_Inst_ID = ?' if session[:version] >= '11.2'}" : "Blocking_Session_Status='GLOBAL'"}
                        )
                 LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = Root_Real_Current_Object_No
-                GROUP BY Root_Instance_Number, Root_Session_ID, Root_Session_SerialNo, Is_Cycle
+                GROUP BY Root_Instance_Number, Root_Session_ID, Root_Session_SerialNo
                 ) cs ON cs.Root_Instance_Number = o.Instance_Number AND cs.Root_Session_ID = o.Session_ID AND cs.Root_Session_SerialNo = o.Session_Serial#
         LEFT OUTER JOIN DBA_Users u   ON u.User_ID = o.User_ID
         WHERE #{@blocking_session ? "o.Blocking_Session = ? AND o.Blocking_Session_Serial# = ? #{' AND Blocking_Inst_ID = ?' if session[:version] >= '11.2'}" : "o.Blocking_Session_Status='GLOBAL'"}
