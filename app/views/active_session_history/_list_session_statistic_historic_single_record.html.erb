@@ -50,6 +50,28 @@ def link_column_object(rec)
   end
 end
 
+   def link_blocking_sid(rec)
+     value = "#{rec["blocking_inst_id"] ? "#{rec.blocking_inst_id}:" : ""}#{rec.blocking_session ? rec.blocking_session : (rec.blocking_session_status=="NO HOLDER" ? "" : rec.blocking_session_status )}"
+     if rec["blocking_inst_id"] && rec.blocking_session
+         my_ajax_link_to("#{rec["blocking_inst_id"] ? "#{rec.blocking_inst_id}:" : ""}#{rec.blocking_session ? rec.blocking_session : (rec.blocking_session_status=="NO HOLDER" ? "" : rec.blocking_session_status )}",
+                         url_for({:action       => :list_session_statistic_historic_grouping,
+                                  :groupfilter  => {:DBID                   => @groupfilter[:DBID],
+                                                    :time_selection_start   => @groupfilter[:time_selection_start],
+                                                    :time_selection_end     => @groupfilter[:time_selection_end],
+                                                    :Instance               => rec.blocking_inst_id,
+                                                    'Session-ID'            => rec.blocking_session
+                                  },
+                                  :groupby      => 'Session/Sn.',
+                                  :update_area  => @update_area,
+                                 }
+                         ),
+                         :title=>t(:active_session_history_list_session_statistic_single_record_link_sid_hint, :default=>"Show active session history for session-ID")
+         )
+     else
+       value
+     end
+   end
+
 # Ermitteln Hint für Module, wenn Application
 def module_hint(moduletext)
   explain_application_info(moduletext)[:short_info]
@@ -70,7 +92,7 @@ column_options =
   ]
   column_options <<  {:caption=>"Exec.",            :data=>proc{|rec| "ID=#{rec.sql_exec_id} #{localeDateTime(rec.sql_exec_start)}"},  :title=>"SQL Execution-ID, Start of Execution"}                     if session[:version] >= "11.2"
   column_options <<  {:caption=>"Operation",        :data=>proc{|rec| "Line=#{rec.sql_plan_line_id} #{rec.sql_plan_operation} #{rec.sql_plan_options}"}, :title=>"Operation in execution plan line"}   if session[:version] >= "11.2"
-  column_options <<  {:caption=>"Block",            :data=>proc{|rec| "#{rec["blocking_inst_id"] ? "#{rec.blocking_inst_id}:" : ""}#{rec.blocking_session ? rec.blocking_session : (rec.blocking_session_status=="NO HOLDER" ? "" : rec.blocking_session_status )}"}, :title=>"Blocking session SID, GLOBAL=blocked from other RAC-instance", :data_title=>'Blocking Session SID, Blocking Session-Status=#{rec.blocking_session_status}, Blocking Session SerialNo=#{rec.blocking_session_serial_no}'}
+  column_options <<  {:caption=>"Block",            :data=>proc{|rec| link_blocking_sid(rec) }, :title=>"Blocking session SID, GLOBAL=blocked from other RAC-instance", :data_title=>'Blocking Session SID, Blocking Session-Status=#{rec.blocking_session_status}, Blocking Session SerialNo=#{rec.blocking_session_serial_no}'}
   column_options <<  {:caption=>"Event",            :data=>proc{|rec| rec.event ? rec.event : rec.session_state },      :title=>"Wait-Event während Sample", :data_title=>proc{|rec| "%t, Event-ID=#{rec.event_id}, Wait-Class=#{rec.wait_class} Sequence=#{rec.sequence} #{explain_wait_event(rec.event)}"} }
   column_options <<  {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.instance_number, rec.event, rec.p1, rec.p1text, nil, rec.p2, rec.p2text, nil, rec.p3, rec.p3text, nil, "list_session_statistics_wait_info_#{rec.sample_id}#{rec.instance_number}_#{rec.session_id}") },:title=>"Parameter des Wait-Event"}
   column_options <<  {:caption=>"Wait-Time",        :data=>proc{|rec| fn(rec.wait_time/1000.0,2) },                     :title=>"Total wait time in milliseconds for the event for which the session last waited (0 if currently waiting)", :align=>"right"}

@@ -70,11 +70,12 @@
 
   column_options =
   [
+    {:caption=>'Dead lock',       :data=>proc{|rec| rec.deadlock },                            :title=>'Deadlock between this session and another preceding session?' },
     {:caption=>"I.",              :data=>proc{|rec| rec.instance_number },                      :title=>t(:active_session_history_list_blocking_locks_historic_detail_instance_hint, :default=>"Instance of waiting blocked session")},
     {:caption=>"SID",             :data=>proc{|rec| link_column_sid(rec) },                   :title=>"SID der geblockten Session", :data_title=>'SerialNo=#{rec.session_serialno}'},
     {:caption=>"Direct Blocked",  :data=>proc{|rec| link_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_direct,0)} >")}, :title=>"Anzahl unmittelbar durch diesen Blocker blockierter Sessions", :align=>"right"},
     {:caption=>"Total Blocked",   :data=>proc{|rec| link_blocked(rec, "< #{formattedNumber(rec.blocked_sessions_total,0)} >")},  :title=>"Anzahl blockierter Sessions durch diesen Blocker (unmittelbar und mittelbar)", :align=>"right"},
-    {:caption=>"Direct Wait",     :data=>proc{|rec| formattedNumber( (rec.wait_time + rec.time_waited) /1000000.to_f,1)},                  :title=>"Anzahl Sekunden die Session bereits im geblockten Zustand wartet", :align=>"right"},
+    {:caption=>"Direct Wait",     :data=>proc{|rec| formattedNumber(rec.direct_wait_seconds,1)},                  :title=>"Anzahl Sekunden die diese Session bereits im geblockten Zustand wartet", :align=>"right"},
     {:caption=>"Total Wait (Sec.)", :data=>proc{|rec| formattedNumber(rec.seconds_in_wait_blocked_total,1)},    :title=>"Anzahl Sekunden die mittelbar und unmittelbar von dieser Session geblockte Sessions bereits im Wartezustand warten", :align=>"right"},
     {:caption=>"Blocking Object", :data=>proc{|rec| "#{rec.root_blocking_object} #{link_column_object(rec)}" },  :title=>"Blockendes Objekt"},
     {:caption=>"User",            :data=>proc{|rec| rec.username },                             :title=>"User der geblockten Session"},
