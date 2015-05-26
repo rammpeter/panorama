@@ -3,7 +3,7 @@
                              :update_area => :show_blocking_locks_detail_area
                      ) do %>
   <div>
-    <b>Blocking Locks aus DBA_Hist_Active_Sess_History</b>
+    <b>Blocking Locks <%= t(:from, :default=>'from')%> DBA_Hist_Active_Sess_History</b>
   </div>
 
   <%= include_start_end_timepicker %>

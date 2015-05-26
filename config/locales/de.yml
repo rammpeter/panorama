@@ -7,6 +7,7 @@
   error:                                                    Fehler
   first_occurrence_caption:                                 Erstes Auftreten
   first_occurrence_hint:                                    Erstes Auftreten im betrachteten Zeitraum
+  from:                                                     aus
   generally:                                                Generell
   grouping:                                                 Gruppierung
   grouping_hint:                                            Gruppierung der Anzeige nach Attribut
@@ -59,6 +60,7 @@
   active_session_history_number_hint:                       (Anzahl wenn mehrere)
   active_session_history_samples_hint:                      Gesamt-Anzahl Sample-Records in Gruppierung
   active_session_history_samples_link_hint:                 Anzeige der einzelnen Samples der Gruppierung
+
   active_session_history_show_blocking_locks_submit_caption: Blocking Locks anzeigen
   active_session_history_show_blocking_locks_submit_hint:   Anzeige Historie der Blocking Locks
   active_session_history_show_top_ten:                      Zeige Top 10 in Zeitleiste, verdichtet nach %{sec} Sek.
