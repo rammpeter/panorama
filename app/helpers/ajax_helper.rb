@@ -40,7 +40,7 @@ module AjaxHelper
                                :p2=>p2, :p2text=>p2text,
                                :p3=>p3, :p3text=>p3text
                               ),
-                       :title=>'Anzeige der Details zu den Wait-Parametern des Events'
+                       :title=>t(:ajax_helper_link_wait_params_hint, :default=>'Show details of wait-parametern for event')
                      ) +
          " #{quick_wait_params_info(event, p1, p1text, p1raw, p2, p2text, p2raw, p3, p3text, p3raw)}" +
          "<span id=\"#{unique_div_identifier}\"></span>").html_safe

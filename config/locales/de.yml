@@ -58,7 +58,15 @@
   active_session_history_list_session_statistic_historic_link_hint: Anzeige der Verdichtung aus Samples der Gruppierung nach
   active_session_history_list_session_statistic_historic_grouping_header: Verdichtung nach
   active_session_history_list_session_statistic_historic_grouping_link_hint: Anzeige der unterschiedlichen
-  active_session_history_list_session_statistic_historic_single_record_sql_id_title: SQL-ID des aktuellen Statements + optional SQL-ID des Top-Level-SQL
+
+  active_session_history_list_session_statistic_historic_single_record_caption:           Einzel Snapshot-Records für
+  active_session_history_list_session_statistic_historic_single_record_object_hint: |-
+    Aktuell referenziertes Objekt aus gv$Session.Row_Wait_Obj#. Wenn p2Text="object#", dann wird diese genutzt anstatt row_wait_obj#. Achtung: Kann auch Objekt der vorherigen Aktion enthalten
+  active_session_history_list_session_statistic_historic_single_record_plsql_hint: |-
+    PL/SQL: Einstiegs- und aktuelles Objekt
+  active_session_history_list_session_statistic_historic_single_record_sample_time_hint:  Zeitpunkt des Sample
+  active_session_history_list_session_statistic_historic_single_record_sql_id_title:      SQL-ID des aktuellen Statements + optional SQL-ID des Top-Level-SQL
+
   active_session_history_list_session_statistic_historic_timeline_header: |-
     Anzahl wartende Sessions verdichtet auf %{group_seconds} Sekunden für Top-10 gruppiert nach: <b>%{groupby}</b>, Filter: %{filter}
   active_session_history_number_hint:                       (Anzahl wenn mehrere)
@@ -80,6 +88,7 @@
   application_connection_no_db_choosen:                     Keine DB ausgewählt! Bitte rechts oben DB auswählen! (Speicherung von Browser-Cookies ist erforderlich)
 
   ajax_helper_link_sql_id_title_prefix:                     Anzeige der Details in SGA für
+  ajax_helper_link_wait_params_hint:                        Anzeige der Details zu den Wait-Parametern des Events
 
   dba_history_list_segment_stat_historic_sum_link_sql_hint: Anzeige der SQL-Statements des Zeitraums aus DBA_Hist_SQLStat mit Nutzung des Objekts im Explain Plan
   dba_history_list_segment_stat_historic_sum_link_wait_hint: Detaillierung der angefallenen Wartezeiten des Objektes
