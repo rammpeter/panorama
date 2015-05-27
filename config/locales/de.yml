@@ -1,6 +1,7 @@
 ﻿de:
 # Globale Texte ohne Bezug zu erb
   additional_infos:                                         Zusätzliche Informationen
+  and:                                                      und
   close:                                                    Schliessen
   content:                                                  Inhalt
   day:                                                      Tag
@@ -66,6 +67,12 @@
 
   active_session_history_show_blocking_locks_submit_caption: Blocking Locks anzeigen
   active_session_history_show_blocking_locks_submit_hint:   Anzeige Historie der Blocking Locks
+
+  active_session_history_show_session_statistics_historic_idle_hint: |-
+    Idle-Waits (z.B. PX Deq Credit: send blkd) in Betrachtung berücksichtigen?
+  active_session_history_show_session_statistics_historic_submit_caption:   Waits anzeigen
+  active_session_history_show_session_statistics_historic_submit_hint:      Anlistung der verdichteten Session-Waits
+
   active_session_history_show_top_ten:                      Zeige Top 10 in Zeitleiste, verdichtet nach %{sec} Sek.
   active_session_history_show_top_ten_hint:                 Anzeige der Top 10 nach total time waited in Zeitleiste, jeweils ein Punkt im Graph für die Summe über %{sec} Sekunden
   active_session_history_total_time_waited_hint:            Summe Time waited in Sekunden (Sample-Zyklus(1/10 Sekunden) * Samples)
@@ -80,6 +87,13 @@
 
   dba_history_list_sql_area_historic_execs_hint:                Anzahl Ausführungen
   dba_history_list_sql_area_historic_link_column_snap_title:    Anzeige der Werte der einzelnen AWR-Snapshots (unterhalb)
+
+  dba_history_list_sql_detail_execution_access_hint:            Zugriffskriterium auf Objekt
+  dba_history_list_sql_detail_execution_filter_hint:            Filterkriterium auf Objekt
+  dba_history_list_sql_detail_execution_plan_id_hint:           ID der Operation
+  dba_history_list_sql_detail_execution_plan_objectname_hint:   Name des Objekts
+  dba_history_list_sql_detail_execution_plan_operation_hint:    Art des Zugriffs
+  dba_history_list_sql_detail_execution_plan_order_hint:        Reihenfolge der Operation
 
   dba_history_list_sql_detail_historic_bind_name:           Name der Vindevariablen im Statement
   dba_history_list_sql_detail_historic_bind_pos:            Position der Bindevariablen im Statement
@@ -116,7 +130,7 @@
 
   dba_list_dml_locks_link_column_blocking_object_hint:      Ermitteln der zugehörigen RowID
 
-  dba_list_rowid_link_hint:                                 Felder und Werte des Primary der Tabelle
+  dba_list_rowid_link_hint:                                 Zeige Felder und Werte des Primary der Tabelle
 
   dba_segment_stat_caption:                                 Objekt-spezifische Statistiken aus V$Segment_Statistics
   dba_segment_stat_only_sample_change_caption:              Nur Änderungen während Sample

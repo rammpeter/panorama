@@ -610,7 +610,7 @@ class DbaHistoryController < ApplicationController
                                 p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
                                 p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
-                                CASE WHEN p.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
+                                CASE WHEN NVL(p.Object_Type, 'TABLE') LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
                                       WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
                                 ELSE NULL END Num_Rows,
                                 (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes,
