@@ -196,7 +196,7 @@ class ActiveSessionHistoryController < ApplicationController
       s.sql_operation = translate_opcode(s.sql_opcode)
     }
 
-    render_partial
+    render_partial :list_session_statistic_historic_single_record
   end # list_session_statistic_historic_single_record
 
 
