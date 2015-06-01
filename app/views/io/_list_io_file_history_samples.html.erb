@@ -22,3 +22,7 @@ column_options.concat io_file_values_column_options         # Feldliste der nume
 }) %>
 
 <div id="list_io_file_samples_detail_area"></div>
+<script type="text/javascript">
+    $("#<%= @time_selection_start_id %>").datetimepicker();
+    $("#<%= @time_selection_end_id   %>").datetimepicker();
+</script>
