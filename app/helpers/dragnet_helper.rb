@@ -1355,16 +1355,16 @@ This selection can be executed more effective as mass data operation, optional w
 
   end # unnecessary_executions
 
-  def sqls_wrong_execution_plan
+  def unnecessary_high_execution_frequency
     [
         {
-             :name  => 'Übermäßige Anzahl Zugriffe auf Cache-Buffer',
-             :desc  => "Zugriffe auf DB-Blöcke im Cache der DB (db-block-gets, consistent reads) werden dann kritisch hinsichtlich des provozierens von 'cache buffers chains'-Latchwaits wenn:
-- in massiver Häufigkeit auf einige wenige Blöcke lesend oder schreibend zugegriffen wird (HotBlocks im Buffer-Cache)
-- exorbitant viele Blöcke gelesen werden (kritsch selbst dann wenn diese weit verteilt im Cache liegen und keine HotBlocks bilden)
-Für beide Konstellationen lassen sich problematische Statements identifizieren durch Bewertung nach der Spitze der Anzahl Blockzugriffe zwischen zwei AWR-Snapshots.
-",
-             :sql=> "SELECT /* DB-Tools Ramm CacheBuffer */ * FROM (
+            :name  => t(:dragnet_helper_87_name, :default=>'Excessive number of cache buffer accesses'),
+            :desc  => t(:dragnet_helper_87_desc, :default=>'Access on DB-blocks in DB-cache(db-block-gets, consistent reads) may be critical by provoking "cache buffers chains"-latch waits if:
+- excessive access targets to one or less DB-blocks reading or writing (Hot blocks im buffer-cache)
+- excessive read access on many DB-blocks (may be critical even even if these blocks are widely spreaded in cache and are not hot blocks)
+For both constellations problematic statements can be identified by number of block access between two AWR-snapshots.
+'),
+            :sql=> "SELECT /* DB-Tools Ramm CacheBuffer */ * FROM (
                       SELECT /*+ USE_NL(s t) */ s.*, SUBSTR(t.SQL_Text,1,600) \"SQL-Text\"
                       FROM (
                                SELECT /*+ NO_MERGE ORDERED */ s.SQL_ID, s.Instance_number \"Instance\",
@@ -1407,9 +1407,16 @@ Für beide Konstellationen lassen sich problematische Statements identifizieren
                       AND    t.SQL_ID = s.SQL_ID
                       ORDER BY \"max. BufferGets betw.snapshots\" DESC NULLS LAST
                       ) WHERE RowNum<?",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Maximale Anzahl Rows', :size=>8, :default=>100, :title=> 'Maximale Anzahl Rows für Aufnahme in Selektion'}]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=> 'Maximale Anzahl Rows', :size=>8, :default=>100, :title=> 'Maximale Anzahl Rows für Aufnahme in Selektion'}]
+        },
+
+    ]
+
+  end # unnecessary_high_execution_frequency
+
+  def sqls_wrong_execution_plan
+    [
         {
              :name  => 'Statements mit unnötig hoher Ausführungszahl: Zugriff auf kleine Objekte',
              :desc  => 'Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
@@ -2688,6 +2695,9 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
                         },
                         {   :name    => t(:dragnet_helper_group_unnecessary_executions, :default=>'Potentially unnecessary execution of SQL statements'),
                             :entries => unnecessary_executions
+                        },
+                        {   :name    => t(:dragnet_helper_group_unnecessary_high_execution_frequency, :default=>'Potentially unnecessary high execution/fetch-frequency of SQL statements'),
+                            :entries => unnecessary_high_execution_frequency
                         },
           ].concat(sqls_wrong_execution_plan)
       },

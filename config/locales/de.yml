@@ -195,6 +195,7 @@
   dragnet_helper_group_problems_with_parallel_query:        Eventuelle Probleme mit Parallel Query
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
   dragnet_helper_group_unnecessary_executions:              Eventuell unnötige Ausührungen von SQL-Statements
+  dragnet_helper_group_unnecessary_high_execution_frequency:  Eventuell unnötig hohe Frequenz von Executes/Fetches von SQL-Statements
   dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
   dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
@@ -564,6 +565,12 @@
     Beispiel: Indizierung von NVL(Column,0)
   dragnet_helper_86_name:                                   Lang laufende Full Table Scans durch IS NULL-Abfrage (ab 11g)
 
+  dragnet_helper_87_desc: |-
+    Zugriffe auf DB-Blöcke im Cache der DB (db-block-gets, consistent reads) werden dann kritisch hinsichtlich des provozierens von 'cache buffers chains'-Latchwaits wenn:
+    - in massiver Häufigkeit auf einige wenige Blöcke lesend oder schreibend zugegriffen wird (HotBlocks im Buffer-Cache)
+    - exorbitant viele Blöcke gelesen werden (kritsch selbst dann wenn diese weit verteilt im Cache liegen und keine HotBlocks bilden)
+    Für beide Konstellationen lassen sich problematische Statements identifizieren durch Bewertung nach der Spitze der Anzahl Blockzugriffe zwischen zwei AWR-Snapshots.
+  dragnet_helper_87_name:                                   Übermäßige Anzahl Zugriffe auf Cache-Buffer
 
 
 
