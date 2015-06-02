@@ -50,10 +50,6 @@ if @res.count > 0
               chart_x_axis_found = true
             end
           when col[:caption].downcase == 'sql_id' || col[:caption].downcase == "sql-id" || col[:caption].downcase["sql_id"] || col[:caption].downcase["sql-id"] then
-            min_alter_org = Time.new
-            max_alter_org = min_alter_org-10000
-            @time_selection_end = localeDateTime(min_alter_org, :minutes)
-            @time_selection_start = localeDateTime(max_alter_org, :minutes)
 
             col[:data] = proc{|rec|
                                 inst_id = nil
@@ -62,12 +58,21 @@ if @res.count > 0
                                 inst_id = rec["Instance"]           if rec["Instance"]
                                 inst_id = current_instance_number   if inst_id.nil? # Default wenn nicht anders belegt
 
+                                time_selection_start = localeDateTime(Time.new - (24*60*60*8), :minutes)                                # Default-Start 8 Tage rückwärts
+                                time_selection_start = localeDateTime(rec['first_occurrence'], :minutes) if rec['first_occurrence']     # Überschrieben mit Wert aus Record wenn belegt
+                                time_selection_start = localeDateTime(rec['first occurrence'], :minutes) if rec['first occurrence']     # Überschrieben mit Wert aus Record wenn belegt
+                                time_selection_start = localeDateTime(rec['First Occurrence'], :minutes) if rec['First Occurrence']     # Überschrieben mit Wert aus Record wenn belegt
+
+                                time_selection_end   = localeDateTime(Time.new, :minutes)                                               # Default-Ende jetzt
+                                time_selection_end   = localeDateTime(rec['last_occurrence'], :minutes) if rec['last_occurrence']       # Überschrieben mit Wert aus Record wenn belegt
+                                time_selection_end   = localeDateTime(rec['last occurrence'], :minutes) if rec['last occurrence']       # Überschrieben mit Wert aus Record wenn belegt
+                                time_selection_end   = localeDateTime(rec['Last Occurrence'], :minutes) if rec['Last Occurrence']       # Überschrieben mit Wert aus Record wenn belegt
 
                                 #link_sql_id('exec_dragnet_sql_detail_area', inst_id, my_html_escape(rec[col[:caption]]))
                                 link_historic_sql_id(inst_id,
                                                      my_html_escape(rec[col[:caption]]) ,
-                                                     localeDateTime((Time.new-80000), :minutes),
-                                                     localeDateTime(Time.new, :minutes),
+                                                     time_selection_start,
+                                                     time_selection_end,
                                                      :exec_dragnet_sql_detail_area
                                 )
 

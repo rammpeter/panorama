@@ -572,6 +572,11 @@
     Für beide Konstellationen lassen sich problematische Statements identifizieren durch Bewertung nach der Spitze der Anzahl Blockzugriffe zwischen zwei AWR-Snapshots.
   dragnet_helper_87_name:                                   Übermäßige Anzahl Zugriffe auf Cache-Buffer
 
+  dragnet_helper_88_desc: |-
+    Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
+    Damit reduziert sich CPU-Belastung und Gefahr von „Cache Buffers Chains“ Latch-Waits.
+    Ab 11g können stored functions mit function result caching für diesen Zweck genutzt werden.
+  dragnet_helper_88_name:                                   Hochfrequenter Zugriff auf kleine Objekte
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result

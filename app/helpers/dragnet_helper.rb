@@ -1410,22 +1410,16 @@ For both constellations problematic statements can be identified by number of b
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                          {:name=> 'Maximale Anzahl Rows', :size=>8, :default=>100, :title=> 'Maximale Anzahl Rows für Aufnahme in Selektion'}]
         },
-
-    ]
-
-  end # unnecessary_high_execution_frequency
-
-  def sqls_wrong_execution_plan
-    [
         {
-             :name  => 'Statements mit unnötig hoher Ausführungszahl: Zugriff auf kleine Objekte',
-             :desc  => 'Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
-Damit reduziert sich CPU-Belastung und Gefahr von „Cache Buffers Chains“ Latch-Waits.
-Ab 11g können stored functions mit function result caching für diesen Zweck genutzt werden.
-',
-             :sql=>  "SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
+            :name  => t(:dragnet_helper_88_name, :default=>'Frequent access on small objects'),
+            :desc  => t(:dragnet_helper_88_desc, :default=>'For frequent executed SELECT-statements on small objects it may be worth to cache this content instead of accessong by SQL.
+This reduces CPU-contention and the risk of „Cache Buffers Chains“ latch-waits.
+Beginning with 11g stored functions with function result caching or selects/subselects with result caching may be used for this purpose.
+'),
+            :sql=>  "SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
                       FROM  (
-                               SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_number \"Instance\",
+                               SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, MIN(snap.Begin_Interval_Time) First_Occurrence, MAX(snap.End_Interval_Time) Last_Occurrence,
+                                      s.Plan_Hash_Value, s.Instance_number \"Instance\",
                                       NVL(MIN(Parsing_Schema_Name), '[UNKNOWN]') \"UserName\", /* sollte immer gleich sein in Gruppe */
                                       MAX(Buffer_Gets_Delta)                                         \"max. BufferGets betw.snapshots\",
                                       SUM(Executions_Delta)                                          \"Executions\",
@@ -1464,9 +1458,16 @@ Ab 11g können stored functions mit function result caching für diesen Zweck ge
                             JOIN   DBA_Hist_SQLText t  ON (t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)
                       WHERE Owner NOT IN ('SYS')
                       ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
+        },
+
+    ]
+
+  end # unnecessary_high_execution_frequency
+
+  def sqls_wrong_execution_plan
+    [
         {
              :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA',
              :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
