@@ -1461,19 +1461,12 @@ Beginning with 11g stored functions with function result caching or selects/subs
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
         },
-
-    ]
-
-  end # unnecessary_high_execution_frequency
-
-  def sqls_wrong_execution_plan
-    [
         {
-             :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA',
-             :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
-Damit moderate Reduktion von CPU-Belastung und Laufzeit
-',
-             :sql=> "SELECT * FROM (
+            :name  => t(:dragnet_helper_89_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of SGA'),
+            :desc  => t(:dragnet_helper_89_desc, :default=>'For larger results per execution it is worth to access multiple records per fetch with bulk operation instead of single fetches.
+This earns little reduction of CPU-contention and runtime.
+'),
+            :sql=> "SELECT * FROM (
                               SELECT Inst_ID, Parsing_Schema_Name \"Parsing schema name\",
                                      Module,
                                      SQL_ID, Executions, Fetches \"Number of fetches\",
@@ -1493,9 +1486,15 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                               )
                               WHERE \"Fetches per exec\" > ?
                               ORDER BY \"Additional Fetches\" DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_60_param_1_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_60_param_1_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
-             ]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_60_param_1_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_60_param_1_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
+            ]
+        },
+    ]
+
+  end # unnecessary_high_execution_frequency
+
+  def sqls_wrong_execution_plan
+    [
         {
              :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWR-Historie',
              :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.

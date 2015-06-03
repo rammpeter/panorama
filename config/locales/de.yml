@@ -578,6 +578,11 @@
     Ab 11g können stored functions mit function result caching für diesen Zweck genutzt werden.
   dragnet_helper_88_name:                                   Hochfrequenter Zugriff auf kleine Objekte
 
+  dragnet_helper_89_desc: |-
+    Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
+    Damit moderate Reduktion von CPU-Belastung und Laufzeit
+  dragnet_helper_89_name: |-
+    Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
