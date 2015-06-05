@@ -584,6 +584,18 @@
   dragnet_helper_89_name: |-
     Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA
 
+  dragnet_helper_90_desc: |-
+    Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
+    Damit moderate Reduktion von CPU-Belastung und Laufzeit
+  dragnet_helper_90_name: |-
+    Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWH-Historie
+
+  dragnet_helper_91_desc: |-
+    Bei geringer Anzahl Rows je Execution und hoher Execution-Zahl lohnt sich die Bündelung von Schreibzugriffen in Array-Operationen bzw. PL/SQL-FORALL-Operationen wenn sie in selber Transaktion stattfinden.
+    Damit moderate Reduktion von CPU-Belastung und Laufzeit.
+  dragnet_helper_91_name:                                   Schreibende Statements mit unnötig hoher Execute-Anzahl wegen fehlender Array-Verarbeitung
+
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen

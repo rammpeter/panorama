@@ -1489,18 +1489,12 @@ This earns little reduction of CPU-contention and runtime.
             :parameter=>[{:name=>t(:dragnet_helper_60_param_1_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_60_param_1_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
             ]
         },
-    ]
-
-  end # unnecessary_high_execution_frequency
-
-  def sqls_wrong_execution_plan
-    [
         {
-             :name  => 'Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung AWR-Historie',
-             :desc  => 'Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
-Damit moderate Reduktion von CPU-Belastung und Laufzeit
-',
-             :sql=> "SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
+            :name  => t(:dragnet_helper_90_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of AWH history'),
+            :desc  => t(:dragnet_helper_90_desc, :default=>'For larger results per execution it is worth to access multiple records per fetch with bulk operation instead of single fetches.
+This earns little reduction of CPU-contention and runtime.
+'),
+            :sql=> "SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID ) SQL_Text
                       FROM (
                       SELECT s.Instance_Number Instance, s.DBID, Parsing_Schema_Name, Module,
                              SQL_ID, SUM(Executions_Delta) Executions, SUM(Fetches_Delta) Fetches,
@@ -1522,16 +1516,15 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit
                       ) s
                       WHERE \"Fetches per exec\" > ?
                       ORDER BY \"Additional Fetches\" DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>t(:dragnet_helper_59_param_2_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_59_param_2_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
-             ]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=>t(:dragnet_helper_59_param_2_name, :default=>'Min. number of fetches per execution'), :size=>8, :default=>100, :title=>t(:dragnet_helper_59_param_2_hint, :default=>'Minimum number of fetches per execution for consideration in result') },
+            ]
+        },
         {
-             :name  => 'Statements mit unnötig hoher Ausführungszahl: Unnötig hohe Execute-Anzahl wegen fehlender Array-Verarbeitung',
-             :desc  => 'Bei geringer Anzahl Rows je Execution und hoher Execution-Zahl lohnt sich die Bündelung von Schreibzugriffen in Array-Operationen bzw. PL/SQL-FORALL-Operationen wenn sie in selber Transaktion stattfinden.
-Damit moderate Reduktion von CPU-Belastung und Laufzeit.
-',
-             :sql=>  "SELECT /* DB-Tools Ramm: Buendelbare Einzeilsatz-Executes */ s.SQL_ID, s.Instance_Number Instance, Parsing_Schema_Name,
+            :name  => t(:dragnet_helper_91_name, :default=>'Writing statements with unnecessary high execution count due to missing array processing'),
+            :desc  => t(:dragnet_helper_91_desc, :default=>'With less rows per execution and high execution count it is often worth to bundle processing with bulk operation or PL/SQL-FORALL-Operationen if they are processed in the same transaction.
+This reduces CPU-contention and runtime.'),
+            :sql=>  "SELECT /* DB-Tools Ramm: Buendelbare Einzeilsatz-Executes */ s.SQL_ID, s.Instance_Number Instance, Parsing_Schema_Name,
                              SUM(s.Executions_Delta) Executions,
                              ROUND(SUM(s.Elapsed_Time_Delta)/1000000) Elapsed_Time_Secs,
                              SUM(s.Rows_Processed_Delta) Rows_Processed,
@@ -1547,10 +1540,16 @@ Damit moderate Reduktion von CPU-Belastung und Laufzeit.
                       HAVING SUM(s.Executions_Delta) > ?
                       AND    SUM(s.Rows_Processed_Delta) > 0
                       ORDER BY SUM(Executions_Delta)*SUM(Executions_Delta)/SUM(Rows_Processed_Delta) DESC NULLS LAST",
-             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=>t(:dragnet_helper_61_param_2_name, :default=>'Min. number of executions'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_61_param_2_hint, :default=>'Minimum number of executions for consideration in result') },
-             ]
-         },
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+                         {:name=>t(:dragnet_helper_61_param_2_name, :default=>'Min. number of executions'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_61_param_2_hint, :default=>'Minimum number of executions for consideration in result') },
+            ]
+        },
+    ]
+
+  end # unnecessary_high_execution_frequency
+
+  def sqls_wrong_execution_plan
+    [
         {
              :name  => 'Identifikation von Statements mit wechselndem Ausführungsplan aus Historie',
              :desc  => 'mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
