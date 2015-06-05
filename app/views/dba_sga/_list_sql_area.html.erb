@@ -39,7 +39,7 @@
 
 
 <%= gen_slickgrid(@sqls, column_options, {
-        :caption => "SQL der aktuellen SGA aus #{@modus}, gruppiert nach #{if @modus == "GV$SQL";  "SQL-ID, Child-Number" else "SQL-ID" end }#{", SQL-ID='#{@sql_id}'" if @sql_id}#{", Filter='#{@filter}'" if @filter}",
+        :caption => "#{t(:dba_sga_list_sql_area_caption, :default=>'SQL of current SGA from %{modus}, grouped by', :modus=>@modus)}  #{if @modus == "GV$SQL";  "SQL-ID, Child-Number" else "SQL-ID" end }#{", SQL-ID='#{@sql_id}'" if @sql_id}#{", Filter='#{@filter}'" if @filter}",
         :max_height => 450
 }) %>
 
