@@ -708,6 +708,8 @@
   menu_storage_matview_hint:                                Auswertung Strukturen von Materialized Views und MV-Logs
   menu_storage_storage_summary_caption:                     Plattenspeicher-Nutzung
   menu_storage_storage_summary_hint:                        Übersicht über Plattenspeicher-/Tablespace-Nutzung
+  menu_storage_table_dependency_caption:                    Table-Abhängigkeiten
+  menu_storage_table_dependency_hint:                       Mittelbare und unmittelbare referentielle Abhängigkeiten von Tabellen
 
   menu_storage_undo_history_caption:                        UNDO-Nutzung historisch
   menu_storage_undo_history_hint:                           Historische Nutzung von UNDO-Space
