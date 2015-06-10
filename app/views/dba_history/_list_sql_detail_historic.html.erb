@@ -14,7 +14,7 @@ def show_single_value(name, param, decimals, title="", second_value="-", second_
 end
 %>
 
-<h3>Statement-Details von <%= localeDateTime @sql.first_occurrence %> bis <%= localeDateTime @sql.last_occurrence %> Instance = <%= @instance %></h3>
+<h3>Statement-Details <%= t(:from_until, :default=>'from')%> <%= localeDateTime @sql.first_occurrence %> <%= t(:until, :default=>'until')%> <%= localeDateTime @sql.last_occurrence %> Instance = <%= @instance %></h3>
 <table border="0">
   <tr>
     <td valign="top"class="monospace"><%= @sql_statement %></td>
@@ -27,7 +27,7 @@ end
           <td align="center" style="<%= @sql.plan_hash_value_count > 1 ? "background-color:orange;" : "" %>" title="<%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time range")%>"><%= @sql.plan_hash_value_count %> </td>
         </tr>
         <tr>
-          <td title="<%= t(:dba_history_list_sql_detail_historic_module_action_hint, :default=>"Module and action of last parsing session")%>">Parsing Module</td>
+          <td title="<%= t(:dba_history_list_sql_detail_historic_module_action_hint, :default=>"Module and action of last parsing session")%>">Parsing Module / Action</td>
           <td title='Module'>
             <%=
               my_ajax_link_to(@sql.last_module,
@@ -36,7 +36,7 @@ end
                             :update_area  => :list_sql_detail_historic_module,
                             :org_text     => @sql.last_module
                           ),
-                   :title=>"Detaillierung des Modul-Namens")
+                   :title=>t(:dba_history_list_sql_detail_historic_module_link_hint, :default=>'Explanation of module name'))
             %>
             <div id="list_sql_detail_historic_module"></div>
           </td>
@@ -48,7 +48,7 @@ end
                             :update_area  => :list_sql_detail_historic_action,
                             :org_text     => @sql.last_action
                           ),
-                   :title=>"Detaillierung des Action-Namens")
+                   :title=>t(:dba_history_list_sql_detail_historic_action_link_hint, :default=>'Explanation of action name'))
             %>
             <div id="list_sql_detail_historic_action"></div>
           </td>
@@ -176,7 +176,7 @@ column_options = [
 </div>
 &nbsp;
 <div class="float_left">
-  <%= my_ajax_submit_tag("Komplette Zeitleiste des SQL",
+  <%= my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_complete_timeline_caption, :default=>'Complete time line of SQL'),
    url_for(:update_area => @update_area,
            :action      => :list_sql_history_snapshots,
            :controller  => :dba_history,
@@ -186,19 +186,19 @@ column_options = [
            :groupby     => :day,
            :parsing_schema_name => @parsing_schema_name
           ),
-  :title => "Anlistung der kompletten gespeicherten Zeitleiste des SQL ")
+  :title => t(:dba_history_list_sql_detail_historic_complete_timeline_hint, :default=>'List complete history of SQL in time'))
   %>
 </div>
 &nbsp;
 <div class="float_left">
-    <%= my_ajax_submit_tag("SQL in aktueller SGA",
+    <%= my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_current_sga_caption, :default=>'SQL in current SGA'),
      url_for(:update_area    => @update_area,
              :controller     => :dba_sga,
              :action         => :list_sql_detail_sql_id,
              :instance       => @instance,
              :sql_id         => @sql_id
             ),
-    :title => "Anlistung der Daten des SQL in der aktuellen SGA der DB (wenn vorhanden)")
+    :title => t(:dba_history_list_sql_detail_historic_current_sga_hint, :default=>'Show data of SQL from current SGA (if still exists in SGA)'))
     %>
 </div>
 <div id="<%= @update_area %>" style="clear:both; width:100%;">
