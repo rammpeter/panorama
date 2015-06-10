@@ -1551,10 +1551,8 @@ This reduces CPU-contention and runtime.'),
   def sqls_wrong_execution_plan
     [
         {
-             :name  => 'Identifikation von Statements mit wechselndem Ausführungsplan aus Historie',
-             :desc  => 'mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
-Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
-',
+             :name  => t(:dragnet_helper_92_name, :default=>'Identification of statements with alternating execution plans in history'),
+             :desc  => t(:dragnet_helper_92_desc, :default=>'With this select alternating execution plans for unchanged SQLs can be detetcted in AWR-history.'),
              :sql=>  "SELECT SQL_ID, Plan_Variationen \"Plan count\",
                              ROUND(Elapsed_Time_Secs_First_Plan) \"Elapsed time (sec.) first plan\",
                              Executions_First_Plan \"Execs. first plan\",
@@ -1597,10 +1595,10 @@ Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => 'Nested-Loop-Join auf große Tabellen mit großem Result des SQL (Test per SGA-Statement-Cache)',
-             :desc  => 'Oft ausgeführte Nested-Loop-Operationen auf große (schwer zu cachende) Tabellen können Laufzeit-Treiber sein.
-Für die angelisteten Statements ist die Variante „Hash-Join“ zu untersuchen.
-Statement für jede RAC-Instanz einzeln ausführen, da sonst utopische Laufzeit bei Zugriff auf GV$-Tabellen.',
+             :name  => t(:dragnet_helper_93_name, :default=>'Nested loop join on large tables with large result of SQL (consideration of current SGA)'),
+             :desc  => t(:dragnet_helper_93_desc, :default=>'Frequently executed nested loop operations on large (not fitting into DB-cache) tables may cause large runtime of SQL.
+Listed statements should be checked for use of hash join instead.
+This statement executes only for current (login) RAC-instance. Please execute separate for every RAC-instance (due to extremly large runtimes accessing GV$-tables).'),
              :sql=>  "SELECT /* DB-Tools Ramm Nested Loop auf grossen Tabellen */ * FROM (
                       SELECT /*+ PARALLEL(p,2) PARALLEL(s,2) */
                              s.SQL_FullText, p.SQL_ID, p.Plan_Hash_Value, p.operation, p.Object_Type,  p.options, p.Object_Name,
@@ -1642,7 +1640,7 @@ Statement für jede RAC-Instanz einzeln ausführen, da sonst utopische Laufzeit 
                                              AND s.Rows_Processed/DECODE(s.Executions,0,1,s.Executions) > ? -- Schwellwert fuer mgl. Ineffizienz NestedLoop
                       )
                       ORDER BY Rows_Per_Execution*Num_Rows DESC NULLS LAST",
-             :parameter=>[{:name=> 'Minimale Anzahl Rows processed / Execution', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows processed / Execution als Schwellwert fuer mgl. Ineffizienz NestedLoop'}]
+             :parameter=>[{:name=> t(:dragnet_helper_93_param_1_name, :default=>'Minimum number of rows processed / execution'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_93_param_1_hint, :default=>'Minimum number of rows processed / execution as threshold for possible inefficieny of nested loop')}]
          },
         {
              :name  => 'Iteration im Nested-Loop-Join gegen Full-Scan-Operation',

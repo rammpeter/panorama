@@ -605,6 +605,21 @@
     Damit moderate Reduktion von CPU-Belastung und Laufzeit.
   dragnet_helper_91_name:                                   Schreibende Statements mit unnötig hoher Execute-Anzahl wegen fehlender Array-Verarbeitung
 
+  dragnet_helper_92_desc: |-
+    Mit dieser Selektion lassen sich aus den AWR-Daten Wechsel der Ausführungspläne unveränderter SQL‘s ermitteln.
+    Betrachtet wird dabei die aufgezeichnete Historie ausgeführter Statements
+  dragnet_helper_92_name:                                   Identifikation von Statements mit wechselndem Ausführungsplan aus Historie
+
+  dragnet_helper_93_desc: |-
+    Oft ausgeführte Nested-Loop-Operationen auf große (schwer zu cachende) Tabellen können Laufzeit-Treiber sein.
+    Für die angelisteten Statements ist die Variante „Hash-Join“ zu untersuchen.
+    Dieses Statement betrachtet nur die Daten der aktuellen RAC-Instance(Login). Statement bitte für jede RAC-Instanz einzeln ausführen auf Grund utopische Laufzeit bei Zugriff auf GV$-Tabellen über RAC-Instanzen hinweg.
+  dragnet_helper_93_name:                                   Nested-Loop-Join auf große Tabellen mit großem Result des SQL (Test per SGA-Statement-Cache)
+  dragnet_helper_93_param_1_hint:                           Minimale Anzahl Rows processed / Execution als Schwellwert für mgl. Ineffizienz NestedLoop
+  dragnet_helper_93_param_1_name:                           Minimale Anzahl Rows processed / Execution
+
+
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
