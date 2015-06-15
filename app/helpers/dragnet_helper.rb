@@ -1531,7 +1531,7 @@ This reduces CPU-contention and runtime.'),
                              SUM(s.Rows_Processed_Delta) Rows_Processed,
                              ROUND(SUM(s.Rows_Processed_Delta)/SUM(s.Executions_Delta),2) Rows_per_Exec,
                              ROUND(SUM(s.Executions_Delta)/SUM(s.Rows_Processed_Delta),2) Execs_Per_Row,
-                             MIN(TO_CHAR(SUBSTR(t.SQL_Text,1,4000))) SQL
+                             MIN(TO_CHAR(SUBSTR(t.SQL_Text,1,3000))) SQL
                       FROM   DBA_Hist_SQLStat s
                       JOIN   DBA_Hist_SnapShot ss ON ss.DBID=s.DBID AND ss.Instance_Number=s.Instance_Number AND ss.Snap_ID=s.Snap_ID
                       JOIN   DBA_Hist_SQLText t ON t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID AND t.Command_Type IN (2,6,7) /* Insert, Update, Delete */
