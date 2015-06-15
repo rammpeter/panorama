@@ -87,10 +87,10 @@ column_options =
 <%
 column_options =
  [
-   {:caption=>"Category",       :data=>proc{|rec| rec.category},        :title=>"Kategorie"},
-   {:caption=>"Allocated",      :data=>proc{|rec| fn(rec.allocated)},   :align=>:right,    :title=>"Bytes of PGA memory allocated by the process for the category. For the 'Freeable' category, it is the amount of free PGA memory eligible to be released to the operating system."},
-   {:caption=>"Used",           :data=>proc{|rec| fn(rec.used)},        :align=>:right,    :title=>"Bytes of PGA memory used by the process for the category. For 'Freeable', the value is zero. For 'Other', the value is NULL for performance reasons."},
-   {:caption=>"Max Allocated",  :data=>proc{|rec| fn(rec.used)},        :align=>:right,    :title=>"Maximum bytes of PGA memory ever allocated by the process for the category."},
+   {:caption=>"Category",       :data=>proc{|rec| rec.category},            :title=>"Kategorie"},
+   {:caption=>"Allocated",      :data=>proc{|rec| fn(rec.allocated)},       :align=>:right,    :title=>"Bytes of PGA memory allocated by the process for the category. For the 'Freeable' category, it is the amount of free PGA memory eligible to be released to the operating system."},
+   {:caption=>"Used",           :data=>proc{|rec| fn(rec.used)},            :align=>:right,    :title=>"Bytes of PGA memory used by the process for the category. For 'Freeable', the value is zero. For 'Other', the value is NULL for performance reasons."},
+   {:caption=>"Max Allocated",  :data=>proc{|rec| fn(rec.max_allocated)},   :align=>:right,    :title=>"Maximum bytes of PGA memory ever allocated by the process for the category."},
  ]
 
 %>

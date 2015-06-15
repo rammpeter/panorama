@@ -276,6 +276,7 @@
 
   dragnet_helper_7_name:                                    Identifikation nicht für Zugriffe oder Absicherung von Eindeutigkeit benutzte Indizes
   dragnet_helper_7_desc: |-
+    Selektion von Non-Unique Indizes, für die keine Nutzung in SQL-Statements erkennbar ist.
     Für Indizes, die nicht für Absicherung von Eindeutigkeit und nicht für Datenzugriff genutzt werden, kann die Frage nach der Daseinsberechtigung des Index gestellt werden.
     Die Berechtigung kann trotzdem zur Absicherung von Foreign Keys gegeben sein, auch wenn im Betrachtungszeitraum keine Zugriffe stattfanden.
     Letztlich Sicherheit über Nutzung gibt 'ALTER INDEX ... MONITORING USAGE' sowie Kontrolle über V$OBJECT_USAGE.

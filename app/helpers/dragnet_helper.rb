@@ -125,7 +125,8 @@ Negative: Enlargement of primary key because it contains whole table data"),
     [
         {
             :name  => t(:dragnet_helper_7_name, :default=> 'Detection of indexes not used for access or ensurance of uniqueness'),
-            :desc  => t(:dragnet_helper_7_desc, :default=>"Necessity of  existence of indexes may be put into question if these indexes are not used for uniqueness or access optimization.
+            :desc  => t(:dragnet_helper_7_desc, :default=>"Selection of non-unique indexes without usage in SQL statements.
+Necessity of  existence of indexes may be put into question if these indexes are not used for uniqueness or access optimization.
 However the index may be useful for coverage of foreign key constraints, even if there had been no usage of index in considered time range.
 Ultimate knowledge about usage of index may be gained by tagging index with 'ALTER INDEX ... MONITORING USAGE' and monitoring usage via V$OBJECT_USAGE.
 Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat or DBA_Hist_Active_Sess_History."),
