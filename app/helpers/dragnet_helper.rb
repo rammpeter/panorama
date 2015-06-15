@@ -1682,6 +1682,7 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
                                       AND s.SQL_ID          = p.SQL_ID
                                       AND s.Child_Number    = p.Child_Number
                                       AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                      WHERE  p.Object_Owner NOT IN ('SYS')
                       ORDER BY Elapsed_Time DESC NULLS LAST",
          },
          {
@@ -1692,13 +1693,14 @@ Durch die Ansprache der Spalte per INTERNAL_FUNCTION statt direkt wird die mögl
 In diesen Fällen sollte tunlichst der entsprechende Datentyp für die Variablenbindung verwendet werden.
 Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.',
              :sql=>  "SELECT /*+ ORDERED USE_HASH(p s) */
-                              SQL_FullText, s.SQL_ID,
+                              SQL_FullText, s.SQL_ID, s.Parsing_Schema_Name,
                               s.Elapsed_Time/1000000 Elasped_Secs,
                               CPU_Time/1000000 CPU_Secs,
                               Executions, Rows_Processed,
                               p.Filter_Predicates
                        FROM   (SELECT /*+ NO_MERGE */ * FROM v$SQL_PLan WHERE Filter_Predicates LIKE '%INTERNAL_FUNCTION%') p
                        JOIN   (SELECT /*+ NO_MERGE */ * FROM v$SQLArea) s ON s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                       WHERE  s.Parsing_Schema_Name NOT IN ('SYS')
                        ORDER BY Elapsed_Time DESC NULLS LAST
              ",
          },
