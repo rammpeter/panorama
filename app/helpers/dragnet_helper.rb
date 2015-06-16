@@ -1644,10 +1644,11 @@ This statement executes only for current (login) RAC-instance. Please execute se
              :parameter=>[{:name=> t(:dragnet_helper_93_param_1_name, :default=>'Minimum number of rows processed / execution'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_93_param_1_hint, :default=>'Minimum number of rows processed / execution as threshold for possible inefficieny of nested loop')}]
          },
         {
-             :name  => 'Iteration im Nested-Loop-Join gegen Full-Scan-Operation',
-             :desc  => 'Vielfache Ausführung von Full-Scan Operationen per Iteration in Nested Loop Join kann zu exorbitanten Blockzugriffen führen und damit  massiv CPU und I/O-Ressourcen beanspruchen sowie Cache Buffers Chains Latch-Waits provozieren.
-Legitim ist ein solcher Zugriff allerdings, wenn steuerndes Result des Nested Loop einen oder wenige Records liefert.
-Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.',
+             :name  => t(:dragnet_helper_94_name, :default=>'Iteration in nested-loop join against full scan operation'),
+             :desc  => t(:dragnet_helper_94_desc, :default=>'Frequent execution of full scan operation by iteration in nested loop join may result in exorbitant number of block access massive contention of CPU and I/O-ressources.
+It may also activate cache buffers chains latch-waits.
+This access my be acceptable, if controlling result for nested loop has only one or less records.
+Statement executes only for current connected RAC-Instance (due to runtime prblem otherwise), so it must be executed separately for every instance.'),
              :sql=>  "SELECT p.Inst_ID, p.SQL_ID, s.Executions, s.Elapsed_Time/1000000 Elapsed_time_Secs, p.Child_Number, p.Plan_Hash_Value,
                              p.Operation, p.Options, p.Object_Owner, Object_Name, p.ID, s.SQL_FullText
                       FROM   (
@@ -1686,20 +1687,19 @@ Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptab
                       ORDER BY Elapsed_Time DESC NULLS LAST",
          },
          {
-             :name  => 'Implizite Konvertierungen per INTERNAL_FUNCTION',
-             :desc  => 'Auslöser von impliziten Typ-Konvertierungen ist oftmals versehentlich mit falschem Typ gebundene Bindevariable.
-Die Konvertierung verursacht möglicherweise unnötig CPU-Last auf der DB-Maschine.
-Durch die Ansprache der Spalte per INTERNAL_FUNCTION statt direkt wird die mögliche Nutzung von Indizes für den Zugriff verhindert.
-In diesen Fällen sollte tunlichst der entsprechende Datentyp für die Variablenbindung verwendet werden.
-Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.',
+             :name  => t(:dragnet_helper_95_name, :default=>'Implicit conversion by INTERNAL_FUNCTION'),
+             :desc  => t(:dragnet_helper_95_desc, :default=>'Implicit type conversions are often accidentially due to wrong type of bind variable.
+This conversion may cause unnecessary CPU load.
+By accessing column per INTERNAL_FUNCTION instead of direct access usage of existing index may be excluded.
+For this cases according data type should be used for bind variable.'),
              :sql=>  "SELECT /*+ ORDERED USE_HASH(p s) */
-                              SQL_FullText, s.SQL_ID, s.Parsing_Schema_Name,
+                              SQL_FullText, p.Inst_ID, s.SQL_ID, s.Parsing_Schema_Name,
                               s.Elapsed_Time/1000000 Elasped_Secs,
                               CPU_Time/1000000 CPU_Secs,
                               Executions, Rows_Processed,
                               p.Filter_Predicates
-                       FROM   (SELECT /*+ NO_MERGE */ * FROM v$SQL_PLan WHERE Filter_Predicates LIKE '%INTERNAL_FUNCTION%') p
-                       JOIN   (SELECT /*+ NO_MERGE */ * FROM v$SQLArea) s ON s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                       FROM   (SELECT /*+ NO_MERGE */ * FROM gv$SQL_PLan WHERE Filter_Predicates LIKE '%INTERNAL_FUNCTION%') p
+                       JOIN   (SELECT /*+ NO_MERGE */ * FROM gv$SQLArea) s ON s.Inst_ID = p.Inst_ID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
                        WHERE  s.Parsing_Schema_Name NOT IN ('SYS')
                        ORDER BY Elapsed_Time DESC NULLS LAST
              ",
@@ -1783,9 +1783,9 @@ Results are from DBA_Hist_SQL_Plan'),
   def dragnet_sqls_tuning_sga_pga
       [
         {
-             :name  => 'Identifikation von HotBlocks im DB-Cache: Viele Zugriffe auf kleine Objekte',
-             :desc  => "Statements mit hochfrequent gelesenen Blöcken im DB-Cache laufen Gefahr, durch 'cache buffers chains'-LatchWaits ausgebremst zu werden.
-Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältnis zur Größe (viele Zugriffe auf wenige Blöcke).",
+             :name  => t(:dragnet_helper_96_name, :default=>'Identification of hot blocks in DB-cache: frequent access on small objects'),
+             :desc  => t(:dragnet_helper_96_desc, :default=>"Statements with frequent read blocks in DB-cache cause risk of 'cache buffers chains' latch waits.
+This selection scans for objects with high block access rate compared to size of object."),
              :sql=>  "SELECT /* DB-Tools Ramm Hot-Blocks im DB-Cache */*
                              FROM
                              (
@@ -1848,6 +1848,7 @@ Problematisch ist insbesondere Zugriff auf erste Records solcher moving windows.
 Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.',
              :sql=>  "SELECT * FROM (
                       SELECT /*+ NO_MERGE MATERIALIZE */ p.Inst_ID \"Inst\", p.SQL_ID, p.Child_Number \"Child Number\", s.Executions \"Executions\",
+                             ROUND(s.Elapsed_Time/1000000) \"Elapsed Time (Secs)\",
                              s.Buffer_Gets \"Buffer gets\", s.Rows_Processed \"Rows processed\",
                              ROUND(s.Rows_Processed/s.Executions,2) \"Rows per Exec.\",
                              ROUND(s.Buffer_Gets/s.Rows_Processed)  \"Buffer Gets per Row\",
