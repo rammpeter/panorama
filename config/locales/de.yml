@@ -665,6 +665,15 @@
   dragnet_helper_99_name: |-
     SQLs mit kaskadierende Views (Views mit Abhängigkeit von anderen Views), Auswertung der AWR-Historie
 
+  dragnet_helper_100_desc: |-
+    Delete-Operationen auf Tabellen ohne einschränkenden Filter sollten ersetzt werden durch TRUNCATE TABLE.
+    Dies reduziert Laufzeit, REDO-Aufkommen und sichert das Rücksetzen der High-Water-Mark
+  dragnet_helper_100_name: |-
+    DELETE-Operationen ersetzbar durch TRUNCATE
+
+
+
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

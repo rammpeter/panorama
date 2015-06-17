@@ -1775,6 +1775,39 @@ Results are from DBA_Hist_SQL_Plan'),
                  {:name=>t(:dragnet_helper_56_param2_name, :default=>'Minimum total execution time of SQL (sec.)'), :size=>10, :default=>100, :title=>t(:dragnet_helper_56_param2_desc, :default=>'Minimum total execution time of SQL in SGA in seconds') },
              ]
          },
+        {
+            :name  => t(:dragnet_helper_100_name, :default => 'DELETE-operations replaceable by TRUNCATE'),
+            :desc  => t(:dragnet_helper_100_desc, :default => 'Delete-operations on tables without filter should be replaced by TRUNCATE TABLE.
+This reduces runtime, redo-contention and ensures reset of high water mark'),
+            :sql=>  " SELECT *
+                      FROM   (
+                              SELECT 'SGA' Source, inst_ID, SQL_ID, TO_CHAR(SUBSTR(SQL_FullText, 1, 1000)) SQL_Text, ROUND(Elapsed_Time/1000000,2) Elapsed_Time_Secs, Executions
+                              FROM   gv$SQLArea
+                              WHERE /*+ ORDERED_PREDICATED */
+                                    Command_Type = 7  -- DELETE
+                              AND   (    REGEXP_LIKE(SQL_FullText, 'FROM+ [[:alpha:]_]+$', 'i')
+                                    )
+                              UNION ALL
+                              SELECT 'AWR' Source, s.Instance_Number,  t.SQL_ID, t.SQL_Text, ROUND(SUM(s.Elapsed_Time_Delta)/1000000,2) Elapsed_Time_Secs, SUM(Executions_Delta) Executions
+                              FROM   (
+                                      SELECT DBID, SQL_ID, TO_CHAR(SUBSTR(t.SQL_Text, 1, 1000)) SQL_Text
+                                      FROM   DBA_Hist_SQLText t
+                                      WHERE /*+ ORDERED_PREDICATED */
+                                            Command_Type = 7  -- DELETE
+                                      AND   (    REGEXP_LIKE(t.SQL_Text, 'FROM+ [[:alpha:]_]+$', 'i')
+                                            )
+                                    ) t
+                              JOIN  DBA_Hist_SQLStat s ON s.DBID = t.DBID AND s.SQL_ID=t.SQL_ID
+                              JOIN  DBA_Hist_Snapshot ss ON ss.DBID=t.DBID AND ss.Snap_ID=s.Snap_ID AND ss.Instance_Number = s.Instance_Number
+                              WHERE ss.Begin_Interval_Time > SYSDATE - ?
+                              GROUP BY s.Instance_Number, t.SQL_ID, t.SQL_Text
+                             )
+                      ORDER BY Elapsed_Time_Secs DESC
+                    ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+            ]
+        },
       ]
   end
 
@@ -2400,7 +2433,7 @@ Sensible architecture pattern is, to use views only in one dimension without fur
                                                    SUM(s.Executions_Delta) Executions
                                             FROM   DBA_Hist_Snapshot ss
                                             JOIN   DBA_Hist_SqlStat s ON s.DBID = ss.DBID AND s.Snap_ID = ss.Snap_ID AND s.Instance_Number = ss.Instance_Number
-                                            WHERE  ss.Begin_Interval_Time > SYSDATE - 8
+                                            WHERE  ss.Begin_Interval_Time > SYSDATE - ?
                                             GROUP BY s.DBID, s.SQL_ID
                                            )si
                                     JOIN   DBA_Hist_SQLText t ON t.DBID = si.DBID AND t.SQL_ID = si.SQL_ID
