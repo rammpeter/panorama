@@ -82,7 +82,7 @@ column_options =
   {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table'},
   {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=> 'The date of the most recent time this table was analyzed'},
   {:caption=> 'IOT',              :data=>proc{|rec| rec.iot_type},                         :title=> 'If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL'},
-  {:caption=> 'T',                :data=>proc{|rec| rec.temporary},                        :title=> 'Temporary table ?'},
+  {:caption=> 'T',                :data=>proc{|rec| rec.temporary},                        :title=> 'Temporary table ?', :data_title=>proc{|rec| "%t, Lifetime of temporary content = #{rec.duration.gsub(/SYS\$/, '')}" }},
   {:caption=> 'Compr.',           :data=>proc{|rec| rec.compression},                      :title=> 'Whether table compression is enabled or not'},
 ]
 column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_for},        :title=> 'Compress what kind of operations'} if session[:version] >= '11.2'

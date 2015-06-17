@@ -778,7 +778,7 @@ class DbaSgaController < ApplicationController
                      SUM(Row_Count)     Row_Count,
                      MIN(Row_Size_Min)  Row_Size_Min,
                      MAX(Row_Size_Max)  Row_Size_Max,
-                     SUM(Row_Size_Avg*Row_Count)/SUM(Row_Count)  Row_Size_Avg,
+                     SUM(Row_Size_Avg*Row_Count)/DECODE(SUM(Row_Count), 0, 1, SUM(Row_Count))   Row_Size_Avg,
                      SUM(Invalidations) Invalidations
               FROM   gv$Result_Cache_Objects o
               WHERE  Type = 'Result'
