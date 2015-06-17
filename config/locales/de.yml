@@ -194,6 +194,7 @@
 
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
+  dragnet_helper_group_cascading_views:                     Views mit kaskadierenden Abhängigkeiten (mehrstufige Hierarchie)
   dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
   dragnet_helper_group_index_partitioning:                  Empfehlungen für Index-Partitionierung
@@ -637,6 +638,32 @@
     Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältnis zur Größe (viele Zugriffe auf wenige Blöcke).
   dragnet_helper_96_name: |-
     Identifikation von HotBlocks im DB-Cache: Viele Zugriffe auf kleine Objekte
+
+  dragnet_helper_97_desc: |-
+    Views mit Abhängigkeit von anderen Views (evtl. noch mehrstufig hierarchisch abhängig) bergen das Risiko,
+    unnötig Daten von Objekten zu selektieren, die für das auslösende SQL gar nicht relevant sind.
+    Der Optimizier ist hier nicht mehr in der Lage, irrelevante Teile eines Views zu erkennnen und vom Ausführungsplan zu entfernen.
+    Als sinnvolles Architektur-Pattern hat sich bewährt, Views möglichst nur in einer Dimension zu benutzen ohne Abhängigkeit von anderen Views.
+  dragnet_helper_97_name: |-
+    Kaskadierende Views (Views mit Abhängigkeit von anderen Views)
+
+  dragnet_helper_98_desc: |-
+    Views mit Abhängigkeit von anderen Views (evtl. noch mehrstufig hierarchisch abhängig) bergen das Risiko,
+    unnötig Daten von Objekten zu selektieren, die für das auslösende SQL gar nicht relevant sind.
+    Der Optimizier ist hier nicht mehr in der Lage, irrelevante Teile eines Views zu erkennnen und vom Ausführungsplan zu entfernen.
+    Als sinnvolles Architektur-Pattern hat sich bewährt, Views möglichst nur in einer Dimension zu benutzen ohne Abhängigkeit von anderen Views.
+    --- Selektion kann länger dauern ---
+  dragnet_helper_98_name: |-
+    SQLs mit kaskadierende Views (Views mit Abhängigkeit von anderen Views), Auswertung der aktuellen SGA
+
+  dragnet_helper_99_desc: |-
+    Views mit Abhängigkeit von anderen Views (evtl. noch mehrstufig hierarchisch abhängig) bergen das Risiko,
+    unnötig Daten von Objekten zu selektieren, die für das auslösende SQL gar nicht relevant sind.
+    Der Optimizier ist hier nicht mehr in der Lage, irrelevante Teile eines Views zu erkennnen und vom Ausführungsplan zu entfernen.
+    Als sinnvolles Architektur-Pattern hat sich bewährt, Views möglichst nur in einer Dimension zu benutzen ohne Abhängigkeit von anderen Views.
+    --- Selektion kann länger dauern ---
+  dragnet_helper_99_name: |-
+    SQLs mit kaskadierende Views (Views mit Abhängigkeit von anderen Views), Auswertung der AWR-Historie
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result

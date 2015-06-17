@@ -28,7 +28,7 @@ class DragnetController < ApplicationController
   \"state\": { \"opened\": false }
 "
       if entry[:entries]                                                        # Menu-Knoten
-        result << ", \"children\": ["
+        result << ", \"children\": [ "                                          # Space nach [ um leere Position entfernen zu können, wenn kein Nachfolger mit Komma getrennt
         entry_id = 0
         entry[:entries].each do |e|
           result << render_entry_json("#{global_id_prefix}_#{inner_id}", entry_id, e)
