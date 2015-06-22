@@ -78,7 +78,7 @@ class StorageController < ApplicationController
 
 
     @fra_size_bytes = sql_select_one("SELECT Value FROM v$Parameter WHERE Name='db_recovery_file_dest_size'").to_i
-    @flashback_log = sql_select_first_row "SELECT * FROM v$Flashback_Database_Log"
+    #@flashback_log = sql_select_first_row "SELECT * FROM v$Flashback_Database_Log"
     @fra_usage = sql_select_all "SELECT * FROM v$Flash_Recovery_Area_Usage WHERE Percent_Space_Used > 0 ORDER BY Percent_Space_Used DESC"
 
     totals = {}
@@ -96,15 +96,18 @@ class StorageController < ApplicationController
       total_sum["mbused"]  += t.mbused
     end
 
-    if @fra_size_bytes > 0 &&  !@flashback_log.nil?
-      totals['Flashback Log'] = {}
-      totals['Flashback Log']['mbtotal'] = @flashback_log.flashback_size / (1024*1024).to_i
-      totals['Flashback Log']['mbfree'] = 0
-      totals['Flashback Log']['mbused'] =  totals['Flashback Log']['mbtotal']
+    if @fra_size_bytes > 0
+      totals['Fast Recovery Area'] = {}
+      totals['Fast Recovery Area']['mbtotal'] = @fra_size_bytes / (1024*1024).to_i
+      totals['Fast Recovery Area']['mbused'] = 0
+      @fra_usage.each do |f|
+        totals['Fast Recovery Area']['mbused'] += f.percent_space_used*@fra_size_bytes/(1024*1024)/100
+      end
+      totals['Fast Recovery Area']['mbfree'] = totals['Fast Recovery Area']['mbtotal'] - totals['Fast Recovery Area']['mbused']
 
-      total_sum["mbtotal"] += totals['Flashback Log']['mbtotal']
-      total_sum["mbfree"]  += 0
-      total_sum["mbused"]  += totals['Flashback Log']['mbtotal']
+      total_sum["mbtotal"] += totals['Fast Recovery Area']['mbtotal']
+      total_sum["mbfree"]  += totals['Fast Recovery Area']['mbfree']
+      total_sum["mbused"]  += totals['Fast Recovery Area']['mbused']
     end
 
     @totals = []
