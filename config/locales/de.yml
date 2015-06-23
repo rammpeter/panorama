@@ -715,7 +715,7 @@
   env_handling_hint_generally_3:                            Detaillierungen werden entweder inline z.B. im Tabellenfeld angezeigt oder in separaten Listen am unteren Seitenrand fortgesetzt
   env_handling_hint_1:                                      Sortieren der Tabellenanzeige durch Klick auf Spalten-Header
   env_handling_hint_2:                                      Sortieren nach mehreren Spalten durch aufeinanderfolgende Sortierung nach einzelnen Spalten
-  env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü
+  env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü (rechter Mouse-Button)
   env_licensing_header:                                     Lizensierung
 
   env_set_database_xmem_line1:                              User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind einige wenige Funktionen von Panorama nicht nutzbar!

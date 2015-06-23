@@ -1,0 +1,28 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_owner(rec)
+    my_ajax_link_to(rec.owner,
+                    url_for(
+                      :action => :list_table_description,
+                      :owner => rec.owner,
+                      :segment_name => @segment_name,
+                      :update_area => @update_area
+                    ),
+                    :title => 'Describe database object (table, index, materialized view)'
+    )
+  end
+
+  column_options =
+  [
+    {:caption=> 'Owner',               :data=>proc{|rec| link_owner(rec)},                  :title=> 'Owner of object'},
+    {:caption=> 'Object type',         :data=>proc{|rec| rec.object_type},                 :title=> 'Object_Type of object'},
+  ]
+%>
+
+<%= gen_slickgrid(@objects, column_options, {
+                                  :caption => "Object #{@segment_name} exists in multiple schemas, please select",
+                                  :height => :auto, :width=>:auto
+                          })
+%>
+<div id="<%= @update_area %>"></div>
