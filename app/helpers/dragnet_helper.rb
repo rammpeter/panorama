@@ -1875,10 +1875,11 @@ This selection scans for objects with high block access rate compared to size of
                           {:name=> 'Maximale Anzahl Rows der Table', :size=>8, :default=>200, :title=> 'Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion'}]
          },
         {
-             :name  => 'Identifikation von HotBlocks im DB-Cache: Suboptimale Indizes',
-             :desc  => 'Indizes mit hoher Datenfluktuation und Schieflage (z.B. fortlaufende Nummern) scannen nach Record-Löschungen sukzessive mehr DB-Blöcke beim Zugriff.
-Problematisch ist insbesondere Zugriff auf erste Records solcher moving windows.
-Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.',
+             :name  => t(:dragnet_helper_101_name, :default=>'Identification of hot blocks in DB-cache: suboptimal indexes'),
+             :desc  => t(:dragnet_helper_101_desc, :default=>'Indexes with high fluctuation of data and consecutive content are successive scanning more DB-blocks per access if rows have been deleted.
+Especially problematic is access to first records in index order of such moving windows.
+This indexes may need cyclic reorganisation e.g. by ALTER INDEX SHRINK SPACE COMPACT or ALTER INDEX COALESCE for running OLTP-systems or ALTER INDEX REBUILD in appliction downtimes.
+This selection scans for SQL statements in current SGA with access on indexes which possibly need reorganisation.'),
              :sql=>  "SELECT * FROM (
                       SELECT /*+ NO_MERGE MATERIALIZE */ p.Inst_ID \"Inst\", p.SQL_ID, p.Child_Number \"Child Number\", s.Executions \"Executions\",
                              ROUND(s.Elapsed_Time/1000000) \"Elapsed Time (Secs)\",
@@ -1915,17 +1916,17 @@ Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX COALESCE erfolgen.',
                       WHERE LENGTH(REGEXP_REPLACE(SQL_Text, '[^:]','')) < ?  -- Anzahl Bindevariablen < x
                       AND    \"Buffer Gets per Row\" > ?                         -- nur problematische anzeigen
                       ORDER BY \"Buffer Gets per Row\" * \"Rows processed\" DESC NULLS LAST",
-             :parameter=>[{:name=> 'Maximale Anzahl Operationen im Execution Plan', :size=>8, :default=>5, :title=> 'Maximale Anzahl Operationen im Execution Plan des SQL'},
-                          {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'},
-                          {:name=> 'Maximale Anzahl Bindevariablen', :size=>8, :default=>5, :title=> 'Maximale Anzahl Bindevariablen im Statement'},
-                          {:name=> 'Minimale Anzahl Rows processed / Execution', :size=>8, :default=>2, :title=> 'Minimale Anzahl Rows processed / Execution'},
-                          {:name=> 'Minimale Anzahl Buffer gets / Row', :size=>8, :default=>5, :title=> 'Minimale Anzahl Buffer gets per Row'}]
+             :parameter=>[{:name=> t(:dragnet_helper_101_param_1_name, :default=>'Maximum number of operations in execution plan'), :size=>8, :default=>5, :title=> t(:dragnet_helper_101_param_1_hint, :default=>'Maximum number of operations in execution plan of SQL')},
+                          {:name=> t(:dragnet_helper_101_param_2_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_101_param_2_hint, :default=>'Minimum number of executions for consideration in selection')},
+                          {:name=> t(:dragnet_helper_101_param_3_name, :default=>'Maximum number of bind variables'), :size=>8, :default=>5, :title=> t(:dragnet_helper_101_param_3_hint, :default=>'Maximum number of bind variables in statement')},
+                          {:name=> t(:dragnet_helper_101_param_4_name, :default=>'Minimum number of rows processed / execution'), :size=>8, :default=>2, :title=> t(:dragnet_helper_101_param_4_hint, :default=>'Minimum number of rows processed / execution')},
+                          {:name=> t(:dragnet_helper_101_param_5_name, :default=>'Minimum number of buffer gets / row'), :size=>8, :default=>5, :title=> t(:dragnet_helper_101_param_5_hint, :default=>'Minimum number of buffer gets / row')}]
          },
         {
-             :name  => 'Prüfung der Notwendigkeit des Updates indizierter Spalten',
-             :desc  => 'Das Update indizierter Spalten einer Tabelle kostet Aufwand für Index-Maintenance (Entfernen und Neueinstellen des Index-Eintrages) auch wenn sich der Inhalt des Feldes gar nicht geändert hat.
-Unter diesem Aspekt ist es sinnvoll, indizierte Spalten häufig upzudatender Tabellen deren Inhalte sich nie ändern sollten aus dem Update-Statement zu entfernen.
-Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mappern, die per Default alle Spalten einer Tabelle enthalten.',
+             :name  => t(:dragnet_helper_102_name, :default=>'Check necessity of update for indexed columns'),
+             :desc  => t(:dragnet_helper_102_desc, :default=>'Update of indexed columns of a table costs effort for index maintenance (Removal of old and insertion of new index entry) even if content of column did not change.
+This way it is worth to remove indexed columns from UPDATE SQL statement if their values never change.
+Especially this is true for generated dynamic SQL statements (e.g. from OR-mappers), which by default contains all columns of a table.'),
              :sql=>  "SELECT * FROM (
                       SELECt /*+ ORDERED */ p.*, t.SQL_Text, i.Column_Name,
                             (SELECT SUM(Executions_Delta) FROM DBA_Hist_SQLStat st
@@ -1955,7 +1956,7 @@ Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mapper
                       WHERE Rows_Processed > ?
                       ORDER BY Rows_Processed DESC NULLS LAST",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Minimale Anzahl Rows processed', :size=>8, :default=>10000, :title=> 'Minimale Anzah Rows processed für Aufnahme in Selektion'}]
+                          {:name=> t(:dragnet_helper_102_param_1_name, :default=>'Minimum number of rows processed'), :size=>8, :default=>10000, :title=> t(:dragnet_helper_102_param_1_hint, :default=>'Minimum number of rows processed for consideration in selection')}]
          },
         {
              :name  => 'System- Statistiken: Prüfung auf aktuelle Analyze-Info',

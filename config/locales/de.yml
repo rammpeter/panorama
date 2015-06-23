@@ -671,7 +671,32 @@
   dragnet_helper_100_name: |-
     DELETE-Operationen ersetzbar durch TRUNCATE
 
+  dragnet_helper_101_desc: |-
+    Indizes mit hoher Datenfluktuation und Schieflage (z.B. fortlaufende Nummern) scannen nach Record-Löschungen sukzessive mehr DB-Blöcke beim Zugriff.
+    Problematisch ist insbesondere Zugriff auf erste Records solcher moving windows.
+    Evtl. notwendige Reorganisation kann z.B. per ALTER INDEX SHRINK SPACE COMPACT oder ALTER INDEX COALESCE erfolgen für laufende OLTP-Systeme oder ALTER INDEX REBUILD in Downtimes.
+    Diese Selektion sucht nach SQL-Statements in aktueller SGA mit Zugriff auf Indizes, die möglicherweise eine Reorganisation benötigen.
+  dragnet_helper_101_name: |-
+    Identifikation von HotBlocks im DB-Cache: Suboptimale Indizes
+  dragnet_helper_101_param_1_hint:                           Maximale Anzahl Operationen im Execution Plan des SQL
+  dragnet_helper_101_param_1_name:                           Maximale Anzahl Operationen im Execution Plan
+  dragnet_helper_101_param_2_hint:                           Minimale Anzahl Executions für Aufnahme in Selektion
+  dragnet_helper_101_param_2_name:                           Minimale Anzahl Executions
+  dragnet_helper_101_param_3_hint:                           Maximale Anzahl Bindevariablen im Statement
+  dragnet_helper_101_param_3_name:                           Maximale Anzahl Bindevariablen
+  dragnet_helper_101_param_4_hint:                           Minimale Anzahl Rows processed / Execution
+  dragnet_helper_101_param_4_name:                           Minimale Anzahl Rows processed / Execution
+  dragnet_helper_101_param_5_hint:                           Minimale Anzahl Buffer gets / Row
+  dragnet_helper_101_param_5_name:                           Minimale Anzahl Buffer gets / Row
 
+  dragnet_helper_102_desc: |-
+    Das Update indizierter Spalten einer Tabelle kostet Aufwand für Index-Maintenance (Entfernen und Neueinstellen des Index-Eintrages) auch wenn sich der Inhalt des Feldes gar nicht geändert hat.
+    Unter diesem Aspekt ist es sinnvoll, indizierte Spalten häufig upzudatender Tabellen deren Inhalte sich nie ändern sollten aus dem Update-Statement zu entfernen.
+    Dies gilt insbesondere für  dynamisch generierte Statements z.B. aus OR-Mappern, die per Default alle Spalten einer Tabelle enthalten.
+  dragnet_helper_102_name: |-
+    Prüfung der Notwendigkeit des Updates indizierter Spalten
+  dragnet_helper_102_param_1_hint:                           Minimale Anzahl Rows processed für Aufnahme in Selektion
+  dragnet_helper_102_param_1_name:                           Minimale Anzahl Rows processed
 
 
 
