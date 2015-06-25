@@ -23,6 +23,7 @@
   minute:                                                   Minute
   month:                                                    Monat
   of:                                                       des
+  per_execution:                                            je Execution
   second:                                                   Sekunde
   show:                                                     Anzeigen
   sorted_by:                                                Sortiert nach

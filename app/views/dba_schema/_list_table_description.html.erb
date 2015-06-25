@@ -59,6 +59,20 @@ column_options =
      end
    end
 
+   def link_tab_subpartitions
+     if @subpartition_count == 0
+       @subpartition_count
+     else
+       my_ajax_link_to(fn(@subpartition_count),
+                       url_for({:action       => :list_table_subpartitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show sub-partitions of table #{@owner}.#{@table_name}"
+       )
+     end
+   end
 
 
 column_options =
@@ -77,7 +91,8 @@ column_options =
   {:caption=> 'RowLen',           :data=>proc{|rec| fn(rec.avg_row_len)},                  :title=> 'Avg. row len in bytes calculated by last analyze run', :align=>:right},
   {:caption=> 'Dg.',              :data=>proc{|rec| fn(rec.degree)},                       :title=> 'Default parallel degree of table', :align=>:right},
   {:caption=> 'Cache',            :data=>proc{|rec| rec.cache},                            :title=> 'Whether the table is to be cached in the buffer cache'},
-  {:caption=> 'Part.',            :data=>proc{|rec| link_tab_partitions},                  :title=> 'Number of table partitions', :align=>:right},
+  {:caption=> 'Part.',            :data=>proc{|rec| link_tab_partitions},                  :title=> "Number of table's partitions", :align=>:right},
+  {:caption=> 'Sub-Part.',        :data=>proc{|rec| link_tab_subpartitions},               :title=> "Number of table's subpartitions", :align=>:right},
   {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation'},
   {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table'},
   {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=> 'The date of the most recent time this table was analyzed'},
@@ -86,6 +101,8 @@ column_options =
   {:caption=> 'Compr.',           :data=>proc{|rec| rec.compression},                      :title=> 'Whether table compression is enabled or not'},
 ]
 column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_for},        :title=> 'Compress what kind of operations'} if session[:version] >= '11.2'
+column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if session[:version] >= '11.2'
+column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if session[:version] >= '11.2'
 
 %>
 

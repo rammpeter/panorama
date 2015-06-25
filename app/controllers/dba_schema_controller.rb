@@ -227,8 +227,10 @@ class DbaSchemaController < ApplicationController
 
     if @attribs[0].partitioned == 'YES'
       @partition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+      @subpartition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_SubPartitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
     else
       @partition_count = 0
+      @subpartition_count = 0
     end
 
     @size_mb_table = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
@@ -285,26 +287,60 @@ class DbaSchemaController < ApplicationController
     render_partial "list_table_description"
   end
 
+  private
+  def get_partition_expression(owner, table_name)
+    part_tab      = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:version] >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]
+    part_keys     = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", owner, table_name]
+    subpart_keys  = sql_select_all ["SELECT Column_Name FROM DBA_SubPart_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", owner, table_name]
+
+    partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:version] >= "11.2" && part_tab.interval}"
+    partition_expression << " Sub-Partition by #{part_tab.subpartitioning_type} (#{subpart_keys.map{|i| i.column_name}.join(",")})" if part_tab.subpartitioning_type != 'NONE'
+    partition_expression
+  end
+
+  public
   def list_table_partitions
     @owner      = params[:owner]
     @table_name = params[:table_name]
 
-    part_tab = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if session[:version] >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
-    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @table_name]
-
-    @partition_expression = "Partition by #{part_tab.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if session[:version] >= "11.2" && part_tab.interval}"
+    @partition_expression = get_partition_expression(@owner, @table_name)
 
     @partitions = sql_select_all ["\
-      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
-                   FROM   DBA_Segments s
-                   WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
-                  ) Size_MB
+      WITH Storage AS (SELECT /*+ NO_MERGE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB
+                      FROM DBA_Segments s
+                      LEFT OUTER JOIN DBA_Tab_SubPartitions sp ON sp.Table_Owner = s.Owner AND sp.Table_Name = s.Segment_Name AND sp.SubPartition_Name = s.Partition_Name
+                      WHERE s.Owner = ? AND s.Segment_Name = ?
+                      GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
+                      )
+      SELECT  st.MB Size_MB, p.*
       FROM DBA_Tab_Partitions p
+      LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
-      ", @owner, @table_name]
+      ", @owner, @table_name, @owner, @table_name]
 
     render_partial
   end
+
+  def list_table_subpartitions
+    @owner          = params[:owner]
+    @table_name     = params[:table_name]
+    @partition_name = params[:partition_name]
+
+    @partition_expression = get_partition_expression(@owner, @table_name)
+
+    @subpartitions = sql_select_all ["\
+      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
+                   FROM   DBA_Segments s
+                   WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.SubPartition_Name
+                  ) Size_MB
+      FROM DBA_Tab_SubPartitions p
+      WHERE p.Table_Owner = ? AND p.Table_Name = ?
+      #{" AND p.Partition_Name = ?" if @partition_name}
+      ", @owner, @table_name, @partition_name]
+
+    render_partial
+  end
+
 
   def list_indexes
     @owner      = params[:owner]
