@@ -58,6 +58,9 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     def do_test(groupby)
       post :list_session_statistic_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
       assert_response :success
+
+      post :list_session_statistic_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby, :filter=>'sys'
+      assert_response :success
     end
 
     # Iteration über Gruppierungskriterien
@@ -72,6 +75,11 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
            :groupfilter => @groupfilter.merge(add_filter)
       assert_response :success
+
+      post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
+           :groupfilter => @groupfilter.merge(add_filter).merge('Additional Filter'=>'sys')
+      assert_response :success
+
     end
 
     def do_outer_test(outer_groupby)
