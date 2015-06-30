@@ -18,9 +18,13 @@ class DragnetController < ApplicationController
   #   a_attr      : {}  // attributes for the generated A node
   # }
   def get_selection_list
+    filter = params[:filter]
+    filter = nil if filter == ''
+    include_description = params[:include_description] == 'true'
 
     # liefert einen Eintrag mit Untermenu
-    def render_entry_json(global_id_prefix, inner_id, entry)
+    def render_entry_json(global_id_prefix, inner_id, entry, filter, include_description)
+      filtered_entry_count = 0                                                 # Anzahl dem Filter entsprechende Einträge, egal ob Knoten oder Abfrage
       result =
           "{
   \"id\": \"#{"#{global_id_prefix}_#{inner_id}"}\",
@@ -31,7 +35,11 @@ class DragnetController < ApplicationController
         result << ", \"children\": [ "                                          # Space nach [ um leere Position entfernen zu können, wenn kein Nachfolger mit Komma getrennt
         entry_id = 0
         entry[:entries].each do |e|
-          result << render_entry_json("#{global_id_prefix}_#{inner_id}", entry_id, e)
+          subresult = render_entry_json("#{global_id_prefix}_#{inner_id}", entry_id, e, filter, include_description)
+          if subresult
+            result << subresult
+            filtered_entry_count = filtered_entry_count + 1
+          end
           entry_id = entry_id + 1
         end
         result[result.length-1] = ' '                                           # letztes Komma entfernen
@@ -40,22 +48,23 @@ class DragnetController < ApplicationController
         result << ", \"icon\":\"assets/application-monitor.png\""
       end
       result << "},"
+      return nil if filter && entry[:entries] && filtered_entry_count == 0      # Anzeige unterdrücken wenn Knoten keine Treffer für Filter hat
+      return nil if filter && !entry[:entries] && !entry[:name].upcase[filter.upcase] &&  !(entry[:desc].upcase[filter.upcase] && include_description)
       result
     end
 
-    response = '['                                                              # JSON-Buffer
+    response = '[ '                                                             # JSON-Buffer
     entry_id = 0
     dragnet_sql_list.each do |s|
-      response << render_entry_json('', entry_id, s)
+      subresult = render_entry_json('', entry_id, s, filter, include_description)
+      response << subresult if subresult
       entry_id = entry_id + 1
     end
     response[response.length-1] = ' '                                           # letztes Komma entfernen
     response << ']'
 
- #   response = '["Text1", "Text2"]'
-
     render :json => response.html_safe, :status => 200
-  end
+  end # get_selection_list
 
   private
   # Über zusammengesetzte ID der verschiedenen Hierarchien Objekt-Referenz in dragnet_sql_list finden
