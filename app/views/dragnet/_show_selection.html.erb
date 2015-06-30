@@ -22,10 +22,14 @@
                         }
                     }
                 });
+        $( "#dragnet_selection_wrapper" ).resizable();
+        $( "#dragnet_selection_wrapper" ).find(".ui-resizable-e").remove();                    // Entfernen des rechten resizes-Cursors
+        $( "#dragnet_selection_wrapper" ).find(".ui-resizable-se").remove();                   // Entfernen des rechten unteren resize-Cursors
+
+
     }
 
     refresh_tree('', null);
-
 </script>
 
 
@@ -67,6 +71,7 @@
       </td>
     </tr>
   </table>
+
 
 
 

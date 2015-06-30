@@ -104,7 +104,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             .addClass('slick-shadow')
         ;
 
-        // Grid durch Schieber am unteren Ende horitontal resizable gestalten
+        // Grid durch Schieber am unteren Ende horizontal resizable gestalten
         this.gridContainer.resizable({
             stop: function( event, ui ) {
                 ui.element
