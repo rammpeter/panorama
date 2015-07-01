@@ -1959,8 +1959,8 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                           {:name=> t(:dragnet_helper_102_param_1_name, :default=>'Minimum number of rows processed'), :size=>8, :default=>10000, :title=> t(:dragnet_helper_102_param_1_hint, :default=>'Minimum number of rows processed for consideration in selection')}]
          },
         {
-             :name  => 'System- Statistiken: Prüfung auf aktuelle Analyze-Info',
-             :desc  => 'Für Cost-based Optimizer sollten System-Statistiken hinreichend aktuell sein und die Realität beschreiben',
+             :name  => t(:dragnet_helper_103_name, :default=>'System-statistics: Check for up-to-date system analyze info'),
+             :desc  => t(:dragnet_helper_103_desc, :default=>'For cost-based optimizer system statistics should be enough up-to-date and describe reality'),
              :sql=> 'SELECT * FROM sys.Aux_Stats$',
          },
         {

@@ -699,6 +699,10 @@
   dragnet_helper_102_param_1_hint:                           Minimale Anzahl Rows processed für Aufnahme in Selektion
   dragnet_helper_102_param_1_name:                           Minimale Anzahl Rows processed
 
+  dragnet_helper_103_desc: |-
+    Für Cost-based Optimizer sollten System-Statistiken hinreichend aktuell sein und die Realität beschreiben
+  dragnet_helper_103_name: |-
+    System- Statistiken: Prüfung auf aktuelle Analyze-Info
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
