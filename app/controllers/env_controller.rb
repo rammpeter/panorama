@@ -223,8 +223,10 @@ class EnvController < ApplicationController
           @host_name     = i.host_name
         end
       end
-      @dbids = sql_select_all  "SELECT DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS
-                                FROM   DBA_Hist_Snapshot
+      @dbids = sql_select_all  "SELECT DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS,
+                                       (SELECT MIN(DB_Name) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) DB_Name,
+                                       (SELECT COUNT(*) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) Instances
+                                FROM   DBA_Hist_Snapshot s
                                 GROUP BY DBID
                                 ORDER BY MIN(Begin_Interval_Time)"
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
