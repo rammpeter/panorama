@@ -267,6 +267,22 @@ class DbaSchemaController < ApplicationController
       AND    c.Table_Name = ?
       ", @owner, @table_name]
 
+    @unique_constraints.each do |u|
+      u[:columns] = ''
+      columns =  sql_select_all ["\
+      SELECT Column_Name
+      FROM   DBA_Cons_Columns
+      WHERE  Owner = ?
+      AND    Table_Name = ?
+      AND    Constraint_Name = ?
+      ORDER BY Position
+      ", @owner, @table_name, u.constraint_name]
+      columns.each do |c|
+        u[:columns] << c.column_name+', '
+      end
+      u[:columns] = u[:columns][0...-2]                                         # Letzte beide Zeichen des Strings entfernen
+    end
+
     @check_constraints = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'C' AND Owner = ? AND Table_Name = ? AND Generated != 'GENERATED NAME' /* Ausblenden implizite NOT NULL Constraints */", @owner, @table_name]
 
     @references_from = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'R' AND Owner = ? AND Table_Name = ?", @owner, @table_name]

@@ -123,6 +123,7 @@ column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.f
         column_options =
                 [
                         {:caption=> 'Constraint name',       :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                        {:caption=> 'Column(s)',             :data=>proc{|rec| rec.columns},                     :title=> 'Columns for enforcement of uniqueness'},
                         {:caption=> 'Status',                :data=>proc{|rec| rec.status},                      :title=> 'Status'},
                         {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
                         {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
