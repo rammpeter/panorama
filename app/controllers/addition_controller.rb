@@ -1,6 +1,8 @@
 # encoding: utf-8
 # Zusatzfunktionen, die auf speziellen Tabellen und Prozessen aufsetzen, die nicht prinzipiell in DB vorhanden sind
 class AdditionController < ApplicationController
+  include AdditionHelper
+
   def list_db_cache_historic
     max_result_count = params[:maxResultCount]
     @instance = prepare_param_instance
@@ -643,19 +645,8 @@ class AdditionController < ApplicationController
     list_object_increase_timeline if params[:timeline]
   end
 
-  private
-  # in welchem Schema liegt Tabelle OG_SEG_SPACE_IN_TBS
-  def schema_of_OG_SEG_SPACE_IN_TBS
-    schemas = sql_select_all "SELECT Owner FROM All_Tables WHERE Table_Name='OG_SEG_SPACE_IN_TBS'"
-    raise "Tabelle OG_SEG_SPACE_IN_TBS findet sich in mehreren Schemata: erwartet wird genau ein Schema mit dieser Tabelle! #{schemas}" if schemas.count > 1
-    raise "Tabelle OG_SEG_SPACE_IN_TBS in keinem Schema der DB gefunden" if schemas.count == 0
-    schemas[0].owner
-  end
-
-  public
-
   def list_object_increase_detail
-    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    @object_name =  object_increase_object_name
     wherestr = ""
     whereval = []
 
@@ -681,7 +672,7 @@ class AdditionController < ApplicationController
                        MIN(MBytes) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) Start_Mbytes,
                        MAX(MBytes) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) End_Mbytes,
                        REGR_SLOPE(MBytes, Gather_Date-TO_DATE('1900', 'YYYY')) Anstieg
-                FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+                FROM   #{@object_name} s
                 WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
                 AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
                 GROUP BY Owner, Segment_Name, Segment_Type
@@ -696,7 +687,7 @@ class AdditionController < ApplicationController
   end
 
   def list_object_increase_timeline
-    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    @object_name =  object_increase_object_name
     groupby = params[:gruppierung][:tag]
 
     wherestr = ""
@@ -718,7 +709,7 @@ class AdditionController < ApplicationController
                Gather_Date,
                #{groupby} GroupBy,
                SUM(MBytes) MBytes
-        FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+        FROM   #{@object_name} s
         WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
         AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
         #{wherestr}
@@ -763,7 +754,7 @@ class AdditionController < ApplicationController
         :show_y_axes      => true,
         :plot_area_id     => :list_object_increase_timeline_diagramm,
         :max_height       => 450,
-        :caption          => "Zeitleiste nach #{groupby} aus #{@schema}.OG_SEG_SPACE_IN_TBS"
+        :caption          => "Zeitleiste nach #{groupby} aus #{@object_name}"
     })
     output << "</div><div id='list_object_increase_timeline_diagramm'></div>".html_safe
 
@@ -774,7 +765,7 @@ class AdditionController < ApplicationController
   end
 
   def list_object_increase_object_timeline
-    @schema = schema_of_OG_SEG_SPACE_IN_TBS
+    @object_name =  object_increase_object_name
     save_session_time_selection
     owner = params[:owner]
     name  = params[:name]
@@ -783,7 +774,7 @@ class AdditionController < ApplicationController
         SELECT /*+ PARALLEL(s,2) */
                Gather_Date,
                MBytes
-        FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
+        FROM   #{@object_name} s
         WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
         AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
         AND    Owner        = ?
@@ -803,7 +794,7 @@ class AdditionController < ApplicationController
                                :multiple_y_axes => false,
                                :show_y_axes     => true,
                                :plot_area_id    => :list_object_increase_object_timeline_diagramm,
-                               :caption         => "Größenentwicklung #{owner}.#{name} aufgezeichnet in #{@schema}.OG_SEG_SPACE_IN_TBS",
+                               :caption         => "Größenentwicklung #{owner}.#{name} aufgezeichnet in #{@object_name}",
                                :max_height      => 450
                            }
     )

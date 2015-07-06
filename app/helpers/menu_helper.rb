@@ -166,7 +166,12 @@ private
   end
 
   def showObjectIncrease # Test auf Vorhandensein einer Tabelle in irgendeinem Schema
-    sql_select_one("SELECT /* Panorama Tool Ramm */ COUNT(*) FROM All_Tables WHERE Table_Name='OG_SEG_SPACE_IN_TBS'") > 0
+    sql_select_one("SELECT /* Panorama Tool Ramm */ COUNT(*)
+                    FROM   (SELECT 1 FROM All_Tables WHERE Table_Name='OG_SEG_SPACE_IN_TBS'
+                            UNION ALL
+                            SELECT 1 FROM All_Views WHERE View_Name = 'UT_SEG_SPACE_IN_TBS_V'
+                           )"
+                  ) > 0
   end
 
 
