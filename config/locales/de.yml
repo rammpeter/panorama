@@ -337,7 +337,7 @@
     da der resultierende FullTableScan auf der referenzierenden Tabelle bei Delete auf der referenzierten Tabelle billigend in Kauf genommen werden kann.
   dragnet_helper_14_param_1_hint:                           Mindestanzahl Rows des betrachteten Index
   dragnet_helper_14_param_1_name:                           Min. Anzahl Rows des Index
-  dragnet_helper_14_param_2_hint:                           Maximale Anzahl von Schlüsselwerten im betrachteten Index
+  dragnet_helper_14_param_2_hint:                           Maximale Anzahl von eindeutigen Schlüsselwerten im betrachteten Index
   dragnet_helper_14_param_2_name:                           Max. Anzahl Schlüsselwerte des Index
 
 

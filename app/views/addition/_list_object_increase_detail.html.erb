@@ -25,6 +25,7 @@ column_options =
     {:caption=>"MB End",          :data=>proc{|rec| formattedNumber(rec.end_mbytes)}, :title=>"Größe des Objektes in MB zum Ende der Betrachtung",                 :align=>:right},
     {:caption=>"MB Änderung",     :data=>proc{|rec| formattedNumber(rec.aenderung_abs)}, :title=>"Änderung der Größe des Objektes in MB während der Betrachtung",  :align=>:right},
     {:caption=>"% Änderung",      :data=>proc{|rec| formattedNumber(rec.aenderung_pct,2)}, :title=>"Änderung der Größe des Objektes in % während der Betrachtung", :align=>:right},
+    {:caption=>"Anstieg",         :data=>proc{|rec| formattedNumber(rec.anstieg,2)},    :title=>'Anstieg lt. linearer Regression "REGR_SLOPE(Gather_Date-TO_DATE(\'1900\', \'YYYY\'), MBytes)"' , :align=>:right},
   ]
 %>
 

@@ -679,7 +679,8 @@ class AdditionController < ApplicationController
                        MIN(Gather_Date) Date_Start,
                        MAX(Gather_Date) Date_End,
                        MIN(MBytes) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) Start_Mbytes,
-                       MAX(MBytes) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) End_Mbytes
+                       MAX(MBytes) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) End_Mbytes,
+                       REGR_SLOPE(Gather_Date-TO_DATE('1900', 'YYYY'), MBytes) Anstieg
                 FROM   #{@schema}.OG_SEG_SPACE_IN_TBS s
                 WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
                 AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
