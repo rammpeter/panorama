@@ -91,6 +91,8 @@ end
     column_options << {:caption=>"W.User",          :data=>proc{|rec| rec.root_username },                                    :title=>"User der wartenden Session"}
     column_options << {:caption=>"W.SQL-ID",        :data=>proc{|rec| link_column_sql_id(rec) } ,                             :title=>"Aktuell ausgeführtes SQL der wartenden Session"}
     column_options << {:caption=>"W.Event",         :data=>proc{|rec| rec.root_event } ,                                      :title=>"Aktuell Wait-Event der wartenden Session", :data_title=>proc{|rec| explain_wait_event(rec.root_event)} }
+    column_options << {:caption=>"W.Module",        :data=>proc{|rec| rec.root_module },                                      :title=>'Module of waiting session (or count if multiple modules)'}
+    column_options << {:caption=>"W.Action",        :data=>proc{|rec| rec.root_action },                                      :title=>'Action of waiting session (or count if multiple actions)'}
 %>
 
 <%= gen_slickgrid(@locks, column_options, {

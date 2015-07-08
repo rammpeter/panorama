@@ -367,7 +367,7 @@ class ActiveSessionHistoryController < ApplicationController
                                      Snap_ID, h.Instance_Number, Session_ID, Session_Serial#,
                                      Blocking_Session,Blocking_Session_Serial#, Blocking_Session_Status, Current_File#, Current_Block#,
                                      #{'Blocking_Inst_ID, Current_Row#, ' if session[:version] >= '11.2' }
-                                     p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, User_ID, Event
+                                     p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, User_ID, Event, Module, Action
                               FROM   DBA_Hist_Active_Sess_History h
                               LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = h.Instance_Number
                               WHERE  (v.Min_Sample_Time IS NULL OR h.Sample_Time < v.Min_Sample_Time)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen  */
@@ -381,7 +381,7 @@ class ActiveSessionHistoryController < ApplicationController
                                      NULL Snap_ID, h.Inst_ID Instance_Number, Session_ID, Session_Serial#,
                                      Blocking_Session,Blocking_Session_Serial#, Blocking_Session_Status, Current_File#, Current_Block#,
                                      #{'Blocking_Inst_ID, Current_Row#, ' if session[:version] >= '11.2' }
-                                     p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, User_ID, Event
+                                     p2, p2Text, Wait_Time, Time_Waited, Current_Obj#, SQL_ID, User_ID, Event, Module, Action
                               FROM   gv$Active_Session_History h
                               WHERE  Sample_Time BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                               AND    h.Blocking_Session_Status IN ('VALID', 'GLOBAL') /* Session wartend auf Blocking-Session */
@@ -440,7 +440,9 @@ class ActiveSessionHistoryController < ApplicationController
                              CASE WHEN COUNT(DISTINCT Root_Instance_Number) > 1 THEN '< '||COUNT(DISTINCT Root_Instance_Number)||' >' ELSE MIN(TO_CHAR(Root_Instance_Number)) END Root_Instance_Number,
                              CASE WHEN COUNT(DISTINCT Root_SQL_ID)          > 1 THEN '< '||COUNT(DISTINCT Root_SQL_ID)         ||' >' ELSE MIN(Root_SQL_ID)          END Root_SQL_ID,
                              CASE WHEN COUNT(DISTINCT u.UserName)           > 1 THEN '< '||COUNT(DISTINCT u.UserName)          ||' >' ELSE MIN(u.UserName)           END Root_UserName,
-                             CASE WHEN COUNT(DISTINCT Root_Event)                > 1 THEN '< '||COUNT(DISTINCT Root_Event)     ||' >' ELSE MIN(Root_Event)           END Root_Event
+                             CASE WHEN COUNT(DISTINCT Root_Event)           > 1 THEN '< '||COUNT(DISTINCT Root_Event)          ||' >' ELSE MIN(Root_Event)           END Root_Event,
+                             CASE WHEN COUNT(DISTINCT Root_Module)          > 1 THEN '< '||COUNT(DISTINCT Root_Module)         ||' >' ELSE MIN(Root_Module)          END Root_Module,
+                             CASE WHEN COUNT(DISTINCT Root_Action)          > 1 THEN '< '||COUNT(DISTINCT Root_Action)         ||' >' ELSE MIN(Root_Action)          END Root_Action
                       FROM   (
                               SELECT CONNECT_BY_ROOT Rounded_Sample_Time      Root_Rounded_Sample_Time,
                                      CONNECT_BY_ROOT Blocking_Session         Root_Blocking_Session,
@@ -453,6 +455,8 @@ class ActiveSessionHistoryController < ApplicationController
                                      CONNECT_BY_ROOT User_ID                  Root_User_ID,
                                      CONNECT_BY_ROOT Event                    Root_Event,
                                      CONNECT_BY_ROOT Snap_ID                  Root_Snap_ID,
+                                     CONNECT_BY_ROOT Module                   Root_Module,
+                                     CONNECT_BY_ROOT Action                   Root_Action,
                                      l.*,
                                      Level cLevel,
                                      Connect_By_IsCycle Is_Cycle
