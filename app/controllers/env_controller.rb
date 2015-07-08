@@ -207,15 +207,17 @@ class EnvController < ApplicationController
       # Einlesen der DBID der Database, gleichzeitig Test auf Zugriffsrecht auf DataDictionary
       read_initial_db_values
       @banners = sql_select_all "SELECT /* Panorama Tool Ramm */ Banner FROM V$Version"
-      @instance_data = sql_select_all "SELECT /* Panorama Tool Ramm */ gi.*, i.Instance_Number Instance_Connected,
+      @instance_data = sql_select_all ["SELECT /* Panorama Tool Ramm */ gi.*, i.Instance_Number Instance_Connected,
                                                       (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET') NLS_CharacterSet,
                                                       (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_NCHAR_CHARACTERSET') NLS_NChar_CharacterSet,
                                                       (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count') CPU_Count,
-                                                      d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging
+                                                      d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging,
+                                                      ws.Snap_Interval_Minutes, ws.Snap_Retention_Days
                                                FROM  GV$Instance gi
                                                JOIN  v$Database d ON 1=1
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
-                                      "
+                                               LEFT OUTER JOIN (SELECT DBID, MIN(EXTRACT(MINUTE FROM Snap_Interval)) Snap_Interval_Minutes, MIN(EXTRACT(DAY FROM Retention)) Snap_Retention_Days FROM DBA_Hist_WR_Control GROUP BY DBID) ws ON ws.DBID = ?
+                                      ", session[:dbid] ]
 
       @instance_data.each do |i|
         if i.instance_connected
@@ -223,12 +225,15 @@ class EnvController < ApplicationController
           @host_name     = i.host_name
         end
       end
-      @dbids = sql_select_all  "SELECT DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS,
+      @dbids = sql_select_all ["SELECT s.DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS,
                                        (SELECT MIN(DB_Name) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) DB_Name,
-                                       (SELECT COUNT(*) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) Instances
+                                       (SELECT COUNT(DISTINCT Instance_Number) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) Instances,
+                                       MIN(EXTRACT(MINUTE FROM w.Snap_Interval)) Snap_Interval_Minutes,
+                                       MIN(EXTRACT(DAY FROM w.Retention))        Snap_Retention_Days
                                 FROM   DBA_Hist_Snapshot s
-                                GROUP BY DBID
-                                ORDER BY MIN(Begin_Interval_Time)"
+                                LEFT OUTER JOIN DBA_Hist_WR_Control w ON w.DBID = s.DBID
+                                GROUP BY s.DBID
+                                ORDER BY MIN(Begin_Interval_Time)"]
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary

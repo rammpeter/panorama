@@ -25,6 +25,8 @@ Platform: <%= @platform_name%>
     {:caption=>"Switchover status", :data=>proc{|rec| rec.switchover_status },          :title=>"Indicates whether switchover is allowed: NOT ALLOWED - Either this is a standby database and the primary database has not been switched first or this is a primary database and there are no standby databases."},
     {:caption=>"DG broker",     :data=>proc{|rec| rec.dataguard_broker },               :title=>"Indicates whether the Data Guard configuration is being managed by the broker (ENABLED) or not (DISABLED)"},
     {:caption=>"Force logging", :data=>proc{|rec| rec.force_logging },                  :title=>"Indicates whether the database is under force logging mode (YES) or not (NO)"},
+    {:caption=>"AWR interval",  :data=>proc{|rec| rec.snap_interval_minutes },          :title=>'Interval in minutes for AWR-snapshots', :align=>:right},
+    {:caption=>"AWR retention", :data=>proc{|rec| rec.snap_retention_days },            :title=>'Retention in days for AWR-snapshots', :align=>:right},
   ]
 
 %>
@@ -51,7 +53,7 @@ Platform: <%= @platform_name%>
                         ) do %>
             <select name="dbid">
                 <% @dbids.each do |d| %>
-                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:dbid]}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}</option>".html_safe %>
+                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:dbid]}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
                 <% end %>
             </select>
             <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
