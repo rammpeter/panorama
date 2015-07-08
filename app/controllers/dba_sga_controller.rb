@@ -792,6 +792,12 @@ class DbaSgaController < ApplicationController
 
   def list_db_cache_advice_historic
     @instance = prepare_param_instance
+    unless @instance
+      show_popup_message "Instance number should not be empty"
+      return
+    end
+
+
     save_session_time_selection  # werte in session puffern in @time_selection_start, @time_selection_end
 
     get_instance_min_max_snap_id(@time_selection_start, @time_selection_end, @instance)   # @min_snap_id, @max_snap_id belegen
