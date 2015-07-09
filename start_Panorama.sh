@@ -15,5 +15,5 @@ rm -rf ./work/*
 #java -Xmx1024m -XX:MaxPermSize=512M -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djetty.port=8090 -Djetty.requestHeaderSize=8192 -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war 2>&1 | tee -a $LOG 
 
 # Variante fuer Winstone
-java -Xmx1024m -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war --httpPort=$HTTP_PORT 2>&1 | tee -a $LOG 
+java -Xmx1024m -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war --httpPort=$HTTP_PORT --debug=9  2>&1 | tee -a $LOG 
 
