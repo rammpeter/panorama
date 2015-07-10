@@ -2,6 +2,8 @@
 # OpenSSL::Cipher::CipherError
 # Illegal key size: possibly you need to install Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for your JRE
 
+# Wirkt ab Java 7
+
 # Quelle:
 # http://stackoverflow.com/questions/14552303/opensslcipherciphererror-with-rails4-on-jruby
 

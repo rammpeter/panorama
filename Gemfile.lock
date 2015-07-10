@@ -144,6 +144,3 @@ DEPENDENCIES
   activerecord-oracle_enhanced-adapter!
   bundler (~> 1.6)
   rake
-
-BUNDLED WITH
-   1.10.5
