@@ -30,13 +30,14 @@ Warbler::Config.new do |config|
 
 
   # Loose Java classes and miscellaneous files to be included.
-  # config.java_classes = FileList["target/classes/**.*"]
+  # config.java_classes = FileList["web-app_3_1.xsd"]
 
   # One or more pathmaps defining how the java classes should be copied into
   # the archive. The example pathmap below accompanies the java_classes
   # configuration above. See http://rake.rubyforge.org/classes/String.html#M000017
   # for details of how to specify a pathmap.
   # config.pathmaps.java_classes << "%{target/classes/,}p"
+  #config.pathmaps.java_classes << "%{target/classes/xmlns.jcp.org/xml/ns/javaee/,}p"
 
   # Bundler support is built-in. If Warbler finds a Gemfile in the
   # project directory, it will be used to collect the gems to bundle
@@ -126,7 +127,12 @@ Warbler::Config.new do |config|
   # config.excludes.
   # config.webinf_files += FileList["jboss-web.xml"]
   # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList['winstone.properties', 'jetty-web.xml', 'init.rb']
+  config.webinf_files += FileList['winstone.properties', 'jetty-web.xml', 'init.rb',
+                                  'lib/jee_xsd/web-app_3_1.xsd',
+                                  'lib/jee_xsd/web-common_3_1.xsd',
+                                  'lib/jee_xsd/javaee_7.xsd',
+                                  'lib/jee_xsd/javaee_web_services_client_1_4.xsd',
+                                  'lib/jee_xsd/jsp_2_3.xsd']
 
 
   # Files to be included in the root of the webapp.  Note that files in public

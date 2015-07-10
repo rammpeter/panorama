@@ -150,6 +150,3 @@ DEPENDENCIES
   activerecord-oracle_enhanced-adapter!
   sprockets (= 2.12.3)
   tzinfo-data
-
-BUNDLED WITH
-   1.10.5
