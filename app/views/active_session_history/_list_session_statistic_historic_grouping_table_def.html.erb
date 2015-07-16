@@ -94,7 +94,7 @@
 
   session_statistics_key_rules.each do |key, value|
     unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
-      @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(Number if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
+      @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(< Number > if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
     end
   end
 

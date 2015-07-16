@@ -116,7 +116,7 @@ class ActiveSessionHistoryController < ApplicationController
               PLSQL_Entry_Object_ID, PLSQL_Entry_SubProgram_ID, PLSQL_Object_ID, PLSQL_SubProgram_ID, Service_Hash, QC_Session_ID, QC_Instance_ID '
     if session[:version] >= '11.2'
       retval << ", NVL(SQL_ID, Top_Level_SQL_ID) SQL_ID,  /* Wenn keine SQL-ID, dann wenigstens Top-Level SQL-ID zeigen */
-                 Is_SQLID_Current, Top_Level_SQL_ID, SQL_Plan_Line_ID, SQL_Plan_Operation, SQL_Plan_Options, SQL_Exec_ID, SQL_Exec_Start,
+                 QC_Session_Serial#, Is_SQLID_Current, Top_Level_SQL_ID, SQL_Plan_Line_ID, SQL_Plan_Operation, SQL_Plan_Options, SQL_Exec_ID, SQL_Exec_Start,
                  Blocking_Inst_ID, Current_Row# Current_Row_No, Remote_Instance# Remote_Instance_No, Machine, Port, PGA_Allocated, Temp_Space_Allocated,
                  TM_Delta_Time/1000000 TM_Delta_Time_Secs, TM_Delta_CPU_Time/1000000 TM_Delta_CPU_Time_Secs, TM_Delta_DB_Time/1000000 TM_Delta_DB_Time_Secs,
                  Delta_Time/1000000 Delta_Time_Secs, Delta_Read_IO_Requests, Delta_Write_IO_Requests,
@@ -160,7 +160,7 @@ class ActiveSessionHistoryController < ApplicationController
              f.File_Name, f.Tablespace_Name,
              peo.Owner PEO_Owner, peo.Object_Name PEO_Object_Name, peo.Procedure_Name PEO_Procedure_Name, peo.Object_Type PEO_Object_Type,
              po.Owner PO_Owner,   po.Object_Name  PO_Object_Name,  po.Procedure_Name  PO_Procedure_Name,  po.Object_Type  PO_Object_Type,
-             sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID,
+             sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID, #{'s.QC_Session_Serial# QC_Session_SerialNo,' if session[:version] >= '11.2'}
              TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
              TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs TM_DB_Time_Secs_Sample_Cycle,
              Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs  Read_IO_Requests_Sample_Cycle,

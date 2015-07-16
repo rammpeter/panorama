@@ -20,6 +20,8 @@
                     {:caption=> 'Event',        :data=>proc{|rec| rec.triggering_event},   :title=> 'Triggering event'},
                     {:caption=> 'Status',       :data=>proc{|rec| rec.status},             :title=> 'Status of trigger'},
                     {:caption=> 'Description',  :data=>proc{|rec| show_source(rec)},       :title=> 'Description of trigger'},
+                    {:caption=> 'When clause',  :data=>proc{|rec| rec.when_clause},        :title=> 'When-clause of trigger'},
+                    {:caption=> 'Action type',  :data=>proc{|rec| rec.action_type},        :title=> 'Action type of trigger'},
             ]
 
 %>

@@ -76,21 +76,22 @@
    end
 
    def link_column_wait(rec, value)
+     groupfilter =  {
+             :DBID                   => session[:dbid],
+             'SQL-ID'                => @sql_id,
+             'Plan-Hash-Value'       => @mp.plan_hash_value,
+             'Plan-Line-ID'          => rec.id,
+             :time_selection_start   => localeDateTime(@mp.first_occurrence, :minutes),
+             :time_selection_end     => localeDateTime(@mp.last_occurrence, :minutes),
+             :Min_Snap_ID            => @mp.min_snap_id,
+             :Max_Snap_ID            => @mp.max_snap_id,
+             :Idle_Wait1             => 'PX Deq Credit: send blkd'
+     }
+     groupfilter[:Instance] = @instance if @instance
      my_ajax_link_to(value,
                      url_for(:controller     => :active_session_history,
                              :action         => :list_session_statistic_historic_grouping,
-                             :groupfilter    => {
-                                     :DBID                   => session[:dbid],
-                                     :Instance               => @instance,
-                                     'SQL-ID'                => @sql_id,
-                                     'Plan-Hash-Value'       => @mp.plan_hash_value,
-                                     'Plan-Line-ID'          => rec.id,
-                                     :time_selection_start   => localeDateTime(@mp.first_occurrence, :minutes),
-                                     :time_selection_end     => localeDateTime(@mp.last_occurrence, :minutes),
-                                     :Min_Snap_ID            => @mp.min_snap_id,
-                                     :Max_Snap_ID            => @mp.max_snap_id,
-                                     :Idle_Wait1             => 'PX Deq Credit: send blkd'
-                             },
+                             :groupfilter    => groupfilter,
                              :groupby        => 'Event',
                              :update_area    => @update_area
                      ),

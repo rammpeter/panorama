@@ -8,7 +8,11 @@ module ActiveSessionHistoryHelper
     unless @session_statistics_key_rules_hash
       @session_statistics_key_rules_hash = {}
       @session_statistics_key_rules_hash["Instance"]    = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
-      @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",        :Name => 'Session/Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
+      if session[:version] >= "11.2"
+        @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "DECODE(s.QC_instance_ID, NULL, s.Session_ID||', '||s.Session_Serial_No, s.QC_Session_ID||', '||s.QC_Session_Serial#)",        :sql_alias => "session_sn",        :Name => 'Session / Sn.',    :Title => 'Session-ID, SerialNo. (if executed in parallel query this is SID/sn of PQ-coordinator session)',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
+      else
+        @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",        :Name => 'Session / Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
+      end
       @session_statistics_key_rules_hash["Transaction"] = {:sql => "RawToHex(s.XID)",     :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if session[:version] >= "11.2"
       @session_statistics_key_rules_hash["User"]        = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User" }
       @session_statistics_key_rules_hash["SQL-ID"]      = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID', :info_sql  => "(SELECT SUBSTR(t.SQL_Text,1,40) FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)", :info_caption => "SQL-Text (first chars)" }
@@ -33,6 +37,7 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Program"]     = {:sql => "TRIM(s.Program)",     :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
       @session_statistics_key_rules_hash["Machine"]     = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
       @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["PQ"]          = {:sql => "DECODE(s.QC_Instance_ID, NULL, 'NO', s.Instance_Number||':'||s.Session_ID||', '||s.Session_Serial_No)",  :sql_alias => "pq",  :Name => 'Parallel query',  :Title => 'PQ instance and session if executed in parallel query (NO if not executed in parallel or session is PQ-coordinator)' }
     end
     @session_statistics_key_rules_hash
   end

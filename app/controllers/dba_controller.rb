@@ -1228,4 +1228,11 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   end
 
 
+
+  def list_database_triggers
+    @triggers = sql_select_all "SELECT * FROM dba_triggers where base_object_type LIKE 'DATABASE%' ORDER BY Triggering_Event, Trigger_Name"
+    params[:update_area] = 'content_for_layout'
+    render_partial
+  end
+
 end # Class
