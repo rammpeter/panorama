@@ -1,7 +1,9 @@
 <h1>Releasenotes: Panorama</h1>
 
-<h2>enhancemant within current release</h2>
+<h2>enhancement within current release</h2>
 <ul>
+    <li>Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c</li>
+    <li>Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c</li>
 </ul>
 
 <h2>Release 2.0.79 (2015-07-16)</h2>
