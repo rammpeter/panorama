@@ -449,8 +449,15 @@ class DbaSchemaController < ApplicationController
 
     @references = sql_select_all ["\
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
+             #{session[:version] >= "11.2" ?
+                                      "(SELECT LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
+                                       (SELECT LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
+                                      "
+                                  :
+                                      "(SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
+                                       (SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
+                                      "
+                                  }
       FROM   DBA_Constraints c
       JOIN   DBA_Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
       JOIN   DBA_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
@@ -468,8 +475,15 @@ class DbaSchemaController < ApplicationController
 
     @referencing = sql_select_all ["\
       SELECT c.*, ct.Num_Rows,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
-             (SELECT  wm_concat(column_name) FROM (SELECT *FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
+             #{session[:version] >= "11.2" ?
+                                      "(SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
+                                       (SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
+                                      "
+                                   :
+                                      "(SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
+                                       (SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
+                                      "
+                                   }
       FROM   DBA_Constraints r
       JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
       JOIN   DBA_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name

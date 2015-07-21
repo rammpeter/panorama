@@ -150,7 +150,6 @@ module MenuHelper
 
 
     #Ausgabe eines einzelnen Menues
-private
   def showBlockingLocksMenu
     res = sql_select_first_row "SELECT /* Panorama Tool Ramm */ COUNT(*) Anzahl, MIN(Owner) Owner FROM All_Tables WHERE Table_Name = 'DBA_HIST_BLOCKING_LOCKS'"
     session[:dba_hist_blocking_locks_owner] = res.owner
@@ -175,8 +174,6 @@ private
                   ) > 0
   end
 
-
-public
   # Test ob Controller die Aktion definiert hat, Controller-Name mit _ statt CamelCase
   def controller_action_defined?(controller, action)
     controller_obj = "#{controller}_controller".camelize.constantize.new

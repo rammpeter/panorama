@@ -19,6 +19,7 @@ end
 class ActiveSupport::TestCase
   include ApplicationHelper
   include EnvHelper
+  include MenuHelper
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
@@ -58,8 +59,9 @@ class ActiveSupport::TestCase
     open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
     read_initial_db_values
     session[:locale] = "de"
-    session[:dba_hist_blocking_locks_owner] = "journal"
-    session[:dba_hist_cache_objects_owner] = "journal"
+
+    showBlockingLocksMenu     # belegt session[:dba_hist_blocking_locks_owner]
+    showDbCacheMenu           # belegt session[:dba_hist_cache_objects_owner]
   end
 
   def set_session_test_db_context
