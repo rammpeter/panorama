@@ -63,6 +63,13 @@ test_11.2:
   test_username: noatest
   test_password: noa
 
+test_12.1:
+  adapter: nulldb
+
+  test_url:      jdbc:oracle:thin:@10.211.55.14:1521:orcl.1.localdomain
+  test_username: panorama_test
+  test_password: panorama_test
+
 
 # Prod. mit NULLDB betreiben, damit erst mal erfolgreiches Connect zu einer immer vorhandenen DB moeglich ist
 # bevor konkrete Oracle-Db ausgewählt wird

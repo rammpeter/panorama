@@ -371,12 +371,12 @@ class DbaSchemaController < ApplicationController
                          WHERE  s.Owner = i.Owner AND s.Segment_Name = i.Index_Name
                         ) Size_MB,
                         DECODE(bitand(io.flags, 65536), 0, 'NO', 'YES') Monitoring,
-                        DECODE(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
+                        DECODE(bitand(ou.flags, 1), 0, 'NO', NULL, 'Unknown', 'YES') Used,
                         ou.start_monitoring, ou.end_monitoring,
                         do.Created, do.Last_DDL_Time
                  FROM   DBA_Indexes i
-                 JOIN   sys.user$   u  ON u.Name  = i.owner
-                 JOIN   sys.Obj$    o  ON o.Owner# = u.User# AND o.Name = i.Index_Name
+                 JOIN   DBA_Users   u  ON u.UserName  = i.owner
+                 JOIN   sys.Obj$    o  ON o.Owner# = u.User_ID AND o.Name = i.Index_Name
                  JOIN   sys.Ind$    io ON io.Obj# = o.Obj#
                  LEFT OUTER JOIN DBA_Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
                  LEFT OUTER JOIN sys.object_usage ou ON ou.Obj# = o.Obj#

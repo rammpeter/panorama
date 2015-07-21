@@ -55,7 +55,7 @@ class StorageControllerTest < ActionController::TestCase
     xhr :get, :list_mview_query_text, :format=>:js, :owner=>"Hugo", :name=>"Hugo"
     assert_response :success;
 
-    xhr :get, :list_real_num_rows, :format=>:js, :owner=>"sys", :name=>"user$"
+    xhr :get, :list_real_num_rows, :format=>:js, :owner=>"sys", :name=>"obj$"  # sys.user$ requires extra rights compared to SELECT ANY DICTIONARY in 12c
     assert_response :success;
 
     xhr :get,  :tablespace_usage, :format=>:js

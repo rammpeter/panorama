@@ -275,6 +275,12 @@
     - durch Fehlern der Indizes mögliche Shared-Lock-Probleme auf der referenzierten Tabelle kein Problem darstellen
     Inbesondere bei Referenzen sehr großer Tabellen auf sehr kleine Stammtabellen ist der Aufwand für die Indizierung oft nicht gerechtfertigt.
     Auf Grund der geringen Selektivität dieser Indizes sind sie außer der Absicherung des Foreign Keys kaum zur Zugriffsoptimierung zu gebrauchen.
+  dragnet_helper_6_param_1_hint:                            Max. Anzahl Rows referenzierte Tabelle
+  dragnet_helper_6_param_1_name:                            Max. Anzahl Rows referenzierte Tabelle
+  dragnet_helper_6_param_2_hint:                            Mindestanzahl Rows der referenzierenden Tabelle
+  dragnet_helper_6_param_2_name:                            Min. Anzahl Rows referenzierende Tabelle
+  dragnet_helper_6_param_3_hint:                            Max. Anzahl referenzierende Tabellen (bei groesserer Anzahl FullScan-Problem bei Delete auf Master)
+  dragnet_helper_6_param_3_name:                            Max. Anzahl referenzierende Tabellen
 
   dragnet_helper_7_name:                                    Identifikation nicht für Zugriffe oder Absicherung von Eindeutigkeit benutzte Indizes
   dragnet_helper_7_desc: |-
@@ -300,6 +306,10 @@
     Achtung: Auch die Ausführung von GATHER_INDEX_STATS zählt als Nutzung, selbts wenn der Index nie durch andere Selects genutzt wurde.
 
     Weitere Informationen zur Nutzung bringt Anzeige 'Segment statistics historisch' und Analyse der ActiveSessionHistory über Spalte 'Time waited'.
+  dragnet_helper_9_param_1_hint:                            Anzahl Tage, die der Start_Monitoring-Zeitstempel ungenutzter Indizes alt sein muss
+  dragnet_helper_9_param_1_name:                            Tage rückwärts ohne Nutzung
+  dragnet_helper_9_param_2_hint:                            Minimale Anzahl Rows des Index für Aufnahme in Selektion
+  dragnet_helper_9_param_2_name:                            Minimale Anzahl Rows des Index
 
   dragnet_helper_10_name:                                   Identifikation von Indizes mit unnötigen Spalten mit geringer Selektivität
   dragnet_helper_10_desc: |-
@@ -309,6 +319,10 @@
     - Den Zugriff auf Spalten der Tabelle allein durch Index ohne weiteren table access ermöglichen
     Ist der o.g. Sinn nicht gegeben, können zusätzliche Spalten mit niedriger Selektivität ersatzlos entfallen.
     Fur Eliminierung von 'table access by rowid' genutzte Indizes (alle Daten aus Index) sind in Selektion nicht enthalten.
+  dragnet_helper_10_param_1_hint:                            Anzahl DISTINCT-Werte des Index-Feldes mit der größten Selektivität ist > 1/x der Anzahl Rows des Index
+  dragnet_helper_10_param_1_name:                            Größte Selektivität eines Feldes des Index > 1/x der Anzahl Rows
+  dragnet_helper_10_param_2_hint:                            Minimale Anzahl Rows des Index für Aufnahme in Selektion
+  dragnet_helper_10_param_2_name:                            Minimale Anzahl Rows des Index
 
   dragnet_helper_11_name:                                   Local-Partitionierung für NonUnique-Indizes
   dragnet_helper_11_desc: |-
@@ -584,12 +598,16 @@
     - exorbitant viele Blöcke gelesen werden (kritsch selbst dann wenn diese weit verteilt im Cache liegen und keine HotBlocks bilden)
     Für beide Konstellationen lassen sich problematische Statements identifizieren durch Bewertung nach der Spitze der Anzahl Blockzugriffe zwischen zwei AWR-Snapshots.
   dragnet_helper_87_name:                                   Übermäßige Anzahl Zugriffe auf Cache-Buffer
+  dragnet_helper_87_param_1_hint:                           Maximale Anzahl Trefferzeilen im Resultat
+  dragnet_helper_87_param_1_name:                           Maximale Anzahl Trefferzeilen im Resultat
 
   dragnet_helper_88_desc: |-
     Bei oft ausgeführten Statements kann es sich lohnen, kleine Tabellen per Caching-Funktionen statt SQL zuzugreifen.
     Damit reduziert sich CPU-Belastung und Gefahr von „Cache Buffers Chains“ Latch-Waits.
     Ab 11g können stored functions mit function result caching für diesen Zweck genutzt werden.
   dragnet_helper_88_name:                                   Hochfrequenter Zugriff auf kleine Objekte
+  dragnet_helper_88_param_1_hint:                           Minimale Anzahl Executions für Aufnahme in Selektion
+  dragnet_helper_88_param_1_name:                           Minimale Anzahl Executions
 
   dragnet_helper_89_desc: |-
     Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
@@ -639,6 +657,8 @@
     Die Abfrage ermittelt Objekte mit verdächtig hohen Block-Zugriffen im Verhältnis zur Größe (viele Zugriffe auf wenige Blöcke).
   dragnet_helper_96_name: |-
     Identifikation von HotBlocks im DB-Cache: Viele Zugriffe auf kleine Objekte
+  dragnet_helper_96_param_1_hint:                           Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion
+  dragnet_helper_96_param_1_name:                           Maximale Anzahl Rows der Table
 
   dragnet_helper_97_desc: |-
     Views mit Abhängigkeit von anderen Views (evtl. noch mehrstufig hierarchisch abhängig) bergen das Risiko,
@@ -704,6 +724,12 @@
   dragnet_helper_103_name: |-
     System- Statistiken: Prüfung auf aktuelle Analyze-Info
 
+  dragnet_helper_104_desc: |-
+    Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein
+  dragnet_helper_104_name: |-
+    Objekt-Statistiken: Prüfung auf aktuelle Analyze-Info (Tables)
+  dragnet_helper_104_param_1_hint:                           Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion
+  dragnet_helper_104_param_1_name:                           Mindestalter existierender Analyse in Tagen
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

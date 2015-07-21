@@ -270,7 +270,7 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                              i.Tablespace_Name, i.Uniqueness, i.Index_Type,
                              (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = u.Owner AND t.Table_Name = u.Table_Name) IOT_Type
                       FROM   (
-                              SELECT u.name Owner, io.name Index_Name, t.name Table_Name,
+                              SELECT u.UserName Owner, io.name Index_Name, t.name Table_Name,
                                      decode(bitand(i.flags, 65536), 0, 'NO', 'YES') Monitoring,
                                      decode(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
                                      ou.start_monitoring, ou.end_monitoring
@@ -278,15 +278,15 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                               JOIN   sys.ind$ i  ON i.obj# = ou.obj#
                               JOIN   sys.obj$ io ON io.obj# = ou.obj#
                               JOIN   sys.obj$ t  ON t.obj# = i.bo#
-                              JOIN   sys.user$ u ON u.user# = io.owner#
+                              JOIN   DBA_Users u ON u.User_ID = io.owner#  --
                               WHERE  TO_DATE(ou.Start_Monitoring, 'MM/DD/YYYY HH24:MI:SS') < SYSDATE-?
                              )u
                       JOIN DBA_Indexes i ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
                       WHere Used='NO' AND Monitoring='YES'
                       AND i.Num_Rows > ?
                       ORDER BY i.Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=> 'Tage rückwärts ohne Nutzung',    :size=>8, :default=>7,   :title=> 'Anzahl Tage, die der Start_Monitoring-Zeitstempel ungenutzter Indizes alt sein muss'},
-                         {:name=> 'Minimale Anzahl Rows des Index', :size=>8, :default=>100, :title=> 'Minimale Anzahl Rows des Index für Aufnahme in Selektion'}
+            :parameter=>[{:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},
+                         {:name=>t(:dragnet_helper_9_param_2_name, :default=>'Minimum number of rows of index'), :size=>8, :default=>100, :title=>t(:dragnet_helper_9_param_2_hint, :default=>'Minimum number of rows of index for consideration in selection')}
             ]
         },
         {
@@ -335,8 +335,9 @@ This selection already suppresses indexes used for elimination of 'table access 
                         WHERE  o.Owner NOT IN ('SYS', 'OLAPSYS', 'SYSMAN', 'WMSYS', 'CTXSYS')
                         AND    Num_Rows > ?
                         ORDER BY Max_Num_Distinct / Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=> 'Größte Selektivität eines Feldes des Index > 1/x der Anzahl Rows ', :size=>8, :default=>4, :title=> 'Anzahl DISTINCT-Werte des Index-Feldes mit der größten Selektivität ist > 1/x der Anzahl Rows des Index'},
-                         {:name=> 'Minimale Anzahl Rows des Index', :size=>8, :default=>100000, :title=> 'Minimale Anzahl Rows des Index für Aufnahme in Selektion'}]
+            :parameter=>[{:name=>t(:dragnet_helper_10_param_1_name, :default=>'Largest selectivity of a column of index > 1/x to the number of rows'), :size=>8, :default=>4, :title=>t(:dragnet_helper_10_param_1_hint, :default=>'Number of DISTINCT-values of index column with largest selectivity is > 1/x to the number of rows on index')},
+                         {:name=>t(:dragnet_helper_10_param_2_name, :default=>'Minimum number of rows of index'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_10_param_2_hint, :default=>'Minimum number of rows of index for consideration in selection')}
+            ]
         },
         {
             :name  => t(:dragnet_helper_6_name, :default=> 'Coverage of foreign-key relations by indexes (detection of potentially unnecessary indexes)'),
@@ -378,9 +379,9 @@ Due to the poor selectivity such indexes are mostly not useful for access optimi
                             WHERE  ri.r_owner = p.Owner AND ri.R_Constraint_Name=p.Constraint_Name
                            ) < ?                      -- Begrenzung auf Anzahl referenzierende Tabellen
                     ORDER BY Rows_Origin DESC NULLS LAST",
-            :parameter=>[{:name=> 'Max. Anzahl Rows referenzierte Tabelle', :size=>8, :default=>100, :title=> 'Max. Anzahl Rows der referenzierten Tabelle'},
-                         {:name=> 'Min. Anzahl Rows referenzierende Tabelle', :size=>8, :default=>100000, :title=> 'Mindestanzahl Rows der referenzierenden Tabelle'},
-                         {:name=> 'Max. Anzahl referenzierende Tabellen', :size=>8, :default=>20, :title=> 'Max. Anzahl referenzierende Tabellen (bei groesserer Anzahl FullScan-Problem bei Delete auf Master)'},
+            :parameter=>[{:name=> t(:dragnet_helper_6_param_1_name, :default=>'Max. number of rows in referenced table'), :size=>8, :default=>100, :title=> t(:dragnet_helper_6_param_1_hint, :default=>'Max. number of rows in referenced table')},
+                         {:name=> t(:dragnet_helper_6_param_2_name, :default=>'Min. number of rows in referencing table'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_6_param_2_hint, :default=>'Minimun number of rows in referencing table')},
+                         {:name=> t(:dragnet_helper_6_param_3_name, :default=>'Max. number of referencing tables'), :size=>8, :default=>20, :title=>t(:dragnet_helper_6_param_3_hint, :default=>'Max. number of referencing tables (with large number there may be problems with FullTableScan during delete on master table)')},
             ]
         },
 
@@ -526,7 +527,7 @@ This includes tables that were written, but never read.
         },
         {
             :name  => t(:dragnet_helper_65_name, :default=>'Missing housekeeping for mass data'),
-            :desc  => t(:dragnet_helper_65_hint, :default=>'For many constellations it is essential to remove not productive used aged data from the system m System.
+            :desc  => t(:dragnet_helper_65_desc, :default=>'For many constellations it is essential to remove not productive used aged data from the system m System.
 If last analyze table was far enough in history this selection may help to detect gaps in housekeeping.
 Stated here are inserts and updates since last GATHER_TABLE_STATS for tables without any delete operations.
 '),
@@ -1410,7 +1411,7 @@ For both constellations problematic statements can be identified by number of b
                       ORDER BY \"max. BufferGets betw.snapshots\" DESC NULLS LAST
                       ) WHERE RowNum<?",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=> 'Maximale Anzahl Rows', :size=>8, :default=>100, :title=> 'Maximale Anzahl Rows für Aufnahme in Selektion'}]
+                         {:name=>t(:dragnet_helper_87_param_1_name, :default=>'Maximum number of result rows'), :size=>8, :default=>100, :title=>t(:dragnet_helper_87_param_1_hint, :default=>'Maximum number of result rows for selection')}]
         },
         {
             :name  => t(:dragnet_helper_88_name, :default=>'Frequent access on small objects'),
@@ -1461,7 +1462,7 @@ Beginning with 11g stored functions with function result caching or selects/subs
                       WHERE Owner NOT IN ('SYS')
                       ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=> 'Minimale Anzahl Executions', :size=>8, :default=>100, :title=> 'Minimale Anzahl Executions für Aufnahme in Selektion'}]
+                         {:name=>t(:dragnet_helper_88_param_1_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=>t(:dragnet_helper_88_param_1_hint, :default=>'Minimum number of executions for consideration in selection')}]
         },
         {
             :name  => t(:dragnet_helper_89_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of SGA'),
@@ -1543,7 +1544,7 @@ This reduces CPU-contention and runtime.'),
                       AND    SUM(s.Rows_Processed_Delta) > 0
                       ORDER BY SUM(Executions_Delta)*SUM(Executions_Delta)/SUM(Rows_Processed_Delta) DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=>t(:dragnet_helper_61_param_2_name, :default=>'Min. number of executions'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_61_param_2_hint, :default=>'Minimum number of executions for consideration in result') },
+                         {:name=>t(:dragnet_helper_61_param_1_name, :default=>'Min. number of executions'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_61_param_1_hint, :default=>'Minimum number of executions for consideration in result') },
             ]
         },
     ]
@@ -1873,7 +1874,7 @@ This selection scans for objects with high block access rate compared to size of
                              ) s
                       WHERE Num_Rows < ?",
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                          {:name=> 'Maximale Anzahl Rows der Table', :size=>8, :default=>200, :title=> 'Maximale Anzahl Rows der betrachteten Table für Aufnahme in Selektion'}]
+                          {:name=>t(:dragnet_helper_96_param_1_name, :default=>'Maximum number of rows of table'), :size=>8, :default=>200, :title=>t(:dragnet_helper_96_param_1_hint, :default=>'Maximum number of rows of table for consideration in result')}]
          },
         {
              :name  => t(:dragnet_helper_101_name, :default=>'Identification of hot blocks in DB-cache: suboptimal indexes'),
@@ -1965,8 +1966,8 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
              :sql=> 'SELECT * FROM sys.Aux_Stats$',
          },
         {
-             :name  => 'Objekt-Statistiken: Prüfung auf aktuelle Analyze-Info (Tables)',
-             :desc  => 'Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein',
+             :name  => t(:dragnet_helper_104_name, :default=>'Objekt statistics: Check on up-to-date analyze info (Tables)'),
+             :desc  => t(:dragnet_helper_104_desc, :default=>'For cost based optimizer object statistics should be sufficient up-to-date'),
              :sql=>  "SELECT /* DB-Tools Ramm Tabellen ohne bzw. mit veralteter Statistik */ t.Owner, t.Table_Name, t.Num_Rows, t.Last_Analyzed,
                              ROUND(s.MBytes,2) MBytes
                       FROM   DBA_Tables t
@@ -1979,7 +1980,7 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       AND    t.Owner NOT LIKE 'PATROL%'
                       AND    Temporary = 'N'
                       ORDER BY s.MBytes DESC",
-             :parameter=>[{:name=> 'Mindestalter existierender Analyse in Tagen', :size=>8, :default=>100, :title=> 'Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion'}]
+             :parameter=>[{:name=>t(:dragnet_helper_104_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>100, :title=>t(:dragnet_helper_104_param_1_hint, :default=>'If analyze info exists: minimun age for consideration in selection')}]
          },
         {
              :name  => 'Objekt-Statistiken: Prüfung auf aktuelle Analyze-Info (Indizes)',

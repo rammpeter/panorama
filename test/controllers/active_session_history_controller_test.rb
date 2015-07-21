@@ -48,6 +48,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       when "Service"      then 'DEFAULT'
       when "Program"      then 'sqlplus'
       when "Machine"      then 'ramm.osp-dd.de'
+      when 'PQ'           then '1:2:3'
       else 2
     end
   end
