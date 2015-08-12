@@ -357,7 +357,11 @@ class DbaSgaController < ApplicationController
 
     # Bindevariablen des Cursors
     @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Name, Position, DataType_String, Last_Captured, Value_String, Child_Number,
+      SELECT /* Panorama-Tool Ramm */ Name, Position, DataType_String, Last_Captured,
+             CASE DataType_String
+               WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
+             ELSE Value_String END Value_String,
+             Child_Number,
              NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
       FROM   gv$SQL_Bind_Capture c
       WHERE  Inst_ID = ?
@@ -612,10 +616,10 @@ class DbaSgaController < ApplicationController
     end
 
     @sqls = sql_select_all ["
-       SELECT s.Inst_ID, SUBSTR(s.SQL_TEXT,1,100) SQL_Text,     
+       SELECT s.Inst_ID, SUBSTR(s.SQL_TEXT,1,100) SQL_Text,
               s.Executions, s.Fetches, s.First_load_time,       
               s.Parsing_Schema_Name,
-              s.Rows_Processed, s.last_load_time,               
+              s.last_load_time,
               s.ELAPSED_TIME/1000000 ELAPSED_TIME_SECS,
               (s.ELAPSED_TIME/1000000) / DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS) ELAPSED_TIME_SECS_PER_EXECUTE,
               ROUND(s.CPU_TIME / 1000000, 3) CPU_TIME_SECS,

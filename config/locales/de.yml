@@ -162,6 +162,14 @@
 
   dba_sga_list_sql_area_caption:                            SQL der aktuellen SGA aus %{modus}, gruppiert nach
 
+  dba_sga_list_sql_detail_execution_plan_cr_title:          Durchschn. Anzahl Buffer gets in consistend mode (meist für Query) der Operation je Ausführung des SQL, kumulativ inlusive aller untergeordneten Operationen
+  dba_sga_list_sql_detail_execution_plan_cu_title:          Durchschn. Anzahl Buffer gets in current mode (meist für Insert/Update/Delete) der Operation je Ausführung des SQL, kumulativ inlusive aller untergeordneten Operationen
+  dba_sga_list_sql_detail_execution_plan_disk_reads_title:  Durchsch. Anzahl physische Disk-Reads der Operation je Ausführung des SQL
+  dba_sga_list_sql_detail_execution_plan_disk_writes_title: Durchsch. Anzahl physische Disk-Writes der Operation je Ausführung des SQL
+  dba_sga_list_sql_detail_execution_plan_elapsed_title:     Durchschn. Dauer der Operation in ms je Ausführung des SQL
+  dba_sga_list_sql_detail_execution_plan_rows_title:        Durchschn. Anzahl produzierte Rows der Operation je Ausführung des SQL
+  dba_sga_list_sql_detail_execution_plan_starts_title:      Durchschnittliche Anzahl Starts der Operation je Ausführung des SQL
+
   dba_sga_show_sql_area_caption:                            Ressourcenintensive Statements aus
   dba_sga_show_sql_area_filter_hint:                        Filter-string muss in betrachteten SQL-Statements enthalten sein. Wildcards (%,_) können benutzt werden. (optional)
   dba_sga_show_sql_area_max_result_count_caption:           Anzahl Treffer

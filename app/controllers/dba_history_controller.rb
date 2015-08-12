@@ -479,7 +479,10 @@ class DbaHistoryController < ApplicationController
       @binds = []
     else
       @binds = sql_select_all ["\
-        SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured, Value_String,
+        SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured,
+               CASE DataType_String
+                 WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
+               ELSE Value_String END Value_String,
                NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length,
                (SELECT COUNT(*)
                 FROM   DBA_Hist_SQLBind i
@@ -544,7 +547,10 @@ class DbaHistoryController < ApplicationController
     @dbid        = prepare_param_dbid
 
     @binds = sql_select_all ["\
-        SELECT /* Panorama-Tool Ramm */ Name, DataType_String, Last_Captured, Value_String,
+        SELECT /* Panorama-Tool Ramm */ Name, DataType_String, Last_Captured,
+               CASE DataType_String
+                 WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
+               ELSE Value_String END Value_String,
                NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
         FROM   DBA_Hist_SQLBind b
         WHERE  b.DBID            = ?

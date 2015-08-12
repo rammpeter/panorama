@@ -5,11 +5,11 @@
   </div>
   <div class="float_left">
     Instance
-    <%= text_field_tag(:instance, "1", :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>
+    <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>
   </div>
   <div class="float_left">
     Part.
-    <%= check_box_tag(:show_partitions, 1, true, :title=>"Partitionsdetails anzeigen") %>
+    <%= check_box_tag(:show_partitions, 1, false, :title=>"Partitionsdetails anzeigen") %>
   </div>
   <div class="float_left">
   <%= submit_tag("Cache-Inhalt anzeigen", :title => "Anlistung der Daten des DB-Cache") %>
