@@ -35,6 +35,22 @@ Platform: <%= @platform_name%>
 })
 %>
 
+<% if @dbids.count > 1 %>
+    <h2>Data for multiple database IDs is recorded in AWR history</h2>
+    <%=  my_ajax_form_tag url_for(:controller  => :env,
+                                  :action      => :set_dbid,
+                                  :update_area => :dbid_response_area
+                          ) do %>
+        <select name="dbid">
+          <% @dbids.each do |d| %>
+              <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:dbid]}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
+          <% end %>
+        </select>
+        <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
+    <% end %>
+    <div id="dbid_response_area"></div>
+<% end %>
+
 <% if @dictionary_access_problem %>
     <h2><%= "Dictionary Access-Problem"   %></h2>
     <div style='color:red;'><br/>
@@ -44,22 +60,6 @@ Platform: <%= @platform_name%>
 
 <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
 <%= render :partial => 'licensing' %>
-
-<% if @dbids.count > 1 %>
-    <h2>Data for multiple database IDs is recorded in AWR history</h2>
-    <%=  my_ajax_form_tag url_for(:controller  => :env,
-                                :action      => :set_dbid,
-                                :update_area => :dbid_response_area
-                        ) do %>
-            <select name="dbid">
-                <% @dbids.each do |d| %>
-                    <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:dbid]}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
-                <% end %>
-            </select>
-            <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
-    <% end %>
-    <div id="dbid_response_area"></div>
-<% end %>
 
 <h2><%= t :env_handling_hints, :default=>"Handling hints" %></h2>
 
