@@ -73,6 +73,7 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
       LEFT OUTER JOIN procs                 po  ON po.Object_ID  = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
+      LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
       WHERE 1=1 #{@global_where_string}
       GROUP BY TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400, #{session_statistics_key_rule(@groupby)[:sql]}
       ORDER BY 1
