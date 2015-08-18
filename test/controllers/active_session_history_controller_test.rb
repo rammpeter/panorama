@@ -46,6 +46,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       when "DB-Object"    then 'DUAL'
       when "DB-Sub-Object"  then 'DUAL'
       when "Service"      then 'DEFAULT'
+      when 'Tablespace'   then 'SYSTEM'
       when "Program"      then 'sqlplus'
       when "Machine"      then 'ramm.osp-dd.de'
       when 'PQ'           then '1:2:3'

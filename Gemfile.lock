@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.0.82)
+    Panorama (2.0.83)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -67,7 +67,7 @@ GEM
     arel (6.0.3)
     builder (3.2.2)
     erubis (2.7.0)
-    execjs (2.5.2)
+    execjs (2.6.0)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     i18n (0.7.0)
@@ -79,7 +79,7 @@ GEM
     krypt-core (0.0.2-java)
       krypt-provider-jdk (= 0.0.2)
     krypt-provider-jdk (0.0.2)
-    loofah (2.0.2)
+    loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
@@ -104,7 +104,7 @@ GEM
       sprockets-rails
     rails-deprecated_sanitizer (1.0.3)
       activesupport (>= 4.2.0.alpha)
-    rails-dom-testing (1.0.6)
+    rails-dom-testing (1.0.7)
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6.0)
       rails-deprecated_sanitizer (>= 1.0.1)
