@@ -33,8 +33,8 @@
 
     case @groupby
       when "SQL-ID"         then link_column_sql_id(rec)
-      when "DB-Object"      then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value);end
-      when "DB-Sub-Object"  then if rec.group_value != "."; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); end
+      when "DB-Object"      then if rec.group_value['[Unknown]'].nil?; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
+      when "DB-Sub-Object"  then if rec.group_value['[Unknown]'].nil?; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
     else rec.group_value
     end
   end
@@ -83,7 +83,7 @@
 
   @column_options = []
   @column_options << {:caption=>session_statistics_key_rule(@groupby)[:Name],         :data=>proc{|rec| show_groupkey_value(rec) },                        :title=>session_statistics_key_rule(@groupby)[:Title], :data_title=>session_statistics_key_rule(@groupby)[:Data_Title]}
-  @column_options << {:caption=>session_statistics_key_rule(@groupby)[:info_caption], :data=>proc{|rec| show_info(rec.info) },                       :title=>"Nähere Info zu Gruppierungskriterium #{@groupby}", :data_title=>proc{|rec| rec.info_hint} } if session_statistics_key_rule(@groupby)[:info_caption]
+  @column_options << {:caption=>session_statistics_key_rule(@groupby)[:info_caption], :data=>proc{|rec| show_info(rec.info) },                       :title=>"#{t(:active_session_history_last_occurrence_caption, :default=>'Further info for grouping criteria')}: #{@groupby}", :data_title=>proc{|rec| rec.info_hint} } if session_statistics_key_rule(@groupby)[:info_caption]
   @column_options << {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")}
   @column_options << {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")}
   @column_options << {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| fn(rec.sample_dauer_secs,2) },  :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time range"), :align=>"right"}

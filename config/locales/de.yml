@@ -46,6 +46,7 @@
   active_session_history_first_occurrence_hint:             Erstes Auftreten eines sample-record in Gruppierung
   active_session_history_helper_db_object_title: |-
     aus gv$Session.Row_Wait_Obj#. Wenn p2Text=object#, dann wird diese genutzt anstatt row_wait_obj#. Achtung: Kann auch Objekt der vorherigen Aktion enthalten
+  active_session_history_info_hint:                         Nähere Info zu Gruppierungskriterium
   active_session_history_last_occurrence_caption:           Letztes Auftreten
   active_session_history_last_occurrence_hint:              Letztes Auftreten eines sample-record in Gruppierung
 
