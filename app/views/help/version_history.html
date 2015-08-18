@@ -2,6 +2,7 @@
 
 <h2>enhancement within current release</h2>
 <ul>
+    <li>Active Session History: Show tablespace name as object name if no current object exists. Helps to recognize action in UNDO-TS.</li>
     <li>List captured bind values also for datatype TIMESTAMP</li>
     <li>Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c</li>
     <li>Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c</li>
