@@ -748,6 +748,7 @@
   dragnet_show_selection_select_hint:                       Auswahl des Rasterfahndungs-SQL
   dragnet_show_selection_show_sql_hint:                     Anzeige des auszuführenden SQL-Statements
 
+  env_build_main_menu_repeat_hint:                          Wiederholen der letzten im Menü ausgewählten Aktion
   env_current_database:                                     Aktuelle Datenbank
   env_handling_hints:                                       Tips zur Bedienung
   env_handling_hint_generally_1:                            Systemweit werden vielfach Kontext-Informationen über MouseOver-Hints angeboten

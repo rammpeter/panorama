@@ -316,6 +316,16 @@ public
     end
   end
 
+  # repeat last called menu action
+  def repeat_last_menu_action
+    controller_name = session[:last_used_menu_controller]
+    action_name     = session[:last_used_menu_action]
+
+    # Suchen des div im Menü-ul und simulieren eines clicks auf den Menü-Eintrag
+    respond_to do |format|
+      format.js {render :js => "$('#menu_#{controller_name}_#{action_name}').click();"}
+    end
+  end
 
 end
 
