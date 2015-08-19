@@ -8,11 +8,7 @@ module HtmlHelper
     start_id = "time_selection_start_#{id_suffix}"
     end_id   = "time_selection_end_#{id_suffix}"
 
-    "<script type='text/javascript'>
-       $('##{start_id}').datetimepicker();
-       $('##{end_id}').datetimepicker();
-    </script>
-
+    "
     <div class='float_left' title=\"#{t :time_selection_start_hint, :default=>"Start of considered time range in format"} '#{human_datetime_minute_mask}'\">
       #{t :time_selection_start_caption, :default=>"Start"}
       #{ text_field_tag(:time_selection_start, default_time_selection_start, :size=>15, :id=>start_id) }
@@ -21,6 +17,11 @@ module HtmlHelper
       #{t :time_selection_end_caption, :default=>"End"}
       #{ text_field_tag(:time_selection_end, default_time_selection_end, :size=>15, :id=>end_id) }
     </div>
+
+    <script type='text/javascript'>
+       $('##{start_id}').datetimepicker();
+       $('##{end_id}').datetimepicker();
+    </script>
     ".html_safe
   end
 
