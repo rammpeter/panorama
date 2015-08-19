@@ -39,7 +39,7 @@ column_options =
     )  do
 %>
 
-    <%= include_start_end_timepicker %>
+    <%= include_start_end_timepicker('show_using_sqls') %>
 
     <div class="float_left">
       <%= submit_tag('Show historic SQLs', :title => "Search AWR history between timestamps for SQLs accessing #{@object_owner}.#{@object_name} (by DBA_Hist_SQL_Plan)") %>
