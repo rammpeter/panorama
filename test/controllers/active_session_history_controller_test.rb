@@ -50,6 +50,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       when "Program"      then 'sqlplus'
       when "Machine"      then 'ramm.osp-dd.de'
       when 'PQ'           then '1:2:3'
+      WHEN 'Session-Type' then 'F'
       else 2
     end
   end

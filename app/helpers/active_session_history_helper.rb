@@ -39,6 +39,7 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Machine"]     = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
       @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if session[:version] >= "11.2"
       @session_statistics_key_rules_hash["PQ"]          = {:sql => "DECODE(s.QC_Instance_ID, NULL, 'NO', s.Instance_Number||':'||s.Session_ID||', '||s.Session_Serial_No)",  :sql_alias => "pq",  :Name => 'Parallel query',  :Title => 'PQ instance and session if executed in parallel query (NO if not executed in parallel or session is PQ-coordinator)' }
+      @session_statistics_key_rules_hash["Session-Type"]= {:sql => "SUBSTR(s.Session_Type,1,1)", :sql_alias => "session_type",              :Name => 'S-T',          :Title      => "Session-type: (F)OREGROUND or (B)ACKGROUND" }
     end
     @session_statistics_key_rules_hash
   end
