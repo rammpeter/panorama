@@ -170,7 +170,7 @@ column_options = [
         }
 
         groupfilter[:Instance] = @instance if @instance
-        groupfilter['User-ID'] = @user_id if @user_id
+        groupfilter['User'] = @parsing_schema_name if @parsing_schema_name
 
 
         my_ajax_submit_tag("Active Session History",

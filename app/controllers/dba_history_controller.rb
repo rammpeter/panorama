@@ -533,8 +533,6 @@ class DbaHistoryController < ApplicationController
       @sql_outlines       = []
     end
 
-    @user_id = sql_select_one(["SELECT /* Panorama-Tool Ramm */ User_ID FROM DBA_Users WHERE UserName=?", @parsing_schema_name]) if @parsing_schema_name
-
     render_partial :list_sql_detail_historic
   end #list_sql_detail_historic
 
