@@ -483,7 +483,7 @@ class ActiveSessionHistoryController < ApplicationController
                     LEFT OUTER JOIN gv$Active_Session_History rha     ON  rha.Inst_ID                   = gr.Root_Blocking_Inst_ID
                                                                       AND CAST(rha.Sample_Time + INTERVAL '0.5' SECOND AS DATE) = gr.Root_Rounded_Sample_Time   /* auf eine Sekunde gerundete Zeot */
                                                                       AND rha.Session_ID                = gr.Root_Blocking_Session
-                    WHERE (NOT EXISTS (SELECT 1 FROM TSSel i    /* Nur die Knoten ohne Parent-Blocker darstellen */
+                    WHERE (NOT EXISTS (SELECT /*+ HASH_AJ) */ 1 FROM TSSel i    /* Nur die Knoten ohne Parent-Blocker darstellen */
                                         WHERE  i.Rounded_Sample_Time  = gr.Root_Rounded_Sample_Time
                                         AND    i.Session_ID           = gr.Root_Blocking_Session
                                         AND    i.Session_Serial#      = gr.Root_Blocking_Session_SerialNo
