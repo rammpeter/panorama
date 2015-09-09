@@ -236,15 +236,15 @@ class DbaSchemaController < ApplicationController
     @size_mb_table = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
 
 
-    @size_mb_total = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024)
-                                      FROM DBA_Segments
-                                      WHERE (Owner, Segment_Name) IN (
-                                          SELECT ? , ? FROM DUAL
-                                          UNION ALL
-                                          SELECT Owner, Index_Name FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?
-                                          UNION ALL
-                                          SELECT Owner, Segment_Name FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?
-                                      )",
+    # Einzelzugriff auf DBA_Segments sicherstellen, sonst sehr lange Laufzeit
+    @size_mb_total = sql_select_one ["SELECT SUM((SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = t.Owner AND s.Segment_Name = t.Segment_Name))
+                                      FROM (
+                                            SELECT ? Owner, ? Segment_Name FROM DUAL
+                                            UNION ALL
+                                            SELECT Owner, Index_Name FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?
+                                            UNION ALL
+                                            SELECT Owner, Segment_Name FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?
+                                      ) t",
                                      @owner, @table_name, @owner, @table_name, @owner, @table_name
                                     ]
 
