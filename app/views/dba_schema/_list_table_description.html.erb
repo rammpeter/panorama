@@ -101,7 +101,7 @@ column_options =
   {:caption=> 'Sub-Part.',        :data=>proc{|rec| link_tab_subpartitions},               :title=> "Number of table's subpartitions", :align=>:right},
   {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation'},
   {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table'},
-  {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=> 'The date of the most recent time this table was analyzed'},
+  {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},    :title=> "The date of the most recent time this table was analyzed, Prefs: #{@stat_prefs}" },
   {:caption=> 'IOT',              :data=>proc{|rec| rec.iot_type},                         :title=> 'If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL'},
   {:caption=> 'T',                :data=>proc{|rec| rec.temporary},                        :title=> 'Temporary table ?', :data_title=>proc{|rec| "%t, Lifetime of temporary content = #{rec.duration.gsub(/SYS\$/, '') if rec.duration }" }},
   {:caption=> 'Compr.',           :data=>proc{|rec| rec.compression},                      :title=> 'Whether table compression is enabled or not'},
