@@ -1257,6 +1257,30 @@ Overallocation of PQ servers may result in serial processing og other SQLs estim
                          {:name=>t(:dragnet_helper_63_param_2_name, :default=>'Limit for number of PQ servers'), :size=>8, :default=>16, :title=>t(:dragnet_helper_63_param_2_hint, :default=>'Limit for number of PQ servers: exceedings of this value are shown here') },
             ]
         },
+        {
+            :name  => t(:dragnet_helper_105_name, :default=>'Statements with planned parallel execution forced to serial'),
+            :desc  => t(:dragnet_helper_105_desc, :default=>'PX COORDINATOR FORCED SERIAL in execution plan shows that optimizer assumed to process in parallel but detects reasons that prevents parallel execution (e.g. stored functions without PARALLEL_ENABLE).
+The operations below that execution plan line are not really executed in parallel although the optimizer has marked them for parallel execution!'),
+            :sql=>  "SELECT /* DB-Tools Ramm FORCE SERIAL in PQ */ x.* ,
+                             (SELECT SUBSTR(SQL_Text,1,100) FROM DBA_Hist_SQLText t WHERE t.DBID=x.DBID AND t.SQL_ID=x.SQL_ID) SQLText
+                      FROM   (SELECT p.DBID, p.SQL_ID, p.Plan_Hash_Value, MIN(Occurrences_in_Plan) Occurrences_in_Plan, s.Parsing_Schema_Name,
+                                     ROUND(SUM(s.Elapsed_Time_Delta)/1000000) Elapsed_Time_Secs,
+                                     SUM(s.Executions_Delta) Executions
+                              FROM   (SELECT /*+ NO_MERGE */ DBID, SQL_ID, Plan_Hash_Value, COUNT(*) Occurrences_in_Plan
+                                      FROM   DBA_Hist_SQL_Plan
+                                      WHERE  operation = 'PX COORDINATOR'
+                                      AND    options = 'FORCED SERIAL'
+                                      GROUP BY DBID, SQL_ID, Plan_Hash_Value
+                                     )p
+                              JOIN   DBA_Hist_SQLStat s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
+                              WHERE  ss.Begin_Interval_Time > SYSDATE-?
+                              GROUP BY p.DBID, p.SQL_ID, p.Plan_Hash_Value, s.Parsing_Schema_Name
+                             ) x
+                      ORDER BY Elapsed_Time_Secs DESC
+                      ",
+            :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
+        },
 
     ]
   end # problems_with_parallel_query

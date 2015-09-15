@@ -740,6 +740,11 @@
   dragnet_helper_104_param_1_hint:                           Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion
   dragnet_helper_104_param_1_name:                           Mindestalter existierender Analyse in Tagen
 
+  dragnet_helper_105_desc: |-
+    PX COORDINATOR FORCED SERIAL im Execution-Plan zeigt, dass der Optimizer parallele Ausführung annimmt, dann aber Hinderungsgründe düe parallele Ausführung feststellt (z.B. stored functions ohne PARALLEL_ENABLE).
+    Die Operationen unter der Zeile des Ausführungsplans werden in der Realität nicht parallel ausgeführt auch wenn der Optimizer sie für parallele Ausführung markiert hat!
+  dragnet_helper_105_name:                                  Statements mit geplanter paralleler Execution forced to serial
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
