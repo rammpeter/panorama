@@ -1124,13 +1124,13 @@ Selection considers AWR history.'),
 Listed functions should be checked if they can be expanded by pragma PARALLEL_ENABLE.'),
             :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
                       ProcLines AS (
-                            SELECT /*+ NO_MERGE MATERIALIZE */ *
+                            SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(2) */ *
                             FROM   (
                                     SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name SuchText
                                     FROM   DBA_Procedures p
                                     WHERE  p.Object_Type = 'FUNCTION'
                                     UNION ALL
-                                    SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
+                                    SELECT /*+ USE_HASH(p a) */ p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
                                     FROM   DBA_Procedures p
                                     JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name AND a.Position = 0
                                     WHERE  p.Object_Type = 'PACKAGE'

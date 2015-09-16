@@ -161,7 +161,8 @@ class ActiveSessionHistoryController < ApplicationController
              f.File_Name, f.Tablespace_Name,
              peo.Owner PEO_Owner, peo.Object_Name PEO_Object_Name, peo.Procedure_Name PEO_Procedure_Name, peo.Object_Type PEO_Object_Type,
              po.Owner PO_Owner,   po.Object_Name  PO_Object_Name,  po.Procedure_Name  PO_Procedure_Name,  po.Object_Type  PO_Object_Type,
-             sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID, #{'s.QC_Session_Serial# QC_Session_SerialNo,' if session[:version] >= '11.2'}
+             sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID,
+             #{'s.QC_Session_Serial# QC_Session_SerialNo,
              TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
              TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs TM_DB_Time_Secs_Sample_Cycle,
              Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs  Read_IO_Requests_Sample_Cycle,
@@ -169,6 +170,7 @@ class ActiveSessionHistoryController < ApplicationController
              Delta_Read_IO_kBytes         * Sample_Cycle / Delta_Time_Secs  Read_IO_kBytes_Sample_Cycle,
              Delta_Write_IO_kBytes        * Sample_Cycle / Delta_Time_Secs  Write_IO_kBytes_Sample_Cycle,
              Delta_Interconnect_IO_kBytes * Sample_Cycle / Delta_Time_Secs  Interconn_kBytes_Sample_Cycle,
+            ' if session[:version] >= '11.2'}
              RowNum Row_Num
       FROM   (SELECT /*+ NO_MERGE ORDERED */
                      10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
