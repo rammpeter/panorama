@@ -614,9 +614,8 @@ class DbaHistoryController < ApplicationController
                                 p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
                                 p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
-                                CASE WHEN NVL(p.Object_Type, 'TABLE') LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables  t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
-                                      WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
-                                ELSE NULL END Num_Rows,
+                                NVL(t.Num_Rows, i.Num_Rows) Num_Rows,
+                                NVL(t.Last_Analyzed, i.Last_analyzed) Last_Analyzed,
                                 (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes,
                                 Count(*) OVER (PARTITION BY p.Parent_ID, p.Operation, p.Options, p.Object_Owner,    -- p.ID nicht abgleichen, damit Verschiebungen im Plan toleriert werden
                                               CASE WHEN p.Object_Name LIKE ':TQ%'
@@ -642,6 +641,8 @@ class DbaHistoryController < ApplicationController
                                  GROUP BY s.SQL_ID, s.Plan_Hash_Value, s.DBID, s.Parsing_Schema_Name
                                 ) ps
                          JOIN   DBA_Hist_SQL_Plan p ON p.DBID=ps.DBID AND p.SQL_ID=ps.SQL_ID AND p.Plan_Hash_Value=ps.Plan_Hash_Value
+                         LEFT OUTER JOIN DBA_Tables t  ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name -- evtl. weiter zu filtern per  NVL(p.Object_Type, 'TABLE') LIKE 'TABLE%'
+                         LEFT OUTER JOIN DBA_Indexes i ON i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name -- evtl. weiter zu filtern per  p.Object_Type LIKE 'INDEX%'
                          ORDER BY p.ID
                        ", @sql_id, @time_selection_start, @time_selection_end].concat(where_values)
 
