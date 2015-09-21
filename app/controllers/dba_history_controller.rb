@@ -611,7 +611,16 @@ class DbaHistoryController < ApplicationController
                          SELECT /*+ ORDERED USE_NL(p) Panorama-Tool Ramm */
                                 ps.DBID, ps.Plan_Hash_Value, ps.Parsing_Schema_Name,
                                 p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Optimizer,
-                                p.Other_Tag, p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
+                                p.Other_Tag,
+                                DECODE(p.Other_Tag,
+                                       'PARALLEL_COMBINED_WITH_PARENT', 'PCWP',
+                                       'PARALLEL_COMBINED_WITH_CHILD' , 'PCWC',
+                                       'PARALLEL_FROM_SERIAL',          'S > P',
+                                       'PARALLEL_TO_PARALLEL',          'P > P',
+                                       'PARALLEL_TO_SERIAL',            'P > S',
+                                       Other_Tag
+                                      ) Parallel_Short,
+                                p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
                                 p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
                                 NVL(t.Num_Rows, i.Num_Rows) Num_Rows,
