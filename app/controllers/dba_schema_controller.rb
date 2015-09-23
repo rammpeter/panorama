@@ -238,12 +238,13 @@ class DbaSchemaController < ApplicationController
     @size_mb_table = sql_select_one ["SELECT /*+ Panorama Ramm */ SUM(Bytes)/(1024*1024) FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?", @owner, @table_name]
 
 
-    stat_prefs=sql_select_all ['SELECT * FROM Dba_Tab_Stat_Prefs WHERE Owner=? AND Table_Name=?', @owner, @table_name]
     @stat_prefs = ''
-    stat_prefs.each do |s|
-      @stat_prefs << "#{s.preference_name}=#{s.preference_value} "
+    if session[:version] >= "11.2"
+      stat_prefs=sql_select_all ['SELECT * FROM Dba_Tab_Stat_Prefs WHERE Owner=? AND Table_Name=?', @owner, @table_name]
+      stat_prefs.each do |s|
+        @stat_prefs << "#{s.preference_name}=#{s.preference_value} "
+      end
     end
-
 
     # Einzelzugriff auf DBA_Segments sicherstellen, sonst sehr lange Laufzeit
     @size_mb_total = sql_select_one ["SELECT SUM((SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = t.Owner AND s.Segment_Name = t.Segment_Name))
