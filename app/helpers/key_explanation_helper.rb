@@ -101,7 +101,7 @@ module KeyExplanationHelper
        'TA' => 'Generic enqueue',
        'TH' => 'Threshold Chain',
        'TK' => 'Auto Task Serialization',
-       'TM' => 'DML Enqueue, prevents other sessions from DML (exclusive mode 3)',
+       'TM' => 'DML Enqueue, prevents other sessions from DML (exclusive mode 3). Possibly indicates that there are unindexed foreign key constraints and DML on both tables.',
        'TO' => 'Temp Object',
        'TS' => 'Temporary segment enqueue (ID2=0) / New block allocation enqueue (ID2=1)',
        'TT' => 'Temporary table enqueue',
