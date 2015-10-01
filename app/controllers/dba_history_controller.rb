@@ -633,7 +633,7 @@ class DbaHistoryController < ApplicationController
                                               p.Other_Tag, p.Depth,
                                               p.Access_Predicates, p.Filter_Predicates, p.Distribution
                                 ) Version_Orange_Count,
-                                Count(*) OVER (PARTITION BY p.Parent_ID, p.Operation, p.Options, p.Object_Owner,     -- p.ID nicht abgleichen, damit Verschiebungen im Plan toleriert werden
+                                  Count(*) OVER (PARTITION BY p.Parent_ID, p.Operation, p.Options, p.Object_Owner,     -- p.ID nicht abgleichen, damit Verschiebungen im Plan toleriert werden
                                               CASE WHEN p.Object_Name LIKE ':TQ%'
                                                 THEN 'Hugo'
                                                 ELSE p.Object_Name END,

@@ -119,7 +119,7 @@
          @indent_vector << {:parent_id => rec.parent_id, :last_exists_id => last_exists_id}
        end
 
-       while rec.depth < @indent_vector.count                                     # Einrückung gegenüber Vorgänger
+       while rec.depth < @indent_vector.count                                   # Einrückung gegenüber Vorgänger
          @indent_vector.delete_at(@indent_vector.count-1);
        end
 
@@ -128,22 +128,22 @@
        #}
 
        @indent_vector.each_index do |i|
-         if i < @indent_vector.count-1                                            # den letzten Eintrag unterdrücken, wird relevant beim nächsten, wenn der einen weiter rechts eingerückt ist
+         if i < @indent_vector.count-1                                          # den letzten Eintrag unterdrücken, wird relevant beim nächsten, wenn der einen weiter rechts eingerückt ist
            v = @indent_vector[i]
            tab << "<span class=\"toggle #{'vertical-line' if rec.id < v[:last_exists_id]}\" title=\"parent_id=#{v[:parent_id]} last_exists_id=#{v[:last_exists_id]}\">#{'' if rec.id < v[:last_exists_id]}</span>&nbsp;"
          end
        end
 
 
-       if rec.is_parent
-         if rec.id > 0                                                            # 1. und 2. Zeile haben gleiche Einrückung durch weglassen des letzten Eintrages von @indent_vector, hiermit bleibt 1. Zeile trotzde, weiter links
+       if rec[:is_parent]                                                       # Über hash ansprechen, da in bestimmten Konstellationen der Wert nicht im hash enthalten ist => false
+         if rec.id > 0                                                          # 1. und 2. Zeile haben gleiche Einrückung durch weglassen des letzten Eintrages von @indent_vector, hiermit bleibt 1. Zeile trotzde, weiter links
            tab << "<a class=\"toggle collapse\" id=\"#{toggle_id}\" onclick=\"toggle_expand('#{toggle_id}', #{rec.id}, #{rec.depth}, '#{@grid_id}');\"></a>"
          end
        else
          if @plans.count > rec.id+1 && @plans[rec.id+1].parent_id == rec.parent_id # Es gibt noch einen unmittelbaren Nachfolger mit selber Parent-ID
-           tab << "<span class=\"toggle vertical-corner-line\"></span>"           # durchgehende Linie mit abzweig
+           tab << "<span class=\"toggle vertical-corner-line\"></span>"         # durchgehende Linie mit abzweig
          else
-           tab << "<span class=\"toggle corner-line\"></span>"                    # Nur Linie mit Abzweig
+           tab << "<span class=\"toggle corner-line\"></span>"                  # Nur Linie mit Abzweig
          end
        end
        tab << "&nbsp;"

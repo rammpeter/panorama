@@ -129,7 +129,7 @@
      end
 
 
-     if rec.is_parent
+     if rec[:is_parent]                                                         # Über hash ansprechen, da in bestimmten Konstellationen der Wert nicht im hash enthalten ist => false
        if rec.id > 0                                                            # 1. und 2. Zeile haben gleiche Einrückung durch weglassen des letzten Eintrages von @indent_vector, hiermit bleibt 1. Zeile trotzde, weiter links
          tab << "<a class=\"toggle collapse\" id=\"#{toggle_id}\" onclick=\"toggle_expand('#{toggle_id}', #{rec.id}, #{rec.depth}, '#{@grid_id}');\"></a>"
        end
