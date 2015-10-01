@@ -56,8 +56,15 @@ class ActiveSupport::TestCase
     session[:database][:password] = database_helper_encrypt_value(test_config["test_password"])
 
     # puts "Test for #{ENV['DB_VERSION']} with #{database.user}/#{database.password}@#{database.host}:#{database.port}:#{database.sid}"
-    open_oracle_connection           # Connection zur Test-DB aufbauen, um Parameter auszulesen
-    read_initial_db_values
+    begin
+      open_oracle_connection                                                    # Connection zur Test-DB aufbauen, um Parameter auszulesen
+      read_initial_db_values                                                    # evtl. Exception tritt erst beim ersten Zugriff auf
+    rescue Exception => e
+      database_helper_switch_sid_usage                                          # Alterantive Service/SID versuchen
+      open_oracle_connection                                                    # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
+      read_initial_db_values                                                    # Lesenden DB-Zugriff nochmal durchführen
+    end
+
     session[:locale] = "de"
 
     showBlockingLocksMenu     # belegt session[:dba_hist_blocking_locks_owner]

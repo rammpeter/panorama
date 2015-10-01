@@ -45,9 +45,9 @@ test:
 test_10.2:
   adapter: nulldb
 
-  test_url:      jdbc:oracle:thin:@nora.osp-dd.de:1521:NOADD
-  test_username: noatest
-  test_password: noa
+  test_url:      jdbc:oracle:thin:@ddhpit01.osp-dd.de:1521:GAPR
+  test_username: panorama_test
+  test_password: panorama_test
 
 test_11.1:
   adapter: nulldb
