@@ -86,8 +86,10 @@ class IoControllerTest < ActionController::TestCase
   #################### iostat_detail #######################
   test "list_iostat_detail_history" do
     def do_test(groupby)
-      post :list_iostat_detail_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_detail_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
+        assert_response :success
+      end
     end
 
     iostat_detail_key_rules.each do |key, value|
@@ -98,8 +100,10 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_iostat_detail_history_grouping" do
     def do_test(groupby)
-      post :list_iostat_detail_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_detail_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
+        assert_response :success
+      end
     end
 
     iostat_detail_key_rules.each do |key, value|
@@ -110,8 +114,10 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_iostat_detail_history_samples" do
     def do_test(groupby)
-      post :list_iostat_detail_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_detail_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+        assert_response :success
+      end
     end
 
     iostat_detail_key_rules.each do |key, value|
@@ -135,8 +141,10 @@ class IoControllerTest < ActionController::TestCase
   #################### iostat_filetype #######################
   test "list_iostat_filetype_history" do
     def do_test(groupby)
-      post :list_iostat_filetype_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_filetype_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
+        assert_response :success
+      end
     end
 
     iostat_filetype_key_rules.each do |key, value|
@@ -147,8 +155,10 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_iostat_filetype_history_grouping" do
     def do_test(groupby)
-      post :list_iostat_filetype_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_filetype_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
+        assert_response :success
+      end
     end
 
     iostat_filetype_key_rules.each do |key, value|
@@ -159,8 +169,10 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_iostat_filetype_history_samples" do
     def do_test(groupby)
-      post :list_iostat_filetype_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
-      assert_response :success
+      if ENV['DB_VERSION'] >= '11.2'
+        post :list_iostat_filetype_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
+        assert_response :success
+      end
     end
 
     iostat_filetype_key_rules.each do |key, value|

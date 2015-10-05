@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.0.91)
+    Panorama (2.0.92)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails

@@ -1,6 +1,8 @@
 # encoding: utf-8
 require 'test_helper'
 
+include MenuHelper
+
 class AdditionControllerTest < ActionController::TestCase
   setup do
     set_session_test_db_context{}
@@ -68,9 +70,11 @@ class AdditionControllerTest < ActionController::TestCase
     assert_response :success
 
     def do_test_list_object_increase(submit_tag, gruppierung_tag)
-      post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                    :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
-      assert_response :success
+      if showObjectIncrease                                                     # Nur Testen wenn Tabelle(n) auch existieren
+        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                      :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+        assert_response :success
+      end
     end
 
     def do_test_list_object_increase_outer(gruppierung_tag)
