@@ -22,7 +22,11 @@ class DbaControllerTest < ActionController::TestCase
     assert_response :success
 
     post :list_dml_locks, :format=>:js;  assert_response :success
-    post :list_ddl_locks, :format=>:js;  assert_response :success
+
+
+    if sql_select_one("select COUNT(*) from dba_views where view_name='DBA_KGLLOCK' ") > 0      # Nur Testen wenn View auch existiert
+      post :list_ddl_locks, :format=>:js;  assert_response :success
+    end
 
     post :list_blocking_dml_locks, :format=>:js
     assert_response :success
