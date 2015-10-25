@@ -1000,8 +1000,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             plot_area_id,
             caption,
             data_array,
-            {   plot_diagram: {locale: options['locale'], multiple_y_axes: multiple_y_axes},
-                yaxis:        { show: show_y_axes },
+            {   plot_diagram: { locale: options['locale'], multiple_y_axes: multiple_y_axes},
+                yaxis:        { min: 0, show: show_y_axes },
                 xaxes: (x_axis_time ? [{ mode: 'time'}] : [{}])
             }
         );

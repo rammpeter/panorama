@@ -189,7 +189,7 @@ class AdditionController < ApplicationController
     diagram_caption = "Top 10 Objekte im DB-Cache von #{@time_selection_start} bis #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
 
     plot_area_id = "plot_area_#{session[:request_counter]}"
-    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{diagram_caption}', data_array, {plot_diagram: {locale: '#{session[:locale]}'}});"
+    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{diagram_caption}', data_array, {plot_diagram: {locale: '#{session[:locale]}'}, yaxis: { min: 0 } });"
     output << "});"
 
     html="<div id='#{plot_area_id}'></div>"

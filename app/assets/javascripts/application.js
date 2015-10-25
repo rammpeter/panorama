@@ -9,8 +9,10 @@
 //= require jquery-ui-timepicker-addon
 //= require jquery_table2CSV
 //= require flot/jquery.flot
+//= require flot/jquery.flot.time
 //= require flot/jquery.flot.resize
 //= require flot/jquery.flot.crosshair
+//= require flot/jquery.flot.stack
 //= require jquery.event.drag-2.2
 //= require slick.core
 //= require slick.grid

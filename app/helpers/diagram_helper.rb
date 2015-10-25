@@ -73,7 +73,7 @@ module DiagramHelper
     output << "];"
 
     plot_area_id = "plot_area_#{session[:request_counter]}"
-    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{caption}', data_array, {plot_diagram: {locale: '#{session[:locale]}'}});"
+    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{caption}', data_array, {plot_diagram: {locale: '#{session[:locale]}'}, yaxis: { min: 0 }});"
 
     output << "});"
 

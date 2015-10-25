@@ -8,7 +8,7 @@
 // DOM-ID of DIV for plotting
 // Kopfzeile
 // Daten-Array
-// Options: mehrdimensionales Object, Inhalte werden durchgereicht bis zur Methode "plot" des flot-Plugins
+// Options: mehrdimensionales Object, Inhalte werden durchgereicht bis zur Methode "plot" des flot.old-Plugins
 //   Defaults sind:
 //      plot_diagram:   { locale: "en" }}
 //      plot_diagram:   { multiple_y_axes: false}}  // mehrere y-Achsen anzeigen?
@@ -48,7 +48,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         options = jQuery.extend({},
             {
                 plot_diagram:   { locale: 'en', multiple_y_axes: false },
-                series:         {lines: { show: true }, points: { show: true }},
+                series:         {stack: false, lines: { show: true, fill: false }, points: { show: true }},
                 crosshair:      { mode: "x" },
                 grid:           { hoverable: true, autoHighlight: false },
                 yaxis:          { show: true },
@@ -126,6 +126,22 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
                 plot_diagram(unique_id, plot_area_id, caption, data_array, options);
             }
         );
+
+        context_menu_entry(
+            'stack',
+            "ui-icon ui-icon-arrow-4-diag",
+            options.series.stack==true ? locale_translate('diagram_unstack_name') : locale_translate('diagram_stack_name'),
+            options.series.stack==true ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint'),
+            function(t){
+                plot_area.html(""); // Altes Diagramm entfernen
+                options.series.stack = !options.series.stack;
+                options.series.lines.fill = options.series.stack;
+                if (options.series.stack)
+                    options.plot_diagram.multiple_y_axes = false;
+                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
+            }
+        );
+
 
         jQuery('#'+canvas_id).contextMenu(context_menu_id, {
             menuStyle: {  width: '330px' },
@@ -265,7 +281,8 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             });
         }
 
-        jQuery('#'+canvas_id+" .legend").draggable().css("left", -9).css("top", canvas_height*-1+9); // Legende verschiebbar gestalten, da dann mit position:relative gearbeitet wird, muss neu positioniert werden
+//        jQuery('#'+canvas_id+" .legend").draggable().css("left", -9).css("top", canvas_height*-1+9); // Legende verschiebbar gestalten, da dann mit position:relative gearbeitet wird, muss neu positioniert werden
+        jQuery('#'+canvas_id+" .legend").draggable();
     }
 
 
@@ -322,6 +339,22 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             'diagram_all_off_hint': {
                 'en': 'Own y-axis for every column curve (each with 100% scale)',
                 'de': 'Eigene y-Achse je Spalten-Kurve (jede Kurve hat 100% des Wertebereich)'
+            },
+            'diagram_stack_name': {
+                'en': 'Stack single charts',
+                'de': 'Stapeln der einzelnen Kurven'
+            },
+            'diagram_stack_hint': {
+                'en': 'Shows values for single charts and sum simultaneously',
+                'de': 'Erlaubt gleichzeitige Sicht auf Einzelwerte und Summe'
+            },
+            'diagram_unstack_name': {
+                'en': 'Unstack single charts',
+                'de': 'Entstapeln der einzelnen Kurven'
+            },
+            'diagram_unstack_hint': {
+                'en': 'Each chart shows own values in y-axis',
+                'de': 'Jede Kurve zeigt ihre eigenen Werte auf Y-Achse'
             }
         }
     }
