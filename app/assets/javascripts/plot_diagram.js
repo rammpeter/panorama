@@ -1,23 +1,31 @@
-// Ermitteln der Dimensionen aller Zellen der Zeile und Abgleich gegen bisherige Werte der Spalte
-// Parameter: Zelle des data-Array
-//            Zelle des metadata-Array
-//            Column-Definition                                                // Zeichnen eines Diagrammes aus den übergebenen Datentupeln
+// Zeichnen eines Diagrammes auf Basis des flot-Pugins
+// Peter Ramm, 25.10.2015
+
+
+// Faktory-Methode zur Erzeugung und Initialisierung eines Objektes
 // Parameter:
 // Unique-ID fuer Bildung der Canvas-ID
 // DOM-ID of DIV for plotting
 // Kopfzeile
 // Daten-Array
-// multiple_y_axes  bool
-// show_y_axes      bool
-// x_axis_time      bool    Ist X-Achse ein Zeitstempel oder Nummer
+// Options: mehrdimensionales Object, Inhalte werden durchgereicht bis zur Methode "plot" des flot-Plugins
+//   Defaults sind:
+//      plot_diagram:   { locale: "en" }}
+//      plot_diagram:   { multiple_y_axes: false}}  // mehrere y-Achsen anzeigen?
+//      xaxes:          [{ mode: 'time'}],      // Ist X-Achse ein Zeitstempel oder Nummer
+//      yaxis:          { show: true },         // Anzeige der Y-Achse
+//      series:         {lines: { show: true }, points: { show: true }},
 
-function plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, show_y_axes, x_axis_time, locale){
-    var p = new plot_diagram_class(unique_id, plot_area_id, caption, data_array, multiple_y_axes, show_y_axes, x_axis_time, locale);
+//   Weitere Einstellungen fuer options
+//      yaxis:          { min: 0 }              // Minimaler Wert
+
+    function plot_diagram(unique_id, plot_area_id, caption, data_array, options){
+    var p = new plot_diagram_class(unique_id, plot_area_id, caption, data_array, options);
     p.initialize();
     return p;
 }
 
-function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multiple_y_axes, show_y_axes, x_axis_time, locale) {
+function plot_diagram_class(unique_id, plot_area_id, caption, data_array, options) {
     var plot_area               = jQuery('#'+plot_area_id);
     var canvas_id               = "canvas_" + unique_id;
     var head_id                 = "head_" + canvas_id;
@@ -32,6 +40,24 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
 
     // Initialisierung des Objektes, ab jetzt ist this gültig
     this.initialize = function(){
+        // options mit Defaults versehen
+        if (options == undefined)
+            options = {};
+
+        /* merge defaults and options, without modifying defaults */
+        options = jQuery.extend({},
+            {
+                plot_diagram:   { locale: 'en', multiple_y_axes: false },
+                series:         {lines: { show: true }, points: { show: true }},
+                crosshair:      { mode: "x" },
+                grid:           { hoverable: true, autoHighlight: false },
+                yaxis:          { show: true },
+                xaxes:          [{ mode: 'time'}],
+                legend:         { position: "ne"}
+            },
+            options
+        );
+
         // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
         plot_area
             .css("background-color", "white")
@@ -51,23 +77,13 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
 
         // Unterschiedliche IDs fuer Y-Achsen vergeben, wenn separat darzustellen
         jQuery.each(data_array, function(i,val){
-            if (multiple_y_axes==true)
+            if (options.plot_diagram.multiple_y_axes==true)
                 val.yaxis = data_array.length-i;
             else
                 val.yaxis = 1;
         });
 
-        plot_options = {
-            series:     {lines: { show: true }, points: { show: true }},
-            crosshair:  { mode: "x" },
-            grid:       { hoverable: true, autoHighlight: false },
-            yaxis:      { min: 0, show: show_y_axes==true },
-            legend:     { position: "ne"}
-        };
-        if (x_axis_time){
-            plot_options["xaxes"] = [{ mode: 'time' }]
-        }
-        plot = jQuery.plot(jQuery('#'+canvas_id), data_array, plot_options);     // Ausgabe des Diagrammes auf Canvas
+        plot = jQuery.plot(jQuery('#'+canvas_id), data_array, options);     // Ausgabe des Diagrammes auf Canvas
 
         if (data_array.length == 0){
             return;                                   // Aufbereitung des Diagrammes verlassen wenn gar keine Daten zum Zeichnen
@@ -90,22 +106,24 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
         context_menu_entry(
             'y_axis',
             "ui-icon ui-icon-comment",
-            show_y_axes==true ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
-            show_y_axes==true ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint'),
+            options.yaxis.show==true ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
+            options.yaxis.show==true ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint'),
             function(t){
                 plot_area.html(""); // Altes Diagramm entfernen
-                plot_diagram(unique_id, plot_area_id, caption, data_array, multiple_y_axes, (show_y_axes==true ? false : true), x_axis_time, locale);
+                options.yaxis.show = !options.yaxis.show
+                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
             }
         );
 
         context_menu_entry(
             'all_in_one',
             "ui-icon ui-icon-arrow-4-diag",
-            multiple_y_axes==true ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
-            multiple_y_axes==true ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint'),
+            options.plot_diagram.multiple_y_axes==true ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
+            options.plot_diagram.multiple_y_axes==true ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint'),
             function(t){
                 plot_area.html(""); // Altes Diagramm entfernen
-                plot_diagram(unique_id, plot_area_id, caption, data_array, (multiple_y_axes==true ? false : true), show_y_axes, x_axis_time, locale);
+                options.plot_diagram.multiple_y_axes = !options.plot_diagram.multiple_y_axes;
+                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
             }
         );
 
@@ -181,7 +199,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
             legends.eq(i).text(series.label + "= " + y.toFixed(2));
         }
         // Zeitpunkt des Crosshairs in X-Axis anzeigen
-        if (plot_options.xaxes[0].mode == "time"){
+        if (options.xaxes[0].mode == "time"){
             var time = new Date(pos.x);
             legendXAxis.html(pad2(time.getUTCDate())+"."+pad2(time.getUTCMonth()+1)+"."+time.getUTCFullYear()+" "+pad2(time.getUTCHours())+":"+pad2(time.getUTCMinutes()));   // Anzeige des aktuellen wertes der X-Achse
         } else {
@@ -229,7 +247,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
 
         // Legendenzeile für X-Achse hinzufügen
         var x_legend_title;
-        if (plot_options.xaxes[0].mode == "time"){
+        if (options.xaxes[0].mode == "time"){
             x_legend_title = "Time";
         } else {
             x_legend_title = 'X';
@@ -240,7 +258,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
         legendXAxis         =jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
 
         // Titel zu Skalen der spalten hinzufuegen, wenn multiple y-Achsen angezeigt werden
-        if (multiple_y_axes==true){
+        if (options.plot_diagram.multiple_y_axes==true){
 
             jQuery.each(data_array, function(i,val){
                 jQuery('#'+canvas_id+" .y"+(data_array.length-i)+"Axis").attr("title", val.label);
@@ -258,8 +276,8 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, multip
      */
     function locale_translate(key){
         if (get_translations()[key]){
-            if (get_translations()[key][locale]){
-                return get_translations()[key][locale];
+            if (get_translations()[key][options.plot_diagram.locale]){
+                return get_translations()[key][options.plot_diagram.locale];
             } else {
                 if (get_translations()[key]['en'])
                     return get_translations()[key]['en'];

@@ -1000,10 +1000,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             plot_area_id,
             caption,
             data_array,
-            multiple_y_axes,
-            show_y_axes,
-            x_axis_time,
-            options['locale']
+            {   plot_diagram: {locale: options['locale'], multiple_y_axes: multiple_y_axes},
+                yaxis:        { show: show_y_axes },
+                xaxes: (x_axis_time ? [{ mode: 'time'}] : [{}])
+            }
         );
     }; // plot_slickgrid_diagram
 
