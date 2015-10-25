@@ -247,7 +247,7 @@ Licensed under the MIT license.
 			// Create the text layer container, if it doesn't exist
 
 			if (this.textContainer == null) {
-				this.textContainer = $("<div class='flot.old-text'></div>")
+				this.textContainer = $("<div class='flot-text'></div>")
 					.css({
 						position: "absolute",
 						top: 0,
@@ -1304,14 +1304,14 @@ Licensed under the MIT license.
 
             placeholder.css("padding", 0) // padding messes up the positioning
                 .children().filter(function(){
-                    return !$(this).hasClass("flot.old-overlay") && !$(this).hasClass('flot.old-base');
+                    return !$(this).hasClass("flot-overlay") && !$(this).hasClass('flot-base');
                 }).remove();
 
             if (placeholder.css("position") == 'static')
                 placeholder.css("position", "relative"); // for positioning labels and overlay
 
-            surface = new Canvas("flot.old-base", placeholder);
-            overlay = new Canvas("flot.old-overlay", placeholder); // overlay canvas for interactive features
+            surface = new Canvas("flot-base", placeholder);
+            overlay = new Canvas("flot-overlay", placeholder); // overlay canvas for interactive features
 
             ctx = surface.context;
             octx = overlay.context;
@@ -1404,8 +1404,8 @@ Licensed under the MIT license.
                 labelHeight = opts.labelHeight || 0,
                 maxWidth = labelWidth || (axis.direction == "x" ? Math.floor(surface.width / (ticks.length || 1)) : null),
                 legacyStyles = axis.direction + "Axis " + axis.direction + axis.n + "Axis",
-                layer = "flot.old-" + axis.direction + "-axis flot.old-" + axis.direction + axis.n + "-axis " + legacyStyles,
-                font = opts.font || "flot.old-tick-label tickLabel";
+                layer = "flot-" + axis.direction + "-axis flot-" + axis.direction + axis.n + "-axis " + legacyStyles,
+                font = opts.font || "flot-tick-label tickLabel";
 
             for (var i = 0; i < ticks.length; ++i) {
 
@@ -1733,11 +1733,11 @@ Licensed under the MIT license.
             // we'll add an especially friendly reminder to make sure they included it.
 
             if (opts.mode == "time" && !axis.tickGenerator) {
-                throw new Error("Time mode requires the flot.old.time plugin.");
+                throw new Error("Time mode requires the flot.time plugin.");
             }
 
             // Flot supports base-10 axes; any other mode else is handled by a plug-in,
-            // like flot.old.time.js.
+            // like flot.time.js.
 
             if (!axis.tickGenerator) {
 
@@ -2184,12 +2184,12 @@ Licensed under the MIT license.
             $.each(allAxes(), function (_, axis) {
                 var box = axis.box,
                     legacyStyles = axis.direction + "Axis " + axis.direction + axis.n + "Axis",
-                    layer = "flot.old-" + axis.direction + "-axis flot.old-" + axis.direction + axis.n + "-axis " + legacyStyles,
-                    font = axis.options.font || "flot.old-tick-label tickLabel",
+                    layer = "flot-" + axis.direction + "-axis flot-" + axis.direction + axis.n + "-axis " + legacyStyles,
+                    font = axis.options.font || "flot-tick-label tickLabel",
                     tick, x, y, halign, valign;
 
                 // Remove text before checking for axis.show and ticks.length;
-                // otherwise plugins, like flot.old-tickrotor, that draw their own
+                // otherwise plugins, like flot-tickrotor, that draw their own
                 // tick labels will end up with both theirs and the defaults.
 
                 surface.removeText(layer);

@@ -167,7 +167,7 @@ shadowSize and lineWidth are derived as well from the points series.
                 radius = s.points.radius,
                 err = [s.points.xerr, s.points.yerr];
 
-        //sanity check, in case some inverted axis hack is applied to flot.old
+        //sanity check, in case some inverted axis hack is applied to flot
         var invertX = false;
         if (ax[0].p2c(ax[0].max) < ax[0].p2c(ax[0].min)) {
             invertX = true;
@@ -226,7 +226,7 @@ shadowSize and lineWidth are derived as well from the points series.
                         lower = minmax[0];
                     }
 
-                    //sanity check, in case some inverted axis hack is applied to flot.old
+                    //sanity check, in case some inverted axis hack is applied to flot
                     if ((err[e].err == 'x' && invertX) || (err[e].err == 'y' && invertY)) {
                         //swap coordinates
                         var tmp = lower;
