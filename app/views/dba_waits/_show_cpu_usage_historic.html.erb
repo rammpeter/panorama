@@ -1,8 +1,8 @@
 <% @update_area = get_unique_area_id %>
+
+<div class="page_caption">CPU-Usage and DB-Time from Active Session History (table DBA_Hist_Active_Sess_History)</div>
+
 <%= my_ajax_form_tag url_for(:controller=>:dba_waits, :action=>:list_cpu_usage_historic, :update_area=>@update_area) do %>
-    <div>
-      <b>CPU-Usage and DB-Time from Active Session History (table DBA_Hist_Active_Sess_History)</b>
-    </div>
 
     <%= include_start_end_timepicker %>
 

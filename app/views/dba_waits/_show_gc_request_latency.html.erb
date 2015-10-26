@@ -1,11 +1,9 @@
+<div class="page_caption">Global cache request latency from GV$SysStat:
+  <% @totals.each do |t| %>
+      <%= "Instance #{t.inst_id}: #{formattedNumber(t.avg_receive_time_ms,2)} ms  " %>
+  <% end %></div>
+
 <%= my_ajax_form_tag "dba_waits/list_gc_request_latency_history" do %>
-  <div class="float_left">
-    <b>Global Cache Request Latency aus GV$SysStat:
-      <% @totals.each do |t| %>
-        <%= "Instance #{t.inst_id}: #{formattedNumber(t.avg_receive_time_ms,2)} ms  " %>
-      <% end %>
-    </b>
-  </div>
   <%= include_start_end_timepicker %>
   <div class="float_left">
     RAC-Instance

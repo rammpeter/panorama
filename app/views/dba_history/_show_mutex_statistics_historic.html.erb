@@ -1,14 +1,13 @@
 <% @update_area = "show_mutex_statistics_historic_area_#{session[:request_counter]}" %>
 
+<div class="page_caption"><%=  t(:show_mutex_statistics_historic_caption, :default=>"Mutex-Statistics from GV$Mutex_Sleep_History (since instance-start)") %></div>
+
+
 <%= my_ajax_form_tag url_for(:controller  => :dba_history,
                              :action      => :list_mutex_statistics_historic,
                              :update_area => @update_area
                      ) do
 %>
-  <div class="float_left">
-    <b><%=  t(:show_mutex_statistics_historic_caption, :default=>"Mutex-Statistics from GV$Mutex_Sleep_History (since instance-start)") %></b>
-  </div>
-
   <%= include_start_end_timepicker %>
 
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">

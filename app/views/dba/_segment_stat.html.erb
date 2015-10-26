@@ -1,4 +1,4 @@
-<h2><%= t(:dba_segment_stat_caption, :default=>'Object-specific statistics from V$Segment_Statistics')%></h2>
+<div class="page_caption" style="margin-bottom: 5px;"><%= t(:dba_segment_stat_caption, :default=>'Object-specific statistics from V$Segment_Statistics')%></div>
 
 <%= my_ajax_form_tag "dba/show_segment_statistics" do%>
   <%= collection_select(:statistic_name, :statistic_name, @stats, :statistic_name, :statistic_name) %>        

@@ -1,8 +1,8 @@
 <% @update_area = get_unique_area_id %>
+
+<div class="page_caption">Session-Statistics <%= t(:from, :default=>'from')%> DBA_Hist_Active_Sess_History <%= t(:and, :default=>'and')%> gv$Active_Session_History</div>
+
 <%= my_ajax_form_tag url_for(:controller=>:active_session_history, :action=>:list_session_statistic_historic, :update_area=>@update_area) do %>
-  <div>
-    <b>Session-Statistics <%= t(:from, :default=>'from')%> DBA_Hist_Active_Sess_History <%= t(:and, :default=>'and')%> gv$Active_Session_History</b>
-  </div>
 
   <%= include_start_end_timepicker %>
 

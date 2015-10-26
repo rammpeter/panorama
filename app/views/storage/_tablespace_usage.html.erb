@@ -1,4 +1,4 @@
-<h2><%= t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')%>  <%= session[:database][:sid] %> <%= localeDateTime(Time.now, :minutes) %> </h2>
+<div class="page_caption"><%= t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')%>  <%= session[:database][:sid] %> <%= localeDateTime(Time.now, :minutes) %></div>
 
 <%
 def total_data_style(rec)
