@@ -1,7 +1,6 @@
+<div class="page_caption">I/O History from DBA_Hist_IOStat_Filetype</div>
+
 <%= my_ajax_form_tag url_for(:controller=> :io, :action => :list_iostat_filetype_history, :update_area => :list_iostat_filetype_history_area) do %>
-    <div>
-      <b>I/O History from DBA_Hist_IOStat_Filetype</b>
-    </div>
 
     <%= include_start_end_timepicker %>
 

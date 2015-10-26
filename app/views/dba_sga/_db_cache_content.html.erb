@@ -1,8 +1,8 @@
 <% @update_area = get_unique_area_id %>
+
+<div class="page_caption">DB-Cache-Nutzung</div>
+
 <%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_db_cache_content, :update_area=>@update_area) do %>
-  <div class="float_left">
-    <b>DB-Cache-Nutzung</b>
-  </div>
   <div class="float_left">
     Instance
     <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>

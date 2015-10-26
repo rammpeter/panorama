@@ -1,4 +1,4 @@
-<h2>Suche nach das Objekt nutzenden (referenzierenden) SQL-Statements (GV$SQL_Plan)</h2>
+<div class="page_caption">Suche nach das Objekt nutzenden (referenzierenden) SQL-Statements (GV$SQL_Plan)</div>
 
 <% @update_area = get_unique_area_id %>
 <%= my_ajax_form_tag url_for(:controller => :dba_sga, :action => :show_using_sqls, :update_area => @update_area) do %>

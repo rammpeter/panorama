@@ -1,8 +1,8 @@
+<div class="page_caption"><%= "Historie aus #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks" %></div>
+
+
 <%= my_ajax_form_tag "addition/list_blocking_locks_history" do %>
   <div class="float_left">
-      <div class="float_left" style="vertical-align:middle">
-        <b><%= "Historie aus #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks" %></b>
-      </div>
       <%= include_start_end_timepicker %>
   </div>
 

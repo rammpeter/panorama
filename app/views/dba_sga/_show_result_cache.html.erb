@@ -1,7 +1,7 @@
+<div class="page_caption">Result cache info from gv$Result_Cache_Objects</div>
+
+
 <%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_result_cache, :update_area=>:show_result_cache_detail_area) do %>
-  <div class="float_left">
-    <b>Result cache info from gv$Result_Cache_Objects</b>
-  </div>
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
     <%= text_field_tag(:instance, "", :size=>1) %>

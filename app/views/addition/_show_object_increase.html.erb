@@ -1,4 +1,5 @@
-<h3>Änderung der Größe von Objekten im gegebenen Zeitraum</h3>
+<div class="page_caption">Änderung der Größe von Objekten im gegebenen Zeitraum</div>
+
 <% @update_area = get_unique_area_id  %>
 
 <%= my_ajax_form_tag url_for(:controller=>:addition, :action=>:list_object_increase, :update_area=>@update_area) do %>

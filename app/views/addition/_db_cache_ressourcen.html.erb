@@ -1,7 +1,6 @@
+<div class="page_caption">DB-Cache-Nutzung historisch</div>
+
 <%= my_ajax_form_tag "addition/list_db_cache_historic" do %>
-  <div class="float_left">
-    <b>DB-Cache-Nutzung historisch</b>
-  </div>
   <div class="float_left">
     Anzahl Treffer
     <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Einschränkung der Treffermenge nach Top-Nutzung") %>

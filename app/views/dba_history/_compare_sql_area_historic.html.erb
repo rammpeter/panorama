@@ -1,7 +1,6 @@
+<div class="page_caption">Vergleich der Laufzeiten von Statements zweier Tage aus DBA_Hist_SQLStat</div>
+
 <%= my_ajax_form_tag "dba_history/list_compare_sql_area_historic" do %>
-  <div class="float_left">
-    <b>Vergleich der Laufzeiten von Statements zweier Tage aus DBA_Hist_SQLStat</b>
-  </div>
   <div class="float_left">
     <%= label_tag(:minProzDiff, "Laufzeitdiff >", :title => "Laufzeitz am Tag 2 mindestens x % größer") %>
     <%= text_field_tag(:minProzDiff, "50", :size=>2, :title => "Laufzeitz am Tag 2 mindestens x % größer") %>

@@ -1,7 +1,7 @@
+<div class="page_caption">PGA-history from DBA_Hist_PGAStat</div>
+
+
 <%= my_ajax_form_tag url_for(:controller=>:dba_pga, :action=>"list_pga_stat_historic", :update_area=>"list_pga_stat_historic_area") do %>
-  <div class="float_left">
-    <b>PGA-Historie aus DBA_Hist_PGAStat</b>
-  </div>
   <%= include_start_end_timepicker %>
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance

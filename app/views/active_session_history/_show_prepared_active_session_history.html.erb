@@ -1,4 +1,7 @@
 <% @update_area = get_unique_area_id %>
+
+<div class="page_caption">Session-Statistics aus DBA_Hist_Active_Sess_History</div>
+
 <%=
     my_ajax_form_tag url_for(:controller  => :active_session_history,
                              :action      => :list_prepared_active_session_history,
@@ -7,9 +10,6 @@
                              :groupby     => @groupby
                             ) do
 %>
-  <div>
-    <b>Session-Statistics aus DBA_Hist_Active_Sess_History</b>
-  </div>
 
   <%= include_start_end_timepicker(:show_prepare_active_session_history) %>
 
