@@ -177,6 +177,34 @@ function rpad(org_string, max_length, compare_obj_id){
     return org_string;
 }
 
+// Sicherstellen, dass Menü in einer Zeile darstellbar ist, einklappen wenn zu eng
+// aufgerufen über resize-Event
+function check_menu_width() {
+    var menu_ul =  jQuery('.sf-menu');
+
+    var menu_width = jQuery('#main_menu').width();
+    if (menu_ul.data('unshrinked_menu_width') != undefined)
+        menu_width = menu_ul.data('unshrinked_menu_width');
+
+    var tns_width  =  jQuery('#head_links').width();
+    var total_width = jQuery('body').width();
+
+    var matches = menu_width + tns_width < total_width-10;
+    var menu_shrinked = jQuery('.sf-small-ul').length > 0;
+
+    if (!matches && !menu_shrinked) {     // menu einklappen
+        menu_ul.data('unshrinked_menu_width', menu_width);                      // merken der ursprünglichen Breites des Menus
+        var menu_content = menu_ul.html();
+        var newMenu = jQuery('<li><a class="sf-with-ul" href="#">Menu<span class="sf-sub-indicator"></span></a><ul class="sf-small-ul"></ul></li>');
+        menu_ul.html(newMenu);
+        jQuery('.sf-small-ul').html(menu_content);
+    }
+    if (matches && menu_shrinked) { // menu ausklappen
+        var menu_content = jQuery('.sf-small-ul').html();
+        menu_ul.html(menu_content);
+        menu_ul.data('unshrinked_menu_width', jQuery('#main_menu').width());    // erneut die neue Breite merken (evtl. erstmals ausgeklappt)
+    }
+}
 
 
 

@@ -96,22 +96,6 @@ h2 {
     white-space: pre-wrap;
 }
 
-#head_links {
-	position: absolute;
-	right: 10px;
-	top: 30px;			
-}
-
-#head_links a {
-	color: white;
-}
-
-#head_links a:hover {
-	border-style: solid;
-	border-width: 1px;
-	
-}
-
 .menu {	 
 	width: 15em;	 
 	position: absolute;

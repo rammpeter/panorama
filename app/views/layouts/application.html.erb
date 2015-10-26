@@ -36,6 +36,8 @@
                   beforeClose:function(){jQuery('#error_dialog_content').html('')}  // übergreifend auf body wirkenden css-Inhalt entsorgen
               });
 
+              jQuery('body').resize(function(){ check_menu_width();});
+
               // Oeffnen und Schliessen des DateTimePickers, damit weißer Hintergrund vor erster Benutzung geklärt ist
               $('#datetimedummy')
                       .datetimepicker()
@@ -183,10 +185,11 @@
 
 
         <div class="head_block">
-            <div id="main_menu">
+            <div id="main_menu" style="float: left;">
             </div>
-            <div id="head_links">
-                <a href="#" onclick="window.location.reload(); return false;" ><span id="current_tns"><%= current_tns %></span></a>
+            <div id="head_links" style="float: right; padding-right: 10px;">
+                <br>
+                <a href="#" onclick="window.location.reload(); return false;" ><span id="current_tns" style="color: white;"><%= current_tns %></span></a>
             </div>
         </div>
         <div style="height: 50px;"></div> <!-- Platzhalter für Höhe des absolut positionierten divs "head" -->
