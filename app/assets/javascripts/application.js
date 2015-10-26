@@ -2,8 +2,8 @@
 // This file is automatically included by javascript_include_tag :defaults
 
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
-//= require jquery-1.10.2
-//= require jquery-ui-1.10.3.custom
+//= require jquery-2.1.4
+//= require jquery-ui
 //= require jquery.ui.touch-punch.js
 // jquery_ujs.js aus gem jquery-rails nach vendor/assets/javascript kopiert, da im gem selbst nicht gefunden, statt dessen: sprocket-Error
 //= require jquery_ujs
