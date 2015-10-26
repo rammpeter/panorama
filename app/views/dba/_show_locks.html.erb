@@ -1,14 +1,12 @@
+<div class="page_caption"><%= t(:dba_show_locks_caption, :default=>'List current locks of different types')%></div>
 <div>
 <%= my_ajax_form_tag :controller => :dba, :action=>"list_dml_locks" do %>
-  <div class="float_left">
-    <b><%= t :dba_show_locks_caption, :default=> "Show locks" %></b>
+  <div class="float_left" title="<%= t(:dba_show_locks_all_locks_hint, :default=>"Show all locks? Otherwise AE- and PS-Locks are suppressed") %>">
+    <%= t :dba_show_locks_all_locks_caption, :default=>"All Locks?" %> <%= check_box_tag(:show_all_locks, 1, false) %>
   </div>
-  <div class="float_left">
-    <%= t :dba_show_locks_all_locks_caption, :default=>"All Locks?" %> <%= check_box_tag(:show_all_locks, 1, false, :title=>t(:dba_show_locks_all_locks_hint, :default=>"Show all locks? Otherwise AE- and PS-Locks are suppressed")) %>
-  </div>
-  <div class="float_left"> 
+  <div class="float_left" title="<%= t(:dba_show_locks_max_result_size_hint, :default=>"Limit max. no. of rows for result") %>">
     <%= t :dba_show_locks_max_result_size_caption, :default=>"max. to show" %>
-    <%= text_field_tag(:max_result_size, "1000", :size=>8, :title=>t(:dba_show_locks_max_result_size_hint, :default=>"Limit max. no. of rows for result")) %>
+    <%= text_field_tag(:max_result_size, "1000", :size=>8) %>
   </div>
 
   <div class="float_left"> 

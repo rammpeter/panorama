@@ -61,7 +61,7 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 50px;
+    height: 42px;
     background-image: url(liquid.jpg);
     border-bottom-style: solid;
     border-bottom-color: black;
@@ -77,6 +77,17 @@ body {
     border-bottom-style: solid;
     border-bottom-color: black;
     border-bottom-width: 1px;
+}
+
+
+.page_caption {
+    text-align: center;
+    background: url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+    width:100%;
+    font-weight: bold;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 

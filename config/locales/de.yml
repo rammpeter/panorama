@@ -179,7 +179,7 @@
   dba_sga_show_sql_area_submit_caption:                     SQL anzeigen
   dba_sga_show_sql_area_submit_hint:                        Anlistung der SQL nach Suchkriterien
 
-  dba_show_locks_caption:                                   Locks anlisten
+  dba_show_locks_caption:                                   Aktuell Locks verschiedener Typen anlisten
   dba_show_locks_all_locks_caption:                         Alle Locks
   dba_show_locks_all_locks_hint:                            Alle Locks anlisten? Sonst AE- und PS-Locks unterdrücken.
   dba_show_locks_max_result_size_caption:                   max. anzuzeigen

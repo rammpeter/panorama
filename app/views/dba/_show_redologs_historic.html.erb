@@ -1,9 +1,9 @@
 <% @update_area = get_unique_area_id %>
 
+<div class="page_caption">Historic redo log info from DBA_Hist_Log</div>
+
+
 <%= my_ajax_form_tag url_for(:controller => :dba, :action => :list_redologs_historic, :update_area => @update_area) do %>
-    <div class="float_left">
-        <b>Historic redo log info from DBA_Hist_Log</b>
-    </div>
     <%= include_start_end_timepicker %>
 
     <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">

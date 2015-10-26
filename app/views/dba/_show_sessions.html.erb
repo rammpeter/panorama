@@ -1,4 +1,4 @@
-<h2><%= t(:dba_show_sessions_caption, :default=>"Show sessions") %></h2>
+<div class="page_caption"><%= t(:dba_show_sessions_caption, :default=>"Show sessions") %></div>
 
 <%= my_ajax_form_tag url_for(:controller => :dba, :action => "list_sessions") do  %>
   <div class="float_left">
