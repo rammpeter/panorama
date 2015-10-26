@@ -27,50 +27,50 @@
       <%= submit_tag(t(:dba_sga_show_sql_area_submit_caption, :default=>'Show SQL'), :title => t(:dba_sga_show_sql_area_submit_hint, :default=>'Show SQL statements according to filter conditions')) %>
     </div>
 
-  <div class="float_left" style="width:100%; ">
-    <div class="float_left">
-      <%= t(:sorted_by, :default=>'Sorted by') %>:
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
-      Elapsed Time per execute
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :ElapsedTimeTotal, false) %>
-      Elapsed Time total
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :ExecutionCount, false) %>
-      total Executions
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :RowsProcessed, false) %>
-      RowsProcessed
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :ExecsPerDisk, false) %>
-      Executions per Disk-Read
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :BufferGetsPerRow, false) %>
-      Buffer gets per result-row
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :CPUTime, false) %>
-      CPU-Time total
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :BufferGets, false) %>
-      Buffer Gets total
-    </div>
-    <div class="float_left">
-      <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
-      Cluster waits total
-    </div>
-    <div class="float_left" title="<%= t(:dba_sga_show_sql_area_sort_last_active_hint, :default=>'Sorted by timestamp of last execution of SQL')%>">
-      <%= radio_button_tag(:topSort, :LastActive, false) %>
-      LastActive
-    </div>
+  <div style="clear: both;">
+    <fieldset>
+      <legend><%= t(:sorted_by, :default=>'Sorted by') %></legend>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
+        Elapsed Time per execute
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ElapsedTimeTotal, false) %>
+        Elapsed Time total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ExecutionCount, false) %>
+        total Executions
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :RowsProcessed, false) %>
+        RowsProcessed
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ExecsPerDisk, false) %>
+        Executions per Disk-Read
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :BufferGetsPerRow, false) %>
+        Buffer gets per result-row
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :CPUTime, false) %>
+        CPU-Time total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :BufferGets, false) %>
+        Buffer Gets total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
+        Cluster waits total
+      </div>
+      <div class="float_left" title="<%= t(:dba_sga_show_sql_area_sort_last_active_hint, :default=>'Sorted by timestamp of last execution of SQL')%>">
+        <%= radio_button_tag(:topSort, :LastActive, false) %>
+        LastActive
+      </div>
+    </fieldset>
   </div>
 <% end %>
 <div id="<%= @update_area %>" style="float:left; width:100%;">

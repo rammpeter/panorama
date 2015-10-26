@@ -316,43 +316,43 @@ module ApplicationHelper
       index = 0
       sql_datetime_minute_mask.split(//).each do |m|
         unless m.count 'DMYH24I:' # Maskenzeichen an Position enthält nicht einen der Werte
-          raise "Trenner an Position #{index} ist nicht '#{m}'" if ts[index,1] != m
+          raise "#{t(:application_helper_delimiter_on_pos, :default=>'Delimiter at position')} #{index} #{t(:application_helper_is_not, :default=>'is not')} '#{m}'" if ts[index,1] != m
         end
         index = index+1
       end
 
       daypos = sql_datetime_minute_mask.index 'DD'
-      raise 'Länge des Ausdrucks != 16' if ts.length != 16
-      raise 'Tag nicht zwischen 01 und 31'        if  ts[daypos,1] < '0' || ts[daypos,1] > '3' ||      # Tag
+      raise "#{t(:application_helper_length_error, :default=>'Length of expression')} != 16" if ts.length != 16
+      raise t(:application_helper_range_error_day, :default=>'Day not between 01 and 31')        if  ts[daypos,1] < '0' || ts[daypos,1] > '3' ||      # Tag
                                                       ts[daypos+1,1] < '0' || ts[daypos+1,1] > '9' ||
                                                       ts[daypos,2].to_i < 1  ||
                                                       ts[daypos,2].to_i > 31
 
       monthpos = sql_datetime_minute_mask.index 'MM'
-      raise 'Monat nicht zwischen 01 und 12'      if ts[monthpos,1] < '0' || ts[monthpos,1] > '1' ||      # Monat
+      raise t(:application_helper_range_error_month, :default=>'Month not between 01 and 12')      if ts[monthpos,1] < '0' || ts[monthpos,1] > '1' ||      # Monat
                                                      ts[monthpos+1,1] < '0' || ts[monthpos+1,1] > '9' ||
                                                      ts[monthpos,2].to_i < 1  ||
                                                      ts[monthpos,2].to_i > 12
 
       yearpos = sql_datetime_minute_mask.index 'YYYY'
-      raise 'Jahr ist nicht zwischen 1000 und 2999' if ts[yearpos,1] < '1' || ts[yearpos,1] > '2' ||      #Jahr
+      raise t(:application_helper_range_error_year, :default=>'Year not between 1000 and 2999') if ts[yearpos,1] < '1' || ts[yearpos,1] > '2' ||      #Jahr
                                                        ts[yearpos+1,1] < '0' || ts[yearpos+1,1] > '9' ||
                                                        ts[yearpos+2,1] < '0' || ts[yearpos+2,1] > '9' ||
                                                        ts[yearpos+3,1] < '0' || ts[yearpos+3,1] > '9'
 
       hourpos = sql_datetime_minute_mask.index 'HH24'
-      raise 'Stunde ist nicht zwischen 00 und 23' if ts[hourpos,1] < '0' || ts[hourpos,1] > '2' ||    # Stunde
+      raise t(:application_helper_range_error_hour, :default=>'Hour not between 00 and 23') if ts[hourpos,1] < '0' || ts[hourpos,1] > '2' ||    # Stunde
                                                        ts[hourpos+1,1] < '0' || ts[hourpos+1,1] > '9' ||
                                                        ts[hourpos,2].to_i > 23
 
       minutepos = sql_datetime_minute_mask.index('MI') - 2    # HH24 verbraucht 2 stellen mehr als in Realität
-      raise 'Minute ist nicht zwischen 00 und 59' if ts[minutepos,1] < '0' || ts[minutepos,1] > '5' ||    # Minute
+      raise t(:application_helper_range_error_minute, :default=>'Minute not between 00 and 59') if ts[minutepos,1] < '0' || ts[minutepos,1] > '5' ||    # Minute
                                                        ts[minutepos+1,1] < '0' || ts[minutepos+1,1] > '9' ||
                                                        ts[minutepos,2].to_i > 59
 
       ts      # Return-wert
     rescue Exception => e
-      raise "Ungültiges Format des Zeitstempels '#{ts}'. Erwartet wird '#{human_datetime_minute_mask}'! Problem: #{e.message}"
+      raise "#{t(:ajax_helper_link_sql_id_title_prefix, :default=>'Invalid format of timestamp')} '#{ts}'. #{t(:ajax_helper_link_wait_params_hint, :default=>'Expected is')} '#{human_datetime_minute_mask}'! Problem: #{e.message}"
     end
 
     raise "Parameter 'time_selection_start' missung in hash 'params'" unless params[:time_selection_start]
