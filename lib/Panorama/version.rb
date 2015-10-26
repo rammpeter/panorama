@@ -6,3 +6,5 @@ module Panorama
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month
   RELEASE_YEAR  = "%04d" % RELEASE_DATE.year
 end
+
+

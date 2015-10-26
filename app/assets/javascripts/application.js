@@ -4,6 +4,7 @@
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
 //= require jquery-1.10.2
 //= require jquery-ui-1.10.3.custom
+//= require jquery.ui.touch-punch.js
 // jquery_ujs.js aus gem jquery-rails nach vendor/assets/javascript kopiert, da im gem selbst nicht gefunden, statt dessen: sprocket-Error
 //= require jquery_ujs
 //= require jquery-ui-timepicker-addon
