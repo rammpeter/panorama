@@ -51,7 +51,7 @@ module ApplicationHelper
         raise "Unsupported Parameter-Class '#{sql.class.name}' for parameter sql of sql_select_all(sql)"
       end
     end
-    result = ActiveRecord::Base.connection().select_all(stmt, 'sql_select_all', binds)
+    result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
     result.each do |h|
       h.each do |key, value|
         h[key] = value.strip if value.class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
@@ -502,7 +502,7 @@ module ApplicationHelper
 
   # Setzen einer neutralen Connection nach Abarbeitung des Requests, damit frühzeitiger Connect bei Beginn der Verarbeitung eines Requests nicht gegen die DB des letzten Requests geht
   def set_dummy_db_connection
-    ActiveRecord::Base.establish_connection(:adapter  => 'nulldb')
+    ConnectionHolder.establish_connection(:adapter  => 'nulldb')
   end
 
   # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht

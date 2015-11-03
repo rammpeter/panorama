@@ -58,15 +58,15 @@ public
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
 
       begin
-        config = ActiveRecord::Base.connection.instance_variable_get(:@config)  # Aktuelle config, kann reduziert sein auf :adapter bei NullDB
+        config = ConnectionHolder.connection.instance_variable_get(:@config)  # Aktuelle config, kann reduziert sein auf :adapter bei NullDB
       rescue Exception => e
-        Rails.logger.warn "Error: ActiveRecord::Base.connection.instance_variable_get(:@config): #{e.message}"
+        Rails.logger.warn "Error: ConnectionHolder.connection.instance_variable_get(:@config): #{e.message}"
         Rails.logger.warn "Resetting connection to dummy"
         set_dummy_db_connection
         config = {}
       end
       # Connect nur ausführen wenn bisherige DB-Connection nicht der gewünschten entspricht
-      if ActiveRecord::Base.connection.class.name != 'ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter' ||
+      if ConnectionHolder.connection.class.name != 'ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter' ||
           config[:adapter]  != 'oracle_enhanced' ||
           config[:driver]   != 'oracle.jdbc.driver.OracleDriver' ||
           config[:url]      != jdbc_thin_url ||
@@ -79,7 +79,7 @@ public
           Rails.logger.warn "Error in open_oracle_connection decrypting pasword: #{e.message}"
           raise "Encryption key for stored password in cookie has changed at server side! Please connect giving username and password."
         end
-        ActiveRecord::Base.establish_connection(
+        ConnectionHolder.establish_connection(
             :adapter  => "oracle_enhanced",
             :driver   => "oracle.jdbc.driver.OracleDriver",
             :url      => jdbc_thin_url,
@@ -90,13 +90,13 @@ public
         )
         Rails.logger.info "Connecting database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
       else
-        Rails.logger.info "Using connected database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+        Rails.logger.info "Using already connected database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
       end
 
     else
       raise "Native ruby (RUBY_ENGINE=#{RUBY_ENGINE}) is no longer supported! Please use JRuby runtime environment! Call contact for support request if needed."
 =begin
-      ActiveRecord::Base.establish_connection(
+      ConnectionHolder.establish_connection(
           :adapter  => "oracle_enhanced",
           :database => session[:database][:tns],
           :username => session[:database][:user],

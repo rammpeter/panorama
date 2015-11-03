@@ -939,7 +939,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     
   def show_explain_plan
     statement = params[:statement].rstrip.gsub(/;$/, "")       # führendes Semikolon entfernen
-    ActiveRecord::Base.connection.execute "EXPLAIN PLAN SET Statement_ID='Panorama' FOR " + statement
+    ConnectionHolder.connection.execute "EXPLAIN PLAN SET Statement_ID='Panorama' FOR " + statement
     @plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
           Operation, Options, Object_Owner, Object_Name, Optimizer,
@@ -949,7 +949,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         WHERE Statement_ID=?",
         "Panorama"
         ]
-    ActiveRecord::Base.connection.execute "DELETE FROM Plan_Table WHERE STatement_ID='Panorama'"
+    ConnectionHolder.connection.execute "DELETE FROM Plan_Table WHERE STatement_ID='Panorama'"
     respond_to do |format|
       format.js {render :js => "$('#explain_plan_area').html('#{j render_to_string :partial=> "list_explain_plan" }');"}
     end
@@ -1005,7 +1005,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     end # get_values
 
     # Sicherstellen, dass SQL-Sortierung analog der Sortierung in Ruby erfolgt
-    ActiveRecord::Base.connection.execute "ALTER SESSION SET NLS_SORT=BINARY"
+    ConnectionHolder.connection.execute "ALTER SESSION SET NLS_SORT=BINARY"
 
     @header = params[:statistic_name][:statistic_name]
 
@@ -1024,7 +1024,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       data2 = data1       # selbes Result noch einmal verwenden
     else
       sleep sampletime     
-      ActiveRecord::Base.connection.clear_query_cache # Result-Caching Ausschalten für wiederholten Zugriff
+      ConnectionHolder.connection.clear_query_cache # Result-Caching Ausschalten für wiederholten Zugriff
       data2 = get_values    # Snapshot nach SampleTime
     end
     @data = []            # Leeres Array für Result

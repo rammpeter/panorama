@@ -59,7 +59,7 @@ class DbaWaitsController < ApplicationController
     sampletime = params[:sample_length].to_i
     raise "Sampletime muss > 0 sein " if sampletime <= 0    # Kein Sample gewünscht
     sleep sampletime
-    ActiveRecord::Base.connection.clear_query_cache # Result-Caching Ausschalten für wiederholten Zugriff
+    ConnectionHolder.connection.clear_query_cache # Result-Caching Ausschalten für wiederholten Zugriff
     data2 = get_values(filter)    # Snapshot nach SampleTime
     
     @data = []            # Leeres Array für Result

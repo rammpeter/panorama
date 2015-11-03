@@ -89,18 +89,18 @@ class ApplicationController < ActionController::Base
       begin
         # Ausgabe Logging-Info in File für Usage-Auswertung
         filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ActiveRecord::Base.connection.current_database} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
+        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ConnectionHolder.current_database_name} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
       rescue Exception => e
         logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
 
       # Registrieren mit Name an Oracle-DB
-      #ActiveRecord::Base.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
-      ActiveRecord::Base.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
+      #ConnectionHolder.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
+      ConnectionHolder.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
                                                   [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil, ActiveRecord::Type::Value.new), "#{controller_name}/#{action_name}"]]
       )
 
-      #ActiveRecord::Base.connection.exec_update("call dbms_application_info.set_Module('Panorama', ?)", nil, ["#{controller_name}/#{action_name}"])
+      #ConnectionHolder..connection.exec_update("call dbms_application_info.set_Module('Panorama', ?)", nil, ["#{controller_name}/#{action_name}"])
 
     else  # Keine DB bekannt
        raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')
@@ -116,8 +116,8 @@ class ApplicationController < ActionController::Base
 
   # Aktivitäten nach Requestbearbeitung
   def after_request
-    # Connection beibehalten nach Request fuer evtl. Verarbeitung des nächsten Request auf selber Connection
-    # close_connection
+    # Letzte Connection offen lassen
+    # close_connection   # Sicherstellen, dass naechster Request nicht mit der aktuellen Connection einfach weiter macht
   end
 
   # Ausfüherung nach jedem Request ohne Ausnahme
