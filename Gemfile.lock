@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.2.1)
+    Panorama (2.2.2)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -85,7 +85,7 @@ GEM
       mime-types (>= 1.16, < 3)
     memcache-client (1.8.5)
     mime-types (2.6.2)
-    minitest (5.8.1)
+    minitest (5.8.2)
     multi_json (1.11.2)
     nokogiri (1.6.6.2-java)
     rack (1.6.4)
