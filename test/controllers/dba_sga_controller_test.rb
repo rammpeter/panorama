@@ -98,6 +98,19 @@ class DbaSgaControllerTest < ActionController::TestCase
     assert_response :success
     post :list_result_cache, :format=>:js
     assert_response :success
+
+    xhr :get, :list_result_cache_single_results, :format=>:js, :instance=>1, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
+    assert_response :success
+
+    xhr :get, :list_result_cache_dependencies_by_id, :format=>:js, :instance=>1, :id=>100, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
+    assert_response :success
+
+    xhr :get, :list_result_cache_dependencies_by_name, :format=>:js, :instance=>1, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
+    assert_response :success
+
+    xhr :get, :list_result_cache_dependents, :format=>:js, :instance=>1, :id=>100, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
+    assert_response :success
+
   end
 
   test "list_db_cache_advice_historic" do

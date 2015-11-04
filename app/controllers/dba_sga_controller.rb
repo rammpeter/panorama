@@ -768,24 +768,26 @@ class DbaSgaController < ApplicationController
       SELECT /* Panorama-Tool Ramm */
              o.*,
              (SELECT UserName FROM DBA_Users WHERE User_ID = o.Min_User_ID) Min_Creator,
-             (SELECT UserName FROM DBA_Users WHERE User_ID = o.Max_User_ID) Max_Creator
+             (SELECT UserName FROM DBA_Users WHERE User_ID = o.Max_User_ID) Max_Creator,
+             CASE WHEN Creator_Count > 1 THEN '< '||Creator_Count||' >' ELSE (SELECT UserName FROM DBA_Users WHERE User_ID = o.Max_User_ID) END Creator
       FROM   (SELECT
                      o.Inst_ID, o.Status, o.Name, o.NameSpace,
-                     COUNT(*)                    Result_Count,
-                     SUM(Space_Overhead)/1024    Space_Overhead_KB,
-                     SUM(Space_Unused)/1024      Space_Unused_KB,
-                     MIN(Creation_Timestamp)     Min_CreationTS,
-                     MAX(Creation_Timestamp)     Max_CreationTS,
+                     COUNT(*)                     Result_Count,
+                     SUM(Space_Overhead)/1024     Space_Overhead_KB,
+                     SUM(Space_Unused)/1024       Space_Unused_KB,
+                     MIN(Creation_Timestamp)      Min_CreationTS,
+                     MAX(Creation_Timestamp)      Max_CreationTS,
                      MIN(Creator_UID) KEEP (DENSE_RANK FIRST ORDER BY Creation_Timestamp) Min_User_ID,
                      MAX(Creator_UID) KEEP (DENSE_RANK LAST  ORDER BY Creation_Timestamp) Max_User_ID,
-                     MAX(Depend_Count) Depend_Count,
-                     SUM(Pin_Count)     Pin_Count,
-                     SUM(Scan_Count)    Scan_Count,
-                     --SUM(Row_Count)     Row_Count,
-                     MIN(Row_Size_Min)  Row_Size_Min,
-                     MAX(Row_Size_Max)  Row_Size_Max,
+                     COUNT(DISTINCT Creator_UID)  Creator_Count,
+                     MAX(Depend_Count)            Depend_Count,
+                     SUM(Block_Count)             Block_Count,
+                     SUM(Pin_Count)               Pin_Count,
+                     SUM(Scan_Count)              Scan_Count,
+                     MIN(Row_Size_Min)            Row_Size_Min,
+                     MAX(Row_Size_Max)            Row_Size_Max,
                      SUM(Row_Size_Avg*Row_Count)/DECODE(SUM(Row_Count), 0, 1, SUM(Row_Count))   Row_Size_Avg,
-                     SUM(Invalidations) Invalidations
+                     SUM(Build_Time)              Build_Time
               FROM   gv$Result_Cache_Objects o
               WHERE  Type = 'Result'
               #{@instance ? " AND Inst_ID = ?" : ""}
@@ -816,6 +818,79 @@ class DbaSgaController < ApplicationController
       ", @instance, @status, @name,@namespace]
 
     render_partial
+  end
+
+  def list_result_cache_dependencies_by_id
+    @instance   = params[:instance]
+    @id         = params[:id]
+    @status     = params[:status]
+    @name       = params[:name]
+    @namespace  = params[:namespace]
+
+    @dependencies =  sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             o.*,
+             u.UserName
+      FROM   gV$RESULT_CACHE_DEPENDENCY d
+      JOIN   gv$Result_Cache_Objects o ON o.Inst_ID = d.Inst_ID AND o.ID = d.Depend_ID
+      LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      WHERE  d.Inst_ID    = ?
+      AND    d.Result_ID  = ?
+      AND    o.Type       = 'Dependency'
+      ", @instance, @id]
+
+    render_partial :list_result_cache_dependencies
+  end
+
+  def list_result_cache_dependencies_by_name
+    @instance   = params[:instance]
+    @status     = params[:status]
+    @name       = params[:name]
+    @namespace  = params[:namespace]
+
+    @dependencies =  sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             o.*,
+             u.UserName
+      FROM   (SELECT /*+ NO_MERGE */ d.Inst_ID, d.Depend_ID
+              FROM  gv$Result_Cache_Objects r
+              JOIN  gV$RESULT_CACHE_DEPENDENCY d ON d.Inst_ID = r.Inst_ID AND d.Result_ID = r.ID
+              WHERE r.Inst_ID   = ?
+              AND   r.Status    = ?
+              AND   r.Name      = ?
+              AND   r.NameSpace = ?
+              GROUP BY d.Inst_ID, d.Depend_ID
+             ) d
+      JOIN   gv$Result_Cache_Objects o ON o.Inst_ID = d.Inst_ID AND o.ID = d.Depend_ID
+      LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      WHERE  o.Type       = 'Dependency'
+      ", @instance, @status, @name, @namespace]
+
+
+    render_partial :list_result_cache_dependencies
+  end
+
+  def list_result_cache_dependents
+    @instance   = params[:instance]
+    @id         = params[:id]                     # ID des Dependency-Records in gv$Result_Cache_Objects
+    @status     = params[:status]
+    @name       = params[:name]                   # Name der Dependency
+    @namespace  = params[:namespace]
+
+
+    @results = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             o.*,
+             u.UserName
+      FROM   gV$RESULT_CACHE_DEPENDENCY d
+      JOIN   gv$Result_Cache_Objects o ON o.Inst_ID = d.Inst_ID AND o.ID = d.Result_ID
+      LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      WHERE  d.Inst_ID    = ?
+      AND    d.Depend_ID  = ?
+      AND    o.Type      = 'Result'
+      ", @instance, @id]
+
+    render_partial :list_result_cache_single_results
   end
 
   def list_db_cache_advice_historic
