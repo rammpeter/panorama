@@ -43,25 +43,36 @@ module DiagramHelper
     end
     result_data_array << record if origin_data_array.length > 0                 # Letzten Record in Array schreiben wenn Daten vorhanden
 
-    # Initialisieren aller Werte zum Zeitpunkt mit 0, falls kein Sample existiert
-    graph_sums.each do |key, v|
+    graph_array = graph_sums.sort_by(&:last)                                    # Wandeln des Hashes in aufsteigend sortiertes Array
+
+    others_name = '[ Others ]'                                                  # Name der Kurve für den Rest
+
+    # Limitieren auf top x
+    while graph_array.length > top_x-1 do
+      # Others-Kurve kumulieren
       result_data_array.each do |r|
-        r[key] = 0 unless r[key]
+        r[others_name] = 0 unless r[others_name]                                # Initialisieren bei erstem Zugriff
+        r[others_name] += r[graph_array[0][0]] if r[graph_array[0][0]]          # Kumulieren der nicht zu Top x gehörenden Werte unter others
+      end
+
+      graph_array.delete_at(0)                                                  # jeweils ersten (kleinsten) Eintrag entfernen aus Array, solange Anzahl noch zu groß
+    end
+
+    graph_array.insert(0, [others_name, 0])
+
+    # Initialisieren aller anzuzeigenden Werte (Top x) zum Zeitpunkt mit 0, falls kein Sample existiert
+    graph_array.each do |g|
+      result_data_array.each do |r|
+        r[g[0]] = 0 unless r[g[0]]
       end
     end
 
-    graph_array = graph_sums.sort_by(&:last)                                    # Wandeln des Hashes in aufsteigend sortiertes Array
-
-    # Limitieren auf top x
-    while graph_array.length > top_x do
-      graph_array.delete_at(0)                                                  # ersten Eintrag entfernen aus Array
-    end
 
     # JavaScript-Array aufbauen mit Daten
     output = ""
     output << "jQuery(function($){"
     output << "var data_array = ["
-    graph_array.reverse.each do |g|                                             # Ausgabe mit groesstem beginnen
+    graph_array.each do |g|                                             # Ausgabe mit groesstem beginnen
       output << "  { label: '#{g[0]}',"
       output << "    data: ["
       result_data_array.each do |s|
@@ -73,7 +84,11 @@ module DiagramHelper
     output << "];"
 
     plot_area_id = "plot_area_#{session[:request_counter]}"
-    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{caption}', data_array, {plot_diagram: {locale: '#{session[:locale]}'}, yaxis: { min: 0 }});"
+    output << "var options = {plot_diagram: {locale: '#{session[:locale]}'},
+                              yaxis: { min: 0 },
+                              legend:{sorted: 'reverse'}
+                             };"
+    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{caption}', data_array, options);"
 
     output << "});"
 

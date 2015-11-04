@@ -1,3 +1,4 @@
+<% @update_area = get_unique_area_id %>
 <%
 column_options =
 [
@@ -16,12 +17,41 @@ column_options =
 
 
 <%
-column_options =
+   def link_single_results(rec)
+     my_ajax_link_to(fn(rec.result_count),
+                     url_for(:controller    => :dba_sga,
+                             :action        => :list_result_cache_single_results,
+                             :instance      => rec.inst_id,
+                             :status        => rec.status,
+                             :name          => rec.name,
+                             :namespace     => rec.namespace,
+                             :update_area => @update_area
+                     ),
+                     :title=> 'Show single results for name')
+   end
+
+
+   def link_dependencies(rec)
+     my_ajax_link_to(fn(rec.depend_count),
+                     url_for(:controller    => :dba_sga,
+                             :action        => :list_result_cache_dependencies,
+                             :instance      => rec.inst_id,
+                             :status        => rec.status,
+                             :name          => rec.name,
+                             :namespace     => rec.namespace,
+                             :update_area => @update_area
+                     ),
+                     :title=> 'Show depencies for result')
+   end
+
+
+   column_options =
 [
   {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
-  {:caption=>"Status",          :data=>proc{|rec| rec.status},                                         :title=>"Status of object"},
+  {:caption=>"Status",          :data=>proc{|rec| rec.status},                                         :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
   {:caption=>"Name",            :data=>proc{|rec| rec.name},                                           :title=>"Name of object"},
   {:caption=>"Namespace",       :data=>proc{|rec| rec.namespace},                                      :title=>"Namespace of object"},
+  {:caption=>"Results",         :data=>proc{|rec| link_single_results(rec)},                           :title=>'Number of single results', :align=>"right"},
   {:caption=>"Space total",     :data=>proc{|rec| formattedNumber(rec.space_overhead_kb+rec.space_unused_kb)}, :title=>"Space total in kBytes (overhead+unused)", :align=>"right"},
   {:caption=>"Space overhead",  :data=>proc{|rec| formattedNumber(rec.space_overhead_kb)},             :title=>"Space overhead in kBytes", :align=>"right"},
   {:caption=>"Space unused",    :data=>proc{|rec| formattedNumber(rec.space_unused_kb)},               :title=>"Space unused in kBytes", :align=>"right"},
@@ -29,10 +59,9 @@ column_options =
   {:caption=>"Max. creation",   :data=>proc{|rec| localeDateTime(rec.max_creationts)},                 :title=>"Last creation-timestamp of object"},
   {:caption=>"First creator",   :data=>proc{|rec| rec.min_creator},                                    :title=>"First user creating result"},
   {:caption=>"Last creator",    :data=>proc{|rec| rec.max_creator},                                    :title=>"Last user creating result"},
-  {:caption=>"Depend. count",   :data=>proc{|rec| formattedNumber(rec.depend_count)},                  :title=>"Number of dependencies", :align=>"right"},
+  {:caption=>"Depend. count",   :data=>proc{|rec| link_dependencies(rec)},                             :title=>"Number of dependencies", :align=>"right"},
   {:caption=>"Pin count",       :data=>proc{|rec| formattedNumber(rec.pin_count)},                     :title=>"Number of active scans on this result", :align=>"right"},
   {:caption=>"Scan count",      :data=>proc{|rec| formattedNumber(rec.scan_count)},                    :title=>"Total number of scans initiated on the cached result", :align=>"right"},
-  {:caption=>"Row count",       :data=>proc{|rec| formattedNumber(rec.row_count)},                     :title=>"Total number of rows in the cached result", :align=>"right"},
   {:caption=>"Max. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_max)},                  :title=>"Size of the largest row (in bytes)", :align=>"right"},
   {:caption=>"Min. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_min)},                  :title=>"Size of the smallest row (in bytes)", :align=>"right"},
   {:caption=>"Avg. row size",   :data=>proc{|rec| formattedNumber(rec.row_size_avg)},                  :title=>"Average size of a row (in bytes)", :align=>"right"},
@@ -44,3 +73,6 @@ column_options =
         :caption => "Result cache usage by objects",
         :max_height => 450
 }) %>
+
+
+<div id="<%= @update_area %>"></div>

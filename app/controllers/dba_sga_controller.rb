@@ -771,6 +771,7 @@ class DbaSgaController < ApplicationController
              (SELECT UserName FROM DBA_Users WHERE User_ID = o.Max_User_ID) Max_Creator
       FROM   (SELECT
                      o.Inst_ID, o.Status, o.Name, o.NameSpace,
+                     COUNT(*)                    Result_Count,
                      SUM(Space_Overhead)/1024    Space_Overhead_KB,
                      SUM(Space_Unused)/1024      Space_Unused_KB,
                      MIN(Creation_Timestamp)     Min_CreationTS,
@@ -780,7 +781,7 @@ class DbaSgaController < ApplicationController
                      MAX(Depend_Count) Depend_Count,
                      SUM(Pin_Count)     Pin_Count,
                      SUM(Scan_Count)    Scan_Count,
-                     SUM(Row_Count)     Row_Count,
+                     --SUM(Row_Count)     Row_Count,
                      MIN(Row_Size_Min)  Row_Size_Min,
                      MAX(Row_Size_Max)  Row_Size_Max,
                      SUM(Row_Size_Avg*Row_Count)/DECODE(SUM(Row_Count), 0, 1, SUM(Row_Count))   Row_Size_Avg,
@@ -791,6 +792,28 @@ class DbaSgaController < ApplicationController
               GROUP BY Inst_ID, Status, Name, NameSpace
             ) o
       ORDER BY Space_Overhead_KB+Space_Unused_KB DESC", @instance]
+
+    render_partial
+  end
+
+  def list_result_cache_single_results
+    @instance   = params[:instance]
+    @status     = params[:status]
+    @name       = params[:name]
+    @namespace  = params[:namespace]
+
+    @results = sql_select_all ["\
+      SELECT /* Panorama-Tool Ramm */
+             o.*,
+             u.UserName
+      FROM   gv$Result_Cache_Objects o
+      LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      WHERE  Inst_ID   = ?
+      AND    Status    = ?
+      AND    Name      = ?
+      AND    NameSpace = ?
+      AND    Type      = 'Result'
+      ", @instance, @status, @name,@namespace]
 
     render_partial
   end

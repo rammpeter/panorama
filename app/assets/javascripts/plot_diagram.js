@@ -32,7 +32,8 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
     var canvas_height           = 450;
     var updateLegendTimeout     = null;
     var latestPosition          = null;
-    var legends                 = null          // erzeugt in initialize
+    var legend_values           = null;         // Liste der letzten Spalten der Legende für Werte
+    var legend_indexes          = {};           // Hash mit 'legend-name': index in Legende
     var legendXAxis             = null;         // erzeugt in initialize
     var previousToolTipPoint    = null;
     var toolTipID               = canvas_id+"_ToolTip"
@@ -44,19 +45,25 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         if (options == undefined)
             options = {};
 
+
+        var default_options = {
+            plot_diagram:   { locale: 'en', multiple_y_axes: false },
+            series:         {stack: false, lines: { show: true, fill: false }, points: { show: true }},
+            crosshair:      { mode: "x" },
+            grid:           { hoverable: true, autoHighlight: false },
+            yaxis:          { show: true },
+            xaxes:          [{ mode: 'time'}],
+            legend:         { position: "ne"}
+        };
+
+        // Punkte für Werte nicht anzeigen, wenn mehr als x Einzelwerte auf x-Achse
+        jQuery.each(data_array, function(i,val){
+            if (val.data.length > 100)
+                default_options.series.points.show = false;
+        });
+
         /* merge defaults and options, without modifying defaults */
-        options = jQuery.extend({},
-            {
-                plot_diagram:   { locale: 'en', multiple_y_axes: false },
-                series:         {stack: false, lines: { show: true, fill: false }, points: { show: true }},
-                crosshair:      { mode: "x" },
-                grid:           { hoverable: true, autoHighlight: false },
-                yaxis:          { show: true },
-                xaxes:          [{ mode: 'time'}],
-                legend:         { position: "ne"}
-            },
-            options
-        );
+        options = jQuery.extend({}, default_options,options);
 
         // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
         plot_area
@@ -129,7 +136,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
 
         context_menu_entry(
             'stack',
-            "ui-icon ui-icon-arrow-4-diag",
+            "ui-icon  ui-icon-arrowthickstop-1-s",
             options.series.stack==true ? locale_translate('diagram_unstack_name') : locale_translate('diagram_stack_name'),
             options.series.stack==true ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint'),
             function(t){
@@ -142,6 +149,17 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             }
         );
 
+        context_menu_entry(
+            'point',
+            "ui-icon  ui-icon-radio-off",
+            options.series.points.show==true ? locale_translate('diagram_hide_points_name') : locale_translate('diagram_show_points_name'),
+            options.series.points.show==true ? locale_translate('diagram_hide_points_hint') : locale_translate('diagram_show_points_hint'),
+            function(t){
+                plot_area.html(""); // Altes Diagramm entfernen
+                options.series.points.show = !options.series.points.show;
+                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
+            }
+        );
 
         jQuery('#'+canvas_id).contextMenu(context_menu_id, {
             menuStyle: {  width: '330px' },
@@ -195,7 +213,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             return;
 
         var i, j, dataset = plot.getData();
-        for (i = 0; i < dataset.length; ++i) {
+        for (i = 0; i < dataset.length; ++i) {                                  // Iteration ueber die Kurven des Diagramms
             var series = dataset[i];
 
             // find the nearest points, x-wise
@@ -212,7 +230,8 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             else
                 y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
 
-            legends.eq(i).text(series.label + "= " + y.toFixed(2));
+            // Index des Labels in Legende aus legend_indexes lesen und dort Wert platzieren (Sortierung der Legende kann variieren)
+            jQuery(legend_values[legend_indexes[series.label]]).html(y.toFixed(2));
         }
         // Zeitpunkt des Crosshairs in X-Axis anzeigen
         if (options.xaxes[0].mode == "time"){
@@ -254,13 +273,6 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
 
         // ############ crosshair.Anzeige aktualisieren
 
-        legends             = jQuery('#'+canvas_id+" .legendLabel");
-
-        legends.each(function () {
-            // fix the widths so they don't jump around
-            jQuery(this).css('width', jQuery(this).width()+10);
-        });
-
         // Legendenzeile für X-Achse hinzufügen
         var x_legend_title;
         if (options.xaxes[0].mode == "time"){
@@ -269,9 +281,21 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             x_legend_title = 'X';
         }
         jQuery('#'+canvas_id+" .legend").find("table").addClass('legend_table');
-        if (jQuery('#'+canvas_id+" .legendXAxis").length == 0)                  // bei erstmaligem aufruf Zeile hinzufügen
-            jQuery('#'+canvas_id+" .legend").find("tbody").append("<tr><td align='center'>"+x_legend_title+"</td><td class='legendXAxis'></td></tr>");
-        legendXAxis         =jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
+        if (jQuery('#'+canvas_id+" .legendXAxis").length == 0) {                // bei erstmaligem aufruf Zeile hinzufügen, nicht bei jedem Resize
+
+            // Spalte zufügen für die Werte-Anzeige
+            jQuery('#' + canvas_id + " .legend").find("tr").each(function(index, elem){
+                var tr = jQuery(elem)
+                var legend_name = jQuery(tr.children('td')[1]).html();
+                legend_indexes[legend_name] = index;                            // Position zum Name der Kurve in der Legende merken
+                tr.append("<td align='right' class='legend_value'></td>td>");
+            });
+
+            // Zeile für Anzeige des Zeitstempels zufügen
+            jQuery('#' + canvas_id + " .legend").find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td></tr>");
+        }
+        legendXAxis         = jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
+        legend_values       = jQuery('#'+canvas_id+" .legend_value");            // Liste der letzten Spalten merken für wiederholte Verwendung
 
         // Titel zu Skalen der spalten hinzufuegen, wenn multiple y-Achsen angezeigt werden
         if (options.plot_diagram.multiple_y_axes==true){
@@ -355,7 +379,23 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             'diagram_unstack_hint': {
                 'en': 'Each chart shows own values in y-axis',
                 'de': 'Jede Kurve zeigt ihre eigenen Werte auf Y-Achse'
-            }
+            },
+            'diagram_hide_points_hint': {
+                'en': "Don't show single values as circle on chart",
+                'de': 'Einzelwerte nicht als Kreis auf der Kurve anzeigen'
+            },
+            'diagram_show_points_hint': {
+                'en': 'Show single values as circle on chart',
+                'de': 'Einzelwerte als Kreis auf der Kurve anzeigen'
+            },
+            'diagram_hide_points_name': {
+                'en': "Don't show single values as circle",
+                'de': 'Einzelwerte nicht als Kreis zeigen'
+            },
+            'diagram_show_points_name': {
+                'en': 'Show single values as circle',
+                'de': 'Einzelwerte als Kreis zeigen'
+            },
         }
     }
 
