@@ -1,7 +1,9 @@
 # Klasse dient zum Führen einer Oracle-Connection ohne ActiveRecord::Base.connection zu verändern
 # Damit läuft pauschale Aktivierung der DB-Connection üner NullDB-Adapter
 class ConnectionHolder < ActiveRecord::Base
-  self.table_name =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
+  self.table_name   =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
+  self.primary_key  = "id"            # Festes übersteuern, da DUAL keine Info zum Primary Key liefert
+
 
   @@current_database_name = nil
 
