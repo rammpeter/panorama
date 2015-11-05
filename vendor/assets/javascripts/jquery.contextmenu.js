@@ -92,29 +92,36 @@
 
     // Erweiterung um longpress-Funktionen auf Touc-Devices, Peter Ramm, 05.11.2015
     var longpress={
-      longpressed:false,
-      presstime:1000
+      presstime:500
     };
 
     // analog zu mousedown
-    $(this).on( 'touchstart' , function( event ) {
-      longpress.longpressed=false;
+    $(this).bind('touchstart mousedown' , function( event ) {
+      var element = this;
       longpress.timeout=setTimeout(function() {
-        longpress.longpressed=true;
         //Long press action here!
-        alert("Long pressed");
+        var bShowContext = (!!hash[index].onContextMenu) ? hash[index].onContextMenu(event) : true;
+        currentTarget = event.target;
+        if (bShowContext) {
+          display(index, element, event);
+        }
       },longpress.presstime);
-    }).on( 'touchend' , function( event ) {     // analog zu mouseup
-      clearTimeout(longpress.timeout);
-    }).on('touchmove', function( event ) {   // analog zu mouseleave
+    });
+
+    $(this).bind('touchend mouseup' , function( event ) {     // analog zu mouseup
       clearTimeout(longpress.timeout);
     });
 
+    $(this).bind('touchmove mouseleave', function( event ) {   // analog zu mouseleave
+      clearTimeout(longpress.timeout);
+    });
 
+    // Ende Touch-Handling
 
 
     return this;
   };
+
 
   function display(index, trigger, e ) {
     var cur = hash[index];
