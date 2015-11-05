@@ -88,6 +88,31 @@
 		return false;
 	  }
     });
+
+
+    // Erweiterung um longpress-Funktionen auf Touc-Devices, Peter Ramm, 05.11.2015
+    var longpress={
+      longpressed:false,
+      presstime:1000
+    };
+
+    // analog zu mousedown
+    $(this).on( 'touchstart' , function( event ) {
+      longpress.longpressed=false;
+      longpress.timeout=setTimeout(function() {
+        longpress.longpressed=true;
+        //Long press action here!
+        alert("Long pressed");
+      },longpress.presstime);
+    }).on( 'touchend' , function( event ) {     // analog zu mouseup
+      clearTimeout(longpress.timeout);
+    }).on('touchmove', function( event ) {   // analog zu mouseleave
+      clearTimeout(longpress.timeout);
+    });
+
+
+
+
     return this;
   };
 

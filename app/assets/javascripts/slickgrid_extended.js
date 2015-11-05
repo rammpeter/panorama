@@ -619,6 +619,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             menu_entry(entry_index, "ui-icon "+menu_entries[entry_index]['ui_icon'], menu_entries[entry_index]['action'], menu_entries[entry_index]['label'], menu_entries[entry_index]['hint']);
         }
 
+        // basiert auf ContextMenu - jQuery plugin for right-click context menus, Author: Chris Domigan, http://www.trendskitchens.co.nz/jquery/contextmenu/
         thiz.gridContainer.contextMenu(context_menu_id, {
             menuStyle: {  width: '330px' },
             bindings:   bindings,
