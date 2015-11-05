@@ -96,7 +96,7 @@
     };
 
     // analog zu mousedown
-    $(this).bind('touchstart mousedown' , function( event ) {
+    $(this).bind('touchstart' , function( event ) {
       var element = this;
       longpress.timeout=setTimeout(function() {
         //Long press action here!
@@ -108,13 +108,10 @@
       },longpress.presstime);
     });
 
-    $(this).bind('touchend mouseup' , function( event ) {     // analog zu mouseup
+    $(this).bind('touchend touchmove touchcancel' , function( event ) {     // analog zu mouseup und mouseleave
       clearTimeout(longpress.timeout);
     });
 
-    $(this).bind('touchmove mouseleave', function( event ) {   // analog zu mouseleave
-      clearTimeout(longpress.timeout);
-    });
 
     // Ende Touch-Handling
 
