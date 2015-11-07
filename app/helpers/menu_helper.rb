@@ -27,7 +27,6 @@ module MenuHelper
             },
             {:class=> 'item', :caption=>t(:menu_dba_used_objects_caption, :default=> 'Attached objects'), :controller=>:dba,             :action=> 'used_objects',      :hint=>t(:menu_dba_used_objects_hint, :default=> 'Currently attached objects (Attention: large response time at large systems)') },
             {:class=> 'item', :caption=> 'Explain Plan',       :controller=>:dba,             :action=> 'explain_plan',      :hint=>t(:menu_dba_explain_plan_hint, :default=> 'Show execution plan of SQL-statement') },
-            {:class=> 'item', :caption=> 'Temp Usage',         :controller=>:dba,             :action=> 'temp_usage',        :hint=>t(:menu_dba_temp_usage_hint, :default=> 'Current usage of TEMP-tablespace') },
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_wait_caption, :default=> 'Analyses / statistics'), :content=>[
@@ -90,6 +89,10 @@ module MenuHelper
             {:class=> 'item', :caption=> 'Describe object',     :controller=>:dba_schema,       :action=>:describe_object,  :hint=>'Describe database object (table, index, materialized view ...)' },
             {:class=> 'item', :caption=> 'Materialized view structures',         :controller=>:storage,   :action=> 'show_materialized_views',  :hint=>t(:menu_storage_matview_hint, :default=> 'Show structure of materialzed views and MV-logs')   },
             {:class=> 'item', :caption=> t(:menu_storage_table_dependency_caption, :default=>'Table-dependencies'),         :controller=> 'table_dependencies',  :action=> 'show_frame',            :hint=> t(:menu_storage_table_dependency_hint, :default=>'Direct and indirect referential dependencies of tables')},
+            { :class=> 'menu', :caption=> 'Temp usage', :content=>[
+                {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),                  :controller=>:storage,     :action=>:temp_usage,        :hint=>t(:menu_dba_temp_usage_hint, :default=>'Current usage of TEMP-tablespace') },
+            ]
+            },
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_io_caption, :default=> 'I/O analysis'), :content=>[

@@ -458,5 +458,52 @@ class StorageController < ApplicationController
     render_partial
   end
 
+  def temp_usage
+    @sort_segs = sql_select_all "\
+        SELECT /* Panorama-Tool Ramm */ s.*,
+               t.Block_Size
+        FROM   gv$Sort_Segment s
+        JOIN   DBA_Tablespaces t ON t.Tablespace_Name = s.Tablespace_Name"
+
+    @temp_ts_size = sql_select_one "\
+        SELECT SUM(Size_MB) Size_MB
+        FROM   (
+                SELECT /* Panorama-Tool Ramm */  SUM(d.Bytes)/1048576 Size_MB
+                FROM DBA_Data_Files d
+                WHERE d.Tablespace_Name IN (SELECT Tablespace_Name FROM gv$Sort_Segment)
+                UNION ALL
+                SELECT /* Panorama-Tool Ramm */  SUM(d.Bytes)/1048576 Size_MB
+                FROM DBA_Temp_Files d
+                WHERE d.Tablespace_Name IN (SELECT Tablespace_Name FROM gv$Sort_Segment)
+               )
+        "
+
+
+    @data = sql_select_all "\
+        SELECT /* Panorama-Tool Ramm */ t.INST_ID,
+        s.SID,
+        s.Serial# SerialNo,
+        s.UserName,
+        s.Status,
+        s.OSUser,
+        s.Process,
+        s.Machine,
+        s.Program,
+        SYSDATE - (s.Last_Call_Et/86400) Last_Call,
+        t.Tablespace,
+        t.SegType,
+        t.Extents,
+        t.Blocks
+        FROM GV$TempSeg_Usage t,
+             gv$session s
+        WHERE s.Inst_ID = t.Inst_ID
+        AND   s.SAddr = t.Session_Addr"
+
+    respond_to do |format|
+      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"storage/temp_usage" }');"}
+    end
+  end
+
+
 end
 

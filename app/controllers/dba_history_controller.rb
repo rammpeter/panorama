@@ -114,7 +114,7 @@ class DbaHistoryController < ApplicationController
                      SUM(Table_Scans_Delta)             Table_Scans_Delta
               from DBA_HIST_SEG_STAT s
               WHERE  (s.DBID, s.Snap_ID, s.Instance_Number) IN (
-                      SELECT /*+ NO_MERGE ORDERED */ s1.DBID, ss.Snap_ID, ss.Instance_Number
+                      SELECT /*+ NO_MERGE ORDERED */ ss.DBID, ss.Snap_ID, ss.Instance_Number
                       FROM   DBA_Hist_Snapshot ss
                       LEFT OUTER JOIN (SELECT DBID, Instance_Number, MAX(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s1 ON s1.Instance_Number = ss.Instance_Number AND s1.DBID = ss.DBID
                       JOIN            (SELECT DBID, Instance_Number, MIN(Snap_ID) Snap_ID FROM dba_hist_snapshot WHERE Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') GROUP BY DBID, Instance_Number) s2 ON s2.Instance_Number = ss.Instance_Number AND s2.DBID = ss.DBID

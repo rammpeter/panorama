@@ -1,0 +1,68 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+   column_options =
+           [
+                   {:caption=>'I',                  :data=>proc{|rec| rec.inst_id },                            :title=>'RAC-Instance'},
+                   {:caption=>'TS',                 :data=>proc{|rec| rec.tablespace_name },                    :title=>'Tablespace name'},
+                   {:caption=>'Ext. size',          :data=>proc{|rec| fn(rec.extent_size) },                    :title=>'Extent size in DB blocks',   :align=>:right},
+                   {:caption=>'Curr. users',        :data=>proc{|rec| fn(rec.current_users) },                  :title=>'Number of active users of the segment',   :align=>:right},
+                   {:caption=>'Total size (MB)',    :data=>proc{|rec| fn((rec.total_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Total size of the segment in MByte', :data_title=>proc{|rec| "%t: total extents=#{fn rec.total_extents}, total blocks=#{fn rec.total_blocks}"}, :align=>:right},
+                   {:caption=>'Used size (MB)',     :data=>proc{|rec| fn((rec.used_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Used size of the segment in MByte', :data_title=>proc{|rec| "%t: used extents=#{fn rec.used_extents}, used blocks=#{fn rec.used_blocks}"}, :align=>:right},
+                   {:caption=>'Free size (MB)',     :data=>proc{|rec| fn((rec.free_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Free size of the segment in MByte', :data_title=>proc{|rec| "%t: free extents=#{fn rec.free_extents}, free blocks=#{fn rec.free_blocks}"}, :align=>:right},
+                   {:caption=>'Added ext.',         :data=>proc{|rec| fn(rec.added_extents) },                  :title=>'Number of extent allocations',   :align=>:right},
+                   {:caption=>'Ext. hits',          :data=>proc{|rec| fn(rec.extent_hits) },                    :title=>'Number of times an unused extent was found in the pool',   :align=>:right},
+                   {:caption=>'Freed ext.',         :data=>proc{|rec| fn(rec.freed_extents) },                  :title=>'Number of deallocated extents',   :align=>:right},
+                   {:caption=>'Free reqs.',         :data=>proc{|rec| fn(rec.free_requests) },                  :title=>'Number of requests to deallocate',   :align=>:right},
+                   {:caption=>'Max. size (MB)',     :data=>proc{|rec| fn((rec.max_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Maximum size ever used in MByte', :data_title=>proc{|rec| "%t: max. extents=#{fn rec.max_size}, max. blocks=#{fn rec.max_blocks}"}, :align=>:right},
+                   {:caption=>'Max. used size (MB)',:data=>proc{|rec| fn((rec.max_used_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Maximum size used by all sorts in MByte', :data_title=>proc{|rec| "%t: max. used extents=#{fn rec.max_used_size}, max. used blocks=#{fn rec.max_used_blocks}"}, :align=>:right},
+                   {:caption=>'Max. sort size (MB)',:data=>proc{|rec| fn((rec.max_sort_blocks*rec.block_size).to_f/(1024*1024), 2) },  :title=>'Maximum size used by an individual sort in MByte', :data_title=>proc{|rec| "%t: max. sort extents=#{fn rec.max_sort_size}, max. sort blocks=#{fn rec.max_sort_blocks}"}, :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@sort_segs, column_options, {:caption=>"Temp-Segment summary from GV$Sort_Segment (Total size of TEMP data files / temp files = #{fn @temp_ts_size} MB)", :max_height => 450}) %>
+
+
+<%
+  def link_column_sid(rec)
+    my_ajax_link_to("#{rec.sid},#{rec.serialno}",
+                    url_for(:controller     => :dba,
+                            :action         => :show_session_detail,
+                            :instance       => rec.inst_id,
+                            :sid            => rec.sid,
+                            :serialno       => rec.serialno,
+                            :update_area    => @update_area
+                           ),
+                    :title=> "Anzeige Details zu Session"
+                   )
+  end
+
+    @temp_size = 0
+    @data.each do |rec|
+      @temp_size += rec.blocks*session[:db_block_size]/(1024.0*1024.0)
+    end
+
+  column_options =
+    [
+      {:caption=>"I",           :data=>proc{|rec| rec.inst_id },                              :title=>"RAC-Instance"},
+      {:caption=>"SID, SN",     :data=>proc{|rec| link_column_sid(rec) },                     :title=>"SID, Serial-Number"},
+      {:caption=>"User",        :data=>proc{|rec| rec.username },                             :title=>"DB-User-Name"},
+      {:caption=>"Status",      :data=>proc{|rec| rec.status },                               :title=>"Session-Status"},
+      {:caption=>"OS-User",     :data=>proc{|rec| rec.osuser },                               :title=>"OS-User-Name"},
+      {:caption=>"Process",     :data=>proc{|rec| rec.process },                              :title=>"OS-Process-ID"},
+      {:caption=>"Machine",     :data=>proc{|rec| rec.machine },                              :title=>"Client-Maschine"},
+      {:caption=>"Program",     :data=>proc{|rec| rec.program },                              :title=>"Client-Programm"},
+      {:caption=>"Last Active", :data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>"Start of last active-state of session"},
+      {:caption=>"TS",          :data=>proc{|rec| rec.tablespace },                           :title=>"Tablespace-Name"},
+      {:caption=>"Seg.type",    :data=>proc{|rec| rec.segtype },                              :title=>"Segment-Type"},
+      {:caption=>"Extents",     :data=>proc{|rec| formattedNumber(rec.extents) },             :title=>"Anzahl Extents",   :align=>"right"},
+      {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks) },              :title=>"Anzahl Blöcke",    :align=>"right"},
+      {:caption=>"MB",          :data=>proc{|rec| formattedNumber(rec.blocks*session[:db_block_size]/(1024.0*1024.0),2) },                               :title=>"Megabytes",        :align=>"right"},
+    ]
+
+%>
+
+<%= gen_slickgrid(@data, column_options, {:caption=>"Temp-Segment Usage from GV$TempSeg_Usage (Sum: #{@temp_size} MB)", :max_height => 450}) %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%;"></div>

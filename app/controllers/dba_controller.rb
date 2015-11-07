@@ -1068,33 +1068,6 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     end
   end
 
-
-  def temp_usage
-    @data = sql_select_all "\
-        SELECT /* Panorama-Tool Ramm */ t.INST_ID,
-        s.SID,
-        s.Serial# SerialNo,
-        s.UserName,
-        s.Status,
-        s.OSUser,
-        s.Process,
-        s.Machine,
-        s.Program,
-        SYSDATE - (s.Last_Call_Et/86400) Last_Call,
-        t.Tablespace,
-        t.SegType,
-        t.Extents,
-        t.Blocks
-        FROM GV$TempSeg_Usage t,
-             gv$session s
-        WHERE s.Inst_ID = t.Inst_ID
-        AND   s.SAddr = t.Session_Addr"
-    
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"dba/temp_usage" }');"}
-    end
-  end
-
   def show_session_waits
     @wait_sums = sql_select_all "\
       SELECT /*+ ORDERED USE_NL(s) Panorama Ramm */
