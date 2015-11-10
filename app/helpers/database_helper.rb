@@ -46,6 +46,8 @@ private
   # Notation für Connect per JRuby
   def jdbc_thin_url
     sid_separator = ":" # Default, if session[:database][:sid_usage].to_sym == :SID
+    raise 'No current DB connect info set! Please reconnect to DB!' unless session[:database]
+
     sid_separator = "/" if session[:database][:sid_usage].to_sym == :SERVICE_NAME
     raise "Keine Deutung (#{session[:database][:sid_usage]}) für #{session[:database][:sid]} bekannt ob SID oder SERVICE_NAME" unless sid_separator
     "jdbc:oracle:thin:@#{session[:database][:host]}:#{session[:database][:port]}#{sid_separator}#{session[:database][:sid]}"
@@ -95,17 +97,6 @@ public
 
     else
       raise "Native ruby (RUBY_ENGINE=#{RUBY_ENGINE}) is no longer supported! Please use JRuby runtime environment! Call contact for support request if needed."
-=begin
-      ConnectionHolder.establish_connection(
-          :adapter  => "oracle_enhanced",
-          :database => session[:database][:tns],
-          :username => session[:database][:user],
-          :password => local_password,
-          :privilege => session[:database][:privilege],
-          :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
-      )
-      Rails.logger.info "Database: TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
-=end
     end
 
   rescue Exception => e                   # Exception kommt i.d.R. erst bei erstem DB-Zugriff

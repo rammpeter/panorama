@@ -312,10 +312,10 @@ class DbaHistoryController < ApplicationController
                  MAX(snap.End_Time)                 End_Time,
                  MIN(ss.Begin_Interval_Time)        First_Occurrence,
                  MAX(ss.End_Interval_Time)          Last_Occurrence
-          FROM   (SELECT  s.DBID, s.Instance_Number, NVL(StartMin, StartMax) Start_Snap_ID, NVL(EndMax, EndMin) End_Snap_ID,
+          FROM   (SELECT  /*+ ORDERED */ s.DBID, s.Instance_Number, NVL(StartMin, StartMax) Start_Snap_ID, NVL(EndMax, EndMin) End_Snap_ID,
                   start_s.Begin_Interval_Time Start_Time, end_s.End_Interval_Time End_Time
                   FROM    (
-                           SELECT DBID, Instance_Number,
+                           SELECT /*+ NO_MERGE */ DBID, Instance_Number,
                                   MAX(CASE WHEN Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) StartMin,
                                   MIN(CASE WHEN Begin_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) StartMax,
                                   MAX(CASE WHEN End_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') THEN Snap_ID ELSE NULL END) EndMin,
