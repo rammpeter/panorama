@@ -710,4 +710,9 @@ class ActiveSessionHistoryController < ApplicationController
     render_partial
   end
 
+  def list_temp_usage_historic
+
+
+  end
+
 end

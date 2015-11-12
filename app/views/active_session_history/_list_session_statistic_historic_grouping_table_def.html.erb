@@ -100,8 +100,8 @@
   end
 
 
-  @column_options << {:caption=>"Avg. Temp",:data=>proc{|rec| fn(rec.avg_temp_mb,2)},             :title=>"Avg. amount of temp. tablespace allocated in MB",                        :align=>"right"}   if session[:version] >= "11.2"
-  @column_options << {:caption=>"Max. Temp",:data=>proc{|rec| fn(rec.max_temp_mb,2)},             :title=>"Max. amount of temp. tablespace allocated in MB",                        :align=>"right"}   if session[:version] >= "11.2"
+  @column_options << {:caption=>"Avg. Temp",:data=>proc{|rec| fn(rec.avg_temp_mb,2)},             :title=>"Avg. amount of temp. tablespace in MB allocated per session",            :align=>"right"}   if session[:version] >= "11.2"
+  @column_options << {:caption=>"Max. Temp",:data=>proc{|rec| fn(rec.max_temp_mb,2)},             :title=>"Max. amount of temp. tablespace in MB allocated by one single session",  :align=>"right"}   if session[:version] >= "11.2"
   @column_options << {:caption=>"CPU-Time", :data=>proc{|rec| fn(rec.tm_cpu_time_secs)},          :title=>"Amount of time in seconds sampled sessions spent on CPU (per session)",  :align=>:right}    if session[:version] >= "11.2"
   @column_options << {:caption=>"DB-Time",  :data=>proc{|rec| fn(rec.tm_db_time_secs)},           :title=>"Amount of time in seconds sampled sessions spent in database calls",     :align=>:right}    if session[:version] >= "11.2"
   @column_options << {:caption=>"Rd. Rq.",  :data=>proc{|rec| fn(rec.delta_read_io_requests)},    :title=>"Number of read I/O requests made by the scanned sessions",               :align=>"right"}   if session[:version] >= "11.2"

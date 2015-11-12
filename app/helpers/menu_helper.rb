@@ -91,6 +91,7 @@ module MenuHelper
             {:class=> 'item', :caption=> t(:menu_storage_table_dependency_caption, :default=>'Table-dependencies'),         :controller=> 'table_dependencies',  :action=> 'show_frame',            :hint=> t(:menu_storage_table_dependency_hint, :default=>'Direct and indirect referential dependencies of tables')},
             { :class=> 'menu', :caption=> 'Temp usage', :content=>[
                 {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),                  :controller=>:storage,     :action=>:temp_usage,        :hint=>t(:menu_dba_temp_usage_hint, :default=>'Current usage of TEMP-tablespace') },
+                {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=>:storage ,  :action=>:show_temp_usage_historic,    :hint=>t(:menu_storage_temp_usage_historic_hint, :default=> 'Historic usage of TEMP tablespace') },
             ]
             },
             ]
