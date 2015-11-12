@@ -29,9 +29,14 @@
    @update_area = get_unique_area_id
 
    def link_samples(rec)
+     groupfilter = @groupfilter.clone       # Nur lokale Kopie überschreiben
+
+     groupfilter[:time_selection_start] = localeDateTime(rec.start_sample_time, :minutes)
+     groupfilter[:time_selection_end]   = localeDateTime(rec.end_sample_time+60, :minutes)   # Sicherstellen, dass nach Abschneiden auf Minute die Folgeminute als Ende engenommen wird
+
      my_ajax_link_to(fn(rec.sample_count),
-                     url_for({:action       => :list_session_statistic_historic_grouping,
-                              :groupfilter  => @groupfilter,
+                     url_for({:action       => :list_session_statistic_historic_single_record,
+                              :groupfilter  => groupfilter,
                               :update_area  => @update_area,
                              }
                      ),
@@ -151,7 +156,7 @@ end
    column_options <<  {:caption=>"Samples",         :data=>proc{|rec| link_samples(rec) },                       :title=>'Number of single sample records within grouping', :align=>:right} if @time_groupby != :single
 
   column_options <<  {:caption=>"I",                :data=>proc{|rec| show_alt(rec.instance_number, rec.instance_number_cnt) },       :title=>"RAC-Instance", :data_title=>proc{|rec| data_title_alt(rec.instance_number_cnt)} }
-  column_options <<  {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.sample_time)},          :title=>t(:active_session_history_list_session_statistic_historic_single_record_sample_time_hint, :default=>'Snapshot time of sample'), :data_title=>proc{|rec| "%t, Sample_ID=#{rec.sample_id}"}, :plot_master_time=>true }
+  column_options <<  {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.start_sample_time)},          :title=>t(:active_session_history_list_session_statistic_historic_single_record_sample_time_hint, :default=>'Snapshot time of sample'), :data_title=>proc{|rec| "%t, Sample_ID=#{rec.sample_id}"}, :plot_master_time=>true }
   column_options <<  {:caption=>"Session / Sn.",    :data=>proc{|rec| link_column_sid(rec)},                     :title=>"Session-ID/serial#",           :data_title=>proc{|rec| data_title_alt(rec.session_id_cnt, "%t, Type=#{rec.session_type}",  "%t, Type=#{rec.session_type}")  } }
   column_options <<  {:caption=>"User",             :data=>proc{|rec| show_alt(rec.username, rec.username_cnt)}, :title=>"User-Name",            :data_title=>proc{|rec| data_title_alt(rec.username_cnt, "%t: User_ID=#{rec.user_id}") }}
   if session[:version] >= "11.2"
@@ -181,12 +186,16 @@ end
   column_options <<  {:caption=>"Mode",             :data=>proc{|rec| show_alt(rec.modus, rec.modus_cnt)},              :title=>"Mode in which session is executed", :data_title=>proc{|rec| data_title_alt(rec.modus_cnt) } }                                             if session[:version] >= "11.2"
   column_options <<  {:caption=>"Program",          :data=>proc{|rec| show_alt(rec.program, rec.program_cnt) },         :title=>"Programm", :data_title=>proc{|rec| data_title_alt(rec.program_cnt) } }  if session[:version] < "11.2"
   column_options <<  {:caption=>"Program / Machine",:data=>proc{|rec| "#{show_alt(rec.program, rec.program_cnt)}, #{show_alt(rec.machine, rec.machine_cnt)}: #{show_alt(rec.port, rec.port_cnt)}" },  :title=>"Programm and machine and port on client", :data_title=>proc{|rec| data_title_alt((rec.program_cnt+rec.machine_cnt+rec.port_cnt)/3) }}                         if session[:version] >= "11.2"
-  column_options <<  {:caption=>"Module",           :data=>proc{|rec| rec.module},                                      :title=>"Module set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.module)}"} }
-  column_options <<  {:caption=>"Action",           :data=>proc{|rec| rec.action},                                      :title=>"Action set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.action)}"} }
-  column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| rec.client_id},                                   :title=>"Client-ID"}
-  column_options <<  {:caption=>"Service",          :data=>proc{|rec| rec.service_name},                                :title=>"SQL*Net-Service"}
-  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if session[:version] >= "11.2"
-  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"Amount of TEMP memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right} if session[:version] >= "11.2"
+  column_options <<  {:caption=>"Module",           :data=>proc{|rec| show_alt(rec.module, rec.module_cnt)},                                      :title=>"Module set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.module)}"} }
+  column_options <<  {:caption=>"Action",           :data=>proc{|rec| show_alt(rec.action, rec.action_cnt)},                                      :title=>"Action set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.action)}"} }
+  column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| show_alt(rec.client_id, rec.client_id_cnt)},                                   :title=>"Client-ID"}
+  column_options <<  {:caption=>"Service",          :data=>proc{|rec| show_alt(rec.service_name, rec.service_name_cnt)},                                :title=>"SQL*Net-Service"}
+
+  column_options <<  {:caption=>"Max. PGA (kByte)", :data=>proc{|rec| fn(rec.max_pga_allocated/1024) if rec.max_pga_allocated},  :title=>"Maximum amount of PGA memory (in kBytes) consumed within the time range of sample group", :align=>:right}         if session[:version] >= "11.2" && @time_groupby!=:single
+  column_options <<  {:caption=>"Max. Temp (kByte)",:data=>proc{|rec| fn(rec.max_temp_space_allocated/1024) if rec.max_temp_space_allocated},  :title=>"Maximum amount of TEMP memory (in kBytes) consumed within the time range of sample group", :align=>:right} if session[:version] >= "11.2"  && @time_groupby!=:single
+
+  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'} of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if session[:version] >= "11.2"
+  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'}  of TEMP memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right} if session[:version] >= "11.2"
 
 %>
 

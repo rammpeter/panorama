@@ -174,7 +174,7 @@ class ActiveSessionHistoryController < ApplicationController
     end
 
     case @time_groupby.to_sym
-      when :single then group_by_value = "s.Sample_Time"         # Direkte Anzeige der Snapshots
+      when :single then group_by_value = "s.Sample_ID, s.Instance_Number, s.Session_ID"         # Direkte Anzeige der Snapshots
       when :minute then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
       when :hour   then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
       when :day    then group_by_value = "TRUNC(s.Sample_Time)"
@@ -187,7 +187,8 @@ class ActiveSessionHistoryController < ApplicationController
     @sessions= sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
-             #{group_by_value}      Sample_Time,
+             MIN(Sample_Time)       Start_Sample_Time,
+             MAX(Sample_Time)       End_Sample_Time,
              COUNT(*)               Sample_Count,
              AVG(s.Sample_Cycle)    Sample_Cycle,
              #{ single_record_distinct_sql('s.Instance_Number') },
@@ -241,6 +242,8 @@ class ActiveSessionHistoryController < ApplicationController
                  #{ single_record_distinct_sql('s.Modus') },
                  AVG(s.PGA_Allocated)           PGA_Allocated,
                  AVG(s.Temp_Space_Allocated)    Temp_Space_Allocated,
+                 MAX(s.PGA_Allocated)           Max_PGA_Allocated,
+                 MAX(s.Temp_Space_Allocated)    Max_Temp_Space_Allocated,
                  SUM(s.TM_Delta_Time_Secs)      TM_Delta_Time_Secs,
                  SUM(s.TM_Delta_CPU_Time_Secs)  TM_Delta_CPU_Time_Secs,
                  SUM(s.TM_Delta_DB_Time_Secs)   TM_Delta_DB_Time_Secs,
