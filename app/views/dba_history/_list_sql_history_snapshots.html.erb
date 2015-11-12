@@ -100,6 +100,7 @@ caption << (my_ajax_form_tag url_for(:controller => :dba_history, :action       
     form_content << "<option value=\"#{key}\" #{"selected='selected'" if key.to_s==@groupby}>#{value}</option>"
   end
   form_content << "</select>"
+  form_content << "</span>"
 
   form_content << '&nbsp;&nbsp;&nbsp;'
   form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))

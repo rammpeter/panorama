@@ -21,6 +21,7 @@
     my_ajax_link_to(fn(rec.count_samples),
                     url_for({:action       => :list_session_statistic_historic_single_record,
                              :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
+                             :record_count => rec.count_samples,
                              :update_area  => @update_area,
                             }),
                     :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"

@@ -1,4 +1,6 @@
 <!-- Vom Aufrufer zu belegen: @header, @groupfilter, @last_action, @repeat_action,
+
+    optional: @group_filter_addition, @group_filter_addition_header
      Auch benutzt durch IoController
 -->
 
@@ -35,6 +37,11 @@
         end
         form_content << "<th>Start time</th>"
         form_content << "<th>End time</th>"
+        if @group_filter_addition
+          form_content << "<th>"
+          form_content << @group_filter_addition_header
+          form_content << "</th>"
+        end
 
         form_content << "<th></th></tr><tr>"
         @groupfilter.each do|key,value|
@@ -53,6 +60,12 @@
         form_content << "</td><td>"
         form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>15, :id=>@time_selection_end_id,   :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
         form_content << "</td><td>"
+
+        if @group_filter_addition
+          form_content << @group_filter_addition
+          form_content << "</td><td>"
+        end
+
         form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
         form_content << "</td>"
 

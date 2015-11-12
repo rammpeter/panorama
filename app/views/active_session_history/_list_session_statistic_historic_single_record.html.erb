@@ -1,13 +1,43 @@
 <% # Parameter für nachfolgendes Partial list_groupfilter
+   grouping_options = {
+           :single => "No (single records)",
+           :minute => 'Minute',
+           :hour   => t(:hour, :default => 'Hour'),
+           :day    => t(:day,  :default => 'Day'),
+           :week   => t(:week, :default => 'Week'),
+   }
+
+
    @header = "#{t(:active_session_history_list_session_statistic_historic_single_record_caption, :default=>'Single snapshot records for')}: "
    @repeat_action = :list_session_statistic_historic_single_record
-%>
 
+   @group_filter_addition_header = t(:grouping, :default=>'Grouping')
+   @group_filter_addition =  "<span title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"
+   @group_filter_addition << '<select name="time_groupby">'
+   grouping_options.each do |key, value|
+     @group_filter_addition  << "<option value=\"#{key}\" #{"selected='selected'" if key.to_sym==@time_groupby}>#{value}</option>"
+   end
+   @group_filter_addition << "</select>"
+   @group_filter_addition << "</span>"
+
+
+%>
 
 <%= render :partial => 'list_groupfilter' %>
 
 <%
    @update_area = get_unique_area_id
+
+   def link_samples(rec)
+     my_ajax_link_to(fn(rec.sample_count),
+                     url_for({:action       => :list_session_statistic_historic_grouping,
+                              :groupfilter  => @groupfilter,
+                              :update_area  => @update_area,
+                             }
+                     ),
+                     :title=>'Show single sample records for time range of grouping'
+     )
+   end
 
 def link_column_sql_id(rec)
   retval = link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
@@ -80,7 +110,29 @@ rescue Exception=>e                                                             
   e.message
 end
 
+   # Aufbereitung der Anzeigewerte
+   def show_alt(real_value, occurrences, format_number_decimals=nil)
+     if real_value
+       if format_number_decimals
+         fn(real_value, format_number_decimals)
+       else
+         real_value
+       end
+     else
+       "< #{occurrences} >"
+     end
+   end
+
+   def data_title_alt(occurrences)
+     if occurrences = 1
+       '%t'
+     else
+       '%t. Number of different values show because different values exist in time range of grouping'
+     end
+   end
+
   column_options = []
+   column_options <<  {:caption=>"Samples",         :data=>proc{|rec| link_samples(rec) },                       :title=>'Number of single sample records within grouping', :align=>:right} if @time_groupby != :single
 
   column_options <<  {:caption=>"I",                :data=>proc{|rec| rec.instance_number },                     :title=>"RAC-Instance"}
   column_options <<  {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.sample_time)},          :title=>t(:active_session_history_list_session_statistic_historic_single_record_sample_time_hint, :default=>'Snapshot time of sample'), :data_title=>proc{|rec| "%t, Sample_ID=#{rec.sample_id}"}, :plot_master_time=>true }

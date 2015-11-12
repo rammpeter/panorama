@@ -144,6 +144,19 @@ class ActiveSessionHistoryController < ApplicationController
     retval
   end
 
+  # Generieren des SQL-Snippets für Alternativ-Anzeige
+  def single_record_distinct_sql(column, alias_name=nil)
+    unless alias_name
+      alias_name = column
+      alias_name = column[column.index('.')+1, column.length] if column.index('.')     # Tabellen-Alias entfernen
+    end
+
+    retval = ''
+    retval << "CASE WHEN COUNT(DISTINCT #{column}) > 1 THEN NULL ELSE MIN(#{column}) END #{alias_name}, "
+    retval << "COUNT(DISTINCT #{column}) #{alias_name}_Cnt"
+  end
+
+
   public
 
   # Anlisten der Einzel-Records eines Gruppierungskriteriums
@@ -151,27 +164,115 @@ class ActiveSessionHistoryController < ApplicationController
     where_from_groupfilter(params[:groupfilter], nil)
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
+
+    @time_groupby = params[:time_groupby].to_sym
+
+    if @time_groupby.nil? || @time_groupby == ''
+      record_count = params[:record_count].to_i
+      @time_groupby = :single        # Default
+      @time_groupby = :hour if record_count > 1000
+    end
+
+    case @time_groupby.to_sym
+      when :single then group_by_value = "s.Sample_Time"         # Direkte Anzeige der Snapshots
+      when :minute then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
+      when :hour   then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
+      when :day    then group_by_value = "TRUNC(s.Sample_Time)"
+      when :week   then group_by_value = "TRUNC(s.Sample_Time) + INTERVAL '7' DAY"
+      else
+        raise "Unsupported value for parameter :groupby (#{@time_groupby})"
+    end
+
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_all ["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
-             s.*,
-             u.UserName, '' SQL_Operation,
-             o.Owner, o.Object_Name,o.SubObject_Name, o.Data_Object_ID,
-             f.File_Name, f.Tablespace_Name,
-             peo.Owner PEO_Owner, peo.Object_Name PEO_Object_Name, peo.Procedure_Name PEO_Procedure_Name, peo.Object_Type PEO_Object_Type,
-             po.Owner PO_Owner,   po.Object_Name  PO_Object_Name,  po.Procedure_Name  PO_Procedure_Name,  po.Object_Type  PO_Object_Type,
-             sv.Service_Name, s.QC_Session_ID, s.QC_Instance_ID,
-             #{'s.QC_Session_Serial# QC_Session_SerialNo,
-             TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
-             TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs TM_DB_Time_Secs_Sample_Cycle,
-             Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs  Read_IO_Requests_Sample_Cycle,
-             Delta_Write_IO_Requests      * Sample_Cycle / Delta_Time_Secs  Write_IO_Requests_Sample_Cycle,
-             Delta_Read_IO_kBytes         * Sample_Cycle / Delta_Time_Secs  Read_IO_kBytes_Sample_Cycle,
-             Delta_Write_IO_kBytes        * Sample_Cycle / Delta_Time_Secs  Write_IO_kBytes_Sample_Cycle,
-             Delta_Interconnect_IO_kBytes * Sample_Cycle / Delta_Time_Secs  Interconn_kBytes_Sample_Cycle,
-            ' if session[:version] >= '11.2'}
-             RowNum Row_Num
+             #{group_by_value}      Sample_Time,
+             COUNT(*)               Sample_Count,
+             AVG(s.Sample_Cycle)    Sample_Cycle,
+             #{ single_record_distinct_sql('s.Instance_Number') },
+             #{ single_record_distinct_sql('s.Sample_ID') },
+             #{ single_record_distinct_sql('s.Session_id') },
+             #{ single_record_distinct_sql('s.Session_Type') },
+             #{ single_record_distinct_sql('s.Session_Serial_No') },
+             #{ single_record_distinct_sql('s.User_ID') },
+             #{ single_record_distinct_sql('s.SQL_Child_Number') },
+             #{ single_record_distinct_sql('s.SQL_Plan_Hash_Value') },
+             #{ single_record_distinct_sql('s.SQL_Opcode') },
+             #{ single_record_distinct_sql('s.Session_State') },
+             #{ single_record_distinct_sql('s.Blocking_Session') },
+             #{ single_record_distinct_sql('s.Blocking_session_Status') },
+             #{ single_record_distinct_sql('s.Blocking_session_Serial_No') },
+             #{ single_record_distinct_sql('s.Event') },
+             #{ single_record_distinct_sql('s.Event_ID') },
+             #{ single_record_distinct_sql('s.Sequence') },
+             #{ single_record_distinct_sql('s.P1Text') },
+             #{ single_record_distinct_sql('s.P1') },
+             #{ single_record_distinct_sql('s.P2Text') },
+             #{ single_record_distinct_sql('s.P2') },
+             #{ single_record_distinct_sql('s.P3Text') },
+             #{ single_record_distinct_sql('s.P3') },
+             #{ single_record_distinct_sql('s.Wait_Class') },
+             #{ single_record_distinct_sql('s.Program') },
+             #{ single_record_distinct_sql('s.Module') },
+             #{ single_record_distinct_sql('s.Action') },
+             #{ single_record_distinct_sql('s.Client_ID') },
+             #{ single_record_distinct_sql('s.Current_Obj_No') },
+             #{ single_record_distinct_sql('s.Current_File_No') },
+             #{ single_record_distinct_sql('s.Current_Block_No') },
+             #{ single_record_distinct_sql('s.XID') },
+             #{ single_record_distinct_sql('s.QC_Session_ID') },
+             #{ single_record_distinct_sql('s.QC_Instance_ID') },
+             #{ single_record_distinct_sql('s.SQL_ID') },
+             SUM(s.Wait_Time)       Wait_Time,
+             SUM(s.Time_waited)     Time_Waited,
+             #{" #{ single_record_distinct_sql('s.Is_SQLID_Current') },
+                 #{ single_record_distinct_sql('s.Top_Level_SQL_ID') },
+                 #{ single_record_distinct_sql('s.SQL_Plan_Line_ID') },
+                 #{ single_record_distinct_sql('s.SQL_Plan_Operation') },
+                 #{ single_record_distinct_sql('s.SQL_Plan_Options') },
+                 #{ single_record_distinct_sql('s.SQL_Exec_ID') },
+                 #{ single_record_distinct_sql('s.SQL_Exec_Start') },
+                 #{ single_record_distinct_sql('s.Blocking_Inst_ID') },
+                 #{ single_record_distinct_sql('s.Current_Row_No') },
+                 #{ single_record_distinct_sql('s.Remote_Instance_No') },
+                 #{ single_record_distinct_sql('s.Machine') },
+                 #{ single_record_distinct_sql('s.Port') },
+                 #{ single_record_distinct_sql('s.Modus') },
+                 AVG(s.PGA_Allocated)           PGA_Allocated,
+                 AVG(s.Temp_Space_Allocated)    Temp_Space_Allocated,
+                 SUM(s.TM_Delta_Time_Secs)      TM_Delta_Time_Secs,
+                 SUM(s.TM_Delta_CPU_Time_Secs)  TM_Delta_CPU_Time_Secs,
+                 SUM(s.TM_Delta_DB_Time_Secs)   TM_Delta_DB_Time_Secs,
+                 SUM(s.Delta_Time_Secs)         Delta_Time_Secs,
+             " if session[:version] >= '11.2'}
+             #{ single_record_distinct_sql('u.UserName') },
+             '' SQL_Operation,
+             #{ single_record_distinct_sql('o.Owner') },
+             #{ single_record_distinct_sql('o.Object_Name') },
+             #{ single_record_distinct_sql('o.SubObject_Name') },
+             #{ single_record_distinct_sql('o.Data_Object_ID') },
+             #{ single_record_distinct_sql('f.File_Name') },
+             #{ single_record_distinct_sql('f.Tablespace_Name') },
+             #{ single_record_distinct_sql('peo.Owner',           'PEO_Owner') },
+             #{ single_record_distinct_sql('peo.Object_Name',     'PEO_Object_Name') },
+             #{ single_record_distinct_sql('peo.Procedure_Name',  'PEO_Procedure_Name') },
+             #{ single_record_distinct_sql('peo.Object_Type',     'PEO_Object_Type') },
+             #{ single_record_distinct_sql('po.Owner',            'PO_Owner') },
+             #{ single_record_distinct_sql('po.Object_Name',      'PO_Object_Name') },
+             #{ single_record_distinct_sql('po.Procedure_Name',   'PO_Procedure_Name') },
+             #{ single_record_distinct_sql('po.Object_Type',      'PO_Object_Type') },
+             #{ single_record_distinct_sql('sv.Service_Name') },
+             #{" #{ single_record_distinct_sql('s.QC_Session_Serial#', 'QC_Session_SerialNo') },
+                 SUM(TM_Delta_CPU_Time_Secs * Sample_Cycle / TM_Delta_Time_Secs) TM_CPU_Time_Secs_Sample_Cycle,  /* CPU-Time innerhalb des Sample-Cycle */
+                 SUM(TM_Delta_DB_Time_Secs  * Sample_Cycle / TM_Delta_Time_Secs) TM_DB_Time_Secs_Sample_Cycle,
+                 SUM(Delta_Read_IO_Requests       * Sample_Cycle / Delta_Time_Secs)  Read_IO_Requests_Sample_Cycle,
+                 SUM(Delta_Write_IO_Requests      * Sample_Cycle / Delta_Time_Secs)  Write_IO_Requests_Sample_Cycle,
+                 SUM(Delta_Read_IO_kBytes         * Sample_Cycle / Delta_Time_Secs)  Read_IO_kBytes_Sample_Cycle,
+                 SUM(Delta_Write_IO_kBytes        * Sample_Cycle / Delta_Time_Secs)  Write_IO_kBytes_Sample_Cycle,
+                 SUM(Delta_Interconnect_IO_kBytes * Sample_Cycle / Delta_Time_Secs)  Interconn_kBytes_Sample_Cycle,
+             " if session[:version] >= '11.2'}
+             MIN(RowNum) Row_Num
       FROM   (SELECT /*+ NO_MERGE ORDERED */
                      10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
               FROM   DBA_Hist_Active_Sess_History s
@@ -191,7 +292,8 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
       WHERE  1=1
       #{@global_where_string}
-      ORDER BY s.Sample_Time
+      GROUP BY #{group_by_value}
+      ORDER BY #{group_by_value}
      "
      ].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values)
 
