@@ -165,7 +165,7 @@ class ActiveSessionHistoryController < ApplicationController
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
 
-    @time_groupby = params[:time_groupby].to_sym
+    @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
     if @time_groupby.nil? || @time_groupby == ''
       record_count = params[:record_count].to_i

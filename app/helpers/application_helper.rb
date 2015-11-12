@@ -414,7 +414,7 @@ module ApplicationHelper
 
     result = nil # Default
 
-    if (event.include?('gc ') || event == 'buffer busy waits'
+    if (event && event.include?('gc ') || event == 'buffer busy waits'
        ) && (p3text == 'id#' || p3text == 'class#')
       class_id = case p3text
                    when 'id#' then p3 % 65536
