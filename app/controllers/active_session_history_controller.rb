@@ -308,7 +308,8 @@ class ActiveSessionHistoryController < ApplicationController
     params[:groupfilter][:time_selection_start] = params[:time_selection_start] if params[:time_selection_start]
     params[:groupfilter][:time_selection_end]   = params[:time_selection_end]   if params[:time_selection_end]
     params[:groupfilter].each do |key, value|
-      params[:groupfilter].delete(key) if params[key] && key!='time_selection_start' && key!='time_selection_end' # Element aus groupfilter loeschen, dass namentlich im param-Hash genannt ist
+      params[:groupfilter].delete(key) if params[key] && params[key]=='' && key!='time_selection_start' && key!='time_selection_end' # Element aus groupfilter loeschen, dass namentlich im param-Hash genannt ist
+      params[:groupfilter][key] = params[key] if params[key] && params[key]!=''
     end
 
     send(params[:repeat_action])              # Ersetzt redirect_to, da dies in Kombination winstone + FireFox nicht sauber funktioniert (Get-Request wird über Post verarbeitet)
