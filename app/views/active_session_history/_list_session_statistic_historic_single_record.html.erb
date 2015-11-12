@@ -156,7 +156,7 @@ end
    column_options <<  {:caption=>"Samples",         :data=>proc{|rec| link_samples(rec) },                       :title=>'Number of single sample records within grouping', :align=>:right} if @time_groupby != :single
 
   column_options <<  {:caption=>"I",                :data=>proc{|rec| show_alt(rec.instance_number, rec.instance_number_cnt) },       :title=>"RAC-Instance", :data_title=>proc{|rec| data_title_alt(rec.instance_number_cnt)} }
-  column_options <<  {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.start_sample_time)},          :title=>t(:active_session_history_list_session_statistic_historic_single_record_sample_time_hint, :default=>'Snapshot time of sample'), :data_title=>proc{|rec| "%t, Sample_ID=#{rec.sample_id}"}, :plot_master_time=>true }
+  column_options <<  {:caption=>"Sample-Time",      :data=>proc{|rec| localeDateTime(rec.start_sample_time)},          :title=>t(:active_session_history_list_session_statistic_historic_single_record_sample_time_hint, :default=>'Snapshot time of sample'), :data_title=>proc{|rec| rec.sample_id_cnt == 1 ? "%t, Sample_ID=#{rec.sample_id}" : "%t, End time of group=#{localeDateTime(rec.end_sample_time)}" }, :plot_master_time=>true }
   column_options <<  {:caption=>"Session / Sn.",    :data=>proc{|rec| link_column_sid(rec)},                     :title=>"Session-ID/serial#",           :data_title=>proc{|rec| data_title_alt(rec.session_id_cnt, "%t, Type=#{rec.session_type}",  "%t, Type=#{rec.session_type}")  } }
   column_options <<  {:caption=>"User",             :data=>proc{|rec| show_alt(rec.username, rec.username_cnt)}, :title=>"User-Name",            :data_title=>proc{|rec| data_title_alt(rec.username_cnt, "%t: User_ID=#{rec.user_id}") }}
   if session[:version] >= "11.2"
@@ -190,12 +190,8 @@ end
   column_options <<  {:caption=>"Action",           :data=>proc{|rec| show_alt(rec.action, rec.action_cnt)},                                      :title=>"Action set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.action)}"} }
   column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| show_alt(rec.client_id, rec.client_id_cnt)},                                   :title=>"Client-ID"}
   column_options <<  {:caption=>"Service",          :data=>proc{|rec| show_alt(rec.service_name, rec.service_name_cnt)},                                :title=>"SQL*Net-Service"}
-
-  column_options <<  {:caption=>"Max. PGA (kByte)", :data=>proc{|rec| fn(rec.max_pga_allocated/1024) if rec.max_pga_allocated},  :title=>"Maximum amount of PGA memory (in kBytes) consumed within the time range of sample group", :align=>:right}         if session[:version] >= "11.2" && @time_groupby!=:single
-  column_options <<  {:caption=>"Max. Temp (kByte)",:data=>proc{|rec| fn(rec.max_temp_space_allocated/1024) if rec.max_temp_space_allocated},  :title=>"Maximum amount of TEMP memory (in kBytes) consumed within the time range of sample group", :align=>:right} if session[:version] >= "11.2"  && @time_groupby!=:single
-
-  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'} of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if session[:version] >= "11.2"
-  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'}  of TEMP memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right} if session[:version] >= "11.2"
+  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'} of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if session[:version] >= "11.2" && @time_groupby==:single
+  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'}  of TEMP memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right} if session[:version] >= "11.2" && @time_groupby==:single
 
 %>
 

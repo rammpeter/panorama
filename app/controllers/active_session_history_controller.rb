@@ -242,8 +242,6 @@ class ActiveSessionHistoryController < ApplicationController
                  #{ single_record_distinct_sql('s.Modus') },
                  AVG(s.PGA_Allocated)           PGA_Allocated,
                  AVG(s.Temp_Space_Allocated)    Temp_Space_Allocated,
-                 MAX(s.PGA_Allocated)           Max_PGA_Allocated,
-                 MAX(s.Temp_Space_Allocated)    Max_Temp_Space_Allocated,
                  SUM(s.TM_Delta_Time_Secs)      TM_Delta_Time_Secs,
                  SUM(s.TM_Delta_CPU_Time_Secs)  TM_Delta_CPU_Time_Secs,
                  SUM(s.TM_Delta_DB_Time_Secs)   TM_Delta_DB_Time_Secs,
