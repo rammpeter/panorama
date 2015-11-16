@@ -744,7 +744,9 @@ class ActiveSessionHistoryController < ApplicationController
         raise "Unsupported value for parameter :groupby (#{@time_groupby})"
     end
 
+    # All möglichen Tabellen gejoint, da Filter diese referenzieren können
     @result= sql_select_all ["\
+      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              MIN(s.Sample_Time)   Start_Sample_Time,
              MAX(s.Sample_Time)   End_Sample_Time,
@@ -763,15 +765,21 @@ class ActiveSessionHistoryController < ApplicationController
                      SUM(s.Temp_Space_Allocated)    Sum_Temp_Space_Allocated,       -- eigentlich nichtssagend, da Summe über alle Sample-Zeiten hinweg, nur benutzt fuer AVG
                      MAX(s.Temp_Space_Allocated)    Max_Temp_Space_Alloc_per_Sess
               FROM   (SELECT /*+ NO_MERGE ORDERED */
-                             10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
+                             DBID, 10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
                       FROM   DBA_Hist_Active_Sess_History s
                       LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
                       WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                       #{@dba_hist_where_string}
                       UNION ALL
-                      SELECT 1 Sample_Cycle, Inst_ID Instance_Number,#{get_ash_default_select_list}
+                      SELECT #{@dbid} DBID, 1 Sample_Cycle, Inst_ID Instance_Number,#{get_ash_default_select_list}
                       FROM   gv$Active_Session_History
                      )s
+              LEFT OUTER JOIN DBA_Objects           o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END
+              LEFT OUTER JOIN DBA_Users             u   ON u.User_ID   = s.User_ID  -- LEFT OUTER JOIN verursacht Fehler
+              LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+              LEFT OUTER JOIN procs                 po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+              LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = s.DBID AND sv.Service_Name_Hash = Service_Hash
+              LEFT OUTER JOIN DBA_Data_Files        f   ON f.File_ID = s.Current_File_No
               WHERE  1=1
               #{@global_where_string}
               GROUP BY CAST(Sample_Time+INTERVAL '0.5' SECOND AS DATE)    -- Auf Ebene eines Samples reduzieren

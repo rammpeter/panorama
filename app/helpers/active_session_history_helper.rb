@@ -143,12 +143,14 @@ module ActiveSessionHistoryHelper
 
   # Gruppierungskriterien für list_temp_usage_historic
   def temp_historic_grouping_options
-    {
-        :minute => 'Minute',
-        :hour   => t(:hour, :default => 'Hour'),
-        :day    => t(:day,  :default => 'Day'),
-        :week   => t(:week, :default => 'Week'),
-    }
+    unless @temp_historic_grouping_options_hash
+      @temp_historic_grouping_options_hash = {}
+      @temp_historic_grouping_options_hash[:minute] = 'Minute'
+      @temp_historic_grouping_options_hash[:hour]   = t(:hour,  :default => 'Hour')
+      @temp_historic_grouping_options_hash[:day]    = t(:day,  :default => 'Day')
+      @temp_historic_grouping_options_hash[:week]   = t(:week, :default => 'Week')
+    end
+    @temp_historic_grouping_options_hash
   end
 
 

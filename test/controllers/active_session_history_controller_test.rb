@@ -29,6 +29,11 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     }
   end
 
+  # Workaround, da t in Test-Klassen nicht bekannt ist
+  def t(hook, translate_hash)
+    translate_hash[:default]
+  end
+
   # Ermittlung der zum Typ passenden Werte für Bindevariablen
   def bind_value_from_key_rule(key)
     case key
@@ -137,6 +142,26 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       do_test key, bind_value_from_key_rule(key)
     end
   end
+
+  test "list_temp_usage_historic" do
+    def do_inner_test(time_groupby, outer_filter, bind_value)
+      add_filter = {outer_filter => bind_value}
+      post :list_temp_usage_historic, :format=>:js, :time_groupby=>time_groupby, :groupfilter => @groupfilter.merge(add_filter)
+      assert_response :success
+    end
+
+    def do_outer_test(outer_filter)
+      # Iteration über Gruppierungskriterien
+      temp_historic_grouping_options.each do |key, value|
+        do_inner_test key, outer_filter, bind_value_from_key_rule(outer_filter)
+      end
+    end
+
+    session_statistics_key_rules.each do |key, value|
+      do_outer_test key
+    end
+  end
+
 
   test "show_prepared_active_session_history" do
     post :show_prepared_active_session_history, :format=>:js, :instance=>1, :sql_id=>@sga_sql_id
