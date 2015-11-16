@@ -774,7 +774,7 @@ class ActiveSessionHistoryController < ApplicationController
                       SELECT #{@dbid} DBID, 1 Sample_Cycle, Inst_ID Instance_Number,#{get_ash_default_select_list}
                       FROM   gv$Active_Session_History
                      )s
-              #{"LEFT OUTER JOIN DBA_Objects           o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END'" if @global_where_string['o.']}
+              #{"LEFT OUTER JOIN DBA_Objects           o   ON o.Object_ID = CASE WHEN s.P2Text = 'object #' THEN /* Wait kennt Object */ s.P2 ELSE s.Current_Obj_No END" if @global_where_string['o.']}
               #{"LEFT OUTER JOIN DBA_Users             u   ON u.User_ID   = s.User_ID" if @global_where_string['u.']}
               #{"LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID" if @global_where_string['peo.']}
               #{"LEFT OUTER JOIN procs                 po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID" if @global_where_string['po.']}
