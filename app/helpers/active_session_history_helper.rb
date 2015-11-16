@@ -141,5 +141,15 @@ module ActiveSessionHistoryHelper
     }
   end # where_from_groupfilter
 
+  # Gruppierungskriterien für list_temp_usage_historic
+  def temp_historic_grouping_options
+    {
+        :minute => 'Minute',
+        :hour   => t(:hour, :default => 'Hour'),
+        :day    => t(:day,  :default => 'Day'),
+        :week   => t(:week, :default => 'Week'),
+    }
+  end
+
 
 end

@@ -1,0 +1,59 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+   @header = 'TEMP and PGA usage by sessions in status "ACTIVE" '
+   @repeat_action = :list_temp_usage_historic
+
+   @group_filter_addition_header = t(:grouping, :default=>'Grouping')
+   @group_filter_addition =  "<span title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"
+   @group_filter_addition << '<select name="time_groupby">'
+   temp_historic_grouping_options.each do |key, value|
+     @group_filter_addition  << "<option value=\"#{key}\" #{"selected='selected'" if key.to_sym==@time_groupby}>#{value}</option>"
+   end
+   @group_filter_addition << "</select>"
+   @group_filter_addition << "</span>"
+%>
+
+<%= render :partial => 'list_groupfilter' %>
+
+<%
+   def link_samples(rec)
+     groupfilter = @groupfilter.clone
+     groupfilter['time_selection_start'] = localeDateTime(rec.start_sample_time, :minutes)
+     groupfilter['time_selection_end']   = localeDateTime(rec.end_sample_time+60, :minutes)
+     my_ajax_link_to(fn(rec.sample_count),
+                     url_for({:action        => :list_temp_usage_historic,
+                              :groupfilter   => groupfilter,
+                              :time_groupby  => @time_groupby,
+                              :update_area   => @update_area
+                             }
+                     ),
+                     :title=>"Show values for time range #{localeDateTime(rec.start_sample_time)} until #{localeDateTime(rec.end_sample_time)}"
+     )
+
+   end
+
+   column_options =
+    [
+        {:caption=>'Start time',                        :data=>proc{|rec| localeDateTime(rec.start_sample_time)},       :title=>'Start of time group', :data_title=>proc{|rec| "%t: End of time group = #{rec.end_sample_time}" }, :plot_master_time=>true },
+        {:caption=>'Samples',                           :data=>proc{|rec|link_samples(rec)},                            :title=>'Number of single sample rows',       :align=>'right'},
+        {:caption=>'Max. PGA allocated MB',             :data=>proc{|rec| fn(rec.max_sum_pga_allocated)},               :title=>'Maximum allocated PGA in MB at one time in time range by all sessions in active state',   :align=>'right'},
+        {:caption=>'Max. PGA allocated per session MB', :data=>proc{|rec| fn(rec.max_pga_alloc_per_session)},           :title=>'Maximum allocated PGA in MB at one time in time range by one single session in active state',   :align=>'right'},
+        {:caption=>'Avg. PGA allocated per session MB', :data=>proc{|rec| fn(rec.avg_pga_alloc_per_session,1)},         :title=>'Average allocated PGA in MB for sessions in active state',   :align=>'right'},
+        {:caption=>'Max. TEMP allocated MB',            :data=>proc{|rec| fn(rec.max_sum_temp_space_allocated)},        :title=>'Maximum allocated TEMP space in MB at one time in time range by all sessions in active state',   :align=>'right'},
+        {:caption=>'Max. TEMP allocated per session MB',:data=>proc{|rec| fn(rec.max_temp_space_alloc_per_sess)},       :title=>'Maximum allocated TEMP space in MB one time in time range by one single session in active state',   :align=>'right'},
+        {:caption=>'Avg. TEMP allocated per session MB',:data=>proc{|rec| fn(rec.avg_temp_space_alloc_per_sess,1)},     :title=>'Average allocated TEMP space in MB for sessions in active state',   :align=>'right'},
+    ]
+
+%>
+
+<%=
+    gen_slickgrid(@result, column_options, {          :caption        => @caption,
+                                                      :max_height     => 450
+                                  }
+    )
+%>
+
+
+<div id="<%= @update_area %>" style="float:left; width:100%;">
+</div>

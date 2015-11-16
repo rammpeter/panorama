@@ -48,7 +48,7 @@
             if !groupfilter_value(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
                 input_id = get_unique_area_id
                 form_content << "<td>"
-                form_content << text_field_tag(key, value, {:id=>input_id, :size=>value.length+4, :title => "Hugo"})
+                form_content << text_field_tag(key, value, {:id=>input_id, :size=>value.to_s.length+4, :title => (session_statistics_key_rule(key) ? session_statistics_key_rule(key)[:Title] : key) })
                 #form_content << "#{value}".html_safe
                 #form_content << submit_tag("x", :name=>key, :title => t(:active_session_history_list_groupfilter_delete_filter_hint, :default=>"Refresh content without this filter"), :style=>"color:red")
                 form_content << submit_tag("x", {:onclick => "jQuery('##{input_id}').val('');", :title => t(:active_session_history_list_groupfilter_delete_filter_hint, :default=>"Refresh content without this filter"), :style=>"color:red" })

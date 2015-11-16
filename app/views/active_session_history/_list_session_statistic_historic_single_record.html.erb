@@ -190,8 +190,8 @@ end
   column_options <<  {:caption=>"Action",           :data=>proc{|rec| show_alt(rec.action, rec.action_cnt)},                                      :title=>"Action set by DBMS_Application_Info.Set_Module", :data_title=>proc{|rec| "%t: #{module_hint(rec.action)}"} }
   column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| show_alt(rec.client_id, rec.client_id_cnt)},                                   :title=>"Client-ID"}
   column_options <<  {:caption=>"Service",          :data=>proc{|rec| show_alt(rec.service_name, rec.service_name_cnt)},                                :title=>"SQL*Net-Service"}
-  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'} of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if session[:version] >= "11.2" && @time_groupby==:single
-  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"#{@time_groupby==:single ? 'Amount': 'Average amount'}  of TEMP memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right} if session[:version] >= "11.2" && @time_groupby==:single
+  column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken': 'Maximum amount of PGA memory (in kBytes) consumed by one single session at one time'} ", :align=>:right}         if session[:version] >= "11.2"
+  column_options <<  {:caption=>"Temp (kByte)",     :data=>proc{|rec| fn(rec.temp_space_allocated/1024) if rec.temp_space_allocated},  :title=>"#{@time_groupby==:single ? 'Amount of TEMP memory (in kBytes) consumed by this session at the time the sample was taken': 'Maximum amount of TEMP memory (in kBytes) consumed by one single session at one time'}", :align=>:right} if session[:version] >= "11.2"
 
 %>
 

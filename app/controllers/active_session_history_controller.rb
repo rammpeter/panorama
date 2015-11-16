@@ -327,13 +327,15 @@ class ActiveSessionHistoryController < ApplicationController
              SUM(s.Sample_Cycle)          Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
              MAX(s.Sample_Cycle)          Max_Sample_Cycle,  -- Max. Abstand der Samples als Korrekturgroesse fuer Berechnung LOAD
              #{'
-                SUM(TM_Delta_CPU_Time_Secs) TM_CPU_Time_Secs,  /* CPU-Time innerhalb des Sample-Cycle */
-                SUM(TM_Delta_DB_Time_Secs)  TM_DB_Time_Secs,
-                SUM(Delta_Read_IO_Requests)  Delta_Read_IO_Requests,
-                SUM(Delta_Write_IO_Requests) Delta_Write_IO_Requests,
-                SUM(Delta_Read_IO_kBytes)    Delta_Read_IO_kBytes,
-                SUM(Delta_Write_IO_kBytes)   Delta_Write_IO_kBytes,
-                SUM(Delta_Interconnect_IO_kBytes) Delta_Interconnect_IO_kBytes,
+                SUM(TM_Delta_CPU_Time_Secs)           TM_CPU_Time_Secs,  /* CPU-Time innerhalb des Sample-Cycle */
+                SUM(TM_Delta_DB_Time_Secs)            TM_DB_Time_Secs,
+                SUM(Delta_Read_IO_Requests)           Delta_Read_IO_Requests,
+                SUM(Delta_Write_IO_Requests)          Delta_Write_IO_Requests,
+                SUM(Delta_Read_IO_kBytes)             Delta_Read_IO_kBytes,
+                SUM(Delta_Write_IO_kBytes)            Delta_Write_IO_kBytes,
+                SUM(Delta_Interconnect_IO_kBytes)     Delta_Interconnect_IO_kBytes,
+                MAX(PGA_Allocated)/(1024*1024)        Max_PGA_MB,
+                AVG(PGA_Allocated)/(1024*1024)        Avg_PGA_MB,
                 MAX(Temp_Space_Allocated)/(1024*1024) Max_Temp_MB,
                 AVG(Temp_Space_Allocated)/(1024*1024) Avg_Temp_MB,
              ' if session[:version] >= '11.2'}
@@ -710,7 +712,75 @@ class ActiveSessionHistoryController < ApplicationController
     render_partial
   end
 
-  def list_temp_usage_historic
+  # Einstieg aus show_temp_usage_historic
+  def first_list_temp_usage_historic
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung 
+    @instance = prepare_param_instance
+    params[:groupfilter] = {}
+
+    params[:groupfilter]["DBID"]                  = prepare_param_dbid
+    params[:groupfilter]["Instance"]              =  @instance if @instance
+    params[:groupfilter]["Idle_Wait1"]            = 'PX Deq Credit: send blkd'
+    params[:groupfilter]["time_selection_start"]  = @time_selection_start
+    params[:groupfilter]["time_selection_end"]    = @time_selection_end
+
+    list_temp_usage_historic    # weiterleitung Event
+  end
+
+
+
+  def list_temp_usage_historic                  # Methode kann nur ab Version 11.2 aufgerufen werden
+    where_from_groupfilter(params[:groupfilter], nil)
+    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+
+    @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
+
+    case @time_groupby.to_sym
+      when :minute then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
+      when :hour   then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
+      when :day    then group_by_value = "TRUNC(s.Sample_Time)"
+      when :week   then group_by_value = "TRUNC(s.Sample_Time) + INTERVAL '7' DAY"
+      else
+        raise "Unsupported value for parameter :groupby (#{@time_groupby})"
+    end
+
+    @result= sql_select_all ["\
+      SELECT /*+ ORDERED Panorama-Tool Ramm */
+             MIN(s.Sample_Time)   Start_Sample_Time,
+             MAX(s.Sample_Time)   End_Sample_Time,
+             SUM(Sample_Count)    Sample_Count,
+             MAX(s.Sum_PGA_Allocated)/(1024*1024)                             Max_Sum_PGA_Allocated,
+             MAX(s.Max_PGA_Allocated_per_Session)/(1024*1024)                 Max_PGA_Alloc_Per_Session,
+             SUM(s.Sum_PGA_Allocated)/SUM(s.Sample_Count)/(1024*1024)         Avg_PGA_Alloc_per_Session,
+             MAX(s.Sum_Temp_Space_Allocated)/(1024*1024)                      Max_Sum_Temp_Space_Allocated,
+             MAX(s.Max_Temp_Space_Alloc_per_Sess)/(1024*1024)                 Max_Temp_Space_Alloc_per_Sess,
+             SUM(s.Sum_Temp_Space_Allocated)/SUM(s.Sample_Count)/(1024*1024)  Avg_Temp_Space_Alloc_per_Sess
+      FROM   (
+              SELECT CAST (Sample_Time+INTERVAL '0.5' SECOND AS DATE) Sample_Time,
+                     COUNT(*)               Sample_Count,
+                     SUM(s.PGA_Allocated)           Sum_PGA_Allocated,
+                     MAX(s.PGA_Allocated)           Max_PGA_Allocated_Per_Session,
+                     SUM(s.Temp_Space_Allocated)    Sum_Temp_Space_Allocated,       -- eigentlich nichtssagend, da Summe über alle Sample-Zeiten hinweg, nur benutzt fuer AVG
+                     MAX(s.Temp_Space_Allocated)    Max_Temp_Space_Alloc_per_Sess
+              FROM   (SELECT /*+ NO_MERGE ORDERED */
+                             10 Sample_Cycle, Instance_Number, #{get_ash_default_select_list}
+                      FROM   DBA_Hist_Active_Sess_History s
+                      LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
+                      WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
+                      #{@dba_hist_where_string}
+                      UNION ALL
+                      SELECT 1 Sample_Cycle, Inst_ID Instance_Number,#{get_ash_default_select_list}
+                      FROM   gv$Active_Session_History
+                     )s
+              WHERE  1=1
+              #{@global_where_string}
+              GROUP BY CAST(Sample_Time+INTERVAL '0.5' SECOND AS DATE)    -- Auf Ebene eines Samples reduzieren
+             ) s
+      GROUP BY #{group_by_value}
+      ORDER BY #{group_by_value}
+      "].concat(@dba_hist_where_values).concat(@global_where_values)
+
+    render_partial :list_temp_usage_historic
 
 
   end
