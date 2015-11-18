@@ -29,7 +29,7 @@ class ApplicationHelperTest < ActionView::TestCase
   end
 
   test "save_session_alter_ts" do
-    session[:locale] = "de"
+    write_to_client_info_store(:locale, 'de')
     assert_nothing_raised {
       params[:time_selection_start] = "01.01.2011 00:20"
       params[:time_selection_end] = "31.01.2012 23:20"
@@ -52,7 +52,7 @@ class ApplicationHelperTest < ActionView::TestCase
     params[:time_selection_start]  = "01.12.2011 00:60"; assert_raise(RuntimeError){ save_session_time_selection }
 
 
-    session[:locale] = "en"
+    write_to_client_info_store(:locale, 'en')
     assert_nothing_raised {
       params[:time_selection_start] = "2011/01/01 00:20"
       params[:time_selection_end] = "2012/12/31 23:20"

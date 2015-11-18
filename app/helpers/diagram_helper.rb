@@ -84,7 +84,7 @@ module DiagramHelper
     output << "];"
 
     plot_area_id = "plot_area_#{session[:request_counter]}"
-    output << "var options = {plot_diagram: {locale: '#{session[:locale]}'},
+    output << "var options = {plot_diagram: {locale: '#{get_locale}'},
                               yaxis: { min: 0 },
                               legend:{sorted: 'reverse'}
                              };"

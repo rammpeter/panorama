@@ -86,7 +86,7 @@ module SlickgridHelper
     output << "  show_y_axes:          #{global_options[:show_y_axes]},"
     output << "  line_height_single:   #{global_options[:line_height_single]},"
     output << "  data_filter:          #{global_options[:data_filter]},"      if global_options[:data_filter]
-    output << "  locale:               '#{session[:locale]}',"
+    output << "  locale:               '#{get_locale}',"
     output << '}'
     output
 
@@ -219,7 +219,7 @@ module SlickgridHelper
         end
         if col[:isDate]  && stripped_celldata && stripped_celldata.length > 0
           if stripped_celldata.length >= 10
-            case session[:locale]
+            case get_locale
               when 'de' then
                 col[:isDate] = false if stripped_celldata[2,1] != '.' || stripped_celldata[5,1] != '.' # Test auf Trennzeichen der Datum-Darstellung
               when 'en' then

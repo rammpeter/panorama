@@ -42,14 +42,14 @@ class HelpController < ApplicationController
 
   # Themenspezifische Seite zu zuletzt ausgeführtem Menü-Eintrag
   def content
-    @last_used_menu_caption = session[:last_used_menu_caption]                  # Default
-    @last_used_menu_hint    = session[:last_used_menu_hint]                     # Default
+    @last_used_menu_caption = read_from_client_info_store(:last_used_menu_caption)                  # Default
+    @last_used_menu_hint    = read_from_client_info_store(:last_used_menu_hint)                     # Default
 
     @last_used_menu_caption = params[:last_used_menu_caption] if params[:last_used_menu_caption]
     @last_used_menu_hint    = params[:last_used_menu_hint]    if params[:last_used_menu_hint]
 
     begin
-    render :template=>"help/help_#{session[:last_used_menu_controller]}_#{session[:last_used_menu_action]}"
+    render :template=>"help/help_#{read_from_client_info_store(:last_used_menu_controller)}_#{read_from_client_info_store(:last_used_menu_action)}"
     rescue Exception=>e
       render :text=>t(:help_no_help_available, :default=>"Sorry no help yet available")+" '#{@last_used_menu_caption}' (#{@last_used_menu_hint})"
     end

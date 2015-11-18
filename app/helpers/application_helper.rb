@@ -11,14 +11,33 @@ module ApplicationHelper
   include SlickgridHelper
   include ExplainApplicationInfoHelper
 
- #def list_tns_names
- #
- #    if ENV['ORACLE_HOME']
- #       IO.readlines( "#{ENV['ORACLE_HOME']}/network/admin/tnsnames.ora" ).select { |e| /^[A-Z]/.match( e ) }.collect { |e| e.split('=')[0] }.sort
- #    else
- #      IO.readlines( "d:/Programme/ora92/network/admin/tnsnames.ora" ).select { |e| /^[A-Z]/.match( e ) }.collect { |e| e.split('=')[0] }.sort
- #  end
- # end
+  def get_client_info_store
+    $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename) unless $client_info_store
+    $login_client_store
+  end
+
+  # Schreiben eines client-bezogenen Wertes in serverseitigen Cache
+  def write_to_client_info_store(key, value)
+    get_client_info_store.write("#{session[:client_key]}_#{key}", value)
+  end
+
+  # Lesen eines client-bezogenen Wertes aus serverseitigem Cache
+  def read_from_client_info_store(key)
+    get_client_info_store.read("#{session[:client_key]}_#{key}")
+  end
+
+
+  # Cachen diverser Client-Einstellungen in lokalen Variablen
+  def get_locale
+    @buffered_locale = read_from_client_info_store(:locale) unless @buffered_locale
+    @buffered_locale
+  end
+
+  def get_current_database
+    @buffered_current_database = read_from_client_info_store(:current_database) unless @buffered_current_database
+    @buffered_current_database
+  end
+
 
   # Helper fuer Ausführung SQL-Select-Query,
   # return Array of Hash mit Columns des Records
@@ -151,8 +170,8 @@ module ApplicationHelper
   end
 
   # Genutzt zur Anzeige im zentralen Screen
-  def current_tns 
-    if session[:database] && session[:database].class.name == 'Database'
+  def current_tns
+    if get_current_database
       database_helper_tns
     else
       '[Keine]'

@@ -236,7 +236,7 @@ private
 public
   # Aufbau des HTML-Menües, Hash mit DB-Namen für Spezialbehandlung
   def build_menu_html
-    return '' if session[:database].nil? || session[:version].nil?       # Abbrechen des Menüaufbaus, wenn die Versions-Strukturen gar nicht gefüllt sind
+    return '' if get_current_database.nil? || session[:version].nil?       # Abbrechen des Menüaufbaus, wenn die Versions-Strukturen gar nicht gefüllt sind
 
     output = "<ul class='sf-menu sf-js-enabled sf-shadow'>"
     menu_content.each do |m|      # Aufruf Methode application_helper.menu_content

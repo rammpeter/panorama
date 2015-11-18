@@ -9,7 +9,7 @@ class EnvControllerTest < ActionController::TestCase
   end
 
   test "should connect to test-db" do
-    database = session[:database]
+    database = get_current_database
     database[:password] = database_helper_decrypt_value(database[:password])
     post :set_database_by_params, :format=>:js, :database => database
     assert_response :success

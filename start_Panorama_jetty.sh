@@ -1,6 +1,7 @@
 export PANORAMA_HOME=$PWD
 export PANORAMA_PORT=8090
 export PANORAMA_USAGE_LOG=$PANORAMA_HOME/Usage.log
+export CLIENT_INFO_STORE=$PANORAMA_HOME/client_info.store
 export LOG=$PANORAMA_HOME/Panorama_jetty.log
 echo "Starting Panorama with jetty, logfile is $LOG"
 

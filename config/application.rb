@@ -32,6 +32,9 @@ module Panorama
     config.usage_info_filename = "../../panorama_usage_info.log"
     config.usage_info_filename = ENV['PANORAMA_USAGE_LOG'] if ENV['PANORAMA_USAGE_LOG']
 
+    # File-Store für ActiveSupport::Cache::FileStore
+    config.client_info_filename = "../../client_info.store"
+    config.client_info_filename = ENV['CLIENT_INFO_STORE'] if ENV['CLIENT_INFO_STORE']
 
     # -- begin rails3 relikt
     # Configure the default encoding used in templates for Ruby 1.9.

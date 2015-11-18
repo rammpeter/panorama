@@ -11,28 +11,46 @@ class EnvController < ApplicationController
   # Verhindern "ActionController::InvalidAuthenticityToken" bei erstem Aufruf der Seite
   protect_from_forgery except: :index
 
-  private
-  # Merken locale für weitere Verwendung
-  def register_locale(locale)
-    session[:locale] = locale
-    cookies[:locale] = { :value => locale, :expires => 1.year.from_now }  # sichern als separater Cookie, da session nur Lebenszeit der Browser-Session hat
-  end
-
   public
+  MAX_NEW_KEY_TRIES  = 1000
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
-    session[:database] = nil   if session[:database].class.name != 'Hash'       # Abwärtskompatibilität zu Vorversion
 
-    session[:locale] = cookies[:locale]                         # locale aus Cookie restaurieren
-    session[:locale] = "en" if session[:locale].nil?  || !['de', 'en'].include?(session[:locale])
-    I18n.locale = session[:locale]
+    unless session[:client_key]                                                 # Erster Zugriff oder Cookie nicht mehr verfügbar
+      loop_count = 0
+      while loop_count < MAX_NEW_KEY_TRIES
+        loop_count++
+        new_client_key = rand(10000000)
+        if !get_client_info_store.exist?(new_client_key)                        # Dieser Key wurde noch nie genutzt
+          session[:client_key] = new_client_key                                 # Ab jetzt verwenden für diesen Client
+          get_client_info_store.write(new_client_key, 1)                        # Marker fuer Verwendung des Client-Keys
+          break
+        end
+      end
+      raise "Cannot create client key after #{MAX_NEW_KEY_TRIES} tries" if loop_count >= MAX_NEW_KEY_TRIES
+    end
 
-    session[:last_used_menu_controller] = "env"
-    session[:last_used_menu_action]     = "index"
-    session[:last_used_menu_caption]    = "Start"
-    session[:last_used_menu_hint]       = t :menu_env_index_hint, :default=>"Start of application without connect to database"
+    session[:client_salt] = rand(10000000000) unless session[:client_salt]      # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
+
+    # Entfernen evtl. bisheriger Bestandteile des Session-Cookies
+    cookies.delete(:locale)                       if cookies[:locale]
+    session.delete(:locale)                       if session[:locale]
+    session.delete(:last_used_menu_controller)    if session[:last_used_menu_controller]
+    session.delete(:last_used_menu_action)        if session[:last_used_menu_action]
+    session.delete(:last_used_menu_caption)       if session[:last_used_menu_caption]
+    session.delete(:last_used_menu_hint)          if session[:last_used_menu_hint]
+    session.delete(:database)                     if session[:database]
+
+    write_to_client_info_store(:locale, 'en') if read_from_client_info_store(:locale).nil? || !['de', 'en'].include?(read_from_client_info_store(:locale))
+
+    I18n.locale = get_locale      # Gecachter Wert aus read_from_client_info_store(:locale)
+
+    write_to_client_info_store(:last_used_menu_controller,  'env')
+    write_to_client_info_store(:last_used_menu_action,      'index')
+    write_to_client_info_store(:last_used_menu_caption,     'Start')
+    write_to_client_info_store(:last_used_menu_hint,        t(:menu_env_index_hint, :default=>"Start of application without connect to database"))
   rescue Exception=>e
-    session[:database] = nil                                                    # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
+    write_to_client_info_store(:current_database, nil)                          # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
     raise e                                                                     # Werfen der Exception
   end
 
@@ -52,7 +70,7 @@ class EnvController < ApplicationController
 
   # Wechsel der Sprache in Anmeldedialog
   def set_locale
-    register_locale(params[:locale])
+    write_to_client_info_store(:locale, params[:locale])
 
     respond_to do |format|
       format.js {render :js => "window.location.reload();" }                    # Reload der Sganzen Seite
@@ -86,7 +104,7 @@ class EnvController < ApplicationController
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
     params[:database][:password]  = database_helper_encrypt_value(params[:database][:password])
 
-    register_locale(params[:database][:locale])                                          # Wert initial setzen auf Vorgabe
+    write_to_client_info_store(:locale, params[:database][:locale])
     set_database
   end
 
@@ -98,7 +116,7 @@ class EnvController < ApplicationController
         sql_select_all "SELECT /* Panorama Tool Ramm */ * FROM X$#{table_name_suffix} WHERE RowNum < 1"
         return true
       rescue Exception => e
-        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>session[:database][:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
+        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
         msg << "#{e.message}<br/><br/>"
         msg << "Workaround:<br/>"
         msg << "#{t(:env_set_database_xmem_line2, :default=>'Alternative 1: Connect with role SYSDABA')}<br/>"
@@ -111,34 +129,34 @@ class EnvController < ApplicationController
       end
     end
 
-    session[:last_used_menu_controller] = "env"
-    session[:last_used_menu_action]     = "set_database"
-    session[:last_used_menu_caption]    = "Login"
-    session[:last_used_menu_hint]       = t :menu_env_set_database_hint, :default=>"Start of application after connect to database"
+    write_to_client_info_store(:last_used_menu_controller, "env")
+    write_to_client_info_store(:last_used_menu_action,     "set_database")
+    write_to_client_info_store(:last_used_menu_caption,    "Login")
+    write_to_client_info_store(:last_used_menu_hint,       t(:menu_env_set_database_hint, :default=>"Start of application after connect to database"))
 
-    session[:database] = params[:database].symbolize_keys
+    current_database = params[:database].symbolize_keys                         # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
 
     if params[:database][:modus] == 'tns'                    # TNS-Alias auswerten
       tns_records = read_tnsnames                            # Hash mit Attributen aus tnsnames.ora für gesuchte DB
-      tns_record = tns_records[session[:database][:tns]]
+      tns_record = tns_records[current_database[:tns]]
       unless tns_record
         respond_to do |format|
-          format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{session[:database][:tns]}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
+          format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{current_database[:tns]}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
         set_dummy_db_connection
         return
       end
-      session[:database][:host]      = tns_record[:hostName]   # Erweitern um Attribute aus tnsnames.ora
-      session[:database][:port]      = tns_record[:port]       # Erweitern um Attribute aus tnsnames.ora
-      session[:database][:sid]       = tns_record[:sidName]    # Erweitern um Attribute aus tnsnames.ora
-      session[:database][:sid_usage] = tns_record[:sidUsage]   # :SID oder :SERVICE_NAME
+      current_database[:host]      = tns_record[:hostName]   # Erweitern um Attribute aus tnsnames.ora
+      current_database[:port]      = tns_record[:port]       # Erweitern um Attribute aus tnsnames.ora
+      current_database[:sid]       = tns_record[:sidName]    # Erweitern um Attribute aus tnsnames.ora
+      current_database[:sid_usage] = tns_record[:sidUsage]   # :SID oder :SERVICE_NAME
     else # Host, Port, SID auswerten
-      session[:database][:sid_usage] = :SID unless session[:database][:sid_usage]  # Erst mit SID versuchen, zweiter Versuch dann als ServiceName
-      session[:database][:tns]       = "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"   # Evtl. existierenden TNS-String mit Angaben von Host etc. ueberschreiben
+      current_database[:sid_usage] = :SID unless current_database[:sid_usage]  # Erst mit SID versuchen, zweiter Versuch dann als ServiceName
+      current_database[:tns]       = "#{current_database[:host]}:#{current_database[:port]}:#{current_database[:sid]}"   # Evtl. existierenden TNS-String mit Angaben von Host etc. ueberschreiben
     end
 
     # Temporaerer Schutz des Produktionszuganges bis zur Implementierung LDAP-Autorisierung    
-    if session[:database][:host].upcase.rindex("DM03-SCAN") && session[:database][:sid].upcase.rindex("NOADB")
+    if current_database[:host].upcase.rindex("DM03-SCAN") && current_database[:sid].upcase.rindex("NOADB")
       if params[:database][:authorization]== nil  || params[:database][:authorization]==""
         respond_to do |format|
           format.js {render :js => "$('#content_for_layout').html('#{j "zusätzliche Autorisierung erforderlich fuer NOA-Produktionssystem"}'); $('#login_dialog_authorization').show(); $('#login_dialog').effect('shake', { times:3 }, 100);"}
@@ -155,6 +173,8 @@ class EnvController < ApplicationController
       end
     end
 
+    write_to_client_info_store(:current_database, current_database)             # Persistieren im Cache
+
     open_oracle_connection   # Oracle-Connection aufbauen
 
     # Test der Connection und ruecksetzen auf vorherige wenn fehlschlaegt
@@ -163,7 +183,7 @@ class EnvController < ApplicationController
       begin
         sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
-        Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+        Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
         Rails.logger.error e.message
         Rails.logger.error 'Switching between SID and SERVICE_NAME'
 
@@ -172,7 +192,7 @@ class EnvController < ApplicationController
         begin
           sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
         rescue Exception => e    # 3. Versuch mit alternativer SID-Deutung
-          Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+          Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
           Rails.logger.error e.message
           Rails.logger.error 'Error persists, switching back between SID and SERVICE_NAME'
           database_helper_switch_sid_usage
@@ -186,9 +206,9 @@ class EnvController < ApplicationController
         format.js {render :js => "$('#content_for_layout').html('#{j "Fehler bei Anmeldung an DB: <br>
                                                                       #{e.message}<br>
                                                                       URL:  '#{jdbc_thin_url}'<br>
-                                                                      Host: #{session[:database][:host]}<br>
-                                                                      Port: #{session[:database][:port]}<br>
-                                                                      SID: #{session[:database][:sid]}"
+                                                                      Host: #{get_current_database[:host]}<br>
+                                                                      Port: #{get_current_database[:port]}<br>
+                                                                      SID: #{get_current_database[:sid]}"
                                                                   }');
                                     $('#login_dialog').effect('shake', { times:3 }, 100);
                                  "
@@ -237,7 +257,7 @@ class EnvController < ApplicationController
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div> User '#{session[:database][:user]}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
+      @dictionary_access_msg << "<div> User '#{get_current_database[:user]}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
       </div>"
     end
 
@@ -246,7 +266,7 @@ class EnvController < ApplicationController
     write_connection_to_cookie
 
     timepicker_regional = ""
-    if session[:locale] == "de"  # Deutsche Texte für DateTimePicker
+    if get_locale == "de"  # Deutsche Texte für DateTimePicker
       timepicker_regional = "prevText: '<zurück',
                                     nextText: 'Vor>',
                                     monthNames: ['Januar','Februar','März','April','Mai','Juni', 'Juli','August','September','Oktober','November','Dezember'],
@@ -258,7 +278,7 @@ class EnvController < ApplicationController
                                     closeText: 'Auswählen',"
     end
     respond_to do |format|
-      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{session[:database][:tns]},Host=#{session[:database][:host]},Port=#{session[:database][:port]},#{session[:database][:sid_usage]}=#{session[:database][:sid]}, User=#{session[:database][:user]}'>#{session[:database][:user]}@#{session[:database][:tns]}</span>"}');
+      format.js {render :js => "$('#current_tns').html('#{j "<span title='TNS=#{get_current_database[:tns]},Host=#{get_current_database[:host]},Port=#{get_current_database[:port]},#{get_current_database[:sid_usage]}=#{get_current_database[:sid]}, User=#{get_current_database[:user]}'>#{get_current_database[:user]}@#{get_current_database[:tns]}</span>"}');
                                 $('#main_menu').html('#{j render_to_string :partial =>"build_main_menu" }');
                                 $.timepicker.regional = { #{timepicker_regional}
                                     ampm: false,
@@ -267,7 +287,7 @@ class EnvController < ApplicationController
                                  };
                                 $.timepicker.setDefaults($.timepicker.regional);
                                 numeric_decimal_separator = '#{numeric_decimal_separator}';
-                                var session_locale = '#{session[:locale]}';
+                                var session_locale = '#{get_locale}';
                                 $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');
                                 $('#login_dialog').dialog('close');
                                 "
@@ -291,7 +311,7 @@ private
   # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
   def write_connection_to_cookie
 
-    database = session[:database]                                              # Hash für Speicherung in Cookie
+    database = read_from_client_info_store(:current_database)                  # Hash für Speicherung in Cookie
 
     cookies_last_logins = read_last_login_cookies
     min_id = nil
@@ -318,8 +338,8 @@ public
 
   # repeat last called menu action
   def repeat_last_menu_action
-    controller_name = session[:last_used_menu_controller]
-    action_name     = session[:last_used_menu_action]
+    controller_name = read_from_client_info_store(:last_used_menu_controller)
+    action_name     = read_from_client_info_store(:last_used_menu_action)
 
     # Suchen des div im Menü-ul und simulieren eines clicks auf den Menü-Eintrag
     respond_to do |format|

@@ -55,10 +55,10 @@ class ApplicationController < ActionController::Base
 
   # Ausführung vor jeden Request
   def open_connection
-    session[:database].symbolize_keys! if session[:database] && session[:database].class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
+    current_database = read_from_client_info_store(:current_database)
+    current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
-    session[:locale] = "de" unless session[:locale]
-    I18n.locale = session[:locale]      # fuer laufende Action Sprache aktiviert
+    I18n.locale = get_locale                                                    # fuer laufende Action Sprache aktivieren
 
     # Auuschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
@@ -69,15 +69,15 @@ class ApplicationController < ActionController::Base
 
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
-    session[:last_used_menu_controller] = params[:last_used_menu_controller] if params[:last_used_menu_controller]
-    session[:last_used_menu_action]     = params[:last_used_menu_action]     if params[:last_used_menu_action]
-    session[:last_used_menu_caption]    = params[:last_used_menu_caption]    if params[:last_used_menu_caption]
-    session[:last_used_menu_hint]       = params[:last_used_menu_hint]       if params[:last_used_menu_hint]
+    write_to_client_info_store(:last_used_menu_controller, params[:last_used_menu_controller]) if params[:last_used_menu_controller]
+    write_to_client_info_store(:last_used_menu_action    , params[:last_used_menu_action])     if params[:last_used_menu_action]
+    write_to_client_info_store(:last_used_menu_caption   , params[:last_used_menu_caption])    if params[:last_used_menu_caption]
+    write_to_client_info_store(:last_used_menu_hint      , params[:last_used_menu_hint])       if params[:last_used_menu_hint]
 
     # Bis hierher aktive Connection ist Dummy mit NullDB
 
     # Neue Connection auf Basis Oracle aufbauen mit durch Anwender gegebener DB
-    if session[:database]
+    if current_database
       # Initialisierungen
 
       # Protokollieren der Aufrufe in lokalem File

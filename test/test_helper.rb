@@ -45,15 +45,17 @@ class ActiveSupport::TestCase
     test_config = Panorama::Application.config.database_configuration["test_#{ENV['DB_VERSION']}"]
     test_url = test_config['test_url'].split(":")
 
-    session[:database] = {}
-    session[:database][:sid_usage] = :SERVICE_NAME
-    session[:database][:host]     = test_url[3].delete "@"
-    session[:database][:port]     = test_url[4]
-    session[:database][:sid]      = test_url[5]
-    session[:database][:user]     = test_config["test_username"]
+    current_database = {}
+    current_database[:sid_usage] = :SERVICE_NAME
+    current_database[:host]     = test_url[3].delete "@"
+    current_database[:port]     = test_url[4]
+    current_database[:sid]      = test_url[5]
+    current_database[:user]     = test_config["test_username"]
 
     # Passwort verschlüsseln in session
-    session[:database][:password] = database_helper_encrypt_value(test_config["test_password"])
+    current_database[:password] = database_helper_encrypt_value(test_config["test_password"])
+    write_to_client_info_store(:current_database, current_database)
+
 
     # puts "Test for #{ENV['DB_VERSION']} with #{database.user}/#{database.password}@#{database.host}:#{database.port}:#{database.sid}"
     begin
@@ -65,7 +67,7 @@ class ActiveSupport::TestCase
       read_initial_db_values                                                    # Lesenden DB-Zugriff nochmal durchführen
     end
 
-    session[:locale] = "de"
+    write_to_client_info_store(:locale, 'de')
 
     showBlockingLocksMenu     # belegt session[:dba_hist_blocking_locks_owner]
     showDbCacheMenu           # belegt session[:dba_hist_cache_objects_owner]

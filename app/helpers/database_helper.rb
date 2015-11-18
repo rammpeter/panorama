@@ -5,18 +5,20 @@ module DatabaseHelper
 
 
   def database_helper_switch_sid_usage
-    if session[:database][:sid_usage] == :SID
-      session[:database][:sid_usage] = :SERVICE_NAME
+    current_database = read_from_client_info_store(:current_database)
+    if current_database[:sid_usage] == :SID
+      current_database[:sid_usage] = :SERVICE_NAME
     else
-      session[:database][:sid_usage] = :SID
+      current_database[:sid_usage] = :SID
     end
+    write_to_client_info_store(:current_database, current_database)
   end
 
 
     # Notation für Anzeige und Connect per Ruby
   def database_helper_tns
-    if session[:database][:tns]
-      session[:database][:tns]
+    if get_current_database[:tns]
+      get_current_database[:tns]
     else
       database_helper_raw_tns
     end
@@ -35,27 +37,31 @@ module DatabaseHelper
   end
 
   def database_helper_raw_tns
-    if session[:database]
-      "#{session[:database][:host]}:#{session[:database][:port]}:#{session[:database][:sid]}"
+    if get_current_database
+      "#{get_current_database[:host]}:#{get_current_database[:port]}:#{get_current_database[:sid]}"
     else
-      "session[:database] not set!"
+      "current_database not set!"
     end
   end
 
 private
   # Notation für Connect per JRuby
   def jdbc_thin_url
-    sid_separator = ":" # Default, if session[:database][:sid_usage].to_sym == :SID
-    raise 'No current DB connect info set! Please reconnect to DB!' unless session[:database]
+    current_database = read_from_client_info_store(:current_database)
 
-    sid_separator = "/" if session[:database][:sid_usage].to_sym == :SERVICE_NAME
-    raise "Keine Deutung (#{session[:database][:sid_usage]}) für #{session[:database][:sid]} bekannt ob SID oder SERVICE_NAME" unless sid_separator
-    "jdbc:oracle:thin:@#{session[:database][:host]}:#{session[:database][:port]}#{sid_separator}#{session[:database][:sid]}"
+    sid_separator = ":" # Default, if current_database[:sid_usage].to_sym == :SID
+    raise 'No current DB connect info set! Please reconnect to DB!' unless current_database
+
+    sid_separator = "/" if current_database[:sid_usage].to_sym == :SERVICE_NAME
+    raise "Keine Deutung (#{current_database[:sid_usage]}) für #{current_database[:sid]} bekannt ob SID oder SERVICE_NAME" unless sid_separator
+    "jdbc:oracle:thin:@#{current_database[:host]}:#{current_database[:port]}#{sid_separator}#{current_database[:sid]}"
   end
 
 public
 
   def open_oracle_connection
+    current_database = read_from_client_info_store(:current_database)
+
     # Unterscheiden der DB-Adapter zwischen Ruby und JRuby
     if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
 
@@ -72,11 +78,11 @@ public
           config[:adapter]  != 'oracle_enhanced' ||
           config[:driver]   != 'oracle.jdbc.driver.OracleDriver' ||
           config[:url]      != jdbc_thin_url ||
-          config[:username] != session[:database][:user]
+          config[:username] != get_current_database[:user]
 
         # Entschlüsseln des Passwortes
         begin
-          local_password = database_helper_decrypt_value(session[:database][:password])
+          local_password = database_helper_decrypt_value(get_current_database[:password])
         rescue Exception => e
           Rails.logger.warn "Error in open_oracle_connection decrypting pasword: #{e.message}"
           raise "Encryption key for stored password in cookie has changed at server side! Please connect giving username and password."
@@ -85,14 +91,14 @@ public
             :adapter  => "oracle_enhanced",
             :driver   => "oracle.jdbc.driver.OracleDriver",
             :url      => jdbc_thin_url,
-            :username => session[:database][:user],
+            :username => get_current_database[:user],
             :password => local_password,
-            :privilege => session[:database][:privilege],
+            :privilege => get_current_database[:privilege],
             :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
         )
-        Rails.logger.info "Connecting database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+        Rails.logger.info "Connecting database: URL='#{jdbc_thin_url}' User='#{get_current_database[:user]}'"
       else
-        Rails.logger.info "Using already connected database: URL='#{jdbc_thin_url}' User='#{session[:database][:user]}'"
+        Rails.logger.info "Using already connected database: URL='#{jdbc_thin_url}' User='#{get_current_database[:user]}'"
       end
 
     else
@@ -100,14 +106,14 @@ public
     end
 
   rescue Exception => e                   # Exception kommt i.d.R. erst bei erstem DB-Zugriff
-    Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{session[:database][:tns]}' User='#{session[:database][:user]}'"
+    Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
     Rails.logger.error e.message
     raise e
   end
 
   # Format für JQuery-UI Plugin DateTimePicker
   def timepicker_dateformat
-    case session[:locale]
+    case get_locale
       when "de" then "dd.mm.yy"
       when "en" then "yy-mm-dd"
       else "dd.mm.yy"
@@ -116,7 +122,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf Tag
   def strftime_format_with_days
-    case session[:locale]
+    case get_locale
       when "de" then "%d.%m.%Y"
       when "en" then "%Y-%m-%d"
       else "%d.%m.%Y"
@@ -125,7 +131,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf sekunden
   def strftime_format_with_seconds
-    case session[:locale]
+    case get_locale
       when "de" then "%d.%m.%Y %H:%M:%S"
       when "en" then "%Y-%m-%d %H:%M:%S"
       else "%d.%m.%Y %H:%M:%S"
@@ -134,7 +140,7 @@ public
 
   # Maske für Date/Time-Konvertierung per strftime bis auf Minuten
   def strftime_format_with_minutes
-    case session[:locale]
+    case get_locale
       when "de" then "%d.%m.%Y %H:%M"
       when "en" then "%Y-%m-%d %H:%M"
       else "%d.%m.%Y %H:%M"     # Deutsche Variante als default
@@ -143,7 +149,7 @@ public
 
   # Ersetzung in TO_CHAR / TO_DATE in SQL
   def sql_datetime_second_mask
-    case session[:locale]
+    case get_locale
       when "de" then "DD.MM.YYYY HH24:MI:SS"
       when "en" then "YYYY-MM-DD HH24:MI:SS"
       else "DD.MM.YYYY HH24:MI:SS" # Deutsche Variante als default
@@ -152,7 +158,7 @@ public
 
   # Ersetzung in TO_CHAR / TO_DATE in SQL
   def sql_datetime_minute_mask
-    case session[:locale]
+    case get_locale
       when "de" then "DD.MM.YYYY HH24:MI"
       when "en" then "YYYY-MM-DD HH24:MI"
       else "DD.MM.YYYY HH24:MI" # Deutsche Variante als default
@@ -161,7 +167,7 @@ public
 
   # Menschenlesbare Ausgabe in Hints etc
   def human_datetime_minute_mask
-    case session[:locale]
+    case get_locale
       when "de" then "TT.MM.JJJJ HH:MI"
       when "en" then "YYYY-MM-DD HH:MI"
       else "TT.MM.JJJJ HH:MI" # Deutsche Variante als default
@@ -170,7 +176,7 @@ public
 
   # Menschenlesbare Ausgabe in Hints etc
   def human_datetime_day_mask
-    case session[:locale]
+    case get_locale
       when "de" then "TT.MM.JJJJ"
       when "en" then "YYYY-MM-DD"
       else "TT.MM.JJJJ" # Deutsche Variante als default
@@ -179,7 +185,7 @@ public
 
 
   def numeric_thousands_separator
-    case session[:locale]
+    case get_locale
       when "de" then "."
       when "en" then ","
       else "." # Deutsche Variante als default
@@ -188,7 +194,7 @@ public
 
 
   def numeric_decimal_separator
-    case session[:locale]
+    case get_locale
       when "de" then ","
       when "en" then "."
       else "," # Deutsche Variante als default

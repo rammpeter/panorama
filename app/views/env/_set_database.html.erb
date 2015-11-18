@@ -1,6 +1,6 @@
 <h2><%= t :env_current_database, :default=>"current database" %></h2>
 
-<%= "TNS=#{session[:database][:tns]}, Host=#{session[:database][:host]}, Port=#{session[:database][:port]}, #{session[:database][:sid_usage]}=#{session[:database][:sid]}" %>
+<%= "TNS=#{get_current_database[:tns]}, Host=#{get_current_database[:host]}, Port=#{get_current_database[:port]}, #{get_current_database[:sid_usage]}=#{get_current_database[:sid]}" %>
 <br/><br/>
 
 <%  @banners.each do |b| %>
