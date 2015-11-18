@@ -69,8 +69,8 @@ class ActiveSupport::TestCase
 
     write_to_client_info_store(:locale, 'de')
 
-    showBlockingLocksMenu     # belegt session[:dba_hist_blocking_locks_owner]
-    showDbCacheMenu           # belegt session[:dba_hist_cache_objects_owner]
+    showBlockingLocksMenu     # belegt dba_hist_blocking_locks_owner]
+    showDbCacheMenu           # belegt dba_hist_cache_objects_owner]
   end
 
   def set_session_test_db_context

@@ -43,7 +43,7 @@ Platform: <%= @platform_name%>
                           ) do %>
         <select name="dbid">
           <% @dbids.each do |d| %>
-              <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==session[:dbid]}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
+              <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==get_dbid}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
           <% end %>
         </select>
         <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>

@@ -8,16 +8,16 @@ module ActiveSessionHistoryHelper
     unless @session_statistics_key_rules_hash
       @session_statistics_key_rules_hash = {}
       @session_statistics_key_rules_hash["Instance"]    = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
-      if session[:version] >= "11.2"
+      if get_db_version >= "11.2"
         @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "DECODE(s.QC_instance_ID, NULL, s.Session_ID||', '||s.Session_Serial_No, s.QC_Session_ID||', '||s.QC_Session_Serial#)",        :sql_alias => "session_sn",        :Name => 'Session / Sn.',    :Title => 'Session-ID, SerialNo. (if executed in parallel query this is SID/sn of PQ-coordinator session)',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
       else
         @session_statistics_key_rules_hash["Session/Sn."] = {:sql => "s.Session_ID||', '||s.Session_Serial_No",        :sql_alias => "session_sn",        :Name => 'Session / Sn.',    :Title => 'Session-ID, SerialNo.',  :info_sql  => "MIN(s.Session_Type)", :info_caption => "Session-Type" }
       end
-      @session_statistics_key_rules_hash["Transaction"] = {:sql => "RawToHex(s.XID)",     :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["Transaction"] = {:sql => "RawToHex(s.XID)",     :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["User"]        = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User" }
       @session_statistics_key_rules_hash["SQL-ID"]      = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID', :info_sql  => "(SELECT SUBSTR(t.SQL_Text,1,40) FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)", :info_caption => "SQL-Text (first chars)" }
-      @session_statistics_key_rules_hash["SQL Exec-ID"] = {:sql => "s.SQL_Exec_ID",       :sql_alias => "sql_exec_id",        :Name => 'SQL Exec-ID',   :Title => 'SQL Execution ID', :info_sql  => "MIN(SQL_Exec_Start)", :info_caption => "Exec. start time"} if session[:version] >= "11.2"
-      @session_statistics_key_rules_hash["Operation"]   = {:sql => "RTRIM(s.SQL_Plan_Operation||' '||s.SQL_Plan_Options)", :sql_alias => "operation", :Name => 'Operation', :Title => 'Operation of explain plan line' } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["SQL Exec-ID"] = {:sql => "s.SQL_Exec_ID",       :sql_alias => "sql_exec_id",        :Name => 'SQL Exec-ID',   :Title => 'SQL Execution ID', :info_sql  => "MIN(SQL_Exec_Start)", :info_caption => "Exec. start time"} if get_db_version >= "11.2"
+      @session_statistics_key_rules_hash["Operation"]   = {:sql => "RTRIM(s.SQL_Plan_Operation||' '||s.SQL_Plan_Options)", :sql_alias => "operation", :Name => 'Operation', :Title => 'Operation of explain plan line' } if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["Entry-PL/SQL"]= {:sql => "peo.Object_Type||CASE WHEN peo.Owner IS NOT NULL THEN ' ' END||peo.Owner||CASE WHEN peo.Object_Name IS NOT NULL THEN '. ' END||peo.Object_Name||CASE WHEN peo.Procedure_Name IS NOT NULL THEN '. ' END||peo.Procedure_Name",
                                                            :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module' }
       @session_statistics_key_rules_hash["PL/SQL"]      = {:sql => "po.Object_Type||CASE WHEN po.Owner IS NOT NULL THEN ' ' END||po.Owner||CASE WHEN po.Object_Name IS NOT NULL THEN '. ' END||po.Object_Name||CASE WHEN po.Procedure_Name IS NOT NULL THEN '. ' END||po.Procedure_Name",
@@ -36,8 +36,8 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Tablespace"]  = {:sql => "f.TableSpace_Name",   :sql_alias => "ts_name",            :Name => 'TS-name',       :Title => "Tablespace name" }
       @session_statistics_key_rules_hash["Data-File"]   = {:sql => "s.Current_File_No",   :sql_alias => "file_no",            :Name => 'Data-file#',    :Title => "Data-file number", :info_sql => "MIN(f.File_Name)||' TS='||MIN(f.Tablespace_Name)", :info_caption => "Tablespace-Name" }
       @session_statistics_key_rules_hash["Program"]     = {:sql => "TRIM(s.Program)",     :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
-      @session_statistics_key_rules_hash["Machine"]     = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if session[:version] >= "11.2"
-      @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if session[:version] >= "11.2"
+      @session_statistics_key_rules_hash["Machine"]     = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if get_db_version >= "11.2"
+      @session_statistics_key_rules_hash["Modus"]       = {:sql => "s.Modus",             :sql_alias => "modus",              :Name => 'Mode',          :Title      => "Mode in which session is executed" } if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["PQ"]          = {:sql => "DECODE(s.QC_Instance_ID, NULL, 'NO', s.Instance_Number||':'||s.Session_ID||', '||s.Session_Serial_No)",  :sql_alias => "pq",  :Name => 'Parallel query',  :Title => 'PQ instance and session if executed in parallel query (NO if not executed in parallel or session is PQ-coordinator)' }
       @session_statistics_key_rules_hash["Session-Type"]= {:sql => "SUBSTR(s.Session_Type,1,1)", :sql_alias => "session_type",              :Name => 'S-T',          :Title      => "Session-type: (F)OREGROUND or (B)ACKGROUND" }
     end
@@ -88,7 +88,7 @@ module ActiveSessionHistoryHelper
       @groupfilter_values_hash["SubObject_Name"]        = {:sql => "o.SubObject_Name"}
       @groupfilter_values_hash["Current_Obj_No"]        = {:sql => "s.Current_Obj_No"}
       @groupfilter_values_hash["User-ID"]               = {:sql => "s.User_ID"}
-      @groupfilter_values_hash["Additional Filter"]     = {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||s.Program#{session[:version] >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
+      @groupfilter_values_hash["Additional Filter"]     = {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||s.Program#{get_db_version >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
 
     end
 

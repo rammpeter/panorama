@@ -30,16 +30,16 @@
    column_options << {:caption=> 'Free pools',          :data=>proc{|rec| rec.freepools},               :title=> 'Number of freepools for this LOB segment', :align=>:right}
    column_options << {:caption=> 'Cache',               :data=>proc{|rec| rec.cache},                   :title=> 'Indicates whether and how the cluster is to be cached in the buffer cache (YES, NO, CACHEREADS)'}
    column_options << {:caption=> 'Logging',             :data=>proc{|rec| rec.logging},                 :title=> 'Indicates whether changes to the LOB are logged (YES) or not (NO)' }
-   column_options << {:caption=> 'Encrypt',             :data=>proc{|rec| rec.encrypt},                 :title=> 'Indicates whether or not the LOB is encrypted.' } if session[:version] >= '11.2'
-   column_options << {:caption=> 'Compress.',           :data=>proc{|rec| rec.compression},             :title=> 'Level of compression used for this LOB.' } if session[:version] >= '11.2'
-   column_options << {:caption=> 'Dedup.',              :data=>proc{|rec| rec.deduplication},           :title=> 'Kind of deduplication used for this LOB.' } if session[:version] >= '11.2'
+   column_options << {:caption=> 'Encrypt',             :data=>proc{|rec| rec.encrypt},                 :title=> 'Indicates whether or not the LOB is encrypted.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Compress.',           :data=>proc{|rec| rec.compression},             :title=> 'Level of compression used for this LOB.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Dedup.',              :data=>proc{|rec| rec.deduplication},           :title=> 'Kind of deduplication used for this LOB.' } if get_db_version >= '11.2'
    column_options << {:caption=> 'In row',              :data=>proc{|rec| rec.in_row},                  :title=> 'Indicates whether some of the LOBs are stored inline with the base row (YES) or not (NO). For partitioned objects, refer to the *_LOB_PARTITIONS and *_PART_LOBS views.' }
    column_options << {:caption=> 'Format',              :data=>proc{|rec| rec.format},                  :title=> 'Indicates whether the LOB storage format is dependent on the endianness of the platform' }
    column_options << {:caption=> 'Partitioned',         :data=>proc{|rec| rec.partitioned},             :title=> 'Indicates whether the LOB column is in a partitioned table (YES) or not (NO)' }
-   column_options << {:caption=> 'Secure file',         :data=>proc{|rec| rec.securefile},              :title=> 'Indicates whether the LOB is SecureFiles (YES) or not (NO)' } if session[:version] >= '11.2'
-   column_options << {:caption=> 'Created',             :data=>proc{|rec| rec.segment_created},         :title=> 'Indicates whether the LOB segment has been created (YES) or not (NO)' } if session[:version] >= '11.2'
-   column_options << {:caption=> 'Retention type',      :data=>proc{|rec| rec.retention_type},          :title=> 'Type of retention used for this LOB.' } if session[:version] >= '11.2'
-   column_options << {:caption=> 'Retention value',     :data=>proc{|rec| fn(rec.retention_value)},     :title=> 'Minimum retention time (in seconds). This column is only meaningful for SecureFiles with RETENTION_TYPE set to MIN.', :align=>:right } if session[:version] >= '11.2'
+   column_options << {:caption=> 'Secure file',         :data=>proc{|rec| rec.securefile},              :title=> 'Indicates whether the LOB is SecureFiles (YES) or not (NO)' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Created',             :data=>proc{|rec| rec.segment_created},         :title=> 'Indicates whether the LOB segment has been created (YES) or not (NO)' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Retention type',      :data=>proc{|rec| rec.retention_type},          :title=> 'Type of retention used for this LOB.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Retention value',     :data=>proc{|rec| fn(rec.retention_value)},     :title=> 'Minimum retention time (in seconds). This column is only meaningful for SecureFiles with RETENTION_TYPE set to MIN.', :align=>:right } if get_db_version >= '11.2'
 
 
    caption = 'LOB segments of '

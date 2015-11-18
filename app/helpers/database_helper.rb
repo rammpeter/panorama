@@ -24,15 +24,21 @@ module DatabaseHelper
     end
   end
 
-  # Verschlüsseln eines Wertes
+  private
+  def get_salted_encryption_key
+    "#{session[:client_salt]}#{Rails.application.config.secret_key_base}"
+  end
+
+  public
+  # Client-spezifisches Verschlüsseln eines Wertes, Teil des Schlüssels liegt client-spezifisch als verschlüsselter cookie im Browser des Clients
   def database_helper_encrypt_value(raw_value)
-    crypt = ActiveSupport::MessageEncryptor.new(Rails.application.config.secret_key_base)
+    crypt = ActiveSupport::MessageEncryptor.new(get_salted_encryption_key)
     crypt.encrypt_and_sign(raw_value)
   end
 
-  # Entschlüsseln des Wertes
+  # Client-spezifisches Entschlüsseln des Wertes,  Teil des Schlüssels liegt client-spezifisch als verschlüsselter cookie im Browser des Clients
   def database_helper_decrypt_value(encrypted_value)
-    crypt = ActiveSupport::MessageEncryptor.new(Rails.application.config.secret_key_base)
+    crypt = ActiveSupport::MessageEncryptor.new(get_salted_encryption_key)
     crypt.decrypt_and_verify(encrypted_value)
   end
 
@@ -85,7 +91,7 @@ public
           local_password = database_helper_decrypt_value(get_current_database[:password])
         rescue Exception => e
           Rails.logger.warn "Error in open_oracle_connection decrypting pasword: #{e.message}"
-          raise "Encryption key for stored password in cookie has changed at server side! Please connect giving username and password."
+          raise "One part of encryption key for stored password has changed at server side! Please connect giving username and password."
         end
         ConnectionHolder.establish_connection(
             :adapter  => "oracle_enhanced",

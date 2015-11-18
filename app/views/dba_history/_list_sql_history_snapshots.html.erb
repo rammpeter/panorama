@@ -4,7 +4,7 @@
 def link_column_detail(rec, value)
   my_ajax_link_to(value,
     url_for(:action     => "list_sql_detail_historic",
-            :dbid       => session[:dbid],
+            :dbid       => get_dbid,
             :instance   => @instance,
             :sql_id     => @sql_id,
             :parsing_schema_name =>@parsing_schema_name,

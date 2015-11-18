@@ -50,7 +50,7 @@ def link_column_wait(rec, value)
                 url_for(:controller     => :active_session_history,
                         :action         => :list_session_statistic_historic_grouping,
                         :groupfilter    => {
-                                :DBID                   => session[:dbid],
+                                :DBID                   => get_dbid,
                                 :Instance               => rec.instance_number,
                                 :time_selection_start   => @time_selection_start,
                                 :time_selection_end     => @time_selection_end,

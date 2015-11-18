@@ -34,12 +34,18 @@ class EnvController < ApplicationController
 
     # Entfernen evtl. bisheriger Bestandteile des Session-Cookies
     cookies.delete(:locale)                       if cookies[:locale]
+    cookies.delete(:last_logins)                  if cookies[:last_logins]
     session.delete(:locale)                       if session[:locale]
     session.delete(:last_used_menu_controller)    if session[:last_used_menu_controller]
     session.delete(:last_used_menu_action)        if session[:last_used_menu_action]
     session.delete(:last_used_menu_caption)       if session[:last_used_menu_caption]
     session.delete(:last_used_menu_hint)          if session[:last_used_menu_hint]
     session.delete(:database)                     if session[:database]
+    session.delete(:dbid)                         if session[:dbid]
+    session.delete(:version)                      if session[:version]
+    session.delete(:db_block_size)                if session[:db_block_size]
+    session.delete(:wordsize)                     if session[:wordsize]
+    session.delete(:dba_hist_cache_objects_owner) if session[:dba_hist_cache_objects_owner]
 
     write_to_client_info_store(:locale, 'en') if read_from_client_info_store(:locale).nil? || !['de', 'en'].include?(read_from_client_info_store(:locale))
 
@@ -80,7 +86,7 @@ class EnvController < ApplicationController
   # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections
   def set_database_by_id
     if params[:login]                                                           # Button Login gedrückt
-      params[:database] = read_last_login_cookies[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
+      params[:database] = read_last_logins[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
 
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
       raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
@@ -88,10 +94,10 @@ class EnvController < ApplicationController
     end
 
     if params[:delete]                                                          # Button DELETE gedrückt, Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
-      cookies_last_logins = read_last_login_cookies
-      cookies_last_logins.delete_at(params[:saved_logins_id].to_i)
+      last_logins = read_last_logins
+      last_logins.delete_at(params[:saved_logins_id].to_i)
 
-      write_last_login_cookies(cookies_last_logins)
+      write_last_logins(last_logins)
       respond_to do |format|
         format.js {render :js => "window.location.reload();" }                  # Neuladen der gesamten HTML-Seite, damit Entfernung des Eintrages auch sichtbar wird
       end
@@ -237,7 +243,7 @@ class EnvController < ApplicationController
                                                JOIN  v$Database d ON 1=1
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
                                                LEFT OUTER JOIN (SELECT DBID, MIN(EXTRACT(MINUTE FROM Snap_Interval)) Snap_Interval_Minutes, MIN(EXTRACT(DAY FROM Retention)) Snap_Retention_Days FROM DBA_Hist_WR_Control GROUP BY DBID) ws ON ws.DBID = ?
-                                      ", session[:dbid] ]
+                                      ", get_dbid ]
 
       @instance_data.each do |i|
         if i.instance_connected
@@ -313,7 +319,7 @@ private
 
     database = read_from_client_info_store(:current_database)                  # Hash für Speicherung in Cookie
 
-    cookies_last_logins = read_last_login_cookies
+    cookies_last_logins = read_last_logins
     min_id = nil
 
     cookies_last_logins.each do |value|
@@ -321,7 +327,7 @@ private
     end
     if params[:saveLogin] == "1"
       cookies_last_logins = [database] + cookies_last_logins                    # Neuen Eintrag an erster Stelle
-      write_last_login_cookies(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
+      write_last_logins(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
     end
 
   end
@@ -330,9 +336,9 @@ private
 public
   # DBID explizit setzen wenn mehrere verschiedene in Historie vorhande
   def set_dbid
-    session[:dbid] = params[:dbid]
+    write_to_client_info_store(:dbid, params[:dbid])
     respond_to do |format|
-       format.js {render :js => "$('##{params[:update_area]}').html('#{j "DBID for access on AWR history set to #{session[:dbid] }"}');"}
+       format.js {render :js => "$('##{params[:update_area]}').html('#{j "DBID for access on AWR history set to #{get_dbid}"}');"}
     end
   end
 

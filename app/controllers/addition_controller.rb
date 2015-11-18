@@ -29,7 +29,7 @@ class AdditionController < ApplicationController
               FROM   (SELECT Instance, Owner, Name, #{partition_expression} PartitionName,
                              SUM(BlocksTotal) BlocksTotal,
                              SUM(BlocksDirty) BlocksDirty
-                      FROM   #{session[:dba_hist_cache_objects_owner]}.DBA_hist_Cache_Objects
+                      FROM   #{read_from_client_info_store(:dba_hist_cache_objects_owner)}.DBA_hist_Cache_Objects
                       WHERE  SnapshotTS BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                       #{" AND Instance=#{@instance}" if @instance}
                       -- Verdichten je Schnappschuss auf Gruppierung, um saubere Min/Max/Avg-Werte zu erhalten
@@ -60,7 +60,7 @@ class AdditionController < ApplicationController
       SELECT /* Panorama-Tool Ramm */ SnapshotTS,
              SUM(BlocksTotal) BlocksTotal,
              SUM(BlocksDirty) BlocksDirty
-      FROM   #{session[:dba_hist_cache_objects_owner]}.DBA_hist_Cache_Objects
+      FROM   #{read_from_client_info_store(:dba_hist_cache_objects_owner)}.DBA_hist_Cache_Objects
       WHERE  SnapshotTS BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
       AND    Owner    = ?
       AND    Name     = ?
@@ -92,7 +92,7 @@ class AdditionController < ApplicationController
       SELECT /* Panorama-Tool Ramm */ Owner, Name, #{partition_expression} PartitionName,
              SUM(BlocksTotal) BlocksTotal,
              SUM(BlocksDirty) BlocksDirty
-      FROM   #{session[:dba_hist_cache_objects_owner]}.DBA_hist_Cache_Objects
+      FROM   #{read_from_client_info_store(:dba_hist_cache_objects_owner)}.DBA_hist_Cache_Objects
       WHERE  SnapshotTS = TO_DATE(?, '#{sql_datetime_second_mask}')
       AND    Instance   = ?
       GROUP BY SnapshotTS, Instance, Owner, Name, #{partition_expression}
@@ -119,7 +119,7 @@ class AdditionController < ApplicationController
     singles = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
              c.Instance, c.SnapshotTS, c.Owner, c.Name, #{partition_expression} PartitionName, SUM(c.BlocksTotal) BlocksTotal
-      FROM   #{session[:dba_hist_cache_objects_owner]}.DBA_hist_Cache_Objects c
+      FROM   #{read_from_client_info_store(:dba_hist_cache_objects_owner)}.DBA_hist_Cache_Objects c
       JOIN   (
               SELECT Instance, Owner, Name, PartitionName, SumBlocksTotal
               FROM   (SELECT Instance, Owner, Name, PartitionName,
@@ -127,7 +127,7 @@ class AdditionController < ApplicationController
                              SUM(BlocksTotal) SumBlocksTotal
                       FROM   (SELECT Instance, Owner, Name, #{partition_expression} PartitionName,
                                      SUM(BlocksTotal) BlocksTotal
-                              FROM   #{session[:dba_hist_cache_objects_owner]}.DBA_hist_Cache_Objects c
+                              FROM   #{read_from_client_info_store(:dba_hist_cache_objects_owner)}.DBA_hist_Cache_Objects c
                               WHERE  SnapshotTS BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                               #{" AND Instance=#{@instance}" if @instance}
                               -- Verdichten je Schnappschuss auf Gruppierung, um saubere Min/Max/Avg-Werte zu erhalten

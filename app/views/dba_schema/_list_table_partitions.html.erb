@@ -37,9 +37,9 @@
       {:caption=> 'Last analyzed',          :data=>proc{|rec| localeDateTime rec.last_analyzed}, :title=> 'Date on which this partition was most recently analyzed'},
       {:caption=> 'Compression',            :data=>proc{|rec| rec.compression},                  :title=> 'Indicates the actual compression property for a partition'},
     ]
-    column_options << {:caption=> 'Compress for',           :data=>proc{|rec| rec.compress_for},                 :title=> 'Default compression for what kind of operations'} if session[:version] >= '11.2'
-    column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if session[:version] >= '11.2'
-    column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if session[:version] >= '11.2'
+    column_options << {:caption=> 'Compress for',           :data=>proc{|rec| rec.compress_for},                 :title=> 'Default compression for what kind of operations'} if get_db_version >= '11.2'
+    column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+    column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
 
     gen_slickgrid(@partitions, column_options, {
       :caption => "Partitions of table #{@owner}.#{@table_name} #{@partition_expression}",

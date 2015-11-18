@@ -38,6 +38,25 @@ module ApplicationHelper
     @buffered_current_database
   end
 
+  def get_dbid    # die originale oder nach Login ausgewählte DBID
+    @buffered_dbid = read_from_client_info_store(:dbid) unless @buffered_dbid
+    @buffered_dbid
+  end
+
+  def get_db_version    # Oracle-Version
+    @buffered_db_version = read_from_client_info_store(:db_version) unless @buffered_db_version
+    @buffered_db_version
+  end
+
+  def get_db_block_size    # Oracle block size
+    @buffered_db_block_size = read_from_client_info_store(:db_block_size) unless @buffered_db_block_size
+    @buffered_db_block_size
+  end
+
+  def get_db_wordsize    # word size des Oracle-Servers
+    @buffered_wordsize = read_from_client_info_store(:db_wordsize) unless @buffered_wordsize
+    @buffered_wordsize
+  end
 
   # Helper fuer Ausführung SQL-Select-Query,
   # return Array of Hash mit Columns des Records
@@ -285,7 +304,7 @@ module ApplicationHelper
   # Aufbereiten des Parameters "dbid" aus Request, return session-default wenn kein plausibler Wert
   def prepare_param_dbid
     retval = params[:dbid]
-    retval = session[:dbid] unless retval
+    retval = get_dbid unless retval
     retval
   end
 
@@ -466,7 +485,7 @@ module ApplicationHelper
                    FROM   DBA_Hist_SQLText
                    WHERE  DBID   = ?
                    AND    SQL_ID = ?",
-                   session[:dbid], sql_id]
+                   get_dbid, sql_id]
       end
 
       if sqls.size == 0

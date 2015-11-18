@@ -40,7 +40,7 @@
 
     @temp_size = 0
     @data.each do |rec|
-      @temp_size += rec.blocks*session[:db_block_size]/(1024.0*1024.0)
+      @temp_size += rec.blocks*get_db_block_size/(1024.0*1024.0)
     end
 
   column_options =
@@ -58,7 +58,7 @@
       {:caption=>"Seg.type",    :data=>proc{|rec| rec.segtype },                              :title=>"Segment-Type"},
       {:caption=>"Extents",     :data=>proc{|rec| formattedNumber(rec.extents) },             :title=>"Anzahl Extents",   :align=>"right"},
       {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks) },              :title=>"Anzahl Blöcke",    :align=>"right"},
-      {:caption=>"MB",          :data=>proc{|rec| formattedNumber(rec.blocks*session[:db_block_size]/(1024.0*1024.0),2) },                               :title=>"Megabytes",        :align=>"right"},
+      {:caption=>"MB",          :data=>proc{|rec| formattedNumber(rec.blocks*get_db_block_size/(1024.0*1024.0),2) },                               :title=>"Megabytes",        :align=>"right"},
     ]
 
 %>
