@@ -5,8 +5,8 @@
 %>
 
 <%
-   @time_selection_start_id = "time_selection_start_#{session[:request_counter]}"
-   @time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
+   @time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
+   @time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
 
    @caption = ""
    @caption << (my_ajax_form_tag url_for(:controller => :io, :action        => :refresh_time_selection,

@@ -26,6 +26,17 @@ module ApplicationHelper
     get_client_info_store.read("#{session[:client_key]}_#{key}")
   end
 
+  # Setzen locale in Client_Info-Cache und aktueller Session
+  def set_I18n_locale(locale)
+    if !locale.nil? && ['de', 'en'].include?(locale)
+      write_to_client_info_store(:locale, locale)
+    else
+      write_to_client_info_store(:locale, 'en')
+      Rails.logger.warn(">>> I18n.locale set to 'en' because '#{locale}' is not yet supported")
+    end
+    @buffered_locale = nil                                                      # Sicherstellen, dass lokaler Cache neu aus FileStore gelesen wird
+    I18n.locale = get_locale
+  end
 
   # Cachen diverser Client-Einstellungen in lokalen Variablen
   def get_locale
@@ -33,9 +44,20 @@ module ApplicationHelper
     @buffered_locale
   end
 
+  def set_current_database(current_database)
+    @buffered_current_database = nil                                            # lokalen Cache verwerfen
+    write_to_client_info_store(:current_database, current_database)
+  end
+
+
   def get_current_database
     @buffered_current_database = read_from_client_info_store(:current_database) unless @buffered_current_database
     @buffered_current_database
+  end
+
+  def set_cached_dbid(dbid)
+    @buffered_dbid = nil
+    write_to_client_info_store(:dbid, dbid)
   end
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
@@ -58,7 +80,27 @@ module ApplicationHelper
     @buffered_wordsize
   end
 
-  # Helper fuer Ausführung SQL-Select-Query,
+  def set_cached_time_selection_start(time_selection_start)
+    @buffered_time_selection_start = nil
+    write_to_client_info_store(:time_selection_start, time_selection_start)
+  end
+
+  def get_cached_time_selection_start
+    @buffered_time_selection_start = read_from_client_info_store(:time_selection_start) unless @buffered_time_selection_start
+    @buffered_time_selection_start
+  end
+
+  def set_cached_time_selection_end(time_selection_end)
+    @buffered_time_selection_end = nil
+    write_to_client_info_store(:time_selection_end, time_selection_end)
+  end
+
+  def get_cached_time_selection_end
+    @buffered_time_selection_end = read_from_client_info_store(:time_selection_end) unless @buffered_time_selection_end
+    @buffered_time_selection_end
+  end
+
+    # Helper fuer Ausführung SQL-Select-Query,
   # return Array of Hash mit Columns des Records
   def sql_select_all(sql)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
     binds = []
@@ -297,7 +339,7 @@ module ApplicationHelper
   def prepare_param_instance
     retval = params[:instance].to_i
     retval = nil if retval == 0
-    session[:instance]  = retval      # Werte puffern fuer spaetere Wiederverwendung
+    write_to_client_info_store(:instance, retval)      # Werte puffern fuer spaetere Wiederverwendung
     retval
   end
 
@@ -399,17 +441,17 @@ module ApplicationHelper
     @time_selection_end   = params[:time_selection_end].rstrip
 
     if @time_selection_start && @time_selection_start != ''
-      session[:time_selection_start] = check_timestamp_picture(@time_selection_start)
+      set_cached_time_selection_start(check_timestamp_picture(@time_selection_start))
     end
     if @time_selection_end && @time_selection_end != ''
-      session[:time_selection_end] = check_timestamp_picture(@time_selection_end)
+      set_cached_time_selection_end(check_timestamp_picture(@time_selection_end))
     end
   end
 
   # Vorbelegung fuer Eingabefeld
   def default_time_selection_start
-    if session[:time_selection_start] && session[:time_selection_start] != ''
-      session[:time_selection_start]
+    if get_cached_time_selection_start && get_cached_time_selection_start != ''
+      get_cached_time_selection_start
     else
       "#{Date.today.strftime(strftime_format_with_days)} 00:00"
     end
@@ -417,8 +459,8 @@ module ApplicationHelper
 
   # Vorbelegung fuer Eingabefeld
   def default_time_selection_end
-    if session[:time_selection_end] && session[:time_selection_end] != ''
-      session[:time_selection_end]
+    if get_cached_time_selection_end && get_cached_time_selection_end != ''
+      get_cached_time_selection_end
     else
       "#{Date.today.strftime(strftime_format_with_days)} 13:00"
     end
@@ -551,12 +593,18 @@ module ApplicationHelper
     end
   end
 
+  # Rücksetzen des Zählers bei Neuanmeldung
+  def initialize_unique_area_id
+    write_to_client_info_store(:request_counter, 0)
+  end
+
   # Eindeutigen Bezeichner fuer DIV-ID in html-Struktur
   def get_unique_area_id
-    session[:request_counter] = 0 if session[:request_counter] > 10000          # Sicherstellen, das keine Kumulation ohne Ende
-    session[:request_counter] += 1                                              # Eindeutigkeit sicherstellen durch Weiterzählen auch innerhalb eines Requests
-
-    "a#{session[:request_counter]}"
+    request_counter = read_from_client_info_store(:request_counter)
+    request_counter = 0 if request_counter.nil? || request_counter > 100000           # Sicherstellen, das keine Kumulation ohne Ende
+    request_counter += 1                                              # Eindeutigkeit sicherstellen durch Weiterzählen auch innerhalb eines Requests
+    write_to_client_info_store(:request_counter, request_counter)
+    "a#{request_counter}"
   end
 
 end

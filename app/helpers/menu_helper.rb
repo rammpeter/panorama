@@ -156,7 +156,7 @@ module MenuHelper
     #Ausgabe eines einzelnen Menues
   def showBlockingLocksMenu
     res = sql_select_first_row "SELECT /* Panorama Tool Ramm */ COUNT(*) Anzahl, MIN(Owner) Owner FROM All_Tables WHERE Table_Name = 'DBA_HIST_BLOCKING_LOCKS'"
-    session[:dba_hist_blocking_locks_owner] = res.owner
+    write_to_client_info_store(:dba_hist_blocking_locks_owner, res.owner)
     Rails.logger.info "MenuHelper.showBlockingLocksMenu: #{res.anzahl} different schemas have table DBA_HIST_BLOCKING_LOCKS, function hidden" if res.anzahl > 1
     res.anzahl == 1     # Nur verwenden, wenn genau ein Schema die Daten enthält
   end

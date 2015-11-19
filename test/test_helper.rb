@@ -67,7 +67,7 @@ class ActiveSupport::TestCase
       read_initial_db_values                                                    # Lesenden DB-Zugriff nochmal durchführen
     end
 
-    write_to_client_info_store(:locale, 'de')
+    set_I18n_locale('de')
 
     showBlockingLocksMenu     # belegt dba_hist_blocking_locks_owner]
     showDbCacheMenu           # belegt dba_hist_cache_objects_owner]

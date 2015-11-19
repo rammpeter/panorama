@@ -16,7 +16,7 @@
 
 
     def link_column_module(rec, value)
-      update_area_module = "open_cursor_module_area_#{session[:request_counter]}"
+      update_area_module = get_unique_area_id
       my_ajax_link_to(value,
        url_for(:action        => :show_application_info,
                 :update_area  => update_area_module,

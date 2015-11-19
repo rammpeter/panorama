@@ -7,7 +7,7 @@
 
   <div class="float_left">
     Instance
-    <%= text_field_tag(:instance, (session[:instance] ? session[:instance] : ""), :size=>1, :title=>"ID der betrachteten RAC-Instanz (optional)") %>
+    <%= text_field_tag(:instance, (read_from_client_info_store(:instance) ? read_from_client_info_store(:instance) : ""), :size=>1, :title=>"ID der betrachteten RAC-Instanz (optional)") %>
   </div>
   <div class="float_left">
     Part.

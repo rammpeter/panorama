@@ -73,13 +73,13 @@
             </tr>
             <tr>
               <td>
-                <%  cookies_last_logins = read_last_logins %>
+                <%  last_logins = read_last_logins %>
 
                 <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_id), :remote=>true, :id=>:formSavedLogin do %>
                     <div class="float_left" title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
                       <select name="saved_logins_id"  autocomplete="off" >
-                        <% cookies_last_logins.each_index do |index| %>
-                            <% database = cookies_last_logins[index] %>
+                        <% last_logins.each_index do |index| %>
+                            <% database = last_logins[index] %>
                             <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:sid]} ( #{database[:user]} ) - #{database[:host]} : #{database[:port]} " %></option>
                         <% end %>
                       </select>

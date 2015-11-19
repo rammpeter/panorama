@@ -55,8 +55,8 @@ column_options =
 caption = t(:dba_history_list_sql_history_snapshots_caption, :default=>"Historic snapshots from DBA_Hist_SQL_Stat for SQL-ID = '%{sql_id}' Instance = %{instance}", :sql_id=>@sql_id, :instance=>@instance)
 caption << '<br><div style="font-weight: normal;">'
 
-@time_selection_start_id = "time_selection_start_#{session[:request_counter]}"
-@time_selection_end_id   = "time_selection_end_#{session[:request_counter]}"
+@time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
+@time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
 
 grouping_options = {
         :snap   => "[AWR-cycle]",

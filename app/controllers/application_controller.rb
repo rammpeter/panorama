@@ -62,7 +62,7 @@ class ApplicationController < ActionController::Base
 
     # Auuschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
+    return if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_dbid', 'set_database_by_params', 'set_database_by_id'].include?(action_name) )                  ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
     (controller_name == 'dragnet' && ['refresh_selected_data', 'get_selection_list'].include?(action_name) )  ||
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
@@ -106,9 +106,6 @@ class ApplicationController < ActionController::Base
        raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')
     end
 
-    # Request-Counter je HTML-Session als Hilsmittel für eindeutige html-IDs
-    session[:request_counter] = 0 unless session[:request_counter]
-    session[:request_counter] += 1
   rescue Exception=>e
     set_dummy_db_connection                                                     # Sicherstellen, dass für nächsten Request gültige Connection existiert
     raise # "Error while connecting to #{database_helper_raw_tns}"         # Explizit anzeige des Connect-Problemes als Popup-Message

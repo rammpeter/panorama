@@ -8,7 +8,7 @@
 
     <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
         Instance
-        <%= text_field_tag(:instance, session[:instance], :size=>1) %>
+        <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>1) %>
     </div>
     <div class="float_left">
         <%= submit_tag("Show redo log info", :title => "Show historic redo log info") %>

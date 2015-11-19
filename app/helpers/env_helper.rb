@@ -4,7 +4,7 @@ module EnvHelper
 
   # Einlesen diverser Parameter der DB, die spaeter noch laufend gebraucht werden
   def read_initial_db_values
-    write_to_client_info_store(:dbid,           sql_select_one("SELECT /* Panorama Tool Ramm */ DBID FROM v$Database"))
+    set_cached_dbid(sql_select_one("SELECT /* Panorama Tool Ramm */ DBID FROM v$Database"))
     write_to_client_info_store(:db_block_size,  sql_select_one("SELECT /* Panorama Tool Ramm */ TO_NUMBER(Value) FROM v$parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE'"))
     write_to_client_info_store(:db_version,     sql_select_one("SELECT /* Panorama Tool Ramm */ Version FROM V$Instance"))
     write_to_client_info_store(:wordsize,       sql_select_one("SELECT /* Panorama Tool Ramm */ DECODE (INSTR (banner, '64bit'), 0, 4, 8) FROM v$version WHERE Banner LIKE '%Oracle Database%'"))
@@ -12,7 +12,7 @@ module EnvHelper
 
 
 
-  # Einlesen last_logins aus cookie-store
+  # Einlesen last_logins aus client_info-store
   def read_last_logins
 =begin
     begin
@@ -44,7 +44,7 @@ module EnvHelper
     last_logins
   end
 
-  # Zurückschreiben des Cookies in cookie-store, Komprimieren, um 4K-Limit nicht zu überschreiten
+  # Zurückschreiben des logins in client_info_store
   def write_last_logins(last_logins)
 =begin
     #compressed_cookie = Zlib::Deflate.deflate(Marshal.dump(last_logins))

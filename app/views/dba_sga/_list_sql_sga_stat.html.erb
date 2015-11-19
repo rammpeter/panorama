@@ -43,7 +43,7 @@ end
            <td title="Module und Action der Session, von der Statement geparst wurde">Parsing Module / Parsing Action</td>
            <td>
              <%=
-                 @update_area_module = "list_sql_sga_stat_module_#{session[:request_counter]}"
+                 @update_area_module = get_unique_area_id
                  my_ajax_link_to(@sql.module,
                   url_for(:action        => :show_application_info,
                            :update_area  => @update_area_module,
@@ -55,7 +55,7 @@ end
            </td>
            <td align='right' title="Parsing Action">
              <%=
-                 @update_area_action = "list_sql_sga_stat_action_#{session[:request_counter]}"
+                 @update_area_action = get_unique_area_id
                  my_ajax_link_to(@sql.action,
                   url_for(:action        => :show_application_info,
                            :update_area  => @update_area_action,

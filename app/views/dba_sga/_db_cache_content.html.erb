@@ -5,7 +5,7 @@
 <%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>:list_db_cache_content, :update_area=>@update_area) do %>
   <div class="float_left">
     Instance
-    <%= text_field_tag(:instance, session[:instance], :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>
+    <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>1, :title=>"ID der betrachteten RAC-Instanz") %>
   </div>
   <div class="float_left">
     Part.

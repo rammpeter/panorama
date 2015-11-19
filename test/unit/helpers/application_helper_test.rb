@@ -29,13 +29,13 @@ class ApplicationHelperTest < ActionView::TestCase
   end
 
   test "save_session_alter_ts" do
-    write_to_client_info_store(:locale, 'de')
+    set_I18n_locale('de')
     assert_nothing_raised {
       params[:time_selection_start] = "01.01.2011 00:20"
       params[:time_selection_end] = "31.01.2012 23:20"
       save_session_time_selection
-      assert_equal params[:time_selection_start], session[:time_selection_start]
-      assert_equal params[:time_selection_end], session[:time_selection_end]
+      assert_equal params[:time_selection_start], get_cached_time_selection_start
+      assert_equal params[:time_selection_end], get_cached_time_selection_end
 
       params[:time_selection_start] = "01.01.2011 00:00";   save_session_time_selection
       params[:time_selection_start] = "31.01.2011 00:00";   save_session_time_selection
@@ -52,13 +52,13 @@ class ApplicationHelperTest < ActionView::TestCase
     params[:time_selection_start]  = "01.12.2011 00:60"; assert_raise(RuntimeError){ save_session_time_selection }
 
 
-    write_to_client_info_store(:locale, 'en')
+    set_I18n_locale('en')
     assert_nothing_raised {
       params[:time_selection_start] = "2011/01/01 00:20"
       params[:time_selection_end] = "2012/12/31 23:20"
       assert_nothing_raised {  save_session_time_selection }
-      assert_equal params[:time_selection_start], session[:time_selection_start]
-      assert_equal params[:time_selection_end], session[:time_selection_end]
+      assert_equal params[:time_selection_start], get_cached_time_selection_start
+      assert_equal params[:time_selection_end], get_cached_time_selection_end
       params[:time_selection_start] = "2011/01/01 00:00";   save_session_time_selection
       params[:time_selection_start] = "2011/01/31 00:00";   save_session_time_selection
       params[:time_selection_start] = "2011/12/01 00:00";   save_session_time_selection
@@ -71,6 +71,8 @@ class ApplicationHelperTest < ActionView::TestCase
     params[:time_selection_start]  = "2011/13/01 00:20"; assert_raise(RuntimeError){ save_session_time_selection }
     params[:time_selection_start]  = "2011/12/01 24:20"; assert_raise(RuntimeError){ save_session_time_selection }
     params[:time_selection_start]  = "2011/12/01 00:60"; assert_raise(RuntimeError){ save_session_time_selection }
+
+    set_I18n_locale('de')                                                       # Rücksetzen auf de, da dies der Dafeault ist für weitere Tests
   end
 
 

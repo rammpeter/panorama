@@ -1,4 +1,4 @@
-<% @update_area = "show_mutex_statistics_historic_area_#{session[:request_counter]}" %>
+<% @update_area = get_unique_area_id %>
 
 <div class="page_caption"><%=  t(:show_mutex_statistics_historic_caption, :default=>"Mutex-Statistics from GV$Mutex_Sleep_History (since instance-start)") %></div>
 

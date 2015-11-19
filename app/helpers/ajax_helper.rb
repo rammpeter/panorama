@@ -51,11 +51,7 @@ module AjaxHelper
   # time_selection_end und time_selection_start können als nil übergeben werden
   def link_historic_sql_id(instance, sql_id, time_selection_start, time_selection_end, update_area, parsing_schema_name=nil, value=nil)
     parsing_schema_name="[UNKNOWN]" if parsing_schema_name.nil?                 # Zweiter pass findet dann Treffer, wenn SQL-ID unter anderem User existiert
-    id = session[:link_historic_sql_id_sequence]
-    id = 0 unless id
-    id = id + 1
-    session[:link_historic_sql_id_sequence] = id
-    id = "link_historic_sql_id_#{id}"
+    unique_id = get_unique_area_id
     prefix = "#{t(:link_historic_sql_id_hint_prefix, :default=>"Show details of")} SQL-ID=#{sql_id} : "
     my_ajax_link_to(value ? value : sql_id,
      url_for( :controller => :DbaHistory,
@@ -68,9 +64,9 @@ module AjaxHelper
               :parsing_schema_name => parsing_schema_name   # Sichern der Eindeutigkeit bei mehrfachem Vorkommen identischer SQL in verschiedenen Schemata
             ),
      {:title       => "#{prefix} <#{t :link_historic_sql_id_coming_soon, :default=>"Text of SQL is loading, please hold mouse over object again"}>",
-      :id          =>  id,
+      :id          =>  unique_id,
       :prefix      => prefix,
-      :onmouseover => "expand_sql_id_hint('#{id}', '#{sql_id}');"
+      :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
      }
     )
   end
@@ -78,11 +74,7 @@ module AjaxHelper
   # Erzeugen eines Links aus den Parametern auf Detail-Darstellung des SQL
   # Aktualisieren des title(hint) erst, wenn das erste mal mit Maus darüber gefahren wird
   def link_sql_id(update_area, instance, sql_id, childno=nil, parsing_schema_name=nil, object_status=nil)
-    id = session[:link_sql_id_sequence]
-    id = 0 unless id
-    id = id + 1
-    session[:link_sql_id_sequence] = id
-    id = "link_sql_id_#{id}"
+    unique_id = get_unique_area_id
     prefix = "#{t(:ajax_helper_link_sql_id_title_prefix, :default=>"Show details in SGA for")} SQL-ID=#{sql_id} : "
     prefix << "ChildNo=#{childno} : " if childno
     my_ajax_link_to(sql_id,
@@ -96,9 +88,9 @@ module AjaxHelper
               :object_status=> object_status
             ),
      {:title       => "#{prefix} <#{t :link_historic_sql_id_coming_soon, :default=>"Text of SQL is loading, please hold mouse over object again"}>",
-      :id          =>  id,
+      :id          =>  unique_id,
       :prefix      => prefix,
-      :onmouseover => "expand_sql_id_hint('#{id}', '#{sql_id}');"
+      :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
      }
     )
   end

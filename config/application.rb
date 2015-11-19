@@ -27,14 +27,16 @@ module Panorama
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
+    # Verzeichnis für permanent zu schreibende Dateien
+    config.panorama_var_home = "../.."
+    config.panorama_var_home = ENV['PANORAMA_VAR_HOME'] if ENV['PANORAMA_VAR_HOME']
+
     # Textdatei zur Erfassung der Panorama-Nutzung
     # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und deployment der Applikation überlebt
-    config.usage_info_filename = "../../panorama_usage_info.log"
-    config.usage_info_filename = ENV['PANORAMA_USAGE_LOG'] if ENV['PANORAMA_USAGE_LOG']
+    config.usage_info_filename = "#{config.panorama_var_home}/Usage.log"
 
     # File-Store für ActiveSupport::Cache::FileStore
-    config.client_info_filename = "../../client_info.store"
-    config.client_info_filename = ENV['CLIENT_INFO_STORE'] if ENV['CLIENT_INFO_STORE']
+    config.client_info_filename = "#{config.panorama_var_home}/client_info.store"
 
     # -- begin rails3 relikt
     # Configure the default encoding used in templates for Ruby 1.9.

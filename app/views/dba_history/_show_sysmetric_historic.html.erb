@@ -10,7 +10,7 @@
      <%= include_start_end_timepicker %>
      <div class="float_left">
         RAC-Instance
-        <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
+        <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>3, :title => "RAC-Instance") %>
     </div>
     <div class="float_left">
       <div title="<%= t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time range")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->

@@ -221,11 +221,11 @@ class DbaSchemaController < ApplicationController
                 FROM   DBA_Tab_Columns c
                 JOIN   DBA_Col_Comments co ON co.Owner = c.Owner AND co.Table_Name = c.Table_Name AND co.Column_Name = c.Column_Name
                 LEFT OUTER JOIN DBA_Lobs l ON l.Owner = c.Owner AND l.Table_Name = c.Table_Name AND l.Column_Name = c.Column_Name
-                LEFT OUTER JOIN DBA_Objects o ON o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = 'TABLE'
+                LEFT OUTER JOIN DBA_Objects o ON o.Owner = c.Owner AND o.Object_Name = c.Table_Name AND o.Object_Type = 'TABLE'
                 LEFT OUTER JOIN sys.Col_Usage$ u ON u.Obj# = o.Object_ID AND u.IntCol# = c.Column_ID
                 WHERE  c.Owner = ? AND c.Table_Name = ?
                 ORDER BY c.Column_ID
-               ", @owner, @table_name, @owner, @table_name]
+               ", @owner, @table_name]
 
     if @attribs[0].partitioned == 'YES'
       @partition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]

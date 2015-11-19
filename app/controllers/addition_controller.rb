@@ -188,8 +188,9 @@ class AdditionController < ApplicationController
 
     diagram_caption = "Top 10 Objekte im DB-Cache von #{@time_selection_start} bis #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
 
-    plot_area_id = "plot_area_#{session[:request_counter]}"
-    output << "plot_diagram('#{session[:request_counter]}', '#{plot_area_id}', '#{diagram_caption}', data_array, {plot_diagram: {locale: '#{get_locale}'}, yaxis: { min: 0 } });"
+    unique_id = get_unique_area_id
+    plot_area_id = "plot_area_#{unique_id}"
+    output << "plot_diagram('#{unique_id}', '#{plot_area_id}', '#{diagram_caption}', data_array, {plot_diagram: {locale: '#{get_locale}'}, yaxis: { min: 0 } });"
     output << "});"
 
     html="<div id='#{plot_area_id}'></div>"
@@ -303,7 +304,7 @@ class AdditionController < ApplicationController
              CASE WHEN COUNT(DISTINCT Blocking_SQL_ID) = 1 THEN TO_CHAR(MIN(Blocking_SQL_ID)) ELSE '< '||COUNT(DISTINCT Blocking_SQL_ID)||' >' END Blocking_SQL_ID
       FROM   (SELECT l.*,
                      (TO_CHAR(SnapshotTS,'J') * 24 + TO_CHAR(SnapshotTS, 'HH24')) * 60 + TO_CHAR(SnapshotTS, 'MI') Minutes
-              FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+              FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
               WHERE  SnapshotTS BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
               #{@where_string}
              )
@@ -321,7 +322,7 @@ class AdditionController < ApplicationController
     @locks= sql_select_all ["\
      WITH /* Panorama-Tool Ramm */
            TSSel AS (SELECT /*+ NO_MERGE */ *
-                      FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+                      FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
                       WHERE  l.SnapshotTS BETWEEN TO_DATE(?, '#{sql_datetime_minute_mask}') AND TO_DATE(?, '#{sql_datetime_minute_mask}')
                       AND    l.Blocking_SID IS NOT NULL  -- keine langdauernden Locks beruecksichtigen
                       AND    l.Request != 0              -- nur Records beruecksichtigen, die wirklich auf Lock warten
@@ -428,7 +429,7 @@ class AdditionController < ApplicationController
 
     @locks= sql_select_all ["\
       WITH TSel AS (SELECT /*+ NO_MERGE */ *
-                    FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+                    FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
                     WHERE  l.SnapshotTS = TO_DATE(?, '#{sql_datetime_second_mask}')
                    )
       SELECT o.Instance_Number, o.Sid, o.SerialNo, o.Seconds_In_Wait, o.SQL_ID, o.SQL_Child_Number,
@@ -526,7 +527,7 @@ class AdditionController < ApplicationController
              Blocking_Username, Blocking_Machine, Blocking_OSUser, Blocking_Process, Blocking_Program,
              NULL Waiting_App_Desc,
              NULL Blocking_App_Desc
-      FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+      FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
       WHERE  1 = 1 -- Dummy um nachfolgend mit AND fortzusetzen
       #{@where_string}
       ORDER BY SnapshotTS"].concat(@where_values)
@@ -571,7 +572,7 @@ class AdditionController < ApplicationController
              CASE WHEN COUNT(DISTINCT Blocking_SerialNo)=1 THEN TO_CHAR(MIN(Blocking_SerialNo))ELSE '< '||COUNT(DISTINCT Blocking_SerialNo)||' >' END Blocking_SerialNo,
              CASE WHEN COUNT(DISTINCT Blocking_SQL_ID) = 1 THEN TO_CHAR(MIN(Blocking_SQL_ID)) ELSE '< '||COUNT(DISTINCT Blocking_SQL_ID)||' >' END Blocking_SQL_ID,
              CASE WHEN COUNT(DISTINCT Blocking_SQL_Child_Number)= 1 THEN TO_CHAR(MIN(Blocking_SQL_Child_Number))ELSE '< '||COUNT(DISTINCT Blocking_SQL_Child_Number)||' >' END Blocking_SQL_Child_Number
-      FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+      FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
       WHERE  1 = 1
       #{@where_string}
       GROUP BY #{blocking_locks_groupfilter_values(@groupkey)[:sql]}
@@ -592,7 +593,7 @@ class AdditionController < ApplicationController
 
     @locks= sql_select_all ["\
       WITH TSel AS (SELECT /*+ NO_MERGE */ *
-                    FROM   #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks l
+                    FROM   #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks l
                     WHERE  l.SnapshotTS = TO_DATE(?, '#{sql_datetime_second_mask}')
                     AND    l.Request != 0  -- nur Records beruecksichtigen, die wirklich auf Lock warten
                    )

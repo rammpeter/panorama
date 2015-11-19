@@ -127,12 +127,14 @@
 %>
 
 <%=
+    @hidden_link_timeline_id = get_unique_area_id
+
     context_menu_entries = []
     def create_context_menu_entry(seconds)
       {:label   => t(:active_session_history_show_top_ten ,     :sec=>seconds, :default=>"Show Top 10 in time line, condensed by %{sec} seconds"),
        :hint    => t(:active_session_history_show_top_ten_hint, :sec=>seconds, :default=>"Show Top 10 ordered by total time waited in time line, each point in graph for sum over %{sec} seconds"),
        :ui_icon => "ui-icon-image",
-       :action  => "$('#list_session_statistic_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{seconds}').click();"
+       :action  => "$('##{@hidden_link_timeline_id}_#{seconds}').click();"
       }
     end
 
@@ -162,7 +164,7 @@
                             }
                     ),
                     :style=>"display:none",
-                    :id=>"list_session_statistic_historic_grouping_#{session[:request_counter]}hidden_link_timeline_#{group_seconds}"
+                    :id=>"#{@hidden_link_timeline_id}_#{group_seconds}"
     )
   end
 

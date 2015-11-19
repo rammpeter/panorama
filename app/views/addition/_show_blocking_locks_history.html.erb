@@ -1,4 +1,4 @@
-<div class="page_caption"><%= "Historie aus #{session[:dba_hist_blocking_locks_owner]}.DBA_Hist_Blocking_Locks" %></div>
+<div class="page_caption"><%= "Historie aus #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks" %></div>
 
 
 <%= my_ajax_form_tag "addition/list_blocking_locks_history" do %>

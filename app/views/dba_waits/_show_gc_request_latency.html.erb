@@ -7,7 +7,7 @@
   <%= include_start_end_timepicker %>
   <div class="float_left">
     RAC-Instance
-    <%= text_field_tag(:instance, session[:instance], :size=>3, :title => "RAC-Instance") %>
+    <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>3, :title => "RAC-Instance") %>
   </div>
   <div class="float_left">
     <%= submit_tag("Anzeigen", :title => "Anlistung der Request-Latency der einzelnen Snapshots") %>

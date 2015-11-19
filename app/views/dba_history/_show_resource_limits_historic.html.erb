@@ -10,7 +10,7 @@
     <%= include_start_end_timepicker %>
     <div class="float_left" title="RAC-Instance (optional)">
       RAC-Instance
-      <%= text_field_tag(:instance, session[:instance], :size=>3) %>
+      <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>3) %>
     </div>
 
     <div class="float_left">

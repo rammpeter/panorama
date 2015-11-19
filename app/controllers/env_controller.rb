@@ -33,30 +33,34 @@ class EnvController < ApplicationController
     session[:client_salt] = rand(10000000000) unless session[:client_salt]      # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
 
     # Entfernen evtl. bisheriger Bestandteile des Session-Cookies
-    cookies.delete(:locale)                       if cookies[:locale]
-    cookies.delete(:last_logins)                  if cookies[:last_logins]
-    session.delete(:locale)                       if session[:locale]
-    session.delete(:last_used_menu_controller)    if session[:last_used_menu_controller]
-    session.delete(:last_used_menu_action)        if session[:last_used_menu_action]
-    session.delete(:last_used_menu_caption)       if session[:last_used_menu_caption]
-    session.delete(:last_used_menu_hint)          if session[:last_used_menu_hint]
-    session.delete(:database)                     if session[:database]
-    session.delete(:dbid)                         if session[:dbid]
-    session.delete(:version)                      if session[:version]
-    session.delete(:db_block_size)                if session[:db_block_size]
-    session.delete(:wordsize)                     if session[:wordsize]
-    session.delete(:dba_hist_cache_objects_owner) if session[:dba_hist_cache_objects_owner]
+    cookies.delete(:locale)                         if cookies[:locale]
+    cookies.delete(:last_logins)                    if cookies[:last_logins]
+    session.delete(:locale)                         if session[:locale]
+    session.delete(:last_used_menu_controller)      if session[:last_used_menu_controller]
+    session.delete(:last_used_menu_action)          if session[:last_used_menu_action]
+    session.delete(:last_used_menu_caption)         if session[:last_used_menu_caption]
+    session.delete(:last_used_menu_hint)            if session[:last_used_menu_hint]
+    session.delete(:database)                       if session[:database]
+    session.delete(:dbid)                           if session[:dbid]
+    session.delete(:version)                        if session[:version]
+    session.delete(:db_block_size)                  if session[:db_block_size]
+    session.delete(:wordsize)                       if session[:wordsize]
+    session.delete(:dba_hist_cache_objects_owner)   if session[:dba_hist_cache_objects_owner]
+    session.delete(:dba_hist_blocking_locks_owner)  if session[:dba_hist_blocking_locks_owner]
+    session.delete(:request_counter)                if session[:request_counter]
+    session.delete(:instance)                       if session[:instance]
+    session.delete(:time_selection_start)           if session[:time_selection_start]
+    session.delete(:time_selection_end)             if session[:time_selection_end]
 
-    write_to_client_info_store(:locale, 'en') if read_from_client_info_store(:locale).nil? || !['de', 'en'].include?(read_from_client_info_store(:locale))
 
-    I18n.locale = get_locale      # Gecachter Wert aus read_from_client_info_store(:locale)
+    set_I18n_locale(get_locale)                                                 # ruft u.a. I18n.locale = get_locale auf
 
     write_to_client_info_store(:last_used_menu_controller,  'env')
     write_to_client_info_store(:last_used_menu_action,      'index')
     write_to_client_info_store(:last_used_menu_caption,     'Start')
     write_to_client_info_store(:last_used_menu_hint,        t(:menu_env_index_hint, :default=>"Start of application without connect to database"))
   rescue Exception=>e
-    write_to_client_info_store(:current_database, nil)                          # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
+    set_current_database(nil)                                                   # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg
     raise e                                                                     # Werfen der Exception
   end
 
@@ -76,7 +80,7 @@ class EnvController < ApplicationController
 
   # Wechsel der Sprache in Anmeldedialog
   def set_locale
-    write_to_client_info_store(:locale, params[:locale])
+    set_I18n_locale(params[:locale])                                            # Merken in Client_Info_Cache
 
     respond_to do |format|
       format.js {render :js => "window.location.reload();" }                    # Reload der Sganzen Seite
@@ -93,7 +97,7 @@ class EnvController < ApplicationController
       set_database
     end
 
-    if params[:delete]                                                          # Button DELETE gedrückt, Entfernen des aktuell selektierten Eintrages aus Liste der Cookies
+    if params[:delete]                                                          # Button DELETE gedrückt, Entfernen des aktuell selektierten Eintrages aus Liste der gespeicherten Logins
       last_logins = read_last_logins
       last_logins.delete_at(params[:saved_logins_id].to_i)
 
@@ -110,7 +114,7 @@ class EnvController < ApplicationController
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
     params[:database][:password]  = database_helper_encrypt_value(params[:database][:password])
 
-    write_to_client_info_store(:locale, params[:database][:locale])
+    set_I18n_locale(params[:database][:locale])
     set_database
   end
 
@@ -179,7 +183,7 @@ class EnvController < ApplicationController
       end
     end
 
-    write_to_client_info_store(:current_database, current_database)             # Persistieren im Cache
+    set_current_database(current_database)                                      # Persistieren im Cache
 
     open_oracle_connection   # Oracle-Connection aufbauen
 
@@ -269,7 +273,9 @@ class EnvController < ApplicationController
 
     @dictionary_access_problem = true if !x_memory_table_accessible?("BH", @dictionary_access_msg )
 
-    write_connection_to_cookie
+    write_connection_to_last_logins
+
+    initialize_unique_area_id                                                   # Zaehler für eindeutige IDs ruecksetzen
 
     timepicker_regional = ""
     if get_locale == "de"  # Deutsche Texte für DateTimePicker
@@ -314,20 +320,20 @@ class EnvController < ApplicationController
 
 
 private
-  # Schreiben der aktuellen Connection in Cookie, wenn neue dabei
-  def write_connection_to_cookie
+  # Schreiben der aktuellen Connection in last logins, wenn neue dabei
+  def write_connection_to_last_logins
 
-    database = read_from_client_info_store(:current_database)                  # Hash für Speicherung in Cookie
+    database = read_from_client_info_store(:current_database)
 
-    cookies_last_logins = read_last_logins
+    last_logins = read_last_logins
     min_id = nil
 
-    cookies_last_logins.each do |value|
-      cookies_last_logins.delete(value) if value && value[:sid] == database[:sid] && value[:host] == database[:host] && value[:user] == database[:user]    # Aktuellen eintrag entfernen
+    last_logins.each do |value|
+      last_logins.delete(value) if value && value[:sid] == database[:sid] && value[:host] == database[:host] && value[:user] == database[:user]    # Aktuellen eintrag entfernen
     end
     if params[:saveLogin] == "1"
-      cookies_last_logins = [database] + cookies_last_logins                    # Neuen Eintrag an erster Stelle
-      write_last_logins(cookies_last_logins)                             # Zurückschreiben des Cookies in cookie-store
+      last_logins = [database] + last_logins                                    # Neuen Eintrag an erster Stelle
+      write_last_logins(last_logins)                                            # Zurückschreiben in client-info-store
     end
 
   end
@@ -336,7 +342,7 @@ private
 public
   # DBID explizit setzen wenn mehrere verschiedene in Historie vorhande
   def set_dbid
-    write_to_client_info_store(:dbid, params[:dbid])
+    set_cached_dbid(params[:dbid])
     respond_to do |format|
        format.js {render :js => "$('##{params[:update_area]}').html('#{j "DBID for access on AWR history set to #{get_dbid}"}');"}
     end

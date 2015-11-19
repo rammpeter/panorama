@@ -5,7 +5,7 @@
   <%= include_start_end_timepicker %>
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
-    <%= text_field_tag(:instance, (session[:instance] ? session[:instance] : 1), :size=>1) %>
+    <%= text_field_tag(:instance, (read_from_client_info_store(:instance) ? read_from_client_info_store(:instance) : 1), :size=>1) %>
   </div>
   <div class="float_left">
     <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
