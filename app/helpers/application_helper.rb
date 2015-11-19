@@ -21,6 +21,8 @@ module ApplicationHelper
   # Schreiben eines client-bezogenen Wertes in serverseitigen Cache
   def write_to_client_info_store(key, value)
     get_client_info_store.write("#{session[:client_key]}_#{key}", value)
+  rescue Exception =>e
+    raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
   # Lesen eines client-bezogenen Wertes aus serverseitigem Cache
