@@ -14,6 +14,8 @@ module ApplicationHelper
   def get_client_info_store
     $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename) unless $client_info_store
     $login_client_store
+  rescue Exception =>e
+    raise "Exception '#{e.message}' while creating file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
   # Schreiben eines client-bezogenen Wertes in serverseitigen Cache

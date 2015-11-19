@@ -28,11 +28,11 @@ module Panorama
     # config.i18n.default_locale = :de
 
     # Verzeichnis für permanent zu schreibende Dateien
-    config.panorama_var_home = "../.."
+    config.panorama_var_home = "."
     config.panorama_var_home = ENV['PANORAMA_VAR_HOME'] if ENV['PANORAMA_VAR_HOME']
 
     # Textdatei zur Erfassung der Panorama-Nutzung
-    # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und deployment der Applikation überlebt
+    # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und Deployment der Applikation überlebt durch Definition von ENV['PANORAMA_VAR_HOME']
     config.usage_info_filename = "#{config.panorama_var_home}/Usage.log"
 
     # File-Store für ActiveSupport::Cache::FileStore
