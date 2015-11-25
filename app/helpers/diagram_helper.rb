@@ -83,14 +83,14 @@ module DiagramHelper
     end
     output << "];"
 
-    get_unique_area_id = get_unique_area_id
+    unique_area_id = get_unique_area_id
 
-    plot_area_id = "plot_area_#{get_unique_area_id}"
+    plot_area_id = "plot_area_#{unique_area_id}"
     output << "var options = {plot_diagram: {locale: '#{get_locale}'},
                               yaxis: { min: 0 },
                               legend:{sorted: 'reverse'}
                              };"
-    output << "plot_diagram('#{get_unique_area_id}', '#{plot_area_id}', '#{caption}', data_array, options);"
+    output << "plot_diagram('#{unique_area_id}', '#{plot_area_id}', '#{caption}', data_array, options);"
 
     output << "});"
 
