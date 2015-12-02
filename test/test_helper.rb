@@ -52,6 +52,13 @@ class ActiveSupport::TestCase
     current_database[:sid]      = test_url[5]
     current_database[:user]     = test_config["test_username"]
 
+    # Config im Cachestora ablegen
+    # Sicherstellen, dass ApplicationHelper.get_cached_client_key nicht erneut den client_key entschlüsseln will
+    @@cached_encrypted_client_key = 100
+    @@cached_decrypted_client_key = 100
+    cookies[:client_key]          = 100
+
+
     # Passwort verschlüsseln in session
     current_database[:password] = database_helper_encrypt_value(test_config["test_password"])
     write_to_client_info_store(:current_database, current_database)
