@@ -69,7 +69,12 @@ class ApplicationController < ActionController::Base
     (controller_name == 'dragnet' && ['refresh_selected_data', 'get_selection_list'].include?(action_name) )  ||
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 
-    current_database = read_from_client_info_store(:current_database)
+    begin
+      current_database = read_from_client_info_store(:current_database)
+    rescue StandardError => e
+      raise "Error '#{e.message}' occured. Please repeat login to database!"
+    end
+
     current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
