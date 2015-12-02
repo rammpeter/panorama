@@ -71,8 +71,8 @@ class ApplicationController < ActionController::Base
 
     begin
       current_database = read_from_client_info_store(:current_database)
-    rescue StandardError => e
-      raise "Error '#{e.message}' occured. Please repeat login to database!"
+    rescue StandardError => e                                                   # Problem bei Zugriff auf verschlüsselte Cookies
+      raise "Error '#{e.message}' occured. Please close browser session and start again!"
     end
 
     current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
