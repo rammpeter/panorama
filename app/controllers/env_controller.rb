@@ -162,7 +162,7 @@ class EnvController < ApplicationController
       tns_record = tns_records[current_database[:tns]]
       unless tns_record
         respond_to do |format|
-          format.js {render :js => "$('#content_for_layout').html('#{j "Eintrag für DB '#{current_database[:tns]}' nicht gefunden in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
+          format.js {render :js => "$('#content_for_layout').html('#{j "Entry for DB '#{current_database[:tns]}' not found in tnsnames.ora"}'); $('#login_dialog').effect('shake', { times:3 }, 100);"}
         end
         set_dummy_db_connection
         return
