@@ -55,10 +55,12 @@ class ApplicationController < ActionController::Base
 
   # Ausführung vor jeden Request
   def open_connection
-    current_database = read_from_client_info_store(:current_database)
-    current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
-    I18n.locale = get_locale                                                    # fuer laufende Action Sprache aktivieren
+    begin
+      I18n.locale = get_locale                                                  # fuer laufende Action Sprache aktivieren
+    rescue
+      I18n.locale = 'en'                                                        # wenn Problem bei Lesen des Cookies auftreten, dann Default verwenden
+    end
 
     # Auuschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
@@ -67,6 +69,8 @@ class ApplicationController < ActionController::Base
     (controller_name == 'dragnet' && ['refresh_selected_data', 'get_selection_list'].include?(action_name) )  ||
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) )
 
+    current_database = read_from_client_info_store(:current_database)
+    current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
     write_to_client_info_store(:last_used_menu_controller, params[:last_used_menu_controller]) if params[:last_used_menu_controller]

@@ -15,22 +15,33 @@ class EnvController < ApplicationController
   MAX_NEW_KEY_TRIES  = 1000
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
+    # Test ob sich client_key-Cookie entschlüsseln lässt
+    begin
+      database_helper_decrypt_value(cookies[:client_key])
+    rescue Exception
+      cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
+      cookies.delete(:client_salt)
+    end
 
-    unless session[:client_key]                                                 # Erster Zugriff oder Cookie nicht mehr verfügbar
+
+    unless cookies[:client_key]                                                 # Erster Zugriff in neu gestartetem Browser oder Cookie nicht mehr verfügbar
       loop_count = 0
       while loop_count < MAX_NEW_KEY_TRIES
         loop_count++
         new_client_key = rand(10000000)
         if !get_client_info_store.exist?(new_client_key)                        # Dieser Key wurde noch nie genutzt
-          session[:client_key] = new_client_key                                 # Ab jetzt verwenden für diesen Client
+          # Salt immer mit belegen bei Vergabe des client_key, da es genutzt wird zur Verschlüsselung des Client_Key im cookie
+          cookies[:client_salt] = { :value => rand(10000000000),                              :expires => 1.year.from_now }  # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
+          cookies[:client_key]  = { :value => database_helper_encrypt_value(new_client_key),  :expires => 1.year.from_now }
           get_client_info_store.write(new_client_key, 1)                        # Marker fuer Verwendung des Client-Keys
           break
         end
       end
       raise "Cannot create client key after #{MAX_NEW_KEY_TRIES} tries" if loop_count >= MAX_NEW_KEY_TRIES
+    else
+      cookies[:client_salt] = { :value => cookies[:client_salt], :expires => 1.year.from_now }    # Timeout neu setzen bei Benutzung
+      cookies[:client_key]  = { :value => cookies[:client_key],  :expires => 1.year.from_now }    # Timeout neu setzen bei Benutzung
     end
-
-    session[:client_salt] = rand(10000000000) unless session[:client_salt]      # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
 
     # Entfernen evtl. bisheriger Bestandteile des Session-Cookies
     cookies.delete(:locale)                         if cookies[:locale]

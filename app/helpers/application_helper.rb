@@ -18,16 +18,30 @@ module ApplicationHelper
     raise "Exception '#{e.message}' while creating file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
+  private
+  @@cached_encrypted_client_key = nil
+  @@cached_decrypted_client_key = nil
+
+  # Ausliefern des client-Keys
+  def get_cached_client_key
+    if @@cached_encrypted_client_key.nil? || @@cached_decrypted_client_key.nil? || @@cached_encrypted_client_key != cookies[:client_key]        # gecachten Wert neu belegen bei anderem Cookie-Inhalt
+      @@cached_decrypted_client_key = database_helper_decrypt_value(cookies[:client_key])                                                       # Merken des entschlüsselten Cookies in Memory
+      @@cached_encrypted_client_key = cookies[:client_key]                                                                                      # Merken des verschlüsselten Cookies für Vergleich bei nächstem Zugriff
+    end
+    @@cached_decrypted_client_key
+  end
+
+  public
   # Schreiben eines client-bezogenen Wertes in serverseitigen Cache
   def write_to_client_info_store(key, value)
-    get_client_info_store.write("#{session[:client_key]}_#{key}", value)
+    get_client_info_store.write("#{get_cached_client_key}_#{key}", value)
   rescue Exception =>e
     raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
   # Lesen eines client-bezogenen Wertes aus serverseitigem Cache
   def read_from_client_info_store(key)
-    get_client_info_store.read("#{session[:client_key]}_#{key}")
+    get_client_info_store.read("#{get_cached_client_key}_#{key}")
   end
 
   # Setzen locale in Client_Info-Cache und aktueller Session

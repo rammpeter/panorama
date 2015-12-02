@@ -26,7 +26,7 @@ module DatabaseHelper
 
   private
   def get_salted_encryption_key
-    "#{session[:client_salt]}#{Rails.application.config.secret_key_base}"
+    "#{cookies[:client_salt]}#{Rails.application.config.secret_key_base}"
   end
 
   public
