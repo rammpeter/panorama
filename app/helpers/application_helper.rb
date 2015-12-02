@@ -34,14 +34,21 @@ module ApplicationHelper
   public
   # Schreiben eines client-bezogenen Wertes in serverseitigen Cache
   def write_to_client_info_store(key, value)
-    get_client_info_store.write("#{get_cached_client_key}_#{key}", value)
+#    get_client_info_store.write("#{get_cached_client_key}_#{key}", value)
+
+    full_hash = get_client_info_store.read(get_cached_client_key)               # Kompletten Hash aus Cache auslesen
+    full_hash = {} if full_hash.nil? || full_hash.class != Hash                 # Neustart wenn Struktur nicht passt
+    full_hash[key] = value                                                      # Wert in Hash verankern
+    get_client_info_store.write(get_cached_client_key, full_hash)               # Überschreiben des kompletten Hashes im Cache
   rescue Exception =>e
     raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
   # Lesen eines client-bezogenen Wertes aus serverseitigem Cache
   def read_from_client_info_store(key)
-    get_client_info_store.read("#{get_cached_client_key}_#{key}")
+    full_hash = get_client_info_store.read(get_cached_client_key)               # Auslesen des kompletten Hashes aus Cache
+    return nil if full_hash.nil? || full_hash.class != Hash                     # Abbruch wenn Struktur nicht passt
+    full_hash[key]
   end
 
   # Setzen locale in Client_Info-Cache und aktueller Session
