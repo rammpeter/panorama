@@ -751,6 +751,7 @@ class ActiveSessionHistoryController < ApplicationController
              MIN(s.Sample_Time)   Start_Sample_Time,
              MAX(s.Sample_Time)   End_Sample_Time,
              SUM(Sample_Count)    Sample_Count,
+             SUM(Time_Waited_Secs) Time_Waited_Secs,
              MAX(s.Sum_PGA_Allocated)/(1024*1024)                             Max_Sum_PGA_Allocated,
              MAX(s.Max_PGA_Allocated_per_Session)/(1024*1024)                 Max_PGA_Alloc_Per_Session,
              SUM(s.Sum_PGA_Allocated)/SUM(s.Sample_Count)/(1024*1024)         Avg_PGA_Alloc_per_Session,
@@ -760,6 +761,7 @@ class ActiveSessionHistoryController < ApplicationController
       FROM   (
               SELECT CAST (Sample_Time+INTERVAL '0.5' SECOND AS DATE) Sample_Time,
                      COUNT(*)               Sample_Count,
+                     SUM(s.Sample_Cycle)            Time_Waited_Secs,               -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
                      SUM(s.PGA_Allocated)           Sum_PGA_Allocated,
                      MAX(s.PGA_Allocated)           Max_PGA_Allocated_Per_Session,
                      SUM(s.Temp_Space_Allocated)    Sum_Temp_Space_Allocated,       -- eigentlich nichtssagend, da Summe über alle Sample-Zeiten hinweg, nur benutzt fuer AVG
@@ -784,9 +786,11 @@ class ActiveSessionHistoryController < ApplicationController
               #{@global_where_string}
               GROUP BY CAST(Sample_Time+INTERVAL '0.5' SECOND AS DATE)    -- Auf Ebene eines Samples reduzieren
              ) s
+      WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
+      AND    s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
       GROUP BY #{group_by_value}
       ORDER BY #{group_by_value}
-      "].concat(@dba_hist_where_values).concat(@global_where_values)
+      "].concat(@dba_hist_where_values).concat(@global_where_values).concat([@groupfilter['time_selection_start'], @groupfilter['time_selection_end']])
 
     render_partial :list_temp_usage_historic
 

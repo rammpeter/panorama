@@ -33,10 +33,26 @@
 
    end
 
+   def link_wait_time(rec)
+     groupfilter = @groupfilter.clone
+     groupfilter['time_selection_start'] = localeDateTime(rec.start_sample_time, :minutes)
+     groupfilter['time_selection_end']   = localeDateTime(rec.end_sample_time+60, :minutes)
+     my_ajax_link_to(fn(rec.time_waited_secs),
+                     url_for({:action        => :list_session_statistic_historic_grouping,
+                              :groupfilter   => groupfilter,
+                              :groupby       => 'Instance',
+                              :update_area   => @update_area
+                             }
+                     ),
+                     :title=>"Show active session history for #{localeDateTime(rec.start_sample_time)} until #{localeDateTime(rec.end_sample_time)}"
+     )
+   end
+
    column_options =
     [
         {:caption=>'Start time',                        :data=>proc{|rec| localeDateTime(rec.start_sample_time)},       :title=>'Start of time group', :data_title=>proc{|rec| "%t: End of time group = #{rec.end_sample_time}" }, :plot_master_time=>true },
         {:caption=>'Samples',                           :data=>proc{|rec|link_samples(rec)},                            :title=>'Number of single sample rows',       :align=>'right'},
+        {:caption=>'Total Time waited',                 :data=>proc{|rec| link_wait_time(rec) },                        :title=>'Total time waited over all active sessions in time range in seconds (sample-cycle(1/10 seconds) * samples)', :align=>"right", :show_pct_hint=>proc{|rec| rec.time_waited_secs}},
         {:caption=>'Max. PGA allocated MB',             :data=>proc{|rec| fn(rec.max_sum_pga_allocated)},               :title=>'Maximum allocated PGA in MB at one time in time range by all sessions in active state',   :align=>'right'},
         {:caption=>'Max. PGA allocated per session MB', :data=>proc{|rec| fn(rec.max_pga_alloc_per_session)},           :title=>'Maximum allocated PGA in MB at one time in time range by one single session in active state',   :align=>'right'},
         {:caption=>'Avg. PGA allocated per session MB', :data=>proc{|rec| fn(rec.avg_pga_alloc_per_session,1)},         :title=>'Average allocated PGA in MB for sessions in active state',   :align=>'right'},
