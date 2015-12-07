@@ -736,6 +736,7 @@ class ActiveSessionHistoryController < ApplicationController
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
     case @time_groupby.to_sym
+      when :second then group_by_value = "CAST(s.Sample_Time AS DATE)"
       when :minute then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
       when :hour   then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
       when :day    then group_by_value = "TRUNC(s.Sample_Time)"

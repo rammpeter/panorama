@@ -145,6 +145,7 @@ module ActiveSessionHistoryHelper
   def temp_historic_grouping_options
     unless @temp_historic_grouping_options_hash
       @temp_historic_grouping_options_hash = {}
+      @temp_historic_grouping_options_hash[:second] = t(:second, :default=>'Second')
       @temp_historic_grouping_options_hash[:minute] = 'Minute'
       @temp_historic_grouping_options_hash[:hour]   = t(:hour,  :default => 'Hour')
       @temp_historic_grouping_options_hash[:day]    = t(:day,  :default => 'Day')
