@@ -12,7 +12,11 @@ module ApplicationHelper
   include ExplainApplicationInfoHelper
 
   def get_client_info_store
-    $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename) unless $client_info_store
+    if $login_client_store.nil?
+      $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
+      Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
+    end
+
     $login_client_store
   rescue Exception =>e
     raise "Exception '#{e.message}' while creating file store at '#{Panorama::Application.config.client_info_filename}'"
