@@ -1,19 +1,21 @@
+# Unix-start-script for Panorama.war
+# Peter Ramm, 07.12.2015
+
 export PANORAMA_HOME=$PWD
-export HTTP_PORT=8090
-export PANORAMA_USAGE_LOG=$PANORAMA_HOME/Usage.log
-export LOG=$PANORAMA_HOME/Panorama.log
+export HTTP_PORT=8080
+
+# Writable directory for work area, usage-log and client_info-store, used by Panorama internally
+export PANORAMA_VAR_HOME=$PANORAMA_HOME
+
+export LOG=$PANORAMA_VAR_HOME/Panorama.log
 echo "Starting Panorama, logfile is $LOG"
 
-# Entfernen evtl. aller work-Relikte
-rm -rf ./work/*
+# Remove all possible old work areas
+rm -rf $PANORAMA_VAR_HOME/work/*
 
-# -Xcompile.invokedynamic=true sichert für Java7, dass folgender Fehler eliminiert wird: java.lang.ClassNotFoundException: org.jruby.ext.krypt.asn1.RubyAsn1
-# -Djruby.compile.invokedynamic=true statt -Xcompile.invokedynamic=true da dies für IBM-JRE 7 nicht erlaubt ist
-# -XX:MaxPermSize=512M ab Java 8 nicht mehr relevant
-
-# Variante fuer Jetty
+# Variant for Jetty app-server
 #java -Xmx1024m -XX:MaxPermSize=512M -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djetty.port=8090 -Djetty.requestHeaderSize=8192 -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war 2>&1 | tee -a $LOG 
 
-# Variante fuer Winstone
-java -Xmx1024m -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war --httpPort=$HTTP_PORT --debug=9  2>&1 | tee -a $LOG 
+# Variant for Winstone app-server
+java -Xmx1024m -Djava.io.tmpdir=$PANORAMA_VAR_HOME/work -jar $PANORAMA_HOME/Panorama.war --httpPort=$HTTP_PORT --debug=9  2>&1 | tee -a $LOG 
 
