@@ -6,5 +6,6 @@
 # > heroku create
 # Letzte URL war: https://boiling-plains-4451.herokuapp.com/
 
-heroku deploy:war --war Panorama.war 
+# Direkten Zugriff auf Internet sicherstellen ohne Proxy mit https-Unterbrechung
 
+heroku deploy:war --war Panorama.war --app panorama-ramm
