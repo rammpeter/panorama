@@ -59,7 +59,7 @@ class DbaSgaController < ApplicationController
       where_values << filter
     end
     if sql_id
-      where_string << " AND s.SQL_ID = ?"
+      where_string << " AND s.SQL_ID LIKE '%'||?||'%'"
       where_values << sql_id
     end
 

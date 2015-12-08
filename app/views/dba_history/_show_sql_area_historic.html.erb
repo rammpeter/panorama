@@ -17,7 +17,7 @@
     Instance
     <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>1) %>
   </div>
-  <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional)') %>">
+  <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional, wildcards (%,_) can be used)') %>">
     SQL-ID
     <%= text_field_tag(:sql_id, "", :size=>12) %>
   </div>

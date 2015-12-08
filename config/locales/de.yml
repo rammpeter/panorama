@@ -27,7 +27,7 @@
   second:                                                   Sekunde
   show:                                                     Anzeigen
   sorted_by:                                                Sortiert nach
-  sqlid_optional_filter_hint:                               Einschränkung/Filterung auf konkrete SQL-ID (optional)
+  sqlid_optional_filter_hint:                               Einschränkung/Filterung auf konkrete SQL-ID (optional,  Wildcards (%,_) sind erlaubt)
   tables:                                                   Tabellen
   time_selection_start_caption:                             Start
   time_selection_start_hint:                                Start des Betrachtungszeitraumes im Format
@@ -808,6 +808,8 @@
   login_saved_login_title:                                  Mit der gespeicherten DB-Verbindung anmelden
   login_saved_logins_title:                                 Gespeicherte DB-Verbindungen aus früherer Nutzung
   login_submit_caption:                                     Anmelden
+  login_title: |-
+    Panorama: Login auf Ziel-DB
   login_tns_hint:                                           Auswahl Oracle TNS-Alias (aus tnsnames.ora des Servers)
 
   menu_current_caption:                                     Aktuell

@@ -274,7 +274,7 @@ class DbaHistoryController < ApplicationController
       where_values << instance.to_i
     end
     if sql_id
-      where_string_innen << " WHERE s.SQL_ID = ?"
+      where_string_innen << " WHERE s.SQL_ID LIKE '%'||?||'%'"
       where_values << sql_id
     end
     if filter
