@@ -138,13 +138,15 @@ class EnvController < ApplicationController
         return true
       rescue Exception => e
         msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
-        msg << "#{e.message}<br/><br/>"
-        msg << "Workaround:<br/>"
+        msg << "#{e.message}<br/>"
+        msg << "<a href='#' onclick=\"jQuery('#xbh_workaround').show();\">#{t(:moeglicher, :default=>'possible')} workaround:</a><br/>"
+        msg << "<div id='xbh_workaround' style='display:none; background-color: lightyellow; padding: 20px;'>"
         msg << "#{t(:env_set_database_xmem_line2, :default=>'Alternative 1: Connect with role SYSDABA')}<br/>"
         msg << "#{t(:env_set_database_xmem_line3, :default=>'Alternative 2: Execute as user SYS')}<br/>"
         msg << "> create view X_$#{table_name_suffix} as select * from X$#{table_name_suffix};<br/>"
         msg << "> create public synonym X$#{table_name_suffix} for sys.X_$#{table_name_suffix};<br/>"
         msg << t(:env_set_database_xmem_line4, :table_name_suffix=>table_name_suffix, :default=>'This way X$%{table_name_suffix} becomes available with role SELECT ANY DICTIONARY')
+        msg << "</div>"
         msg << "</div>"
         return false
       end
@@ -260,6 +262,8 @@ class EnvController < ApplicationController
                                                LEFT OUTER JOIN (SELECT DBID, MIN(EXTRACT(MINUTE FROM Snap_Interval)) Snap_Interval_Minutes, MIN(EXTRACT(DAY FROM Retention)) Snap_Retention_Days FROM DBA_Hist_WR_Control GROUP BY DBID) ws ON ws.DBID = ?
                                       ", get_dbid ]
 
+      @control_management_pack_access = sql_select_one "SELECT Value FROM V$Parameter WHERE name='control_management_pack_access'"  # ab Oracle 11 belegt
+
       @instance_data.each do |i|
         if i.instance_connected
           @instance_name = i.instance_name
@@ -278,7 +282,7 @@ class EnvController < ApplicationController
       @platform_name = sql_select_one "SELECT /* Panorama Tool Ramm */ Platform_name FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
     rescue Exception => e
       @dictionary_access_problem = true    # Fehler bei Zugriff auf Dictionary
-      @dictionary_access_msg << "<div> User '#{get_current_database[:user]}' hat kein Leserecht auf Data Dictionary!<br/>#{e.message}<br/>Funktionen von Panorama werden nicht oder nur eingeschränkt nutzbar sein<br/>
+      @dictionary_access_msg << "<div> User '#{get_current_database[:user]}' has no right for read on data dictionary!<br/>#{e.message}<br/>Functions of Panorama will not or not completely be usable<br/>
       </div>"
     end
 

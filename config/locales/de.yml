@@ -21,6 +21,7 @@
   link_historic_sql_id_coming_soon:                         Hier erscheint gleich der Text des SQL, bitte Maus erneut über Objekt führen
   link_historic_sql_id_hint_prefix:                         Anzeige der Details des
   minute:                                                   Minute
+  moeglicher:                                               möglicher
   month:                                                    Monat
   of:                                                       des
   per_execution:                                            je Execution
@@ -782,6 +783,9 @@
     Variante 2: Ausführen als User SYS
   env_set_database_xmem_line4: |-
     Damit wird X$%{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY
+  env_set_database_mgmt_msg_false:                          ist für diese Datenbank markiert als nicht lizensiert
+  env_set_database_mgmt_msg_true:                           ist für diese Datenbank markiert als lizensiert
+
 
   help_no_help_available:                                   Bisher leider keine Hilfe vorhanden für
 
