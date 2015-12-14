@@ -74,6 +74,14 @@ class AdditionControllerTest < ActionController::TestCase
         post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
                                       :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
         assert_response :success
+
+        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                      :tablespace=>{"name"=>'USERS'}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+        assert_response :success
+
+        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                      :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>'SYS'}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+        assert_response :success
       end
     end
 

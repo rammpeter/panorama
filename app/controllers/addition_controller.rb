@@ -700,7 +700,7 @@ class AdditionController < ApplicationController
     end
 
     if params[:tablespace][:name] != '[Alle]'
-      wherestr << " AND Last_TS=? "
+      wherestr << " AND Tablespace_Name=? "
       whereval << params[:tablespace][:name]
     end
 
