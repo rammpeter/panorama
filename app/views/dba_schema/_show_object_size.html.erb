@@ -11,17 +11,17 @@
     Schemata<br/>
     <%= collection_select(:schema, :name, @schemas, :name, :name) %>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:dba_schema_show_object_partition_hint, :default=>'Show single partitions?') %>">
     Part.<br/>
-    <%= check_box_tag(:showPartitions, 1, true, :title=>"Partitionsdetails anzeigen") %>
+    <%= check_box_tag(:showPartitions, 1, false) %>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:dba_schema_show_object_filter_hint, :default=>'Object name must contain filter string (if used)') %>">
     Filter<br>
-    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in Objekt-name enthalten sein (wenn belegt)") %>
+    <%= text_field_tag(:filter, "", :size=>20) %>
   </div>
   <div class="float_left">
     <br/>
-    <%= submit_tag("Objekte und Größen anzeigen", :title => "Objekte mit Größen und Parametern je Tablespace und Schema anzeigen") %>
+    <%= submit_tag(t(:dba_schema_show_object_submit_caption, :default=>'Show objects and sizes'), :title => t(:dba_schema_show_object_submit_hint, :default=>'Show objects with sizes and parameters')) %>
   <% end # form %>
   </div>
 </div>

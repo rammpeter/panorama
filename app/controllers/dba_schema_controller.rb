@@ -228,8 +228,27 @@ class DbaSchemaController < ApplicationController
                ", @owner, @table_name]
 
     if @attribs[0].partitioned == 'YES'
-      @partition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
-      @subpartition_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_SubPartitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+      partitions = sql_select_first_row ["SELECT COUNT(*) Anzahl, COUNT(DISTINCT Compression) Compression_Count, MIN(Compression) Compression
+                                          #{', COUNT(DISTINCT Compress_For) Compress_For_Count, MIN(Compress_For) Compress_For' if get_db_version >= '11.2'}
+                                          FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+      @partition_count = partitions.anzahl
+      if partitions.compression_count > 0
+        @attribs.each do |a|
+          a.compression = partitions.compression_count == 1 ? partitions.compression : "< #{partitions.compression_count} different >"
+          a.compress_for = partitions.compress_for_count == 1 ? partitions.compress_for : "< #{partitions.compress_for_count} different >"  if get_db_version >= '11.2'
+        end
+      end
+
+      subpartitions = sql_select_first_row ["SELECT COUNT(*) Anzahl, COUNT(DISTINCT Compression) Compression_Count, MIN(Compression) Compression
+                                             #{', COUNT(DISTINCT Compress_For) Compress_For_Count, MIN(Compress_For) Compress_For' if get_db_version >= '11.2'}
+                                             FROM DBA_Tab_SubPartitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
+      @subpartition_count = subpartitions.anzahl
+      if subpartitions.compression_count > 0
+        @attribs.each do |a|
+          a.compression = subpartitions.compression_count == 1 ? subpartitions.compression : "< #{subpartitions.compression_count} different >"
+          a.compress_for = subpartitions.compress_for_count == 1 ? subpartitions.compress_for : "< #{subpartitions.compress_for_count} different >"  if get_db_version >= '11.2'
+        end
+      end
     else
       @partition_count = 0
       @subpartition_count = 0

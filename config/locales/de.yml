@@ -163,6 +163,11 @@
 
   dba_list_rowid_link_hint:                                 Zeige Felder und Werte des Primary der Tabelle
 
+  dba_schema_show_object_filter_hint:                       Filter-string muss in Objekt-name enthalten sein (wenn belegt)
+  dba_schema_show_object_partition_hint:                    Einzelne Partitionen anzeigen?
+  dba_schema_show_object_submit_caption:                    Objekte und Größen anzeigen
+  dba_schema_show_object_submit_hint:                       Objekte mit Größen und Parametern je Tablespace und Schema anzeigen
+
   dba_segment_stat_caption:                                 Objekt-spezifische Statistiken aus V$Segment_Statistics
   dba_segment_stat_only_sample_change_caption:              Nur Änderungen während Sample
   dba_segment_stat_only_sample_change_hint:                 Nur Objekte anzeigen deren Daten sich zwischen den Samples änderten
