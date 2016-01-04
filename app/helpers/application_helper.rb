@@ -129,9 +129,8 @@ module ApplicationHelper
     @buffered_time_selection_end
   end
 
-    # Helper fuer Ausführung SQL-Select-Query,
-  # return Array of Hash mit Columns des Records
-  def sql_select_all(sql)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+  private
+  def sql_prepare_binds(sql)
     binds = []
     if sql.class == Array
       stmt =sql[0].clone      # Kopieren, da im Stmt nachfolgend Ersetzung von ? durch :A1 .. :A<n> durchgeführt wird
@@ -149,7 +148,7 @@ module ApplicationHelper
             ActiveRecord::ConnectionAdapters::Column.new(bind_alias,
                                                          nil,
                                                          ActiveRecord::Type::Value.new    # Neu ab Rails 4.2.0, Abstrakter Typ muss angegeben werden
-                                                         ),
+            ),
             sql[bind_index]
         ]
       end
@@ -160,6 +159,14 @@ module ApplicationHelper
         raise "Unsupported Parameter-Class '#{sql.class.name}' for parameter sql of sql_select_all(sql)"
       end
     end
+    [stmt, binds]
+  end
+
+  public
+    # Helper fuer Ausführung SQL-Select-Query,
+  # return Array of Hash mit Columns des Records
+  def sql_select_all(sql)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+    stmt, binds = sql_prepare_binds(sql)
     result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
     result.each do |h|
       h.each do |key, value|
