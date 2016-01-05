@@ -179,9 +179,11 @@ module ApplicationHelper
 
   # Analog sql_select all, jedoch return ResultIterator mit each-Method
   # liefert Objekt zur späteren Iteration per each, erst dann wird SQL-Select ausgeführt (jedesmal erneut)
-  def sql_select_iterator(sql)
+  # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
+  #            modifier = proc für Anwendung auf die fertige Row
+  def sql_select_iterator(sql, modifier=nil)
     stmt, binds = sql_prepare_binds(sql)
-    SqlSelectIterator.new(stmt, binds)      # kann per Aufruf von each die einzelnen Records liefern
+    SqlSelectIterator.new(stmt, binds, modifier)      # kann per Aufruf von each die einzelnen Records liefern
   end
 
 

@@ -7,7 +7,7 @@ module ActiveRecord
 
       # Analoge Methode zu ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
       # jedoch ohne Speicherung des kompletten Results
-      def iterate_query(sql, name = 'SQL', binds = [], &block)
+      def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, &block)
         type_casted_binds = binds.map { |col, val|
           [col, type_cast(val, col)]
         }
@@ -46,6 +46,7 @@ module ActiveRecord
                 result_hash[columns[index]] = row[index]
               end
               result_hash.extend SelectHashHelper
+              modifier.call(result_hash)  unless modifier.nil?
               yield result_hash
             end
           end
@@ -53,7 +54,8 @@ module ActiveRecord
           cursor.close unless cached
           nil
         end
-      end
+      end #iterate_query
+
     end
   end
 end
@@ -64,14 +66,15 @@ class SqlSelectIterator
   #self.table_name   =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
   #self.primary_key  = "id"            # Festes übersteuern, da DUAL keine Info zum Primary Key liefert
 
-  def initialize(stmt, binds)
-    @stmt   = stmt
-    @binds = binds
+  def initialize(stmt, binds, modifier)
+    @stmt     = stmt
+    @binds    = binds
+    @modifier = modifier              # proc zur Modifikation eines Records
   end
 
   def each(&block)
     # Ausführen SQL und Aufrufen Block für jeden Record des Results
-    result = ConnectionHolder.connection().iterate_query(@stmt, 'sql_select_all', @binds, &block)
+    result = ConnectionHolder.connection().iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, &block)
   end
 
 end

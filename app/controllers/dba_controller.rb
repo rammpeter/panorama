@@ -337,7 +337,7 @@ class DbaController < ApplicationController
   end # show_lock_details
 
   def show_redologs
-    @redologs = sql_select_all("\
+    @redologs = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */
         Inst_ID,
         TO_CHAR(Group#) GroupNo,                                
@@ -398,8 +398,14 @@ class DbaController < ApplicationController
   end
 
   def oracle_parameter
+
+    record_modifier = proc{|rec|
+      rec.value = rec.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults."  if rec.name == 'cursor_sharing'
+      rec.value = rec.value + " (Caution!!! This is local session setting of Panoramas DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='nls_length_semantics'; to read real defaults.)"  if rec.name == 'nls_length_semantics'
+    }
+
     begin
-      @parameters = sql_select_all("\
+      @parameters = sql_select_iterator("\
         SELECT /* Panorama-Tool Ramm */
           i.Instance_Number                 Instance,  -- Daten koennen nur on aktueller Instance gezogen werden
           X$KSPPI.INDX                      ID,
@@ -412,8 +418,15 @@ class DbaController < ApplicationController
         FROM  X$KSPPI
         JOIN  X$KSPPSV ON X$KSPPSV.INDX = X$KSPPI.INDX
         CROSS JOIN  V$Instance i
-        ORDER BY 3 ASC")
-    rescue Exception
+        ORDER BY 3 ASC",
+        record_modifier
+      )
+
+      respond_to do |format|
+        format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/oracle_parameter" }');"}
+      end
+
+    rescue
       @hint = "Möglicherweise fehlende Zugriffsrechte auf Tabellen X$KSPPI und X$KSPPSV !</br>
   Es werden deshalb nur die documented Parameter aus GV$Parameter angezeigt.</br></br>
 
@@ -426,27 +439,27 @@ class DbaController < ApplicationController
     grant select on X_$KSPPSV to public;</br>
     create public synonym X$KSPPSV for sys.X_$KSPPSV;
   ".html_safe
-      @parameters = sql_select_all("\
+      @parameters = sql_select_iterator("\
         SELECT /* Panorama-Tool Ramm */
           Inst_ID                Instance,
           Num                    ID,
           Type                   ParamType,
           Name,
           Description,
-          Value, Display_Value,
+          Value,
+          Display_Value,
           IsDefault
         FROM  gv$Parameter
-        ORDER BY Name, Inst_ID")
+        ORDER BY Name, Inst_ID",
+        record_modifier
+      )
+
+      respond_to do |format|
+        format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/oracle_parameter" }');"}
+      end
+
     end
 
-    @parameters.each do |p|
-      p.value = p.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults.)"      if p.name == "cursor_sharing"
-      p.value = p.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='nls_length_semantics'; to read real defaults.)" if p.name == "nls_length_semantics"
-    end
-
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/oracle_parameter" }');"}
-    end
   end # oracle_parameter
 
   # Aktuell genutzt Objekte
