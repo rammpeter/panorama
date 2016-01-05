@@ -50,7 +50,7 @@ class DbaSchemaController < ApplicationController
       where_values << filter
     end
 
-    @objects = sql_select_all ["\
+    @objects = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
         CASE WHEN Segment_Name LIKE 'SYS_LOB%' THEN
               Segment_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Segment_Name, 8, 10)) )||')'

@@ -10,7 +10,7 @@
     {:caption=> 'Partition',         :data=>proc{|rec| rec.partition_name},                      :title=> 'Partition-Name bzw. Anzahl Partitionen'},
     {:caption=> 'Type',              :data=>proc{|rec| rec.segment_type},                        :title=> 'Object-Typ'},
     {:caption=> 'Used Ext',          :data=>proc{|rec| fn(rec.used_ext)},        :align=>:right, :title=> 'Genutzte Anzahl Extents'},
-    {:caption=> 'MBytes',            :data=>proc{|rec| fn(rec.mbytes)},          :align=>:right, :title=> 'Größe der Extents im Tablespace in MBytes',  :show_pct_hint=>proc{|rec| rec.mbytes}},
+    {:caption=> 'MBytes',            :data=>proc{|rec| fn(rec.mbytes)},          :align=>:right, :title=> 'Größe der Extents im Tablespace in MBytes',  :show_pct_hint=>true},
     {:caption=> 'NumRows',           :data=>proc{|rec| fn(rec.num_rows)},        :align=>:right, :title=> 'Anzahl Rows lt. letzter Analyse'},
     {:caption=> 'Rowlen',            :data=>proc{|rec| fn(rec.avg_rowlen)},      :align=>:right, :title=> 'Durchschn. Größe eines Records lt. letzter Analyse (Avg_Row_Len für Table, Summe Avg_Col_Len + RowID für Indizes)'},
     {:caption=> '% Ungen.',          :data=>proc{|rec| fn(rec.percent_free)},    :align=>:right, :title=> 'Ungenutzter Platz innerhalb der Extents in %. Ermittelt aus Extents - (Avg_Row_Len*Num_Rows)'},

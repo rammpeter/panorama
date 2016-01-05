@@ -46,9 +46,14 @@ class ActiveSessionHistoryController < ApplicationController
     @dbid = params[:groupfilter][:DBID]       # identische DBID verwenden wie im groupfilter bereits gesetzt
 
 
+    record_modifier = proc{|rec|
+      # Angenommene Anzahl Sekunden je Zyklus korrigieren, wenn Gruppierung < als Zyklus der Aufzeichnung
+      divider = rec.max_sample_cycle > group_seconds ? rec.max_sample_cycle : group_seconds
+      rec['diagram_value'] = rec.time_waited_secs.to_f / divider  # Anzeige als Anzahl aktive Sessions
+    }
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
-    singles= sql_select_all ["\
+    singles= sql_select_iterator(["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              -- Beginn eines zu betrachtenden Zeitabschnittes
@@ -77,14 +82,7 @@ class ActiveSessionHistoryController < ApplicationController
       WHERE 1=1 #{@global_where_string}
       GROUP BY TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400, #{session_statistics_key_rule(@groupby)[:sql]}
       ORDER BY 1
-     "].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values)
-
-
-    singles.each do |s|
-          # Angenommene Anzahl Sekunden je Zyklus korrigieren, wenn Gruppierung < als Zyklus der Aufzeichnung
-      divider = s.max_sample_cycle > group_seconds ? s.max_sample_cycle : group_seconds
-      s['diagram_value'] = s.time_waited_secs.to_f / divider  # Anzeige als Anzahl aktive Sessions
-    end
+     "].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values), record_modifier)
 
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
@@ -183,8 +181,13 @@ class ActiveSessionHistoryController < ApplicationController
         raise "Unsupported value for parameter :groupby (#{@time_groupby})"
     end
 
+    record_modifier = proc{|rec|
+      rec['sql_operation'] = translate_opcode(rec.sql_opcode)
+    }
+
+
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
-    @sessions= sql_select_all ["\
+    @sessions= sql_select_iterator(["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              MIN(Sample_Time)       Start_Sample_Time,
@@ -296,11 +299,7 @@ class ActiveSessionHistoryController < ApplicationController
       GROUP BY #{group_by_value}
       ORDER BY #{group_by_value}
      "
-     ].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values)
-
-    @sessions.each {|s|
-      s.sql_operation = translate_opcode(s.sql_opcode)
-    }
+     ].concat(@dba_hist_where_values).concat([@dbid]).concat(@global_where_values), record_modifier)
 
     render_partial :list_session_statistic_historic_single_record
   end # list_session_statistic_historic_single_record
@@ -471,7 +470,7 @@ class ActiveSessionHistoryController < ApplicationController
     save_session_time_selection
     get_min_max_snap_ids(@time_selection_start, @time_selection_end, @dbid)
 
-    @locks = sql_select_all [
+    @locks = sql_select_iterator [
         "WITH /* Panorama-Tool Ramm */
                    TSSel AS ( SELECT 10 Sample_Cycle,
                                      /* auf 10 Sekunden genau gerundete Zeit */
@@ -628,7 +627,7 @@ class ActiveSessionHistoryController < ApplicationController
     wherevalues << @blocking_session_serialno if @blocking_session
     wherevalues << @blocking_instance         if @blocking_session && get_db_version >= '11.2'
 
-    @locks = sql_select_all [
+    @locks = sql_select_iterator [
         "WITH /* Panorama-Tool Ramm */
                    TSel AS ( SELECT 10 Sample_Cycle,
                                      h.Instance_Number, Session_ID, Session_Serial#, Current_File#, Current_Block#,
@@ -748,7 +747,7 @@ class ActiveSessionHistoryController < ApplicationController
     end
 
     # All möglichen Tabellen gejoint, da Filter diese referenzieren können
-    @result= sql_select_all ["\
+    @result= sql_select_iterator ["\
       #{"WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)" if  @global_where_string['peo.'] ||  @global_where_string['po.']}
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              MIN(s.Sample_Time)   Start_Sample_Time,

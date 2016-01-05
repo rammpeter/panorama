@@ -12,7 +12,7 @@ class DbaHistoryController < ApplicationController
     @object_name     = nil if @object_name == ""
     save_session_time_selection  # werte in session puffern
 
-    @segment_sums = sql_select_all ["
+    @segment_sums = sql_select_iterator ["
       SELECT /* Panorama-Tool Ramm */ s.Instance_Number,
              NVL(o.Owner, '[Unknown]') Owner,
              NVL(o.Object_Name, '[Object-ID = '||MIN(s.Obj#)||']') Object_Name,

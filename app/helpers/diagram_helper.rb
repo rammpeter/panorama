@@ -24,7 +24,8 @@ module DiagramHelper
     update_area       = param[:update_area]
 
 
-    origin_data_array.sort!{ |a,b| a[time_key_name] <=> b[time_key_name] }
+    # Sortieren wenn die gesamte Menge an Daten bereits vor der Iteration bekannt ist (wie im Array)
+    origin_data_array.sort!{ |a,b| a[time_key_name] <=> b[time_key_name] } if origin_data_array.class == Array
 
     # Pivot-Tabelle anlegen
     graph_sums   = {}                                                           # Unterschiedliche Kurven die zu zeichnen sind mit Summen je Graph
@@ -41,7 +42,7 @@ module DiagramHelper
       graph_sums[s[curve_key_name]] = 0 unless graph_sums[s[curve_key_name]]    # Existenz der Kurve merken
       graph_sums[s[curve_key_name]] += record[s[curve_key_name]] ||= 0          # Summe kumulieren
     end
-    result_data_array << record if origin_data_array.length > 0                 # Letzten Record in Array schreiben wenn Daten vorhanden
+    result_data_array << record unless record.empty?                            # Letzten Record in Array schreiben wenn Daten vorhanden
 
     graph_array = graph_sums.sort_by(&:last)                                    # Wandeln des Hashes in aufsteigend sortiertes Array
 
