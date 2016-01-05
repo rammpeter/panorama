@@ -15,7 +15,7 @@ class AdditionController < ApplicationController
       partition_expression = "NULL"
     end
 
-    @entries= sql_select_all ["\
+    @entries= sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */ *
       FROM   (SELECT Instance, Owner, Name, PartitionName,
                      AVG(BlocksTotal) AvgBlocksTotal,

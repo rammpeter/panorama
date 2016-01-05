@@ -366,7 +366,7 @@ class DbaController < ApplicationController
       whereval << @instance
     end
 
-    @redologs = sql_select_all ["\
+    @redologs = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */ x.*,
              x.LogSwitches * x.Members * x.Avg_Size_MB LogWrites_MB
       FROM   (SELECT ss.Begin_Interval_Time, l.*,
@@ -464,7 +464,7 @@ class DbaController < ApplicationController
 
   # Aktuell genutzt Objekte
   def used_objects
-    @objects = sql_select_all("\
+    @objects = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */
              a.Inst_ID,
              a.SID, 
@@ -519,7 +519,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
   # Waits wegen db_file_sequential_read
   def wait_db_file_sequential_read
-    @waits = sql_select_all "\
+    @waits = sql_select_iterator "\
       SELECT /* Panorama-Tool Ramm */
         w.SID,                                                    
         w.Seq# SerialNo,                                          
@@ -574,7 +574,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       where_string << ")"
     end
 
-    @sessions = sql_select_all ["\
+    @sessions = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
         s.SID||','||s.Serial# SidSn,
         s.SID,
@@ -757,7 +757,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     @sid     =  params[:sid].to_i
     @serialno = params[:serialno].to_i
 
-    @opencursors = sql_select_all ["
+    @opencursors = sql_select_iterator ["
       SELECT /*+ ORDERED USE_HASH(s wa) */ oc.SQL_ID oc_SQL_ID, oc.SQL_Text, wa.*,
              CASE WHEN se.SAddr = oc.SAddr THEN 'YES' ELSE 'NO' END Own_SAddr,
              sse.SID SAddr_SID, sse.Serial# SAddr_SerialNo
@@ -953,7 +953,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   def show_explain_plan
     statement = params[:statement].rstrip.gsub(/;$/, "")       # führendes Semikolon entfernen
     ConnectionHolder.connection.execute "EXPLAIN PLAN SET Statement_ID='Panorama' FOR " + statement
-    @plans = sql_select_all ["\
+    @plans = sql_select_iterator ["\
         SELECT /* Panorama-Tool Ramm */
           Operation, Options, Object_Owner, Object_Name, Optimizer,
           Access_Predicates, Filter_Predicates,
@@ -962,10 +962,10 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         WHERE Statement_ID=?",
         "Panorama"
         ]
-    ConnectionHolder.connection.execute "DELETE FROM Plan_Table WHERE STatement_ID='Panorama'"
     respond_to do |format|
       format.js {render :js => "$('#explain_plan_area').html('#{j render_to_string :partial=> "list_explain_plan" }');"}
     end
+    ConnectionHolder.connection.execute "DELETE FROM Plan_Table WHERE STatement_ID='Panorama'"
   end
   
   
@@ -1082,7 +1082,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   end
 
   def show_session_waits
-    @wait_sums = sql_select_all "\
+    @wait_sums = sql_select_iterator "\
       SELECT /*+ ORDERED USE_NL(s) Panorama Ramm */
              COUNT(*) Anzahl,
              w.Inst_ID,
@@ -1101,7 +1101,14 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
               DECODE(w.State, 'WAITING', w.Wait_Class, NULL), DECODE(w.State, 'WAITING', w.State, NULL)
      ORDER BY COUNT(*) DESC, SUM(w.Seconds_In_wait) DESC"
 
-    @blocking_waits = sql_select_all "\
+    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
+    # da die Tabellen nicht auf allen DB zur Verfügung stehen
+    record_modifier = proc{|rec|
+      rec['waiting_app_desc']  = explain_application_info(rec.module)
+      rec['blocking_app_desc'] = explain_application_info(rec.blocking_module)
+    }
+
+    @blocking_waits = sql_select_iterator("\
       WITH Locks AS (
               SELECT /*+ LEADING(l) */ /* Panorama-Tool Ramm */
                      s.Inst_ID,
@@ -1168,14 +1175,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
                         AND    t.SerialNo = l.SerialNo
                         AND    t.HLevel   > l.HLevel
                        )
-       ORDER BY Row_Num"
+       ORDER BY Row_Num", record_modifier)
 
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @blocking_waits.each {|l|
-      l.waiting_app_desc = explain_application_info(l.module)
-      l.blocking_app_desc = explain_application_info(l.blocking_module)
-    }
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/show_session_waits" }');"}
     end
@@ -1184,7 +1185,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   def list_waits_per_event
     @instance = params[:instance]
     @event    = params[:event]
-    @waits = sql_select_all ["\
+    @waits = sql_select_iterator ["\
       SELECT /*+ ORDERED USE_NL(s) Panorama Ramm */
              w.Inst_ID, w.SID, s.Serial# SerialNo, w.Event, w.Wait_Class,
              w.P1Text, w.P1, w.P1Raw,
@@ -1199,13 +1200,11 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       AND    ((? = 'ON CPU' AND w.State != 'WAITING') OR w.Event   = ?) ",
       @instance, @event, @event]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>'list_waits_per_event' }');"}
-    end
+    render_partial :list_waits_per_event
   end
 
   def show_dba_autotask_jobs
-    @tasks = sql_select_all 'SELECT Client_Name, Status, Consumer_Group, Client_Tag, Priority_Override, Attributes, Window_Group, Service_name
+    @tasks = sql_select_iterator 'SELECT Client_Name, Status, Consumer_Group, Client_Tag, Priority_Override, Attributes, Window_Group, Service_name
                              FROM   DBA_AutoTask_Client'
 
     respond_to do |format|
@@ -1216,7 +1215,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
 
   def list_database_triggers
-    @triggers = sql_select_all "SELECT * FROM dba_triggers where base_object_type LIKE 'DATABASE%' ORDER BY Triggering_Event, Trigger_Name"
+    @triggers = sql_select_iterator "SELECT * FROM dba_triggers where base_object_type LIKE 'DATABASE%' ORDER BY Triggering_Event, Trigger_Name"
     params[:update_area] = 'content_for_layout'
     render_partial
   end

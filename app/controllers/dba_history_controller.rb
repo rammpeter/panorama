@@ -198,7 +198,7 @@ class DbaHistoryController < ApplicationController
             ORDER BY 1"
     binds = [stmt, @instance.to_i, min_snap_id, max_snap_id, @owner, @object_name]
     binds << @subobject_name if @subobject_name       # Nur binden wenn gefüllt
-    @segment_details = sql_select_all binds
+    @segment_details = sql_select_iterator binds
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_segment_stat_historic_detail" }');" }
     end
@@ -212,7 +212,7 @@ class DbaHistoryController < ApplicationController
     @owner          = params[:owner]
     @object_name    = params[:object_name]
 
-    @sqls = sql_select_all ["
+    @sqls = sql_select_iterator ["
         SELECT /* Panorama-Tool Ramm */ sql.*,
                (SELECT TO_CHAR(SUBSTR(SQL_Text,1,100)) FROM DBA_Hist_SQLText t WHERE t.DBID=sql.DBID AND t.SQL_ID=sql.SQL_ID) SQL_Text
         FROM   (
@@ -364,16 +364,6 @@ class DbaHistoryController < ApplicationController
         else  "[Unknown]"
         end }"
      ].concat(where_values)
-
-    # Summation diverser Parameter
-    @sum_cpu_time_secs = 0
-    @sum_disk_reads    = 0
-    @sum_buffer_gets   = 0
-    @sqls.each do |s|
-      @sum_cpu_time_secs += s.cpu_time_secs if s.cpu_time_secs
-      @sum_disk_reads    += s.disk_reads    if s.disk_reads
-      @sum_buffer_gets   += s.buffer_gets   if s.buffer_gets
-    end
 
     render_partial :list_sql_area_historic
   end #list_sql_area_historic
@@ -544,7 +534,7 @@ class DbaHistoryController < ApplicationController
     @max_snap_id = params[:max_snap_id]
     @dbid        = prepare_param_dbid
 
-    @binds = sql_select_all ["\
+    @binds = sql_select_iterator ["\
         SELECT /* Panorama-Tool Ramm */ Name, DataType_String, Last_Captured,
                CASE DataType_String
                  WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
@@ -811,7 +801,7 @@ class DbaHistoryController < ApplicationController
       @time_selection_end =alter.time_selection_end
     end
 
-    @hist = sql_select_all(["\
+    @hist = sql_select_iterator(["\
       SELECT /* Panorama-Tool Ramm */
              #{@begin_interval_sql}             Begin_Interval_Time,
              #{@end_interval_sql}               End_Interval_Time,
@@ -927,9 +917,8 @@ FROM (
       ORDER BY sql.Elapsed_Time_Secs DESC",
     @time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid, @object_name].concat(where_values)
 
-    respond_to do |format|
-      format.js {render :js => "$('##{update_area}').html('#{j render_to_string :partial=>"list_sql_area_historic" }');"}
-    end
+    render_partial :list_sql_area_historic
+
   end
 
   # Anzeigen der gefundenen Events
@@ -950,7 +939,7 @@ FROM (
       additional_where2 << " WHERE name.Wait_Class != 'Idle'"
     end
 
-    @events = sql_select_all ["
+    @events = sql_select_iterator ["
       SELECT /* Panorama-Tool Ramm */ hist.Instance_Number, name.Event_Name, name.Wait_Class, hist.Event_ID, hist.Waits, hist.Timeouts, hist.Time_Waited_Secs,
              Min_snap_ID, Max_Snap_ID
       FROM   (
@@ -997,7 +986,7 @@ FROM (
     @min_snap_id = params[:min_snap_id].to_i
     @max_snap_id = params[:max_snap_id].to_i
 
-    @snaps = sql_select_all ["
+    @snaps = sql_select_iterator ["
       SELECT /* Panorama-Tool Ramm */ snap.Begin_Interval_Time,
              Waits,
              Timeouts,
@@ -1065,7 +1054,7 @@ FROM (
     end
     binds.concat [@time_selection_start, @time_selection_end]
 
-    single_stats = sql_select_all ["
+    single_stats = sql_select_iterator ["
               SELECT /* Panorama-Tool Ramm */ TRUNC(so.Begin_Interval_Time, '#{trunc_tag}') Begin_Interval_Time, hist.Stat_ID, SUM(hist.Value) Value
               FROM   (
                       SELECT /*+ NO_MERGE */ ss.DBID, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID,
@@ -1100,7 +1089,9 @@ FROM (
     rec = {}        # einzelner Record des Results
     columns = {}    # Verwendete Statistiken mit Value != 0
     ts = nil
+    empty = true
     single_stats.each do |s|
+      empty = false
       if ts != s.begin_interval_time
         @stats << rec if ts    # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
         rec = {:begin_interval_time => s.begin_interval_time }              # Neuer Record
@@ -1109,7 +1100,7 @@ FROM (
       rec[s.stat_id] = s.value if s.value != 0      # 0-Values nicht speichern
       columns[s.stat_id] = true if s.value != 0     # Statistik als verwendet kennzeichnen
     end
-    @stats << rec  if single_stats.length > 0         # letzten Record wegschreiben, wenn Result exitierte
+    @stats << rec  unless empty         # letzten Record wegschreiben, wenn Result exitierte
 
     column_options =
     [
@@ -1145,7 +1136,7 @@ FROM (
     end
     binds.concat [@time_selection_start, @time_selection_end]
 
-    @statistics = sql_select_all ["
+    @statistics = sql_select_iterator ["
       SELECT /* Panorama-Tool Ramm */ name.Stat_Name, hist.Instance_Number, hist.Stat_ID, hist.Value, Min_Snap_ID, Max_Snap_ID, sn.Class Class_ID
       FROM   (
               SELECT /*+ NO_MERGE*/ DBID, Instance_Number, Stat_ID,
@@ -1186,7 +1177,7 @@ FROM (
     @min_snap_id = params[:min_snap_id].to_i
     @max_snap_id = params[:max_snap_id].to_i
 
-    @snaps = sql_select_all ["
+    @snaps = sql_select_iterator ["
       SELECT /* Panorama-Tool Ramm */ snap.Begin_Interval_Time,
              Value
       FROM   (
@@ -1308,13 +1299,15 @@ FROM (
     end
 
 
-    single_stats = sql_select_all [stmt].concat(binds)
+    single_stats = sql_select_iterator [stmt].concat(binds)
 
     @stats = []      # Komplettes Result
     rec = {}        # einzelner Record des Results
     columns = {}    # Verwendete Statistiken mit Value != 0
     ts = nil
+    empty = true
     single_stats.each do |s|
+      empty = false
       if ts != s.begin_time
         @stats << rec if ts                      # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
         rec = {:begin_time => s.begin_time }     # Neuer Record
@@ -1323,7 +1316,7 @@ FROM (
       rec[s.metric_id] = {:value=>s.value, :minvalue=>s.minvalue, :maxvalue=>s.maxvalue } if s.value != 0    # 0-Values nicht speichern
       columns[s.metric_id] = {:metric_name=>s.metric_name, :metric_unit=>s.metric_unit} if s.value != 0   # Statistik als verwendet kennzeichnen
     end
-    @stats << rec  if single_stats.length > 0         # letzten Record wegschreiben, wenn Result exitierte
+    @stats << rec  unless empty                  # letzten Record wegschreiben, wenn Result exitierte
 
     column_options =
     [
@@ -1359,7 +1352,7 @@ FROM (
       where_values << @instance
     end
 
-    @latches = sql_select_all ["\
+    @latches = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              x.*,
              x.Misses*100/DECODE(x.GetsNo, 0, 1, x.GetsNo) Pct_Misses,
@@ -1420,7 +1413,7 @@ FROM (
     max_snap_id = params[:max_snap_id].to_i
 
 
-    @latches = sql_select_all ["\
+    @latches = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              x.*,
              x.Misses*100/DECODE(x.GetsNo, 0, 1, x.GetsNo) Pct_Misses,
@@ -1468,7 +1461,7 @@ FROM (
 
   def list_mutex_statistics_historic_blocker_waiter(groupby)
     @groupby = groupby
-    @mutexes = sql_select_all ["\
+    @mutexes = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */ *
       FROM   (
               SELECT Inst_ID, Mutex_Type,  #{@groupby},
@@ -1492,8 +1485,10 @@ FROM (
   end
 
   def list_mutex_statistics_historic_Timeline
-    @mutexes = sql_select_all ["\
+    @mutexes = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */ TRUNC(Sleep_Timestamp, 'MI') ts,
+             MIN(CAST (Sleep_Timestamp AS DATE))  MinSleepTimestamp,
+             MAX(CAST (Sleep_Timestamp AS DATE))  MaxSleepTimestamp,
              SUM(Gets)             Gets,
              SUM(Sleeps)           Sleeps,
              SUM(Sleeps)/SUM(Gets) Sleep_Ratio,
@@ -1505,16 +1500,16 @@ FROM (
       GROUP BY TRUNC(Sleep_Timestamp, 'MI')
       ORDER BY TRUNC(Sleep_Timestamp, 'MI')", @time_selection_start, @time_selection_end]
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> "list_mutex_statistics_historic_timeline" }');"}
-    end
+    render_partial :list_mutex_statistics_historic_timeline
   end
 
 
   # Anzeige der Einzel-Records
   def list_mutex_statistics_historic_samples
     @instance  = prepare_param_instance
-    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @time_selection_start = params[:time_selection_start]
+    @time_selection_end   = params[:time_selection_end]
+    #save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
     where_string  = ""                         # Filter-Text für nachfolgendes Statement
     where_values = [@time_selection_start, @time_selection_end]    # Filter-werte für nachfolgendes Statement
@@ -1536,8 +1531,8 @@ FROM (
              Mutex_Type, Gets, Sleeps, Requesting_Session, Blocking_Session, Location, RawToHex(Mutex_Value) Mutex_Value,
              P1, RawToHex(P1Raw) P1Raw, P2, P3, P4, P5
       FROM   GV$Mutex_Sleep_History
-      WHERE  Sleep_Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-      AND    Sleep_Timestamp  < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+      WHERE  CAST(Sleep_Timestamp AS DATE) >= TO_DATE(?, '#{sql_datetime_second_mask}')
+      AND    CAST(Sleep_Timestamp AS DATE) <= TO_DATE(?, '#{sql_datetime_second_mask}')
       #{where_string}
       ORDER BY Sleep_Timestamp"].concat(where_values)
 
@@ -1559,7 +1554,7 @@ FROM (
       where_values << @instance
     end
 
-    @enqueues = sql_select_all ["\
+    @enqueues = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              x.*,
              s.Req_Description
@@ -1615,7 +1610,7 @@ FROM (
     max_snap_id = params[:max_snap_id].to_i
 
 
-    @enqueues = sql_select_all ["\
+    @enqueues = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              x.*
       FROM   (SELECT
@@ -1777,7 +1772,7 @@ FROM (
     @resource_name = params[:resource][:name]
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
-    @limits = sql_select_all ["\
+    @limits = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              ROUND(ss.End_Interval_Time, 'MI')    End_Interval,
              SUM(rl.Current_Utilization)          Current_Utilization,

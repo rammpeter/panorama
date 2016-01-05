@@ -2,16 +2,6 @@
   Template wird von mehreren Controller-Methoden verwendet !!!
 -->
 <%
-   if @sqls.count > 0 && @sqls[0]["start_time"] && @sqls[0]["end_time"]
-     @start_time = localeDateTime @sqls[0]["start_time"]
-     @end_time   = localeDateTime @sqls[0]["end_time"]
-   else
-     @start_time = @time_selection_start
-     @end_time   = @time_selection_end
-   end
-%>
-
-<%
    @update_area = get_unique_area_id
 
 
@@ -67,10 +57,10 @@
           {:caption=>"Execs",       :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.executions)) },             :title=>t(:dba_history_list_sql_area_historic_execs_hint, :default=>'Number of executions'), :align=>"right" },
           {:caption=>"Elapsed",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs)) },      :title=>"Total elapsed time in Sec.", :align=>"right" },
           {:caption=>"Ela./Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.elapsed_time_secs_per_execute,4)) },     :title=>"Elapsed time per execute in sec. (incl. parallel query slaves)", :align=>"right" },
-          {:caption=>"CPU",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.cpu_time_secs)) },          :title=>"CPU-time in sec.", :align=>"right",    :data_title=>proc{|rec| "CPU-time in sec.: #{@sum_cpu_time_secs && @sum_cpu_time_secs>0 && rec.cpu_time_secs ? formattedNumber(rec.cpu_time_secs*100.0/@sum_cpu_time_secs,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
-          {:caption=>"Disk Reads",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads)) },             :title=>"Total disk reads", :align=>"right",        :data_title=>proc{|rec| "Total disk reads: #{@sum_disk_reads && @sum_disk_reads>0 && rec.disk_reads ? formattedNumber(rec.disk_reads*100.0/@sum_disk_reads,2) : "x"} % Anteil an Summe aller gezeigten SQL" } },
+          {:caption=>"CPU",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.cpu_time_secs)) },          :title=>"CPU-time in sec.", :align=>"right", :show_pct_hint=>true   },
+          {:caption=>"Disk Reads",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads)) },             :title=>"Total disk reads", :align=>"right", :show_pct_hint=>true        },
           {:caption=>"Disk/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.disk_reads_per_execute,3)) },     :title=>"Disk Reads per Execute", :align=>"right" },
-          {:caption=>"Buffer Gets", :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets)) },            :title=>"Total Buffer Gets", :align=>"right",       :data_title=>proc{|rec| "Total Buffer Gets: #{@sum_buffer_gets && @sum_buffer_gets>0 && rec.buffer_gets ? formattedNumber(rec.buffer_gets*100.0/@sum_buffer_gets,2) : "x"} % Anteil an Summe aller gezeigten SQL"} },
+          {:caption=>"Buffer Gets", :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets)) },            :title=>"Total Buffer Gets", :align=>"right",     :show_pct_hint=>true },
           {:caption=>"Buffer/Ex.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_gets_per_exec,2)) },     :title=>"Buffer Gets per execute", :align=>"right" },
           {:caption=>"Rows proc.",  :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed)) },         :title=>"Number of rows processed", :align=>"right" },
           {:caption=>"Rows/Ex.",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.rows_processed_per_execute,2)) },     :title=>"Number of rows processed per execute", :align=>"right" },
@@ -81,7 +71,7 @@
 <%=
     gen_slickgrid(@sqls, column_options, {
         :max_height => 450,
-        :caption    => "Statement history from DBA_Hist_SQLStat executed between #{@start_time} and #{@end_time} #{"with access on object '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
+        :caption    => "Statement history from DBA_Hist_SQLStat executed between #{@time_selection_start} and #{@time_selection_end} #{"with access on object '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
 })
 %>
 

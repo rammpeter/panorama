@@ -33,7 +33,7 @@
 %>
 
 <%= gen_slickgrid(@waits, column_options, {
-        :caption => "Session-Waits: Event='#{@event}', Instance=#{@instance}, #{@waits.length} Sessions, #{localeDateTime(Time.now)}",
+        :caption => "Session-Waits: Event='#{@event}', Instance=#{@instance}, #{localeDateTime(Time.now)}",
         :max_height => 450
 }) %>
 

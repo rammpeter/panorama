@@ -5,8 +5,8 @@
     my_ajax_link_to(value,
                   url_for(:action               => :list_mutex_statistics_historic_samples,
                           :update_area          => @update_area,
-                          :time_selection_start => @time_selection_start,
-                          :time_selection_end   => @time_selection_end,
+                          :time_selection_start => localeDateTime(rec.minsleeptimestamp, :seconds),
+                          :time_selection_end   => localeDateTime(rec.maxsleeptimestamp, :seconds),
                           :filter               => :Timestamp,
                           :filter_session       => localeDateTime(rec.ts)
                          ),
