@@ -54,6 +54,7 @@ module SlickgridHelper
         output << " style:        '#{col[:style]}'," if col[:style]
         output << ' no_wrap:      1,'               if col[:no_wrap]
         output << ' plot_master:  1,'               if col[:plot_master]
+        output << ' show_pct_hint:  1,'             if col[:show_pct_hint]
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
         if col[:isFloat]
@@ -102,13 +103,6 @@ module SlickgridHelper
       col[:title]   = escape_js_chars(col[:title])    # Sonderzeichen in title escapen
       col[:name]  = "col#{col_index}";   # Eindeutiger Spaltenname
       col[:index] = col_index            # mit 0 beginnende Numerierung der Spalten
-      if col[:show_pct_hint]
-        col[:sum] = 0             # Initialisierung des Summenfeldes der Spalte
-        data.each do |rec|
-          val = col[:show_pct_hint].call(rec)   # Spaltenwert ermitteln
-          col[:sum] = col[:sum] + (val ? val : 0)
-        end
-      end
       col_index = col_index+1
     end
 
@@ -131,7 +125,7 @@ module SlickgridHelper
   #     :plot_master          => Spalte ist X-Achse für Diagramm-Darstellung <true>
   #     :plot_master_time     => Spalte ist x-Achse mit Datum/Zeit, die als Zeitstrahl dargestellt werden soll <true>
   #     :header_class         => class-Ausdruck für <th> Spaltenheader
-  #     :show_pct_hint        => proc{|rec| xxx }-Ausdruck für Anzeige %-Anteil des Feldes an der Summe aller Records, muss numerischen Wert zurückgeben
+  #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records
   #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #     :max_wrap_width       => Maximale Breite der Spalte in Pixel im Umbruchmodus (Es wird versucht, durch Reduktion der Spaltenbreiten die Tabelle ohne hor. Scrollbar darzustellen)
   #   global_options: Hash mit globalen Optionen
@@ -244,12 +238,6 @@ module SlickgridHelper
           title['%t'] = col[:title] if title['%t'] && col[:title]   # einbetten :title in :data_title, wenn per %t angewiesen
         end
 
-        # Title erweitern um %-Anteil von Spaltensumme
-        if col[:sum] && col[:sum] != 0    # Ausgabe %-Anteil und spaltensumme im title, title oder data_title sollten dafür gesetzt sein
-          title << col[:title] if title == '' && col[:title]    # title einbetten wenn kein data_title gesetzt ist. Ansonsten wird title erst in HTML-Anzeige vom Header geerbt wenn kein data_title oder show_pct_hint gesetzt ist
-          recval = col[:show_pct_hint].call(rec)
-          title << " #{formattedNumber((recval ? recval : 0) * 100.to_f / col[:sum], 2) } % of column sum: #{formattedNumber(col[:sum])}"
-        end
         # Style ermitteln
         style = nil
         if col[:data_style]

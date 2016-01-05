@@ -322,7 +322,7 @@ class ActiveSessionHistoryController < ApplicationController
     }
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
-    @sessions= sql_select_all(["\
+    @sessions= sql_select_iterator(["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,

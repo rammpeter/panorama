@@ -88,17 +88,25 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 alert('Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein');
             if (column['plot_master'] || column['plot_master_time'])
                 options['plotting'] = true;
+
+            if (column['show_pct_hint']){
+                var column_sum = 0
+                for (var row_index in data){
+                    column_sum += parseFloatLocale(data[row_index]['col'+col_index]);  // Kumulieren der Spaltensumme
+                }
+                column['column_sum'] = column_sum;
+            }
         }
-        if (options['plotting'] && !options['plot_area_id']){                       // DIV fuer Anzeige des Diagramms fehlt noch
-            options['plot_area_id'] = 'plot_area_' + container_id;                  // Generierte ID des DIVs fuer Diagramm-Anzeige
+        if (options['plotting'] && !options['plot_area_id']){                   // DIV fuer Anzeige des Diagramms fehlt noch
+            options['plot_area_id'] = 'plot_area_' + container_id;              // Generierte ID des DIVs fuer Diagramm-Anzeige
             this.gridContainer.after('<div id="' + options['plot_area_id'] + '"></div>');
         }
 
         this.grid = new Slick.Grid(this.gridContainer, dataView, columns, options);
 
         this.gridContainer
-            .data('slickgrid', this.grid)                                                // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
-            .data('slickgridextended', this)                                        // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
+            .data('slickgrid', this.grid)                                       // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
+            .data('slickgridextended', this)                                    // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
             .css('margin-top', '2px')
             .css('margin-bottom', '2px')
             .addClass('slick-shadow')
@@ -307,21 +315,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     }
 
     /**
-     * Parsen eines numerischen Wertes aus der landesspezifischen Darstellung mit Komma und Dezimaltrenner
-     * @param value String-Darstellung
-     * @returns float-value
-     */
-    function parseFloatLocale(value){
-        if (value == "")
-            return 0;
-        if (options['locale'] == 'en'){                                               // globale Option vom Aufrufer
-            return parseFloat(value.replace(/\,/g, ""));
-        } else {
-            return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
-        }
-    }
-
-    /**
      * Aufbau der Zellen zur Ermittlung Höhe und Breite
      */
     function init_test_cells(){
@@ -344,6 +337,59 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         thiz.test_cell       = test_cells_outer.find('#'+test_cell_id);         // Objekt zum Test der realen string-Breite
         thiz.test_cell_wrap  = test_cells_outer.find('#'+test_cell_wrap_id);    // Objekt zum Test der realen string-Breite für td
     }
+
+
+    /**
+     * Parsen eines numerischen Wertes aus der landesspezifischen Darstellung mit Komma und Dezimaltrenner
+     * @param value String-Darstellung
+     * @returns float-value
+     */
+    parseFloatLocale = function(value){
+        if (value == "")
+            return 0;
+        if (options['locale'] == 'en'){                                               // globale Option vom Aufrufer
+            return parseFloat(value.replace(/\,/g, ""));
+        } else {
+            return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
+        }
+    }
+
+
+    /**
+     * Ausgabe eines numerischen Wertes in der landesspezifischen Darstellung mit Komma
+     * @param value Float-Wert
+     * @returns String-value
+     */
+    printFloatLocale = function(value, precision){
+        var rounded_value = Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+        if (options['locale'] == 'en'){                                               // globale Option vom Aufrufer
+            return String(rounded_value);
+        } else {
+            return String(rounded_value).replace(/\./g, ",");
+        }
+    }
+
+    /**
+     * Translate key into string according to options[:locale]
+     * @param key
+     */
+    locale_translate = function(key){
+        var sl_locale = options['locale'];
+
+        if (get_slickgrid_translations()[key]){
+            if (get_slickgrid_translations()[key][sl_locale]){
+                return get_slickgrid_translations()[key][sl_locale];
+            } else {
+                if (get_slickgrid_translations()[key]['en'])
+                    return get_slickgrid_translations()[key]['en'];
+                else
+                    return 'No default translation (en) available for key "'+key+'"';
+            }
+        } else {
+            return 'No translation available for key "'+key+'"';
+        }
+    }
+
 
     /**
      * Filtern einer Zeile des Grids gegen aktuelle Filter
@@ -1046,30 +1092,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         return thiz.test_cell.html("1").height();
     }
 
-
-
-    /**
-     * Translate key into string according to options[:locale]
-     * @param key
-     */
-    function locale_translate(key){
-        var sl_locale = thiz.grid.getOptions()['locale'];
-
-        if (get_slickgrid_translations()[key]){
-            if (get_slickgrid_translations()[key][sl_locale]){
-                return get_slickgrid_translations()[key][sl_locale];
-            } else {
-                if (get_slickgrid_translations()[key]['en'])
-                    return get_slickgrid_translations()[key]['en'];
-                else
-                    return 'No default translation (en) available for key "'+key+'"';
-            }
-        } else {
-              return 'No translation available for key "'+key+'"';
-        }
-    }
-
-
 } // Ende SlickGridExtended
 
 
@@ -1109,22 +1131,33 @@ function resize_slickGrids(){
 // TODO Statt eines DIV den äusseren DIV dekorieren
 function HTMLFormatter(row, cell, value, columnDef, dataContext){
     var column_metadata = dataContext['metadata']['columns'][columnDef['field']];  // Metadata der Spalte der Row
+    var slickGrid = columnDef['slickgridExtended'];
     var fullvalue = value;                                                      // wenn keine dekorierten Daten vorhanden sind, dann Nettodaten verwenden
     if (column_metadata['fulldata'])
         fullvalue = column_metadata['fulldata'];                                // Ersetzen des data-Wertes durch komplette Vorgabe incl. html-tags etc.
 
     if (!column_metadata['dc'] || column_metadata['dc']==0){                    // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
-        columnDef['slickgridExtended'].calc_cell_dimensions(value, fullvalue, columnDef);   // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
+        slickGrid.calc_cell_dimensions(value, fullvalue, columnDef);   // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
         column_metadata['dc'] = 1;                                              // Zeile als berechnet markieren
     }
 
     var output = "<div class='slick-inner-cell' row="+row+" column='"+columnDef['field']+"'";           // sichert u.a. 100% Ausdehnung im Parent und Wiedererkennung der Spalte bei Mouse-Events
+
+    var title = '';
     if (column_metadata['title']) {
-        output += " title='"+column_metadata['title']+"'";
+        title = column_metadata['title'];
     } else {
         if (columnDef['toolTip'])
-            output += " title='"+columnDef['toolTip']+"'";
+            title = columnDef['toolTip']
     }
+    if (columnDef['show_pct_hint'] && columnDef['column_sum'] > 0 ){
+        var pct_value = slickGrid.parseFloatLocale(value) * 100 / columnDef['column_sum'];
+        title += ". "+ slickGrid.printFloatLocale(pct_value, 2) + ' % ' + slickGrid.locale_translate('slickgrid_pct_hint') + ' ' + slickGrid.printFloatLocale(columnDef['column_sum'], 0);
+    }
+    if (title.length > 0){
+        output += " title='"+title+"'";
+    }
+
     var style = "";
     if (column_metadata['style'])
         style += column_metadata['style'];
@@ -1240,6 +1273,10 @@ function get_slickgrid_translations() {
         'slickgrid_filter_hint_numeric': {
             'en': 'Filter by exact value (incl. thousands-delimiter and comma)',
             'de': 'Filtern nach exaktem Wert (incl. Tausender-Trennung und Komma)'
+        },
+        'slickgrid_pct_hint': {
+            'en': 'of column sum',
+            'de': 'der Spaltensumme von'
         }
     }
 }
