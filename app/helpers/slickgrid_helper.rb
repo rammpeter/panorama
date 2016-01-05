@@ -158,7 +158,7 @@ module SlickgridHelper
       true if Float(object) rescue false
     end
 
-    raise "gen_slickgrid: Parameter-Type #{data.class.name} found for parameter data, but Array expected" unless data.class == Array
+    raise "gen_slickgrid: Parameter-Type #{data.class.name} found for parameter data, but Array expected" unless data.class == Array || data.class == SqlSelectIterator
     raise "gen_slickgrid: Parameter-Type #{column_options.class.name} found for parameter column_options, but Array expected"  unless column_options.class == Array
     raise "gen_slickgrid: Parameter max_height should should be set numeric. 'px' this is added by generator" if global_options[:max_height] && global_options[:max_height].class!=Fixnum
 

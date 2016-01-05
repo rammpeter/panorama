@@ -177,6 +177,14 @@ module ApplicationHelper
     result.to_ary                                                               # Ab Rails 4 ist result nicht mehr vom Typ Array, sondern ActiveRecord::Result
   end
 
+  # Analog sql_select all, jedoch return ResultIterator mit each-Method
+  # liefert Objekt zur späteren Iteration per each, erst dann wird SQL-Select ausgeführt (jedesmal erneut)
+  def sql_select_iterator(sql)
+    stmt, binds = sql_prepare_binds(sql)
+    SqlSelectIterator.new(stmt, binds)      # kann per Aufruf von each die einzelnen Records liefern
+  end
+
+
   # Select genau erste Zeile
   def sql_select_first_row(sql)
     result = sql_select_all(sql)
