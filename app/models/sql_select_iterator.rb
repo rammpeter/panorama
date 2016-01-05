@@ -44,6 +44,7 @@ module ActiveRecord
               result_hash = {}
               columns.each_index do |index|
                 result_hash[columns[index]] = row[index]
+                row[index] = row[index].strip if row[index].class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
               end
               result_hash.extend SelectHashHelper
               modifier.call(result_hash)  unless modifier.nil?

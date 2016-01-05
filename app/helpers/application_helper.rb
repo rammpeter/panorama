@@ -163,9 +163,11 @@ module ApplicationHelper
   end
 
   public
-    # Helper fuer Ausführung SQL-Select-Query,
+  # Helper fuer Ausführung SQL-Select-Query,
+  # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
+  #            modifier = proc für Anwendung auf die fertige Row
   # return Array of Hash mit Columns des Records
-  def sql_select_all(sql)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+  def sql_select_all(sql, modifier=nil)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
     stmt, binds = sql_prepare_binds(sql)
     result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
     result.each do |h|
@@ -173,6 +175,7 @@ module ApplicationHelper
         h[key] = value.strip if value.class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
       end
       h.extend SelectHashHelper    # erlaubt, dass Element per Methode statt als Hash-Element zugegriffen werden können
+      modifier.call(h) unless modifier.nil?             # Anpassen der Record-Werte
     end
     result.to_ary                                                               # Ab Rails 4 ist result nicht mehr vom Typ Array, sondern ActiveRecord::Result
   end

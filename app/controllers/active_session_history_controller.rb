@@ -311,8 +311,18 @@ class ActiveSessionHistoryController < ApplicationController
     where_from_groupfilter(params[:groupfilter], params[:groupby])
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
+    record_modifier = proc{|rec|
+      # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
+      # da die Tabellen nicht auf allen DB zur Verfügung stehen
+      if @groupby=='Module' || @groupby=='Action'
+        info = explain_application_info(rec.group_value)
+        rec.info      = info[:short_info]
+        rec.info_hint = info[:long_info]
+      end
+    }
+
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
-    @sessions= sql_select_all ["\
+    @sessions= sql_select_all(["\
       WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,
@@ -362,17 +372,9 @@ class ActiveSessionHistoryController < ApplicationController
       GROUP BY s.DBID, #{session_statistics_key_rule(@groupby)[:sql]}
       ORDER BY SUM(s.Sample_Cycle) DESC
      "
-     ].concat(@dba_hist_where_values).concat(@global_where_values)
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @sessions.each {|s|
-      if @groupby=='Module' || @groupby=='Action'
-        info = explain_application_info(s.group_value)
-        s.info      = info[:short_info]
-        s.info_hint = info[:long_info]
-      end
-    }
+     ].concat(@dba_hist_where_values).concat(@global_where_values),
+                              record_modifier
+    )
 
     #profile_data = JRuby::Profiler.profile do
       render_partial :list_session_statistic_historic_grouping
