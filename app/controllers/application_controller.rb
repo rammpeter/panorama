@@ -64,16 +64,21 @@ class ApplicationController < ActionController::Base
 
     # Auuschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
-    return if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_dbid', 'set_database_by_params', 'set_database_by_id'].include?(action_name) ) ||
+    if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_dbid', 'set_database_by_params', 'set_database_by_id'].include?(action_name) ) ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
               (controller_name == 'dragnet' && ['refresh_selected_data', 'get_selection_list'].include?(action_name) )  ||
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) ) ||
-              (controller_name == 'help' && ['overview', 'version_history'].include?(action_name) ) ||
+              (controller_name == 'help' && ['overview', 'version_history'].include?(action_name) )
+      return
+    end
+
     begin
       current_database = read_from_client_info_store(:current_database)
     rescue StandardError => e                                                   # Problem bei Zugriff auf verschlüsselte Cookies
+      Rails.logger.error "Error '#{e.message}' occured in ApplicationController.open_connnection"
       raise "Error '#{e.message}' occured. Please close browser session and start again!"
     end
+
 
     current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
@@ -100,7 +105,7 @@ class ApplicationController < ActionController::Base
         filename = Panorama::Application.config.usage_info_filename
         File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ConnectionHolder.current_database_name} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
       rescue Exception => e
-        logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
+        Rails.logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
       end
 
       # Registrieren mit Name an Oracle-DB
