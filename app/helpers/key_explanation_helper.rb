@@ -374,6 +374,7 @@ module KeyExplanationHelper
           'SQL*Net message from client'       => 'Server (shadow process) waiting for client action (idle wait)',
           'SQL*Net message from dblink'       => 'Waiting for data transfer or remote execution across DB-link',
           'SQL*Net message to client'         => 'Transfer query result to client during fetch operation',
+          'transaction'                       => 'Wait for a blocking transaction to be rolled back. Continue waiting until the transaction has been rolled back.',
        }
      end
 
