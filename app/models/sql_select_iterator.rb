@@ -1,7 +1,7 @@
 # Halten eines SQL-Cursors und iterieren durch Result
 
 
-module ActiveRecordIteratorExtension
+module ActiveRecord
   module ConnectionAdapters
     module OracleEnhancedDatabaseStatements
       # Analoge Methode zu ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
@@ -76,7 +76,7 @@ class SqlSelectIterator
     adapter = ConnectionHolder.connection()
 
     unless adapter.methods.include?('iterate_query')
-      adapter.extend ActiveRecordIteratorExtension::ConnectionAdapters::OracleEnhancedDatabaseStatements
+      adapter.extend ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements
     end
 
     # Ausführen SQL und Aufrufen Block für jeden Record des Results
