@@ -180,7 +180,7 @@ class StorageController < ApplicationController
 
     global_name = sql_select_one 'SELECT Name FROM v$Database'
 
-    @mvs = sql_select_all ["\
+    @mvs = sql_select_iterator ["\
       SELECT m.Owner,
              m.Name,
              m.MView_Site,
@@ -220,7 +220,7 @@ class StorageController < ApplicationController
 
     global_name = sql_select_one 'SELECT Name FROM v$Database'
 
-    @mvs = sql_select_all ["\
+    @mvs = sql_select_iterator ["\
       SELECT m.*, DECODE(r.Name, NULL, 'N', 'Y') Registered, r.MView_ID,
              l.Snapshot_logs, l.Oldest_Refresh_Date,
              (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments seg WHERE seg.Owner=m.Owner AND seg.Segment_Name=m.MView_Name) MBytes,
@@ -256,7 +256,7 @@ class StorageController < ApplicationController
       where_values << params[:log_name]
     end
 
-    @logs = sql_select_all ["\
+    @logs = sql_select_iterator ["\
       SELECT l.*, l.Object_ID Has_Object_ID,
              sl.Snapshot_count, sl.Oldest_Refresh_Date,
              t.Num_rows, t.Last_Analyzed,
@@ -299,7 +299,7 @@ class StorageController < ApplicationController
       @grid_caption << " Log-Table='#{params[:log_table]}'"
     end
 
-    @snaps = sql_select_all ["\
+    @snaps = sql_select_iterator ["\
       SELECT l.*, l.object_id contains_object_id,
              m.Owner mv_Owner, m.Name MV_Name, m.MView_Site
       FROM   DBA_Snapshot_Logs l
@@ -350,7 +350,7 @@ class StorageController < ApplicationController
 
   # Nutzung von Datafiles
   def datafile_usage
-    @datafiles = sql_select_all("\
+    @datafiles = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */
              d.*,
              NVL(f.BYTES,0)/1048576            MBFree,
@@ -374,7 +374,7 @@ class StorageController < ApplicationController
       ORDER BY 1 ASC")
 
     if get_db_version >= "11.2"
-      @file_usage = sql_select_all "\
+      @file_usage = sql_select_iterator "\
         SELECT f.*,
                NVL(d.File_Name, t.File_Name) File_Name,
                NVL(d.Tablespace_Name, t.Tablespace_Name) Tablespace_Name
@@ -390,7 +390,7 @@ class StorageController < ApplicationController
 
   # Nutzung von Undo-Segmenten
   def undo_usage
-    @undo_tablespaces = sql_select_all("\
+    @undo_tablespaces = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */
              Owner, Tablespace_Name,
              SUM(Bytes)/(1024*1024) Size_MB,
@@ -402,7 +402,7 @@ class StorageController < ApplicationController
       GROUP BY Owner, Tablespace_Name
       ORDER BY SUM(Bytes) DESC")
 
-    @undo_segments = sql_select_all("\
+    @undo_segments = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */ i.*, t.Transactions, r.Segment_ID,
              (SELECT Inst_ID FROM gv$Parameter p WHERE Name='undo_tablespace' AND p.Value = i.Tablespace_Name) Inst_ID
       FROM   (SELECT
@@ -426,7 +426,7 @@ class StorageController < ApplicationController
     @instance = prepare_param_instance
     @instance = nil if @instance == ''
 
-    @undo_history = sql_select_all ["\
+    @undo_history = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              Begin_Time, End_Time, Instance_Number, UndoBlks, TxnCount, MaxQueryLen, MaxQuerySQLID,
              MaxConcurrency, UnxpStealCnt, UnxpBlkRelCnt, UnxpBlkReuCnt, ExpStealCnt, ExpBlkRelCnt, ExpBlkReuCnt,
@@ -444,7 +444,7 @@ class StorageController < ApplicationController
     @segment_id = params[:segment_id]
     @segment_id = nil if @segment_id == ''
 
-    @undo_transactions = sql_select_all ["\
+    @undo_transactions = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              s.Inst_ID, s.SID, s.Serial# SerialNo, s.UserName, s.Program, s.Status, s.OSUser, s.Client_Info, s.Module, s.Action,
              t.Start_Time, t.Recursive, t.Used_Ublk Used_Undo_Blocks, t.Used_URec Used_Undo_Records, t.Log_IO, t.Phy_IO, RawToHex(t.XID) XID,

@@ -496,14 +496,14 @@ class DbaSgaController < ApplicationController
   # SGA-Komponenten 
   def list_sga_components
     @instance        = prepare_param_instance
-    @sums = sql_select_all ["\
+    @sums = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
              Inst_ID, NVL(Pool, Name) Pool, sum(Bytes) Bytes
       FROM   gv$sgastat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
       GROUP BY Inst_ID, NVL(Pool, Name)
       ORDER BY 2 DESC", @instance]
-    @components = sql_select_all ["\
+    @components = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
         Inst_ID,
         Pool,                                                   
@@ -616,7 +616,7 @@ class DbaSgaController < ApplicationController
       whereval << @instance
     end
 
-    @sqls = sql_select_all ["
+    @sqls = sql_select_iterator ["
        SELECT s.Inst_ID, SUBSTR(s.SQL_TEXT,1,100) SQL_Text,
               s.Executions, s.Fetches, s.First_load_time,       
               s.Parsing_Schema_Name,

@@ -656,7 +656,7 @@ class DbaSchemaController < ApplicationController
     if params[:grouping] && params[:grouping] != "none"
       list_audit_trail_grouping(params[:grouping], where_string, where_values, params[:update_area], params[:top_x].to_i)
     else
-      @audits = sql_select_all ["\
+      @audits = sql_select_iterator ["\
                      SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                      FROM   DBA_Audit_Trail
                      WHERE  1=1 #{where_string}

@@ -135,7 +135,7 @@ class IoController < ApplicationController
   def list_io_file_history_grouping
     where_from_groupfilter(params[:groupfilter], params[:groupby], proc{|key| io_file_key_rule(key)})
 
-    @ios = sql_select_all ["\
+    @ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -168,7 +168,7 @@ class IoController < ApplicationController
   def list_io_file_history_samples
     where_from_groupfilter(params[:groupfilter], nil, proc{|key| io_file_key_rule(key)})
 
-    @samples = sql_select_all ["\
+    @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -206,7 +206,7 @@ class IoController < ApplicationController
     end
 
 
-    ios = sql_select_all ["\
+    ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -324,7 +324,7 @@ class IoController < ApplicationController
 
     where_from_groupfilter(params[:groupfilter], params[:groupby], proc{|key| iostat_detail_key_rule(key)})
 
-    @ios = sql_select_all ["\
+    @ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -352,7 +352,7 @@ class IoController < ApplicationController
   def list_iostat_detail_history_samples
     where_from_groupfilter(params[:groupfilter], nil, proc{|key| iostat_detail_key_rule(key)})
 
-    @samples = sql_select_all ["\
+    @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Round_Begin_Interval_Time, Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -391,7 +391,7 @@ class IoController < ApplicationController
     end
 
 
-    ios = sql_select_all ["\
+    ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -521,7 +521,7 @@ class IoController < ApplicationController
 
     where_from_groupfilter(params[:groupfilter], params[:groupby], proc{|key| iostat_filetype_key_rule(key)})
 
-    @ios = sql_select_all ["\
+    @ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -549,7 +549,7 @@ class IoController < ApplicationController
   def list_iostat_filetype_history_samples
     where_from_groupfilter(params[:groupfilter], nil, proc{|key| iostat_filetype_key_rule(key)})
 
-    @samples = sql_select_all ["\
+    @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Round_Begin_Interval_Time, Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -588,7 +588,7 @@ class IoController < ApplicationController
     end
 
 
-    ios = sql_select_all ["\
+    ios = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s

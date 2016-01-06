@@ -58,7 +58,7 @@ class DbaPgaController < ApplicationController
         AND    Begin_Interval_Time BETWEEN  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') AND TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       ", @dbid, @instance, @time_selection_start, @time_selection_end ]
 
-    stats = sql_select_all [
+    stats = sql_select_iterator [
       " SELECT /*+ Panorama-Tool Ramm */ ss.Begin_Interval_Time, x.Name, x.Value
         FROM   (
                           SELECT Snap_ID, DBID, Instance_Number, Name,                    Value                 FROM   DBA_Hist_PGAStat
@@ -77,8 +77,10 @@ class DbaPgaController < ApplicationController
     @stats = []          # Result-Array
     record = {}
     header = {}
+    empty = true
     record.extend SelectHashHelper
     stats.each do |s|     # Iteration über einzelwerte
+      empty = false
       record["begin_interval_time"] = s.begin_interval_time unless record["begin_interval_time"] # Gruppenwechsel-Kriterium mit erstem Record initialisisieren
       if record["begin_interval_time"] != s.begin_interval_time
         @stats << record
@@ -89,7 +91,7 @@ class DbaPgaController < ApplicationController
       record[s.name] = s.value      # Kreuzprodukt(Pivot) bilden
       header[s.name] = true
     end
-    @stats << record if stats.length > 0    # Letzten Record in Array schreiben wenn Daten vorhanden
+    @stats << record unless empty    # Letzten Record in Array schreiben wenn Daten vorhanden
 
     last_bytes_processed = nil
     last_extra_processed = nil
@@ -113,7 +115,7 @@ class DbaPgaController < ApplicationController
 
     end
 
-    @stats.delete_at(0) if stats.length > 0 # erste Zeile des Result löschen
+    @stats.delete_at(0) unless empty # erste Zeile des Result löschen
 
     million = (1024*1024).to_f
 

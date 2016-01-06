@@ -99,7 +99,8 @@ class DbaWaitsController < ApplicationController
                                 $('#session_waits').html('');"}
     end
   end # show_system_events
-  
+
+  # TODO: wird diese Methode wirklich noch genutzt?
   def show_session_waits    # anzeige v$Session_Wait für gegebene Instance und Event
     @inst_id = prepare_param_instance
     @event   = params[:event]
@@ -154,7 +155,7 @@ class DbaWaitsController < ApplicationController
     @dbid        = prepare_param_dbid
     save_session_time_selection   # werte in session puffern
 
-    history = sql_select_all ["
+    history = sql_select_iterator ["
       WITH HIST AS (
           SELECT sy.Instance_Number, sy.DBID, sy.Snap_ID, sy.stat_name, ss.Min_snap_ID, -- Differenz zu vorhergehendem Record
                  sy.Value - LAG(sy.Value, 1, sy.Value) OVER (PARTITION BY sy.Instance_Number, sy.Stat_ID ORDER BY sy.Snap_ID) Value
@@ -222,7 +223,7 @@ class DbaWaitsController < ApplicationController
     @max_snap_id = params[:max_snap_id]
     @begin_interval_time = params[:begin_interval_time]
 
-    @objects = sql_select_all ["
+    @objects = sql_select_iterator ["
       SELECT *
       FROM   (
               SELECT o.Owner, o.Object_Name, o.SubObject_Name,
@@ -258,7 +259,7 @@ class DbaWaitsController < ApplicationController
   end
 
   def show_ges_blocking_enqueue
-    @locks = sql_select_all "
+    @locks = sql_select_iterator "
       SELECT
       b.inst_id,
       b.grant_level, b.request_level, b.resource_name1, b.resource_name2,
@@ -301,7 +302,7 @@ class DbaWaitsController < ApplicationController
                        TM_Delta_CPU_Time/1000000 CPU_Time_Secs,
                        TM_Delta_DB_Time/1000000  DB_Time_Secs   '
 
-    @waits = sql_select_all ["\
+    @waits = sql_select_iterator ["\
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              -- Beginn eines zu betrachtenden Zeitabschnittes
              TRUNC(s.Sample_Time, '#{params[:grouping]}')   Start_Sample,
