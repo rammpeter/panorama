@@ -55,6 +55,7 @@ module SlickgridHelper
         output << ' no_wrap:      1,'               if col[:no_wrap]
         output << ' plot_master:  1,'               if col[:plot_master]
         output << ' show_pct_hint:  1,'             if col[:show_pct_hint]
+        output << ' show_pct_background:  1,'       if col[:show_pct_background]
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
         if col[:isFloat]
@@ -125,7 +126,8 @@ module SlickgridHelper
   #     :plot_master          => Spalte ist X-Achse für Diagramm-Darstellung <true>
   #     :plot_master_time     => Spalte ist x-Achse mit Datum/Zeit, die als Zeitstrahl dargestellt werden soll <true>
   #     :header_class         => class-Ausdruck für <th> Spaltenheader
-  #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records
+  #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als Zusatz zum MouseOver-Hint
+  #     :show_pct_background  => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als transparenter horizontaler Füllstand
   #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #     :max_wrap_width       => Maximale Breite der Spalte in Pixel im Umbruchmodus (Es wird versucht, durch Reduktion der Spaltenbreiten die Tabelle ohne hor. Scrollbar darzustellen)
   #   global_options: Hash mit globalen Optionen
