@@ -56,6 +56,15 @@ module SlickgridHelper
         output << ' plot_master:  1,'               if col[:plot_master]
         output << ' show_pct_hint:  1,'             if col[:show_pct_hint]
         output << ' show_pct_background:  1,'       if col[:show_pct_background]
+
+        # file_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
+        #   row_no,cell_no      Nr. beginnend mit 0
+        #   cell_value:         Wert der Zelle in data
+        #   full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
+        #   columnDef:    Spaltendefinition
+        #   dataContext:  komplette Zeile aus data-Array
+        output << " field_decorator_function: function(row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}," if col[:field_decorator_function]
+
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
         if col[:isFloat]
