@@ -137,6 +137,12 @@ module SlickgridHelper
   #     :header_class         => class-Ausdruck für <th> Spaltenheader
   #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als Zusatz zum MouseOver-Hint
   #     :show_pct_background  => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als transparenter horizontaler Füllstand
+  #     :field_decorator_function => Javascript-Funktionskörper, return cell-html, folgenden Variablen sind belegt:
+  #         row_no,cell_no      Nr. beginnend mit 0
+  #         cell_value:         Wert der Zelle in data
+  #         full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
+  #         columnDef:    Spaltendefinition
+  #         dataContext:  komplette Zeile aus data-Array
   #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #     :max_wrap_width       => Maximale Breite der Spalte in Pixel im Umbruchmodus (Es wird versucht, durch Reduktion der Spaltenbreiten die Tabelle ohne hor. Scrollbar darzustellen)
   #   global_options: Hash mit globalen Optionen
