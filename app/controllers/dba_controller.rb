@@ -687,11 +687,19 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
                   s.Status, s.Client_Info, s.Module, s.Action, s.AudSID,
                   s.UserName, s.Machine, s.OSUser, s.Process, s.Program,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
-                  s.Logon_Time, p.spID
+                  s.Logon_Time, p.spID,
+                  c.AUTHENTICATION_TYPE
+                  #{", c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver" if get_db_version >= "11.2" }
            FROM   GV$Session s
-           JOIN   GV$process p ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
+           JOIN   GV$process p                       ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
+           LEFT OUTER JOIN (SELECT Inst_ID, SID, Serial#, AUTHENTICATION_TYPE
+                                   #{", Client_CharSet, Client_Connection, Client_OCI_Library, Client_Version, Client_Driver" if get_db_version >= "11.2" }
+                            FROM   GV$Session_Connect_Info
+                            WHERE  Inst_ID=? AND SID=? AND Serial#=?
+                            AND    RowNum < 2         /* Verdichtung da fuer jede Zeile des Network_Banners ein Record in GV$Session_Connect_Info existiert */
+                           ) c ON c.Inst_ID = s.Inst_ID AND c.SID = s.SID AND c.Serial# = s.Serial#
            WHERE  s.Inst_ID=? AND s.SID=? AND s.Serial#=?",
-           @instance, @sid, @serialno ]
+           @instance, @sid, @serialno, @instance, @sid, @serialno ]
     @dbsession    = nil
     @current_sql  = nil
     @previous_sql = nil

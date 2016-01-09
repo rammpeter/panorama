@@ -370,20 +370,6 @@ module ApplicationHelper
     single && sum && sum != 0 ? single.to_f/sum*100 : 0
   end
 
-  # Anzeige eines Prozentwertes mit unterlegter Balkengrafik, JS muss ohne Linefeed ausgegeben werden, sonst Fehlinterpretation <BR> im Browser
-  def show_percentage(single, sum)
-    if single && sum && sum != 0
-      "<div \
-            style=\"background-image: -webkit-linear-gradient(left, gray 0%, lightgray #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) 100%);  \
-                   background-image: -moz-linear-gradient(left, gray 0%, lightgray #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) 100%);     \
-                   background-image: linear-gradient(left, gray 0%, lightgray #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) #{fn(percentage(single, sum))}%, rgba(255, 255, 255, 0) 100%);          \
-                  \"                                                                                                                                                                                           \
-       >#{fn(percentage(single, sum),1)}%</div>".html_safe
-    else
-      ''
-    end
-  end
-
   # Aufbereiten des Parameters "instance" aus Request, return nil wenn kein plausibler Wert
   def prepare_param_instance
     retval = params[:instance].to_i

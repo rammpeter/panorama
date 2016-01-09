@@ -18,7 +18,13 @@ column_options =
    {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
    {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-Time der Session"},
    {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start der letzten ACTIVE-Phase"},
+   {:caption=>'Auth. type',     :data=>proc{|rec| rec.authentication_type}, :title=>'How the user was authenticated. See V$SESSION_CONNECT_INFO.Authentication_Type'},
  ]
+column_options << {:caption=>'Client char set',     :data=>proc{|rec| rec.client_charset},     :title=>'Client character set as specified in the NLS_LANG environment variable or in the OCIEnvNlsCreate() call; Unknown if the Oracle client is older than release 11.1 or the connection is through the JDBC thin driver'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client connection',   :data=>proc{|rec| rec.client_connection},  :title=>'Client server connection flags'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client OCI lib',      :data=>proc{|rec| rec.client_oci_library}, :title=>'OCI client library'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client version',      :data=>proc{|rec| rec.client_version},     :title=>'Client library version number'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client_driver},      :title=>'Client driver name'} if get_db_version >= '11.2'
 
 %>
 <%= gen_slickgrid(@dbsessions, column_options, {:caption=>"Details for session SID=#{@sid}, Serial#=#{@serialno}, Instance=#{@instance}" , :width=>:auto}) %>

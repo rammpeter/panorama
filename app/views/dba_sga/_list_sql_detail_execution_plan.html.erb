@@ -105,6 +105,12 @@
        )
      end
 
+     # Anzeige %-Wert wenn != 0
+     def nn_pct(single, sum)
+       retval = percentage(single, sum)
+       retval == 0 ? nil : retval
+     end
+
      def list_operation(rec)
        tab = ""
        toggle_id = "#{@toggle_id_prefix}_#{rec.id}"
@@ -166,11 +172,11 @@ column_options =
   {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB (forecast by optimizer)", :align=>:right},
   {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"Strategy of PQ-distribution" },
 ]
-column_options <<  {:caption=>"DB time",     :data=>proc{|rec| show_percentage(rec.db_time_seconds, @sum_db_time_seconds) }, :align=>:right, :data_title=>proc{|rec| "DB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)" } if get_db_version >= "11.2"
-column_options <<  {:caption=>"CPU",         :data=>proc{|rec| show_percentage(rec.cpu_seconds, @sum_cpu_seconds)  },        :align=>:right, :data_title=>proc{|rec| "CPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time." } if get_db_version >= "11.2"
-column_options <<  {:caption=>"Waits",       :data=>proc{|rec| link_column_wait(rec, show_percentage(rec.waiting_seconds, @sum_waiting_seconds))},:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time." } if get_db_version >= "11.2"
-column_options <<  {:caption=>"I/O",         :data=>proc{|rec| show_percentage(rec.io_requests, @sum_io_requests)},          :align=>:right, :data_title=>proc{|rec| "IO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)" } if get_db_version >= "11.2"
-column_options <<  {:caption=>"IC",          :data=>proc{|rec| show_percentage(rec.interconnect_io_bytes, @sum_interconnect_io_bytes)}, :align=>:right, :data_title=>proc{|rec| "Interconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)" } if get_db_version >= "11.2"
+column_options <<  {:caption=>"DB time",     :data=>proc{|rec| fn(nn_pct(rec.db_time_seconds, @sum_db_time_seconds),1) }, :align=>:right, :data_title=>proc{|rec| "DB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)", :show_pct_background=>true } if get_db_version >= "11.2"
+column_options <<  {:caption=>"CPU",         :data=>proc{|rec| fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds),1)  },        :align=>:right, :data_title=>proc{|rec| "CPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
+column_options <<  {:caption=>"Waits",       :data=>proc{|rec| link_column_wait(rec, fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds),1))},:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
+column_options <<  {:caption=>"I/O",         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests),1)},          :align=>:right, :data_title=>proc{|rec| "IO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)", :show_pct_background=>true } if get_db_version >= "11.2"
+column_options <<  {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes),1)}, :align=>:right, :data_title=>proc{|rec| "Interconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)", :show_pct_background=>true } if get_db_version >= "11.2"
 
 
 column_options.concat [
