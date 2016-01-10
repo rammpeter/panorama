@@ -56,6 +56,7 @@ module SlickgridHelper
         output << ' plot_master:  1,'               if col[:plot_master]
         output << ' show_pct_hint:  1,'             if col[:show_pct_hint]
         output << ' show_pct_background:  1,'       if col[:show_pct_background]
+        output << ' hidden:       1,'               if col[:hidden]
 
         # file_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
         #   slickGrid           Referenz auf SlickGridExtended-Objekt
@@ -147,6 +148,7 @@ module SlickgridHelper
   #         dataContext:  komplette Zeile aus data-Array
   #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #     :max_wrap_width       => Maximale Breite der Spalte in Pixel im Umbruchmodus (Es wird versucht, durch Reduktion der Spaltenbreiten die Tabelle ohne hor. Scrollbar darzustellen)
+  #     :hidden               => true für Unterdrücken Anzeige der Spalte
   #   global_options: Hash mit globalen Optionen
   #     :caption              => Titel vor Anzeige der Tabelle, darf keine "'" enthalten
   #     :caption_style        => Style-Attribute für caption der Tabelle

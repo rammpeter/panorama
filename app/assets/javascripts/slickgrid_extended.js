@@ -69,8 +69,17 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * @param additional_context_menu   additional_context_menu Array with additional context menu entries as object
      */
     this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
-        init_columns_and_calculate_header_column_width(columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
-        init_data(data, columns);                                               // data im fortlaufende id erweitern
+        this.all_columns = columns;                                             // Column-Deklaration in der Form wie dem SlickGrid übergeben inkl. hidden columns
+
+        var viewable_columns = []
+        for (var col_index in columns) {
+            var column = columns[col_index];
+            if (!column['hidden'])                                              // nur sichtbare Spalten weiter verwenden
+                viewable_columns.push(column);
+        }
+
+        init_columns_and_calculate_header_column_width(viewable_columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
+        init_data(data, columns);                                               // data im fortlaufende id erweitern, auch für hidden columns
         init_options(options);                                                  // Options um Defaults erweitern
         init_test_cells();                                                      // hidden DIV-Elemente fuer Groessentest aufbauen
 
@@ -83,8 +92,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         options['rowHeight']     = 1;                                           // Default, der später nach Notwendigkeit größer gesetzt wird
 
         options['plotting']      = false;                                       // Soll Diagramm zeichenbar sein: Default=false wenn nicht eine Spalte als x-Achse deklariert ist
-        for (var col_index in columns) {
-            column = columns[col_index];
+        for (var col_index in viewable_columns) {
+            var column = viewable_columns[col_index];
             if (options['plotting'] && (column['plot_master'] || column['plot_master_time']))
                 alert('Es kann nur eine Spalte einer Tabelle Plot-Master für X-Achse sein');
             if (column['plot_master'] || column['plot_master_time'])
@@ -103,8 +112,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             this.gridContainer.after('<div id="' + options['plot_area_id'] + '"></div>');
         }
 
-        this.columns = columns;                                                 // Column-Deklaration in der Form wie dem SlickGrid übergeben
-        this.grid = new Slick.Grid(this.gridContainer, dataView, columns, options);
+        this.grid = new Slick.Grid(this.gridContainer, dataView, viewable_columns, options);
 
         this.gridContainer
             .data('slickgrid', this.grid)                                       // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
@@ -367,6 +375,17 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         } else {
             return String(rounded_value).replace(/\./g, ",");
         }
+    }
+
+    // Ermitteln Column-Objekt nach Name
+    this.getColumnByName = function(name){
+        for (var col_index in this.all_columns) {
+            var column = this.all_columns[col_index];
+            if (column.name == name){
+                return column;
+            }
+        }
+        return null;                                                            // nichts gefunden
     }
 
     /**
@@ -822,7 +841,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             for (var col_index in columns){                                     // Iteration über Columns
                 var col = columns[col_index];
                 if (!data_row['metadata']['columns'][col['field']])
-                    data_row['metadata']['columns'][col['field']] = {};         // Metadata für alle Spalten anlegen
+                    data_row['metadata']['columns'][col['field']] = {};         // Metadata für alle Spalten anlegen  TODO: warum?
             }
         }
     };

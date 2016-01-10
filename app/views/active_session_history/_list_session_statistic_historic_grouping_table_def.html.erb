@@ -18,6 +18,7 @@
     groupfilter.merge({ groupby_column => groupby_value})
   end
 
+
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_single_rows
     groupfilter = @groupfilter.clone.merge({ 'GROUPBYCOLUMN_ALIAS' => 'GROUPBYVALUE_ALIAS'})
@@ -31,16 +32,14 @@
                 :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} GROUPBYCOLUMN_ALIAS"
     )
 
-
-    output = "
+    "
       var link_text = '#{link_text}';
       return link_text
-        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.columns[0].name)
+        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
         .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
         .replace(/VALUE_ALIAS/g,          cell_value)
       ;
-      "
-    output
+    "
   end
 
   def show_groupkey_value(rec)
@@ -61,27 +60,70 @@
     )
   end
 
-  def link_column_grouping(rec, value, add_url)
-    if value.to_s.match("<.*>")
-      if value == "< 0 >"
-        return ""               # keine weitere Anzeige
-      else
-        show_value = "<span style=\"white-space: nowrap;\">#{html_escape(value)}</span>".html_safe
-      end
-    else
-      show_value = value           # Nur Wert anzeigen mit Umbruch wenn keine sinnvolle Funktion mehr dahinter
-    end
+  # Alternativ-Variante für Aktualisierung des Links in Javascript
+  def decorator_grouping(next_groupby)
+    groupfilter = @groupfilter.clone
+      .merge({ 'GROUPBYCOLUMN_ALIAS' => 'GROUPBYVALUE_ALIAS'})
+      .merge({ 'MIN_SNAP_ID_COLUMN_ALIAS' => 'MIN_SNAP_ID_VALUE_ALIAS'})
+      .merge({ 'MAX_SNAP_ID_COLUMN_ALIAS' => 'MAX_SNAP_ID_VALUE_ALIAS'})
 
-    my_ajax_link_to(show_value,     # Verhindern Zeilenumbruch in Anzeige
-      url_for({:action       => :list_session_statistic_historic_grouping,
-               :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
-               :groupby      => add_url[:groupby],
-               :update_area  => @update_area,
-              }
-      ),
-      :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s"
+    link_text = my_ajax_link_to('VALUE_ALIAS',
+                  url_for({:action       => :list_session_statistic_historic_grouping,
+                           :groupfilter  => groupfilter,
+                           :groupby      => next_groupby,
+                           :update_area  => @update_area,
+                          }
+                  ),
+                  :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"
     )
+    "
+      var decorated_cell_value = '';
+
+      var cnt_column = slickGrid.all_columns[parseInt(columnDef.index) - 1]
+      var cnt_value = dataContext[cnt_column.id];
+
+      if (parseInt(cnt_value) > 1){
+        decorated_cell_value = '<&nbsp;'+cnt_value+'&nbsp;>';
+      } else {
+        decorated_cell_value = cell_value;
+      }
+
+      var link_text = '#{link_text}';
+
+      var min_snap_id = dataContext[slickGrid.getColumnByName('min_snap_id').id]
+      if (min_snap_id){
+        link_text = link_text
+        .replace(/MIN_SNAP_ID_COLUMN_ALIAS/g,   'Min_Snap_ID')
+        .replace(/MIN_SNAP_ID_VALUE_ALIAS/g,    min_snap_id)
+        ;
+      } else {
+        link_text = link_text
+        .replace(/MIN_SNAP_ID_COLUMN_ALIAS/g,   'NULL')
+        .replace(/MIN_SNAP_ID_VALUE_ALIAS/g,    '')
+        ;
+      }
+
+      var max_snap_id = dataContext[slickGrid.getColumnByName('max_snap_id').id]
+      if (max_snap_id){
+        link_text = link_text
+        .replace(/MAX_SNAP_ID_COLUMN_ALIAS/g,   'Max_Snap_ID')
+        .replace(/MAX_SNAP_ID_VALUE_ALIAS/g,    max_snap_id)
+        ;
+      } else {
+        link_text = link_text
+        .replace(/MAX_SNAP_ID_COLUMN_ALIAS/g,   'NULL')
+        .replace(/MAX_SNAP_ID_VALUE_ALIAS/g,    '')
+        ;
+      }
+
+      return link_text
+        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
+        .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
+        .replace(/VALUE_ALIAS/g,          decorated_cell_value)
+      ;
+    "
   end
+
 
   def link_temp_and_pga_usage(rec, value)
     my_ajax_link_to(value,     # Verhindern Zeilenumbruch in Anzeige
@@ -119,9 +161,12 @@
   @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| fn(avg_load(rec),2) },            :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
   @column_options << {:caption=>"Samples",          :data=>proc{|rec| fn(rec.count_samples) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>:right, :field_decorator_function=>decorator_single_rows }
 
+  @column_options << {:caption=>'min_snap_id', :data=>proc{|rec| rec.min_snap_id}, :hidden=>:true}
+  @column_options << {:caption=>'max_snap_id', :data=>proc{|rec| rec.max_snap_id}, :hidden=>:true}
   session_statistics_key_rules.each do |key, value|
     unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
-      @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(< Number > if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
+      @column_options << {:caption=>"#{value[:Name]}_Cnt", :data=>proc{|rec| rec["#{value[:sql_alias]}_cnt"]}, :hidden=>:true}
+      @column_options << {:caption=>value[:Name], :data=>proc{|rec| rec[value[:sql_alias]] } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(< Number > if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil) , :field_decorator_function=>decorator_grouping(key)}
     end
   end
 

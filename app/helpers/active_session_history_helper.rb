@@ -121,7 +121,7 @@ module ActiveSessionHistoryHelper
     @dba_hist_where_values = []              # Filter-werte für nachfolgendes Statement für DBA_Hist_Active_Sess_History
 
     @groupfilter.each do |key,value|
-      @groupfilter.delete(key) if value.nil?                                    # '' zulassen, da dies NULL signalisiert
+      @groupfilter.delete(key) if value.nil? || key == 'NULL'   # '' zulassen, da dies NULL signalisiert, Dummy-Werte ausblenden
     end
 
     @groupfilter.each {|key,value|

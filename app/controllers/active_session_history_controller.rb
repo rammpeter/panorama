@@ -16,7 +16,9 @@ class ActiveSessionHistoryController < ApplicationController
                TO_DATE(TO_CHAR(MIN(Sample_Time), '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}'))*(24*60*60) Sample_Dauer_Secs"
 
     session_statistics_key_rules.each do |key, value|
-      retval << ",\nCASE WHEN COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) = 1 THEN TO_CHAR(MIN(#{value[:sql]})) ELSE '< ' || COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) ||' >' END #{value[:sql_alias]}"
+      retval << ",
+        COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) #{value[:sql_alias]}_Cnt,
+        MIN(#{value[:sql]}) #{value[:sql_alias]}"
     end
     retval
   end
