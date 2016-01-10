@@ -161,6 +161,7 @@ function bind_ajax_callbacks() {
             // Zeileneilenumbrüche anzeigen in Dialog als <br>
             error_dialog_content.html(error_dialog_content.html().replace(/\\n/g, "<br>"));
 
+            //jQuery("#error_dialog_stacktrace").text((new Error()).stack);
 
             jQuery("#error_dialog").dialog("open");
             jQuery("#error_dialog").css('width',  'auto');                      // Evtl. manuelle Aenderungen des Dialoges bei vorherigen Aufrufen zuruecksetzen

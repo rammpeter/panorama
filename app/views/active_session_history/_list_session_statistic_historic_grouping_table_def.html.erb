@@ -2,6 +2,7 @@
   # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
   @update_area = get_unique_area_id
 
+
   def get_groupfilter(rec, groupby_column, groupby_value)
     groupfilter = @groupfilter.clone                                            # Sicherstellen ,dass Nachfolger noch relevanten Filter bekommen
     if rec.min_snap_id
@@ -17,21 +18,28 @@
     groupfilter.merge({ groupby_column => groupby_value})
   end
 
-  def link_single_rows(rec)
-    my_ajax_link_to(fn(rec.count_samples),
-                    url_for({:action       => :list_session_statistic_historic_single_record,
-                             :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
-                             :record_count => rec.count_samples,
-                             :update_area  => @update_area,
-                            }),
-                    :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"
-    )
-  end
-
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_single_rows
-    output = ''
-    output << 'return full_cell_value;'
+    groupfilter = @groupfilter.clone.merge({ 'GROUPBYCOLUMN_ALIAS' => 'GROUPBYVALUE_ALIAS'})
+
+    link_text = my_ajax_link_to('VALUE_ALIAS',
+                url_for({:action       => :list_session_statistic_historic_single_record,
+                         :groupfilter  => groupfilter,
+                         :record_count => 'VALUE_ALIAS',
+                         :update_area  => @update_area,
+                        }),
+                :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} GROUPBYCOLUMN_ALIAS"
+    )
+
+
+    output = "
+      var link_text = '#{link_text}';
+      return link_text
+        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.columns[0].name)
+        .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
+        .replace(/VALUE_ALIAS/g,          cell_value)
+      ;
+      "
     output
   end
 
@@ -109,7 +117,7 @@
   @column_options << {:caption=>"Avg. Time waited", :data=>proc{|rec| fn(rec.time_waited_avg_ms,2)},    :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"}
   @column_options << {:caption=>"Total Time waited",:data=>proc{|rec| fn(rec.time_waited_secs,0) },     :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right", :show_pct_hint=>true, :show_pct_background=>true}
   @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| fn(avg_load(rec),2) },            :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
-  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>:right, :field_decorator_function=>decorator_single_rows }
+  @column_options << {:caption=>"Samples",          :data=>proc{|rec| fn(rec.count_samples) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>:right, :field_decorator_function=>decorator_single_rows }
 
   session_statistics_key_rules.each do |key, value|
     unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen

@@ -5,7 +5,7 @@ module AjaxHelper
 
   # Ajax-Formular definieren mit Indikator-Anzeige während Ausführung
   # Parameter url notfalls mit url_for formatieren
-  def my_ajax_form_tag url, html_options={}
+  def my_ajax_form_tag(url, html_options={})
     html_options = prepare_html_options(html_options)
     (form_tag url, html_options do            # internen Rails-Helper verwenden
       yield
@@ -14,15 +14,13 @@ module AjaxHelper
 
   # Ajax-Link definieren mit Indikator-Anzeige während Ausführung
   # Parameter url notfalls mit url_for formatieren
-  def my_ajax_link_to caption, url, html_options={}
+  def my_ajax_link_to(caption, url, html_options={})
     html_options = prepare_html_options(html_options)
     link_to(caption ? caption : "", url, html_options)  # internen Rails-Helper verwenden
   end # my_ajax_link_to
 
-
-
   # Ajax-formular mit einzelnem Submit-Button erzeugen
-  def my_ajax_submit_tag caption, url, html_options={}
+  def my_ajax_submit_tag(caption, url, html_options={})
     my_ajax_form_tag url do
       submit_tag caption, html_options
     end

@@ -58,12 +58,13 @@ module SlickgridHelper
         output << ' show_pct_background:  1,'       if col[:show_pct_background]
 
         # file_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
+        #   slickGrid           Referenz auf SlickGridExtended-Objekt
         #   row_no,cell_no      Nr. beginnend mit 0
         #   cell_value:         Wert der Zelle in data
         #   full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
         #   columnDef:    Spaltendefinition
         #   dataContext:  komplette Zeile aus data-Array
-        output << " field_decorator_function: function(row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}}," if col[:field_decorator_function]
+        output << " field_decorator_function: function(slickGrid, row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}}," if col[:field_decorator_function]
 
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
@@ -138,6 +139,7 @@ module SlickgridHelper
   #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als Zusatz zum MouseOver-Hint
   #     :show_pct_background  => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als transparenter horizontaler Füllstand
   #     :field_decorator_function => Javascript-Funktionskörper, return cell-html, folgenden Variablen sind belegt:
+  #         slickGrid           Referenz auf SlickGridExtended-Objekt
   #         row_no,cell_no      Nr. beginnend mit 0
   #         cell_value:         Wert der Zelle in data
   #         full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
