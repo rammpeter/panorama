@@ -63,7 +63,7 @@ module SlickgridHelper
         #   full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
         #   columnDef:    Spaltendefinition
         #   dataContext:  komplette Zeile aus data-Array
-        output << " field_decorator_function: function(row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}," if col[:field_decorator_function]
+        output << " field_decorator_function: function(row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}}," if col[:field_decorator_function]
 
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]

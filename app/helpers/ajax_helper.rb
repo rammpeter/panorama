@@ -19,6 +19,8 @@ module AjaxHelper
     link_to(caption ? caption : "", url, html_options)  # internen Rails-Helper verwenden
   end # my_ajax_link_to
 
+
+
   # Ajax-formular mit einzelnem Submit-Button erzeugen
   def my_ajax_submit_tag caption, url, html_options={}
     my_ajax_form_tag url do

@@ -28,6 +28,12 @@
     )
   end
 
+  # Alternativ-Variante für Aktualisierung des Links in Javascript
+  def decorator_single_rows
+    output = ''
+    output << 'return full_cell_value;'
+    output
+  end
 
   def show_groupkey_value(rec)
     return nil if rec.group_value.nil?
@@ -103,7 +109,7 @@
   @column_options << {:caption=>"Avg. Time waited", :data=>proc{|rec| fn(rec.time_waited_avg_ms,2)},    :title=>"Avg. time in milliseconds that the current session actually spent waiting for the event. This column is set for waits that were in progress at the time the sample was taken.", :align=>"right"}
   @column_options << {:caption=>"Total Time waited",:data=>proc{|rec| fn(rec.time_waited_secs,0) },     :title=>t(:active_session_history_total_time_waited_hint, :default=>"Total time waited in seconds (sample-cycle(1/10 seconds) * samples)"), :align=>"right", :show_pct_hint=>true, :show_pct_background=>true}
   @column_options << {:caption=>"Avg. Load",        :data=>proc{|rec| fn(avg_load(rec),2) },            :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
-  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>"right"}
+  @column_options << {:caption=>"Samples",          :data=>proc{|rec| link_single_rows(rec) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>:right, :field_decorator_function=>decorator_single_rows }
 
   session_statistics_key_rules.each do |key, value|
     unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
