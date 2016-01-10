@@ -155,7 +155,13 @@ function bind_ajax_callbacks() {
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
             hideIndicator();
             jQuery("#error_dialog_status").html('Error : '+thrownError+'<br>Status: '+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
-            jQuery("#error_dialog_content").html(jqXHR.responseText);
+
+            var error_dialog_content = jQuery("#error_dialog_content");
+            error_dialog_content.text(jqXHR.responseText);                      // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
+            // Zeileneilenumbrüche anzeigen in Dialog als <br>
+            error_dialog_content.html(error_dialog_content.html().replace(/\\n/g, "<br>"));
+
+
             jQuery("#error_dialog").dialog("open");
             jQuery("#error_dialog").css('width',  'auto');                      // Evtl. manuelle Aenderungen des Dialoges bei vorherigen Aufrufen zuruecksetzen
             jQuery("#error_dialog").css('height', 'auto');                      // Evtl. manuelle Aenderungen des Dialoges bei vorherigen Aufrufen zuruecksetzen
