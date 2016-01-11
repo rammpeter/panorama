@@ -21,8 +21,8 @@ class DbaSchemaController < ApplicationController
   
   # Anlistung der Objekte
   def list_objects
-    @tablespace_name = params[:tablespace][:name]
-    @schema_name     = params[:schema][:name]
+    @tablespace_name = params[:tablespace][:name]   if params[:tablespace]
+    @schema_name     = params[:schema][:name]       if params[:schema]
     filter           = params[:filter]
     if params[:showPartitions] == "1"
        groupBy = "Owner, Segment_Name, Tablespace_Name, Segment_Type, Partition_Name"
@@ -35,12 +35,12 @@ class DbaSchemaController < ApplicationController
     where_string = ""
     where_values = []
 
-    if @tablespace_name != '[Alle]'
+    if !@tablespace_name.nil? && @tablespace_name != '[Alle]'
       where_string << " AND s.Tablespace_Name=?"
       where_values << @tablespace_name
     end
 
-    if @schema_name != '[Alle]'
+    if !@schema_name.nil? && @schema_name != '[Alle]'
       where_string << " AND s.Owner=?"
       where_values << @schema_name
     end
@@ -148,9 +148,7 @@ class DbaSchemaController < ApplicationController
       ORDER BY x.Segment_Name, x.Tablespace_Name, x.Owner"
       ].concat(where_values)
 
-    respond_to do |format|
-      format.js {render :js => "$('#objects').html('#{j render_to_string :partial=>"list_objects" }');"}
-    end
+    render_partial :list_objects
   end # objekte_nach_groesse
 
   def list_table_description

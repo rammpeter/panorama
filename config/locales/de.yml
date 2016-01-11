@@ -163,6 +163,8 @@
 
   dba_list_rowid_link_hint:                                 Zeige Felder und Werte des Primary der Tabelle
 
+  dba_schema_list_objects_caption:                          Objekte für
+
   dba_schema_show_object_filter_hint:                       Filter-string muss in Objekt-name enthalten sein (wenn belegt)
   dba_schema_show_object_partition_hint:                    Einzelne Partitionen anzeigen?
   dba_schema_show_object_submit_caption:                    Objekte und Größen anzeigen
@@ -939,4 +941,6 @@
 
   storage_tablespace_usage_header_caption:                  Storage-Objekte für Datenbank
   storage_tablespace_usage_schemas_mb_hint:                 Genutzter Platz in MB für Segment-Typ
+  storage_tablespace_usage_schemas_link_hint:               Anzeige der Objekte des Schemas
+  storage_tablespace_usage_tablespaces_link_hint:           Anzeige der Objekte des Tablespaces
 

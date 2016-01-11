@@ -22,7 +22,7 @@
 %>
 
 <%= gen_slickgrid(@objects, column_options, {
-        :caption => "Objekte des Tablespace #{@tablespace_name}, Schema #{@schema_name}",
+        :caption => "#{t(:dba_schema_list_objects_caption, :default=>'Objects for')} #{"Tablespace='#{@tablespace_name}'" if @tablespace_name} #{"Schema='#{@schema_name}'" if @schema_name}",
         :max_height => 450
 })
 %>

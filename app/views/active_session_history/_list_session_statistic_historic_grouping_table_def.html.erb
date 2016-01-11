@@ -63,7 +63,7 @@
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_grouping(next_groupby)
     groupfilter = @groupfilter.clone
-      .merge({ 'GROUPBYCOLUMN_ALIAS' => 'GROUPBYVALUE_ALIAS'})
+      .merge({ @groupby => 'GROUPBYVALUE_ALIAS'})
       .merge({ 'MIN_SNAP_ID_COLUMN_ALIAS' => 'MIN_SNAP_ID_VALUE_ALIAS'})
       .merge({ 'MAX_SNAP_ID_COLUMN_ALIAS' => 'MAX_SNAP_ID_VALUE_ALIAS'})
 
@@ -117,7 +117,7 @@
       }
 
       return link_text
-        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
+        //.replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
         .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
         .replace(/VALUE_ALIAS/g,          decorated_cell_value)
       ;

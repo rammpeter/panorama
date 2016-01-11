@@ -1,7 +1,8 @@
+<% @update_area = get_unique_area_id %>
 <div class="page_caption">Übersicht über Tablespace-Objekte</div>
 
 <div>
-  <%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_objects) do
+  <%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_objects, :update_area=>@update_area) do
   %>
   <div class="float_left">
     Tablespaces<br/>
@@ -27,6 +28,6 @@
 </div>
 
 
-<div id="objects" style="float:left; width:100%;">
+<div id="<%= @update_area %>" style="float:left; width:100%;">
 </div>
 
