@@ -149,8 +149,7 @@ class StorageController < ApplicationController
       @schema_segment_types[s.segment_type] = 0 unless @schema_segment_types[s.segment_type]                         # Type als genutzt markieren
       @schema_segment_types[s.segment_type] = @schema_segment_types[s.segment_type] + s.mbytes
     end
-
-
+    @schema_segment_types = @schema_segment_types.sort_by {|key, value| -value}
 
     temp_schemas = {}
     schemas.each do |s|

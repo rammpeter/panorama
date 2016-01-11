@@ -1,3 +1,5 @@
+<% @update_area = get_unique_area_id %>
+
 <div class="page_caption"><%= t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')%>  <%= get_current_database[:sid] %> <%= localeDateTime(Time.now, :minutes) %></div>
 
 <%
@@ -87,4 +89,7 @@ column_options <<  {:caption=>'Total MB',  :data=>proc{|rec| fn(rec.total_mbytes
 
 <div class="float_left">
   <%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Nutzung (> 1 MB)", :width=>:auto, :max_height=>450}) %>
+</div>
+
+<div id="<%= @update_area %>" style="clear: both;">
 </div>
