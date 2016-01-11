@@ -4,6 +4,7 @@
       in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
   <% end %>
 </h1>
+<h2>Error at server (not local web browser)</h2><!-- Der vorgenannte String signalisiert dem Error-Dialog, die Response zu rendern und nicht als Text anzuzeigen -->
 
 <pre><h3>
   <%= h @exception.message %>

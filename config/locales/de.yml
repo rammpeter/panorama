@@ -938,4 +938,5 @@
   show_mutex_statistics_historic_waiter_hint:               Mutex-Sleep-Historie Gruppiert nach Waiter-Sessions
 
   storage_tablespace_usage_header_caption:                  Storage-Objekte für Datenbank
+  storage_tablespace_usage_schemas_mb_hint:                 Genutzter Platz in MB für Segment-Typ
 

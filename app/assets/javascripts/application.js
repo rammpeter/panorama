@@ -157,7 +157,12 @@ function bind_ajax_callbacks() {
             jQuery("#error_dialog_status").html('Error : '+thrownError+'<br>Status: '+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
 
             var error_dialog_content = jQuery("#error_dialog_content");
-            error_dialog_content.text(jqXHR.responseText);                      // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
+
+            if (jqXHR.responseText.search('Error at server ') == -1) {  // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
+                error_dialog_content.text(jqXHR.responseText);                      // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
+            } else {
+                error_dialog_content.html(jqXHR.responseText);                      // Inhalt rendern, da vorformatierte Ausgabe vom Server
+            }
             // Zeileneilenumbrüche anzeigen in Dialog als <br>
             error_dialog_content.html(error_dialog_content.html().replace(/\\n/g, "<br>"));
 

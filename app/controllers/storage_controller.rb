@@ -118,7 +118,7 @@ class StorageController < ApplicationController
     end
     @totals << total_sum
 
-    @schemas = sql_select_all("\
+    schemas = sql_select_all("\
       SELECT /* Panorama-Tool Ramm */ Owner Schema, Type Segment_Type, SUM(Bytes)/1048576 MBytes
       FROM (
         SELECT s.Owner,
@@ -142,6 +142,36 @@ class StorageController < ApplicationController
       GROUP BY Owner, Type
       HAVING SUM(Bytes) > 1048576 -- nur > 1 MB selektieren
       ORDER BY 3 DESC")
+
+    # Menge der verwendeten Typen ermitteln
+    @schema_segment_types = {}
+    schemas.each do |s|
+      @schema_segment_types[s.segment_type] = 0 unless @schema_segment_types[s.segment_type]                         # Type als genutzt markieren
+      @schema_segment_types[s.segment_type] = @schema_segment_types[s.segment_type] + s.mbytes
+    end
+
+
+
+    temp_schemas = {}
+    schemas.each do |s|
+      temp_schemas[s.schema] = {} unless temp_schemas[s.schema]                             # Neuer Record wenn noch nicht existiert
+      temp_schemas[s.schema][s.segment_type] = 0 unless temp_schemas[s.schema][s.segment_type]  # Initialisierung
+      temp_schemas[s.schema][s.segment_type] = temp_schemas[s.schema][s.segment_type] + s.mbytes
+    end
+
+    @schemas = []
+    temp_schemas.each do |key, value|
+      new_rec = {'schema' => key, 'total_mbytes' => 0}
+
+      @schema_segment_types.each do |type, dummy|
+        new_rec[type] = value[type]
+        new_rec['total_mbytes'] = new_rec['total_mbytes'] + value[type] if value[type]
+      end
+
+      new_rec.extend SelectHashHelper
+      @schemas << new_rec
+    end
+
 
     @segments = sql_select_all "SELECT /* Panorama-Tool Ramm */ Segment_Type,
                                        SUM(Bytes)/1048576   MBytes

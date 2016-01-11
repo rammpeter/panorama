@@ -15,8 +15,9 @@ column_options =
 ]
 
 %>
-
-<%= gen_slickgrid(@totals, column_options, {:caption=>"Summen total", :width=>:auto}) %>
+<div class="float_left">
+  <%= gen_slickgrid(@totals, column_options, {:caption=>"Summen total", :width=>:auto, :max_height=>450}) %>
+</div>
 
 <%
 column_options =
@@ -27,7 +28,9 @@ column_options =
 
 %>
 
-<%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto in TS nach Segment-Typen", :width=>:auto}) %>
+<div class="float_left">
+  <%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto in TS nach Segment-Typen", :width=>:auto, :max_height=>450}) %>
+</div>
 
 <%
 column_options =
@@ -46,7 +49,9 @@ column_options =
 
 %>
 
-<%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Nutzung", :width=>:auto}) %>
+<div class="float_left">
+  <%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Nutzung", :width=>:auto, :max_height=>450}) %>
+</div>
 
 <% if @fra_usage.length > 0 %>
 
@@ -60,7 +65,9 @@ column_options =
 
 %>
 
-<%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto}) %>
+<div class="float_left">
+  <%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto, :max_height=>450}) %>
+</div>
 
 <% end %>
 
@@ -68,10 +75,16 @@ column_options =
 column_options =
 [
   {:caption=>"Schema",  :data=>proc{|rec| rec.schema},                  :title=>"Schema / Owner"},
-  {:caption=>"Typ",     :data=>proc{|rec| rec.segment_type},            :title=>"Typ der Objekte"},
-  {:caption=>"MBytes",  :data=>proc{|rec| formattedNumber(rec.mbytes)}, :title=>"Genutzter Platz in MB",        :align=>:right},
 ]
+
+@schema_segment_types.each do |type, dummy|
+  column_options <<  {:caption=>type,  :data=>proc{|rec| formattedNumber(rec[type])}, :title=>t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type'),  :align=>:right}
+end
+column_options <<  {:caption=>'Total MB',  :data=>proc{|rec| fn(rec.total_mbytes)}, :title=>t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type'),  :align=>:right}
+
 
 %>
 
-<%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Nutzung (> 1 MB)", :width=>:auto}) %>
+<div class="float_left">
+  <%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Nutzung (> 1 MB)", :width=>:auto, :max_height=>450}) %>
+</div>

@@ -179,7 +179,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
                 if (col['sort_type'] == "float") {
                     sortFunc  = function(a, b) {
-                        return this.parseFloatLocale(a[field]) - this.parseFloatLocale(b[field]);
+                        return thiz.parseFloatLocale(a[field]) - thiz.parseFloatLocale(b[field]);
                     }
                 } else if (col['sort_type'] == "date" && options['locale'] == 'de'){
                     sortFunc  = function(a, b){
@@ -205,7 +205,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
                 if (col['sort_type'] == "float"){
                     sort_smaller = function(value1, value2){
-                        return this.parseFloatLocale(value1) < this.parseFloatLocale(value2);
+                        return thiz.parseFloatLocale(value1) < thiz.parseFloatLocale(value2);
                     }
                 }
 
@@ -379,8 +379,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
     // Ermitteln Column-Objekt nach Name
     this.getColumnByName = function(name){
-        for (var col_index in this.all_columns) {
-            var column = this.all_columns[col_index];
+        for (var col_index in thiz.all_columns) {
+            var column = thiz.all_columns[col_index];
             if (column.name == name){
                 return column;
             }
