@@ -50,8 +50,8 @@ class ActiveSessionHistoryController < ApplicationController
 
     record_modifier = proc{|rec|
       # Angenommene Anzahl Sekunden je Zyklus korrigieren, wenn Gruppierung < als Zyklus der Aufzeichnung
-      divider = rec.max_sample_cycle > group_seconds ? rec.max_sample_cycle : group_seconds
-      rec['diagram_value'] = rec.time_waited_secs.to_f / divider  # Anzeige als Anzahl aktive Sessions
+      divider = rec.max_sample_cycle > group_seconds ? rec.max_sample_cycle : group_seconds/rec.max_sample_cycle
+      rec['diagram_value'] = rec.count_samples.to_f / divider  # Anzeige als Anzahl aktive Sessions
     }
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
@@ -61,7 +61,6 @@ class ActiveSessionHistoryController < ApplicationController
              -- Beginn eines zu betrachtenden Zeitabschnittes
              TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400 Start_Sample,
              NVL(TO_CHAR(#{session_statistics_key_rule(@groupby)[:sql]}), 'NULL') Criteria,
-             AVG(Wait_Time+Time_Waited)/1000                Time_Waited_Avg_ms,
              SUM(s.Sample_Cycle)                            Time_Waited_Secs,  -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
              MAX(s.Sample_Cycle)                            Max_Sample_Cycle,  -- max. Abstand zwischen zwei Samples
              COUNT(1)                                       Count_Samples
@@ -98,13 +97,14 @@ class ActiveSessionHistoryController < ApplicationController
                                                    :group_seconds=>group_seconds, :groupby=>@groupby, :filter=>@filter
     )}"
 
-    plot_top_x_diagramm(:data_array     => singles,
-                        :time_key_name  => 'start_sample',
-                        :curve_key_name => 'criteria',
-                        :value_key_name => 'diagram_value',
-                        :top_x          => 10,
-                        :caption        => diagram_caption,
-                        :update_area    => params[:update_area]
+    plot_top_x_diagramm(:data_array         => singles,
+                        :time_key_name      => 'start_sample',
+                        :curve_key_name     => 'criteria',
+                        :value_key_name     => 'diagram_value',
+                        :top_x              => 10,
+                        :caption            => diagram_caption,
+                        :null_points_cycle  => group_seconds,
+                        :update_area        => params[:update_area]
     )
   end # list_session_statistic_historic_timeline
 

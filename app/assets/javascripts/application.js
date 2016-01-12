@@ -149,7 +149,9 @@ function bind_ajax_callbacks() {
             showIndicator();
         })
         .ajaxComplete(function(event, jqXHR, ajaxOptions){
-            check_dom_for_duplicate_ids();
+            //check_dom_for_duplicate_ids();        // nur relevant fuer Debugging-Zwecke
+
+
             hideIndicator();
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
