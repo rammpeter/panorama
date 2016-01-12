@@ -215,14 +215,15 @@ class DbaSchemaController < ApplicationController
                  SELECT /*+ Panorama Ramm */
                        c.*, co.Comments,
                        NVL(c.Data_Precision, c.Char_Length)||CASE WHEN c.Char_Used='B' THEN ' Bytes' WHEN c.Char_Used='C' THEN ' Chars' ELSE '' END Precision,
-                       l.Segment_Name LOB_Segment, u.*,
+                       l.Segment_Name LOB_Segment,
                        s.Density, s.Num_Buckets, s.Histogram
+                       #{'u.*' if get_db_version >= '11.2'}  -- fuer normale User nicht sichtbar in 10g
                 FROM   DBA_Tab_Columns c
                 LEFT OUTER JOIN DBA_Col_Comments co       ON co.Owner = c.Owner AND co.Table_Name = c.Table_Name AND co.Column_Name = c.Column_Name
                 LEFT OUTER JOIN DBA_Lobs l               ON l.Owner = c.Owner AND l.Table_Name = c.Table_Name AND l.Column_Name = c.Column_Name
                 LEFT OUTER JOIN DBA_Objects o            ON o.Owner = c.Owner AND o.Object_Name = c.Table_Name AND o.Object_Type = 'TABLE'
                 LEFT OUTER JOIN DBA_Tab_Col_Statistics s ON s.Owner = c.Owner AND s.Table_Name = c.Table_Name AND s.Column_Name = c.Column_Name
-                LEFT OUTER JOIN sys.Col_Usage$ u         ON u.Obj# = o.Object_ID AND u.IntCol# = c.Column_ID
+                #{'LEFT OUTER JOIN sys.Col_Usage$ u         ON u.Obj# = o.Object_ID AND u.IntCol# = c.Column_ID' if get_db_version >= '11.2'}  -- fuer normale User nicht sichtbar in 10g
                 WHERE  c.Owner = ? AND c.Table_Name = ?
                 ORDER BY c.Column_ID
                ", @owner, @table_name]
@@ -329,7 +330,7 @@ class DbaSchemaController < ApplicationController
 
     @lobs = sql_select_one ["SELECT COUNT(*) FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
-    render_partial "list_table_description"
+    render_partial :list_table_description
   end
 
   private

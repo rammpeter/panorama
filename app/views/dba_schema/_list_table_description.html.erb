@@ -35,13 +35,14 @@ column_options =
   {:caption=> 'Histogram',         :data=>proc{|rec| rec.histogram},                           :title=> 'Indicates existence/type of histogram'},
   {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
   {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segement for LOB columns'},
-  {:caption=> 'EQ',                :data=>proc{|rec| fn(rec.equality_preds)},                  :title=> 'Number of usage as equality predicate, from sys.Col_Usage$',       :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
-  {:caption=> 'EQJ',               :data=>proc{|rec| fn(rec.equijoin_preds)},                  :title=> 'Number of usage as equi join predicate, from sys.Col_Usage$',      :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
-  {:caption=> 'NEQJ',              :data=>proc{|rec| fn(rec.nonequijoin_preds)},               :title=> 'Number of usage as nonequi join predicate, from sys.Col_Usage$',   :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
-  {:caption=> 'Range',             :data=>proc{|rec| fn(rec.range_preds)},                     :title=> 'Number of usage as range predicate, from sys.Col_Usage$',          :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
-  {:caption=> 'Like',              :data=>proc{|rec| fn(rec.like_preds)},                      :title=> 'Number of usage as like predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
-  {:caption=> 'Null',              :data=>proc{|rec| fn(rec.null_preds)},                      :title=> 'Number of usage as null predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}},
 ]
+
+   column_options << {:caption=> 'EQ',                :data=>proc{|rec| fn(rec.equality_preds)},                  :title=> 'Number of usage as equality predicate, from sys.Col_Usage$',       :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'EQJ',               :data=>proc{|rec| fn(rec.equijoin_preds)},                  :title=> 'Number of usage as equi join predicate, from sys.Col_Usage$',      :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'NEQJ',              :data=>proc{|rec| fn(rec.nonequijoin_preds)},               :title=> 'Number of usage as nonequi join predicate, from sys.Col_Usage$',   :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Range',             :data=>proc{|rec| fn(rec.range_preds)},                     :title=> 'Number of usage as range predicate, from sys.Col_Usage$',          :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Like',              :data=>proc{|rec| fn(rec.like_preds)},                      :title=> 'Number of usage as like predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Null',              :data=>proc{|rec| fn(rec.null_preds)},                      :title=> 'Number of usage as null predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
 %>
 
 <%= gen_slickgrid(@columns, column_options, {

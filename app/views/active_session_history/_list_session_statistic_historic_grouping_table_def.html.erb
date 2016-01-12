@@ -21,7 +21,7 @@
 
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_single_rows
-    groupfilter = @groupfilter.clone.merge({ 'GROUPBYCOLUMN_ALIAS' => 'GROUPBYVALUE_ALIAS'})
+    groupfilter = @groupfilter.clone.merge({ @groupby => 'GROUPBYVALUE_ALIAS'})
 
     link_text = my_ajax_link_to('VALUE_ALIAS',
                 url_for({:action       => :list_session_statistic_historic_single_record,
@@ -35,7 +35,7 @@
     "
       var link_text = '#{link_text}';
       return link_text
-        .replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
+        //.replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
         .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
         .replace(/VALUE_ALIAS/g,          cell_value)
       ;
