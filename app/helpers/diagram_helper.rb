@@ -34,11 +34,8 @@ module DiagramHelper
     result_data_array   = []                                                    # Result-Array
     record              = {}
     first_timestamp     = nil                                                   # Begrenzer des Zeitraumes mit gültigen Werten
-    last_timestamp      = nil
     origin_data_array.each do |s|                                               # Iteration über einzelwerte
       first_timestamp = s[time_key_name] if first_timestamp.nil?                # Merken des ersten Zeitwertes
-      last_timestamp  = s[time_key_name]                                        # Merken des letzten Zeitwertes
-
 
       record[:timestamp] = s[time_key_name] unless record[:timestamp]           # Gruppenwechsel-Kriterium mit erstem Record initialisisieren
       if record[:timestamp] != s[time_key_name]                                 # Neuer Zeitpunkt
@@ -53,10 +50,6 @@ module DiagramHelper
     result_data_array << record unless record.empty?                            # Letzten Record in Array schreiben wenn Daten vorhanden
 
     if null_points_cycle                                                        # Austasten der Lücken mit NullPunkten
-puts "#{first_timestamp}  #{first_timestamp.class.name}"
-puts "#{last_timestamp}  #{last_timestamp.class.name}"
-
-
       current_timestamp = first_timestamp
       index = 0
       while index < result_data_array.length do

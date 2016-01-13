@@ -205,8 +205,11 @@ class IoController < ApplicationController
       return
     end
 
+    record_modifier = proc{|rec|
+      rec["diagram_value"] = data_column[:raw_data].call(rec)                   # Berechnen des konkreten Wertes
+    }
 
-    ios = sql_select_iterator ["\
+    ios = sql_select_iterator(["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -222,13 +225,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
       ORDER BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
-      " ].concat(@with_where_values).concat(@global_where_values)
-
-
-    # Transformieren in darzustellende Werte
-    ios.each do |i|
-      i["diagram_value"] = data_column[:raw_data].call(i)
-    end
+      " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
@@ -390,8 +387,11 @@ class IoController < ApplicationController
       return
     end
 
+    record_modifier = proc{|rec|
+      rec["diagram_value"] = data_column[:raw_data].call(rec)                   # Berechnen des konkreten Wertes
+    }
 
-    ios = sql_select_iterator ["\
+    ios = sql_select_iterator(["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -408,13 +408,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
       ORDER BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
-                          " ].concat(@with_where_values).concat(@global_where_values)
-
-
-    # Transformieren in darzustellende Werte
-    ios.each do |i|
-      i["diagram_value"] = data_column[:raw_data].call(i)
-    end
+                          " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
@@ -587,8 +581,11 @@ class IoController < ApplicationController
       return
     end
 
+    record_modifier = proc{|rec|
+      rec["diagram_value"] = data_column[:raw_data].call(rec)                   # Berechnen des konkreten Wertes
+    }
 
-    ios = sql_select_iterator ["\
+    ios = sql_select_iterator(["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
                             DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
@@ -605,13 +602,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
       ORDER BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
-                          " ].concat(@with_where_values).concat(@global_where_values)
-
-
-    # Transformieren in darzustellende Werte
-    ios.each do |i|
-      i["diagram_value"] = data_column[:raw_data].call(i)
-    end
+                          " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
