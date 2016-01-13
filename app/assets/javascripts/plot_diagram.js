@@ -280,11 +280,15 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         } else {
             x_legend_title = 'X';
         }
-        jQuery('#'+canvas_id+" .legend").find("table").addClass('legend_table');
+
+        var legend_div = jQuery('#'+canvas_id+" .legend");
+
+        legend_div.children('div').detach();                                    // Entfernen eines Div ohne Funktion vor der legend_table, das sonst in der Größe mitgerführt werden müsste
+        legend_div.find("table").addClass('legend_table');
         if (jQuery('#'+canvas_id+" .legendXAxis").length == 0) {                // bei erstmaligem aufruf Zeile hinzufügen, nicht bei jedem Resize
 
             // Spalte zufügen für die Werte-Anzeige
-            jQuery('#' + canvas_id + " .legend").find("tr").each(function(index, elem){
+            legend_div.find("tr").each(function(index, elem){
                 var tr = jQuery(elem)
                 var legend_name = jQuery(tr.children('td')[1]).html();
                 legend_indexes[legend_name] = index;                            // Position zum Name der Kurve in der Legende merken
@@ -292,7 +296,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             });
 
             // Zeile für Anzeige des Zeitstempels zufügen
-            jQuery('#' + canvas_id + " .legend").find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td></tr>");
+            legend_div.find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td></tr>");
         }
         legendXAxis         = jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
         legend_values       = jQuery('#'+canvas_id+" .legend_value");            // Liste der letzten Spalten merken für wiederholte Verwendung
@@ -306,7 +310,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         }
 
 //        jQuery('#'+canvas_id+" .legend").draggable().css("left", -9).css("top", canvas_height*-1+9); // Legende verschiebbar gestalten, da dann mit position:relative gearbeitet wird, muss neu positioniert werden
-        jQuery('#'+canvas_id+" .legend").draggable();
+        legend_div.draggable();
     }
 
 
