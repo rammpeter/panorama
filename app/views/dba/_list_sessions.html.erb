@@ -9,7 +9,7 @@
              :serialno => rec.serialno,
              :update_area => @update_area
             ),
-     :title=> "Anzeige Details zu Session")
+     :title=>t(:dba_list_sessions_show_session_hint, :default=>'Show session details') )
  end
 
  def link_QC_session(rec)
@@ -25,32 +25,32 @@
 
   column_options =
   [
-    {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>"Instance-ID"},
-    {:caption=>"SID/SN",           :data=>proc{|rec| link_session(rec)},              :title=>"SID, SerialNo"},
+    {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>'RAC instance ID'},
+    {:caption=>"SID/SN",           :data=>proc{|rec| link_session(rec)},              :title=>'SID, SerialNo'},
     {:caption=>"Status",           :data=>proc{|rec| rec.status},                     :title=>"Session-Status"},
     {:caption=>"Wait event",       :data=>proc{|rec| rec.wait_event},                 :title=>'Wait-Event'},
     {:caption=>"W",                :data=>proc{|rec| fn(rec.seconds_in_wait)},        :title=>'Wait time in current event in seconds', :align=>:right},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                   :title=>"Oracle-Username"},
-    {:caption=>"Proc",             :data=>proc{|rec| rec.spid},                       :title=>"Prozess-ID Oracle Shadow-Prozess auf DB-Server"},
-    {:caption=>"Machine",          :data=>proc{|rec| rec.machine},                    :title=>"Client-Maschine"},
-    {:caption=>"C-User",           :data=>proc{|rec| rec.osuser},                     :title=>"Betriebssystem-User der Client-Maschine"},
-    {:caption=>"C-Proc",           :data=>proc{|rec| rec.process},                    :title=>"Prozess-ID des Client-Prozesses auf der Client-Maschine (1234 ist Dummy-Prozess-ID von JDBC-Treibern, CONNECTION_PROPERTY_THIN_VSESSION_PROCESS_DEFAULT=1234)"},
-    {:caption=>"Program",          :data=>proc{|rec| rec.program},                    :title=>"Ausgeführtes Programm des Client-Prozesses auf der Client-Maschine"},
+    {:caption=>"Proc",             :data=>proc{|rec| rec.spid},                       :title=>t(:dba_list_sessions_proc_hint, :default=>'Process-ID of Oracle shadow process on DB-server')},
+    {:caption=>"Machine",          :data=>proc{|rec| rec.machine},                    :title=>t(:dba_list_sessions_machine_hint, :default=>'Name of client machine')},
+    {:caption=>"C-User",           :data=>proc{|rec| rec.osuser},                     :title=>t(:dba_list_sessions_client_user_hint, :default=>'OS-user on client machine') },
+    {:caption=>"C-Proc",           :data=>proc{|rec| rec.process},                    :title=>t(:dba_list_sessions_process_hint, :default=>'Process-ID of client process on client machine (1234 is dummy-process-ID of JDBC-driver, CONNECTION_PROPERTY_THIN_VSESSION_PROCESS_DEFAULT=1234)') },
+    {:caption=>"Program",          :data=>proc{|rec| rec.program},                    :title=>t(:dba_list_sessions_program_hint, :default=>'Executed program of client process on client machine') },
     {:caption=>"Client-Info",      :data=>proc{|rec| rec.client_info},                :title=>"Client-Info"},
     {:caption=>"Module",           :data=>proc{|rec| rec.module},                     :title=>"Module-Info"},
     {:caption=>"Action",           :data=>proc{|rec| rec.action},                     :title=>"Action-Info"},
-    {:caption=>"Service",          :data=>proc{|rec| rec.service_name},               :title=>"Name des Listener-Service über den Session connected ist"},
-    {:caption=>"Last Active Start",:data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>"Beginn der letzten Active-Phase der Session", :data_title=>proc{|rec| "Beginn der letzten Active-Phase der Session, Logon-Time: #{localeDateTime(rec.logon_time)}"}},
-    {:caption=>"I/O-Index",        :data=>proc{|rec| fn(rec.ioindex)},                :title=>"Gewichteter Wert der logischen und physischen I/O der Session", :align=>"right"},
-    {:caption=>"Temp",             :data=>proc{|rec| fn(rec.temp_mb,3)},              :data_title=>'Temp (MB), #{rec.temp_extents} Extents, #{rec.temp_blocks} Blocks', :title=>"Auslagerung in Temp. Tablespace (MB)", :align=>"right"},
-    {:caption=>"Long SQL",         :data=>proc{|rec| rec.longsql},                    :title=>"Langlaufendes SQL-Statement"},
-    {:caption=>"Open Cursor",      :data=>proc{|rec| fn(rec.open_cursor)},            :title=>"Anzahl offene Cursor der Session", :align=>"right"},
-    {:caption=>"OC SQL",           :data=>proc{|rec| fn(rec.open_cursor_sql)},        :title=>"Anzahl unterschiedliche SQL-IDs der offenen Cursor der Session", :align=>"right"},
-    {:caption=>"P Q",              :data=>proc{|rec| fn(rec.pqcount)},                :title=>"Anzahl ParallelQuery-Slaves", :align=>"right"},
+    {:caption=>"Service",          :data=>proc{|rec| rec.service_name},               :title=>t(:dba_list_sessions_service_hint, :default=>'Name of TNS-service session uses for connection') },
+    {:caption=>"Last Active Start",:data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>t(:dba_list_sessions_last_active_start_hint, :default=>'Start of last active phase of session') , :data_title=>proc{|rec| "%t, Logon-Time: #{localeDateTime(rec.logon_time)}"}},
+    {:caption=>"I/O-Index",        :data=>proc{|rec| fn(rec.ioindex)},                :title=>t(:dba_list_sessions_io_hint, :default=>'Weighted value of logical and physical I/O of session'), :align=>"right"},
+    {:caption=>"Temp",             :data=>proc{|rec| fn(rec.temp_mb,3)},              :data_title=>'Temp (MB), #{rec.temp_extents} Extents, #{rec.temp_blocks} Blocks', :title=>t(:dba_list_sessions_temp_hint, :default=>'Used TEMP-tablespace in MBytes'), :align=>"right"},
+    {:caption=>"Long SQL",         :data=>proc{|rec| rec.longsql},                    :title=>t(:dba_list_sessions_long_hint, :default=>'long running SQL statement')},
+    {:caption=>"Open Cursor",      :data=>proc{|rec| fn(rec.open_cursor)},            :title=>t(:dba_list_sessions_open_cursor_hint, :default=>'Number of open cursor for session'), :align=>"right"},
+    {:caption=>"OC SQL",           :data=>proc{|rec| fn(rec.open_cursor_sql)},        :title=>t(:dba_list_sessions_open_cursor_sql_hint, :default=>'Number of different SQL-IDs for open cursor of session'), :align=>"right"},
+    {:caption=>"P Q",              :data=>proc{|rec| fn(rec.pqcount)},                :title=>t(:dba_list_sessions_pq_hint, :default=>'Number of parallel uqery slave processes'), :align=>"right"},
     {:caption=>"Q C",              :data=>proc{|rec| link_QC_session(rec)},           :title=>"Parallel query coordinator session (Instance:SID,SerialNo)"},
-    {:caption=>"PGA Used",         :data=>proc{|rec| fn((rec.pga_used_mem/1048576.0 rescue 0), 3)},   :title=>"Aktuell von Prozess genutzter PGA-Memory in MB", :align=>"right"},
+    {:caption=>"PGA Used",         :data=>proc{|rec| fn((rec.pga_used_mem/1048576.0 rescue 0), 3)},   :title=>t(:dba_list_sessions_pga_used_hint, :default=>'Currently used PGA-memory in MBytes'), :align=>"right"},
     {:caption=>"PGA Alloc.",       :data=>proc{|rec| fn((rec.pga_alloc_mem/1048576.0 rescue 0), 3)},   :title=>"PGA memory currently allocated by the process (including free PGA memory not yet released to the operating system by the server process) in MB", :align=>"right"},
-    {:caption=>"PGA Freea.",       :data=>proc{|rec| fn((rec.pga_freeable_mem/1048576.0 rescue 0), 3)},:title=>"Aktuell von Prozess alloziierter PGA-Memory der freigegeben werden kann in MB", :align=>"right"},
+    {:caption=>"PGA Freea.",       :data=>proc{|rec| fn((rec.pga_freeable_mem/1048576.0 rescue 0), 3)},:title=>t(:dba_list_sessions_pga_free_hint, :default=>'Currently allocated PGA-memory of process which is freeable in MBytes'), :align=>"right"},
     {:caption=>"PGA Max",          :data=>proc{|rec| fn((rec.pga_max_mem/1048576.0 rescue 0), 3)},     :title=>"Maximum PGA memory ever allocated by the process in MB", :align=>"right"},
     {:caption=>"Op-Type",          :data=>proc{|rec| rec.operation_type},             :title=>"Type of operation using the PGA work area"},
     {:caption=>"Pol.",             :data=>proc{|rec| rec.policy},                     :title=>"Sizing policy for PGA work area"},
@@ -60,7 +60,7 @@
     {:caption=>"Actual Size",      :data=>proc{|rec| fn(rec.actual_mem_used_mb, 3)},  :title=>"Amount of PGA memory currently allocated in MB", :align=>"right"},
     {:caption=>"Max. Size",        :data=>proc{|rec| fn(rec.max_mem_used_mb, 3)},     :title=>"Maximum memory amount used by this PGA work area in MB", :align=>"right"},
     {:caption=>"P",                :data=>proc{|rec| fn(rec.number_passes)},          :title=>"Number of passes corresponding to this PGA work area (0 if running in optimal mode)", :align=>"right"},
-    {:caption=>"WA Temp",          :data=>proc{|rec| fn(rec.wa_tempseg_size_mb, 3)},  :title=>"Temporary segment des PGA work area on disk (ausgelagert in Temp-Tablespace) in MB (incl. Parallel Query Prozesse)", :align=>"right"},
+    {:caption=>"WA Temp",          :data=>proc{|rec| fn(rec.wa_tempseg_size_mb, 3)},  :title=>"Temporary segment des PGA work area on disk (relocated in Temp-tablespace) in MB (incl. amont of parallel query slave processes)", :align=>"right"},
   ]
 
 %>

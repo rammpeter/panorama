@@ -182,6 +182,23 @@
 
   dba_list_session_details_caption:                         Details zu Session
 
+  dba_list_sessions_machine_hint:                           Name der Client-Maschine
+  dba_list_sessions_client_user_hint:                       Betriebssystem-User der Client-Maschine
+  dba_list_sessions_io_hint:                                Gewichteter Wert der logischen und physischen I/O der Session
+  dba_list_sessions_last_active_start_hint:                 Beginn der letzten Active-Phase der Session
+  dba_list_sessions_long_hint:                              Langlaufendes SQL-Statement
+  dba_list_sessions_open_cursor_hint:                       Anzahl offene Cursor der Session
+  dba_list_sessions_open_cursor_sql_hint:                   Anzahl unterschiedliche SQL-IDs der offenen Cursor der Session
+  dba_list_sessions_pga_free_hint:                          Aktuell von Prozess alloziierter PGA-Memory der freigegeben werden kann in MB
+  dba_list_sessions_pga_used_hint:                          Aktuell von Prozess genutzter PGA-Memory in MB
+  dba_list_sessions_pq_hint:                                Anzahl ParallelQuery-Slave-Prozesse
+  dba_list_sessions_proc_hint:                              Prozess-ID Oracle Shadow-Prozess auf DB-Server
+  dba_list_sessions_process_hint:                           Prozess-ID des Client-Prozesses auf der Client-Maschine (1234 ist Dummy-Prozess-ID von JDBC-Treibern, CONNECTION_PROPERTY_THIN_VSESSION_PROCESS_DEFAULT=1234)
+  dba_list_sessions_program_hint:                           Ausgeführtes Programm des Client-Prozesses auf der Client-Maschine
+  dba_list_sessions_service_hint:                           Name des TNS-Service über den die Session connected ist
+  dba_list_sessions_show_session_hint:                      Anzeige Details zu Session
+  dba_list_sessions_temp_hint:                              Genutzter Temp-Tablespace (MB)
+
   dba_sga_list_sql_area_caption:                            SQL der aktuellen SGA aus %{modus}, gruppiert nach
 
   dba_sga_list_sql_detail_execution_plan_cr_title:          Durchschn. Anzahl Buffer gets in consistend mode (meist für Query) der Operation je Ausführung des SQL, kumulativ inlusive aller untergeordneten Operationen
