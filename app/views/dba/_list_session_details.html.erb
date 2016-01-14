@@ -1,5 +1,5 @@
 <div style="clear:both; padding: 5px;"></div>
-<h2>Details zu Session SID=<%= @sid%>, Serial#=<%= @serialno%>, Instance=<%= @instance %></h2>
+<h2><%= t(:dba_list_session_details_caption, :default=>'Details for session') %>  SID=<%= @sid%>, Serial#=<%= @serialno%>, Instance=<%= @instance %>, <%= localeDateTime(Time.now) %></h2>
 <% @prev_update_area = @update_area
    @update_area = get_unique_area_id
 %>

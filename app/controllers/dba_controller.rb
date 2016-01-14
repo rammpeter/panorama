@@ -551,7 +551,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       where_string << " AND s.type = 'USER'"
     end
     if params[:showPQServer]!="1"
-      where_string << " AND (s.Program IS NULL OR INSTR(s.Program, '(P0')=0)"
+      where_string << ' AND pqc.QCInst_ID IS NULL'   # Nur die QCInst_ID is nicht belegt in gv$PX_Session. Die OCSID ist auch für den Query-Koordinator belegt, der ja kein PQ ist
     end
     if params[:onlyActive]=="1"
       where_string << " AND s.Status='ACTIVE'"
@@ -620,18 +620,18 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
         wa.WA_TempSeg_Size_MB,
         CASE WHEN w.State = 'WAITING' THEN w.Event ELSE 'ON CPU' END Wait_Event, w.Seconds_In_Wait
       FROM    GV$session s
-      JOIN    (SELECT Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
-               FROM   gv$Open_Cursor
-               GROUP BY Inst_ID, SID
-              ) oc ON oc.Inst_ID = s.Inst_ID AND oc.SID = s.SID
+      LEFT OUTER JOIN (SELECT Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
+                       FROM   gv$Open_Cursor
+                       GROUP BY Inst_ID, SID
+                      ) oc ON oc.Inst_ID = s.Inst_ID AND oc.SID = s.SID
       LEFT OUTER JOIN ( SELECT px.QCInst_ID, px.QCSID, px.QCSerial#, Count(*) Anzahl FROM GV$PX_Session px
                        GROUP BY px.QCInst_ID, px.QCSID, px.QCSerial#
                       ) px ON  px.QCInst_ID = s.Inst_ID
                            AND px.QCSID     = s.SID
                            AND px.QCSerial# = s.Serial#
-      LEFT OUTER JOIN GV$PX_Session pqc ON pqc.Inst_ID = s.Inst_ID AND pqc.SID=s.SID AND pqc.Serial#=s.Serial#    -- PQ Coordinator
-      JOIN    GV$sess_io i ON i.Inst_ID = s.Inst_ID AND i.SID = s.SID
-      JOIN    GV$process p ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
+      LEFT OUTER JOIN GV$PX_Session pqc ON pqc.Inst_ID = s.Inst_ID AND pqc.SID=s.SID --AND pqc.Serial#=s.Serial#    -- PQ Coordinator, SerialNo stimmt in Oracle 12c nicht mehr überein zwischen v$Session und v$px_session
+      LEFT OUTER JOIN    GV$sess_io i ON i.Inst_ID = s.Inst_ID AND i.SID = s.SID
+      LEFT OUTER JOIN    GV$process p ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
       LEFT OUTER JOIN
               ( SELECT  DECODE(QCInst_ID, NULL, Inst_ID, QCinst_ID) Inst_ID,
                         DECODE(QCSID,NULL, SID, QCSID)  SID,
