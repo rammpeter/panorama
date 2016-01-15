@@ -25,19 +25,42 @@
 
 // global gültige Variable im js, wird von EnvController.setDatabase gesetzt entsprechend der Spracheinstellung
 var session_locale = "en";
-var one_time_suppress_indicator = false;                                        // Unterdrückend er Anzeige des Indicators für einen Aufruf
 
-function showIndicator() {
-    if (!one_time_suppress_indicator){                                          // Einmaliges Unterdrücken der Anzeige Indikator, Ruecksetzen durch hideIndicator
+function log_stack(message){
+    e = new Error();
+    console.log('===================' + message + '==================');
+    console.log(e.stack);
+}
+
+// soll der Indikator angezeigt werden für aktuelle url ?
+function useIndicator(url){
+
+    function exclude_action_hit(exclude_url){
+        return url.indexOf(exclude_url) != -1;
+    }
+
+    return  (!(
+        exclude_action_hit('Env/repeat_last_menu_action') ||
+        exclude_action_hit('DbaHistory/getSQL_ShortText')
+    ));
+}
+
+function showIndicator(url) {
+    if (useIndicator(url)){                                          // Unterdrücken der Anzeige Indikator
+        log_stack('show open') ;
         jQuery("#ajax_indicator").dialog("open");
+    } else {
+        log_stack('show suppressed') ;
     }
 }
 
-function hideIndicator() {
-    if (!one_time_suppress_indicator)                                           // einmalig Loeschen des Indikators überspringen, beim naechsten Mal wieder Loeschen
+function hideIndicator(url) {
+    if (useIndicator(url)) {                                          // Unterdrücken des Löschens des Indikator
+        log_stack('hide close') ;
         jQuery("#ajax_indicator").dialog("close");
-    else
-        one_time_suppress_indicator = false;                                    // Zurücksetzen auf Default
+    } else {
+        log_stack('hide indicator=false') ;
+    }
 }
 
 var tooltip_document_body = null;
@@ -113,9 +136,6 @@ function expand_sql_id_hint(id, sql_id){
         SQL_shortText_Cache[sql_id] = "< SQL-Text: request in progress>"        // Verhindern, dass während der Abfrage erneut nachgefragt wird
         jQuery.ajax({url: "DbaHistory/getSQL_ShortText?sql_id="+sql_id,
             dataType: "json",
-            beforeSend: function(response) {
-                one_time_suppress_indicator = true;                             // Unterdrückend der Anzeige des Indicators für einen Aufruf
-            },
             success: function(response) {
                 if (response.sql_short_text){
                     SQL_shortText_Cache[sql_id] = response.sql_short_text;      // Cachen Ergebnis
@@ -146,13 +166,13 @@ function bind_ajax_callbacks() {
     jQuery(document)
         .ajaxSend(function(event, jqXHR, ajaxOptions){
             closeAllTooltips();
-            showIndicator();
+            showIndicator(ajaxOptions.url);
         })
         .ajaxComplete(function(event, jqXHR, ajaxOptions){
             //check_dom_for_duplicate_ids();        // nur relevant fuer Debugging-Zwecke
 
 
-            hideIndicator();
+            hideIndicator(ajaxOptions.url);
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
             hideIndicator();
