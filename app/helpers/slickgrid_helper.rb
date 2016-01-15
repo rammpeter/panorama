@@ -21,13 +21,22 @@ module SlickgridHelper
         gsub('&amp;', '&')
   end
 
-  def escape_js_chars(input)      # Javascript-kritische Zeichen escapen in Strings
+  def internal_escape(input)
     return nil unless input
-    input = input.dup  if input.frozen?          # Kopie des Objektes verwenden für Umgehung runtime-Error, wenn object frozen
+    input = input.dup  if input.frozen?                                         # Kopie des Objektes verwenden für Umgehung runtime-Error, wenn object frozen
 
     input.
-        gsub("'", '&#39;').     # einfache Hochkommas im Text fuer html als doppelte escapen für weitere Verwendung
-        gsub("\n", '<br>')      # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+        gsub("'", '&#39;')                                                      # ' im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+  end
+
+  def ecape_js_chars_without_br(input)
+    return nil unless input
+    internal_escape(input).gsub("\n", '\n')                                     # Linefeed für tooltip als \n erhalten
+  end
+
+  def escape_js_chars(input)                                                    # Javascript-kritische Zeichen escapen in Strings
+    return nil unless input
+    internal_escape(input).gsub("\n", '<br>')                                   # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
   end
 
   def eval_with_rec (input, rec)  # Ausführen eval mit Ausgabe des Inputs in Exception
@@ -112,7 +121,7 @@ module SlickgridHelper
     # Berechnung von Spaltensummen
     column_options.each do |col|
       col[:caption] = escape_js_chars(col[:caption])  # Sonderzeichen in caption escapen
-      col[:title]   = escape_js_chars(col[:title])    # Sonderzeichen in title escapen
+      col[:title]   = ecape_js_chars_without_br(col[:title])    # Sonderzeichen in title escapen, ausser \n, das vom tooltip so datgestellt werden kann
       col[:name]  = "col#{col_index}";   # Eindeutiger Spaltenname
       col[:index] = col_index            # mit 0 beginnende Numerierung der Spalten
       col_index = col_index+1
@@ -270,9 +279,9 @@ module SlickgridHelper
 
         if (title && title != '') || (style && style != '') || (celldata != stripped_celldata)
           metadata << "#{col[:name]}: {"
-          metadata << "title:    '#{escape_js_chars title}',"    if title && title != ''
+          metadata << "title:    '#{ecape_js_chars_without_br title}',"    if title && title != ''    # \n erhalten bei esacpe, da das vom tooltip so dargestellt werden kann
           metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
-          metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
+            metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
           metadata << '},'
         end
       end
