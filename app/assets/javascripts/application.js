@@ -175,7 +175,7 @@ function bind_ajax_callbacks() {
             hideIndicator(ajaxOptions.url);
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){
-            hideIndicator();
+            hideIndicator(ajaxSettings.url);
             jQuery("#error_dialog_status").html('Error : '+thrownError+'<br>Status: '+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
 
             var error_dialog_content = jQuery("#error_dialog_content");
