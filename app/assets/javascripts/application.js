@@ -47,7 +47,6 @@ function useIndicator(url){
 
 function showIndicator(url) {
     if (useIndicator(url)){                                          // Unterdrücken der Anzeige Indikator
-        log_stack('show open') ;
         jQuery("#ajax_indicator").dialog("open");
     } else {
         log_stack('show suppressed') ;
@@ -56,7 +55,6 @@ function showIndicator(url) {
 
 function hideIndicator(url) {
     if (useIndicator(url)) {                                          // Unterdrücken des Löschens des Indikator
-        log_stack('hide close') ;
         jQuery("#ajax_indicator").dialog("close");
     } else {
         log_stack('hide indicator=false') ;
