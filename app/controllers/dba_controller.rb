@@ -692,14 +692,15 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
                   #{", c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver" if get_db_version >= "11.2" }
            FROM   GV$Session s
            JOIN   GV$process p                       ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
-           LEFT OUTER JOIN (SELECT Inst_ID, SID, Serial#, AUTHENTICATION_TYPE
+           LEFT OUTER JOIN (SELECT Inst_ID, SID#{', Serial#' if get_db_version >= '11.2'}, AUTHENTICATION_TYPE
                                    #{", Client_CharSet, Client_Connection, Client_OCI_Library, Client_Version, Client_Driver" if get_db_version >= "11.2" }
                             FROM   GV$Session_Connect_Info
-                            WHERE  Inst_ID=? AND SID=? AND Serial#=?
+                            WHERE  Inst_ID=? AND SID=?
+                            #{' AND Serial#=?' if get_db_version >= '11.2' }
                             AND    RowNum < 2         /* Verdichtung da fuer jede Zeile des Network_Banners ein Record in GV$Session_Connect_Info existiert */
-                           ) c ON c.Inst_ID = s.Inst_ID AND c.SID = s.SID AND c.Serial# = s.Serial#
+                           ) c ON c.Inst_ID = s.Inst_ID AND c.SID = s.SID #{'AND c.Serial# = s.Serial#'  if get_db_version >= '11.2' }
            WHERE  s.Inst_ID=? AND s.SID=? AND s.Serial#=?",
-           @instance, @sid, @serialno, @instance, @sid, @serialno ]
+           @instance, @sid].concat( get_db_version >= "11.2" ? [@serialno] : [] ).concat([@instance, @sid, @serialno])
     @dbsession    = nil
     @current_sql  = nil
     @previous_sql = nil

@@ -67,7 +67,7 @@ module SlickgridHelper
         output << ' show_pct_background:  1,'       if col[:show_pct_background]
         output << ' hidden:       1,'               if col[:hidden]
 
-        # file_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
+        # field_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
         #   slickGrid           Referenz auf SlickGridExtended-Objekt
         #   row_no,cell_no      Nr. beginnend mit 0
         #   cell_value:         Wert der Zelle in data

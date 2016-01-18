@@ -32,6 +32,7 @@ column_options =
           {:caption=>"Execs",          :data=>proc{|rec| formattedNumber(rec.executions) },                    :title=>t(:dba_history_list_sql_history_snapshots_execs_hint, :default=>'Number of executions of SQL in interval'), :align=>"right" },
           {:caption=>"Elapsed",        :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs) },             :title=>"Total elapsed time in Sec.", :align=>"right" },
           {:caption=>"Ela./Ex.",       :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute, 4) },  :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right" },
+          {:caption=>"Ela./Row",       :data=>proc{|rec| fn((rec.elapsed_time_secs * 1000 / rec.rows_processed rescue nil), 2) },  :title=>"Elapsed time per result row in milliseconds (incl. parallel Query Slaves)", :align=>"right" },
           {:caption=>"CPU",            :data=>proc{|rec| formattedNumber(rec.cpu_time_secs) },                 :title=>"CPU-time total in seconds, sum over all PQ-Processes", :align=>"right" },
           {:caption=>"App.",           :data=>proc{|rec| formattedNumber(rec.application_wait_time_secs) },    :title=>"Application wait time in seconds, incl. row lock waits", :align=>"right" },
           {:caption=>"Con.",           :data=>proc{|rec| formattedNumber(rec.concurrency_wait_time_secs) },    :title=>"Concurrency Wait Time (sec)", :align=>"right" },
