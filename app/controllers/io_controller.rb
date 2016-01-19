@@ -159,9 +159,7 @@ class IoController < ApplicationController
       " ].concat(@with_where_values).concat(@global_where_values)
 
 
-    respond_to do |format|
-       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_io_file_history" }'); hideIndicator();"}
-     end
+    render_partial :list_io_file_history
   end
 
   # Anzeige der einzelnen Samples der Selektion
@@ -184,9 +182,7 @@ class IoController < ApplicationController
       ORDER BY f.Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
-    respond_to do |format|
-       format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> "list_io_file_history_samples" }'); hideIndicator();"}
-     end
+    render_partial :list_io_file_history_samples
   end
 
   #Anzeige Zeitleiste als Diagramm
@@ -366,9 +362,7 @@ class IoController < ApplicationController
       ORDER BY f.Round_Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> "list_iostat_detail_history_samples" }'); hideIndicator();"}
-    end
+    render_partial :list_iostat_detail_history_samples
   end
 
   #Anzeige Zeitleiste als Diagramm
@@ -560,9 +554,7 @@ class IoController < ApplicationController
       ORDER BY f.Round_Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=> "list_iostat_filetype_history_samples" }'); hideIndicator();"}
-    end
+    render_partial :list_iostat_filetype_history_samples
   end
 
   #Anzeige Zeitleiste als Diagramm

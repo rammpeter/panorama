@@ -48,16 +48,12 @@ function useIndicator(url){
 function showIndicator(url) {
     if (useIndicator(url)){                                          // Unterdrücken der Anzeige Indikator
         jQuery("#ajax_indicator").dialog("open");
-    } else {
-        log_stack('show suppressed') ;
     }
 }
 
 function hideIndicator(url) {
     if (useIndicator(url)) {                                          // Unterdrücken des Löschens des Indikator
         jQuery("#ajax_indicator").dialog("close");
-    } else {
-        log_stack('hide indicator=false') ;
     }
 }
 
@@ -179,6 +175,7 @@ function bind_ajax_callbacks() {
             var error_dialog_content = jQuery("#error_dialog_content");
 
             if (jqXHR.responseText.search('Error at server ') == -1) {  // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
+                log_stack('Error:' + thrownError);
                 error_dialog_content.text(jqXHR.responseText);                      // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
             } else {
                 error_dialog_content.html(jqXHR.responseText);                      // Inhalt rendern, da vorformatierte Ausgabe vom Server

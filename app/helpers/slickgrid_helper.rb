@@ -214,17 +214,17 @@ module SlickgridHelper
     output = ''
     output << "<div id='#{table_id}' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
-    output << "'></div>"
+    output << "'></div>\n"
 
-    output << "<script type='text/javascript'>"
-    output << 'jQuery(function($){'                                             # Beginn anonyme Funktion
+    output << "<script type='text/javascript'>\n"
+    output << "jQuery(function($){\n"                                             # Beginn anonyme Funktion
     # Ermitteln Typ der Spalte für Sortierung
     column_options.each do |col|
       col[:isFloat] = true                                                        # Default-Annahme, die nachfolgend zu prüfen ist
       col[:isDate]  = true                                                        # Default-Annahme, die nachfolgend zu prüfen ist
     end
     # erstellen JS-ata
-    output << 'var data=['
+    output << "var data=[\n"
     data.each do |rec|
       output << '{'
       metadata = ''
@@ -285,8 +285,8 @@ module SlickgridHelper
           metadata << '},'
         end
       end
-      output << "metadata: { columns: { #{metadata} } }," if metadata != ''
-      output << '},'
+      output << "\nmetadata: { columns: { #{metadata} } }," if metadata != ''
+      output << "},\n"
     end
     output << '];' # Data
 
