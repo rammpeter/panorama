@@ -467,6 +467,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         for (var col_index in columns) {
             var column = columns[col_index];
+if (columns.length == 3){
+    console.log('Col '+col_index+' max_nowrap_width'+column['max_nowrap_width']);
+}
             if (column['fixedWidth']){
                 if (column['width'] != column['fixedWidth']) {                      // Feste Breite vorgegeben ?
                     column['width']      = column['fixedWidth'];                    // Feste Breite der Spalte beinhaltet bereits padding
@@ -483,9 +486,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             max_table_width += column['width'];
             if ( (column['max_wrap_width'] < column['max_nowrap_width']) && (!column['no_wrap']) ){
                 wrapable_count += 1;
-                console.log('wrapable_count += 1; Spalten='+columns.length+'  '+ column['max_wrap_width'] + '   '+column['max_nowrap_width']);
+                // console.log('wrapable_count += 1; Spalten='+columns.length+'  '+ column['max_wrap_width'] + '   '+column['max_nowrap_width']);
             }
         }
+if (columns.length == 3) {
+  console.log('columns=' + columns.length + '   max_table_width 1 =' + max_table_width);
+}
         // Prüfen auf Möglichkeit des Umbruchs in der Zelle
         var current_table_width = max_table_width;                                  // Summe aller max. Spaltenbreiten
         if (has_slickgrid_vertical_scrollbar())
@@ -550,7 +556,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             else
                 this.gridContainer.css('width', current_grid_width);  // Gesamtes Grid auf die Breite des Parents setzen
         }
-
+console.log('columns='+columns.length+'   max_table_width='+max_table_width);
         jQuery('#caption_'+this.gridContainer.attr('id')).css('width', this.gridContainer.width()); // Breite des Caption-Divs auf Breite des Grid setzen
         this.grid.setOptions(options);                                                   // Setzen der veränderten options am Grid
         if (columns_changed)
@@ -1085,29 +1091,29 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var test_cell      = thiz.test_cell;
         var test_cell_wrap = thiz.test_cell_wrap;
         if (!column['last_calc_value'] || (value != column['last_calc_value'] && value.length*9 > column['max_wrap_width'])){  // gleicher Wert muss nicht erneut gecheckt werden, neuer Wert muss > alter sein bei 10 Pixel Breite, aber bei erstem Male durchlauen
-            test_cell.html(fullvalue);                                              // Test-DOM nowrapped mit voll dekoriertem Inhalt füllen
-            test_cell.attr('class', column['cssClass']);                            // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+            fullvalue =  fullvalue.replace(/<wbr>/g, '');                       // entfernen von vorderfinierten Umbruchstellen, da diese in der Testzelle sofort zum Umbruch führen und die Ermittlung der Darstellungsbreite fehlschlägt
+            test_cell.html(fullvalue);                                          // Test-DOM nowrapped mit voll dekoriertem Inhalt füllen
+            test_cell.attr('class', column['cssClass']);                        // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
             if (test_cell.prop("scrollWidth")  > column['max_nowrap_width']){
                 column['max_nowrap_width']  = test_cell.prop("scrollWidth");
                 thiz.slickgrid_render_needed = 1;
             }
             if (!column['no_wrap']  && test_cell.prop("scrollWidth") > column['max_wrap_width']){     // Nur Aufrufen, wenn max_wrap_width sich auch vergrößern kann (aktuelle Breite > bisher größte Wrap-Breite)
-                test_cell_wrap.html(fullvalue);                                     // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
-                test_cell_wrap.attr('class', column['cssClass']);                   // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+                test_cell_wrap.html(fullvalue);                                 // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
+                test_cell_wrap.attr('class', column['cssClass']);               // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
                 if (test_cell_wrap.prop("scrollWidth")  > column['max_wrap_width']){
-                    //console.log("Column "+column['name']+" NewWrapWidth="+test_cell_wrap.prop("scrollWidth")+ " "+value+ " prevWrapWidth="+column['max_wrap_width'])
                     if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
                         column['max_wrap_width']  = column['max_wrap_width_allowed'];
                     else
                         column['max_wrap_width']  = test_cell_wrap.prop("scrollWidth");
                     thiz.slickgrid_render_needed = 1;
                 }
-                if (fullvalue != value)                                             // Enthält Zelle einen mit tags dekorierten Wert ?
-                    test_cell_wrap.html("");                                        // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
+                if (fullvalue != value)                                         // Enthält Zelle einen mit tags dekorierten Wert ?
+                    test_cell_wrap.html("");                                    // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
             }
-            if (fullvalue != value)                                                 // Enthält Zelle einen mit tags dekorierten Wert ?
-                test_cell.html("");                                                 // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
-            column['last_calc_value'] = value;                                      // Merken an Spalte für nächsten Vergleich
+            if (fullvalue != value)                                             // Enthält Zelle einen mit tags dekorierten Wert ?
+                test_cell.html("");                                             // leeren der Testzelle, wenn fullvalue weitere html-tags etc. enthält, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
+            column['last_calc_value'] = value;                                  // Merken an Spalte für nächsten Vergleich
         }
     };
 
