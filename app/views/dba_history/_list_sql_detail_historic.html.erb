@@ -17,7 +17,7 @@ end
 <h3>Statement-Details <%= t(:from_until, :default=>'from')%> <%= localeDateTime @sql.first_occurrence %> <%= t(:until, :default=>'until')%> <%= localeDateTime @sql.last_occurrence %> Instance = <%= @instance %></h3>
 <table border="0">
   <tr>
-    <td valign="top"class="monospace"><%= @sql_statement %></td>
+    <td valign="top"class="monospace"><%= convert_word_wrap_comma(@sql_statement) %></td>
     <td valign="top">
       <table border="1" style="font-size:small;">
         <tr><th>Name</th><th>Total</th><th>Per Exec.</th></tr>

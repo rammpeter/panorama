@@ -642,4 +642,13 @@ module ApplicationHelper
     "a#{request_counter}"
   end
 
+
+  # Umwandeln des String so, dass er bei Darstellung in html auch an Kommas umgebrochen werden kann
+  def convert_word_wrap_comma(origin)
+    # Erst alle html-Fehlinterpretationen in origin esacapen, dann MiniSpace einfuegen und html_safe setzen, damit nächster Escape durch <%= nicht mehr stattfindet
+    my_html_escape(origin).gsub(/,/, ',<wbr>').html_safe    # Komma erweitert um Space mit breite 0, an dem bei word_wrap: brake_word trotzdem umgebrochen werden soll
+    #my_html_escape(origin).gsub(/,/, ',&#8203;').html_safe    # Komma erweitert um Space mit breite 0, an dem bei word_wrap: brake_word trotzdem umgebrochen werden soll
+  end
+
+
 end

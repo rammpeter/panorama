@@ -466,7 +466,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         trace_log("start calculate_current_grid_column_widths "+caller);
 
         for (var col_index in columns) {
-            column = columns[col_index];
+            var column = columns[col_index];
             if (column['fixedWidth']){
                 if (column['width'] != column['fixedWidth']) {                      // Feste Breite vorgegeben ?
                     column['width']      = column['fixedWidth'];                    // Feste Breite der Spalte beinhaltet bereits padding
@@ -481,8 +481,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             }
 
             max_table_width += column['width'];
-            if (column['max_wrap_width'] < column['max_nowrap_width'] && !column['no_wrap'])
+            if ( (column['max_wrap_width'] < column['max_nowrap_width']) && (!column['no_wrap']) ){
                 wrapable_count += 1;
+                console.log('wrapable_count += 1; Spalten='+columns.length+'  '+ column['max_wrap_width'] + '   '+column['max_nowrap_width']);
+            }
         }
         // Prüfen auf Möglichkeit des Umbruchs in der Zelle
         var current_table_width = max_table_width;                                  // Summe aller max. Spaltenbreiten
