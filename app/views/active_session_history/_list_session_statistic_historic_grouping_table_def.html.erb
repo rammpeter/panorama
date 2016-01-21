@@ -1,7 +1,38 @@
-<%
-  # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
-  @update_area = get_unique_area_id
+<% @update_area = get_unique_area_id %>
 
+<script type="text/javascript">
+
+  function call_ajax_single_rows(group_by_value, record_count){
+    var json_data = <%= {:groupfilter => @groupfilter}.to_json.gsub(/%/, '%25').html_safe %>
+
+    json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
+    json_data['record_count'] = record_count;
+    json_data['update_area'] = '<%= @update_area %>';
+
+    jQuery.ajax({method: "POST", url: "/ActiveSessionHistory/list_session_statistic_historic_single_record", data: json_data});
+  }
+
+  function call_ajax_grouping(min_snap_id, max_snap_id, group_by_value, next_group_by_name){
+    var json_data = <%= {:groupfilter => @groupfilter}.to_json.gsub(/%/, '%25').html_safe %>
+
+    if (min_snap_id)
+      json_data['groupfilter']['Min_Snap_ID'] = min_snap_id;
+    if (max_snap_id)
+      json_data['groupfilter']['Max_Snap_ID'] = max_snap_id;
+
+    json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
+    json_data['groupby'] = next_group_by_name;
+    json_data['update_area'] = '<%= @update_area %>';
+
+    jQuery.ajax({method: "POST", url: "/ActiveSessionHistory/list_session_statistic_historic_grouping", data: json_data});
+  }
+
+
+</script>
+
+
+
+<%
 
   def get_groupfilter(rec, groupby_column, groupby_value)
     groupfilter = @groupfilter.clone                                            # Sicherstellen ,dass Nachfolger noch relevanten Filter bekommen
@@ -21,24 +52,11 @@
 
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_single_rows
-    groupfilter = @groupfilter.clone.merge({ @groupby => 'GROUPBYVALUE_ALIAS'})
-
-    link_text = my_ajax_link_to('VALUE_ALIAS',
-                url_for({:action       => :list_session_statistic_historic_single_record,
-                         :groupfilter  => groupfilter,
-                         :record_count => 'VALUE_ALIAS',
-                         :update_area  => @update_area,
-                        }),
-                :title=>"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} GROUPBYCOLUMN_ALIAS"
-    )
-
+    # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
     "
-      var link_text = '#{link_text}';
-      return link_text
-        //.replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
-        .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
-        .replace(/VALUE_ALIAS/g,          cell_value)
-      ;
+      return '<a href=\"#\" title=\"#{"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"}\" '+
+        'onclick=\"call_ajax_single_rows('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' )\"'+
+         '>'+cell_value+'</a>'
     "
   end
 
@@ -62,20 +80,7 @@
 
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_grouping(next_groupby)
-    groupfilter = @groupfilter.clone
-      .merge({ @groupby => 'GROUPBYVALUE_ALIAS'})
-      .merge({ 'MIN_SNAP_ID_COLUMN_ALIAS' => 'MIN_SNAP_ID_VALUE_ALIAS'})
-      .merge({ 'MAX_SNAP_ID_COLUMN_ALIAS' => 'MAX_SNAP_ID_VALUE_ALIAS'})
-
-    link_text = my_ajax_link_to('VALUE_ALIAS',
-                  url_for({:action       => :list_session_statistic_historic_grouping,
-                           :groupfilter  => groupfilter,
-                           :groupby      => next_groupby,
-                           :update_area  => @update_area,
-                          }
-                  ),
-                  :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"
-    )
+    # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
     "
       var decorated_cell_value = '';
 
@@ -88,51 +93,31 @@
         decorated_cell_value = cell_value;
       }
 
-      var link_text = '#{link_text}';
-
       var min_snap_id = dataContext[slickGrid.getColumnByName('min_snap_id').id]
-      if (min_snap_id){
-        link_text = link_text
-        .replace(/MIN_SNAP_ID_COLUMN_ALIAS/g,   'Min_Snap_ID')
-        .replace(/MIN_SNAP_ID_VALUE_ALIAS/g,    min_snap_id)
-        ;
-      } else {
-        link_text = link_text
-        .replace(/MIN_SNAP_ID_COLUMN_ALIAS/g,   'NULL')
-        .replace(/MIN_SNAP_ID_VALUE_ALIAS/g,    '')
-        ;
+      if (!min_snap_id){
+        min_snap_id = 'null';
       }
 
       var max_snap_id = dataContext[slickGrid.getColumnByName('max_snap_id').id]
-      if (max_snap_id){
-        link_text = link_text
-        .replace(/MAX_SNAP_ID_COLUMN_ALIAS/g,   'Max_Snap_ID')
-        .replace(/MAX_SNAP_ID_VALUE_ALIAS/g,    max_snap_id)
-        ;
-      } else {
-        link_text = link_text
-        .replace(/MAX_SNAP_ID_COLUMN_ALIAS/g,   'NULL')
-        .replace(/MAX_SNAP_ID_VALUE_ALIAS/g,    '')
-        ;
+      if (!max_snap_id){
+        max_snap_id = 'null';
       }
 
-      return link_text
-        //.replace(/GROUPBYCOLUMN_ALIAS/g,  slickGrid.all_columns[0].name)
-        .replace(/GROUPBYVALUE_ALIAS/g,   dataContext.col0)
-        .replace(/VALUE_ALIAS/g,          decorated_cell_value)
-      ;
+
+      return '<a href=\"#\" title=\"#{"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"}\" '+
+        'onclick=\"call_ajax_grouping('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+')\"'+
+         '>'+decorated_cell_value+'</a>'
     "
   end
 
 
   def link_temp_and_pga_usage(rec, value)
     my_ajax_link_to(value,     # Verhindern Zeilenumbruch in Anzeige
-                    url_for({:action       => :list_temp_usage_historic,
-                             :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
-                             :time_groupby => :day,
-                             :update_area  => @update_area,
-                            }
-                    ),
+                    url_for({:action  => :list_temp_usage_historic,
+                     :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
+                     :time_groupby => :day,
+                     :update_area  => @update_area,
+                            }),
                     :title=>"Show total TEMP and PGA usage for current filters"
     )
   end

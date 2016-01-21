@@ -467,9 +467,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         for (var col_index in columns) {
             var column = columns[col_index];
-if (columns.length == 3){
-    console.log('Col '+col_index+' max_nowrap_width'+column['max_nowrap_width']);
-}
+//if (columns.length == 3){
+//    console.log('Col '+col_index+' max_nowrap_width'+column['max_nowrap_width']);
+//}
             if (column['fixedWidth']){
                 if (column['width'] != column['fixedWidth']) {                      // Feste Breite vorgegeben ?
                     column['width']      = column['fixedWidth'];                    // Feste Breite der Spalte beinhaltet bereits padding
@@ -489,9 +489,9 @@ if (columns.length == 3){
                 // console.log('wrapable_count += 1; Spalten='+columns.length+'  '+ column['max_wrap_width'] + '   '+column['max_nowrap_width']);
             }
         }
-if (columns.length == 3) {
-  console.log('columns=' + columns.length + '   max_table_width 1 =' + max_table_width);
-}
+//if (columns.length == 3) {
+//  console.log('columns=' + columns.length + '   max_table_width 1 =' + max_table_width);
+//}
         // Prüfen auf Möglichkeit des Umbruchs in der Zelle
         var current_table_width = max_table_width;                                  // Summe aller max. Spaltenbreiten
         if (has_slickgrid_vertical_scrollbar())
@@ -556,7 +556,6 @@ if (columns.length == 3) {
             else
                 this.gridContainer.css('width', current_grid_width);  // Gesamtes Grid auf die Breite des Parents setzen
         }
-console.log('columns='+columns.length+'   max_table_width='+max_table_width);
         jQuery('#caption_'+this.gridContainer.attr('id')).css('width', this.gridContainer.width()); // Breite des Caption-Divs auf Breite des Grid setzen
         this.grid.setOptions(options);                                                   // Setzen der veränderten options am Grid
         if (columns_changed)

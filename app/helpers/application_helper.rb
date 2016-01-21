@@ -620,10 +620,10 @@ module ApplicationHelper
   end
 
   # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht
-  def render_partial(partial_name = nil)
+  def render_partial(partial_name = nil, additional_javascript_string = nil)
     partial_name = self.action_name if partial_name.nil?
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"#{controller_name}/#{partial_name}"}');"}
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"#{controller_name}/#{partial_name}"}'); #{additional_javascript_string}"}
     end
   end
 

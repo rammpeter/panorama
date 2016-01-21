@@ -19,6 +19,34 @@ module AjaxHelper
     link_to(caption ? caption : "", url, html_options)  # internen Rails-Helper verwenden
   end # my_ajax_link_to
 
+
+  # Ajax-Link definieren mit Indikator-Anzeige während Ausführung
+  # Parameter url notfalls mit url_for formatieren
+  def my_ajax_post_link(caption, url_data, html_options={})
+    url = {}
+    data = {}
+
+    # Extrahieren der UML-Elemente vom Rest der Daten
+    url_data.each do |key, value|
+      if key == :controller || key == :action
+        url[key] = value
+      else
+        data[key] = value
+      end
+    end
+
+    json_data = data.to_json.gsub(/%/, '%25')
+
+    options = ''
+    html_options.each do |key, value|
+      options << " #{key}=\"#{value}\""
+    end
+
+    "<a href=\"#\" #{options} onclick=\' jQuery.ajax({method: \"POST\", url: \"#{url_for(url)}\", data: #{json_data}
+}); \' >#{my_html_escape(caption)}</a>".html_safe
+  end # my_ajax_post_link
+
+
   # Ajax-formular mit einzelnem Submit-Button erzeugen
   def my_ajax_submit_tag(caption, url, html_options={})
     my_ajax_form_tag url do
