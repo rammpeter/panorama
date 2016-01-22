@@ -20,8 +20,9 @@ module AjaxHelper
   end # my_ajax_link_to
 
 
+  # Funktion nur brauchbar im Slickgrid oder anderen Funktionen, deren Daten im Browser nochmals per Javascript interpretiert werden
+  # wegen doppeltem Escape von single Quote per \\x27
   # Ajax-Link definieren mit Indikator-Anzeige während Ausführung
-  # Parameter url notfalls mit url_for formatieren
   def my_ajax_post_link(caption, url_data, html_options={})
     url = {}
     data = {}
@@ -35,17 +36,17 @@ module AjaxHelper
       end
     end
 
-    json_data = data.to_json.gsub(/%/, '%25')
+    json_data = data.to_json.html_safe
 
     options = ''
     html_options.each do |key, value|
       options << " #{key}=\"#{value}\""
     end
 
-    "<a href=\"#\" #{options} onclick=\' jQuery.ajax({method: \"POST\", url: \"#{url_for(url)}\", data: #{json_data}
-}); \' >#{my_html_escape(caption)}</a>".html_safe
+    res = "<a href=\"#\" #{options} onclick=§SINGLE_QUOTE§jQuery.ajax({method: \"POST\", url: \"#{url_for(url)}\", data: #{json_data}}); §SINGLE_QUOTE§>#{my_html_escape(caption)}</a>".html_safe
+    puts res
+    res
   end # my_ajax_post_link
-
 
   # Ajax-formular mit einzelnem Submit-Button erzeugen
   def my_ajax_submit_tag(caption, url, html_options={})

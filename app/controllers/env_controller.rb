@@ -27,9 +27,9 @@ class EnvController < ApplicationController
     unless cookies[:client_key]                                                 # Erster Zugriff in neu gestartetem Browser oder Cookie nicht mehr verfügbar
       loop_count = 0
       while loop_count < MAX_NEW_KEY_TRIES
-        loop_count++
+        loop_count = loop_count+1
         new_client_key = rand(10000000)
-        if !get_client_info_store.exist?(new_client_key)                        # Dieser Key wurde noch nie genutzt
+        unless get_client_info_store.exist?(new_client_key)                        # Dieser Key wurde noch nie genutzt
           # Salt immer mit belegen bei Vergabe des client_key, da es genutzt wird zur Verschlüsselung des Client_Key im cookie
           cookies[:client_salt] = { :value => rand(10000000000),                              :expires => 1.year.from_now }  # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
           cookies[:client_key]  = { :value => database_helper_encrypt_value(new_client_key),  :expires => 1.year.from_now }
@@ -286,7 +286,7 @@ class EnvController < ApplicationController
       </div>"
     end
 
-    @dictionary_access_problem = true if !x_memory_table_accessible?("BH", @dictionary_access_msg )
+    @dictionary_access_problem = true unless x_memory_table_accessible?("BH", @dictionary_access_msg )
 
     write_connection_to_last_logins
 
@@ -328,9 +328,7 @@ class EnvController < ApplicationController
   # Rendern des zugehörigen Templates, wenn zugehörige Action nicht selbst existiert
   def render_menu_action
     # Template der eigentlichen Action rendern
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"#{params[:redirect_controller]}/#{params[:redirect_action]}"}');" }
-    end
+    render_internal('content_for_layout', params[:redirect_controller], params[:redirect_action])
   end
 
 

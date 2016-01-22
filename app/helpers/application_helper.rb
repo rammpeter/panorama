@@ -622,9 +622,21 @@ module ApplicationHelper
   # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht
   def render_partial(partial_name = nil, additional_javascript_string = nil)
     partial_name = self.action_name if partial_name.nil?
+    render_internal(params[:update_area], controller_name, partial_name, additional_javascript_string)
+  end
+
+  # Eigentliche Durchführung des renderns, auch genutzt von env_controller.render_menu_action
+  def render_internal(update_area, controller, partial, additional_javascript_string = nil)
+    # Ersetzen des Platzhalters für single quotes durch \\x27, die nachträglich noch einmal per Javascript interpretiert werden,
+    # damit aus \\x27 ein \x27 wird
+    # Nur sinnvoll nutzbar aus SlickGrid-Spaltendeklarationen, da diese beim rendern in javascript noch einmal interpretiert werden
+
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"#{controller_name}/#{partial_name}"}'); #{additional_javascript_string}"}
+      format.js {render :js => "$('##{update_area}').html('#{escape_javascript(render_to_string :partial=>"#{controller}/#{partial}")
+                                                                 .gsub(/§SINGLE_QUOTE§/, "#{92.chr}#{92.chr}#{92.chr}#{92.chr}x27")
+                                                            }'); #{additional_javascript_string}" }
     end
+    puts escape_javascript(render_to_string :partial=>"#{controller}/#{partial}").gsub(/§SINGLE_QUOTE§/, "#{92.chr}#{92.chr}#{92.chr}#{92.chr}x27")
   end
 
   # Rücksetzen des Zählers bei Neuanmeldung

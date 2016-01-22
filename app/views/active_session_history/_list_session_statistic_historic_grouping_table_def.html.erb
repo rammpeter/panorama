@@ -2,8 +2,8 @@
 
 <script type="text/javascript">
 
-  function call_ajax_single_rows(group_by_value, record_count){
-    var json_data = <%= {:groupfilter => @groupfilter}.to_json.gsub(/%/, '%25').html_safe %>
+  function call_ajax_single_rows_<%=@update_area%>(group_by_value, record_count){
+    var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>
 
     json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
     json_data['record_count'] = record_count;
@@ -12,8 +12,8 @@
     jQuery.ajax({method: "POST", url: "/ActiveSessionHistory/list_session_statistic_historic_single_record", data: json_data});
   }
 
-  function call_ajax_grouping(min_snap_id, max_snap_id, group_by_value, next_group_by_name){
-    var json_data = <%= {:groupfilter => @groupfilter}.to_json.gsub(/%/, '%25').html_safe %>
+  function call_ajax_grouping<%=@update_area%>(min_snap_id, max_snap_id, group_by_value, next_group_by_name){
+    var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>
 
     if (min_snap_id)
       json_data['groupfilter']['Min_Snap_ID'] = min_snap_id;
@@ -29,7 +29,6 @@
 
 
 </script>
-
 
 
 <%
@@ -55,7 +54,7 @@
     # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
     "
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"}\" '+
-        'onclick=\"call_ajax_single_rows('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' )\"'+
+        'onclick=\"call_ajax_single_rows#{@update_area}('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' )\"'+
          '>'+cell_value+'</a>'
     "
   end
@@ -105,19 +104,19 @@
 
 
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"}\" '+
-        'onclick=\"call_ajax_grouping('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+')\"'+
+        'onclick=\"call_ajax_grouping#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+')\"'+
          '>'+decorated_cell_value+'</a>'
     "
   end
 
 
   def link_temp_and_pga_usage(rec, value)
-    my_ajax_link_to(value,     # Verhindern Zeilenumbruch in Anzeige
-                    url_for({:action  => :list_temp_usage_historic,
+    my_ajax_post_link(value,     # Verhindern Zeilenumbruch in Anzeige
+                    {:action  => :list_temp_usage_historic,
                      :groupfilter  => get_groupfilter(rec, @groupby, rec.group_value),
                      :time_groupby => :day,
                      :update_area  => @update_area,
-                            }),
+                            },
                     :title=>"Show total TEMP and PGA usage for current filters"
     )
   end
