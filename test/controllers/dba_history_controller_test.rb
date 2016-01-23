@@ -44,7 +44,7 @@ class DbaHistoryControllerTest < ActionController::TestCase
 
       do_inner_test(topSort, nil, nil,  nil)
       do_inner_test(topSort, nil, nil,  '14147ß1471')
-      do_inner_test(topSort, nil, 'hugo', nil)
+      do_inner_test(topSort, nil, 'hugo<>%&', nil)
       do_inner_test(topSort, 1,   nil,  nil)
     end
 
