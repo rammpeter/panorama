@@ -1061,8 +1061,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                     }
                     col_data_array.push( [ x_val, y_val ]);
                 }
-                col_data_array.sort(data_array_sort);      // Data_Array der Spalte nach X-Achse sortieren
+                col_data_array.sort(data_array_sort);                           // Data_Array der Spalte nach X-Achse sortieren
                 col_attr = {label:column['name'],
+                    delete_callback: thiz.plot_chart_delete_callback,                // aufgerufen von plot_diagram beim Entfernen einer Kurve aus Diagramm
                     data: col_data_array
                 };
                 data_array.push(col_attr);   // Erweiterung des primären arrays
@@ -1083,7 +1084,15 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         );
     }; // plot_slickgrid_diagram
 
-
+    // Callback aus plot_diagram wenn eine Kurve entfernt wurde, denn plottable der Spalte auf 0 drehen
+    this.plot_chart_delete_callback = function(legend_label){
+        var columns = thiz.grid.getColumns();
+        for (var column_index in columns) {
+            if (columns[column_index]['name'] == legend_label) {
+                columns[column_index]['plottable'] = 0;                         // diese Spalte beim nächsten plot_diagram nicht mehr mit zeichnen
+            }
+        }
+    }
 
 
     this.calc_cell_dimensions = function(value, fullvalue, column){

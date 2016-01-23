@@ -312,7 +312,6 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
     }
 
     this.delete_single_chart = function(legend_index){
-        console.log('delete_single_chart '+legend_index);
 
         // ermitteln des legenden-Namen über Index in table
         var legend_name = '';
@@ -322,13 +321,15 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             }
         });
 
-        console.log('delete_single_chart '+legend_name);
-        if (!confirm(locale_translate('diagram_remove_chart_confirm')+' "'+legend_name+'"?' ) )
-            return;
+        //if (!confirm(locale_translate('diagram_remove_chart_confirm')+' "'+legend_name+'"?' ) )
+        //    return;
 
-        // Finden der korrespondierenden Kurve im Data-Array (kann anders sortiert sein)
+        // Finden der korrespondierenden Kurve im Data-Array (kann anders sortiert sein) und entfernen dieser
         for (var data_index in data_array) {
             if (data_array[data_index].label == legend_name){
+                if (data_array[data_index]['delete_callback']){
+                    data_array[data_index]['delete_callback'](legend_name);     // deregistrieren der Spalte beim Aufrufer wenn callback hinterlegt
+                }
                 data_array.splice(data_index, 1);                               // Entfernen des Elements aus Data_Array
                 plot_diagram(unique_id, plot_area_id, caption, data_array, options);    // Neuzeichnen des Diagramm
             }
