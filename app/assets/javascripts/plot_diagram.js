@@ -294,7 +294,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             });
 
             // Zeile für Anzeige des Zeitstempels zufügen
-            legend_div.find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td></tr>");
+            legend_div.find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td><td></td></tr>");
         }
         legendXAxis         = jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
         legend_values       = jQuery('#'+canvas_id+" .legend_value");            // Liste der letzten Spalten merken für wiederholte Verwendung
