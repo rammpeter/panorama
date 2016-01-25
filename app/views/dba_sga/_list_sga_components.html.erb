@@ -1,17 +1,16 @@
-<h2>SGA-Komponenten<%=", Instance = #{@instance}" if @instance %></h2>
 <%
 column_options =
 [
   {:caption=>"I",     :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
-  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool innerhalb der SGA"},
-  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Größe in Bytes", :align=>"right"},
-  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Größe in Megabytes", :align=>"right"},
-  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Größe in Gigabytes", :align=>"right"},
+  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool within the SGA"},
+  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Size in bytes", :align=>"right"},
+  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Size in megabytes", :align=>"right"},
+  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Size in gigabytes", :align=>"right"},
 ]
 
 %>
 <%= gen_slickgrid(@sums, column_options, {
-        :caption => "Summen nach Pools",
+        :caption => "Summary by pools from gv$SGAStat#{" for instance = #{@instance}" if @instance}",
         :max_height => 450
 }) %>
 
@@ -19,19 +18,41 @@ column_options =
 column_options =
 [
   {:caption=>"I",     :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
-  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool innerhalb der SGA"},
-  {:caption=>"Name",  :data=>proc{|rec| rec.name},                                           :title=>"Name der Komponente"},
-  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Größe der Komponente in SGA in Bytes", :align=>"right"},
-  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Größe der Komponente in Megabytes",    :align=>"right"},
-  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Größe der Komponente in Gigabytes",    :align=>"right"},
+  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool within the SGA"},
+  {:caption=>"Name",  :data=>proc{|rec| rec.name},                                           :title=>"Name of the component", :data_title=>proc{|rec| "%t: #{sga_name_explanation(rec.name)}"}},
+  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Size of the component in SGA in bytes", :align=>"right"},
+  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Size of the component in SGA  in megabytes",    :align=>"right"},
+  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Size of the component in SGA  in gigabytes",    :align=>"right"},
 ]
 
 %>
 <%= gen_slickgrid(@components, column_options, {
-        :caption => "Details",
+        :caption => "Details from gv$SGAStat#{" for instance = #{@instance}" if @instance}",
         :max_height => 450
 }) %>
 
+<%
+   column_options =
+       [
+           {:caption=>'I',                    :data=>proc{|rec| rec.inst_id},                           :title=>'Instance'},
+           {:caption=>'Type',                 :data=>proc{|rec| rec.type},                              :title=>'Type of object'},
+           {:caption=>'Namespace',            :data=>proc{|rec| rec.namespace},                         :title=>'Library cache namespace of the object'},
+           {:caption=>'DB-link',              :data=>proc{|rec| rec.db_link},                           :title=>'Database link name if any'},
+           {:caption=>'Kept',                 :data=>proc{|rec| rec.kept},                              :title=>'Are this objects been "kept" (permanently pinned in memory) with the PL/SQL procedure DBMS_SHARED_POOL.KEEP'},
+           {:caption=>'Sharable Memory (MB)', :data=>proc{|rec| fn(rec.sharable_mem_mb)},               :title=>'Amount of sharable memory consumed in the shared pool', :align=>"right"},
+           {:caption=>'Count',                :data=>proc{|rec| fn(rec.counts)},                        :title=>'Number of records in gv$DB_Object_Cache for this selection', :align=>"right"},
+           {:caption=>'Count distinct',       :data=>proc{|rec| fn(rec.count_distinct)},                :title=>'Number of distinct owner, name in gv$DB_Object_Cache for this selection', :align=>"right"},
+           {:caption=>'Loads',                :data=>proc{|rec| fn(rec.loads)},                         :title=>'Number of times the objects has been loaded. This count also increases when an object has been invalidated.', :align=>"right"},
+           {:caption=>'Locks',                :data=>proc{|rec| fn(rec.locks)},                         :title=>'Number of users currently locking this objects', :align=>"right"},
+           {:caption=>'Pins',                 :data=>proc{|rec| fn(rec.pins)},                          :title=>'Number of users currently pinning this objects', :align=>"right"},
+           {:caption=>'Invalidations',        :data=>proc{|rec| fn(rec.invalidations)},                 :title=>'Total number of times objects in the namespace were marked invalid because a dependent object was modified', :align=>"right"},
+       ]
+
+%>
+<%= gen_slickgrid(@objects, column_options, {
+    :caption => "Summary from gv$DB_Object_Cache (objects that are cached in the library cache)#{" for instance = #{@instance}" if @instance}",
+    :max_height => 450
+}) %>
 
 
 

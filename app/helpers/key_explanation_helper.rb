@@ -428,4 +428,23 @@ module KeyExplanationHelper
   end
 
 
+  @@sga_names = nil # Cache
+
+  def sga_name_explanation(search_sga_name)
+    unless @@sga_names
+      @@sga_names = {
+          'KGLH0' => 'Kernel generic library heap 0: session specific environment informations for child cursors',
+          'SQLA'  => 'SQL area ',
+      }
+    end
+
+    if @@sga_names[search_sga_name]
+      @@sga_names[search_sga_name]
+    else
+      "unknown SGA name '#{search_sga_name}'"
+    end
+  end
+
+
+
 end

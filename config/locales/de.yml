@@ -209,6 +209,10 @@
   dba_sga_list_sql_detail_execution_plan_rows_title:        Durchschn. Anzahl produzierte Rows der Operation je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_starts_title:      Durchschnittliche Anzahl Starts der Operation je Ausführung des SQL
 
+  dba_sga_show_sga_components_caption:                      Anzeige der Memory-Verbraucher der SGA
+  dba_sga_show_sga_components_submit_caption:               Anzeige der Memory-Komponenten
+  dba_sga_show_sga_components_submit_hint:                  Anlistung der Memory-Komponenten der SGA
+
   dba_sga_show_sql_area_caption:                            Ressourcenintensive Statements aus
   dba_sga_show_sql_area_filter_hint:                        Filter-string muss in betrachteten SQL-Statements enthalten sein. Wildcards (%,_) können benutzt werden. (optional)
   dba_sga_show_sql_area_max_result_count_caption:           Anzahl Treffer

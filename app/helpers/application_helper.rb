@@ -636,7 +636,6 @@ module ApplicationHelper
                                                                  .gsub(/§SINGLE_QUOTE§/, "#{92.chr}#{92.chr}#{92.chr}#{92.chr}x27")
                                                             }'); #{additional_javascript_string}" }
     end
-    puts escape_javascript(render_to_string :partial=>"#{controller}/#{partial}").gsub(/§SINGLE_QUOTE§/, "#{92.chr}#{92.chr}#{92.chr}#{92.chr}x27")
   end
 
   # Rücksetzen des Zählers bei Neuanmeldung

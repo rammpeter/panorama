@@ -32,7 +32,7 @@
   column_options << {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute)},      :title=>"Anzahl Rows processed per Execute", :align=>"right"}
   column_options << {:caption=>"Parses",      :data=>proc{|rec| formattedNumber(rec.parse_calls)},                     :title=>"Anzahl Parse-Calls insgesamt", :data_title=>proc{|rec| "Anzahl Parse-Calls, #{formattedNumber(rec.executions.to_f/rec.parse_calls,2) if rec.parse_calls > 0} Executions je Parse-Call"},  :align=>"right"}
   column_options << {:caption=>"Status",      :data=>proc{|rec| rec.object_status},                                    :title=>"Object-Status"}
-  column_options << {:caption=>"Memory (KB)", :data=>proc{|rec| fn((rec.sharable_mem+rec.persistent_mem+rec.runtime_mem)/1024.0,2)},  :title=>"Sharable memory + persistent memory + runtime memory in kBytes", :align=>:right}
+  column_options << {:caption=>"Memory (KB)", :data=>proc{|rec| fn((rec.sharable_mem+rec.persistent_mem+rec.runtime_mem)/1024.0,2)},  :title=>"Sharable memory + persistent memory + runtime memory in kBytes", :align=>:right, :data_title=>proc{|rec| "%t: Sharable memory = #{fn(rec.sharable_mem/1024.0)} kB, persistent memory = #{fn(rec.persistent_mem/1024.0)} kB, runtime memory = #{fn(rec.runtime_mem/1024.0)} kB"}}
 
 %>
 

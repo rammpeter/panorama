@@ -502,7 +502,8 @@ class DbaSgaController < ApplicationController
       FROM   gv$sgastat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
       GROUP BY Inst_ID, NVL(Pool, Name)
-      ORDER BY 2 DESC", @instance]
+      ORDER BY 3 DESC", @instance]
+
     @components = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
         Inst_ID,
@@ -511,7 +512,23 @@ class DbaSgaController < ApplicationController
         Bytes
       FROM GV$SGAStat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
-      ORDER BY 1 DESC", @instance]
+      ORDER BY Bytes DESC", @instance]
+
+    @objects = sql_select_iterator ["\
+      SELECT /* Panorama-Tool Ramm */
+        Inst_ID, Type, Namespace, DB_Link, Kept,
+        SUM(Sharable_Mem)/(1024*1024)   Sharable_Mem_MB,
+        SUM(Loads)                      Loads,
+        SUM(Locks)                      Locks,
+        SUM(Pins)                       Pins,
+        SUM(Invalidations)              Invalidations,
+        COUNT(*)                        Counts,
+        COUNT(DISTINCT Owner||'.'||Name) Count_Distinct
+      FROM GV$DB_Object_Cache
+      #{@instance ? "WHERE  Inst_ID = ?" : ""}
+      GROUP BY Inst_ID, Type, Namespace, DB_Link, Kept
+      ORDER BY 6 DESC", @instance]
+
 
     render_partial
   end
