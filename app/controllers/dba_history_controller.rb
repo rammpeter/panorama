@@ -654,10 +654,10 @@ class DbaHistoryController < ApplicationController
 
       if get_db_version >= "11.2"     # Ab 11.2 sind ASH-Records mit Verweis auf Zeile des Ausführungsplans versehen
         ash = sql_select_all ["\SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
-                                        SQL_PLan_Line_ID,
-                                        COUNT(*)                                                   DB_Time_Seconds,
-                                        SUM(CASE WHEN Session_State = 'ON CPU'  THEN 1 ELSE 0 END) CPU_Seconds,
-                                        SUM(CASE WHEN Session_State = 'WAITING' THEN 1 ELSE 0 END) Waiting_Seconds,
+                                        NVL(SQL_PLan_Line_ID, 0)                                   SQL_PLan_Line_ID,   -- NULL auf den Knoten 0 des Plans zurückführen (0 wird in 11.2.0.3 nicht mit nach DBA_HAS übernommen
+                                        COUNT(*) * 10                                              DB_Time_Seconds,
+                                        SUM(CASE WHEN Session_State = 'ON CPU'  THEN 10 ELSE 0 END) CPU_Seconds,
+                                        SUM(CASE WHEN Session_State = 'WAITING' THEN 10 ELSE 0 END) Waiting_Seconds,
                                         SUM(Delta_Read_IO_Requests)       Read_IO_Requests,
                                         SUM(Delta_Write_IO_Requests)      Write_IO_Requests,
                                         SUM(NVL(Delta_Read_IO_Requests,0)+NVL(Delta_Write_IO_Requests,0)) IO_Requests,
