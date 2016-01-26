@@ -9,7 +9,7 @@
     json_data['record_count'] = record_count;
     json_data['update_area'] = '<%= @update_area %>';
 
-    jQuery.ajax({method: "POST", url: "/ActiveSessionHistory/list_session_statistic_historic_single_record", data: json_data});
+    jQuery.ajax({method: "POST", url: "ActiveSessionHistory/list_session_statistic_historic_single_record", data: json_data});
   }
 
   function call_ajax_grouping<%=@update_area%>(min_snap_id, max_snap_id, group_by_value, next_group_by_name){
@@ -24,7 +24,7 @@
     json_data['groupby'] = next_group_by_name;
     json_data['update_area'] = '<%= @update_area %>';
 
-    jQuery.ajax({method: "POST", url: "/ActiveSessionHistory/list_session_statistic_historic_grouping", data: json_data});
+    jQuery.ajax({method: "POST", url: "ActiveSessionHistory/list_session_statistic_historic_grouping", data: json_data});
   }
 
 
