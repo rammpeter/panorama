@@ -109,6 +109,7 @@ class DbaSgaController < ApplicationController
               when "BufferGets"           then "s.Buffer_gets DESC"
               when "ClusterWaits"         then "s.Cluster_Wait_Time DESC"
               when "LastActive"           then "s.Last_Active_Time DESC"
+              when "Memory"               then "s.SHARABLE_MEM+s.PERSISTENT_MEM+s.RUNTIME_MEM DESC"
             end} )
   WHERE ROWNUM < ?
   ORDER BY #{
@@ -123,6 +124,7 @@ class DbaSgaController < ApplicationController
           when "BufferGets"           then "Buffer_gets DESC"
           when "ClusterWaits"         then "Cluster_Wait_Time_Secs DESC"
           when "LastActive"           then "Last_Active_Time DESC"
+          when "Memory"               then "SHARABLE_MEM+PERSISTENT_MEM+RUNTIME_MEM DESC"
         end}"
     ].concat(where_values)
   end

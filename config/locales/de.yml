@@ -218,6 +218,7 @@
   dba_sga_show_sql_area_max_result_count_caption:           Anzahl Treffer
   dba_sga_show_sql_area_max_result_count_hint:              Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung)
   dba_sga_show_sql_area_sort_last_active_hint:              Sortiert nach Zeitpunkt der letzten Ausführung des SQL
+  dba_sga_show_sql_area_sort_memory_hint:                   Sortiert nach Größe des allokierten Speichers in der SGA
   dba_sga_show_sql_area_submit_caption:                     SQL anzeigen
   dba_sga_show_sql_area_submit_hint:                        Anlistung der SQL nach Suchkriterien
 

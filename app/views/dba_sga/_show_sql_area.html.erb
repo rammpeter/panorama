@@ -70,6 +70,13 @@
         <%= radio_button_tag(:topSort, :LastActive, false) %>
         LastActive
       </div>
+      <div class="float_left" title="<%= t(:dba_sga_show_sql_area_sort_memory_hint, :default=>'Sorted by amount of allocated memory in SGA')%>">
+        <%= radio_button_tag(:topSort, :Memory, false) %>
+        Memory
+      </div>
+
+
+
     </fieldset>
   </div>
 <% end %>

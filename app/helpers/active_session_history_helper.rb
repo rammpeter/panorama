@@ -100,9 +100,9 @@ module ActiveSessionHistoryHelper
       if value && value != ''
         retval[:sql] = "#{retval[:sql]} = ?"
       else
-        if retval[:sql]["?"]
-          puts retval.to_s
-        end
+        #if retval[:sql]["?"]
+        #  puts retval.to_s
+        #end
         retval[:sql] = "#{retval[:sql]} IS NULL"
       end
     end
