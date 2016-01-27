@@ -274,7 +274,7 @@
   dragnet_helper_group_unnecessary_executions:              Eventuell unnötige Ausührungen von SQL-Statements
   dragnet_helper_group_unnecessary_high_execution_frequency:  Eventuell unnötig hohe Frequenz von Executes/Fetches von SQL-Statements
   dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
-  dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter tabellen oder Spalten
+  dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter Tabellen oder Spalten
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
 
   dragnet_helper_param_executions_hint:                     Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion
@@ -800,6 +800,16 @@
     PX COORDINATOR FORCED SERIAL im Execution-Plan zeigt, dass der Optimizer parallele Ausführung annimmt, dann aber Hinderungsgründe düe parallele Ausführung feststellt (z.B. stored functions ohne PARALLEL_ENABLE).
     Die Operationen unter der Zeile des Ausführungsplans werden in der Realität nicht parallel ausgeführt auch wenn der Optimizer sie für parallele Ausführung markiert hat!
   dragnet_helper_105_name:                                  Statements mit geplanter paralleler Execution forced to serial
+
+  dragnet_helper_106_desc: |-
+    Die Nutzung von Index-Attributen als Filter statt als Access-Kriterium mit gleichzeitig signifikanter Last durch den Index-Zugriff deuete auf mögliche Probleme beim Index-Zugriff.
+    Dies könnten z.B. sein:
+    - Falscher Datentyp der Bindevariable
+    - Nutzung von Funktionen auf der falschen Seite beim Zugriff auf Spalten des Index
+    Diese Selektion wertet die aktuelle SGA aus.
+  dragnet_helper_106_name:                                  Suboptimaler Zugriff auf Indizes mit nur teilweiser Nutzung des Index
+  dragnet_helper_106_param_1_hint:                           Mindestlaufzeit in Sekunden für den Index-Zugriff seit dem letzten Laden des SQL in der SGA
+  dragnet_helper_106_param_1_name:                           Mindest-Laufzeit beim Index-Zugriff in Sekunden
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

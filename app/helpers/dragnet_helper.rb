@@ -1834,6 +1834,33 @@ This reduces runtime, redo-contention and ensures reset of high water mark'),
                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
             ]
         },
+        {
+            :name  => t(:dragnet_helper_106_name, :default => 'Sub-optimal index access with only partial usage of index'),
+            :desc  => t(:dragnet_helper_106_desc, :default => 'Occurrence of index attributes as filter instead of access criteria with signifcant load by index access targets to possible problems with index usage.
+This may be caused by for example:
+- wrong data type for bind variable
+- usage of functions at the wrong side while accessing columns of index
+This selection evaluates current SGA.
+'),
+            :sql=>  " SELECT h.Elapsed_Secs , p.SQL_ID, p.Child_Number, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.ID Plan_Line_ID, p.Access_Predicates, p.Filter_Predicates
+                      FROM   gv$SQL_Plan p
+                      JOIN   (
+                              SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Elapsed_Secs
+                              FROM   gv$Active_Session_History
+                              WHERE  SQL_Plan_Operation = 'INDEX'
+                              GROUP BY Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+                           ) h ON h.Inst_ID=p.Inst_ID AND h.SQL_ID=p.SQL_ID AND h.SQL_Child_Number=p.Child_Number AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
+                      WHERE  p.Access_Predicates IS NOT NULL
+                      AND    p.Filter_predicates IS NOT NULL
+                      AND    p.Operation = 'INDEX'
+                      --AND    INSTR(p.access_predicates, p.filter_predicates) !=0  -- Filter vollständig in Access enthalten
+                      AND h.Elapsed_Secs > ?
+                      ORDER BY h.Elapsed_Secs DESC
+                    ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_106_param_1_name, :default=>'Minimum runtime for index access in seconds'), :size=>8, :default=>100, :title=>t(:dragnet_helper_106_param_1_hint, :default=>'Minimum runtime in seconds for index access since last load of SQL in SGA') },
+            ]
+        },
       ]
   end
 
