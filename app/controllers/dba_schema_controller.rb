@@ -24,6 +24,7 @@ class DbaSchemaController < ApplicationController
     @tablespace_name = params[:tablespace][:name]   if params[:tablespace]
     @schema_name     = params[:schema][:name]       if params[:schema]
     filter           = params[:filter]
+    segment_name     = params[:segment_name]
     if params[:showPartitions] == "1"
        groupBy = "Owner, Segment_Name, Tablespace_Name, Segment_Type, Partition_Name"
        partCol = "Partition_Name"
@@ -50,6 +51,11 @@ class DbaSchemaController < ApplicationController
       where_values << filter
     end
 
+    if segment_name
+      where_string << " AND UPPER(s.Segment_Name) = UPPER(?)"
+      where_values << segment_name
+    end
+
     @objects = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
         CASE WHEN Segment_Name LIKE 'SYS_LOB%' THEN
@@ -72,7 +78,8 @@ class DbaSchemaController < ApplicationController
         SUM(EXTENTS)                    Used_Ext,               
         SUM(bytes)/(1024*1024)          MBytes,
         SUM(INITIAL_EXTENT)/1024        Init_Ext,               
-        SUM(Num_Rows)                   Num_Rows,               
+        SUM(Num_Rows)                   Num_Rows,
+        CASE WHEN COUNT(DISTINCT Compression) <= 1 THEN MIN(Compression) ELSE '<several>' END Compression,
         AVG(Avg_Row_Len)                Avg_RowLen,
         AVG(100-(((Avg_Row_Len)*Num_Rows*100)/Bytes)) Percent_Free,
         AVG(100-(((Avg_Row_Len)*Num_Rows*100)/Bytes))*SUM(bytes)/(100*1024*1024) MBytes_Free_avg_row_len,
@@ -96,6 +103,14 @@ class DbaSchemaController < ApplicationController
                  'INDEX PARTITION',    ip.Num_Rows,
                  'INDEX SUBPARTITION', isp.Num_Rows,
                NULL) num_rows,
+               DECODE(s.Segment_Type,
+                 'TABLE',              t.Compression  ||#{get_db_version >= '11.2' ? "CASE WHEN   t.Compression != 'DISABLED' THEN ' ('||  t.Compress_For||')' END" : "''"},
+                 'TABLE PARTITION',    tp.Compression ||#{get_db_version >= '11.2' ? "CASE WHEN  tp.Compression != 'DISABLED' THEN ' ('|| tp.Compress_For||')' END" : "''"},
+                 'TABLE SUBPARTITION', tsp.Compression||#{get_db_version >= '11.2' ? "CASE WHEN tsp.Compression != 'DISABLED' THEN ' ('||tsp.Compress_For||')' END" : "''"},
+                 'INDEX',              i.Compression,
+                 'INDEX PARTITION',    ip.Compression,
+                 'INDEX SUBPARTITION', isp.Compression,
+               NULL) Compression,
                CASE WHEN s.Segment_Type = 'TABLE'              THEN t.Avg_Row_Len
                     WHEN s.Segment_Type = 'TABLE PARTITION'    THEN tp.Avg_Row_Len
                     WHEN s.Segment_Type = 'TABLE SUBPARTITION' THEN tsp.Avg_Row_Len

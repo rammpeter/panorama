@@ -672,7 +672,8 @@ class AdditionController < ApplicationController
                        MAX(Gather_Date) Date_End,
                        MIN(MBytes) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) Start_Mbytes,
                        MAX(MBytes) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) End_Mbytes,
-                       REGR_SLOPE(MBytes, Gather_Date-TO_DATE('1900', 'YYYY')) Anstieg
+                       REGR_SLOPE(MBytes, Gather_Date-TO_DATE('1900', 'YYYY')) Anstieg,
+                       COUNT(*) Samples
                 FROM   #{@object_name} s
                 WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
                 AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')

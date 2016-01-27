@@ -937,7 +937,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   def list_session_optimizer_environment
     @env = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             Name, SQL_Feature, IsDefault, Value
+             Name, #{'SQL_Feature, ' if get_db_version >= '11.2'}IsDefault, Value
       FROM   gV$SES_OPTIMIZER_ENV
       WHERE  Inst_ID = ?
       AND    SID = ?

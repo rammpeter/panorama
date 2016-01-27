@@ -16,11 +16,12 @@
 column_options =
   [
     {:caption=>"Owner",           :data=>proc{|rec| rec.owner},                      :title=>"Object-owner"},
-    {:caption=>"Name",            :data=>proc{|rec| link_column_detail(rec, rec.segment_name)}, :title=>"Segment-name"},
+    {:caption=>"Name",            :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.segment_name, rec.segment_name)}, :title=>"Segment-name"},
     {:caption=>"Type",            :data=>proc{|rec| rec.segment_type},               :title=>"Segment-type"},
     {:caption=>"Tablespace",      :data=>proc{|rec| rec.last_ts},                    :title=>"Tablespace des Objektes am Ende der Betrachtung"},
     {:caption=>"Start",           :data=>proc{|rec| localeDateTime(rec.date_start)}, :title=>"Erste Aufzeichnung der Größe"},
     {:caption=>"Ende",            :data=>proc{|rec| localeDateTime(rec.date_end)},   :title=>"Letzte Aufzeichnung der Größe"},
+    {:caption=>'Samples',         :data=>proc{|rec| link_column_detail(rec, fn(rec.samples))},  :title=>"Anzahl der Sample-Records in Tabelle #{@object_name}"},
     {:caption=>"MB Start",        :data=>proc{|rec| formattedNumber(rec.start_mbytes)}, :title=>"Größe des Objektes in MB zum Start der Betrachtung",              :align=>:right},
     {:caption=>"MB End",          :data=>proc{|rec| formattedNumber(rec.end_mbytes)}, :title=>"Größe des Objektes in MB zum Ende der Betrachtung",                 :align=>:right},
     {:caption=>"MB Änderung",     :data=>proc{|rec| formattedNumber(rec.aenderung_abs)}, :title=>"Änderung der Größe des Objektes in MB während der Betrachtung",  :align=>:right},

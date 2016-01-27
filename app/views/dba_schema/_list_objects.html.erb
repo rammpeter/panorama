@@ -1,14 +1,32 @@
 <%
   @update_area = get_unique_area_id
 
+   def link_partition(rec)
+     if (Float(rec.partition_name) rescue false)
+       my_ajax_post_link(rec.partition_name,     # Verhindern Zeilenumbruch in Anzeige
+                     {:action           => :list_objects,
+                      :tablespace       => {:name => @tablespace_name},
+                      :schema           => {:name => rec.owner},
+                      :segment_name     => rec.segment_name,
+                      :showPartitions   => 1,
+                      :update_area      => @update_area,
+                             },
+                     :title=>'Show details for partitions'
+       )
+     else
+       rec.partition_name
+     end
+   end
+
 
   column_options =
   [
     {:caption=> 'TS',                :data=>proc{|rec| rec.tablespace_name},                     :title=> 'Tablespace-Name'},
     {:caption=> 'Schema',            :data=>proc{|rec| rec.owner},                               :title=> 'Schema-Name'},
     {:caption=> 'Name',              :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.segment_name, rec.segment_name_qual)}, :title=> 'Object-Name'},
-    {:caption=> 'Partition',         :data=>proc{|rec| rec.partition_name},                      :title=> 'Partition-Name bzw. Anzahl Partitionen'},
+    {:caption=> 'Partition',         :data=>proc{|rec| link_partition(rec)},                      :title=> 'Partition-Name bzw. Anzahl Partitionen'},
     {:caption=> 'Type',              :data=>proc{|rec| rec.segment_type},                        :title=> 'Object-Typ'},
+    {:caption=> 'Compression',       :data=>proc{|rec| h rec.compression},                         :title=> 'Type of compression if compression is used'},
     {:caption=> 'Used Ext',          :data=>proc{|rec| fn(rec.used_ext)},        :align=>:right, :title=> 'Genutzte Anzahl Extents'},
     {:caption=> 'MBytes',            :data=>proc{|rec| fn(rec.mbytes)},          :align=>:right, :title=> 'Größe der Extents im Tablespace in MBytes',  :show_pct_hint=>true},
     {:caption=> 'NumRows',           :data=>proc{|rec| fn(rec.num_rows)},        :align=>:right, :title=> 'Anzahl Rows lt. letzter Analyse'},
