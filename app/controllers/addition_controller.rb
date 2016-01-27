@@ -631,8 +631,11 @@ class AdditionController < ApplicationController
 
 
   def show_object_increase
-    @tablespaces = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT Tablespace_Name Name FROM DBA_Tablespaces ORDER BY Name")
-    @schemas     = sql_select_all("SELECT '[Alle]' Name FROM DUAL UNION ALL SELECT UserName Name FROM DBA_Users ORDER BY Name")
+    @tablespaces = sql_select_all("SELECT Tablespace_Name Name FROM DBA_Tablespaces ORDER BY Name")
+    @schemas     = sql_select_all("SELECT UserName Name FROM DBA_Users ORDER BY Name")
+
+    @tablespaces.insert(0,  {:name=>all_dropdown_selector_name}.extend(SelectHashHelper))
+    @schemas.insert(0,      {:name=>all_dropdown_selector_name}.extend(SelectHashHelper))
 
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"show_object_increase" }');"}
@@ -651,12 +654,12 @@ class AdditionController < ApplicationController
     wherestr = ""
     whereval = []
 
-    if params[:schema][:name] != '[Alle]'
+    if params[:schema][:name] != all_dropdown_selector_name
       wherestr << " AND Owner=? "
       whereval << params[:schema][:name]
     end
 
-    if params[:tablespace][:name] != '[Alle]'
+    if params[:tablespace][:name] != all_dropdown_selector_name
       wherestr << " AND Last_TS=? "
       whereval << params[:tablespace][:name]
     end

@@ -1,6 +1,7 @@
 ﻿de:
 # Globale Texte ohne Bezug zu erb
   additional_infos:                                         Zusätzliche Informationen
+  all:                                                      Alle
   and:                                                      und
   close:                                                    Schliessen
   content:                                                  Inhalt
@@ -198,6 +199,18 @@
   dba_list_sessions_service_hint:                           Name des TNS-Service über den die Session connected ist
   dba_list_sessions_show_session_hint:                      Anzeige Details zu Session
   dba_list_sessions_temp_hint:                              Genutzter Temp-Tablespace (MB)
+
+  dba_schema_list_objects_avg_space_hint:                   Durchschn. ungenutzte Bytes je Block laut analyze-Info avg_space
+  dba_schema_list_objects_compression_hint:                 Typ der Komprimierung (wenn genutzt)
+  dba_schema_list_objects_empty_blocks_hint:                Ungenutzter Blöcke laut empty_blocks
+  dba_schema_list_objects_last_anaylze_hint:                Zeitpunkt der letzten Analyse
+  dba_schema_list_objects_mbytes_free_hint:                 Ungenutzter Platz innerhalb der Extents in MBytes. Ermittelt aus Extents - (Avg_Row_Len*Num_Rows)
+  dba_schema_list_objects_mbytes_hint:                      Größe der Extents im Tablespace in MBytes
+  dba_schema_list_objects_num_rows_hint:                    Anzahl Rows lt. letzter Analyse
+  dba_schema_list_objects_pct_free_hint:                    Ungenutzter Platz innerhalb der Extents in %. Ermittelt aus Extents - (Avg_Row_Len*Num_Rows)
+  dba_schema_list_objects_row_len_hint:                     Durchschn. Größe eines Records lt. letzter Analyse (Avg_Row_Len für Table, Summe Avg_Col_Len + RowID für Indizes)
+  dba_schema_list_objects_partition_hint:                   Partition-Name bzw. Anzahl Partitionen
+  dba_schema_list_objects_used_extents_hint:                Genutzte Anzahl Extents
 
   dba_sga_list_sql_area_caption:                            SQL der aktuellen SGA aus %{modus}, gruppiert nach
 

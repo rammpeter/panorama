@@ -660,5 +660,9 @@ module ApplicationHelper
     #my_html_escape(origin).gsub(/,/, ',&#8203;').html_safe    # Komma erweitert um Space mit breite 0, an dem bei word_wrap: brake_word trotzdem umgebrochen werden soll
   end
 
+  # Alias-Bezeichnung für Alle in Combobox
+  def all_dropdown_selector_name
+    "[ #{t(:all, :default=>'All')} ]"
+  end
 
 end

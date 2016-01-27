@@ -3,17 +3,20 @@ class DbaSchemaController < ApplicationController
   # Einstieg in Seite (Menü-Action)
   def show_object_size
     @tablespaces = sql_select_all("\
-      SELECT '[Alle]' Name FROM DUAL UNION ALL                  
       SELECT /* Panorama-Tool Ramm */
         TABLESPACE_NAME Name                                    
       FROM DBA_TableSpaces                                      
       ORDER BY 1 ");
+    @tablespaces.insert(0, {:name=>all_dropdown_selector_name}.extend(SelectHashHelper))
+
+
     @schemas = sql_select_all("\
-      SELECT '[Alle]' Name FROM DUAL UNION ALL                  
       SELECT /* Panorama-Tool Ramm */
         UserName Name                                           
       FROM DBA_Users
       ORDER BY 1 ");
+    @schemas.insert(0, {:name=>all_dropdown_selector_name}.extend(SelectHashHelper))
+
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba_schema/show_object_size" }');"}
     end
@@ -36,12 +39,12 @@ class DbaSchemaController < ApplicationController
     where_string = ""
     where_values = []
 
-    if !@tablespace_name.nil? && @tablespace_name != '[Alle]'
+    if !@tablespace_name.nil? && @tablespace_name != all_dropdown_selector_name
       where_string << " AND s.Tablespace_Name=?"
       where_values << @tablespace_name
     end
 
-    if !@schema_name.nil? && @schema_name != '[Alle]'
+    if !@schema_name.nil? && @schema_name != all_dropdown_selector_name
       where_string << " AND s.Owner=?"
       where_values << @schema_name
     end
