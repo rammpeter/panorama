@@ -990,4 +990,10 @@
   storage_tablespace_usage_schemas_mb_hint:                 Genutzter Platz in MB für Segment-Typ
   storage_tablespace_usage_schemas_link_hint:               Anzeige der Objekte des Schemas
   storage_tablespace_usage_tablespaces_link_hint:           Anzeige der Objekte des Tablespaces
+  storage_tablespace_usage_total_caption:                   Summen total
+  storage_tablespace_usage_total_pct_hint:                  Prozentuale Auslastung
+  storage_tablespace_usage_total_size_free_hint:            Freier Platz in MB
+  storage_tablespace_usage_total_size_total_hint:           Größe gesamt in MB
+  storage_tablespace_usage_total_size_used_hint:            Genutzter Platz in MB
+  storage_tablespace_usage_total_type_hint:                 Typ der Allokation
 
