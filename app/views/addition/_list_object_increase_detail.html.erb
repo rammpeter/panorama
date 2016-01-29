@@ -30,5 +30,5 @@ column_options =
   ]
 %>
 
-<%= gen_slickgrid(@incs, column_options, {:caption=>"Objekt-Wachstum aus #{@object_name}", :max_height => 450 }) %>
+<%= gen_slickgrid(@incs, column_options, {:caption=>"Objekt-Wachstum aus #{@object_name}#{", Tablespace='#{@tablespace_name}'" if @tablespace_name}#{", Schema='#{@schema_name}'" if @schema_name}", :max_height => 450 }) %>
 <div id="<%= @update_area%>"></div>

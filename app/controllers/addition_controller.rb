@@ -645,25 +645,29 @@ class AdditionController < ApplicationController
 
   def list_object_increase
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+
+    @wherestr = ""
+    @whereval = []
+
+    if params[:schema][:name] != all_dropdown_selector_name
+      @schema_name = params[:schema][:name]
+      @wherestr << " AND Owner=? "
+      @whereval << @schema_name
+    end
+
+
     list_object_increase_detail if params[:detail]
     list_object_increase_timeline if params[:timeline]
   end
 
   def list_object_increase_detail
     @object_name =  object_increase_object_name
-    wherestr = ""
-    whereval = []
-
-    if params[:schema][:name] != all_dropdown_selector_name
-      wherestr << " AND Owner=? "
-      whereval << params[:schema][:name]
-    end
 
     if params[:tablespace][:name] != all_dropdown_selector_name
-      wherestr << " AND Last_TS=? "
-      whereval << params[:tablespace][:name]
+      @tablespace_name = params[:tablespace][:name]
+      @wherestr << " AND Last_TS=? "
+      @whereval << @tablespace_name
     end
-
 
     @incs = sql_select_all ["
         SELECT s.*, End_Mbytes-Start_MBytes Aenderung_Abs,
@@ -683,10 +687,10 @@ class AdditionController < ApplicationController
                 GROUP BY Owner, Segment_Name, Segment_Type
                ) s
         WHERE  Start_MBytes != End_MBytes
-        #{wherestr}
+        #{@wherestr}
         ORDER BY End_Mbytes-Start_MBytes DESC",
                             @time_selection_start, @time_selection_end
-                           ].concat(whereval)
+                           ].concat(@whereval)
 
     render_partial "list_object_increase_detail"
   end
@@ -695,19 +699,11 @@ class AdditionController < ApplicationController
     @object_name =  object_increase_object_name
     groupby = params[:gruppierung][:tag]
 
-    wherestr = ""
-    whereval = []
-
-    if params[:schema][:name] != '[Alle]'
-      wherestr << " AND Owner=? "
-      whereval << params[:schema][:name]
+    if params[:tablespace][:name] != all_dropdown_selector_name
+      @tablespace_name = params[:tablespace][:name]
+      @wherestr << " AND Tablespace_Name=? "
+      @whereval << @tablespace_name
     end
-
-    if params[:tablespace][:name] != '[Alle]'
-      wherestr << " AND Tablespace_Name=? "
-      whereval << params[:tablespace][:name]
-    end
-
 
     sizes = sql_select_all ["
         SELECT /*+ PARALLEL(s,2) */
@@ -717,11 +713,11 @@ class AdditionController < ApplicationController
         FROM   #{@object_name} s
         WHERE  Gather_Date >= TO_DATE(?, '#{sql_datetime_minute_mask}')
         AND    Gather_Date <= TO_DATE(?, '#{sql_datetime_minute_mask}')
-        #{wherestr}
+        #{@wherestr}
         GROUP BY Gather_Date, #{groupby}
         ORDER BY Gather_Date, #{groupby}",
                             @time_selection_start, @time_selection_end
-                           ].concat(whereval)
+                           ].concat(@whereval)
 
 
     column_options =
@@ -759,7 +755,7 @@ class AdditionController < ApplicationController
         :show_y_axes      => true,
         :plot_area_id     => :list_object_increase_timeline_diagramm,
         :max_height       => 450,
-        :caption          => "Zeitleiste nach #{groupby} aus #{@object_name}"
+        :caption          => "Zeitleiste nach #{groupby} aus #{@object_name}#{", Tablespace='#{@tablespace_name}'" if @tablespace_name}#{", Schema='#{@schema_name}'" if @schema_name}"
     })
     output << "</div><div id='list_object_increase_timeline_diagramm'></div>".html_safe
 

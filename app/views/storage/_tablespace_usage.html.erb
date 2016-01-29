@@ -24,14 +24,14 @@ column_options =
 <%
 column_options =
 [
-  {:caption=>"Segment-Type",   :data=>proc{|rec| rec.segment_type},                   :title=>"Segment-Type der Summe"},
-  {:caption=>"MBytes",       :data=>proc{|rec| formattedNumber(rec.mbytes)},          :title=>"Größe des Segment-Type (Belegter Platz Netto) in MB",        :align=>:right},
+  {:caption=>"Segment-Type",   :data=>proc{|rec| rec.segment_type},                   :title=>t(:storage_tablespace_usage_segment_type_hint, :default=>'Segment type of sum')},
+  {:caption=>"MBytes",       :data=>proc{|rec| formattedNumber(rec.mbytes)},          :title=>t(:storage_tablespace_usage_segment_mbytes_hint, :default=>'Size of segment type (used space net) in MBytes'),        :align=>:right},
 ]
 
 %>
 
 <div class="float_left">
-  <%= gen_slickgrid(@segments, column_options, {:caption => "Summen Netto in TS nach Segment-Typen", :width=>:auto, :max_height=>450}) %>
+  <%= gen_slickgrid(@segments, column_options, {:caption =>t(:storage_tablespace_usage_segment_caption, :default=>'Net sums in TS by segment types'), :width=>:auto, :max_height=>450}) %>
 </div>
 
 <%
@@ -61,9 +61,9 @@ column_options =
 
    column_options =
 [
-  {:caption=>"Tablespace",          :data=>proc{|rec| rec.tablespace_name},             :title=>"Name des Tablespace"},
-  {:caption=>"Contents",            :data=>proc{|rec| rec.contents},                    :title=>"Typ/Inhalt des Tablespace"},
-  {:caption=>"Blocksize",           :data=>proc{|rec| formattedNumber(rec.blocksize)},  :title=>"Blocksize in Byte des Tablespaces",        :align=>:right},
+  {:caption=>"Tablespace",          :data=>proc{|rec| rec.tablespace_name},             :title=>t(:storage_tablespace_usage_tablespace_name_hint, :default=>'Name of tablespace')},
+  {:caption=>"Contents",            :data=>proc{|rec| rec.contents},                    :title=>t(:storage_tablespace_usage_tablespace_content_hint, :default=>'Type/content of tablespace') },
+  {:caption=>"Blocksize",           :data=>proc{|rec| formattedNumber(rec.blocksize)},  :title=>t(:storage_tablespace_usage_tablespace_blocksize_hint, :default=>'Blocksize of tablespace in Bytes'),        :align=>:right},
   {:caption=>"MB Total",            :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>"Größe des Tablespace gesamt in MB",        :align=>:right},
   {:caption=>"MB Used",             :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>"Genutzter Platz des Tablespaces in MB",    :align=>:right, :field_decorator_function=>decorator_mb_used},
   {:caption=>"MB Free",             :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>"Freier Platz des Tablespaces in MB",       :align=>:right},
