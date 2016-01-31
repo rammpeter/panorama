@@ -2,7 +2,7 @@
 
 <script type="text/javascript">
 
-  function call_ajax_single_rows_<%=@update_area%>(group_by_value, record_count){
+  function call_ajax_single_rows<%=@update_area%>(group_by_value, record_count){
     var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>
 
     json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
