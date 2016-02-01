@@ -259,7 +259,7 @@ class EnvController < ApplicationController
                                                FROM  GV$Instance gi
                                                JOIN  v$Database d ON 1=1
                                                LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
-                                               LEFT OUTER JOIN (SELECT DBID, MIN(EXTRACT(MINUTE FROM Snap_Interval)) Snap_Interval_Minutes, MIN(EXTRACT(DAY FROM Retention)) Snap_Retention_Days FROM DBA_Hist_WR_Control GROUP BY DBID) ws ON ws.DBID = ?
+                                               LEFT OUTER JOIN (SELECT DBID, MIN(EXTRACT(HOUR FROM Snap_Interval))*60 + MIN(EXTRACT(MINUTE FROM Snap_Interval)) Snap_Interval_Minutes, MIN(EXTRACT(DAY FROM Retention)) Snap_Retention_Days FROM DBA_Hist_WR_Control GROUP BY DBID) ws ON ws.DBID = ?
                                       ", get_dbid ]
 
       @control_management_pack_access = sql_select_one "SELECT Value FROM V$Parameter WHERE name='control_management_pack_access'"  # ab Oracle 11 belegt
