@@ -1017,4 +1017,75 @@ class DbaSgaController < ApplicationController
     render_partial :list_db_cache_by_object_id
   end
 
+  def list_sql_area_memory
+    @instance = params[:instance]
+    @max_rows_in_result=1000
+
+    @sga_mems = sql_select_iterator ["
+      SELECT CASE WHEN RowNum < #{@max_rows_in_result} THEN SQL_ID ELSE '[ Others ]' END                   SQL_ID,
+             MIN(CASE WHEN RowNum < #{@max_rows_in_result} THEN SQL_Text ELSE '[ Others ]' END)            SQL_Text,
+             MIN(CASE WHEN RowNum < #{@max_rows_in_result} THEN Parsing_Schema_Name ELSE '[ Others ]' END) Parsing_Schema_Name,
+             SUM(Sharable_Mem)/1024                                                                       Sharable_Mem_KB,
+             COUNT(*)                                                                                     Record_Count
+      FROM   (SELECT SQL_ID, SUBSTR(SQL_Text, 1, 40) SQL_Text, Parsing_Schema_Name, Sharable_Mem
+              FROM   gv$SQLArea
+              WHERE  Inst_ID = ?
+              ORDER BY Sharable_Mem DESC
+             )
+      GROUP BY CASE WHEN RowNum < #{@max_rows_in_result} THEN SQL_ID ELSE '[ Others ]' END
+      ORDER BY 4 DESC
+    ", @instance]
+
+    render_partial
+  end
+
+  def list_object_cache_detail
+    @instance   = params[:instance]
+    @type       = params[:type]
+    @namespace  = params[:namespace]
+    @db_link    = params[:db_link]
+    @kept       = params[:kept]
+    @max_rows_in_result=1000
+    @order_by   = params[:order_by]
+
+    @object_caches = sql_select_iterator ["
+      SELECT *
+      FROM   (
+              SELECT SUM(Sharable_Mem)  Sharable_Mem,
+                     SUM(Record_Count)  Record_Count,
+                     SUM(Loads)         Loads,
+                     SUM(Locks)         Locks,
+                     SUM(Pins)          Pins,
+                     SUM(Invalidations) Invalidations,
+                     CASE WHEN RowNum < #{@max_rows_in_result} THEN Owner ELSE '[ Others ]' END Owner,
+                     CASE WHEN RowNum < #{@max_rows_in_result} THEN Name  ELSE '[ Others ]' END Name
+              FROM   (SELECT *
+                      FROM   (SELECT Owner, Name,
+                                     SUM(Sharable_Mem)  Sharable_Mem,
+                                     COUNT(*)           Record_Count,
+                                     SUM(Loads)         Loads,
+                                     SUM(Locks)         Locks,
+                                     SUM(Pins)          Pins,
+                                     SUM(Invalidations) Invalidations
+                              FROM   gv$DB_Object_Cache
+                              WHERE  Inst_ID    = ?
+                              AND    Type       = ?
+                              AND    Namespace  = ?
+                              AND    DECODE(DB_Link, ?, 1, 0) = 1
+                              AND    Kept       = ?
+                              GROUP BY Owner, Name
+                             )
+                      ORDER BY #{@order_by} DESC
+                     )
+              GROUP BY CASE WHEN RowNum < #{@max_rows_in_result} THEN Owner ELSE '[ Others ]' END, CASE WHEN RowNum < #{@max_rows_in_result} THEN Name  ELSE '[ Others ]' END
+             )
+      ORDER BY #{@order_by} DESC
+    ", @instance, @type, @namespace, @db_link, @kept]
+
+    render_partial
+  end
+
+
+
+
 end

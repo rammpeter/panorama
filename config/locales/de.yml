@@ -147,7 +147,7 @@
   dba_history_show_sql_area_historic_caption:                   SQL's aus DBA_Hist_SQLStat
   dba_history_show_sql_area_historic_filter_hint:               Filter-string muss in betrachteten SQL-Statements enthalten sein. Wildcards (%,_) können benutzt werden. (optional)
   dba_history_show_sql_area_historic_max_result_count_caption:  Anzahl Treffer
-  dba_history_show_sql_area_historic_max_result_count_hint:     Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung)
+  dba_history_show_sql_area_historic_max_result_count_hint:     Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung nach gewähltem Kriterium)
   dba_history_show_sql_area_historic_submit_caption:            SQL anzeigen
   dba_history_show_sql_area_historic_submit_hint:               Anlistung der SQL nach Suchkriterien
 

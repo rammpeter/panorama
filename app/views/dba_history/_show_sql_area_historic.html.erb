@@ -2,7 +2,7 @@
 
 
 <%= my_ajax_form_tag url_for(:controller=>:dba_history, :action=>:list_sql_area_historic, :update_area=>:list_sql_historic_area) do %>
-  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_max_result_count_hint, :default=>'Restrict result size to number of lines (after sort)')%>">
+  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_max_result_count_hint, :default=>'Restrict result size to number of top records (after sort by choosen criteria)')%>">
     <%= t(:dba_history_show_sql_area_historic_max_result_count_caption, :default=>'Hit limit') %>
     <%= text_field_tag(:maxResultCount, "100", :size=>5) %>
   </div>
