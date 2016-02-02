@@ -64,8 +64,19 @@ class DbaSgaControllerTest < ActionController::TestCase
   test "list_sga_components" do
     post :list_sga_components, :format=>:js, :instance=>1
     assert_response :success
+
     post :list_sga_components, :format=>:js
     assert_response :success
+
+    post :list_sql_area_memory, :format=>:js, :instance=>1
+    assert_response :success
+
+    post :list_object_cache_detail, :format=>:js, :instance=>1, :type=>"CURSOR", :namespace=>"SQL AREA", :db_link=>"", :kept=>"NO", :order_by=>"sharable_mem"
+    assert_response :success
+
+    post :list_object_cache_detail, :format=>:js, :instance=>1, :type=>"CURSOR", :namespace=>"SQL AREA", :db_link=>"", :kept=>"NO", :order_by=>"record_count"
+    assert_response :success
+
   end
 
   test "list_db_cache_content" do

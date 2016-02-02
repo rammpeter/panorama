@@ -10,10 +10,12 @@
    end
 
    column_options = []
-   column_options << {:caption=>"SQL-ID",      :data=>proc{|rec| link_column(rec)},                                     :title=>"SQL-ID"}
-   column_options << {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text},                          :title=>"SQL-Text"}
-   column_options << {:caption=>"Parse",       :data=>proc{|rec| rec.parsing_schema_name},                              :title=>"Parsing schema name that was used to originally build this child cursor" }
-   column_options << {:caption=>"Memory (KB)", :data=>proc{|rec| fn(rec.sharable_mem_kb)},                             :title=>"Sharable memory allocated by this SQL", :align=>:right}
+   column_options << {:caption=>"SQL-ID",                 :data=>proc{|rec| link_column(rec)},                                     :title=>"SQL-ID"}
+   column_options << {:caption=>"SQL-Text",               :data=>proc{|rec| my_html_escape rec.sql_text},                          :title=>"SQL-Text"}
+   column_options << {:caption=>"Parse",                  :data=>proc{|rec| rec.parsing_schema_name},                              :title=>"Parsing schema name that was used to originally build this child cursor" }
+   column_options << {:caption=>"Sharable memory (KB)",   :data=>proc{|rec| fn(rec.sharable_mem_kb)},                              :title=>'Amount of shared memory used by a cursor. If multiple child cursors exist, then the sum of all shared memory used by all child cursors.', :align=>:right}
+   column_options << {:caption=>"Persistent memory (KB)", :data=>proc{|rec| fn(rec.persistent_mem_kb)},                            :title=>'Fixed amount of memory used for the lifetime of an open cursor. If multiple child cursors exist, then the fixed sum of memory used for the lifetime of all the child cursors.', :align=>:right}
+   column_options << {:caption=>"Runtime memory (KB)",    :data=>proc{|rec| fn(rec.runtime_mem_kb)},                               :title=>'Fixed amount of memory required during execution of a cursor. If multiple child cursors exist, then the fixed sum of all memory required during execution of all the child cursors.', :align=>:right}
 
 %>
 

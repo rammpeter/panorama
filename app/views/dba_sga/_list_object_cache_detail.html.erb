@@ -10,6 +10,7 @@
    column_options << {:caption=>'Name',         :data=>proc{|rec| show_name(rec)},                        :title=>'Name'}
    column_options << {:caption=>"Sharable memory (KB)", :data=>proc{|rec| fn(rec.sharable_mem/1024)},     :title=>"Sharable memory allocated by this object", :align=>:right}
    column_options << {:caption=>'Count',        :data=>proc{|rec| fn(rec.record_count)},                  :title=>'Number of records in gv$DB_Object_Cache for this selection', :align=>"right"}
+   column_options << {:caption=>'Child latches',:data=>proc{|rec| fn(rec.child_latches)},                 :title=>'Number of distinct values in gv$DB_Object_Cache.Child_Latch for this selection', :align=>"right"}
    column_options << {:caption=>'Loads',        :data=>proc{|rec| fn(rec.loads)},                         :title=>'Number of times the objects has been loaded. This count also increases when an object has been invalidated.', :align=>"right"}
    column_options << {:caption=>'Locks',        :data=>proc{|rec| fn(rec.locks)},                         :title=>'Number of users currently locking this objects', :align=>"right"}
    column_options << {:caption=>'Pins',         :data=>proc{|rec| fn(rec.pins)},                          :title=>'Number of users currently pinning this objects', :align=>"right"}

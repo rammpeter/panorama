@@ -1025,9 +1025,11 @@ class DbaSgaController < ApplicationController
       SELECT CASE WHEN RowNum < #{@max_rows_in_result} THEN SQL_ID ELSE '[ Others ]' END                   SQL_ID,
              MIN(CASE WHEN RowNum < #{@max_rows_in_result} THEN SQL_Text ELSE '[ Others ]' END)            SQL_Text,
              MIN(CASE WHEN RowNum < #{@max_rows_in_result} THEN Parsing_Schema_Name ELSE '[ Others ]' END) Parsing_Schema_Name,
-             SUM(Sharable_Mem)/1024                                                                       Sharable_Mem_KB,
-             COUNT(*)                                                                                     Record_Count
-      FROM   (SELECT SQL_ID, SUBSTR(SQL_Text, 1, 40) SQL_Text, Parsing_Schema_Name, Sharable_Mem
+             SUM(Sharable_Mem)/1024                                                                        Sharable_Mem_KB,
+             SUM(Persistent_Mem)/1024                                                                      Persistent_Mem_KB,
+             SUM(Runtime_Mem)/1024                                                                         Runtime_Mem_KB,
+             COUNT(*)                                                                                      Record_Count
+      FROM   (SELECT SQL_ID, SUBSTR(SQL_Text, 1, 40) SQL_Text, Parsing_Schema_Name, Sharable_Mem, Persistent_Mem, Runtime_Mem
               FROM   gv$SQLArea
               WHERE  Inst_ID = ?
               ORDER BY Sharable_Mem DESC
@@ -1053,6 +1055,7 @@ class DbaSgaController < ApplicationController
       FROM   (
               SELECT SUM(Sharable_Mem)  Sharable_Mem,
                      SUM(Record_Count)  Record_Count,
+                     SUM(Child_Latches) Child_Latches,
                      SUM(Loads)         Loads,
                      SUM(Locks)         Locks,
                      SUM(Pins)          Pins,
@@ -1061,12 +1064,13 @@ class DbaSgaController < ApplicationController
                      CASE WHEN RowNum < #{@max_rows_in_result} THEN Name  ELSE '[ Others ]' END Name
               FROM   (SELECT *
                       FROM   (SELECT Owner, Name,
-                                     SUM(Sharable_Mem)  Sharable_Mem,
-                                     COUNT(*)           Record_Count,
-                                     SUM(Loads)         Loads,
-                                     SUM(Locks)         Locks,
-                                     SUM(Pins)          Pins,
-                                     SUM(Invalidations) Invalidations
+                                     SUM(Sharable_Mem)            Sharable_Mem,
+                                     COUNT(*)                     Record_Count,
+                                     COUNT(DISTINCT Child_Latch)  Child_Latches,
+                                     SUM(Loads)                   Loads,
+                                     SUM(Locks)                   Locks,
+                                     SUM(Pins)                    Pins,
+                                     SUM(Invalidations)           Invalidations
                               FROM   gv$DB_Object_Cache
                               WHERE  Inst_ID    = ?
                               AND    Type       = ?
