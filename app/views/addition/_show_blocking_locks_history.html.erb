@@ -15,7 +15,7 @@
 
     <div class="float_left">
       Auch lange nichtblockierende anzeigen
-      <%= check_box_tag(:show_non_blocking, 1, false, :title=>"Auch nicht-blockierende, aber lang anhaltende Locks anzeigen ?") %>
+      <%= check_box_tag(:show_non_blocking, 1, true, :title=>"Auch nicht-blockierende, aber lang anhaltende Locks anzeigen ?") %>
     </div>
     <div class="float_left">
       <%= submit_tag("Tabellarisch", :name => "commit_table", :title => "Anlistung der Treffer") %>
