@@ -1,137 +1,76 @@
 <h1>Releasenotes: Panorama</h1>
 
-<h2>Release 2.1.34 (2016-01-23) </h2>
-<ul>
-    <li>Remove single charts from diagrams</li>
-</ul>
+<table>
+    <tr><th>Date</th><th>Change note</th></tr>
 
-<h2>Release 2.1.21 (2016-01-06) </h2>
-<ul>
-    <li>Reduction of memory consumption at server site by iterating over large SQL-results, no need to store complete result as ruby array</li>
-    <li>Show compression state of partitions at table level</li>
-</ul>
+    <tr><td>2016-02-02</td><td>Show SGA memory-details from gv$DB_Object_Cache and gv$SQLArea with drill down</td></tr>
+    <tr><td>2016-01-23</td><td>Remove single charts from diagrams by click in legend</td></tr>
+    <tr><td>2016-01-06</td><td>Reduction of memory consumption at server site by iterating over large SQL-results, no need to store complete result as ruby array</td></tr>
+    <tr><td>2016-01-06</td><td>Show compression state of partitions at table level</td></tr>
+    <tr><td>2015-12-08</td><td>Allow wildcard search for SQL-IDs in SQL-Area</td></tr>
+    <tr><td>2015-12-03</td><td>Jump to active session history details from temp usage historic</td></tr>
+    <tr><td>2015-12-03</td><td>Reduce storage consumption at server side for stored history</td></tr>
+    <tr><td>2015-11-19</td><td>Saved connection info is now stored at server sid, encrypted with server side key, key is salted with client side key (stored as encrypted cookie), so only requests from client are able to decrypt stored passwords</td></tr>
+    <tr><td>2015-11-04</td><td>New column 'max. PGA usage' in 'Session waits historic'</td></tr>
+    <tr><td>2015-11-04</td><td>New function 'Temp usage historic'</td></tr>
+    <tr><td>2015-11-04</td><td>Support for context menu on touch devices (long touch instead of right mouse button)</td></tr>
+    <tr><td>2015-11-04</td><td>Allow stacked charts in diagrams</td></tr>
+    <tr><td>2015-11-04</td><td>Switch value points on/off in diagrams</td></tr>
+    <tr><td>2015-11-04</td><td>Show 'others'-chart in Top-10 diagrams with cumulated values for charts outside top 10</td></tr>
+    <tr><td>2015-11-04</td><td>Cache last used DB-connection in server to suppress disconnect after request and reconnect if next request uses same DB</td></tr>
+    <tr><td>2015-10-26</td><td>rework look and feel</td></tr>
+    <tr><td>2015-10-26</td><td>Recognize touch events on tablets and phones</td></tr>
+    <tr><td>2015-10-26</td><td>Show last analyzed date in execution plan lines</td></tr>
+    <tr><td>2015-10-26</td><td>Grouping active session history by session-type (foregreound/background)</td></tr>
+    <tr><td>2015-10-26</td><td>Repeat last called menu action without deep-dive in menu-structures by clicking icon right to menu</td></tr>
+    <tr><td>2015-10-26</td><td>Active Session History: Show tablespace name as object name if no current object exists. Helps to recognize action in UNDO-TS.</td></tr>
+    <tr><td>2015-10-26</td><td>List captured bind values also for datatype TIMESTAMP</td></tr>
+    <tr><td>2015-10-26</td><td>Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c</td></tr>
+    <tr><td>2015-10-26</td><td>Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c</td></tr>
+    <tr><td>2015-10-26</td><td>Dragnet investigation for parallel degradation (FORCE SERIAL)</td></tr>
+    <tr><td>2015-07-16</td><td>Show load of parallel query slaves within coordinator session in Active Session History</td></tr>
+    <tr><td>2015-07-16</td><td>Distinguish between active session load executed in parallel query slaves or not in Active Session History</td></tr>
+    <tr><td>2015-07-16</td><td>List global database triggers like LOGON-Trigger at "DBA General" / "Database triggers"</td></tr>
+    <tr><td>2015-07-16</td><td>Dragnet investigation: Use filter to search selection in list</td></tr>
+    <tr><td>2015-07-16</td><td>Dragnet investigation: Further selections for performance pitfalls</td></tr>
+    <tr><td>2015-07-16</td><td>Object description: show size and state of subpartitions</td></tr>
+    <tr><td>2015-07-16</td><td>Disk stroage summary: Show size and content of Fast recovery Area</td></tr>
+    <tr><td>2015-07-16</td><td>Filter string works also for username in Active Session History</td></tr>
+    <tr><td>2015-07-16</td><td>Show retention for AWR data at start page</td></tr>
+    <tr><td>2015-07-16</td><td>Add DB-Name and AWR retention in DBID-selection at start page if cloned database has different DB-IDs in AWR history</td></tr>
+    <tr><td>2015-07-16</td><td>Evaluate history for one SQL-ID over all RAC-instances (not only per instance)</td></tr>
+    <tr><td>2015-07-16</td><td>Show LOB details in object description, include LOB-size in size calculation of object size</td></tr>
+    <tr><td>2015-07-16</td><td>Describe database objectes as separate menu item</td></tr>
+    <tr><td>2015-07-16</td><td>SSL-encrypted network traffic between browser and Panorama-instance (https)</td></tr>
+    <tr><td>2015-07-16</td><td>SQL-details historic: List complete history of recorded bind values</td></tr>
+    <tr><td>2015-01-22</td><td>Historic timeline resource usage and resource limits</td></tr>
+    <tr><td>2015-01-22</td><td>Historic timeline for real CPU-usage and DB-time</td></tr>
+    <tr><td>2015-01-22</td><td>Correct calculation of CPU-Time and DB-Time in listing of active session history</td></tr>
+    <tr><td>2014-09-17</td><td>Keep DB connection open after request for reuse in next request without reconnect</td></tr>
+    <tr><td>2014-01-15</td><td>Analyse von UNDO-Tablespace unter "Storage / UNDO-TS"</td></tr>
+    <tr><td>2014-01-15</td><td>Analyse von Materialized Views unter "Storage / Materialized view structures"</td></tr>
+    <tr><td>2014-01-15</td><td>Konsoldierung von Storage-Themen unter eigenem Menüpunkt</td></tr>
+    <tr><td>2014-01-15</td><td>Tabellen in Höhe zoombar durch Anfassen am unteren Rand</td></tr>
+    <tr><td>2014-01-15</td><td>Auswertung Active Session History jetzt auch nach Transaction-ID und SQL-Exec-ID</td></tr>
+    <tr><td>2013-05-14</td><td>Embedded Web-Server jetzt im Panorama.war enthalten, damit kann Panorama Standalone ausgeführt werden per "java -jar Panorama.war -Xmx512m". Bei Zeichensatz-Problemen bitte nach -Dfile.encoding=UTF-8 hinzufuegen.</td></tr>
+    <tr><td>2012-11-26</td><td>Umstellung der tabellarischen Darstellungen auf jQuery-Plugin "slickGrid"</td></tr>
+    <tr><td>2012-09-18</td><td>Erweiterung der Active Session History für Oracle 11g</td></tr>
+    <tr><td>2011-11-30</td><td>Anzeige Wait-Times je Objekt in Segment-Statistics historisch</td></tr>
+    <tr><td>2011-11-30</td><td>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</td></tr>
+    <tr><td>2011-11-30</td><td>Ausweisung der Hinderungsgr&uuml;nde f&uuml; Nichtnutzung Shared Cursor</td></tr>
+    <tr><td>2011-11-30</td><td>Separate Ausweisung der SQL-Area nach SQL-ID und zus&auml;tzlicher Unterscheidung von Child-Cursoren</td></tr>
+    <tr><td>2011-11-30</td><td>Beginn Internationalisierung mit deutsch, englisch</td></tr>
+    <tr><td>2011-11-30</td><td>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</td></tr>
+    <tr><td>2011-11-30</td><td>Anzeige Nutzer in Login-Shortcuts</td></tr>
+    <tr><td>2011-11-30</td><td>Anzeige von Tagessummen je SQL &uuml;ber komplett verf&uuml;gbaren Datenbestand in Historie (Button am Ende der SQL-Detail-Ansichten)</td></tr>
+    <tr><td>2011-11-30</td><td>Erweiterung der Gruppierungen der ActiveSessionHistory um User</td></tr>
+    <tr><td>2011-11-30</td><td>Separierung historischer SQL-Daten nach Parsing_Schema_User für saubere Trennung identischer SQL-Statements ausgeführt von verschiedenen Usern gegen gelichnamige Schema-Objekte</td></tr>
+    <tr><td>2011-11-30</td><td>Einblenden der sekuendlichen Wait-Events aus v$Active_Session_Wait in historische Wait-Auswertung soweit diese in SGA verfuegbar sind</td></tr>
+    <tr><td>2011-11-30</td><td>Auswertung blocking Locks aller Art über RAC-Lock-Manager unter "DBA-Wait-Analyse/Enqueue Statistics"</td></tr>
+    <tr><td>2011-04-28</td><td>Anzeige Service-Name in Einzelanlistung der Active Session History</td></tr>
+    <tr><td>2011-04-28</td><td>Connect jetzt auch zu Listener-Services m&ouml;glich (bisher nur auf konkrete SID)</td></tr>
+    <tr><td>2011-04-28</td><td>Auswertung historische Enqueue-Kennzahlen</td></tr>
+    <tr><td>2011-04-28</td><td>Auswertung des ON_CPU-State zus&auml;tzlich zu den bisherigen Wait-States in Active Session History</td></tr>
 
-<h2>Release 2.1.18 (2015-12-08)</h2>
-<ul>
-    <li>Allow wildcard search for SQL-IDs in SQL-Area</li>
-</ul>
+</table>
 
-<h2>Release 2.1.15 (2015-12-03)</h2>
-<ul>
-    <li>Jump to active session history details from temp usage historic</li>
-    <li>Reduce storage consumption at server side for stored history</li>
-</ul>
-
-
-<h2>Release 2.1.9 (2015-11-19)</h2>
-<ul>
-    <li>Saved connection info is now stored at server sid, encrypted with server side key, key is salted with client side key (stored as encrypted cookie), so only requests from client are able to decrypt stored passwords</li>
-</ul>
-
-
-<h2>Release 2.1.3 (2015-11-04)</h2>
-<ul>
-    <li>New column 'max. PGA usage' in 'Session waits historic'</li>
-    <li>New function 'Temp usage historic'</li>
-    <li>Support for context menu on touch devices (long touch instead of right mouse button)</li>
-</ul>
-
-
-<h2>Release 2.1.3 (2015-11-04)</h2>
-<ul>
-    <li>Allow stacked charts in diagrams</li>
-    <li>Switch value points on/off in diagrams</li>
-    <li>Show 'others'-chart in Top-10 diagrams with cumulated values for charts outside top 10</li>
-    <li>Cache last used DB-connection in server to suppress disconnect after request and reconnect if next request uses same DB</li>
-</ul>
-
-<h2>Release 2.1.1 (2015-10-26)</h2>
-<ul>
-    <li>rework look and feel</li>
-    <li>Recognize touch events on tablets and phones</li>
-    <li>Show last analyzed date in execution plan lines</li>
-    <li>Grouping active session history by session-type (foregreound/background)</li>
-    <li>Repeat last called menu action without deep-dive in menu-structures by clicking icon right to menu</li>
-    <li>Active Session History: Show tablespace name as object name if no current object exists. Helps to recognize action in UNDO-TS.</li>
-    <li>List captured bind values also for datatype TIMESTAMP</li>
-    <li>Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c</li>
-    <li>Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c</li>
-    <li>Dragnet investigation for parallel degradation (FORCE SERIAL)</li>
-</ul>
-
-<h2>Release 2.0.79 (2015-07-16)</h2>
-<ul>
-    <li>Show load of parallel query slaves within coordinator session in Active Session History</li>
-    <li>Distinguish between active session load executed in parallel query slaves or not in Active Session History</li>
-    <li>List global database triggers like LOGON-Trigger at "DBA General" / "Database triggers"</li>
-    <li>Dragnet investigation: Use filter to search selection in list</li>
-    <li>Dragnet investigation: Further selections for performance pitfalls</li>
-    <li>Object description: show size and state of subpartitions</li>
-    <li>Disk stroage summary: Show size and content of Fast recovery Area</li>
-    <li>Filter string works also for username in Active Session History</li>
-    <li>Show retention for AWR data at start page</li>
-    <li>Add DB-Name and AWR retention in DBID-selection at start page if cloned database has different DB-IDs in AWR history</li>
-    <li>Evaluate history for one SQL-ID over all RAC-instances (not only per instance)</li>
-    <li>Show LOB details in object description, include LOB-size in size calculation of object size</li>
-    <li>Describe database objectes as separate menu item</li>
-    <li>SSL-encrypted network traffic between browser and Panorama-instance (https)</li>
-    <li>SQL-details historic: List complete history of recorded bind values</li>
-</ul>
-
-<h2>Release 2.0.30 (2015-01-22)</h2>
-<ul>
-    <li>Historic timeline resource usage and resource limits</li>
-    <li>Historic timeline for real CPU-usage and DB-time</li>
-    <li>Correct calculation of CPU-Time and DB-Time in listing of active session history</li>
-</ul>
-
-<h2>Release 2.0.3 (2014-09-17)</h2>
-<ul>
-    <li>Keep DB connection open after request for reuse in next request without reconnect</li>
-</ul>
-
-<h2>Release 1.13 (15.01.2014)</h2>
-<ul>
-    <li>Analyse von UNDO-Tablespace unter "Storage / UNDO-TS"</li>
-    <li>Analyse von Materialized Views unter "Storage / Materialized view structures"</li>
-    <li>Konsoldierung von Storage-Themen unter eigenem Menüpunkt</li>
-    <li>Tabellen in Höhe zoombar durch Anfassen am unteren Rand</li>
-    <li>Auswertung Active Session History jetzt auch nach Transaction-ID und SQL-Exec-ID</li>
-</ul>
-<h2>Release 1.10 (14.05.2013)</h2>
-<ul>
-    <li>Embedded Web-Server jetzt im Panorama.war enthalten, damit kann Panorama Standalone ausgeführt werden per "java -jar Panorama.war -Xmx512m". Bei Zeichensatz-Problemen bitte nach -Dfile.encoding=UTF-8 hinzufuegen.</li>
-</ul>
-<h2>Release 1.8 (26.11.2012)</h2>
-<ul>
-  <li>Umstellung der tabellarischen Darstellungen auf jQuery-Plugin "slickGrid"</li>
-</ul>
-<h2>Release 1.7 (18.09.2012)</h2>
-<ul>
-  <li>Erweiterung der Active Session History für Oracle 11g</li>
-</ul>
-<h2>Release 1.6 (30.11.2011)</h2>
-<ul>
-  <li>Anzeige Wait-Times je Objekt in Segment-Statistics historisch</li>
-  <li>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</li>
-  <li>Ausweisung der Hinderungsgr&uuml;nde f&uuml; Nichtnutzung Shared Cursor</li>
-  <li>Separate Ausweisung der SQL-Area nach SQL-ID und zus&auml;tzlicher Unterscheidung von Child-Cursoren</li>
-  <li>Beginn Internationalisierung mit deutsch, englisch</li>
-</ul>
-<ul>
-  <li>Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade</li>
-  <li>Anzeige Nutzer in Login-Shortcuts</li>
-  <li>Anzeige von Tagessummen je SQL &uuml;ber komplett verf&uuml;gbaren Datenbestand in Historie (Button am Ende der SQL-Detail-Ansichten)</li>
-  <li>Erweiterung der Gruppierungen der ActiveSessionHistory um User</li>
-  <li>Separierung historischer SQL-Daten nach Parsing_Schema_User für saubere Trennung identischer SQL-Statements ausgeführt von verschiedenen Usern gegen gelichnamige Schema-Objekte</li>
-  <li>Einblenden der sekuendlichen Wait-Events aus v$Active_Session_Wait in historische Wait-Auswertung soweit diese in SGA verfuegbar sind</li>
-  <li>Auswertung blocking Locks aller Art über RAC-Lock-Manager unter "DBA-Wait-Analyse/Enqueue Statistics"</li>
-</ul>
-<h2>Release 1.4 (28.04.2011)</h2>
-<ul>
-    <li>Anzeige Service-Name in Einzelanlistung der Active Session History</li>
-    <li>Connect jetzt auch zu Listener-Services m&ouml;glich (bisher nur auf konkrete SID)</li>
-    <li>Auswertung historische Enqueue-Kennzahlen</li>
-    <li>Auswertung des ON_CPU-State zus&auml;tzlich zu den bisherigen Wait-States in Active Session History</li>
-</ul>
-<h2>Release 1.3 (31.03.2011)</h2>
