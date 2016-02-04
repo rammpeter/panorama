@@ -110,8 +110,11 @@ class DbaSgaControllerTest < ActionController::TestCase
     post :list_result_cache, :format=>:js
     assert_response :success
 
-    xhr :get, :list_result_cache_single_results, :format=>:js, :instance=>1, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
-    assert_response :success
+
+    if get_db_version >= '11.2'
+      xhr :get, :list_result_cache_single_results, :format=>:js, :instance=>1, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
+      assert_response :success
+    end
 
     xhr :get, :list_result_cache_dependencies_by_id, :format=>:js, :instance=>1, :id=>100, :status=>'Published', :name=>'Hugo', :namespace=>'PLSQL'
     assert_response :success

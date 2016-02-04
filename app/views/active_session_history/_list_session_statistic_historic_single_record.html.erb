@@ -52,7 +52,7 @@ def link_column_sql_id(rec)
     retval << " "
     retval << link_historic_sql_id(rec.instance_number, rec.top_level_sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username)
   else
-    retval << " < #{rec.top_level_sql_id_cnt } >" if rec.top_level_sql_id_cnt > 1
+    retval << " < #{rec.top_level_sql_id_cnt } >" if rec['top_level_sql_id_cnt'] && rec.top_level_sql_id_cnt > 1
   end
   retval
 end

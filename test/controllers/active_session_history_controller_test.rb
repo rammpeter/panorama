@@ -157,8 +157,10 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       end
     end
 
-    session_statistics_key_rules.each do |key, value|
-      do_outer_test key
+    if get_db_version >= "11.2"
+      session_statistics_key_rules.each do |key, value|
+        do_outer_test key
+      end
     end
   end
 
