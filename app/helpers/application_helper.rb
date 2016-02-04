@@ -299,7 +299,7 @@ module ApplicationHelper
                      )
     decimal_delimiter   = numeric_decimal_separator
     thousands_delimiter = numeric_thousands_separator
-    return '' unless number;  # Leere Ausgabe bei nil
+    return '' if number.nil?  # Leere Ausgabe bei nil
     number = number.to_f if number.instance_of?(String) || number.instance_of?(BigDecimal)   # Numerisches Format erzwingen
     number = number.round(decimalCount) if number.instance_of?(Float) # Ueberlauf von Stellen kompensieren
 
@@ -307,7 +307,9 @@ module ApplicationHelper
 
     return if supress_0_value && number == 0  # Leere Ausgabe bei Wert 0 und Unterdrückung Ausgabe angefordert
 
-    if decimalCount > 0 
+    return if number == Float::INFINITY # Division / 0 erlaubt in Float, bringt Infinity
+
+    if decimalCount > 0
       decimal = number.abs-number.abs.floor  # Dezimalanteil ermitteln
       decimalCount.times do
         decimal *= 10
