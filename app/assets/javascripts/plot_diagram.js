@@ -161,6 +161,18 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             }
         );
 
+//        context_menu_entry(
+//            'save',
+//            "ui-icon  ui-icon-disk",
+//            locale_translate('diagram_save_to_image_name'),
+//            locale_translate('diagram_save_to_image_hint'),
+//            function(t){
+//                var myCanvas = plot.getCanvas();
+//                var image = myCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  /// here is the most important part because if you dont replace you will get a DOM 18 exception.
+//                document.location.href=image;
+//            }
+//        );
+
         jQuery('#'+canvas_id).contextMenu(context_menu_id, {
             menuStyle: {  width: '330px' },
             bindings:   bindings,
@@ -429,6 +441,14 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
             'diagram_remove_chart_confirm': {
                 'en': 'Remove chart',
                 'de': 'Entfernen der Kurve'
+            },
+            'diagram_save_to_image_name': {
+                'en': 'Save chart to image',
+                'de': 'Speichern als Bild'
+            },
+            'diagram_save_to_image_hint': {
+                'en': 'Save complete chart to image',
+                'de': 'Speichern des ganzen Diagrammes als Bild'
             },
         }
     }
