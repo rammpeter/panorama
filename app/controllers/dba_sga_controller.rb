@@ -88,7 +88,7 @@ class DbaSgaController < ApplicationController
                 ROUND((s.CPU_TIME / 1000000) / DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS), 3) AS CPU_TIME_SECS_PER_EXECUTE,
                 s.SQL_ID, s.Plan_Hash_Value, s.Object_Status, s.Last_Active_Time,
                 c.Child_Count, c.Plans
-                #{modus=="GV$SQL" ? ", s.Child_Number" : ", c.Child_Number" }
+                #{modus=="GV$SQL" ? ", s.Child_Number, RAWTOHEX(s.Child_Address) Child_Address" : ", c.Child_Number" }
            FROM #{modus} s
            JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
            JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, COUNT(DISTINCT Plan_Hash_Value) Plans
@@ -131,7 +131,7 @@ class DbaSgaController < ApplicationController
 
   private
   # Modus enthält GV$SQL oder GV$SQLArea
-  def fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number=nil, parsing_schema_name=nil)
+  def fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number=nil, parsing_schema_name=nil, child_address=nil)
     where_string = ""
     where_values = []
 
@@ -148,6 +148,11 @@ class DbaSgaController < ApplicationController
     if modus == "GV$SQL"
       where_string << " AND s.Child_Number = ?"
       where_values << child_number
+
+      unless child_address.nil?
+        where_string << " AND s.Child_Address = HEXTORAW(?)"
+        where_values << child_address
+      end
     end
 
     if parsing_schema_name
@@ -173,7 +178,7 @@ class DbaSgaController < ApplicationController
                 s.User_IO_Wait_Time/1000000     User_IO_Wait_Time_secs,
                 s.PLSQL_Exec_Time/1000000       PLSQL_Exec_Time_secs,
                 s.SQL_ID,
-                #{modus=="GV$SQL" ? "Child_Number," : "" }
+                #{modus=="GV$SQL" ? "Child_Number, RAWTOHEX(Child_Address) Child_Address, " : "" }
                 (SELECT COUNT(*) FROM GV$SQL c WHERE c.Inst_ID = s.Inst_ID AND c.SQL_ID = s.SQL_ID) Child_Count,
                 s.Plan_Hash_Value, s.Optimizer_Env_Hash_Value, s.Module, s.Action, s.Inst_ID,
                 s.Parsing_Schema_Name,
@@ -231,17 +236,37 @@ class DbaSgaController < ApplicationController
 
   public
 
+  def list_sql_profile_detail
+    @profile_name = params[:profile_name]
+
+    @details = sql_select_all ["\
+                SELECT Comp_Data
+                FROM   DBMSHSXP_SQL_PROFILE_ATTR
+                WHERE  Profile_Name = ?", @profile_name]
+    render_partial
+  end
+
   # Erzeugt Daten für execution plan
-  def get_sga_execution_plan(modus, sql_id, instance, child_number)
+  def get_sga_execution_plan(modus, sql_id, instance, child_number, child_address=nil)
+    where_string = ''
+    where_values = []
+
+    unless child_address.nil?
+      where_string << 'AND Child_Address = HEXTORAW(?)'
+      where_values << child_address
+    end
+
     plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Operation, Options, Object_Owner, Object_Name, Object_Type,
+          Operation, Options, Object_Owner, Object_Name, Object_Type, Object_Alias, QBlock_Name,
           CASE WHEN p.ID = 0 THEN (SELECT Optimizer    -- Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
                                     FROM  gV$SQL_Plan sp
-                                    WHERE sp.SQL_ID       = p.SQL_ID
-                                    AND   sp.Inst_ID      = p.Inst_ID
-                                    AND   sp.Child_Number = p.Child_Number
-                                    AND   sp.ID           = 0
+                                    WHERE sp.SQL_ID          = p.SQL_ID
+                                    AND   sp.Inst_ID         = p.Inst_ID
+                                    AND   sp.Child_Number    = p.Child_Number
+                                    AND   sp.Child_Address   = p.Child_Address
+                                    AND   sp.Plan_Hash_Value = p.Plan_Hash_Value
+                                    AND   sp.ID              = 0
                                    ) ELSE NULL END Optimizer,
           DECODE(Other_Tag,
                  'PARALLEL_COMBINED_WITH_PARENT', 'PCWP',
@@ -251,9 +276,9 @@ class DbaSgaController < ApplicationController
                  'PARALLEL_TO_SERIAL',            'P > S',
                  Other_Tag
                 ) Parallel_Short,
-          Other_Tag Parallel,
+          Other_Tag Parallel, Other_XML,
           Depth, Access_Predicates, Filter_Predicates, Projection, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
-          ID, Parent_ID, Executions,
+          ID, Parent_ID, Executions, p.Search_Columns,
           Last_Starts, Starts, Last_Output_Rows, Output_Rows, Last_CR_Buffer_Gets, CR_Buffer_Gets,
           Last_CU_Buffer_Gets, CU_Buffer_Gets, Last_Disk_Reads, Disk_Reads, Last_Disk_Writes, Disk_Writes,
           Last_Elapsed_Time/1000 Last_Elapsed_Time, Elapsed_Time/1000 Elapsed_Time,
@@ -288,8 +313,9 @@ class DbaSgaController < ApplicationController
         WHERE SQL_ID  = ?
         AND   Inst_ID = ?
         AND   Child_Number = ?
+        #{where_string}
         ORDER BY ID"
-        ].concat(get_db_version >= "11.2" ? [sql_id, instance].concat(modus == 'GV$SQL' ? [child_number] : []) : []).concat([sql_id, instance, child_number])
+        ].concat(get_db_version >= "11.2" ? [sql_id, instance].concat(modus == 'GV$SQL' ? [child_number] : []) : []).concat([sql_id, instance, child_number]).concat(where_values)
 
     # Vergabe der exec-Order im Explain
     # iteratives neu durchsuchen der Liste nach folgenden erfuellten Kriterien
@@ -334,17 +360,18 @@ class DbaSgaController < ApplicationController
     @instance     = prepare_param_instance
     @sql_id       = params[:sql_id]
     @child_number = params[:child_number].to_i
+    @child_address = params[:child_address]
     @object_status= params[:object_status]
     @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
     @parsing_schema_name = params[:parsing_schema_name]
 
-    @sql                 = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name)
+    @sql                 = fill_sql_sga_stat("GV$SQL", @instance, @sql_id, @object_status, @child_number, @parsing_schema_name, @child_address)
     @sql_statement       = get_sga_sql_statement(@instance, @sql_id)
     @sql_profiles        = get_sql_profiles(@sql)
     @sql_plan_baselines  = get_sql_plan_baselines(@sql)
     @sql_outlines        = get_sql_outlines(@sql)
 
-    @plans               = get_sga_execution_plan(@modus, @sql_id, @instance, @child_number)
+    @plans               = get_sga_execution_plan(@modus, @sql_id, @instance, @child_number, @child_address)
 
     # PGA-Workarea-Nutzung
     @workareas = sql_select_all ["\
@@ -370,8 +397,9 @@ class DbaSgaController < ApplicationController
       WHERE  Inst_ID = ?
       AND    SQL_ID  = ?
       AND    Child_Number = ?
+      #{" AND Child_Address = HEXTORAW(?)" unless @child_address.nil?}
       ORDER BY Position
-      ", @instance, @sql_id, @child_number ]
+      ", @instance, @sql_id, @child_number ].concat(@child_address.nil? ? [] : [@child_address])
 
     @open_cursors = get_open_cursor_count(@instance, @sql_id)
 

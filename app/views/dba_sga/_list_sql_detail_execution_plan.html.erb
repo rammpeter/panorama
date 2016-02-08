@@ -161,13 +161,13 @@ column_options =
 [
   {:caption=>"Operation",   :data=>proc{|rec| list_operation(rec)}, :no_wrap=>true, :title=>'Kind of data access'},
   {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} },
-  {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
-  {:caption=>"Object-name", :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name)},   :title=>'Name of accessed object',             :data_title=>proc{|rec| "%t: Type=#{rec.object_type}"} },
+  {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} },
+  {:caption=>"Object-name", :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name)},   :title=>'Name of accessed object',             :data_title=>proc{|rec| "%t: Type = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}"} },
   {:caption=>"Rows",        :data=>proc{|rec| fn(rec.num_rows) },                           :title=>"Number of rows of object (from analyze info)",     :align=>:right, :data_title=>proc{|rec| "%t, Last_Analyzed=#{localeDateTime(rec.last_analyzed)}"}  },
   {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
-  {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Costs, cardinality=#{rec.cardinality}, bytes=#{rec.bytes}, time=#{rec.time}, Partition_Start=#{rec.partition_start}, Partition_Stop=#{rec.partition_stop}, Partition_ID=#{rec.partition_id}"} },
+  {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Cost of the operation as estimated by the optimizer's cost-based approach.\ncardinality=#{rec.cardinality},\nbytes=#{rec.bytes},\ntime=#{rec.time},\npartition start=#{rec.partition_start},\npartition stop=#{rec.partition_stop},\npartition ID=#{rec.partition_id}"} },
   {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
-  {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}"} },
+  {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}\nNumber of columns with matching predicates = #{rec.search_columns}"} },
   {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>'Filter criteria for data object (after access)',  :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
   {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB (forecast by optimizer)", :align=>:right},
   {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"Strategy of PQ-distribution" },
@@ -189,6 +189,7 @@ column_options.concat [
   {:caption=>"Disk W",      :data=>proc{|rec| fn(rec.disk_writes/sql_starts) if rec.disk_writes },       :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.disk_writes)    }, Last=#{fn(rec.last_disk_writes)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_writes_title, :default=>'Avg. number of physical disk writes for operation per execution of SQL')  },
   {:caption=>"Ela.",        :data=>proc{|rec| fn(rec.elapsed_time/sql_starts,3) if rec.elapsed_time },   :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.elapsed_time,3) } ms, Last=#{fn(rec.last_elapsed_time,3)} ms" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_title, :default=>'Avg. runtime of operation in ms per execution of SQL') },
 ]
+   column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| my_html_escape(rec.other_xml)}, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there." } if get_db_version >= "11.2"
 
 
    @caption = "Explain Plan"

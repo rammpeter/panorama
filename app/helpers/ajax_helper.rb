@@ -29,8 +29,9 @@ module AjaxHelper
 
     # Extrahieren der UML-Elemente vom Rest der Daten
     url_data.each do |key, value|
-      if key == :controller || key == :action
-        url[key] = value
+      case
+        when key == :controller || key == :action   then url[key] = value
+        when key == :title                          then html_options[:title] = value   # title auch akzeptieren, wenn in url_data enthalten
       else
         data[key] = value
       end
@@ -100,19 +101,20 @@ module AjaxHelper
 
   # Erzeugen eines Links aus den Parametern auf Detail-Darstellung des SQL
   # Aktualisieren des title(hint) erst, wenn das erste mal mit Maus darüber gefahren wird
-  def link_sql_id(update_area, instance, sql_id, childno=nil, parsing_schema_name=nil, object_status=nil)
+  def link_sql_id(update_area, instance, sql_id, childno=nil, parsing_schema_name=nil, object_status=nil, child_address=nil)
     unique_id = get_unique_area_id
     prefix = "#{t(:ajax_helper_link_sql_id_title_prefix, :default=>"Show details in SGA for")} SQL-ID=#{sql_id} : "
     prefix << "ChildNo=#{childno} : " if childno
     my_ajax_link_to(sql_id,
-     url_for( :controller   => :dba_sga,
-              :action       => childno ? :list_sql_detail_sql_id_childno : :list_sql_detail_sql_id,
-              :update_area  => update_area,
-              :instance     => instance,
-              :sql_id       => sql_id,
-              :child_number => childno,
+     url_for( :controller     => :dba_sga,
+              :action         => childno ? :list_sql_detail_sql_id_childno : :list_sql_detail_sql_id,
+              :update_area    => update_area,
+              :instance       => instance,
+              :sql_id         => sql_id,
+              :child_number   => childno,
+              :child_address  => child_address,
               :parsing_schema_name => parsing_schema_name,   # Sichern der Eindeutigkeit bei mehrfachem Vorkommen identischer SQL in verschiedenen Schemata
-              :object_status=> object_status
+              :object_status  => object_status
             ),
      {:title       => "#{prefix} <#{t :link_historic_sql_id_coming_soon, :default=>"Text of SQL is loading, please hold mouse over object again"}>",
       :id          =>  unique_id,

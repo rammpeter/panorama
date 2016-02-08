@@ -1,0 +1,15 @@
+<%=
+    def show_col(rec)
+      my_html_escape(
+        rec.comp_data
+          .gsub(/<hint>/, "\n  <hint>")
+          .gsub(/<\/outline_data>/, "\n</outline_data>")
+      )
+    end
+
+    column_options = [
+      {:caption=>"Details from DBMSHSXP_SQL_PROFILE_ATTR for SQL profile '#{@profile_name}'", :data=>proc{|rec| show_col(rec)}, :title=>'SQL profile attributes'},
+    ]
+
+  gen_slickgrid(@details, column_options, :caption => '')
+%>

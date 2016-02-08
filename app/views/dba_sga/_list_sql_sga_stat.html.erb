@@ -34,7 +34,7 @@ end
            <td>Instance / SQL-ID / Plan-Hash-Value, Child</td>
            <td align="right" title="Instance / SQL_ID / Plan-Hash-Value"><%= "#{@sql.inst_id} / #{@sql.sql_id} / #{@sql.plan_hash_value}" %></td>
  <% if @modus == "GV$SQL" %>
-           <td align="center" title="Child-Number"><%= @sql.child_number %></td>
+           <td align="center" title="Child-Number / Child-address"><%= "#{@sql.child_number} / #{@sql.child_address}" %></td>
  <% else %>
                <td align="center" title="Anzahl Child-Cursoren"><%= @sql.child_count %></td>
  <% end %>

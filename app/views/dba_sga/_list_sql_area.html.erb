@@ -3,7 +3,7 @@
 
   def link_column(rec, value)
     if @modus == "GV$SQL" || rec.child_count == 1    # Es kann direkt auch Child-Cursor verwiesen werden
-        link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.child_number, rec.parsing_schema_name, rec.object_status)
+        link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.child_number, rec.parsing_schema_name, rec.object_status, rec.child_address)
     else
         link_sql_id(@update_area, rec.inst_id, rec.sql_id, nil, rec.parsing_schema_name, rec.object_status)
     end
@@ -13,7 +13,7 @@
   column_options << {:caption=>"I",           :data=>proc{|rec| formattedNumber(rec.inst_id)},                         :title=>"Instance-ID"}
   column_options << {:caption=>"SQL-ID",      :data=>proc{|rec| link_column(rec, rec.sql_text)},                       :title=>"SQL-ID"}
   column_options << {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text},                          :title=>"SQL-Text", :data_title=>'SQL_ID=#{rec.sql_id} : #{my_html_escape(rec.full_sql_text.strip)}'}
-  column_options << {:caption=>"C",    :data=>proc{|rec| rec.child_number},                            :title=>"Child-Number"} if @modus=="GV$SQL"
+  column_options << {:caption=>"C",    :data=>proc{|rec| rec.child_number},                            :title=>"Child-Number", :data_title=>proc{|rec| "%t,\nChild-address = '#{rec.child_address}'"}} if @modus=="GV$SQL"
   column_options << {:caption=>"C",    :data=>proc{|rec| rec.child_count},                             :title=>"Anzahl Child-Cursoren"} if @modus=="GV$SQLArea"
   column_options << {:caption=>"P",           :data=>proc{|rec| rec.plans },                                           :title=>"Number of different execution plans in SGA of instance for this SQL_ID",  :align=>:right, :data_style=>proc{|rec| 'background-color:coral;' if rec.plans > 1 }  }
   column_options << {:caption=>"Plan hash value", :data=>proc{|rec| rec.plan_hash_value},                              :title=>"Plan hash value (unique hash value for execution plan)", :align=>:right}    if @modus=="GV$SQL"
@@ -39,7 +39,7 @@
 
 
 <%= gen_slickgrid(@sqls, column_options, {
-        :caption => "#{t(:dba_sga_list_sql_area_caption, :default=>'SQL of current SGA from %{modus}, grouped by', :modus=>@modus)}  #{if @modus == "GV$SQL";  "SQL-ID, Child-Number" else "SQL-ID" end }#{", SQL-ID='#{@sql_id}'" if @sql_id}#{", Filter='#{@filter}'" if @filter}",
+        :caption => "#{t(:dba_sga_list_sql_area_caption, :default=>'SQL of current SGA from %{modus}, grouped by', :modus=>@modus)}  #{if @modus == "GV$SQL";  "SQL-ID, Child-Number, Child_Address" else "SQL-ID" end }#{", SQL-ID='#{@sql_id}'" if @sql_id}#{", Filter='#{@filter}'" if @filter}",
         :max_height => 450
 }) %>
 

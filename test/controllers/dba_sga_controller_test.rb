@@ -54,6 +54,10 @@ class DbaSgaControllerTest < ActionController::TestCase
 
     xhr :get,  :list_sql_detail_sql_id , :format=>:js, :sql_id => @sga_sql_id
     assert_response :success
+
+    post :list_sql_profile_detail, :format=>:js, :profile_name=>'Hugo'
+    assert_response :success
+
   end
 
   test "list_open_cursor_per_sql" do

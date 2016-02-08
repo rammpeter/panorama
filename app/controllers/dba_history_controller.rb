@@ -600,8 +600,8 @@ class DbaHistoryController < ApplicationController
     all_plans = sql_select_all ["\
                          SELECT /*+ ORDERED USE_NL(p) Panorama-Tool Ramm */
                                 ps.DBID, ps.Plan_Hash_Value, ps.Parsing_Schema_Name,
-                                p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Optimizer,
-                                p.Other_Tag,
+                                p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Object_Alias, p.QBlock_Name, p.Optimizer,
+                                p.Other_Tag, p.Other_XML, p.Search_Columns,
                                 DECODE(p.Other_Tag,
                                        'PARALLEL_COMBINED_WITH_PARENT', 'PCWP',
                                        'PARALLEL_COMBINED_WITH_CHILD' , 'PCWC',
