@@ -88,10 +88,11 @@ class DbaSgaController < ApplicationController
                 ROUND((s.CPU_TIME / 1000000) / DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS), 3) AS CPU_TIME_SECS_PER_EXECUTE,
                 s.SQL_ID, s.Plan_Hash_Value, s.Object_Status, s.Last_Active_Time,
                 c.Child_Count, c.Plans
-                #{modus=="GV$SQL" ? ", s.Child_Number, RAWTOHEX(s.Child_Address) Child_Address" : ", c.Child_Number" }
+                #{modus=="GV$SQL" ? ", s.Child_Number, RAWTOHEX(s.Child_Address) Child_Address" : ", c.Child_Number, c.Child_Address" }
            FROM #{modus} s
            JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
-           JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, COUNT(DISTINCT Plan_Hash_Value) Plans
+           JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, MIN(RAWTOHEX(Child_Address)) Child_Address,
+                        COUNT(DISTINCT Plan_Hash_Value) Plans
                  FROM   GV$SQL GROUP BY Inst_ID, SQL_ID
                 ) c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
           WHERE 1 = 1 -- damit nachfolgende Klauseln mit AND beginnen können
@@ -247,7 +248,7 @@ class DbaSgaController < ApplicationController
   end
 
   # Erzeugt Daten für execution plan
-  def get_sga_execution_plan(modus, sql_id, instance, child_number, child_address=nil)
+  def get_sga_execution_plan(modus, sql_id, instance, child_number, child_address, restrict_ash_to_child)
     where_string = ''
     where_values = []
 
@@ -306,7 +307,7 @@ class DbaSgaController < ApplicationController
                              FROM   gv$Active_Session_History
                              WHERE  SQL_ID  = ?
                              AND    Inst_ID = ?
-                             #{modus == 'GV$SQL' ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
+                             #{(modus == 'GV$SQL' && restrict_ash_to_child ) ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
                              GROUP BY SQL_Plan_Line_ID, SQL_Plan_Hash_Value
                  ) a ON a.SQL_Plan_Line_ID = p.ID AND a.SQL_Plan_Hash_Value = p.Plan_Hash_Value
           " if get_db_version >= "11.2"}
@@ -371,7 +372,7 @@ class DbaSgaController < ApplicationController
     @sql_plan_baselines  = get_sql_plan_baselines(@sql)
     @sql_outlines        = get_sql_outlines(@sql)
 
-    @plans               = get_sga_execution_plan(@modus, @sql_id, @instance, @child_number, @child_address)
+    @plans               = get_sga_execution_plan(@modus, @sql_id, @instance, @child_number, @child_address, true)
 
     # PGA-Workarea-Nutzung
     @workareas = sql_select_all ["\
@@ -461,11 +462,12 @@ class DbaSgaController < ApplicationController
     @open_cursors          = get_open_cursor_count(@instance, @sql_id)
 
     sql_child_info = sql_select_first_row ["SELECT COUNT(DISTINCT plan_hash_value) Plan_Count,
-                                                   MIN(Child_Number) Min_Child_Number
+                                                   MIN(Child_Number)          Min_Child_Number,
+                                                   MIN(RAWTOHEX(Child_Address)) KEEP (DENSE_RANK FIRST ORDER BY Child_Number)   Min_Child_Address
                                             FROM   gv$SQL
                                             WHERE  Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
 
-    @plans = get_sga_execution_plan('GV$SQLArea', @sql_id, @instance, sql_child_info.min_child_number) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
+    @plans = get_sga_execution_plan('GV$SQLArea', @sql_id, @instance, sql_child_info.min_child_number, sql_child_info.min_child_address, false) if sql_child_info.plan_count == 1 # Nur anzeigen wenn eindeutig immer der selbe plan
 
     render_partial :list_sql_detail_sql_id
 

@@ -1,9 +1,9 @@
 <!-- @update_area muss durch Aufrufer gesetzt sein -->
 
-<div style="clear: both; padding: 5px;"><b>Zusätzliche Informationen</b></div>
+<div style="clear: both; padding: 5px;"><b><%= t(:dba_sga_list_sql_sga_stat_footer_additional_info, :default=>'Additional information') %></b></div>
 
 <div class="float_left">
-  <%= my_ajax_submit_tag("Komplette Zeitleiste des SQL",
+  <%= my_ajax_submit_tag(t(:dba_sga_list_sql_sga_stat_footer_complete_timeline_caption, :default=>'Complete time line of SQL'),
    url_for(:update_area => @update_area,
            :action      => :list_sql_history_snapshots,
            :controller  => :dba_history,
@@ -12,18 +12,18 @@
            :groupby     => :day,
            :parsing_schema_name => @sql.parsing_schema_name
           ),
-  :title => "Anlistung der kompletten gespeicherten Zeitleiste des SQL ")
+  :title =>t(:dba_sga_list_sql_sga_stat_footer_complete_timeline_hint, :default=>'Show complete time history of SQL from AWR'))
   %>
 </div>
 <div class="float_left">
       <%=
-          my_ajax_submit_tag("Cursor Sharing (#{@sql.child_count} Versionen)",
+          my_ajax_submit_tag("Cursor Sharing (#{@sql.child_count} #{t(:versions, :default=>'versions')})",
                              url_for(:update_area => @update_area,
                                      :action      => :list_sql_shared_cursor,
                                      :instance    => @sql.inst_id,
                                      :sql_id      => @sql.sql_id
                              ),
-                             :title => "Hinderungsgründe für Nutzung Shared Cursor (gv$SQL_Shared_Cursor), wenn mehrere Versionen eines SQL in gv$SQL ausgewiesen werden"
+                             :title =>t(:dba_sga_list_sql_sga_stat_footer_cursor_sharing_hint, :default=>'Reasons for not using shared cursors (gv$SQL_Shared_Cursor) if multiple versions of SQL exists in gv$SQL')
           )
       %>
 </div>
@@ -47,7 +47,7 @@
                     :sql_id     => @sql_id,
                     :update_area=> @update_area
                   ),
-           :title=>"Anzeige der aktuellen offenen Cursor in Sessions des Statements")
+           :title=>t(:dba_sga_list_sql_sga_stat_footer_open_cursor_hint, :default=>'Show current open cursor of SQL in sessions'))
     %>
 </div>
 <div  style="clear: both;"></div>

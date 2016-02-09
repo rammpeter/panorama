@@ -36,6 +36,7 @@
   time_selection_end_caption:                               Ende
   time_selection_end_hint:                                  Ende des Betrachtungszeitraumes im Format
   until:                                                    bis
+  versions:                                                 Versionen
   week:                                                     Woche
   without:                                                  ohne
 
@@ -221,6 +222,29 @@
   dba_sga_list_sql_detail_execution_plan_elapsed_title:     Durchschn. Dauer der Operation in ms je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_rows_title:        Durchschn. Anzahl produzierte Rows der Operation je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_starts_title:      Durchschnittliche Anzahl Starts der Operation je Ausführung des SQL
+
+  dba_sga_list_sql_sga_stat_action_link_hint:               Anzeige weiterer Details zum Action-Namen wenn verfügbar
+  dba_sga_list_sql_sga_stat_buffer_gets_hint:               Anzahl DB-Blöcke insgesamt gelesen
+  dba_sga_list_sql_sga_stat_caption:                        Statement-Details der aktuellen SGA aus
+  dba_sga_list_sql_sga_stat_child_count_hint:               Anzahl Child-Cursoren
+  dba_sga_list_sql_sga_stat_cpu_hint:                       CPU-Zeit gesamt in Sekunden, Summe über alle PQ-Prozesse wenn parallel ausgeführt
+  dba_sga_list_sql_sga_stat_elapsed_hint:                   Laufzeit gesamt in Sekunden, Summe über alle PQ-Prozesse wenn parallel ausgeführt
+  dba_sga_list_sql_sga_stat_hit_ration_hint:                Verhältnis Cache-Hits zu Buffer Gets
+  dba_sga_list_sql_sga_stat_object_state_hint:              Object-Status des SQL
+  dba_sga_list_sql_sga_stat_first_load_hint:                Erstes Auftreten des SQL in SGA
+  dba_sga_list_sql_sga_stat_last_active_hint:               Ende der letzten Ausführung des SQL
+  dba_sga_list_sql_sga_stat_last_load_hint:                 Letztes Laden des SQL in SGA, Startzeitpunkt für Kumulation der Statistiken
+  dba_sga_list_sql_sga_stat_opt_env_hint:                   Hash-Value über gesamtes Environment des Optimizers
+  dba_sga_list_sql_sga_stat_module_hint:                    Module und Action der Session, von der Statement geparst wurde
+  dba_sga_list_sql_sga_stat_module_link_hint:               Anzeige weiterer Details zum Modul-Namen wenn verfügbar
+  dba_sga_list_sql_sga_stat_plsql_hint:                     Programm-Name und Zeilennummer wenn SQL aus PL/SQL heraus ausgeführt
+  dba_sga_list_sql_sga_stat_plsql_time_hint:                PL/SQL Execution-Time (Sec.) anteilig von CPU-Time
+
+  dba_sga_list_sql_sga_stat_footer_additional_info:             Zusätzliche Informationen
+  dba_sga_list_sql_sga_stat_footer_cursor_sharing_hint:         Hinderungsgründe für Nutzung Shared Cursor (gv$SQL_Shared_Cursor), wenn mehrere Versionen eines SQL in gv$SQL ausgewiesen werden
+  dba_sga_list_sql_sga_stat_footer_complete_timeline_caption:   Komplette Zeitleiste des SQL
+  dba_sga_list_sql_sga_stat_footer_complete_timeline_hint:      Anlistung der kompletten im AWR gespeicherten zeitlichen Historie des SQL
+  dba_sga_list_sql_sga_stat_footer_open_cursor_hint:            Anzeige der aktuellen offenen Cursor in Sessions des Statements
 
   dba_sga_show_sga_components_caption:                      Anzeige der Memory-Verbraucher der SGA
   dba_sga_show_sga_components_submit_caption:               Anzeige der Memory-Komponenten
