@@ -182,9 +182,9 @@ class DbaSgaController < ApplicationController
                 #{modus=="GV$SQL" ? "Child_Number, RAWTOHEX(Child_Address) Child_Address, " : "" }
                 (SELECT COUNT(*) FROM GV$SQL c WHERE c.Inst_ID = s.Inst_ID AND c.SQL_ID = s.SQL_ID) Child_Count,
                 s.Plan_Hash_Value, s.Optimizer_Env_Hash_Value, s.Module, s.Action, s.Inst_ID,
-                s.Parsing_Schema_Name,
+                s.Parsing_Schema_Name, SQL_Profile,
                 o.Owner||'.'||o.Object_Name Program_Name, o.Object_Type Program_Type, o.Last_DDL_Time Program_Last_DDL_Time,
-                s.Program_Line# Program_LineNo,
+                s.Program_Line# Program_LineNo, #{'SQL_Plan_Baseline, ' if get_db_version >= '11.2'}
                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 0) Exact_Signature,
                 DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 1) Force_Signature
            FROM #{modus} s
@@ -215,15 +215,17 @@ class DbaSgaController < ApplicationController
 
   # Existierende SQL-Profiles, Parameter: Result-Zeile eines selects
   def get_sql_profiles(sql_row)
-    sql_select_all ["SELECT * FROM DBA_SQL_Profiles WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
-                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+    sql_select_all ["SELECT * FROM DBA_SQL_Profiles WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?) #{'OR Name = ?' if sql_row.sql_profile}
+                    ",
+                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s].concat(sql_row.sql_profile ? [sql_row.sql_profile] : []) if sql_row
   end
 
   # Existierende SQL-Plan Baselines, Parameter: Result-Zeile eines selects
   def get_sql_plan_baselines(sql_row)
     if get_db_version >= "11.2"
-      sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?)",
-                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
+      sql_select_all ["SELECT * FROM DBA_SQL_Plan_Baselines WHERE Signature = TO_NUMBER(?) OR  Signature = TO_NUMBER(?) #{'OR Plan_Name = ?' if sql_row.sql_plan_baseline}
+                      ",
+                    sql_row.exact_signature.to_s, sql_row.force_signature.to_s].concat(sql_row.sql_plan_baseline ? [sql_row.sql_plan_baseline] : []) if sql_row
     else
       []
     end

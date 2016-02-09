@@ -17,6 +17,7 @@
     if @sql_profiles &&  @sql_profiles.length > 0
         column_options = [
             {:caption=>"Name",          :data=>proc{|rec| link_profile_name(rec)},              :title=>"Name of profile"},
+            {:caption=>'Really used?',  :data=>proc{|rec| rec.name == @sql.sql_profile ? 'YES' : 'NO'}, :title=>'Is this profile really used according to gv$SQL.SQL_Profile' },
             {:caption=>"Category",      :data=>proc{|rec| rec.category},                        :title=>"Category of profile" },
             {:caption=>"Created",       :data=>proc{|rec| localeDateTime(rec.created)},         :title=>"Timestamp of creation" },
             {:caption=>"Last modified", :data=>proc{|rec| localeDateTime(rec.last_modified)},   :title=>"Timestamp of last modification" },
@@ -36,6 +37,7 @@
     if @sql_plan_baselines &&  @sql_plan_baselines.length > 0
         column_options = [
             {:caption=>"Plan name",     :data=>proc{|rec| rec.plan_name},                       :title=>"Name of baseline plan"},
+            {:caption=>'Really used?',  :data=>proc{|rec| rec.plan_name == @sql.sql_plan_baseline ? 'YES' : 'NO'}, :title=>'Is this baseline really used according to gv$SQL.SQL_Plan_Baseline' },
             {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"},
             {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" },
             {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" },
