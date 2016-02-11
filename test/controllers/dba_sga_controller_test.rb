@@ -141,4 +141,12 @@ class DbaSgaControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "plan_management" do
+    post :list_sql_profile_sqltext, :format=>:js, :profile_name=>'Hugo'
+    assert_response :success
+
+    post :list_sql_plan_baseline_sqltext, :format=>:js, :plan_name=>'Hugo'
+    assert_response :success
+  end
+
 end

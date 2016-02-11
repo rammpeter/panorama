@@ -130,6 +130,14 @@ module MenuHelper
                   {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),                  :controller=> 'dba_sga',     :action=> 'show_result_cache',        :hint=>t(:menu_sga_pga_result_cache_current_hint, :default=> 'Show current usage of result cache') },
                 ]
             },
+            { :class=> 'menu', :caption=> 'SQL plan management', :content=>[
+                {:class=> 'item', :caption=>'SQL profiles',               :controller=> 'dba_sga',     :action=> 'show_profiles',        :hint=>t(:menu_sga_pga_sql_profiles_hint, :default=> 'Show all stored SQL profiles for this database') },
+                  ].concat(get_db_version >= "11.2" ? [
+                {:class=> 'item', :caption=>'SQL plan baselines',         :controller=> 'dba_sga',     :action=> 'show_plan_baselines',  :hint=>t(:menu_sga_pga_sql_plan_baselines_hint, :default=> 'Show all stored SQL plan baselines for this database') },
+                  ] : []).concat([
+                {:class=> 'item', :caption=>'Stored outlines',            :controller=> 'dba_sga',     :action=> 'show_stored_outlines', :hint=>t(:menu_sga_pga_stored_outlines_hint, :default=> 'Show all stored outlines for this database') },
+                  ])
+            },
             {:class=> 'item', :caption=>t(:menu_sga_pga_object_by_file_and_block_caption, :default=> 'Object by file and block no.'),      :controller=> 'dba_sga',     :action=> 'show_object_nach_file_und_block',  :hint=>t(:menu_sga_pga_object_by_file_and_block_hint, :default=> 'Determine object-name by file- and block-no.') },
             {:class=> 'item', :caption=> 'Compare execution plans',      :controller=> 'dba_sga',     :action=> 'show_compare_execution_plans',  :hint=>t(:menu_sga_pga_compare_execution_plans, :default=> 'Compare execution plan of two different cursors in SGA') },
             ]

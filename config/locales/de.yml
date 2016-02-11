@@ -946,6 +946,9 @@
   menu_sga_pga_sqlarea_current_sqlid_childno_caption:       Aktuell (SQL-ID / Child-Nr.)
   menu_sga_pga_sqlarea_current_sqlid_childno_hint:          Auswertung aktuelle SQLs aus SGA auf Ebene SQL_ID, Child-Nr.
   menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
+  menu_sga_pga_sql_plan_baselines_hint:                     Anzeige der SQL-Plan Baselines der Datenbank
+  menu_sga_pga_sql_profiles_hint:                           Anzeige der gespeicherten SQL-Profiles der Datenbank
+  menu_sga_pga_stored_outlines_hint:                        Anzeige der gespeicherten Stored Outlines der Datenbank
 
   menu_storage_datafile_caption:                            Datafile-Nutzung
   menu_storage_datafile_hint:                               Anlistung der Datafiles der DB

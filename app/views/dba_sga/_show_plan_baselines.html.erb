@@ -1,0 +1,44 @@
+<%
+   @update_area = get_unique_area_id
+
+   def link_sql_text(rec)
+     my_ajax_post_link(rec.sql_text[0, 30], {
+                       :controller    => :dba_sga,
+                       :action        => :list_sql_plan_baseline_sqltext,
+                       :plan_name     => rec.plan_name,
+                       :update_area   => @update_area,
+                       },
+                       :title         => 'Show full SQL text'
+     )
+   end
+
+   column_options = [
+    {:caption=>"Plan name",     :data=>proc{|rec| rec.plan_name},                       :title=>"Name of baseline plan"},
+    {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"},
+    {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" },
+    {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" },
+    {:caption=>"Description",   :data=>proc{|rec| rec.description},                     :title=>"Description of purpose" },
+    {:caption=>"Version",       :data=>proc{|rec| rec.version},                         :title=>"database version at time of plan baseline creation" },
+    {:caption=>"Created",       :data=>proc{|rec| localeDateTime(rec.created)},         :title=>"Timestamp of creation" },
+    {:caption=>"Last modified", :data=>proc{|rec| localeDateTime(rec.last_modified)},   :title=>"Timestamp of last modification" },
+    {:caption=>"Last executed", :data=>proc{|rec| localeDateTime(rec.last_executed)},   :title=>"Timestamp of last execution" },
+    {:caption=>"Last verified", :data=>proc{|rec| localeDateTime(rec.last_verified)},   :title=>"Timestamp of last verification" },
+    {:caption=>"Enabled",       :data=>proc{|rec| rec.enabled},                         :title=>"enabled status of plan baseline" },
+    {:caption=>"Accepted",      :data=>proc{|rec| rec.accepted},                        :title=>"accepted status of plan baseline" },
+    {:caption=>"Fixed",         :data=>proc{|rec| rec.fixed},                           :title=>"fixed status of plan baseline" },
+    {:caption=>"Reproduced",    :data=>proc{|rec| rec.reproduced},                      :title=>"reproduced status of plan baseline" },
+    {:caption=>"Auto purge",    :data=>proc{|rec| rec.autopurge},                       :title=>"autopurge status of plan baseline" },
+    {:caption=>"Executions",    :data=>proc{|rec| fn(rec.executions)},                  :title=>"number of plan baseline executions", :align=>:right },
+    {:caption=>"Buffer gets",   :data=>proc{|rec| fn(rec.buffer_gets)},                 :title=>"total buffer gets",        :align=>:right },
+    {:caption=>"Rows processed",:data=>proc{|rec| fn(rec.rows_processed)},              :title=>"number of rows processed", :align=>:right },
+    {:caption=>'Usages in SGA', :data=>proc{|rec| fn(rec.sga_usages)},                  :title=>'Number of current usage of this baseline in SGA (from gv$SQLArea.SQL_Plan_Baseline)', :align=>:right },
+    {:caption=>"SQL",           :data=>proc{|rec| link_sql_text(rec)},                  :title=>"Un-normalized SQL text" },
+  ]
+
+%>
+
+<%=
+  gen_slickgrid(@baselines, column_options, :caption => "SQL plan baselines from DBA_SQL_Plan_Baselines", :max_height=>450)
+%>
+
+<div id="<%= @update_area %>"></div>

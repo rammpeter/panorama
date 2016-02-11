@@ -1122,6 +1122,62 @@ class DbaSgaController < ApplicationController
   end
 
 
+  # Existierende SQL-Profiles
+  def show_profiles
+    @profiles = sql_select_iterator "SELECT p.*, em.SGA_Usages, awr.AWR_Usages
+                                     FROM   DBA_SQL_Profiles p
+                                     LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ SQL_Profile, COUNT(*) SGA_Usages
+                                                        FROM   gv$SQLArea
+                                                        WHERE  SQL_profile IS NOT NULL
+                                                        GROUP BY SQL_Profile
+                                                       ) em ON em.SQL_Profile = p.Name
+                                     LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ SQL_Profile, COUNT(DISTINCT SQL_ID) AWR_Usages
+                                                        FROM   DBA_Hist_SQLStat
+                                                        WHERE  SQL_profile IS NOT NULL
+                                                        GROUP BY SQL_Profile
+                                                       ) awr ON awr.SQL_Profile = p.Name
+                                    "
+    render_partial
+  end
+
+  def list_sql_profile_sqltext
+    @sql = sql_select_one ["SELECT SQL_Text FROM  DBA_SQL_Profiles WHERE Name = ?", params[:profile_name]]
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('<pre style=\"background-color: lightyellow;  white-space: pre-wrap;\">#{my_html_escape(@sql)}</pre>');" }
+    end
+
+  end
+
+  # Existierende SQL-Plan Baselines
+  def show_plan_baselines
+    @baselines = sql_select_iterator "SELECT b.*, em.SGA_Usages
+                                      FROM   DBA_SQL_Plan_Baselines b
+                                      LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ SQL_Plan_Baseline, COUNT(*) SGA_Usages
+                                                         FROM   gv$SQLArea
+                                                         WHERE  SQL_Plan_Baseline IS NOT NULL
+                                                         GROUP BY SQL_Plan_Baseline
+                                                        ) em ON em.SQL_Plan_Baseline = b.Plan_Name
+                                     "
+    render_partial
+  end
+
+  def list_sql_plan_baseline_sqltext
+    @sql = sql_select_one ["SELECT SQL_Text FROM  DBA_SQL_Plan_Baselines WHERE Plan_Name = ?", params[:plan_name]]
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('<pre style=\"background-color: lightyellow;  white-space: pre-wrap;\">#{my_html_escape(@sql)}</pre>');" }
+    end
+
+  end
+
+
+  # Existierende stored outlines
+  def show_stored_outlines
+    @outlines = sql_select_iterator "SELECT * FROM DBA_Outlines"
+    render_partial
+  end
+
+
+
 
 
 end
