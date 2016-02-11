@@ -5,7 +5,7 @@ Web-tool for monitoring performance issues of Oracle databases.
 Provides easy access to several internal information.<br>
 Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
-Here you can find more information about Panorama (including download link for instant runnable bundled web archive file):
+Here you can find more information about Panorama (including download link for Java web application):
 http://rammpeter.github.io/panorama.html
 
 This GitHub-project is intended to provide function as Rails engine which can be embedded in other Rails application.
