@@ -23,11 +23,14 @@
 //= require jstree
 //= require_tree .
 
+"use strict"
+
+
 // global gültige Variable im js, wird von EnvController.setDatabase gesetzt entsprechend der Spracheinstellung
 var session_locale = "en";
 
 function log_stack(message){
-    e = new Error();
+    var e = new Error();
     console.log('===================' + message + '==================');
     console.log(e.stack);
 }

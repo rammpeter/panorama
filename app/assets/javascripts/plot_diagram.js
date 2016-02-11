@@ -1,3 +1,5 @@
+"use strict"
+
 // Zeichnen eines Diagrammes auf Basis des flot-Pugins
 // Peter Ramm, 25.10.2015
 
@@ -62,8 +64,8 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
                 default_options.series.points.show = false;
         });
 
-        /* merge defaults and options, without modifying defaults */
-        options = jQuery.extend({}, default_options,options);
+        /* deep merge defaults and options, without modifying defaults */
+        options = jQuery.extend(true, {}, default_options,options);
 
         // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
         plot_area

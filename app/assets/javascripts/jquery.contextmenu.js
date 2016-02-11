@@ -16,7 +16,9 @@
  *
  */
 
+
 (function($) {
+    "use strict"
 
  	var menu, shadow, content, hash, currentTarget;
   var defaults = {
