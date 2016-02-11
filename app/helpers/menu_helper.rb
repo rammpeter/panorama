@@ -37,7 +37,8 @@ module MenuHelper
                 ]
             },
             { :class=> 'menu', :caption=> 'Genuine Oracle AWR-reports', :content=>[
-                {:class=> 'item', :caption=>'AWR-report',         :controller=>:dba_history,    :action=> 'show_awr_report',  :hint=>'AWR-report by instance and time range' },
+                {:class=> 'item', :caption=>'AWR report',     :controller=>:dba_history,    :action=> 'show_awr_report',  :hint=>'AWR-report by instance and time range' },
+                {:class=> 'item', :caption=>'ASH report',     :controller=>:dba_history,    :action=> 'show_ash_report',  :hint=>'ASH-report global or by instance and time range' },
             ]
             },
             {:class=> 'item', :caption=> 'GC Request Latency historisch',      :controller=> 'dba_waits',  :action=> 'gc_request_latency',    :hint=>t(:menu_wait_gc_historic_hint, :default=> 'Analysis of global cache activity') },

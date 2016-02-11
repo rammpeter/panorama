@@ -1850,4 +1850,25 @@ FROM (
 
     render :text => res_array.join
   end
+
+  def list_ash_report_html
+    save_session_time_selection   # werte in session puffern
+    @instance  = prepare_param_instance
+
+    @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.ASH_GLOBAL_REPORT_HTML(?, #{@instance ? '?' : 'NULL'},
+                                                                TO_DATE(?, '#{sql_datetime_minute_mask}'),
+                                                                TO_DATE(?, '#{sql_datetime_minute_mask}')
+                                                            ))",
+                                   get_dbid].concat(@instance ? [@instance] : []).concat([@time_selection_start, @time_selection_end])
+
+    res_array = []
+    @report.each do |r|
+      res_array << r.output
+    end
+
+    render :text => res_array.join
+  end
+
+
+
 end #DbaHistoryController

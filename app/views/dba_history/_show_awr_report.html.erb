@@ -4,7 +4,7 @@
 <%= form_tag(url_for(:controller=>:dba_history, :action=>:list_awr_report_html), :target=>'_blank') do %>
     <%= include_start_end_timepicker %>
 
-    <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+    <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (mandatory)') %>">
       Instance
       <%= text_field_tag(:instance, (read_from_client_info_store(:instance).nil? ? 1 : read_from_client_info_store(:instance)), :size=>1) %>
     </div>
