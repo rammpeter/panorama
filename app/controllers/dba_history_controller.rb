@@ -1792,4 +1792,62 @@ FROM (
     render_partial
   end
 
+  private
+  # min und max. Snap_ID für gegebenen Zeitraum und Instance
+  # belegt Instanzvariablen
+  def get_min_max_snapshot(instance, time_selection_start, time_selection_end)
+    @min_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
+                                   FROM   DBA_Hist_Snapshot
+                                   WHERE  DBID = ?
+                                   AND    Instance_Number = ?
+                                   AND    Begin_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+                                  ", get_dbid, instance, time_selection_start]
+    if @min_snap_id.nil?                                                      # Ersten Snap nehmen wenn keiner zum start gefunden
+      @min_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
+                                      FROM   DBA_Hist_Snapshot
+                                      WHERE  DBID = ?
+                                      AND    Instance_Number = ?
+                                      ", get_dbid, instance]
+
+    end
+
+    @max_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
+                                   FROM   DBA_Hist_Snapshot
+                                   WHERE  DBID = ?
+                                   AND    Instance_Number = ?
+                                   AND    End_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+                                  ", get_dbid, instance, time_selection_end]
+
+    if @max_snap_id.nil?                                                        # Letzten Snap nehmen wenn keiner zum Endezeitpunkt gefunden
+      @max_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
+                                     FROM   DBA_Hist_Snapshot
+                                     WHERE  DBID = ?
+                                     AND    Instance_Number = ?
+                                    ", get_dbid, instance]
+
+    end
+
+    if @min_snap_id >= @max_snap_id
+      raise "Only one or less AWR snapshots found for time range '#{time_selection_start}' until '#{time_selection_end}' and instance=#{instance}."
+    end
+  end
+
+  public
+
+  def list_awr_report_html
+    save_session_time_selection   # werte in session puffern
+    @instance  = prepare_param_instance
+
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+
+    @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(?, ?, ?, ?))",
+                                   get_dbid, @instance, @min_snap_id, @max_snap_id]
+
+    res_array = []
+    @report.each do |r|
+      res_array << r.output
+    end
+
+    render :text => res_array.join
+  end
 end #DbaHistoryController

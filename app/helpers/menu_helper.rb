@@ -36,6 +36,10 @@ module MenuHelper
                 {:class=> 'item', :caption=>'CPU-Usage / DB-Time',    :controller=> :dba_waits,  :action=> :show_cpu_usage_historic,    :hint=>t(:menu_wait_session_cpu_hint, :default=> 'Historic CPU-Usage and DB-Time from DBA_Hist_Active_Sess_History') },
                 ]
             },
+            { :class=> 'menu', :caption=> 'Genuine Oracle AWR-reports', :content=>[
+                {:class=> 'item', :caption=>'AWR-report',         :controller=>:dba_history,    :action=> 'show_awr_report',  :hint=>'AWR-report by instance and time range' },
+            ]
+            },
             {:class=> 'item', :caption=> 'GC Request Latency historisch',      :controller=> 'dba_waits',  :action=> 'gc_request_latency',    :hint=>t(:menu_wait_gc_historic_hint, :default=> 'Analysis of global cache activity') },
             { :class=> 'menu', :caption=> 'Segment Statistics', :content=>[
                 {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),         :controller=>:dba,          :action=> 'segment_stat',             :hint=>t(:menu_wait_segment_current_hint, :default=> 'Current waits by DB-objects') },
