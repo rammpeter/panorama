@@ -210,5 +210,20 @@ column_options = [
     :title => t(:dba_history_list_sql_detail_historic_current_sga_hint, :default=>'Show data of SQL from current SGA (if still exists in SGA)'))
     %>
 </div>
+<% if @instance %>
+    &nbsp;
+    <div class="float_left">
+      <%= form_tag(url_for(:controller            => :dba_history,
+                           :action                => :list_awr_sql_report_html,
+                           :instance              => @instance,
+                           :time_selection_start  => @time_selection_start,
+                           :time_selection_end    => @time_selection_end ,
+                           :sql_id                => @sql_id
+                   ), :target=>'_blank') do %>
+        <%= submit_tag(t(:dba_history_list_sql_detail_historic_sql_report_caption, :default=>'Generate SQL report'), :title =>t(:dba_history_list_sql_detail_historic_current_sga_hint, :default=>'Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML')) %>
+      <% end %>
+    </div>
+<% end %>
+
 <div id="<%= @update_area %>" style="clear:both; width:100%;">
 </div>

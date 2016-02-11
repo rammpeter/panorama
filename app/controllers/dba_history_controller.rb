@@ -1793,37 +1793,37 @@ FROM (
   end
 
   private
-  # min und max. Snap_ID für gegebenen Zeitraum und Instance
+  # min und max. Snap_ID für gegebenen Zeitraum und Instance (nullable)
   # belegt Instanzvariablen
   def get_min_max_snapshot(instance, time_selection_start, time_selection_end)
     @min_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
                                    FROM   DBA_Hist_Snapshot
                                    WHERE  DBID = ?
-                                   AND    Instance_Number = ?
                                    AND    Begin_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-                                  ", get_dbid, instance, time_selection_start]
+                                   #{' AND Instance_Number = ?' if @instance}
+                                  ", get_dbid, time_selection_start].concat(@instance ? [@instance] : [])
     if @min_snap_id.nil?                                                      # Ersten Snap nehmen wenn keiner zum start gefunden
       @min_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
                                       FROM   DBA_Hist_Snapshot
                                       WHERE  DBID = ?
-                                      AND    Instance_Number = ?
-                                      ", get_dbid, instance]
+                                      #{' AND Instance_Number = ?' if @instance}
+                                     ", get_dbid].concat(@instance ? [@instance] : [])
 
     end
 
     @max_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
                                    FROM   DBA_Hist_Snapshot
                                    WHERE  DBID = ?
-                                   AND    Instance_Number = ?
                                    AND    End_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
-                                  ", get_dbid, instance, time_selection_end]
+                                   #{' AND Instance_Number = ?' if @instance}
+                                   ", get_dbid, time_selection_end].concat(@instance ? [@instance] : [])
 
     if @max_snap_id.nil?                                                        # Letzten Snap nehmen wenn keiner zum Endezeitpunkt gefunden
       @max_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
                                      FROM   DBA_Hist_Snapshot
                                      WHERE  DBID = ?
-                                     AND    Instance_Number = ?
-                                    ", get_dbid, instance]
+                                    #{' AND Instance_Number = ?' if @instance}
+                                     ", get_dbid].concat(@instance ? [@instance] : [])
 
     end
 
@@ -1842,16 +1842,45 @@ FROM (
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(?, ?, ?, ?))",
                                    get_dbid, @instance, @min_snap_id, @max_snap_id]
-
     res_array = []
     @report.each do |r|
       res_array << r.output
     end
+    render :text => res_array.join
+  end
 
+  def list_awr_global_report_html
+    save_session_time_selection   # werte in session puffern
+    @instance  = prepare_param_instance
+
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+
+    @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_GLOBAL_REPORT_HTML(?, #{@instance ? '?' : 'CAST(NULL AS VARCHAR2(20))'}, ?, ?))",
+                                   get_dbid].concat(@instance ? [@instance] : []).concat([@min_snap_id, @max_snap_id])
+    res_array = []
+    @report.each do |r|
+      res_array << r.output
+    end
     render :text => res_array.join
   end
 
   def list_ash_report_html
+    save_session_time_selection   # werte in session puffern
+    @instance  = prepare_param_instance
+
+    @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.ASH_REPORT_HTML(?, ?,
+                                                                TO_DATE(?, '#{sql_datetime_minute_mask}'),
+                                                                TO_DATE(?, '#{sql_datetime_minute_mask}')
+                                                            ))",
+                                   get_dbid, @instance, @time_selection_start, @time_selection_end]
+    res_array = []
+    @report.each do |r|
+      res_array << r.output
+    end
+    render :text => res_array.join
+  end
+
+  def list_ash_global_report_html
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
 
@@ -1860,15 +1889,29 @@ FROM (
                                                                 TO_DATE(?, '#{sql_datetime_minute_mask}')
                                                             ))",
                                    get_dbid].concat(@instance ? [@instance] : []).concat([@time_selection_start, @time_selection_end])
-
     res_array = []
     @report.each do |r|
       res_array << r.output
     end
-
     render :text => res_array.join
   end
 
+
+  def list_awr_sql_report_html
+    save_session_time_selection   # werte in session puffern
+    @instance  = prepare_param_instance
+    @sql_id    = params[:sql_id]
+
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+
+    @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML(?, ?, ?, ?, ?))",
+                                   get_dbid, @instance, @min_snap_id, @max_snap_id, @sql_id]
+    res_array = []
+    @report.each do |r|
+      res_array << r.output
+    end
+    render :text => res_array.join
+  end
 
 
 end #DbaHistoryController
