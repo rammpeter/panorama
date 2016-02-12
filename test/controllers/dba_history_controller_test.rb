@@ -195,25 +195,25 @@ class DbaHistoryControllerTest < ActionController::TestCase
   end
 
   test "genuine_oracle_reports" do
-    post :list_awr_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start, :instance=>1
+    post :list_awr_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1
     assert_response :success
 
-    post :list_awr_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start
+    post :list_awr_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end
     assert_response :success
 
-    post :list_awr_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start, :instance=>1
+    post :list_awr_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1
     assert_response :success
 
-    post :list_ash_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start, :instance=>1
+    post :list_ash_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1
     assert_response :success
 
-    post :list_ash_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start
+    post :list_ash_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end
     assert_response :success
 
-    post :list_ash_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start, :instance=>1
+    post :list_ash_global_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1
     assert_response :success
 
-    post :list_awr_sql_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_start, :instance=>1, :sql_id=>@sga_sql_id
+    post :list_awr_sql_report_html, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, :sql_id=>@sga_sql_id
     assert_response :success
   end
 
