@@ -233,7 +233,7 @@ class DbaSgaController < ApplicationController
 
   # Existierende stored outlines, Parameter: Result-Zeile eines selects
   def get_sql_outlines(sql_row)
-    sql_select_all ["SELECT * FROM DBA_Outlines WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR  Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))",
+    sql_select_all ["SELECT * FROM DBA_Outlines WHERE Signature = sys.UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR  Signature = sys.UTL_RAW.Cast_From_Number(TO_NUMBER(?))",
                     sql_row.exact_signature.to_s, sql_row.force_signature.to_s] if sql_row
   end
 

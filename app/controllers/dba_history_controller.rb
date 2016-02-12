@@ -515,7 +515,7 @@ class DbaHistoryController < ApplicationController
       else
         @sql_plan_baselines = []
       end
-      @sql_outlines       = sql_select_all ["SELECT * FROM DBA_Outlines           WHERE Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR Signature = UTL_RAW.Cast_From_Number(TO_NUMBER(?))", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
+      @sql_outlines       = sql_select_all ["SELECT * FROM DBA_Outlines           WHERE Signature = sys.UTL_RAW.Cast_From_Number(TO_NUMBER(?)) OR Signature = sys.UTL_RAW.Cast_From_Number(TO_NUMBER(?))", sql_statement.exact_signature.to_s, sql_statement.force_signature.to_s]
     else
       @sql_statement      = "[No statement found in DBA_Hist_SQLText]"
       @sql_profiles       = []
