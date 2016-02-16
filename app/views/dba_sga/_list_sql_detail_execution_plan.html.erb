@@ -156,8 +156,18 @@
        "<span style=\"color: lightgray;\">#{tab}</span>#{rec.operation} #{rec.options}".html_safe
      end
 
+   def get_formatted_other_xml(rec)
+     return nil if rec.other_xml.nil?
+      my_html_escape(rec.other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
+   end
 
-column_options =
+   def get_formatted_other_xml_title(rec)
+     return nil if rec.other_xml.nil?
+      my_html_escape(rec.other_xml).gsub(/&lt;info/, "\n&lt;info").gsub(/&lt;hint/, "\n&lt;hint")
+   end
+
+
+   column_options =
 [
   {:caption=>"Operation",   :data=>proc{|rec| list_operation(rec)}, :no_wrap=>true, :title=>'Kind of data access'},
   {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} },
@@ -189,7 +199,7 @@ column_options.concat [
   {:caption=>"Disk W",      :data=>proc{|rec| fn(rec.disk_writes/sql_starts) if rec.disk_writes },       :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.disk_writes)    }, Last=#{fn(rec.last_disk_writes)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_writes_title, :default=>'Avg. number of physical disk writes for operation per execution of SQL')  },
   {:caption=>"Ela.",        :data=>proc{|rec| fn(rec.elapsed_time/sql_starts,3) if rec.elapsed_time },   :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.elapsed_time,3) } ms, Last=#{fn(rec.last_elapsed_time,3)} ms" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_title, :default=>'Avg. runtime of operation in ms per execution of SQL') },
 ]
-   column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| my_html_escape(rec.other_xml)}, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there." } if get_db_version >= "11.2"
+   column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
 
 
    @caption = "Explain Plan"

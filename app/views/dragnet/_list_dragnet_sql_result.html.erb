@@ -56,7 +56,7 @@ if @res.count > 0
                                 inst_id = rec["inst_id"]            if rec["inst_id"]
                                 inst_id = rec["instance_number"]    if rec["instance_number"]
                                 inst_id = rec["Instance"]           if rec["Instance"]
-                                inst_id = current_instance_number   if inst_id.nil? # Default wenn nicht anders belegt
+                                #inst_id = current_instance_number   if inst_id.nil? # Default wenn nicht anders belegt  ### Inst_ID auch Null zulassen jetzt
 
                                 time_selection_start = localeDateTime(Time.new - (24*60*60*8), :minutes)                                # Default-Start 8 Tage rückwärts
                                 time_selection_start = localeDateTime(rec['first_occurrence'], :minutes) if rec['first_occurrence']     # Überschrieben mit Wert aus Record wenn belegt
