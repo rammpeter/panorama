@@ -12,7 +12,7 @@ def show_both_values(name, param, decimals, title="")
   "<tr>
      <td title='#{title}'>#{name}</td>
      <td align='right' title='#{title}'>#{formattedNumber(param,decimals)}</td>
-     <td align='right' title='#{title} je Execution'>#{formattedNumber( (param/execs),(decimals+2))}</td>
+     <td align='right' title='#{title} #{t(:per_execution, :default=>'per execution')}'>#{formattedNumber( (param/execs),(decimals+2))}</td>
    </tr>".html_safe
 end
 
@@ -81,7 +81,7 @@ end
            <td align='right' title="Number of executions"><%= formattedNumber(@sql.executions) %></td>
            <td align='right' title="Parsing Schema-Name"><%= @sql.parsing_schema_name %></td>
          </tr>
-         <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches")%>
+         <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
          <%= show_both_values("Sorts", @sql.sorts,0, "Number of sort operations") %>
          <%= show_both_values("Rows processed", @sql.rows_processed,0, "Number of rows processed") %>
          <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of db blocks read from disk") %>

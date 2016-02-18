@@ -59,7 +59,7 @@ end
           <td align="center" title="Number of different optimizer environments in time range"><%= @sql.optimizer_env_hash_value_count %> </td>
         </tr>
         <%= show_single_value("Executions / Parsing schema", @sql.executions,0, "Number of executions in time range", @sql.min_parsing_schema_name, "Parsing Schema-Name") %>
-        <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time range")%>
+        <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time range (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
         <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time range") %>
         <tr>
           <td title="Number of rows processed in time range">Rows processed</td>
