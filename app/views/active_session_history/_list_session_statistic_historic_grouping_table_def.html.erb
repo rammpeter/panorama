@@ -54,7 +54,7 @@
     # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
     "
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"}\" '+
-        'onclick=\"call_ajax_single_rows#{@update_area}('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' )\"'+
+        'onclick=\"call_ajax_single_rows#{@update_area}('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
          '>'+cell_value+'</a>'
     "
   end
@@ -104,7 +104,7 @@
 
 
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"}\" '+
-        'onclick=\"call_ajax_grouping#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+')\"'+
+        'onclick=\"call_ajax_grouping#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+'); return false;\"'+
          '>'+decorated_cell_value+'</a>'
     "
   end
