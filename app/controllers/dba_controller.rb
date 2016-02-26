@@ -751,6 +751,16 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
             GROUP BY pm.Category
             ", @instance, @sid, @serialno, @instance, @sid, @serialno]
 
+    begin       # Test, ob Daten für Session in gv$SQL_Monitor existieren, Problem: Kann Nutzung der Option Tuning Pack aktivieren, wenn diese nicht per Init-Parameter 'control_management_pack_access' deaktiviert ist
+      @sql_monitor_exists = sql_select_one ["SELECT 1
+                                             FROM   gv$SQL_Monitor
+                                             WHERE  Inst_ID         = ?
+                                             AND    SID             = ?
+                                             AND    Session_Serial# = ?
+                                            ", @instance, @sid, @serialno]
+    rescue
+      @sql_monitor_exists = false
+    end
 
     respond_to do |format|
       if @dbsession

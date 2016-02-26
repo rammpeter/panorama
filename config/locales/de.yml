@@ -884,7 +884,7 @@
   env_set_database_xmem_line4: |-
     Damit wird X$%{table_name_suffix} verfügbar unter Rolle SELECT ANY DICTIONARY
   env_set_database_mgmt_msg_false:                          ist für diese Datenbank markiert als nicht lizensiert
-  env_set_database_mgmt_msg_true:                           ist für diese Datenbank markiert als lizensiert
+  env_set_database_mgmt_msg_true:                           ist für diese Datenbank markiert als lizensiert und wird durch Panorama genutzt
 
 
   help_no_help_available:                                   Bisher leider keine Hilfe vorhanden für

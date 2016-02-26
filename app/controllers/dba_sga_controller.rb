@@ -1193,5 +1193,33 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
+  def list_sql_monitor
+    instance = params[:instance]
+    sid      = params[:sid]
+    serialno = params[:serialno]
+
+    curr_sql = sql_select_first_row ["SELECT Status, SQL_ID, SQL_Exec_ID
+                                      FROM   gv$Session
+                                      WHERE  Inst_ID    = ?
+                                      AND    SID        = ?
+                                      AND    Serial#    = ?
+                                     ", instance, sid, serialno]
+    raise "Session #{sid}/#{serialno} of instance #{instance} no longer exists!" if curr_sql.nil?
+    raise "Session #{sid}/#{serialno} of instance #{instance} is no longer active!" if curr_sql.status != 'ACTIVE'
+
+    result = sql_select_one ["SELECT DBMS_SQLTUNE.report_sql_monitor(
+                                      sql_id          => ?,
+                                      Session_ID      => ?,
+                                      Session_Serial  => ?,
+                                      SQL_Exec_ID     => ?,
+                                      Inst_ID         => ?,
+                                      --type            => 'HTML',
+                                      type            => 'ACTIVE',
+                                      report_level    => 'ALL'
+                                    )
+                             FROM dual", curr_sql.sql_id, sid, serialno, curr_sql.sql_exec_id, instance]
+
+    render :text => result
+  end
 
 end

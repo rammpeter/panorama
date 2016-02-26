@@ -62,8 +62,13 @@ Platform: <%= @platform_name%>
 <%= render :partial => 'licensing' %>
 
 <% unless @control_management_pack_access.nil? %>
-  <br>
-  <%= "Oracle Diagnostics Pack #{ @control_management_pack_access['DIAGNOSTIC'] ?  t(:env_set_database_mgmt_msg_true, :default=>'is for this database marked as licensed') :  t(:env_set_database_mgmt_msg_false, :default=>'is for this database marked as not licensed')}. Init-Parameter 'control_management_pack_access' = '#{@control_management_pack_access}'" %>
+    <br>
+    <div style="color:red;">
+      <%="Oracle Diagnostics Pack #{ @control_management_pack_access['DIAGNOSTIC'] ?  t(:env_set_database_mgmt_msg_true, :default=>'is for this database marked as licensed and will be used by Panorama') :  t(:env_set_database_mgmt_msg_false, :default=>'is for this database marked as not licensed')}." %>
+      <br/>
+      <%="Oracle Tuning Pack #{ @control_management_pack_access['TUNING'] ?  t(:env_set_database_mgmt_msg_true, :default=>'is for this database marked as licensed and will be used by Panorama') :  t(:env_set_database_mgmt_msg_false, :default=>'is for this database marked as not licensed')}." %>
+      </div>
+    <%= "Init-Parameter 'control_management_pack_access' = '#{@control_management_pack_access}'." %>
 <% end %>
 
 
