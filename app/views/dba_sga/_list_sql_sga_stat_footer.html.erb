@@ -50,4 +50,21 @@
            :title=>t(:dba_sga_list_sql_sga_stat_footer_open_cursor_hint, :default=>'Show current open cursor of SQL in sessions'))
     %>
 </div>
+
+<% if @sql['child_number'] %>
+    <div class="float_left">
+      <%=
+          my_ajax_submit_tag('DBMS_XPLAN',
+                             url_for(:action        => :list_dbms_xplan_display,
+                                     :instance      => @instance,
+                                     :sql_id        => @sql_id,
+                                     :child_number  => @sql.child_number,
+                                     :child_address => @sql.child_address,
+                                     :update_area=> @update_area
+                             ),
+                             :title=>t(:dba_sga_list_sql_sga_stat_footer_dbms_xplan_hint, :default=>'Show execution plan as output from call DBMS_XPLAN.DISPLAY'))
+      %>
+    </div>
+<% end %>
+
 <div  style="clear: both;"></div>

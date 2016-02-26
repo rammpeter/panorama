@@ -1177,7 +1177,21 @@ class DbaSgaController < ApplicationController
   end
 
 
+  def list_dbms_xplan_display
+    instance        = params[:instance]
+    sql_id          = params[:sql_id]
+    child_number    = params[:child_number]
+    child_address   = params[:child_address]
 
+    @plans = sql_select_all ["
+      SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY(
+                            'gv$sql_plan_statistics_all',
+                            NULL,
+                            'ADVANCED ALLSTATS LAST',
+                            'inst_id = #{instance} AND sql_id = ''#{sql_id}'' AND child_number = #{child_number} AND Child_Address=HEXTORAW(''#{child_address}'')'
+                          ))"]
+    render_partial
+  end
 
 
 end

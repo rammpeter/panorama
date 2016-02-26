@@ -253,6 +253,7 @@
 
   dba_sga_list_sql_sga_stat_footer_additional_info:             Zusätzliche Informationen
   dba_sga_list_sql_sga_stat_footer_cursor_sharing_hint:         Hinderungsgründe für Nutzung Shared Cursor (gv$SQL_Shared_Cursor), wenn mehrere Versionen eines SQL in gv$SQL ausgewiesen werden
+  dba_sga_list_sql_sga_stat_footer_dbms_xplan_hint:             Anzeige des Execution-Plan als Ausgabe des Aufrufes von DBMS_XPLAN.DISPLAY
   dba_sga_list_sql_sga_stat_footer_complete_timeline_caption:   Komplette Zeitleiste des SQL
   dba_sga_list_sql_sga_stat_footer_complete_timeline_hint:      Anlistung der kompletten im AWR gespeicherten zeitlichen Historie des SQL
   dba_sga_list_sql_sga_stat_footer_open_cursor_hint:            Anzeige der aktuellen offenen Cursor in Sessions des Statements
