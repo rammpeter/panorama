@@ -663,11 +663,49 @@ May be it their value is redundant to other columns of that table. In this case 
             :parameter=>[{:name=>t(:dragnet_helper_5_param_1_name, :default=> 'Min. no. of rows of referenced table'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_5_param_1_hint, :default=> 'Minimum number of rows of referenced table') },]
         },
         {
+            :name  => t(:dragnet_helper_107_name, :default=> 'Relevance of access on migrated / chained rows compared to total amount of table access'),
+            :desc  => t(:dragnet_helper_107_desc, :default=> 'chained rows causes additional read of migrated rows in separate DB-blocks while accessing a record which is not completely contained in current block.
+Chained rows can be avoided by adjusting PCTFREE and reorganization of affected table.
+This selection shows the relevance of access on chained rows compared to total amount of table access.'),
+            :sql=>   "WITH Inst_Filter AS (SELECT ? Instance FROM DUAL)
+                      SELECT x.*, CASE WHEN \"table fetch by rowid\"+\"table scan rows gotten\" > 0 THEN
+                                  ROUND(\"table fetch continued row\" / (\"table fetch by rowid\"+\"table scan rows gotten\") * 100,2)
+                                  ELSE 0 END \"Pct. chained row access\"
+                      FROM   (
+                              SELECT /*+ NO_MERGE*/ ROUND(Begin_Interval_Time, 'MI') Start_Time,
+                                     SUM(CASE WHEN Stat_Name = 'table fetch continued row' THEN Value ELSE 0 END) \"table fetch continued row\",
+                                     SUM(CASE WHEN Stat_Name = 'table fetch by rowid'      THEN Value ELSE 0 END) \"table fetch by rowid\",
+                                     SUM(CASE WHEN Stat_Name = 'table scan rows gotten'    THEN Value ELSE 0 END) \"table scan rows gotten\"
+                              FROM   (
+                                      SELECT /*+ NO_MERGE*/ ss.Begin_Interval_Time, st.Stat_Id, st.Stat_Name, ss.Min_Snap_ID, st.Snap_ID,
+                                             Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
+                                      FROM   (SELECT /*+ NO_MERGE*/ DBID, Instance_Number, Begin_Interval_Time, Snap_ID,
+                                                     MIN(Snap_ID) OVER (PARTITION BY Instance_Number) Min_Snap_ID
+                                              FROM   DBA_Hist_Snapshot ss
+                                              WHERE  Begin_Interval_Time >= SYSDATE - ?
+                                              AND    ( (SELECT Instance FROM Inst_Filter) IS NULL OR ss.Instance_Number = (SELECT Instance FROM Inst_Filter)    )
+                                             ) ss
+                                      JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number
+                                      WHERE  st.Snap_ID = ss.Snap_ID /* Vorgänger des ersten mit auswerten für Differenz per LAG */
+                                      AND    st.Stat_Name IN ('table fetch continued row', 'table fetch by rowid', 'table scan rows gotten')
+                                    ) hist
+                              WHERE  hist.Value >= 0    /* Ersten Snap nach Reboot ausblenden */
+                              AND    hist.Snap_ID > hist.Min_Snap_ID /* Vorgaenger des ersten Snap fuer LAG wieder ausblenden */
+                              GROUP BY ROUND(Begin_Interval_Time, 'MI')
+                             ) x
+                      ORDER BY 1
+                      ",
+            :parameter=>[
+                {:name=>'RAC-Instance (optional)', :size=>8, :default=>'', :title=>t(:dragnet_helper_107_param_1_hint, :default=>'Optional filter for selection on RAC-instance') },
+                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }
+            ]
+        },
+        {
              :name  => t(:dragnet_helper_69_name, :default=>'Detection of chained rows of tables'),
              :desc  => t(:dragnet_helper_69_desc, :default=>'chained rows causes additional read of migrated rows in separate DB-blocks while accessing a record which is not completely contained in current block.
 Chained rows can be avoided by adjusting PCTFREE and reorganization of affected table.
 
-This seslection cannot be directly executed. Please copy PL/SQL-Code and execute external in SQL*Plus !!!'),
+This selection cannot be directly executed. Please copy PL/SQL-Code and execute external in SQL*Plus !!!'),
              :sql=> "
 SET SERVEROUT ON;
 

@@ -161,6 +161,15 @@
   dba_history_show_sysmetric_submit_summary_caption:        Anzeige Summen
   dba_history_show_sysmetric_submit_summary_hint:           Details der SysMetric-Historie anzeigen aus DBA_Hist_SysMetric_Summary/GV$SysMetric_Summary (mehr verdichtet)
 
+  dba_history_show_system_statistics_historic_caption:          Historie der System-Statistics aus DBA_Hist_SysStat
+  dba_history_show_system_statistics_historic_caption_link:     Hier klicken für nähere Erläuterungen
+  dba_history_show_system_statistics_historic_details_caption:  Details der System-Statistiken
+  dba_history_show_system_statistics_historic_details_hint:     Pivot-Tabelle mit allen Statistiken je Gruppierungszeitraum anzeigen
+  dba_history_show_system_statistics_historic_grouping_caption: Verdichtung
+  dba_history_show_system_statistics_historic_grouping_hint:    Verdichtung der Werte auf Zeitabschnitt (kleinster Zyklus ist AWR-Snapshot)
+  dba_history_show_system_statistics_historic_sum_caption:      Summen der System-Statistiken
+  dba_history_show_system_statistics_historic_sum_hint:         Summen je Statistik-Name über gesamten Zeitraum anzeigen
+
   dba_list_blocking_dml_locks_link_column_blocking_object_hint: Ermitteln der zugehörigen RowID
 
   dba_list_dml_locks_link_column_blocking_object_hint:      Ermitteln der zugehörigen RowID
@@ -834,8 +843,18 @@
     - Nutzung von Funktionen auf der falschen Seite beim Zugriff auf Spalten des Index
     Diese Selektion wertet die aktuelle SGA aus.
   dragnet_helper_106_name:                                  Suboptimaler Zugriff auf Indizes mit nur teilweiser Nutzung des Index
-  dragnet_helper_106_param_1_hint:                           Mindestlaufzeit in Sekunden für den Index-Zugriff seit dem letzten Laden des SQL in der SGA
-  dragnet_helper_106_param_1_name:                           Mindest-Laufzeit beim Index-Zugriff in Sekunden
+  dragnet_helper_106_param_1_hint:                          Mindestlaufzeit in Sekunden für den Index-Zugriff seit dem letzten Laden des SQL in der SGA
+  dragnet_helper_106_param_1_name:                          Mindest-Laufzeit beim Index-Zugriff in Sekunden
+
+  dragnet_helper_107_desc: |-
+    Chained rows verursachen das Nachlesen von Migrationsblöcken bei Zugriff auf einen Record, der nicht vollständig im aktuellen Block enthalten ist.
+    Durch Anpassen PCTFREE sowie Reorganisation der betroffenen Tabelle lassen sich chained rows vermeiden.
+    Diese Selektion zeigt die Relevanz von Zugriffen auf chained rows im Vergleich zur Gesamtmenge der Zugriffe auf Tabellendaten.
+  dragnet_helper_107_name:                                  Relevanz von chained rows im Vergleich zu Gesamtmenge der Zugriffe
+  dragnet_helper_107_param_1_hint:                          optionale Einschränkung der Selektion auf konkrete RAC-Instance
+
+
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

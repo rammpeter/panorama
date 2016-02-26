@@ -304,7 +304,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
                 tr.append("<td align='right' class='legend_value'></td>");
 
                 //var escaped_legend_name = $("<div>").text(legend_name).html();
-                tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='delete_single_plot_chart(\""+plot_area_id+"\", "+index+");'>X</a></td>");
+                tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='delete_single_plot_chart(\""+plot_area_id+"\", "+index+"); return false;'>X</a></td>");
             });
 
             // Zeile für Anzeige des Zeitstempels zufügen

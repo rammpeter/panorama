@@ -139,7 +139,7 @@ class EnvController < ApplicationController
       rescue Exception => e
         msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
         msg << "#{e.message}<br/>"
-        msg << "<a href='#' onclick=\"jQuery('#xbh_workaround').show();\">#{t(:moeglicher, :default=>'possible')} workaround:</a><br/>"
+        msg << "<a href='#' onclick=\"jQuery('#xbh_workaround').show(); return false;\">#{t(:moeglicher, :default=>'possible')} workaround:</a><br/>"
         msg << "<div id='xbh_workaround' style='display:none; background-color: lightyellow; padding: 20px;'>"
         msg << "#{t(:env_set_database_xmem_line2, :default=>'Alternative 1: Connect with role SYSDABA')}<br/>"
         msg << "#{t(:env_set_database_xmem_line3, :default=>'Alternative 2: Execute as user SYS')}<br/>"

@@ -44,7 +44,7 @@ module AjaxHelper
       options << " #{key}=\"#{value}\""
     end
 
-    "<a href=\"#\" #{options} onclick=§SINGLE_QUOTE§jQuery.ajax({method: \"POST\", url: \"#{url_for(url)}\", data: #{json_data}}); §SINGLE_QUOTE§>#{my_html_escape(caption)}</a>".html_safe
+    "<a href=\"#\" #{options} onclick=§SINGLE_QUOTE§jQuery.ajax({method: \"POST\", url: \"#{url_for(url)}\", data: #{json_data}}); return false; §SINGLE_QUOTE§>#{my_html_escape(caption)}</a>".html_safe
   end # my_ajax_post_link
 
   # Ajax-formular mit einzelnem Submit-Button erzeugen
