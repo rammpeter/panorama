@@ -19,7 +19,7 @@
                 :groupby      => 'Session/Sn.',
                 :update_area  => @update_area
               ),
-           :title=>"Anzeige der Wait-Historie der blocking Session"
+           :title=>t(:active_session_history_list_blocking_locks_historic_link_sid_hint, :default=>'Show history of blocking session in Active Session History')
         )
       else
         rec.root_blocking_session_status
@@ -50,7 +50,7 @@ def link_column_blocked(rec, value)
             :blocking_session     => rec.root_blocking_session,
             :blocking_session_serialno => rec.root_blocking_session_serialno
           ),
-   :title=>'Anzeige der durch diese blocking Session geblockten Sessions')
+   :title=>t(:active_session_history_list_blocking_locks_historic_link_blocked_hint, :default=>'Show waiting sessions blocked by this session') )
 end
 
 def link_column_object(rec)
@@ -77,26 +77,26 @@ end
     column_options = []
     column_options << {:caption=>"Snapshot",        :data=>proc{|rec| localeDateTime(   rec.root_rounded_sample_time) },         :title=>t(:active_session_history_list_blocking_locks_historic_snapshot_hint, :default=>'Snapshot timestamp (rounded to 1 or 10 seconds)') }
     column_options << {:caption=>'Dead lock',       :data=>proc{|rec| rec.deadlock },                                         :title=>'Deadlock between this session and another preceding session?' }
-    column_options << {:caption=>"B.User",          :data=>proc{|rec| rec.root_blocking_username },                           :title=>"User-Name der blockenden Session" }             if get_db_version >= '11.2'
-    column_options << {:caption=>"B.SID",           :data=>proc{|rec| link_column_blocking_sid(rec) },                        :title=>"SID der blockenden Session", :data_title=>proc{|rec| "SerialNo=#{rec.root_blocking_session_serialno}#{", Program=#{rec.root_blocking_program}" if get_db_version >= '11.2'}" } }
-    column_options << {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_historic_sql_id(rec.root_blocking_inst_id, rec.root_blocking_sql_id, @time_selection_start, @time_selection_end, @update_area, rec.root_blocking_username)},                              :title=>"SQL-ID der blockenden Session" }             if get_db_version >= '11.2'
-    column_options << {:caption=>"B.Event",         :data=>proc{|rec| rec.root_blocking_event },                              :title=>"Wait-Event der blockenden Session" }             if get_db_version >= '11.2'
-    column_options << {:caption=>"B.Module",        :data=>proc{|rec| rec.root_blocking_module },                             :title=>"Module der blockenden Session" }             if get_db_version >= '11.2'
-    column_options << {:caption=>"B.Action",        :data=>proc{|rec| rec.root_blocking_action },                             :title=>"Action der blockenden Session" }             if get_db_version >= '11.2'
-    column_options << {:caption=>"Direct Blocked",  :data=>proc{|rec| link_column_blocked(rec, rec.blocked_sessions_direct) },  :title=>"Anzahl unmittelbar durch diesen Blocker blockierter Sessions (< x >) oder konkrete geblockte Session wenn nur eine", :align=>"right"}
-    column_options << {:caption=>"Total Blocked",   :data=>proc{|rec| link_column_blocked(rec, rec.blocked_sessions_total) },   :title=>"Anzahl unmittelbar und mittelbar blockierter Sessions durch diesen Blocker (< x >) oder konkrete geblockte Session wenn nur eine", :align=>"right"}
+    column_options << {:caption=>"B.User",          :data=>proc{|rec| rec.root_blocking_username },                           :title=>t(:active_session_history_list_blocking_locks_historic_blocking_user_hint, :default=>'User name of blocking session') }             if get_db_version >= '11.2'
+    column_options << {:caption=>"B.SID",           :data=>proc{|rec| link_column_blocking_sid(rec) },                        :title=>t(:active_session_history_list_blocking_locks_historic_blocking_sid_hint, :default=>'SID of blocking session'), :data_title=>proc{|rec| "SerialNo=#{rec.root_blocking_session_serialno}#{", Program=#{rec.root_blocking_program}" if get_db_version >= '11.2'}" } }
+    column_options << {:caption=>"B.SQL-ID",        :data=>proc{|rec| link_historic_sql_id(rec.root_blocking_inst_id, rec.root_blocking_sql_id, @time_selection_start, @time_selection_end, @update_area, rec.root_blocking_username)},                              :title=>t(:active_session_history_list_blocking_locks_historic_blocking_sqlid_hint, :default=>'SQL-ID of blocking session') }             if get_db_version >= '11.2'
+    column_options << {:caption=>"B.Event",         :data=>proc{|rec| rec.root_blocking_event },                              :title=>t(:active_session_history_list_blocking_locks_historic_blocking_event_hint, :default=>'Wait event of blocking session') }             if get_db_version >= '11.2'
+    column_options << {:caption=>"B.Module",        :data=>proc{|rec| rec.root_blocking_module },                             :title=>t(:active_session_history_list_blocking_locks_historic_blocking_module_hint, :default=>'Module of blocking session') }             if get_db_version >= '11.2'
+    column_options << {:caption=>"B.Action",        :data=>proc{|rec| rec.root_blocking_action },                             :title=>t(:active_session_history_list_blocking_locks_historic_blocking_action_hint, :default=>'Action of blocking session') }             if get_db_version >= '11.2'
+    column_options << {:caption=>"Direct Blocked",  :data=>proc{|rec| link_column_blocked(rec, rec.blocked_sessions_direct) },  :title=>t(:active_session_history_list_blocking_locks_historic_sessions_direct_hint, :default=>'Number of sessions directly blocked by this session (< x >) or SID of blocked session if only one'), :align=>"right"}
+    column_options << {:caption=>"Total Blocked",   :data=>proc{|rec| link_column_blocked(rec, rec.blocked_sessions_total) },   :title=>t(:active_session_history_list_blocking_locks_historic_sessions_indirect_hint, :default=>'Number of sessions blocked direct or indirect by this session (< x >) or SID of blocked session if only one'), :align=>"right"}
     column_options << {:caption=>"Total Wait (Sec.)", :data=>proc{|rec| formattedNumber(rec.seconds_in_wait_total,1) },         :title=>t(:active_session_history_list_blocking_locks_historic_total_wait_caption, :default=>'Sum over seconds in wait for indirect and direct blocked sessions')  , :align=>"right"}
-    column_options << {:caption=>"Blocking Object", :data=>proc{|rec| "#{rec.root_blocking_object} #{link_column_object(rec)}" },  :title=>"Blockendes Objekt"}
-    column_options << {:caption=>"W.I.",            :data=>proc{|rec| rec.waiting_instance },                                 :title=>"Instance der wartenden Session"}
-    column_options << {:caption=>"W.User",          :data=>proc{|rec| rec.root_username },                                    :title=>"User der wartenden Session"}
-    column_options << {:caption=>"W.SQL-ID",        :data=>proc{|rec| link_column_sql_id(rec) } ,                             :title=>"Aktuell ausgeführtes SQL der wartenden Session"}
-    column_options << {:caption=>"W.Event",         :data=>proc{|rec| rec.root_event } ,                                      :title=>"Aktuell Wait-Event der wartenden Session", :data_title=>proc{|rec| explain_wait_event(rec.root_event)} }
+    column_options << {:caption=>"Blocking Object", :data=>proc{|rec| "#{rec.root_blocking_object} #{link_column_object(rec)}" },  :title=>t(:active_session_history_list_blocking_locks_historic_blocking_object_hint, :default=>'Blocking object') }
+    column_options << {:caption=>"W.I.",            :data=>proc{|rec| rec.waiting_instance },                                 :title=>t(:active_session_history_list_blocking_locks_historic_waiting_instance_hint, :default=>'Instance of waiting session')}
+    column_options << {:caption=>"W.User",          :data=>proc{|rec| rec.root_username },                                    :title=>t(:active_session_history_list_blocking_locks_historic_waiting_user_hint, :default=>'User of waiting session')}
+    column_options << {:caption=>"W.SQL-ID",        :data=>proc{|rec| link_column_sql_id(rec) } ,                             :title=>t(:active_session_history_list_blocking_locks_historic_waiting_sqlid_hint, :default=>'Executed SQL of waiting session')}
+    column_options << {:caption=>"W.Event",         :data=>proc{|rec| rec.root_event } ,                                      :title=>t(:active_session_history_list_blocking_locks_historic_waiting_event_hint, :default=>'Wait event of waiting session'), :data_title=>proc{|rec| explain_wait_event(rec.root_event)} }
     column_options << {:caption=>"W.Module",        :data=>proc{|rec| rec.root_module },                                      :title=>'Module of waiting session (or count if multiple modules)'}
     column_options << {:caption=>"W.Action",        :data=>proc{|rec| rec.root_action },                                      :title=>'Action of waiting session (or count if multiple actions)'}
 %>
 
 <%= gen_slickgrid(@locks, column_options, {
-    :caption => "Blocking Locks zwischen #{@time_selection_start} und #{@time_selection_end} hierarchisch gruppiert ausgehend von Root-Blockern",
+    :caption => t(:active_session_history_list_blocking_locks_historic_caption, :default=>'Blockings locks between %{time_selection_start} and %{time_selection_end} hierarchical grouped beginning with root-blockers', :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end),
     :max_height => 450
   })
 %>

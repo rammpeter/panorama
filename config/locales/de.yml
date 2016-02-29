@@ -59,8 +59,25 @@
   active_session_history_list_groupfilter_refresh_hint:     Aktualisieren der Anzeige mit den geänderten Parametern
   active_session_history_first_occurrence_caption:          Erstes Auftreten
 
-  active_session_history_list_blocking_locks_historic_snapshot_hint:    Zeitstempel der Aufzeichnung des Locks (gerundet auf 1 bzw. 10 Sekunden)
-  active_session_history_list_blocking_locks_historic_detail_instance_hint:  Instance der geblockten Session
+  active_session_history_list_blocking_locks_historic_blocking_action_hint:   Action der blockenden Session
+  active_session_history_list_blocking_locks_historic_blocking_event_hint:    Wait-Event der blockenden Session
+  active_session_history_list_blocking_locks_historic_blocking_module_hint:   Module der blockenden Session
+  active_session_history_list_blocking_locks_historic_blocking_object_hint:   Blockendes Objekt
+  active_session_history_list_blocking_locks_historic_blocking_sid_hint:      SID der blockenden Session
+  active_session_history_list_blocking_locks_historic_blocking_sqlid_hint:    SQL-ID der blockenden Session
+  active_session_history_list_blocking_locks_historic_blocking_user_hint:     User-Name der blockenden Session"
+  active_session_history_list_blocking_locks_historic_caption:                Blocking Locks zwischen %{time_selection_start} und %{time_selection_end} hierarchisch gruppiert ausgehend von Root-Blockern
+  active_session_history_list_blocking_locks_historic_sessions_indirect_hint: Anzahl unmittelbar und mittelbar blockierter Sessions durch diesen Blocker (< x >) oder konkrete geblockte Session wenn nur eine
+  active_session_history_list_blocking_locks_historic_detail_instance_hint:   Instance der geblockten Session
+  active_session_history_list_blocking_locks_historic_link_blocked_hint:      Anzeige der durch diese blocking Session geblockten Sessions
+  active_session_history_list_blocking_locks_historic_link_sid_hint:          Anzeige der Historie der blocking Session in Active Session History
+  active_session_history_list_blocking_locks_historic_sessions_direct_hint:   Anzahl unmittelbar durch diesen Blocker blockierter Sessions (< x >) oder konkrete geblockte Session wenn nur eine
+  active_session_history_list_blocking_locks_historic_snapshot_hint:          Zeitstempel der Aufzeichnung des Locks (gerundet auf 1 bzw. 10 Sekunden)
+  active_session_history_list_blocking_locks_historic_waiting_event_hint:     Wait-Event der wartenden Session
+  active_session_history_list_blocking_locks_historic_waiting_instance_hint:  Instance der wartenden Session
+  active_session_history_list_blocking_locks_historic_waiting_sqlid_hint:     Aktuell ausgeführtes SQL der wartenden Session
+  active_session_history_list_blocking_locks_historic_waiting_user_hint:      User der wartenden Session
+
   active_session_history_list_session_statistic_single_record_link_sid_hint: Anzeige Active Session History der Session
   active_session_history_list_session_statistic_historic_link_hint: Anzeige der Verdichtung aus Samples der Gruppierung nach
   active_session_history_list_session_statistic_historic_grouping_header: Verdichtung nach
