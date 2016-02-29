@@ -170,7 +170,31 @@
   dba_history_show_system_statistics_historic_sum_caption:      Summen der System-Statistiken
   dba_history_show_system_statistics_historic_sum_hint:         Summen je Statistik-Name über gesamten Zeitraum anzeigen
 
+  dba_list_blocking_dml_locks_blocking_client_info_hint:        Client-Info, Module und Action der blockenden Session
+  dba_list_blocking_dml_locks_blocking_program_hint:            Programm der blockenden Session
+  dba_list_blocking_dml_locks_blocking_object_hint:             Schema und Name des blockenden Objektes
+  dba_list_blocking_dml_locks_blocking_sid_hint:                Instance und SID der blockenden Session
+  dba_list_blocking_dml_locks_blocking_status_hint:             Status der blockenden Session
+  dba_list_blocking_dml_locks_blocking_user_hint:               User der blockenden Session
+  dba_list_blocking_dml_locks_blocking_wait_event_hint:         Aktuelles Wait-Event der blockenden Session
+  dba_list_blocking_dml_locks_hold_hint:                        von blockender Session gehaltener gehaltener Lock-Mode
+  dba_list_blocking_dml_locks_level_hint:                       Hierarchie-Tiefe der Abhängigkeit vom Root-Blocker (1=Root-Blocker selbst)
+  dba_list_blocking_dml_locks_link_cascade_hint:                Anzeige der kompletten Kaskade der auslösenden Blocker für diese Session
   dba_list_blocking_dml_locks_link_column_blocking_object_hint: Ermitteln der zugehörigen RowID
+  dba_list_blocking_dml_locks_link_sid_hint:                    Details zur Session
+  dba_list_blocking_dml_locks_request_hint:                     von wartender Session angeforderter Lock-Mode
+  dba_list_blocking_dml_locks_root_blocking_session_hint:       Instance und SID der die Blocking-Kaskade auslösende Session
+  dba_list_blocking_dml_locks_sql_id_hint:                      SQL-ID des aktuellen Statements der wartenden Session
+  dba_list_blocking_dml_locks_waiting_client_info_hint:         Client-Info, Module und Action der wartenden Session
+  dba_list_blocking_dml_locks_waiting_id1id2_hint:              ID1, ID2 des Objektes auf das gewartet wird"
+  dba_list_blocking_dml_locks_waiting_locktype_hint:            Locktype der wartenden Session
+  dba_list_blocking_dml_locks_waiting_object_hint:              Name des Objektes, auf das gewartet wird
+  dba_list_blocking_dml_locks_waiting_program_hint:             Programm der wartenden Session
+  dba_list_blocking_dml_locks_waiting_seconds_hint:             Sekunden im Wait der wartenden Session
+  dba_list_blocking_dml_locks_waiting_sid_hint:                 Instance und SID der wartenden Session
+  dba_list_blocking_dml_locks_waiting_status_hint:              Status der wartenden Session
+  dba_list_blocking_dml_locks_waiting_user_hint:                User der wartenden Session
+  dba_list_blocking_dml_locks_waiting_wait_event_hint:          Wait-Event der wartenden Session
 
   dba_list_dml_locks_action_hint:                           Action-Info der Session
   dba_list_dml_locks_blocking_object_hint:                  Ressource, auf die gewartet wird
@@ -179,6 +203,9 @@
   dba_list_dml_locks_client_info_hint:                      Client-Info der Session
   dba_list_dml_locks_link_id12_hint:                        ID1 und ID2 des Locks
   dba_list_dml_locks_link_column_blocking_object_hint:      Ermitteln der zugehörigen RowID
+  dba_list_dml_locks_link_action_hint:                      Weitere Erklärung zur Action
+  dba_list_dml_locks_link_module_hint:                      Weitere Erklärung zum Module
+  dba_list_dml_locks_link_sid_hint:                         Details zur Session
   dba_list_dml_locks_machine_hint:                          Maschine:PID des User-Prozesses:ProzessName
   dba_list_dml_locks_pid_hint:                              RAC-Instanz:PID des Shadow-Prozesses:Oracle-User"
   dba_list_dml_locks_object_hint:                           Betroffenes Objekt

@@ -34,7 +34,7 @@
                  :serialno          => rec.serialno,
                  :update_area       => @update_area
                  ),
-         :title => "Details zur Session"
+         :title => t(:dba_list_dml_locks_link_sid_hint, :default=>'List details for session')
        )
     end
 
@@ -46,7 +46,7 @@
                :info=>rec.module,
                :update_area=>local_update_area
        ),
-     :title => "Weiter Erklärung zum Module") + "<div id=\"#{local_update_area}\"></div>".html_safe
+     :title => t(:dba_list_dml_locks_link_module_hint, :default=>'Further explanation for module') ) + "<div id=\"#{local_update_area}\"></div>".html_safe
    end
 
    def link_column_action(rec)
@@ -56,7 +56,7 @@
                :info=>rec.action,
                :update_area=>local_update_area
        ),
-     :title => "Weiter Erklärung zur Action") + "<div id=\"#{local_update_area}\"></div>".html_safe
+     :title => t(:dba_list_dml_locks_link_action_hint, :default=>'Further explanation for action') ) + "<div id=\"#{local_update_area}\"></div>".html_safe
    end
 
    def link_column_blocking_sid(rec)
@@ -67,7 +67,7 @@
               :serialno          => rec.blocking_serialno,
               :update_area       => @update_area
               ),
-      :title => "Details zur Session"
+      :title => t(:dba_list_dml_locks_link_sid_hint, :default=>'List details for session')
     )
    end
 
