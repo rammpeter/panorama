@@ -1219,6 +1219,10 @@ class DbaSgaController < ApplicationController
                                     )
                              FROM dual", curr_sql.sql_id, sid, serialno, curr_sql.sql_exec_id, instance]
 
+    if request.original_url['https://']                                         # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
+      result.gsub!(/http:/, 'https:')
+    end
+
     render :text => result
   end
 
