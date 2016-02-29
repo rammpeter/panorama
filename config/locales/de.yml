@@ -172,7 +172,19 @@
 
   dba_list_blocking_dml_locks_link_column_blocking_object_hint: Ermitteln der zugehörigen RowID
 
+  dba_list_dml_locks_action_hint:                           Action-Info der Session
+  dba_list_dml_locks_blocking_object_hint:                  Ressource, auf die gewartet wird
+  dba_list_dml_locks_blocking_sid_hint:                     Instance und SID der Session, auf die gewartet wird
+  dba_list_dml_locks_cancelled:                             Anzeige abgebrochen nach %{max_result_size} Zeilen, Result umfasst komplett %{result_size} Zeilen
+  dba_list_dml_locks_client_info_hint:                      Client-Info der Session
+  dba_list_dml_locks_link_id12_hint:                        ID1 und ID2 des Locks
   dba_list_dml_locks_link_column_blocking_object_hint:      Ermitteln der zugehörigen RowID
+  dba_list_dml_locks_machine_hint:                          Maschine:PID des User-Prozesses:ProzessName
+  dba_list_dml_locks_pid_hint:                              RAC-Instanz:PID des Shadow-Prozesses:Oracle-User"
+  dba_list_dml_locks_object_hint:                           Betroffenes Objekt
+  dba_list_dml_locks_module_hint:                           Module-Info der Session
+  dba_list_dml_locks_status_hint:                           Status-Info der Session
+  dba_list_dml_locks_time_hint:                             Wartezeit in Sekunden auf Lock bzw. seit letztem Statuswechsel ACTIVE/INACTIVE
 
   dba_list_rowid_link_hint:                                 Zeige Felder und Werte des Primary der Tabelle
 
