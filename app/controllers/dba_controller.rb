@@ -945,13 +945,16 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   end
 
   def list_session_optimizer_environment
+    @instance = prepare_param_instance
+    @sid      = params[:sid]
+
     @env = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
              Name, #{'SQL_Feature, ' if get_db_version >= '11.2'}IsDefault, Value
       FROM   gV$SES_OPTIMIZER_ENV
       WHERE  Inst_ID = ?
       AND    SID = ?
-      ", params[:instance], params[:sid]]
+      ", @instance, @sid]
 
     render_partial
   end

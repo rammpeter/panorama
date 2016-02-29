@@ -16,8 +16,8 @@ column_options =
    {:caption=>"OSUser",         :data=>proc{|rec| rec.osuser},          :title=>"Client OS user"},
    {:caption=>"Process",        :data=>proc{|rec| rec.process},         :title=>"Client process ID"},
    {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
-   {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-Time der Session"},
-   {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start der letzten ACTIVE-Phase"},
+   {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"},
+   {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"},
    {:caption=>'Auth. type',     :data=>proc{|rec| rec.authentication_type}, :title=>'How the user was authenticated. See V$SESSION_CONNECT_INFO.Authentication_Type'},
  ]
 column_options << {:caption=>'Client char set',     :data=>proc{|rec| rec.client_charset},     :title=>'Client character set as specified in the NLS_LANG environment variable or in the OCIEnvNlsCreate() call; Unknown if the Oracle client is older than release 11.1 or the connection is through the JDBC thin driver'} if get_db_version >= '11.2'
@@ -57,8 +57,8 @@ column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client
        {:caption=>"OSUser",         :data=>proc{|rec| rec.osuser},          :title=>"Client OS user"},
        {:caption=>"Process",        :data=>proc{|rec| rec.process},         :title=>"Client process ID"},
        {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
-       {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-Time der Session"},
-       {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start der letzten ACTIVE-Phase"},
+       {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"},
+       {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"},
      ]
 
     %>
@@ -111,7 +111,7 @@ column_options =
                :instance => @instance,
                :sid      => @sid,
                :serialno => @serialno),
-      :title => "Anzeige der aktuellen Wait-Stati der Session")
+      :title => t(:dba_list_session_details_link_wait, :default=>'Show current wait status of session') )
     %>
   </div>
   <div class="float_left">
@@ -121,7 +121,7 @@ column_options =
                :instance => @instance,
                :sid      => @sid,
                :serialno => @serialno),
-      :title => "Anzeige der Locks der Session")
+      :title => t(:dba_list_session_details_link_locks, :default=>'Show locks of session') )
     %>
   </div>
   <div class="float_left">
@@ -132,12 +132,12 @@ column_options =
                :saddr      => @dbsession.saddr,
                :sid        => @sid,
                :serialno   => @serialno),
-      :title => "Anzeige Temp-Usage der Session")
+      :title => t(:dba_list_session_details_link_temp, :default=>'Show TEMP-usage of session') )
     %>
   </div>
   <div class="float_left">
       <%=
-        my_ajax_submit_tag("#{@open_cursor_counts.total} offene Cursoren",
+        my_ajax_submit_tag("#{@open_cursor_counts.total} #{t(:dba_list_session_details_link_open_cursor_caption, :default=>'open cursor')}",
            url_for(:action => "list_open_cursor_per_session",
                    :controller => :dba,
                    :update_area => @update_area,
@@ -145,7 +145,7 @@ column_options =
                    :sid       => @sid,
                    :serialno  => @serialno
                    ),
-           :title=> "Anzeige offene Cursoren der Session (GV$OPEN_CURSOR), #{@open_cursor_counts.own_saddr} mit identischer SAddr")
+           :title=> t(:dba_list_session_details_link_open_cursor_hint, :default=>'Show open cursor of session (GV$OPEN_CURSOR) %{own_saddr} with identical SAddr', :own_saddr=>@open_cursor_counts.own_saddr))
       %>
   </div>
   <div class="float_left">
@@ -158,18 +158,18 @@ column_options =
                    :sid       => @sid,
                    :serialno  => @serialno
                    ),
-           :title=> "Anzeige der Wait-Historie der Session aus Active Session History")
+           :title=> t(:dba_list_session_details_link_ash, :default=>'Show wait history of session from Active Session History'))
       %>
   </div>
   <div class="float_left">
       <%=
-        my_ajax_submit_tag("Session-Statistik",
+        my_ajax_submit_tag("Session-Statistics",
            url_for(:action => :list_session_statistic,
                    :update_area => @update_area,
                    :instance  => @instance,
                    :sid       => @sid
                    ),
-           :title=> "Anzeige der Session-Statistik aus V$SessStat")
+           :title=> t(:dba_list_session_details_link_stat, :default=>'Show session statistics from V$SessStat'))
       %>
   </div>
   <div class="float_left">
@@ -206,10 +206,6 @@ column_options =
                         ), :target=>'_blank') do %>
       <%= submit_tag('SQL Monitor', :disabled=>!@sql_monitor_exists, :title =>"Generate SQL-Monitor report by calling DBMS_SQLTUNE.report_sql_monitor on new page.\n- requires active internet connection at client\n- requires Adobe Flash installed at client browser\n- requires licensing of Oracle Tuning Pack\n- Available only if data exists in gv$SQL_Monitor") %>
     <% end %>
-  </div>
-
-  <div class="float_left">
-    <input type="submit" title="Schliessen der Statement-Anzeige" value="<%= t(:close, :default=>'Close') %>" onclick="jQuery('#<%= @prev_update_area %>').html('');">
   </div>
 </div>
 

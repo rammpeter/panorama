@@ -232,6 +232,14 @@
 
   dba_list_rowid_link_hint:                                 Zeige Felder und Werte des Primary der Tabelle
 
+  dba_list_session_details_link_ash:                        Anzeige der Wait-Historie der Session aus Active Session History
+  dba_list_session_details_link_locks:                      Anzeige der Locks der Session
+  dba_list_session_details_link_open_cursor_caption:        offene Cursoren
+  dba_list_session_details_link_open_cursor_hint:           Anzeige offene Cursoren der Session (GV$OPEN_CURSOR), %{own_saddr} mit identischer SAddr
+  dba_list_session_details_link_stat:                       Anzeige der Session-Statistik aus V$SessStat
+  dba_list_session_details_link_temp:                       Anzeige Temp-Usage der Session
+  dba_list_session_details_link_wait:                       Anzeige der aktuellen Wait-Status der Session
+
   dba_schema_list_objects_caption:                          Objekte für
 
   dba_schema_show_object_filter_hint:                       Filter-string muss in Objekt-name enthalten sein (wenn belegt)

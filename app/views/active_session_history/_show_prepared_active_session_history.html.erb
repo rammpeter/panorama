@@ -1,6 +1,6 @@
 <% @update_area = get_unique_area_id %>
 
-<div class="page_caption">Session-Statistics aus DBA_Hist_Active_Sess_History</div>
+<div class="page_caption">Session-Statistics from DBA_Hist_Active_Sess_History</div>
 
 <%=
     my_ajax_form_tag url_for(:controller  => :active_session_history,
@@ -14,7 +14,7 @@
   <%= include_start_end_timepicker(:show_prepare_active_session_history) %>
 
   <div class="float_left">
-    <%= submit_tag("Waits anzeigen", :title => "Anlistung der verdichteten Session-Waits") %>
+    <%= submit_tag("Show waits", :title => "Show condensed session waits from Active Session History") %>
   </div>
 <% end %>
 <div id="<%= @update_area %>" style="float:left; width:100%; ">
