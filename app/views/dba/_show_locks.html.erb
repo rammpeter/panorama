@@ -15,12 +15,12 @@
 <% end  %>
   <div class="float_left">
     <%= my_ajax_form_tag :controller => :dba, :action=>"list_blocking_dml_locks" do %>
-      <%= submit_tag "Blocking DML-Locks", :title =>t(:dba_show_locks_submit_blocking_hint, :default=>"show blocking DML-Locks (Data Manipulation)") %>
+      <%= submit_tag "Blocking DML-Locks", :title =>t(:dba_show_locks_submit_blocking_hint, :default=>"show blocking DML-locks (data manipulation locks)") %>
     <% end %>
   </div>
   <div class="float_left">
     <%= my_ajax_form_tag :controller => :dba, :action=>"list_ddl_locks" do %>
-      <%= submit_tag "DDL-Locks", :title =>t(:dba_show_locks_submit_ddl_hint, :default=>"show DDL-Locks (Data-Definition)") %>
+      <%= submit_tag "Blocking DDL-Locks", :title =>t(:dba_show_locks_submit_ddl_hint, :default=>"show blocking DDL-locks (data definition locks)") %>
     <% end %>
   </div>
   

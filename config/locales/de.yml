@@ -317,8 +317,8 @@
   dba_show_locks_max_result_size_hint:                      Limitierung auf maximale Anzahl Zeilen des Resultates der Abfrage
   dba_show_locks_submit_dml_caption:                        DML-Locks komplett
   dba_show_locks_submit_dml_hint:                           Alle DML-Locks (Data Manipulation) anzeigen
-  dba_show_locks_submit_blocking_hint:                      Blockierende DML-Locks (Data Manipulation) anzeigen
-  dba_show_locks_submit_ddl_hint:                           DDL-Locks (Data-Definition) anzeigen
+  dba_show_locks_submit_blocking_hint:                      Blockierende DML-Locks (Data Manipulation Locks) anzeigen
+  dba_show_locks_submit_ddl_hint:                           Blockierende DDL-Locks (Data Definition Locks) anzeigen
 
   dba_show_sessions_caption:                                Anzeige Sessions
   dba_show_sessions_filter_hint: |-
