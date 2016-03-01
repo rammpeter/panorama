@@ -5,18 +5,18 @@ column_options =
 [
   {:caption=>"I",                :data=>proc{|rec| rec.instance},                       :title=>"Instance-ID"},
   {:caption=>"ID",               :data=>proc{|rec| formattedNumber(rec.id)},            :title=>"Parameter-ID", :align=>"right"},
-  {:caption=>"Type",             :data=>proc{|rec| formattedNumber(rec.paramtype)},     :title=>"Parameter-Typ", :align=>"right"},
-  {:caption=>"Name",             :data=>proc{|rec| rec.name},                           :title=>"Parameter-Name"},
-  {:caption=>"Beschreibung",     :data=>proc{|rec| rec.description},                    :title=>"Parameter-Beschreibung"},
-  {:caption=>"Value",            :data=>proc{|rec| rec.value},                          :title=>"Parameter-Wert"},
-  {:caption=>"Display-Value",    :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-Wert human readable"},
-  {:caption=>"Default",          :data=>proc{|rec| rec.isdefault},                      :title=>"Ist Parameter-Wert noch der Default-Wert"},
+  {:caption=>"Type",             :data=>proc{|rec| formattedNumber(rec.paramtype)},     :title=>"Parameter type", :align=>"right"},
+  {:caption=>"Name",             :data=>proc{|rec| rec.name},                           :title=>"Parameter name"},
+  {:caption=>"Description",      :data=>proc{|rec| rec.description},                    :title=>"Description of parameter"},
+  {:caption=>"Value",            :data=>proc{|rec| rec.value},                          :title=>"Parameter-value"},
+  {:caption=>"Display-Value",    :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-value human readable"},
+  {:caption=>"Default",          :data=>proc{|rec| rec.isdefault},                      :title=>t(:dba_oracle_parameter_is_default_hint, :default=>'Is parameter value still default')},
 ]
 
 %>
 
 <%=
-    gen_slickgrid(@parameters, column_options, {:caption => 'Oracle Initialisierungs-Parameter', :max_height=>600})
+    gen_slickgrid(@parameters, column_options, {:caption => t(:dba_oracle_parameter_caption, :default=>'Init-parameter of database'), :max_height=>600})
 %>
 
 

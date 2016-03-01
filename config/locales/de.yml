@@ -240,6 +240,9 @@
   dba_list_session_details_link_temp:                       Anzeige Temp-Usage der Session
   dba_list_session_details_link_wait:                       Anzeige der aktuellen Wait-Status der Session
 
+  dba_oracle_parameter_caption:                             Initialisierungs-Parameter der Datenbank
+  dba_oracle_parameter_is_default_hint:                     Ist Parameter-Wert noch der Default-Wert
+
   dba_schema_list_objects_caption:                          Objekte für
 
   dba_schema_show_object_filter_hint:                       Filter-string muss in Objekt-name enthalten sein (wenn belegt)

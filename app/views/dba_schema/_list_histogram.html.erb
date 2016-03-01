@@ -1,0 +1,17 @@
+<%
+  column_options =
+      [
+          {:caption=> 'Endpoint number',            :data=>proc{|rec| rec.endpoint_number},                        :title=> 'Endpoint number',                      :align=>:right},
+          {:caption=> 'Num rows',                   :data=>proc{|rec| fn(rec.num_rows)},                           :title=> "Number of rows for this bucket. \nCalculated by difference between this endpoint_number and the predecessors endpoint_number weighted by number of not null records",       :align=>:right},
+          {:caption=> 'Endpoint value',             :data=>proc{|rec| rec.endpoint_value},                         :title=> 'Normalized endpoint value',            :align=>:right},
+          {:caption=> 'Endpoint actual value',      :data=>proc{|rec| rec.endpoint_actual_value},                  :title=> 'Endpoint actual value',                :align=>:right},
+          {:caption=> 'Interpreted endpoint value', :data=>proc{|rec| rec.interpreted_endpoint_value},             :title=> 'Interpreted endpoint value depending from data type'},
+      ]
+
+%>
+
+<%= gen_slickgrid(@histograms, column_options, {
+    :caption => "Histogram values from DBA_Histogram for #{@owner}.#{@table_name}.#{@column_name}",
+    :max_height => 450
+})
+%>

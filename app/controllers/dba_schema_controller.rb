@@ -787,4 +787,26 @@ class DbaSchemaController < ApplicationController
 
     render_partial :list_audit_trail_grouping
   end
+
+  def list_histogram
+    @owner        = params[:owner]
+    @table_name   = params[:table_name]
+    @data_type    = params[:data_type]
+    @column_name  = params[:column_name]
+    @num_rows     = params[:num_rows]
+
+    interpreted_endpoint_value = 'NULL'
+    interpreted_endpoint_value = "TO_CHAR(TO_DATE(TRUNC(endpoint_value),'J')+(ENDPOINT_VALUE-TRUNC(ENDPOINT_VALUE)), '#{sql_datetime_second_mask}')" if @data_type == 'DATE'
+
+    @histograms = sql_select_all ["SELECT h.*,
+                                          NVL(Endpoint_Number - LAG(Endpoint_Number) OVER (ORDER BY Endpoint_Number), Endpoint_Number) * #{@num_rows} / MAX(Endpoint_Number) OVER () Num_Rows,
+                                          #{interpreted_endpoint_value} Interpreted_Endpoint_Value
+                                   FROM   DBA_Histograms h
+                                   WHERE  Owner       = ?
+                                   AND    Table_Name  = ?
+                                   AND    Column_Name = ?
+                                   ORDER BY Endpoint_Number
+                                  ", @owner, @table_name, @column_name]
+    render_partial
+  end
 end
