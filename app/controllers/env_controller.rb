@@ -103,6 +103,8 @@ class EnvController < ApplicationController
     if params[:login]                                                           # Button Login gedrückt
       params[:database] = read_last_logins[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
 
+      params[:database][:query_timeout] = 360 unless params[:database][:query_timeout]  # Initialize if stored login dies not contain query_timeout
+
       params[:saveLogin] = "1"                                                  # Damit bei nächstem Refresh auf diesem Eintrag positioniert wird
       raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
       set_database
