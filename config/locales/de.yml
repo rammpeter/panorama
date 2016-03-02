@@ -971,9 +971,9 @@
   login_mode_caption:                                       Modus DB-Auswahl
   login_mode_title:                                         Auswahl Modus zur Identifikation der Datenbank
   login_query_timeout_hint: |-
-    Query-Timeout in Sekunden für SELECT-Abfragen gegen Datenbank.
-    Nach Ablauf des Timeouts wird Ausführung des Statements in DB automatisch abgebrochen.
-    Fehlermeldung: "Java::JavaSql::SQLTimeoutException: ORA-01013"
+    Query-Timeout in Sekunden für langlaufende SELECT-Abfragen gegen Datenbank.
+    Nach Ablauf des Timeouts wird die Ausführung des Statements in DB automatisch abgebrochen.
+    Sie erhalten die Fehlermeldung: "Java::JavaSql::SQLTimeoutException: ORA-01013"
   login_role_caption:                                       Rolle
   login_save_login_caption:                                 Login speichern?
   login_save_login_hint:                                    Login-Info speichern für wiederholte Verwendung?
