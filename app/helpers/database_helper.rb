@@ -100,7 +100,7 @@ public
             :username => get_current_database[:user],
             :password => local_password,
             :privilege => get_current_database[:privilege],
-            :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf similar bzw. force
+            :cursor_sharing => :exact             # oracle_enhanced_adapter setzt cursor_sharing per Default auf force
         )
         Rails.logger.info "Connecting database: URL='#{jdbc_thin_url}' User='#{get_current_database[:user]}'"
       else

@@ -1,5 +1,14 @@
 # Halten eines SQL-Cursors und iterieren durch Result
 
+
+ActiveRecord::ConnectionAdapters::OracleEnhancedJDBCConnection::Cursor.class_eval do
+  def get_raw_statement
+    @raw_statement
+  end
+end
+
+
+
 #require 'active_record/connection_adapters/oracle_enhanced_adapter'
 
 # Die Erweiterung per Module-Deklaration: module ActiveRecord, module ConnectionAdapters, module OracleEnhancedDatabaseStatements
@@ -10,7 +19,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
 
   # Analoge Methode zu ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
   # jedoch ohne Speicherung des kompletten Results
-  def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, &block)
+  def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, query_timeout = nil, &block)
     type_casted_binds = binds.map { |col, val|
       [col, type_cast(val, col)]
     }
@@ -33,6 +42,8 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
 
         cached = true
       end
+
+      cursor.get_raw_statement.setQueryTimeout(query_timeout) if query_timeout
 
       cursor.exec
 
@@ -67,18 +78,20 @@ end #class_eval
 
 
 class SqlSelectIterator
+
   #self.table_name   =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
   #self.primary_key  = "id"            # Festes übersteuern, da DUAL keine Info zum Primary Key liefert
 
-  def initialize(stmt, binds, modifier)
-    @stmt     = stmt
-    @binds    = binds
-    @modifier = modifier              # proc zur Modifikation eines Records
+  def initialize(stmt, binds, modifier, query_timeout)
+    @stmt           = stmt
+    @binds          = binds
+    @modifier       = modifier              # proc zur Modifikation eines Records
+    @query_timeout  = query_timeout
   end
 
   def each(&block)
     # Ausführen SQL und Aufrufen Block für jeden Record des Results
-    result = ConnectionHolder.connection.iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, &block)
+    ConnectionHolder.connection.iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, @query_timeout, &block)
   end
 
 end

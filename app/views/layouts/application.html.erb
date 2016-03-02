@@ -176,6 +176,14 @@
                   </td>
                 </tr>
                 <tr>
+                  <th>Query Timeout</th>
+                  <td align="center">
+                    <div title="<%= t(:login_query_timeout_hint, :default=>"Query-Timeout in seconds for SELECT-queries against database. \nAfter timeout current query in database will be automatically cancelled.\nError message: \"Java::JavaSql::SQLTimeoutException: ORA-01013\"") %>">
+                      <%= text_field_tag( 'database[query_timeout]', 240, :size=>6, :style => "text-align: Right" ) %>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
                   <th><%= t :login_save_login_caption, :default=>"Save login?" %></th>
                   <td align="center"><%= check_box_tag(:saveLogin, 1, true, :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
                 </tr>

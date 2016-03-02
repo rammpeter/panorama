@@ -75,6 +75,7 @@ module ApplicationHelper
 
   def set_current_database(current_database)
     @buffered_current_database = nil                                            # lokalen Cache verwerfen
+    current_database[:query_timeout] = current_database[:query_timeout].to_i
     write_to_client_info_store(:current_database, current_database)
   end
 
@@ -168,16 +169,25 @@ module ApplicationHelper
   #            modifier = proc für Anwendung auf die fertige Row
   # return Array of Hash mit Columns des Records
   def sql_select_all(sql, modifier=nil)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
-    stmt, binds = sql_prepare_binds(sql)
-    result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
-    result.each do |h|
-      h.each do |key, value|
-        h[key] = value.strip if value.class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
-      end
-      h.extend SelectHashHelper    # erlaubt, dass Element per Methode statt als Hash-Element zugegriffen werden können
-      modifier.call(h) unless modifier.nil?             # Anpassen der Record-Werte
+    #### alte standalone-Lösung
+    # stmt, binds = sql_prepare_binds(sql)
+    # result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
+    # result.each do |h|
+    #   h.each do |key, value|
+    #     h[key] = value.strip if value.class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
+    #   end
+    #   h.extend SelectHashHelper    # erlaubt, dass Element per Methode statt als Hash-Element zugegriffen werden können
+    #   modifier.call(h) unless modifier.nil?             # Anpassen der Record-Werte
+    # end
+    # result.to_ary                                                               # Ab Rails 4 ist result nicht mehr vom Typ Array, sondern ActiveRecord::Result
+
+    # Mapping auf sql_select_iterator
+
+    result = []
+    sql_select_iterator(sql, modifier).each do |r|
+      result << r
     end
-    result.to_ary                                                               # Ab Rails 4 ist result nicht mehr vom Typ Array, sondern ActiveRecord::Result
+    result
   end
 
   # Analog sql_select all, jedoch return ResultIterator mit each-Method
@@ -186,7 +196,7 @@ module ApplicationHelper
   #            modifier = proc für Anwendung auf die fertige Row
   def sql_select_iterator(sql, modifier=nil)
     stmt, binds = sql_prepare_binds(sql)
-    SqlSelectIterator.new(stmt, binds, modifier)      # kann per Aufruf von each die einzelnen Records liefern
+    SqlSelectIterator.new(stmt, binds, modifier, get_current_database[:query_timeout])      # kann per Aufruf von each die einzelnen Records liefern
   end
 
 
@@ -194,7 +204,7 @@ module ApplicationHelper
   def sql_select_first_row(sql)
     result = sql_select_all(sql)
     return nil if result.empty?
-    result[0].extend SelectHashHelper      # Erweitern Hash um Methodenzugriff auf Elemente
+    result[0]     #.extend SelectHashHelper      # Erweitern Hash um Methodenzugriff auf Elemente
   end
 
   # Select genau einen Wert der ersten Zeile des Result
