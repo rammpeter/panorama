@@ -1,24 +1,21 @@
-# Halten eines SQL-Cursors und iterieren durch Result
+# hold open SQL-Cursor and iterate over SQL-result without storing whole result in Array
+# Peter Ramm, 02.03.2016
 
-
+# expand class by getter to allow access on internal variable @raw_statement
 ActiveRecord::ConnectionAdapters::OracleEnhancedJDBCConnection::Cursor.class_eval do
   def get_raw_statement
     @raw_statement
   end
 end
 
-
-
-#require 'active_record/connection_adapters/oracle_enhanced_adapter'
-
-# Die Erweiterung per Module-Deklaration: module ActiveRecord, module ConnectionAdapters, module OracleEnhancedDatabaseStatements
-# greift nicht bei Verwendung als Engine unter Winstone, daher harte Manipulation der Klasse ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
-# und Erweiterung um Methode iterate_query
+# Class extension by Module-Declaration : module ActiveRecord, module ConnectionAdapters, module OracleEnhancedDatabaseStatements
+# does not work as Engine with Winstone application server, therefore hard manipulation of class ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
+# and extension with method iterate_query
 
 ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
 
-  # Analoge Methode zu ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
-  # jedoch ohne Speicherung des kompletten Results
+  # Method comparable with ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
+  # but without storing whole result in memory
   def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, query_timeout = nil, &block)
     type_casted_binds = binds.map { |col, val|
       [col, type_cast(val, col)]
@@ -58,7 +55,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
           result_hash = {}
           columns.each_index do |index|
             result_hash[columns[index]] = row[index]
-            row[index] = row[index].strip if row[index].class == String   # Entfernen eines eventuellen 0x00 am Ende des Strings, dies führt zu Fehlern im Internet Explorer
+            row[index] = row[index].strip if row[index].class == String   # Remove possible 0x00 at end of string, this leads to error in Internet Explorer
           end
           result_hash.extend SelectHashHelper
           modifier.call(result_hash)  unless modifier.nil?
@@ -79,18 +76,15 @@ end #class_eval
 
 class SqlSelectIterator
 
-  #self.table_name   =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
-  #self.primary_key  = "id"            # Festes übersteuern, da DUAL keine Info zum Primary Key liefert
-
   def initialize(stmt, binds, modifier, query_timeout)
     @stmt           = stmt
     @binds          = binds
-    @modifier       = modifier              # proc zur Modifikation eines Records
+    @modifier       = modifier              # proc for modifikation of record
     @query_timeout  = query_timeout
   end
 
   def each(&block)
-    # Ausführen SQL und Aufrufen Block für jeden Record des Results
+    # Execute SQL and call block for every record of result
     ConnectionHolder.connection.iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, @query_timeout, &block)
   end
 
