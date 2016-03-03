@@ -70,5 +70,9 @@ class DbaSchemaControllerTest < ActionController::TestCase
 
   end
 
+  test "list_object_nach_file_und_block" do
+    xhr :get, :list_object_nach_file_und_block, :format=>:js, :fileno=>1, :blockno=>1
+    assert_response :success
+  end
 
 end

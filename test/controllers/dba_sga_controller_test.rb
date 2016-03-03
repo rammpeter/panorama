@@ -93,11 +93,6 @@ class DbaSgaControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "list_object_nach_file_und_block" do
-    xhr :get, :list_object_nach_file_und_block, :format=>:js, :fileno=>1, :blockno=>1
-    assert_response :success
-  end
-
   test "list_cursor_memory" do
     xhr :get, :list_cursor_memory, :format=>:js, :instance=>1, :sql_id=>@sga_sql_id
     assert_response :success
