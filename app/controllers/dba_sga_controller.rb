@@ -694,12 +694,6 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
-  def list_object_nach_file_und_block
-     @object = object_nach_file_und_block(params[:fileno], params[:blockno]) 
-     #@object = "[Kein Object gefunden für Parameter FileNo=#{params[:fileno]}, BlockNo=#{params[:blockno]}]" unless @object
-     render_partial
-  end
-
   def list_cursor_memory
     @instance =  prepare_param_instance
     @sid      =  params[:sid].to_i

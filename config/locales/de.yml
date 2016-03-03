@@ -250,6 +250,10 @@
   dba_schema_show_object_submit_caption:                    Objekte und Größen anzeigen
   dba_schema_show_object_submit_hint:                       Objekte mit Größen und Parametern je Tablespace und Schema anzeigen
 
+  dba_schema_show_object_nach_file_caption:                 Ermitteln des Objectes für einzelnen DB-Block
+  dba_schema_show_object_nach_file_submit_caption:          Name des Objektes suchen
+  dba_schema_show_object_nach_file_submit_hint:             Name des Objektes suchen in DB-Cache oder über DBA_Extents
+
   dba_segment_stat_caption:                                 Objekt-spezifische Statistiken aus V$Segment_Statistics
   dba_segment_stat_only_sample_change_caption:              Nur Änderungen während Sample
   dba_segment_stat_only_sample_change_hint:                 Nur Objekte anzeigen deren Daten sich zwischen den Samples änderten

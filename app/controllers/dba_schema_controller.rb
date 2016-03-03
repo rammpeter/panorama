@@ -1,5 +1,7 @@
 # encoding: utf-8
 class DbaSchemaController < ApplicationController
+  include DbaHelper
+
   # Einstieg in Seite (Menü-Action)
   def show_object_size
     @tablespaces = sql_select_all("\
@@ -809,4 +811,12 @@ class DbaSchemaController < ApplicationController
                                   ", @owner, @table_name, @column_name]
     render_partial
   end
+
+  def list_object_nach_file_und_block
+    @object = object_nach_file_und_block(params[:fileno], params[:blockno])
+    #@object = "[Kein Object gefunden für Parameter FileNo=#{params[:fileno]}, BlockNo=#{params[:blockno]}]" unless @object
+    render_partial
+  end
+
+
 end

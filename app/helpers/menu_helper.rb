@@ -101,6 +101,7 @@ module MenuHelper
                 {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=>:active_session_history ,  :action=>:show_temp_usage_historic,    :hint=>t(:menu_storage_temp_usage_historic_hint, :default=> 'Historic usage of TEMP tablespace'), :min_db_version => '11.2' },
             ]
             },
+            {:class=> 'item', :caption=>t(:menu_sga_pga_object_by_file_and_block_caption, :default=> 'Object by file and block no.'),      :controller=> 'dba_schema',     :action=> 'show_object_nach_file_und_block',  :hint=>t(:menu_sga_pga_object_by_file_and_block_hint, :default=> 'Determine object-name by file- and block-no.') },
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_io_caption, :default=> 'I/O analysis'), :content=>[
@@ -145,7 +146,6 @@ module MenuHelper
                 {:class=> 'item', :caption=>'Stored outlines',            :controller=> 'dba_sga',     :action=> 'show_stored_outlines', :hint=>t(:menu_sga_pga_stored_outlines_hint, :default=> 'Show all stored outlines for this database') },
                   ])
             },
-            {:class=> 'item', :caption=>t(:menu_sga_pga_object_by_file_and_block_caption, :default=> 'Object by file and block no.'),      :controller=> 'dba_sga',     :action=> 'show_object_nach_file_und_block',  :hint=>t(:menu_sga_pga_object_by_file_and_block_hint, :default=> 'Determine object-name by file- and block-no.') },
             {:class=> 'item', :caption=> 'Compare execution plans',      :controller=> 'dba_sga',     :action=> 'show_compare_execution_plans',  :hint=>t(:menu_sga_pga_compare_execution_plans, :default=> 'Compare execution plan of two different cursors in SGA') },
             ]
         },
