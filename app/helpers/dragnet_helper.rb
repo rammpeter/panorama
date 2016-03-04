@@ -2116,19 +2116,20 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
              :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
          },
         {
-             :name  => 'Konkurrenz bzgl. Speicher, Latches: Unzureichend gecachte Sequences',
-             :desc  => 'Das Nachlesen von Sequence-Werten / Fuellen des Sequence-Caches ist verbunden mit Schreiben in Dictionary sowie Abgleich der Strukturen zwischen RAC-Instanzen.
-    Zu hochfrequenter Zugriff auf Dictionary-Strukturen der Sequences führt zu diversen unnötigen Wartesituationen, daher fachlich und technisch sinnvolle Cache-Größen definieren für Sequences.',
-             :sql=>  "SELECT /* DB-Tools Ramm Unzureichend gecachte Sequences */ *
+             :name  => t(:dragnet_helper_110_name, :default=>'Concurrency on memory, latches: insufficient cached sequences'),
+             :desc  => t(:dragnet_helper_110_desc, :default=>'Fetching of sequence values / filling the sequence cache causes writes in dictionary and interchange between REC-instances.
+                          Highly frequent access on dictionary structures of sequences leads to unnecessary wait events, therefore you should define reasonable cache sizes for sequences.
+')
+             :sql=>  "SELECT /* DB-Tools Ramm insufficent cached sequences */ *
                       FROM   DBA_Sequences
                       WHERE  Sequence_Owner NOT IN ('SYS', 'SYSTEM')
                       ORDER  By Last_Number/DECODE(Cache_Size,0,1,Cache_Size) DESC NULLS LAST",
          },
         {
-             :name  => 'Konkurrenz bzgl. Speicher, Latches: Überblick über Sequence-Nutzung',
-             :desc  => 'Wenn in Applikation gecacht werden kann, müssen Sequences nicht einzeln von DB gelesen werden.
-    Dies reduziert DB-Roundtrips der Applikation und wird hier bewertet.',
-             :sql=>  "SELECT /* DB-Tools Ramm  Ueberblick Sequence-Nutzung */ *
+             :name  => t(:dragnet_helper_111_name, :default=>'Concurrency on memory, latches: Overview over usage of sequences'),
+             :desc  => t(:dragnet_helper_111_desc, :default=>'If sequences may be cached in application, next values must not be read from DB one by one.
+                                                              This may reduce the number of roundtrips between application and database.'),
+             :sql=>  "SELECT /* DB-Tools Ramm  Overview usage of sequences */ *
                       FROM   (
                               SELECT ROUND(Executions/CASE WHEN (Last_Active_Time - First_Load_Time) < 1 THEN 1 ELSE Last_Active_Time - First_Load_Time END) Executions_per_Day,
                                      ROUND(Rows_Processed/CASE WHEN (Last_Active_Time - First_Load_Time) < 1 THEN 1 ELSE Last_Active_Time - First_Load_Time END) Rows_Processed_per_Day,

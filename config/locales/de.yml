@@ -937,6 +937,18 @@
   dragnet_helper_109_name: |-
     PGA-Auslastung: Historische Auslastung PGA-Strukturen
 
+  dragnet_helper_110_desc: |-
+    Das Nachlesen von Sequence-Werten / Fuellen des Sequence-Caches ist verbunden mit Schreiben in Dictionary sowie Abgleich der Strukturen zwischen RAC-Instanzen.
+    Zu hochfrequenter Zugriff auf Dictionary-Strukturen der Sequences führt zu diversen unnötigen Wartesituationen, daher fachlich und technisch sinnvolle Cache-Größen definieren für Sequences.
+  dragnet_helper_110_name: |-
+    Konkurrenz bzgl. Speicher, Latches: Unzureichend gecachte Sequences
+
+  dragnet_helper_111_desc: |-
+    Wenn Sequences in Applikation gecacht werden können, müssen die next values nicht einzeln von DB gelesen werden.
+    Dies reduziert DB-Roundtrips der Applikation und wird hier bewertet.
+  dragnet_helper_111_name: |-
+    Konkurrenz bzgl. Speicher, Latches: Überblick über Sequence-Nutzung
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
