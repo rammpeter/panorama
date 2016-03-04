@@ -2072,9 +2072,9 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
              :parameter=>[{:name=>t(:dragnet_helper_104_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>100, :title=>t(:dragnet_helper_104_param_1_hint, :default=>'If analyze info exists: minimun age for consideration in selection')}]
          },
         {
-             :name  => 'Objekt-Statistiken: Prüfung auf aktuelle Analyze-Info (Indizes)',
-             :desc  => 'Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein',
-             :sql=>  "SELECT /* DB-TOoLs Ramm Indizes ohne bzw. mit veralteter Statistik */ i.Owner, i.Table_Name, i.Index_Name, i.Num_Rows, i.Last_Analyzed
+             :name  => t(:dragnet_helper_108_name, :default=>'Objekt statistics: Check on up-to-date analyze info (Indexes)'),
+             :desc  => t(:dragnet_helper_108_desc, :default=>'For cost based optimizer object statistics should be sufficient up-to-date'),
+             :sql=>  "SELECT /* DB-TOoLs Ramm Indizes without e.g. with old statistics */ i.Owner, i.Table_Name, i.Index_Name, i.Num_Rows, i.Last_Analyzed
                       FROM   DBA_Indexes i
                       JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
                       JOIN   (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(Bytes)/(1024*1024) MBytes FROM DBA_Segments GROUP BY Owner, Segment_Name) s ON s.Owner = i.Owner AND s.Segment_Name = i.Index_Name
@@ -2086,11 +2086,11 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       AND    i.Owner NOT LIKE 'PATROL%'
                       AND    t.Temporary = 'N'
                       ORDER BY s.MBytes DESC",
-             :parameter=>[{:name=> 'Mindestalter existierender Analyse in Tagen', :size=>8, :default=>100, :title=> 'Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion'}]
+             :parameter=>[{:name=>t(:dragnet_helper_108_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>100, :title=>t(:dragnet_helper_108_param_1_hint, :default=>'If analyze info exists: minimun age for consideration in selection')}]
          },
         {
-             :name  => 'PGA-Auslastung: Historische Auslastung PGA-Strukturen',
-             :desc  => 'Unzureichende Bereitstellung PGA für Sort-/Hash-Operationen führt zu Auslagern auf TEMP-Tablespace mit entsprechenden Performance-Auswirkungen.',
+             :name  => t(:dragnet_helper_109_name, :default=>'PGA-Usage: Historic utilization of PGA-structures'),
+             :desc  => t(:dragnet_helper_109_desc, :default=>'Insufficient supply of PGA-memory for sort and hash operations leads to transfer to TEMP-tablespace with according impact on performance'),
              :sql=>  "SELECT /*+ DB-Tools Ramm - PGA-Historie*/
                              ss.Begin_Interval_Time, p.Instance_Number,
                              ROUND(MAX(DECODE(p.Name, 'aggregate PGA target parameter'      , p.Value, 0))/(1024*1024)) \"PGA Aggregate Target (MB)\",

@@ -925,7 +925,17 @@
   dragnet_helper_107_name:                                  Relevanz von chained rows im Vergleich zu Gesamtmenge der Zugriffe
   dragnet_helper_107_param_1_hint:                          optionale Einschränkung der Selektion auf konkrete RAC-Instance
 
+  dragnet_helper_108_desc: |-
+    Für Cost-based Optimizer sollten Objekt-Statistiken hinreichend aktuell sein
+  dragnet_helper_108_name: |-
+    Objekt-Statistiken: Prüfung auf aktuelle Analyze-Info (Indizes)
+  dragnet_helper_108_param_1_hint:                           Falls Analyze-Info existiert, ab welchem Alter Aufnahme in Selektion
+  dragnet_helper_108_param_1_name:                           Mindestalter existierender Analyse in Tagen
 
+  dragnet_helper_109_desc: |-
+    Unzureichende Bereitstellung von PGA-Memory für Sort-/Hash-Operationen führt zu Auslagern auf TEMP-Tablespace mit entsprechenden Performance-Auswirkungen.
+  dragnet_helper_109_name: |-
+    PGA-Auslastung: Historische Auslastung PGA-Strukturen
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
