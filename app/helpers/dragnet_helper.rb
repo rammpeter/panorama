@@ -2118,8 +2118,7 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
         {
              :name  => t(:dragnet_helper_110_name, :default=>'Concurrency on memory, latches: insufficient cached sequences'),
              :desc  => t(:dragnet_helper_110_desc, :default=>'Fetching of sequence values / filling the sequence cache causes writes in dictionary and interchange between REC-instances.
-                          Highly frequent access on dictionary structures of sequences leads to unnecessary wait events, therefore you should define reasonable cache sizes for sequences.
-')
+                          Highly frequent access on dictionary structures of sequences leads to unnecessary wait events, therefore you should define reasonable cache sizes for sequences.'),
              :sql=>  "SELECT /* DB-Tools Ramm insufficent cached sequences */ *
                       FROM   DBA_Sequences
                       WHERE  Sequence_Owner NOT IN ('SYS', 'SYSTEM')
