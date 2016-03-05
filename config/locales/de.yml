@@ -949,6 +949,21 @@
   dragnet_helper_111_name: |-
     Konkurrenz bzgl. Speicher, Latches: Überblick über Sequence-Nutzung
 
+  dragnet_helper_112_desc: |-
+    Die Anzahl der zu einem Zeitpunkt aktiven Sessions lässt Rückschlüsse auf Systemlast zu
+    Die Peaks der gleichzeitig aktiven Sessions sollte Grundlage für die Bemessung von Session-Pools (z.B. von Application-Servern) darstellen.
+  dragnet_helper_112_name: |-
+    Aktive Sessions (aus AWR-Historie DBA_Hist_Active_Sess_History)
+
+  dragnet_helper_113_desc: |-
+    Bewertung des Verhältnises von parses zu executes.
+    Bei hochfrequenten Parses sollten Alternativen untersucht werden:
+    - Wiederverwendung geparster Statements in Applikation
+    - Nutzung von Statements-Caches auf Ebene Application-Server bzw. JDBC-Treiber
+    - Nutzung session cached cursors-Feature der DB
+  dragnet_helper_113_name: |-
+    Parse-Aktivität
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

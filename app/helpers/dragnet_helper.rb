@@ -2148,10 +2148,10 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       ORDER BY Executions_per_Day DESC NULLS LAST"
          },
         {
-             :name  => 'Aktive Sessions (AWR-Historie)',
-             :desc  => 'Die Anzahl der zu einem Zeitpunkt aktiven Sessions lässt Rückschlüsse auf Systemlast zu
-    Die Peaks der gleichzeitig aktiven Sessions sollte Grundlage für die Bemessung von Session-Pools (z.B. von Application-Servern) darstellen.',
-             :sql=>  "SELECT /*+ PARALLEL(s,4) DB-Tools Ramm: aktive Sessions */
+             :name  => t(:dragnet_helper_112_name, :default=>'Active sessions (from AWR history DBA_Hist_Active_Sess_History)'),
+             :desc  => t(:dragnet_helper_112_desc, :default=>'Number of simultaneously active sessions allows conclusions on system load.
+                          Peak number of simultaneously active sessions can be the base for sizing of session-pools (e.g. for application server).'),
+             :sql=>  "SELECT /*+ PARALLEL(s,4) DB-Tools Ramm: active sessions */
                              Sample_Time, count(*) \"Active Sessions\"
                       FROM   DBA_hist_Active_Sess_History s
                       WHERE  Sample_Time >SYSDATE - ?
@@ -2164,13 +2164,14 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
              ]
          },
         {
-             :name  => 'Parse-Aktivität',
-             :desc  => 'Folgende Stmts. beurteilen Verhältnis von parses zu executes.
-    Bei hochfrequenten Parses sollten Alternativen untersucht werden:
-    - Wiederverwendung geparster Statements in Applikation
-    - Nutzung von Statements-Caches auf Ebene Application-Server bzw. JDBC-Treiber
-    - Nutzung session cached cursors-Feature der DB',
-             :sql=>  "SELECT /* DB-Tools Ramm Parse-Ratio Einzelwerte */ s.*, ROUND(Executions/DECODE(Parses, 0, 1, Parses),2) \"Execs/Parse\"
+             :name  => t(:dragnet_helper_113_name, :default=>'Parse activity'),
+             :desc  => t(:dragnet_helper_113_desc, :default=>'Consideration of ratio parses vs. executes.
+                                    For highly frequent parses you should look for alternatives like:
+                                    - reuse of already parsed statements in application
+                                    - usage of statement caches in application server or JDBC-driver
+                                    - usage of DB-feature "session cached cursor"
+              '),
+             :sql=>  "SELECT /* DB-Tools Ramm Parse-Ratio single values */ s.*, ROUND(Executions/DECODE(Parses, 0, 1, Parses),2) \"Execs/Parse\"
                       FROM   (
                               SELECT s.SQL_ID, s.Instance_Number, Parsing_schema_Name, SUM(s.Executions_Delta) Executions,
                                      SUM(s.Parse_Calls_Delta) Parses
