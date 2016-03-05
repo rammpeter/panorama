@@ -1931,6 +1931,9 @@ FROM (
 -- Drop eventually existing SQL Tuning Set (STS)
 BEGIN
   DBMS_SQLTUNE.DROP_SQLSET(sqlset_name => '#{sts_name}');
+EXCEPTION
+  WHEN OTHERS THEN
+    NULL;
 END;
 /
 
@@ -1968,6 +1971,13 @@ BEGIN
   my_plans := DBMS_SPM.LOAD_PLANS_FROM_SQLSET(sqlset_name => '#{sts_name}', Basic_Filter=>'plan_hash_value = ''#{plan_hash_value}''');
 END;
 /
+
+-- Drop SQL Tuning Set (STS) which is not needed no more
+BEGIN
+  DBMS_SQLTUNE.DROP_SQLSET(sqlset_name => '#{sts_name}');
+END;
+/
+
 
 -- You can check the existence of the baseline now by executing:
 -- SELECT * FROM dba_sql_plan_baselines;
