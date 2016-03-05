@@ -71,7 +71,8 @@ column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client
  [
    {:caption=>"",         :data=>proc{|rec| rec[:caption]} },
    {:caption=>"SQL-ID",   :data=>proc{|rec| link_sql_id(@update_area, @instance, rec[:sql_id], rec[:sql_child_number])}  },
-   {:caption=>"SQL-Text", :data=>proc{|rec| "<div class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</div>" } , :css_class=>"monospace"   },
+   {:caption=>"SQL-Text", :data=>proc{|rec| "#{convert_word_wrap_comma(rec[:sql_text])}" }     },
+#   {:caption=>"SQL-Text", :data=>proc{|rec| "<div class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</div>" } , :css_class=>"monospace"   },
  ]
 
 %>

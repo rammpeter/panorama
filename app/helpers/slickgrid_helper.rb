@@ -160,6 +160,7 @@ module SlickgridHelper
   #   global_options: Hash mit globalen Optionen
   #     :caption              => Titel vor Anzeige der Tabelle, darf keine "'" enthalten
   #     :caption_style        => Style-Attribute für caption der Tabelle
+  #     :no_wrap              => Keinen Umbruch aller Spalten akzeptieren <true|false>, Default = false
   #     :width                => Weite der Tabelle (Default="100%", :auto=nicht volle Breite)
   #     :height               => Höhe der Tabelle in Pixel oder '100%' für Parent ausfüllen oder :auto für dynam. Hoehe in Anhaengigkeit der Anzahl Zeilen, Default=:auto
   #     :max_height           => max. Höhe Höhe der Tabelle in Pixel
@@ -216,11 +217,12 @@ module SlickgridHelper
     output << "'></div>\n"
 
     output << "<script type='text/javascript'>\n"
-    output << "jQuery(function($){\n"                                             # Beginn anonyme Funktion
+    output << "jQuery(function($){\n"                                           # Beginn anonyme Funktion
     # Ermitteln Typ der Spalte für Sortierung
     column_options.each do |col|
-      col[:isFloat] = true                                                        # Default-Annahme, die nachfolgend zu prüfen ist
-      col[:isDate]  = true                                                        # Default-Annahme, die nachfolgend zu prüfen ist
+      col[:isFloat] = true                                                      # Default-Annahme, die nachfolgend zu prüfen ist
+      col[:isDate]  = true                                                      # Default-Annahme, die nachfolgend zu prüfen ist
+      col[:no_wrap] = true if global_options[:no_wrap]                          # Vererben Eigenschaft an alle Spalten
     end
     # erstellen JS-ata
     output << "var data=[\n"

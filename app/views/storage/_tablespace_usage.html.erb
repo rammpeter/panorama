@@ -17,8 +17,8 @@ column_options =
 ]
 
 %>
-<div class="float_left">
-  <%= gen_slickgrid(@totals, column_options, {:caption=>t(:storage_tablespace_usage_total_caption, :default=>'Sums total'), :width=>:auto, :max_height=>450}) %>
+<div>
+  <%= gen_slickgrid(@totals, column_options, {:caption=>t(:storage_tablespace_usage_total_caption, :default=>'Sums total'), :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
 </div>
 
 <%
@@ -30,8 +30,8 @@ column_options =
 
 %>
 
-<div class="float_left">
-  <%= gen_slickgrid(@segments, column_options, {:caption =>t(:storage_tablespace_usage_segment_caption, :default=>'Net sums in TS by segment types'), :width=>:auto, :max_height=>450}) %>
+<div>
+  <%= gen_slickgrid(@segments, column_options, {:caption =>t(:storage_tablespace_usage_segment_caption, :default=>'Net sums in TS by segment types'), :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
 </div>
 
 <%
@@ -75,8 +75,8 @@ column_options =
 
 %>
 
-<div class="float_left">
-  <%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Nutzung", :width=>:auto, :max_height=>450}) %>
+<div>
+  <%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Usage", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
 </div>
 
 <% if @fra_usage.length > 0 %>
@@ -91,8 +91,8 @@ column_options =
 
 %>
 
-<div class="float_left">
-  <%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto, :max_height=>450}) %>
+<div>
+  <%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
 </div>
 
 <% end %>
@@ -133,8 +133,8 @@ column_options <<  {:caption=>'Total MB',  :data=>proc{|rec| fn(rec.total_mbytes
 
 %>
 
-<div class="float_left">
-  <%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Nutzung (> 1 MB)", :width=>:auto, :max_height=>450}) %>
+<div>
+  <%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Usage ( if > 1 MB)", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
 </div>
 
 <div id="<%= @update_area %>" style="clear: both;">

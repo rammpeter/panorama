@@ -55,6 +55,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     var test_cell                       = null;                                 // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
     var test_cell_wrap                  = null;                                 // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
     var columnFilters                   = {};                                   // aktuelle Filter-Kriterien der Daten
+    var sort_pfeil_width                = 12;                                   // Breite des Sort-Pfeils im Column-Header
     this.force_height_calculation       = false;                                // true aktiviert Neuberechnung der Grid-Höhe
     this.last_height_calculation_with_horizontal_scrollbar = false;
     this.grid                           = null;                                 // Referenz auf SlickGrid-Objekt, belegt erst in initSlickGridExtended
@@ -477,7 +478,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var columns = this.grid.getColumns();
         var columns_changed = false;
         var max_table_width = 0;                                                    // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
-        var wrapable_count  = 0;                                                    // aktuelle Anzahl noch umzubrechender Spalten
         var column;
         var h_padding       = 10;                                                   // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
 
@@ -499,41 +499,32 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             }
 
             max_table_width += column['width'];
-            if ( (column['max_wrap_width'] < column['max_nowrap_width']) && (!column['no_wrap']) ){
-                wrapable_count += 1;
-                // console.log('wrapable_count += 1; Spalten='+columns.length+'  '+ column['max_wrap_width'] + '   '+column['max_nowrap_width']);
-            }
         }
         // Prüfen auf Möglichkeit des Umbruchs in der Zelle
         var current_table_width = max_table_width;                                  // Summe aller max. Spaltenbreiten
         if (has_slickgrid_vertical_scrollbar())
             current_table_width += scrollbarWidth();
-        while (current_table_width > current_grid_width && wrapable_count > 0){     // es könnten noch weitere Spalten umgebrochen werden und zur Verringerung horiz. Scrollens dienen
-            var min_wrap_diff = 1000000;                                            // kleinste Differenz
-            var wrap_column  = null;                                                // sollte definitiv noch belegt werden
-            for (var col_index in columns) {
-                column = columns[col_index];
-                var max_wrap_width = column['max_wrap_width']+h_padding;
-                var width          = column['width'];
-                if (max_wrap_width < width                  &&                      // Differenz existiert und ist kleiner als bisher je Spalte gesehene
-                    width-max_wrap_width < min_wrap_diff    &&
-                    !column['fixedWidth']                   &&                      // keine feste Breite der Spalte vorgegeben
-                    !column['no_wrap']){                                            // Wrap der spalte nicht ausgeschlossen
-                    min_wrap_diff  = width-max_wrap_width;                          // merken der kleinsten Differenz
-                    wrap_column = column;                                           // merken der Spalte mit kleinster Differenz
+
+        // console.log('Grid_Container='+this.gridContainer.prop('id')+' current_grid_width='+current_grid_width+' max_table_width='+max_table_width);
+        // Neuimplementierung wrap
+        for (var col_index in columns) {
+            column = columns[col_index];
+            if (   current_table_width > current_grid_width                         // Verkleinerung der Breite notwendig?
+                && column['width']     > column['max_wrap_width']+h_padding         // diese spalte könnte verkleinert werden
+                && !column['fixedWidth']
+                && !column['no_wrap']
+            ) {
+                var wrap_diff = column['width'] - (column['max_wrap_width']+h_padding);  // max. mögliche Reduktion der Breite durch wrap
+                if (current_table_width - wrap_diff < current_grid_width) {         // Es muss nicht um den möglichen Betrag verkleinert werden
+                    wrap_diff = current_table_width - current_grid_width;           // notwendiger Rest an Verkleinerung für Paaafähigkeit ohne horiz. Scrollen
                 }
+                // console.log('Grid_Container='+this.gridContainer.prop('id')+' column='+column['name']+' width='+column['width']+' shrinked by '+wrap_diff);
+                column['width'] = column['width'] - wrap_diff;
+                current_table_width -= wrap_diff;
             }
-            if (wrap_column){                                                       // Es wurde noch eine zu wrappende Spalte gefunden
-                if (current_table_width-min_wrap_diff < current_grid_width){        // Wrappen der Spalte macht Tabelle kleiner als mögliche Breite wäre
-                    wrap_column['width'] = wrap_column['width'] - (current_table_width - current_grid_width);  // Wrappen der Spalte nur um notwendigen Bereich
-                    min_wrap_diff = current_table_width - current_grid_width;       // reduziert auf wirkliche Reduzierung
-                } else {
-                    wrap_column['width'] = wrap_column['max_wrap_width']+h_padding; // padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
-                }
-                current_table_width -= min_wrap_diff;
-            }
-            wrapable_count--;
+
         }
+
         // Evtl. Zoomen der Spalten wenn noch mehr Platz rechts vorhanden
         if (options['width'] == '' || options['width'] == '100%'){                  // automatische volle Breite des Grid
             while (current_table_width < current_grid_width){                       // noch Platz am rechten Rand, kann auch nach wrap einer Spalte verbleiben
@@ -543,16 +534,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                         current_table_width++;
                         columns_changed = true;
                     }
-                }
-            }
-        } else {                                                                    // auto-width
-            var sort_pfeil_width = 10;
-            for (var col_index in columns) {
-                if (current_table_width < current_grid_width && !columns[col_index]['fixedWidth']){
-                    columns[col_index]['width'] += sort_pfeil_width;                // erweitern um Darstellung des Sort-Pfeiles
-                    current_table_width += sort_pfeil_width;
-                    max_table_width += sort_pfeil_width;                            // max. Breite des Grids im auto-Modus
-                    columns_changed = true;
                 }
             }
         }
@@ -919,7 +900,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             column['header_nowrap_width']  = test_header.prop("scrollWidth");   // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
 
             test_header_wrap.html(column['name']);
-            column['max_wrap_width']      = test_header_wrap.prop("scrollWidth");
+            column['max_wrap_width']      = test_header_wrap.prop("scrollWidth") + sort_pfeil_width;  // min. Breite mit Umbruch muss trotzdem noch den Sort-Pfeil darstellen können
 
             column['max_nowrap_width']    = column['max_wrap_width'];           // Normbreite der Spalte mit Mindestbreite des Headers initialisieren (lieber Header umbrechen als Zeilen einer anderen Spalte)
         }
