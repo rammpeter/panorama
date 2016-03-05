@@ -224,25 +224,25 @@ column_options = [
       <% end %>
     </div>
 <% end %>
+<% if get_db_version >= '11.2' %>
+  &nbsp;
+  <div class="float_left">
+    <%=
+        my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_create_baseline_caption, :default=>'Generate SQL-baseline'),
+                           url_for(:controller      => :dba_history,
+                                   :action          => :generate_baseline_creation,
+                                   :update_area     => @update_area,
+                                   :sql_id          => @sql_id,
+                                   :plan_hash_value => @sql.last_plan_hash_value,
+                                   :min_snap_id     => @sql.min_snap_id,
+                                   :max_snap_id     => @sql.max_snap_id
+                           ),
+                           :disabled => (@sql.optimizer_env_hash_value_count != 1),
+                           :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.\nAvailable only if exactly one execution plan exists for this SQL in considered time range."))
 
-&nbsp;
-<div class="float_left">
-  <%=
-      my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_create_baseline_caption, :default=>'Generate SQL-baseline'),
-                         url_for(:controller      => :dba_history,
-                                 :action          => :generate_baseline_creation,
-                                 :update_area     => @update_area,
-                                 :sql_id          => @sql_id,
-                                 :plan_hash_value => @sql.last_plan_hash_value,
-                                 :min_snap_id     => @sql.min_snap_id,
-                                 :max_snap_id     => @sql.max_snap_id
-                         ),
-                         :disabled => (@sql.optimizer_env_hash_value_count != 1),
-                         :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.\nAvailable only if exactly one execution plan exists for this SQL in considered time range."))
-
-  %>
-</div>
-
+    %>
+  </div>
+<% end %>
 
 <div id="<%= @update_area %>" style="clear:both; width:100%;">
 </div>
