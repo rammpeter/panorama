@@ -37,7 +37,7 @@
     if @sql_plan_baselines &&  @sql_plan_baselines.length > 0
         column_options = []
         column_options << {:caption=>"Plan name",     :data=>proc{|rec| rec.plan_name}                       :title=>"Name of baseline plan"}
-        column_options << {:caption=>'Really used?',  :data=>proc{|rec| rec.plan_name == @sql.sql_plan_baseline ? 'YES' : 'NO'}, :title=>'Is this baseline really used according to gv$SQL.SQL_Plan_Baseline' } if @sql['sql_plan_baseline']
+        column_options << {:caption=>'Really used?',  :data=>proc{|rec| rec.plan_name == @sql['sql_plan_baseline'] ? 'YES' : 'NO'}, :title=>'Is this baseline really used according to gv$SQL.SQL_Plan_Baseline' } if @sql['sql_plan_baseline']
         column_options << {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"}
         column_options << {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" }
         column_options << {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" }
