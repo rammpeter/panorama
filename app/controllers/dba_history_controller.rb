@@ -1914,11 +1914,69 @@ FROM (
   end
 
   def generate_baseline_creation
+    sql_id          = params[:sql_id]
+    min_snap_id     = params[:min_snap_id]
+    max_snap_id     = params[:max_snap_id]
+    plan_hash_value = params[:plan_hash_value]
 
-    result = "<div style=\"background-color: lightyellow;\">Coming soon</div>"
+    sts_name = 'PANORAMA_STS'
+
+    result = "
+-- Build SQL Baseline for SQL-ID=#{sql_id}
+-- Generated with Panorama at #{Time.now}
+-- based on idea from rmoff (https://rnm1978.wordpress.com/?s=baseline)
+
+-- to create a SQL-baseline execute this snippet as SYSDBA in SQL*Plus
+
+-- Drop eventually existing SQL Tuning Set (STS)
+BEGIN
+  DBMS_SQLTUNE.DROP_SQLSET(sqlset_name => '#{sts_name}');
+END;
+/
+
+-- Create new SQL Tuning Set (STS)
+BEGIN
+  DBMS_SQLTUNE.CREATE_SQLSET(
+    sqlset_name => '#{sts_name}',
+    description => 'Panorama: SQL Tuning Set for loading plan into SQL Plan Baseline');
+END;
+/
+
+-- Populate STS from AWR, using a time duration when the desired plan was used
+--  Specify the sql_id in the basic_filter (other predicates are available, see documentation)
+DECLARE
+  cur sys_refcursor;
+BEGIN
+  OPEN cur FOR
+    SELECT VALUE(P)
+    FROM TABLE(
+       DBMS_SQLTUNE.Select_Workload_Repository(Begin_Snap=>#{min_snap_id}, End_Snap=>#{max_snap_id}, Basic_Filter=>'sql_id = ''#{sql_id}''',attribute_list=>'ALL')
+              ) p;
+     DBMS_SQLTUNE.LOAD_SQLSET( sqlset_name=> '#{sts_name}', populate_cursor=>cur);
+  CLOSE cur;
+END;
+/
+
+-- you can check now the result in tunning set by executing
+-- SELECT * FROM TABLE(DBMS_SQLTUNE.SELECT_SQLSET(sqlset_name => '#{sts_name}'));
+
+-- Load desired plan from STS as SQL Plan Baseline
+-- Filter explicitly for the plan_hash_value here if you want
+DECLARE
+  my_plans pls_integer;
+BEGIN
+  my_plans := DBMS_SPM.LOAD_PLANS_FROM_SQLSET(sqlset_name => '#{sts_name}', Basic_Filter=>'plan_hash_value = ''#{plan_hash_value}''');
+END;
+/
+
+-- You can check the existence of the baseline now by executing:
+-- SELECT * FROM dba_sql_plan_baselines;
+-- or by looking for your SQL with Panorama
+
+    "
 
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{result}');" }
+      format.js {render :js => "$('##{params[:update_area]}').html('<div style=\" background-color: lightyellow; white-space: pre-wrap; padding: 10px;\">#{my_html_escape(result)}</div>');" }
     end
   end
 
