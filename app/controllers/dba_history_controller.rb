@@ -1913,5 +1913,13 @@ FROM (
     render :text => res_array.join
   end
 
+  def generate_baseline_creation
+
+    result = "<div style=\"background-color: lightyellow;\">Coming soon</div>"
+
+    respond_to do |format|
+      format.js {render :js => "$('##{params[:update_area]}').html('#{result}');" }
+    end
+  end
 
 end #DbaHistoryController

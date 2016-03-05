@@ -145,6 +145,10 @@
   dba_history_list_sql_detail_historic_binds_caption:                 Zuletzt aufgezeichnete Bindevariablen
   dba_history_list_sql_detail_historic_complete_timeline_caption:     Komplette Zeitleiste des SQL
   dba_history_list_sql_detail_historic_complete_timeline_hint:        Anlistung der kompletten gespeicherten zeitlichen Historie des SQL
+  dba_history_list_sql_detail_historic_create_baseline_caption:       Generiere SQL-Baseline
+  dba_history_list_sql_detail_historic_create_baseline_hint: |-
+    Generiere ein Script, um diesen konkreten Ausführungsplan als SQL-Baseline festzuschreiben.
+    Nur verfügbar, wenn genau ein Ausführungsplan des SQL für den Zeitraum aktiv war
   dba_history_list_sql_detail_historic_last_plan_hash_hint:           Hash-Value des letzten Explain-Plans
   dba_history_list_sql_detail_historic_module_link_hint:              Detaillierung des Modul-Namens
   dba_history_list_sql_detail_historic_module_action_hint:            Module und Action der Session, von der Statement zuletzt geparst wurde
