@@ -1978,12 +1978,20 @@ BEGIN
 END;
 /
 
-
 -- You can check the existence of the baseline now by executing:
 -- SELECT * FROM dba_sql_plan_baselines;
--- or by looking for your SQL with Panorama
+-- or by looking at SQL details page for your SQL with Panorama
 
-    "
+-- Next commands remove possibly existing cursors of this SQL from SGA to ensure hard parse with SQL baseline at next execution
+-- If you are working on a RAC system you should execute this 'DBMS_SHARED_POOL.PURGE'-commands once again connected on the appropriate RAC-instance
+
+"
+    sql_select_all(["SELECT Inst_ID, RAWTOHEX(Address) Address, Hash_Value FROM gv$SQLArea WHERE SQL_ID=?", sql_id]).each do |r|
+      result << "-- For intance = #{r.inst_id}:
+exec DBMS_SHARED_POOL.PURGE ('#{r.address}, #{r.hash_value}', 'C');
+
+"
+    end
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('<div style=\" background-color: lightyellow; white-space: pre-wrap; padding: 10px;\">#{my_html_escape(result)}</div>');" }
