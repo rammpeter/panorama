@@ -1922,7 +1922,7 @@ FROM (
     sts_name = 'PANORAMA_STS'
 
     result = "
--- Build SQL Baseline for SQL-ID=#{sql_id}
+-- Build SQL plan baseline for SQL-ID=#{sql_id}
 -- Generated with Panorama at #{Time.now}
 -- based on idea from rmoff (https://rnm1978.wordpress.com/?s=baseline)
 
@@ -1982,7 +1982,7 @@ END;
 -- SELECT * FROM dba_sql_plan_baselines;
 -- or by looking at SQL details page for your SQL with Panorama
 
--- Next commands remove possibly existing cursors of this SQL from SGA to ensure hard parse with SQL baseline at next execution
+-- Next commands remove possibly existing cursors of this SQL from SGA to ensure hard parse with SQL plan baseline at next execution
 -- If you are working on a RAC system you should execute this 'DBMS_SHARED_POOL.PURGE'-commands once again connected on the appropriate RAC-instance
 
 "
