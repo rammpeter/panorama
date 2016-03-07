@@ -228,7 +228,7 @@ column_options = [
   &nbsp;
   <div class="float_left">
     <%=
-        my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_create_baseline_caption, :default=>'Generate SQL-baseline'),
+        my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_create_baseline_caption, :default=>'Generate SQL plan baseline'),
                            url_for(:controller      => :dba_history,
                                    :action          => :generate_baseline_creation,
                                    :update_area     => @update_area,
