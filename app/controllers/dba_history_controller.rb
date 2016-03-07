@@ -1828,7 +1828,7 @@ FROM (
     end
 
     if @min_snap_id >= @max_snap_id
-      raise "Only one or less AWR snapshots found for time range '#{time_selection_start}' until '#{time_selection_end}' and instance=#{instance}."
+      raise "Only one or less AWR snapshots found for time period '#{time_selection_start}' until '#{time_selection_end}' and instance=#{instance}."
     end
   end
 

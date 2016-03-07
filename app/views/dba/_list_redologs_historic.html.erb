@@ -9,8 +9,8 @@ column_options =
     {:caption=>"Not archived",     :data=>proc{|rec| formattedNumber(rec.not_archived) },           :title=>"Number of redo log groups not yet archived",                   :align=>:right},
     {:caption=>'Members',          :data=>proc{|rec| fn(rec.members,1) },                           :title=>'Average number of members per redo log group',                 :align=>:right},
     {:caption=>'Avg. size (MB)',   :data=>proc{|rec| fn(rec.avg_size_mb,3) },                       :title=>'Average size of redo log file',                                :align=>:right},
-    {:caption=>'Max. sequence#',   :data=>proc{|rec| fn(rec.maxsequenceno) },                       :title=>'Maximum sequence number of redo log group in time range',      :align=>:right},
-    {:caption=>'Log switches',     :data=>proc{|rec| fn(rec.logswitches) },                         :title=>'Number of log sitches in time range',                          :align=>:right},
+    {:caption=>'Max. sequence#',   :data=>proc{|rec| fn(rec.maxsequenceno) },                       :title=>'Maximum sequence number of redo log group in time slice',      :align=>:right},
+    {:caption=>'Log switches',     :data=>proc{|rec| fn(rec.logswitches) },                         :title=>'Number of log sitches in time slice',                          :align=>:right},
     {:caption=>'Log writes (MB)',  :data=>proc{|rec| fn(rec.logwrites_mb,3) },                      :title=>'Redo logs written (MB), Avg. size * members * log switches',   :align=>:right},
   ]
 

@@ -38,7 +38,7 @@
            {:caption=>iostat_detail_key_rule(@groupby)[:Name],   :data=>proc{|rec| rec.group_value },      :title=>iostat_detail_key_rule(@groupby)[:Title], :data_title=>iostat_detail_key_rule(@groupby)[:Data_Title]},
            {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")},
            {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")},
-           {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs) },    :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time range"), :align=>"right"},
+           {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs) },    :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time slice"), :align=>"right"},
    ]
    iostat_detail_key_rules.each do |key, value|
      unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen

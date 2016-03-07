@@ -15,7 +15,7 @@
                              :action_name  => @action_name,         # optionaler Filter
                              :update_area  => @update_area
                      ),
-                     :title=> 'Show single audit records of time range')
+                     :title=> 'Show single audit records of time slice')
 
    end
 
@@ -36,13 +36,13 @@
                              filter_name   => filter_value,
                              :update_area  => @update_area
                      ),
-                     :title=> 'Show single audit records of time range')
+                     :title=> 'Show single audit records of time slice')
 
    end
 
 
    column_options = []
-   column_options << {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.begin_timestamp)},     :title=> 'Begin of time range', :plot_master_time=>true}
+   column_options << {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.begin_timestamp)},     :title=> 'Begin of time slice', :plot_master_time=>true}
    column_options << {:caption=> 'Audits Total',      :data=>proc{|rec| link_audits_total(rec)},                           :title=> 'Total number of audit records'}
    @machines.each do |m|
      column_options << {:caption=> "Machine: #{m[:machine]}", :data=>proc{|rec| link_group(rec, rec[:machines][m[:machine]], :machine, m[:machine])},     :title=> 'Number of audit records for machine'}

@@ -26,9 +26,9 @@ column_options =
           {:caption=>"Start",          :data=>proc{|rec| link_column_detail(rec, localeDateTime(rec.begin_interval_time)) }, :title=>t(:dba_history_list_sql_history_snapshots_start_hint, :default=>'Begin of considered interval'), :data_title=>proc{|rec| t(:dba_history_list_sql_history_snapshots_start_data_hint, :default=>'Begin of considered interval, end = %{end_interval}', :end_interval=>localeDateTime(rec.end_interval_time) )},  :plot_master_time=>true },
           {:caption=>t(:dba_history_list_sql_history_snapshots_first_occurrence_caption, :default=>'First occurrence'),     :data=>proc{|rec| localeDateTime(rec.first_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_first_occurrence_hint, :default=>'First occurrence of SQL in interval')},
           {:caption=>t(:dba_history_list_sql_history_snapshots_last_occurrence_caption, :default=>'Last occurrence'), :data=>proc{|rec| localeDateTime(rec.last_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_last_occurrence_hint, :default=>'Last occurrence of SQL in interval')},
-          {:caption=>"Plans",          :data=>proc{|rec| formattedNumber(rec.execution_plans) },               :title=>"Number of different execution plans in time range", :align=>"right", :data_style=>proc{|rec| "background-color:orange;" if rec.execution_plans > 1}  },
-          {:caption=>"Plan hash value",:data=>proc{|rec| rec.first_plan_hash_value },                          :title=>"Plan hash value of first sample in time range"},
-          {:caption=>"Opt. env hash value",:data=>proc{|rec| rec.first_opt_env_hash_value },                   :title=>"Optimizer env hash value of first sample in time range" },
+          {:caption=>"Plans",          :data=>proc{|rec| formattedNumber(rec.execution_plans) },               :title=>"Number of different execution plans in time slice", :align=>"right", :data_style=>proc{|rec| "background-color:orange;" if rec.execution_plans > 1}  },
+          {:caption=>"Plan hash value",:data=>proc{|rec| rec.first_plan_hash_value },                          :title=>"Plan hash value of first sample in time slice"},
+          {:caption=>"Opt. env hash value",:data=>proc{|rec| rec.first_opt_env_hash_value },                   :title=>"Optimizer env hash value of first sample in time slice" },
           {:caption=>"Execs",          :data=>proc{|rec| formattedNumber(rec.executions) },                    :title=>t(:dba_history_list_sql_history_snapshots_execs_hint, :default=>'Number of executions of SQL in interval'), :align=>"right" },
           {:caption=>"Elapsed",        :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs) },             :title=>"Total elapsed time in Sec.", :align=>"right" },
           {:caption=>"Ela./Ex.",       :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute, 4) },  :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", :align=>"right" },
@@ -85,14 +85,14 @@ caption << (my_ajax_form_tag url_for(:controller => :dba_history, :action       
   form_content << '</span>'
 
   form_content << '&nbsp;&nbsp;&nbsp;'
-  form_content << "<span title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'\">"
+  form_content << "<span title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'\">"
   form_content << t(:time_selection_start_caption, :default => 'Start') << '&nbsp;'
-  form_content << text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
+  form_content << text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time slice in format')} '#{human_datetime_minute_mask}'")
   form_content << '</span>'
 
   form_content << '&nbsp;&nbsp;&nbsp;'
   form_content << t(:time_selection_end_caption, :default => 'End')   << '&nbsp;'
-  form_content << text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id, :title => "#{t(:time_selection_end_hint, :default=>'End of considered time range in format')} '#{human_datetime_minute_mask}'")
+  form_content << text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id, :title => "#{t(:time_selection_end_hint, :default=>'End of considered time slice in format')} '#{human_datetime_minute_mask}'")
 
   form_content << '&nbsp;&nbsp;&nbsp;'
   form_content << "<span title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">#{t(:grouping, :default=>'Grouping')} "

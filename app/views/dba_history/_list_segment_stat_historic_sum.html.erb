@@ -13,7 +13,7 @@ def link_column_stmt(rec, value)
                         :time_selection_end   => @time_selection_end,
                         :update_area    => @update_area
                         ),
-                :title => t(:dba_history_list_segment_stat_historic_sum_link_sql_hint, :default=>"show SQLs of time range from DBA_Hist_SQLStat with usage of object in explain plan")
+                :title => t(:dba_history_list_segment_stat_historic_sum_link_sql_hint, :default=>"show SQLs in time slice from DBA_Hist_SQLStat with usage of object in explain plan")
 )
 end
 
@@ -69,7 +69,7 @@ column_options =
   [
     {:caption=>"I",                             :data=>proc{|rec| rec.instance_number},                                                      :title=>"RAC-Instance"},
     {:caption=>"Object",                        :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}")},  :title=>"Object-Owner, Name, Partition-Name (optional)", :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
-    {:caption=>"SQLs",                          :data=>proc{|rec| link_column_stmt(rec, fn(rec.sql_ids))},                                   :align=>:right, :title=>t(:dba_history_list_segment_stat_historic_sum_sqls_hint, :default =>"Total number of SQLs for this object in whole AWR history regardless of considered time range")},
+    {:caption=>"SQLs",                          :data=>proc{|rec| link_column_stmt(rec, fn(rec.sql_ids))},                                   :align=>:right, :title=>t(:dba_history_list_segment_stat_historic_sum_sqls_hint, :default =>"Total number of SQLs for this object in whole AWR history regardless of considered time slice")},
     {:caption=>"Num Rows",                      :data=>proc{|rec| formattedNumber(rec.num_rows)},                                            :align=>:right, :title=>"Anzahl Records des Objektes (aus Statistik)"},
     {:caption=>"Object size (MB)",              :data=>proc{|rec| formattedNumber(rec.mbytes,2)},                                            :align=>:right, :title=>"Physical size in MByte from DBA_Segments",     :show_pct_hint=>true},
     {:caption=>"Time waited",                   :data=>proc{|rec| link_column_wait(rec, formattedNumber(rec.time_waited_secs))},             :align=>:right, :title=>"Time waited in secs.",            :show_pct_hint=>true, :show_pct_background=>true},
@@ -86,9 +86,9 @@ column_options =
     {:caption=>"Global cache buffer busy waits",:data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_buffer_busy_delta))},            :align=>:right, :title=>"GC Buffer Busy waits",     :show_pct_hint=>true},
     {:caption=>"GC CR blocks received",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_cr_blocks_received_delta))},     :align=>:right, :title=>'Global cache blocks received in consistent mode',:show_pct_hint=>true},
     {:caption=>"GC CU blocks received",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_cu_blocks_received_delta))},     :align=>:right, :title=>'Global cache blocks received in cureent mode',:show_pct_hint=>true},
-    {:caption=>"Max. space used (MB)",          :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_used_total_mb, 2))},      :align=>:right, :title=>"Max. space used within time range in MByte (sum over partition maxima)",    :show_pct_hint=>true},
-    {:caption=>"Max. space allocated (MB)",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_allocated_total_mb,2))},  :align=>:right, :title=>"Max. space allocated within time range in MByte (sum over partition maxima)",  :show_pct_hint=>true},
-    {:caption=>"Space allocated delta (MB)",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.space_allocated_delta_mb,2))},      :align=>:right, :title=>"Difference for space allocated between last and first sample in time range",  :show_pct_hint=>true},
+    {:caption=>"Max. space used (MB)",          :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_used_total_mb, 2))},      :align=>:right, :title=>"Max. space used within time slice in MByte (sum over partition maxima)",    :show_pct_hint=>true},
+    {:caption=>"Max. space allocated (MB)",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_allocated_total_mb,2))},  :align=>:right, :title=>"Max. space allocated within time slice in MByte (sum over partition maxima)",  :show_pct_hint=>true},
+    {:caption=>"Space allocated delta (MB)",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.space_allocated_delta_mb,2))},      :align=>:right, :title=>"Difference for space allocated between last and first sample in time slice",  :show_pct_hint=>true},
     {:caption=>"Full table scans",              :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.table_scans_delta))},               :align=>:right, :title=>"Number of full table scans",              :show_pct_hint=>true},
   ]
 

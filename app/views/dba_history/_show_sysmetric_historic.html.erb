@@ -13,7 +13,7 @@
         <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>3, :title => "RAC-Instance") %>
     </div>
     <div class="float_left">
-      <div title="<%= t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time range")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+      <div title="<%= t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time slice")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
         <%=  t(:grouping, :default=>"Grouping") %>
         <%= select :grouping, :tag, [[t(:second, :default=>"second"), 'SS'], [t(:minute, :default=>"minute"), 'MI'], [t(:hour, :default=>"hour"), 'HH24'], [t(:day, :default=>"day"), 'DD'] ], {:selected=>'MI'} %>
       </div>

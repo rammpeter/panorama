@@ -127,7 +127,7 @@ Negative: Enlargement of primary key because it contains whole table data"),
             :name  => t(:dragnet_helper_7_name, :default=> 'Detection of indexes not used for access or ensurance of uniqueness'),
             :desc  => t(:dragnet_helper_7_desc, :default=>"Selection of non-unique indexes without usage in SQL statements.
 Necessity of  existence of indexes may be put into question if these indexes are not used for uniqueness or access optimization.
-However the index may be useful for coverage of foreign key constraints, even if there had been no usage of index in considered time range.
+However the index may be useful for coverage of foreign key constraints, even if there had been no usage of index in considered time period.
 Ultimate knowledge about usage of index may be gained by tagging index with 'ALTER INDEX ... MONITORING USAGE' and monitoring usage via V$OBJECT_USAGE.
 Additional info about usage of index can be gained by querying DBA_Hist_Seg_Stat or DBA_Hist_Active_Sess_History."),
             :sql=> "SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
@@ -913,7 +913,7 @@ They are out of place for OLTP-like access (small access time, many executions).
                             ) s ON s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                       ORDER BY Executions*Num_Rows DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in result')},
+                         {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time period for consideration in result')},
             ]
         },
         {
@@ -953,7 +953,7 @@ They are out of place for OLTP-like access (small access time, many executions).
                      ORDER BY Rows_per_Exec/Num_Rows/Executions",
                         :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                                      {:name=>t(:dragnet_helper_param_minimal_rows_name, :default=>'Minimum number of rows in table'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_param_minimal_rows_hint, :default=>'Minimum number of rows in table for consideration in selection')},
-                                     {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in result')},
+                                     {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time period for consideration in result')},
                         ]
         },
         {
@@ -1366,7 +1366,7 @@ Otherwise they can be treated as check statements that never expect hits in norm
                              )
                       ORDER BY s.\"Elapsed Time (Sec)\" DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                         {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time range for consideration in selection')}]
+                         {:name=> t(:dragnet_helper_param_executions_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=> t(:dragnet_helper_param_executions_hint, :default=>'Minimum number of executions within time period for consideration in selection')}]
         },
         {
             :name  => t(:dragnet_helper_84_name, :default=>'Possibly unnecessary execution of statements if updates have unnecessary filter in WHERE-condition (examination of SGA)'),
@@ -2554,7 +2554,7 @@ Sensible architecture pattern is, to use views only in one dimension without fur
   def sqls_conclusion_application
     [
       {
-           :name  => t(:dragnet_helper_76_name, :default=>'Substantial larger runtime per module compared to average over longer time range'),
+           :name  => t(:dragnet_helper_76_name, :default=>'Substantial larger runtime per module compared to average over longer time period'),
            :desc  => t(:dragnet_helper_76_desc, :default=>'Based on active session history are shown outlier on databaase runtime per module je Module.
 Units for time consideration are defined by date format picture of TRUNC-function (DD=day, HH24=hour etc.)'),
            :sql=>  "WITH Modules AS (
@@ -2575,9 +2575,9 @@ Units for time consideration are defined by date format picture of TRUNC-functio
                   SUM(Secs_Waiting)        \"Waiting secs. total\",
                   ROUND(AVG(Secs_Waiting)) \"Waiting secs. avg\",
                   MIN(Secs_Waiting)        \"Waiting secs. min\",
-                  MIN(Time_Range_Start) KEEP (DENSE_RANK FIRST ORDER BY Secs_Waiting) \"Time range start of min.\",
+                  MIN(Time_Range_Start) KEEP (DENSE_RANK FIRST ORDER BY Secs_Waiting) \"Time period start of min.\",
                   MAX(Secs_Waiting)        \"Waiting secs. max.\",
-                  MAX(Time_Range_Start) KEEP (DENSE_RANK LAST ORDER BY Secs_Waiting) \"Time range start of max.\",
+                  MAX(Time_Range_Start) KEEP (DENSE_RANK LAST ORDER BY Secs_Waiting) \"Time period start of max.\",
                   MIN(First_Occurrence)    \"First occurrence\",
                   MAX(Last_Occurrence)     \"Last occurrence\"
            FROM   Modules

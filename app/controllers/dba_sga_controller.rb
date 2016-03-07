@@ -991,7 +991,7 @@ class DbaSgaController < ApplicationController
 
     column_options =
         [
-            {:caption=>"Start",       :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},              :title=>"Start of considered time range", :plot_master_time => true},
+            {:caption=>"Start",       :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},              :title=>"Start of considered time slice", :plot_master_time => true},
         ]
 
     columns.each do |key, value|

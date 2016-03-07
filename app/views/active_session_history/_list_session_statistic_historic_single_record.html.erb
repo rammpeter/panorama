@@ -40,7 +40,7 @@
                               :update_area  => @update_area,
                              }
                      ),
-                     :title=>'Show single sample records for time range of grouping'
+                     :title=>'Show single sample records for time slice of grouping'
      )
    end
 
@@ -144,7 +144,7 @@ end
    end
 
    def data_title_alt(occurrences, single_data_title=nil, multi_data_title=nil)
-     multi_addition = 'Number of different values shown because different values exist in time range of grouping'
+     multi_addition = 'Number of different values shown because different values exist in time slice of grouping'
      if occurrences <= 1
        single_data_title ? single_data_title : '%t'
      else

@@ -22,9 +22,9 @@ end
       <table border="1" style="font-size:small;">
         <tr><th>Name</th><th>Total</th><th>Per Exec.</th></tr>
         <tr>
-          <td title="Instance / SQL_ID / Plan-Hash-Value, <%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time range")%>">Instance / SQL-ID / Plan-Hash-Value</td>
+          <td title="Instance / SQL_ID / Plan-Hash-Value, <%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time period")%>">Instance / SQL-ID / Plan-Hash-Value</td>
           <td align="right" title="Instance / SQL-ID / <%= t(:dba_history_list_sql_detail_historic_last_plan_hash_hint, :default=>"Hash-value of last execution plan") %>"><%= "#{@instance} / #{@sql_id} / #{@sql.last_plan_hash_value}" %></td>
-          <td align="center" style="<%= @sql.plan_hash_value_count > 1 ? "background-color:orange;" : "" %>" title="<%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time range")%>"><%= @sql.plan_hash_value_count %> </td>
+          <td align="center" style="<%= @sql.plan_hash_value_count > 1 ? "background-color:orange;" : "" %>" title="<%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time period")%>"><%= @sql.plan_hash_value_count %> </td>
         </tr>
         <tr>
           <td title="<%= t(:dba_history_list_sql_detail_historic_module_action_hint, :default=>"Module and action of last parsing session")%>">Parsing Module / Action</td>
@@ -56,15 +56,15 @@ end
         <tr>
           <td title="Hash-value over total optimizer environment">Optimizer Env Hash-Value</td>
           <td align="right" title="Hash-value of last optimizer environment"><%= @sql.last_optimizer_env_hash_value %></td>
-          <td align="center" title="Number of different optimizer environments in time range"><%= @sql.optimizer_env_hash_value_count %> </td>
+          <td align="center" title="Number of different optimizer environments in time period"><%= @sql.optimizer_env_hash_value_count %> </td>
         </tr>
-        <%= show_single_value("Executions / Parsing schema", @sql.executions,0, "Number of executions in time range", @sql.min_parsing_schema_name, "Parsing Schema-Name") %>
-        <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time range (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
-        <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time range") %>
+        <%= show_single_value("Executions / Parsing schema", @sql.executions,0, "Number of executions in time period", @sql.min_parsing_schema_name, "Parsing Schema-Name") %>
+        <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time period (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
+        <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time period") %>
         <tr>
-          <td title="Number of rows processed in time range">Rows processed</td>
-          <td align='right' title="Number of rows processed in time range"><%= fn(@sql.rows_processed)%></td>
-          <td align='right' title="Number of rows processed in time range per execution"><%= fn(@sql.rows_processed.to_f/ (@sql.executions.to_i==0 ? 1 : @sql.executions), 2) %></td>
+          <td title="Number of rows processed in time period">Rows processed</td>
+          <td align='right' title="Number of rows processed in time period"><%= fn(@sql.rows_processed)%></td>
+          <td align='right' title="Number of rows processed in time period per execution"><%= fn(@sql.rows_processed.to_f/ (@sql.executions.to_i==0 ? 1 : @sql.executions), 2) %></td>
         </tr>
         <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of DB-blocks read from disk") %>
         <tr>
@@ -118,7 +118,7 @@ def link_bind_samples(rec)
                           :max_snap_id          => @sql.max_snap_id,
                           :update_area=> @update_area
                   ),
-                  :title=>'List all samples for this bind position in time range' )
+                  :title=>'List all samples for this bind position in time period' )
 end
 %>
 
@@ -134,7 +134,7 @@ column_options = [
     {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
     {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
     {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
-    {:caption=>"Samples",       :data=>proc{|rec| link_bind_samples(rec)},                  :title=>'Number of samples for this bind position in time range'},
+    {:caption=>"Samples",       :data=>proc{|rec| link_bind_samples(rec)},                  :title=>'Number of samples for this bind position in time period'},
 ]
 
  gen_slickgrid(@binds, column_options, {
@@ -154,7 +154,7 @@ column_options = [
              :time_selection_start => @time_selection_start,
              :time_selection_end   => @time_selection_end
             ),
-    :title => "Show execution plan(s) in given time range")
+    :title => "Show execution plan(s) in given time period")
     %>
 </div>
 &nbsp;
@@ -180,7 +180,7 @@ column_options = [
              :groupfilter => groupfilter,
              :groupby     => "SQL-ID"
             ),
-     :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time range") )
+     :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time period") )
   %>
 </div>
 &nbsp;
@@ -238,7 +238,7 @@ column_options = [
                                    :max_snap_id     => @sql.max_snap_id
                            ),
                            :disabled => (@sql.optimizer_env_hash_value_count != 1),
-                           :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.\nAvailable only if exactly one execution plan exists for this SQL in considered time range."))
+                           :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.\nAvailable only if exactly one execution plan exists for this SQL in considered time slice."))
 
     %>
   </div>

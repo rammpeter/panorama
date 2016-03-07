@@ -53,9 +53,9 @@
             end
         end
         form_content << "<td>"
-        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
+        form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>15, :id=>@time_selection_start_id, :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'")
         form_content << "</td><td>"
-        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>15, :id=>@time_selection_end_id,   :title => "#{t(:time_selection_start_hint, :default=>'Start of considered time range in format')} '#{human_datetime_minute_mask}'")
+        form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>15, :id=>@time_selection_end_id,   :title => "#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'")
         form_content << "</td><td>"
 
         if @group_filter_addition
