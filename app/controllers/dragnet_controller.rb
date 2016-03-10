@@ -51,7 +51,7 @@ class DragnetController < ApplicationController
       return nil if filter && entry[:entries] && filtered_entry_count == 0      # Anzeige unterdrücken wenn Knoten keine Treffer für Filter hat
       return nil if filter && !entry[:entries] && !entry[:name].upcase[filter.upcase] &&  !(entry[:desc].upcase[filter.upcase] && include_description)
       result
-    end
+    end # render_entry_json
 
     response = '[ '                                                             # JSON-Buffer
     entry_id = 0
