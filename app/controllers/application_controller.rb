@@ -66,7 +66,7 @@ class ApplicationController < ActionController::Base
     # Präziser before_filter mit Test auf controller
     if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_dbid', 'set_database_by_params', 'set_database_by_id'].include?(action_name) ) ||
               (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
-              (controller_name == 'dragnet' && ['refresh_selected_data', 'get_selection_list'].include?(action_name) )  ||
+              (controller_name == 'dragnet' && ['refresh_selected_data'].include?(action_name) )  ||
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) ) ||
               (controller_name == 'help' && ['overview', 'version_history'].include?(action_name) )
       return
