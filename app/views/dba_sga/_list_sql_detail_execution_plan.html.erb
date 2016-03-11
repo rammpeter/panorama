@@ -169,7 +169,7 @@
 
    column_options =
 [
-  {:caption=>"Operation",   :data=>proc{|rec| list_operation(rec)}, :no_wrap=>true, :title=>'Kind of data access'},
+  {:caption=>"Operation",   :data=>proc{|rec| list_operation(rec)}, :no_wrap=>true, :title=>'Kind of data access', :data_title=>proc{|rec| "%t: #{rec.operation} #{rec.options}"}},
   {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} },
   {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} },
   {:caption=>"Object-name", :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name)},   :title=>'Name of accessed object',             :data_title=>proc{|rec| "%t: Type = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}"} },
@@ -177,8 +177,8 @@
   {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
   {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Cost of the operation as estimated by the optimizer's cost-based approach.\ncardinality=#{rec.cardinality},\nbytes=#{rec.bytes},\ntime=#{rec.time},\npartition start=#{rec.partition_start},\npartition stop=#{rec.partition_stop},\npartition ID=#{rec.partition_id}"} },
   {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
-  {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.access_predicates}\nNumber of columns with matching predicates = #{rec.search_columns}"} },
-  {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>'Filter criteria for data object (after access)',  :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape rec.filter_predicates}"} },
+  {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.access_predicates}\nNumber of columns with matching predicates = #{rec.search_columns}"} },
+  {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>'Filter criteria for data object (after access)',  :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.filter_predicates}"} },
   {:caption=>"Temp",        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB (forecast by optimizer)", :align=>:right},
   {:caption=>"Dist",        :data=>proc{|rec| rec.distribution },                           :title=>"Strategy of PQ-distribution" },
 ]
@@ -190,7 +190,7 @@ column_options <<  {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.int
 
 
 column_options.concat [
-  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>100, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t: #{html_escape expand_compare_spaces(rec.projection)}"} },
+  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>100, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape expand_compare_spaces(rec.projection)}"} },
   {:caption=>"Starts",      :data=>proc{|rec| fn(rec.starts/sql_starts)         if rec.starts },         :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.starts)         }, Last=#{fn(rec.last_starts)}" },              :title=>t(:dba_sga_list_sql_detail_execution_plan_starts_title, :default=>'Avg. number of operation starts per execution of SQL') },
   {:caption=>"Rows",        :data=>proc{|rec| fn(rec.output_rows/sql_starts)    if rec.output_rows },    :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.output_rows)    }, Last=#{fn(rec.last_output_rows)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_rows_title, :default=>'Avg. number of rows for operation per execution of SQL') },
   {:caption=>"CR",          :data=>proc{|rec| fn(rec.cr_buffer_gets/sql_starts) if rec.cr_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.cr_buffer_gets) }, Last=#{fn(rec.last_cr_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cr_title, :default=>'Avg, number of buffer gets in consistent mode (mostly for query) for operation per execution of SQL, cumulative incl. all subordinated operations') },

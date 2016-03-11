@@ -1135,6 +1135,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             if (!column['no_wrap']  && test_cell.prop("scrollWidth") > column['max_wrap_width']){     // Nur Aufrufen, wenn max_wrap_width sich auch vergrößern kann (aktuelle Breite > bisher größte Wrap-Breite)
                 test_cell_wrap.html(fullvalue);                                 // Test-DOM wrapped mit voll dekoriertem Inhalt füllen
                 test_cell_wrap.attr('class', column['cssClass']);               // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+
+
                 if (test_cell_wrap.prop("scrollWidth")  > column['max_wrap_width']){
                     if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
                         column['max_wrap_width']  = column['max_wrap_width_allowed'];
