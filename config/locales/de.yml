@@ -310,6 +310,22 @@
   dba_sga_list_sql_detail_execution_plan_rows_title:        Durchschn. Anzahl produzierte Rows der Operation je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_starts_title:      Durchschnittliche Anzahl Starts der Operation je Ausführung des SQL
 
+  dba_sga_list_sql_detail_sql_id_bind_caption:              Bindevariablen der letzten Ausführung
+  dba_sga_list_sql_detail_sql_id_datatype_hint:             Datentyp der Bindevariablen
+  dba_sga_list_sql_detail_sql_id_instance_hint:             RAC-Instance des Workareas
+  dba_sga_list_sql_detail_sql_id_last_capture_hint:         Zeitpunkt der letzten Aufnahme
+  dba_sga_list_sql_detail_sql_id_link_session_hint:         Anzeige Details zu Session
+  dba_sga_list_sql_detail_sql_id_name_hint:                 Name der Bindevariablen im Statement
+  dba_sga_list_sql_detail_sql_id_operation_id_hint:         Operation-ID des Workareas zur Referenz in Execution-Plan
+  dba_sga_list_sql_detail_sql_id_optype_hint:               Operation-Type des Workareas
+  dba_sga_list_sql_detail_sql_id_policy_hint:               Sizing-Policy des Workareas
+  dba_sga_list_sql_detail_sql_id_position_hint:             Position der Bindevariablen im Statement
+  dba_sga_list_sql_detail_sql_id_qcinstance_hint:           RAC-Instance des Query Coordinator bei parallel Query
+  dba_sga_list_sql_detail_sql_id_qcsid_hint:                SID/Serial number der Session des Query-Coordinator bei parallel Query
+  dba_sga_list_sql_detail_sql_id_sid_hint:                  SID/Serial number der Session des Workareas
+  dba_sga_list_sql_detail_sql_id_value_hint:                Wert der Bindevariablen in String-Repräsentation
+  dba_sga_list_sql_detail_sql_id_workarea_caption:          PGA-Workarea von Sessions die dieses SQL-Statement aktiv ausführen
+
   dba_sga_list_sql_sga_stat_action_link_hint:               Anzeige weiterer Details zum Action-Namen wenn verfügbar
   dba_sga_list_sql_sga_stat_buffer_gets_hint:               Anzahl DB-Blöcke insgesamt gelesen
   dba_sga_list_sql_sga_stat_caption:                        Statement-Details der aktuellen SGA aus
