@@ -612,7 +612,7 @@ class DbaHistoryController < ApplicationController
                                       ) Parallel_Short,
                                 p.Depth, p.Access_Predicates, p.Filter_Predicates, p.Projection, p.temp_Space/(1024*1024) Temp_Space_MB, p.Distribution,
                                 p.ID, p.Parent_ID, 0 ExecOrder,
-                                p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
+                                p.Cost, p.CPU_Cost, p.IO_Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
                                 NVL(t.Num_Rows, i.Num_Rows) Num_Rows,
                                 NVL(t.Last_Analyzed, i.Last_analyzed) Last_Analyzed,
                                 (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes,

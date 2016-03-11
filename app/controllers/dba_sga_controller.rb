@@ -285,7 +285,7 @@ class DbaSgaController < ApplicationController
           Last_Starts, Starts, Last_Output_Rows, Output_Rows, Last_CR_Buffer_Gets, CR_Buffer_Gets,
           Last_CU_Buffer_Gets, CU_Buffer_Gets, Last_Disk_Reads, Disk_Reads, Last_Disk_Writes, Disk_Writes,
           Last_Elapsed_Time/1000 Last_Elapsed_Time, Elapsed_Time/1000 Elapsed_Time,
-          p.Cost, p.Cardinality, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
+          p.Cost, p.Cardinality, p.CPU_Cost, p.IO_Cost, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
           NVL(t.Num_Rows, i.Num_Rows) Num_Rows,
           NVL(t.Last_Analyzed, i.Last_Analyzed) Last_Analyzed,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
