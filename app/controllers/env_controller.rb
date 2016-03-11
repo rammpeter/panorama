@@ -200,7 +200,7 @@ class EnvController < ApplicationController
 
     set_current_database(current_database)                                      # Persistieren im Cache
 
-    open_oracle_connection   # Oracle-Connection aufbauen
+    # First SQL execution opens Oracle-Connection
 
     # Test der Connection und ruecksetzen auf vorherige wenn fehlschlaegt
     begin

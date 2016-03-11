@@ -195,6 +195,7 @@ module ApplicationHelper
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
   def sql_select_iterator(sql, modifier=nil)
+    ConnectionHolder.check_for_open_connection(self)                            # ensure opened Oracle-connection
     stmt, binds = sql_prepare_binds(sql)
     SqlSelectIterator.new(stmt, binds, modifier, get_current_database[:query_timeout])      # kann per Aufruf von each die einzelnen Records liefern
   end
@@ -558,9 +559,6 @@ module ApplicationHelper
   private
     # Ermitteln Kurztext per DB aus SQL-ID
     def get_sql_shorttext_by_sql_id(sql_id)
-      # Connect zur DB nachhollen wenn noch auf NullAdapter steht, da Zugriff auf gecachte Werte ohne DB-Connect möglich ist
-      open_oracle_connection
-
       # erster Versuch direkt aus SGA zu lesen
       sqls = sql_select_all ["\
                  SELECT /*+ Panorama-Tool Ramm */ SUBSTR(SQL_FullText, 1, 150) SQL_Text

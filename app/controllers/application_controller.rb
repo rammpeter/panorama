@@ -17,8 +17,7 @@ class ApplicationController < ActionController::Base
 
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's 
 
-  # open_connection immer ausfuehren, ausser bei auswahl der Connection selbst
-  before_filter :open_connection # , :except -Liste wird direkt in open_connection gehandelt
+  before_filter :begin_request # , :except -Liste wird direkt in begin_request gehandelt
   after_filter  :after_request
 
   rescue_from Exception, :with => :global_exception_handler
@@ -54,7 +53,8 @@ class ApplicationController < ActionController::Base
   end
 
   # Ausführung vor jeden Request
-  def open_connection
+  def begin_request
+    ConnectionHolder.init_connection_for_new_request(controller_name, action_name)  # Register new request for delayed connecttion to Oracle DB with first SQL execution
 
     begin
       I18n.locale = get_locale                                                  # fuer laufende Action Sprache aktivieren
@@ -65,8 +65,6 @@ class ApplicationController < ActionController::Base
     # Auuschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
     if (controller_name == 'env' && ['index', 'get_tnsnames_records', 'set_locale', 'set_dbid', 'set_database_by_params', 'set_database_by_id'].include?(action_name) ) ||
-              (controller_name == 'dba_history' && action_name == 'getSQL_ShortText') ||  # Nur DB-Connection wenn Cache-Zugriff misslingt
-              #(controller_name == 'dragnet' && ['refresh_selected_data'].include?(action_name) )  || # Auch hier kann SQL-Zugriff notwendig werden,
               (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info'].include?(action_name) ) ||
               (controller_name == 'help' && ['overview', 'version_history'].include?(action_name) )
       return
@@ -79,8 +77,9 @@ class ApplicationController < ActionController::Base
       raise "Error '#{e.message}' occured. Please close browser session and start again!"
     end
 
+    raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)') if current_database.nil?
 
-    current_database.symbolize_keys! if current_database && current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
+    current_database.symbolize_keys! if current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
     write_to_client_info_store(:last_used_menu_controller, params[:last_used_menu_controller]) if params[:last_used_menu_controller]
@@ -88,36 +87,16 @@ class ApplicationController < ActionController::Base
     write_to_client_info_store(:last_used_menu_caption   , params[:last_used_menu_caption])    if params[:last_used_menu_caption]
     write_to_client_info_store(:last_used_menu_hint      , params[:last_used_menu_hint])       if params[:last_used_menu_hint]
 
-    # Bis hierher aktive Connection ist Dummy mit NullDB
+    # Protokollieren der Aufrufe in lokalem File
+    real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
+    real_action_name     = params[:last_used_menu_action]     ? params[:last_used_menu_action]     : action_name
 
-    # Neue Connection auf Basis Oracle aufbauen mit durch Anwender gegebener DB
-    if current_database
-      # Initialisierungen
-
-      # Protokollieren der Aufrufe in lokalem File
-      real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
-      real_action_name     = params[:last_used_menu_action]     ? params[:last_used_menu_action]     : action_name
-
-      open_oracle_connection   # Oracle-Connection aufbauen
-
-      begin
-        # Ausgabe Logging-Info in File für Usage-Auswertung
-        filename = Panorama::Application.config.usage_info_filename
-        File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ConnectionHolder.current_database_name} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
-      rescue Exception => e
-        Rails.logger.warn("#### ApplicationController.open_connection: Exception beim Schreiben in #{filename}: #{e.message}")
-      end
-
-      # Registrieren mit Name an Oracle-DB
-      #ConnectionHolder.connection().execute("call dbms_application_info.set_Module('Panorama', '#{controller_name}/#{action_name}')")
-      ConnectionHolder.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
-                                                  [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil, ActiveRecord::Type::Value.new), "#{controller_name}/#{action_name}"]]
-      )
-
-      #ConnectionHolder..connection.exec_update("call dbms_application_info.set_Module('Panorama', ?)", nil, ["#{controller_name}/#{action_name}"])
-
-    else  # Keine DB bekannt
-       raise t(:application_connection_no_db_choosen, :default=> 'No DB choosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')
+    begin
+      # Ausgabe Logging-Info in File für Usage-Auswertung
+      filename = Panorama::Application.config.usage_info_filename
+      File.open(filename, 'a'){|file| file.write("#{request.remote_ip} #{ConnectionHolder.current_database_name} #{Time.now.year}/#{"%02d" % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{database_helper_raw_tns}\n")}
+    rescue Exception => e
+      Rails.logger.warn("#### ApplicationController.begin_request: #{t(:application_helper_usage_error, :default=>'Exception while writing in')} #{filename}: #{e.message}")
     end
 
   rescue Exception=>e

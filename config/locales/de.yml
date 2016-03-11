@@ -121,6 +121,7 @@
   application_helper_range_error_year:                      Jahr nicht zwischen 1000 und 2999
   application_helper_ts_invalid_format:                     Ungültiges Format des Zeitstempels
   application_helper_ts_expected:                           Erwartet wird
+  application_helper_usage_error:                           Exception beim Schreiben in
 
   ajax_helper_link_sql_id_title_prefix:                     Anzeige der Details in SGA für
   ajax_helper_link_wait_params_hint:                        Anzeige der Details zu den Wait-Parametern des Events
