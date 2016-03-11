@@ -1138,7 +1138,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
 
                 if (test_cell_wrap.prop("scrollWidth")  > column['max_wrap_width']){
-                    if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.width())
+                    if (column['max_wrap_width_allowed'] && column['max_wrap_width_allowed'] < test_cell_wrap.prop("scrollWidth") )
                         column['max_wrap_width']  = column['max_wrap_width_allowed'];
                     else
                         column['max_wrap_width']  = test_cell_wrap.prop("scrollWidth");

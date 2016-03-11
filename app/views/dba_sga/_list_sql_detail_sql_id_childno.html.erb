@@ -27,7 +27,7 @@
     <%
     column_options =
     [
-      {:caption=>"I",             :data=>proc{|rec| rec.inst_id },                          :title=>t:(dba_sga_list_sql_detail_sql_id_instance_hint, :default=>'RAC instance of work area'),   :align=>"right"},
+      {:caption=>"I",             :data=>proc{|rec| rec.inst_id },                          :title=>t(:dba_sga_list_sql_detail_sql_id_instance_hint, :default=>'RAC instance of work area'),   :align=>"right"},
       {:caption=>"Op.-Type",      :data=>proc{|rec| rec.operation_type },                   :title=>t(:dba_sga_list_sql_detail_sql_id_optype_hint, :default=>'Operation type of work area')},
       {:caption=>"Op.ID",         :data=>proc{|rec| rec.operation_id },                     :title=>t(:dba_sga_list_sql_detail_sql_id_operation_id_hint, :default=>'Operation-ID of work area, reference into execution plan') },
       {:caption=>"Pol.",          :data=>proc{|rec| rec.policy },                           :title=>t(:dba_sga_list_sql_detail_sql_id_policy_hint, :default=>'Sizing policy of work area') },
