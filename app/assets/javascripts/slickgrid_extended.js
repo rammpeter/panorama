@@ -98,6 +98,10 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         options["searchFilter"] = slickgrid_filter_item_row;                    // merken filter-Funktion für Aktivierung über Menü
         //dataView.setFilter(slickgrid_filter_item_row);
 
+        if (options['maxHeight'] && !jQuery.isNumeric(options['maxHeight'])) {  // Expression set instead of numeric value for pixel
+            options['maxHeight'] = eval(options['maxHeight']);                  // execute expression to get height in px
+        }
+
         options['headerHeight']  = 1;                                           // Default, der später nach Notwendigkeit größer gesetzt wird
         options['rowHeight']     = 1;                                           // Default, der später nach Notwendigkeit größer gesetzt wird
 
@@ -900,7 +904,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             column['header_nowrap_width']  = test_header.prop("scrollWidth");   // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
 
             test_header_wrap.html(column['name']);
-            column['max_wrap_width']      = test_header_wrap.prop("scrollWidth") + sort_pfeil_width;  // min. Breite mit Umbruch muss trotzdem noch den Sort-Pfeil darstellen können
+            column['max_wrap_width']      = test_header_wrap.prop("scrollWidth"); //  + sort_pfeil_width;  // min. Breite mit Umbruch muss trotzdem noch den Sort-Pfeil darstellen können
 
             column['max_nowrap_width']    = column['max_wrap_width'];           // Normbreite der Spalte mit Mindestbreite des Headers initialisieren (lieber Header umbrechen als Zeilen einer anderen Spalte)
         }

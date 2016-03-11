@@ -163,7 +163,7 @@ module SlickgridHelper
   #     :no_wrap              => Keinen Umbruch aller Spalten akzeptieren <true|false>, Default = false
   #     :width                => Weite der Tabelle (Default="100%", :auto=nicht volle Breite)
   #     :height               => Höhe der Tabelle in Pixel oder '100%' für Parent ausfüllen oder :auto für dynam. Hoehe in Anhaengigkeit der Anzahl Zeilen, Default=:auto
-  #     :max_height           => max. Höhe Höhe der Tabelle in Pixel
+  #     :max_height           => max. Höhe Höhe der Tabelle in Pixel (px) als numerischen Wert, oder JavaScript-Ausdruck
   #     :plot_area_id         => div für Anzeige des Diagrammes (überschreibt Default hinter table)
   #     :div_style            => Einpacken der Tabelle in Div mit diesem Style
   #     :multiple_y_axes      => Jedem Wert im Diagramm seinen eigenen 100%-Wertebereich der y-Achse zuweisen (true|false)
@@ -184,7 +184,6 @@ module SlickgridHelper
 
     raise "gen_slickgrid: Parameter-Type #{data.class.name} found for parameter data, but Array expected" unless data.class == Array || data.class == SqlSelectIterator
     raise "gen_slickgrid: Parameter-Type #{column_options.class.name} found for parameter column_options, but Array expected"  unless column_options.class == Array
-    raise "gen_slickgrid: Parameter max_height should should be set numeric. 'px' this is added by generator" if global_options[:max_height] && global_options[:max_height].class!=Fixnum
 
     # Defaults für global_options
     global_options[:caption]            = escape_js_chars(global_options[:caption])    # Sonderzeichen in caption escapen

@@ -175,7 +175,8 @@
   {:caption=>"Object-name", :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name)},   :title=>'Name of accessed object',             :data_title=>proc{|rec| "%t: Type = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}"} },
   {:caption=>"Rows",        :data=>proc{|rec| fn(rec.num_rows) },                           :title=>"Number of rows of object (from analyze info)",     :align=>:right, :data_title=>proc{|rec| "%t, Last_Analyzed=#{localeDateTime(rec.last_analyzed)}"}  },
   {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
-  {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Cost of the operation as estimated by the optimizer's cost-based approach.\ncardinality=#{rec.cardinality},\nbytes=#{rec.bytes},\ntime=#{rec.time},\npartition start=#{rec.partition_start},\npartition stop=#{rec.partition_stop},\npartition ID=#{rec.partition_id}"} },
+  {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "%t\nestimated bytes = #{fn rec.bytes},\nestimated time /secs.) = #{fn rec.time},\npartition start = #{rec.partition_start},\npartition stop = #{rec.partition_stop},\npartition ID = #{rec.partition_id}"} },
+  {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| "%t\nestimated bytes = #{fn rec.bytes},\nestimated time (secs.) = #{fn rec.time},\nPartition_Start = #{rec.partition_start},\nPartition_Stop = #{rec.partition_stop},\nPartition_ID = #{rec.partition_id}"} },
   {:caption=>"Parallel",    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.parallel } },
   {:caption=>"Access",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.access_predicates}\nNumber of columns with matching predicates = #{rec.search_columns}"} },
   {:caption=>"Filter",      :data=>proc{|rec| html_escape expand_compare_spaces(rec.filter_predicates) },   :title=>'Filter criteria for data object (after access)',  :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.filter_predicates}"} },
@@ -190,7 +191,7 @@ column_options <<  {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.int
 
 
 column_options.concat [
-  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>100, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape expand_compare_spaces(rec.projection)}"} },
+  {:caption=>"Proj.",       :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape expand_compare_spaces(rec.projection)}"} },
   {:caption=>"Starts",      :data=>proc{|rec| fn(rec.starts/sql_starts)         if rec.starts },         :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.starts)         }, Last=#{fn(rec.last_starts)}" },              :title=>t(:dba_sga_list_sql_detail_execution_plan_starts_title, :default=>'Avg. number of operation starts per execution of SQL') },
   {:caption=>"Rows",        :data=>proc{|rec| fn(rec.output_rows/sql_starts)    if rec.output_rows },    :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.output_rows)    }, Last=#{fn(rec.last_output_rows)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_rows_title, :default=>'Avg. number of rows for operation per execution of SQL') },
   {:caption=>"CR",          :data=>proc{|rec| fn(rec.cr_buffer_gets/sql_starts) if rec.cr_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.cr_buffer_gets) }, Last=#{fn(rec.last_cr_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cr_title, :default=>'Avg, number of buffer gets in consistent mode (mostly for query) for operation per execution of SQL, cumulative incl. all subordinated operations') },
@@ -199,7 +200,7 @@ column_options.concat [
   {:caption=>"Disk W",      :data=>proc{|rec| fn(rec.disk_writes/sql_starts) if rec.disk_writes },       :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.disk_writes)    }, Last=#{fn(rec.last_disk_writes)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_writes_title, :default=>'Avg. number of physical disk writes for operation per execution of SQL')  },
   {:caption=>"Ela.",        :data=>proc{|rec| fn(rec.elapsed_time/sql_starts,3) if rec.elapsed_time },   :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.elapsed_time,3) } ms, Last=#{fn(rec.last_elapsed_time,3)} ms" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_title, :default=>'Avg. runtime of operation in ms per execution of SQL') },
 ]
-   column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
+   column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.",  :max_wrap_width=>80, :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
 
 
    @caption = "Explain Plan"
@@ -216,6 +217,7 @@ column_options.concat [
                           :caption            => @caption,
                           :line_height_single => true,
                           :data_filter        => 'filter_collapsed_item_rows',
-                          :grid_id            => @grid_id
+                          :grid_id            => @grid_id,
+                          :max_height         => "jQuery(window).height()*0.9"  # Max. 90 % of browsers client height
 
                   }) %>

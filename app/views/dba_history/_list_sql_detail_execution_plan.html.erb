@@ -163,17 +163,18 @@
 
    column_options =
     [
-      {:caption=>'Operation',   :data=>proc{|rec| list_operation(rec)},         :no_wrap=>true, :title=>t(:dba_history_list_sql_detail_execution_plan_operation_hint, :default=>'Kind of access')},
+      {:caption=>'Operation',   :data=>proc{|rec| list_operation(rec)},         :no_wrap=>true, :title=>t(:dba_history_list_sql_detail_execution_plan_operation_hint, :default=>'Kind of access'), :data_title=>proc{|rec| "%t: #{rec.operation} #{rec.options}"}},
       {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>t(:dba_history_list_sql_detail_execution_plan_id_hint, :default=>'ID of operation'),             :data_title=>proc{|rec| "Parent_ID=#{rec.parent_id}"} },
       {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>t(:dba_history_list_sql_detail_execution_plan_order_hint, :default=>'Execution order of operation'),    :data_title=>proc{|rec| "ID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
       {:caption=>'Object-name', :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) },   :title=>t(:dba_history_list_sql_detail_execution_plan_objectname_hint, :default=>'Name of object'),             :data_title=>proc{|rec| "%t,\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}"} },
       {:caption=>'Rows',        :data=>proc{|rec| fn(rec.num_rows) },                           :title=>"Number of rows of object (from analyze info)",     :align=>:right, :data_title=>proc{|rec| "%t, Last_Analyzed=#{localeDateTime(rec.last_analyzed)}"} },
       {:caption=>'MB',          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
-      {:caption=>'Cost',        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "Costs, cardinality=#{rec.cardinality}, bytes=#{rec.bytes}, time=#{rec.time}, Partition_Start=#{rec.partition_start}, Partition_Stop=#{rec.partition_stop}, Partition_ID=#{rec.partition_id}"} },
+      {:caption=>'Cost',        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "%t\nestimated bytes = #{fn rec.bytes},\nestimated time (secs.) = #{fn rec.time},\nPartition_Start = #{rec.partition_start},\nPartition_Stop = #{rec.partition_stop},\nPartition_ID = #{rec.partition_id}"} },
+      {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| "%t\nestimated bytes = #{fn rec.bytes},\nestimated time (secs.) = #{fn rec.time},\nPartition_Start = #{rec.partition_start},\nPartition_Stop = #{rec.partition_stop},\nPartition_ID = #{rec.partition_id}"} },
       {:caption=>'Parallel',    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.other_tag } },
-      {:caption=>'A.',          :data=>proc{|rec| expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t,\nNumber of columns with matching predicates = #{rec.search_columns}"} },
+      {:caption=>'A.',          :data=>proc{|rec| expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\nNumber of columns with matching predicates = #{rec.search_columns}"} },
       {:caption=>'F.',          :data=>proc{|rec| expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;" },
-      {:caption=>'P.',          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>300, :style=>"word-wrap: break-word;"},
+      {:caption=>'P.',          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;"},
       {:caption=>'Temp',        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space prognostic in MB", :align=>:right },
       {:caption=>'Dist',        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-distribution-strategy" },
     ]
@@ -182,7 +183,7 @@
   column_options <<  {:caption=>'Waits',       :data=>proc{|rec| link_column_wait(rec, fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds), 1))  },:align=>:right, :data_title=>proc{|rec| "Waiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / DBA_Hist_Active_Sess_History). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
   column_options <<  {:caption=>'I/O',         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests), 1)},          :align=>:right, :data_title=>proc{|rec| "IO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes"}, :title=>"Percentage of  I/O-Requests in % (from active session history / DBA_Hist_Active_Sess_History)", :show_pct_background=>true } if get_db_version >= "11.2"
   column_options <<  {:caption=>'IC',          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes), 1)}, :align=>:right, :data_title=>proc{|rec| "Interconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / DBA_Hist_Active_Sess_History)", :show_pct_background=>true } if get_db_version >= "11.2"
-  column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
+  column_options <<  {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :max_wrap_width=>80, :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
 
   column_options.each do |c|
     c[:data_style] = proc{|rec| field_style(rec) }  # Einzelrecords der Ausfuehrungspläne nicht identisch
@@ -217,8 +218,8 @@
             :width              => :auto,
             :line_height_single => true,
             :data_filter        => 'filter_collapsed_item_rows',
-            :grid_id            => @grid_id
-            #:max_height=>800
+            :grid_id            => @grid_id,
+            :max_height         => "jQuery(window).height()*0.9"  # Max. 90 % of browsers client height
     }) %>
 
 
