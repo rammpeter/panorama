@@ -1922,7 +1922,7 @@ FROM (
     sts_name = 'PANORAMA_STS'
 
     result = "
--- Build SQL plan baseline for SQL-ID=#{sql_id}
+-- Build SQL plan baseline for SQL-ID = '#{sql_id}', plan hash value = #{plan_hash_value}
 -- Generated with Panorama at #{Time.now}
 -- based on idea from rmoff (https://rnm1978.wordpress.com/?s=baseline)
 

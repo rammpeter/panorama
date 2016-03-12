@@ -1207,7 +1207,7 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
     }
 
     if (!column_metadata['dc'] || column_metadata['dc']==0){                    // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
-        slickGrid.calc_cell_dimensions(value, fullvalue, columnDef);   // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
+        slickGrid.calc_cell_dimensions(value, fullvalue, columnDef);            // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
         column_metadata['dc'] = 1;                                              // Zeile als berechnet markieren
     }
 
