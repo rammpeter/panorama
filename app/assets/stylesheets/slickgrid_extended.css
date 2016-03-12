@@ -12,6 +12,8 @@
 
 /* Zelle des slickGrid */
 .slick-cell {
+    padding-top: 2px;                                                           /* muss identisch sein zwischen slick-cell und slick-inner-cell */
+    padding-bottom: 3px;                                                        /* muss identisch sein zwischen slick-cell und slick-inner-cell */
 }
 
 .even {
@@ -30,7 +32,8 @@
     overflow: hidden;
     width:100%;
     height:100%;
-    padding-top: 2px;
+    padding-top: 2px;                                                           /* muss identisch sein zwischen slick-cell und slick-inner-cell */
+    padding-bottom: 3px;                                                        /* muss identisch sein zwischen slick-cell und slick-inner-cell */
 }
 
 .slick-caption {

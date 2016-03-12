@@ -335,7 +335,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 column['fixedWidth'] = column['width'];                             // Diese spalte von Kalkulation der Spalten ausnehmen
             }
         }
-        grid.getOptions()["rowHeight"] = 1;                                         //Neuberechnung der wirklich benötigten Höhe auslösen
+ //       grid.getOptions()["rowHeight"] = 1;                                         //Neuberechnung der wirklich benötigten Höhe auslösen
         thiz.calculate_current_grid_column_widths("processColumnsResized");
         //grid.render();                                                              // Grid neu berechnen und zeichnen
     }
@@ -559,9 +559,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             this.grid.setColumns(columns);                                               // Setzen der veränderten Spaltenweiten am slickGrid, löst onScroll-Ereignis aus mit wiederholtem aufruf dieser Funktion, daher erst am Ende setzen
 
         //############### Ab hier Berechnen der Zeilenhöhen ##############
-        var header_height = options['headerHeight'];                                // alter Wert
-        var row_height    = options['rowHeight'];                                   // alter Wert
-        var v_padding     = 4;                                                      // Vertiale Erweiterung der Spaltenhöhe um Padding
+        var header_height = options['headerHeight'];                            // alter Wert
+        var row_height    = options['rowHeight'];                               // alter Wert
 
         var horizontal_scrollbar_width = 0;
         if (current_table_width /*+vertical_scrollbar_width */ > this.gridContainer.parent().width() )    // nuss horizontaler Scrollbar existieren?
@@ -575,22 +574,23 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         this.gridContainer.find(".slick-header-columns").children().each(function(){
             var scrollHeight = jQuery(this).prop("scrollHeight");
             var clientHeight = jQuery(this).prop("clientHeight");
-            if (scrollHeight > clientHeight && scrollHeight-4 > header_height){     // Inhalt steht nach unten über
-                header_height = scrollHeight-4;                                     // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
+            if (scrollHeight > clientHeight && scrollHeight-4 > header_height){ // Inhalt steht nach unten über
+                header_height = scrollHeight-4;                                 // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
             }
         });
 
         if (options["line_height_single"]){
             row_height = single_line_height() + 8;
-        } else {                                                                    // Volle notwendige Höhe errechnen
+        } else {                                                                // Volle notwendige Höhe errechnen
             // Hoehen von Cell so setzen, dass der komplette Inhalt dargestellt wird
             this.gridContainer.find(".slick-inner-cell").each(function(){
-                var scrollHeight = jQuery(this).prop("scrollHeight");
+                var scrollHeight = jQuery(this).prop("scrollHeight");           // virtuelle Höhe des Inhaltes
 
-                if (scrollHeight > row_height+v_padding){                           // Inhalt steht nach unten über
-                    row_height = scrollHeight+6;                             // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
+                // Normalerweise muss row_height genau 2px groesser sein als scrollHeight (1px border-top + 1px border-bottom  hinzurechnen)
+                // wenn row_height größer gewählt wirdm müssen genau so viel px beim Vergleich von scrollHeight abgezogen werden wie mehr als 2px hinzugenommen werden
+                if (row_height < scrollHeight + 0){                    // Inhalt steht nach unten über
+                    row_height = scrollHeight + 4;                                // 1px border-top + 1px border-bottom  hinzurechnen
                 }
-
             });
         }
 
