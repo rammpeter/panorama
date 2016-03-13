@@ -11,9 +11,9 @@
    column_options =
            [
                    {:caption=>"Timestamp",             :data=>proc{|rec| localeDateTime(rec.start_sample)},          :title=>"Start of considered time slice", :plot_master_time=>true },
-                   {:caption=>"CPU-Time",              :data=>proc{|rec| conv_value(rec.cpu_time_secs)},     :align=>:right,  :title=>"Number of database sessions really working on CPU usage. From Active_Session_History.TM_Delta_CPU_Time."},
-                   {:caption=>"DB-Time",               :data=>proc{|rec| conv_value(rec.db_time_secs)},      :align=>:right,  :title=>"Number of database sessions spent their time spent in database calls (including CPU). From Active_Session_History.TM_Delta_DB_Time."},
-                   {:caption=>"CPU-Wait",              :data=>proc{|rec| conv_value(rec.on_cpu_secs)},       :align=>:right,  :title=>"Number of database sessions spent their time waiting on CPU (may be less than CPU-Time if CPU is not fully available). From Active_Session_History.Session_State='ON CPU'."},
+                   {:caption=>"CPU-Time",              :data=>proc{|rec| conv_value(rec.cpu_time_secs)},     :align=>:right,  :title=>"Number of database sessions really working on CPU usage.\nFrom Active_Session_History.TM_Delta_CPU_Time."},
+                   {:caption=>"DB-Time",               :data=>proc{|rec| conv_value(rec.db_time_secs)},      :align=>:right,  :title=>"Number of database sessions spent their time spent in database calls (including CPU).\nFrom Active_Session_History.TM_Delta_DB_Time."},
+                   {:caption=>"CPU-Wait",              :data=>proc{|rec| conv_value(rec.on_cpu_secs)},       :align=>:right,  :title=>"Number of database sessions spent their time waiting on CPU.\nFrom Active_Session_History.Session_State=\"ON CPU\".\nIf this value is higher than first column CPU-Time this may be due to CPU overload without usage of resource manager."},
            ]
 %>
 
