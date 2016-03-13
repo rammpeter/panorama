@@ -67,7 +67,7 @@ end
            </td>
          </tr>
          <tr>
-           <td title="<%= t(:dba_sga_list_sql_sga_stat_plsql_hint, :default=>'Program name and line number if SQL is executed within PL/SQL') %>">PL/SQL Programm / Zeile</td>
+           <td title="<%= t(:dba_sga_list_sql_sga_stat_plsql_hint, :default=>'Program name and line number if SQL is executed within PL/SQL') %>"><%= t(:dba_sga_list_sql_sga_stat_plsql_caption, :default=>'PL/SQL program / line') %></td>
            <td title='<%= "Type=#{@sql.program_type}, Last DDL=#{localeDateTime(@sql.program_last_ddl_time)}" %>'><%= @sql.program_name%></td>
            <td align="right"><%= formattedNumber(@sql.program_lineno) %></td>
          </tr>

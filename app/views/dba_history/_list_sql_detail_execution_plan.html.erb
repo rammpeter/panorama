@@ -174,7 +174,7 @@
       {:caption=>'Parallel',    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.other_tag } },
       {:caption=>'A.',          :data=>proc{|rec| expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\nNumber of columns with matching predicates = #{rec.search_columns}"} },
       {:caption=>'F.',          :data=>proc{|rec| expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;" },
-      {:caption=>'P.',          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: Expressions produced by the operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;"},
+      {:caption=>'P.',          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;"},
       {:caption=>'Temp',        :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space prognostic in MB", :align=>:right },
       {:caption=>'Dist',        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-distribution-strategy" },
     ]
