@@ -387,14 +387,25 @@
   dba_show_sessions_submit_caption:                         Sessions anzeigen
   dba_show_sessions_submit_hint:                            Anzeige der DB-Sessions nach gegebenen Filtern
 
+  dba_show_session_waits_blocking_client_info_hint:         Client-Info, Module und Action der blockenden Session
+  dba_show_session_waits_blocking_program_hint:             Programm der blockenden Session
+  dba_show_session_waits_blocking_object_hint:              Schema und Name des blockenden Objektes
   dba_show_session_waits_blocking_session_hint:             Instance und SID der blockenden Session
+  dba_show_session_waits_blocking_status_hint:              Status der blockenden Session
+  dba_show_session_waits_blocking_user_hint:                User der blockenden Session
   dba_show_session_waits_count_caption:                     Anzahl
   dba_show_session_waits_count_hint:                        Anzahl aktive Sessions in diesem Event
   dba_show_session_waits_hlevel_hint:                       Hierarchie-Tiefe der Abhängigkeit vom Root-Blocker (1=Root-Blocker selbst)
   dba_show_session_waits_link_session_hint:                 Details zur Session, SerialNo =
   dba_show_session_waits_modules_hint:                      Anzahl unterschiedliche Modules in gv$Session bzw. konkretes wenn nur eines
   dba_show_session_waits_root_blocking_session_hint:        Instance und SID der die Blocking-Kaskade auslösende Session
-  dba_show_session_waits_status_hint:                       Status der blockenden Session
+  dba_show_session_waits_seconds_hint:                      Sekunden im Wait der wartenden Session
+  dba_show_session_waits_waiting_client_info_hint:          Client-Info, Module und Action der wartenden Session
+  dba_show_session_waits_waiting_program_hint:              Programm der wartenden Session
+  dba_show_session_waits_waiting_session_hint:              Instance und SID der wartenden Session
+  dba_show_session_waits_waiting_sql_id_hint:               SQL-ID des aktuellen Statements der wartenden Session
+  dba_show_session_waits_waiting_status_hint:               Status der wartenden Session
+  dba_show_session_waits_waiting_user_hint:                 User der wartenden Session
 
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
