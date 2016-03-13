@@ -10,7 +10,7 @@
     <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>3, :title => "RAC-Instance") %>
   </div>
   <div class="float_left">
-    <%= submit_tag("Anzeigen", :title => "Anlistung der Request-Latency der einzelnen Snapshots") %>
+    <%= submit_tag(t(:show, :default=>'Show'), :title => t(:dba_waits_show_gc_request_latency_show_hint, :default=>'Show request latency of single AWR-snapshots')) %>
   </div>
 <% end %>
 <div id="list_gc_request_latency_area" style="float:left; width:100%; ">

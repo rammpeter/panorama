@@ -374,6 +374,9 @@
   dba_show_locks_submit_blocking_hint:                      Blockierende DML-Locks (Data Manipulation Locks) anzeigen
   dba_show_locks_submit_ddl_hint:                           Blockierende DDL-Locks (Data Definition Locks) anzeigen
 
+  dba_show_segment_statistics_sample_hint:                  Statistik-Wert innerhalb der Sample-Dauer
+  dba_show_segment_statistics_total_hint:                   Statistik-Wert global sei Instance-Start
+
   dba_show_sessions_caption:                                Anzeige Sessions
   dba_show_sessions_filter_hint: |-
     Optionaler LIKE-Filter für  Client/Shadow-Process auf: Session-ID, Process-ID, Username, Client-Info, Module, Action, Maschine, Programm
@@ -406,6 +409,9 @@
   dba_show_session_waits_waiting_sql_id_hint:               SQL-ID des aktuellen Statements der wartenden Session
   dba_show_session_waits_waiting_status_hint:               Status der wartenden Session
   dba_show_session_waits_waiting_user_hint:                 User der wartenden Session
+
+  dba_waits_show_gc_request_latency_link_hint:              Anzeige der Objekte nach übertragenen Blöcken
+  dba_waits_show_gc_request_latency_show_hint:              Anlistung der Request-Latency der einzelnen AWR-Snapshots
 
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
