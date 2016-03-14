@@ -2201,10 +2201,10 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
   def sqls_cursor_redundancies
     [
         {
-             :name  => 'Fehlende Nutzung von Bindevariablen',
-             :desc  => 'Nutzung von Literalen statt Bindevariablen für Filterbedingungen ohne Kompensierung durch cursor_sharing-Parameter führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-Das folgende Statement sucht grob nach diesbezüglichen Ausreissern.
-Optional muss die Länge des untersuchten Substrings variert werden.',
+             :name  => t(:dragnet_helper_114_name, :default=>'Missing usage of bind variables'),
+             :desc  => t(:dragnet_helper_114_desc, :default=>'Usage of literals instead of bind variables for filter without compensation by cursor_sharing-parameter leads to high parse counts and flooding of SQL-Area in SGA.
+This selection looks for statements which differentiate themself only by literals. It compares the first x characters of SQL to identify similar statements.
+The length of the compared substring may be varied.'),
              :sql=>  "WITH Len AS (SELECT ? Substr_Len FROM DUAL)
                        SELECT g.*, s.SQL_Text \"Beispiel SQL-Text\"
                        FROM   (
@@ -2225,7 +2225,7 @@ Optional muss die Länge des untersuchten Substrings variert werden.',
                        JOIN gv$SQLArea s ON s.Inst_ID = g.Inst_ID AND s.SQL_ID = g.SQL_ID
                        ORDER BY \"Memory (MB)\" DESC NULLS LAST
              ",
-             :parameter=>[{:name=> 'Anzahl Zeichen für Vergleich der SQLs', :size=>8, :default=>60, :title=> 'Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)'}]
+             :parameter=>[{:name=> t(:dragnet_helper_114_param_1_name, :default=>'Number of characters for comparison of SQLs'), :size=>8, :default=>60, :title=>t(:dragnet_helper_114_param_1_hint, :default=>'Number of characters for comparison of SQLs (beginning at left side of statement)') }]
          },
         {
              :name  => 'Mehrfach offene Cursoren: Überblick über SQL',

@@ -139,7 +139,7 @@ class EnvController < ApplicationController
         sql_select_all "SELECT /* Panorama Tool Ramm */ * FROM X$#{table_name_suffix} WHERE RowNum < 1"
         return true
       rescue Exception => e
-        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! This way less number of functions of Panorama is not usable!')}<br/>"
+        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! Therefore a very small number of functions of Panorama is not usable!')}<br/>"
         msg << "#{e.message}<br/>"
         msg << "<a href='#' onclick=\"jQuery('#xbh_workaround').show(); return false;\">#{t(:moeglicher, :default=>'possible')} workaround:</a><br/>"
         msg << "<div id='xbh_workaround' style='display:none; background-color: lightyellow; padding: 20px;'>"

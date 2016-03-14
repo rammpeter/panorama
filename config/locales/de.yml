@@ -1012,6 +1012,15 @@
   dragnet_helper_113_name: |-
     Parse-Aktivität
 
+  dragnet_helper_114_desc: |-
+    Nutzung von Literalen statt Bindevariablen für Filterbedingungen ohne Kompensierung durch cursor_sharing-Parameter führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
+    Die Abfrage sucht über identische Syntax der ersten x Zeichen des SQL nach Statements die sich nur in den Literalen unterscheiden.
+    Optional muss die Länge des untersuchten Substrings variert werden.
+  dragnet_helper_114_name: |-
+    Fehlende Nutzung von Bindevariablen
+  dragnet_helper_114_param_1_hint:                           Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)
+  dragnet_helper_114_param_1_name:                           Anzahl Zeichen für Vergleich der SQLs
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
@@ -1032,7 +1041,7 @@
   env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü (rechter Mouse-Button)
   env_licensing_header:                                     Lizensierung
 
-  env_set_database_xmem_line1:                              User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind einige wenige Funktionen von Panorama nicht nutzbar!
+  env_set_database_xmem_line1:                              User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind sehr wenige Funktionen von Panorama nicht nutzbar!
   env_set_database_xmem_line2: |-
     Variante 1: Anmelden mit Rolle SYSDBA
   env_set_database_xmem_line3: |-
