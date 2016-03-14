@@ -1633,14 +1633,14 @@ This reduces CPU-contention and runtime.'),
                                      (SELECT SQL_TExt FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID
                                      ) SQL_Text,
                                      COUNT(*) Plan_Variationen,
-                                     MIN(Elapsed_Time_Secs) KEEP (DENSE_RANK FIRST ORDER BY First_Occurence) Elapsed_Time_Secs_First_Plan,
-                                     MIN(Executions) KEEP (DENSE_RANK FIRST ORDER BY First_Occurence) Executions_First_Plan,
-                                     MAX(Elapsed_Time_Secs) KEEP (DENSE_RANK LAST ORDER BY First_Occurence) Elapsed_Time_Secs_Last_Plan,
-                                     MAX(Executions) KEEP (DENSE_RANK LAST ORDER BY First_Occurence) Executions_Last_Plan,
-                                     TO_CHAR(MIN(First_Occurence), 'DD.MM.YYYY HH24:MI') First_Occurence_SQL,
-                                     TO_CHAR(MAX(Last_Occurence), 'DD.MM.YYYY HH24:MI') Last_Occurence_SQL,
-                                     TO_CHAR(MIN(Last_Occurence), 'DD.MM.YYYY HH24:MI') Last_Occurrence_First_Plan,
-                                     TO_CHAR(MAX(First_Occurence), 'DD.MM.YYYY HH24:MI') First_Occurence_Last_Plan
+                                     MIN(Elapsed_Time_Secs) KEEP (DENSE_RANK FIRST ORDER BY First_Occurence)  Elapsed_Time_Secs_First_Plan,
+                                     MIN(Executions) KEEP (DENSE_RANK FIRST ORDER BY First_Occurence)         Executions_First_Plan,
+                                     MAX(Elapsed_Time_Secs) KEEP (DENSE_RANK LAST ORDER BY First_Occurence)   Elapsed_Time_Secs_Last_Plan,
+                                     MAX(Executions) KEEP (DENSE_RANK LAST ORDER BY First_Occurence)          Executions_Last_Plan,
+                                     MIN(First_Occurence)                                                     First_Occurence_SQL,
+                                     MAX(Last_Occurence)                                                      Last_Occurence_SQL,
+                                     MIN(Last_Occurence)                                                      Last_Occurrence_First_Plan,
+                                     MAX(First_Occurence)                                                     First_Occurence_Last_Plan
                               FROM   (
                                       SELECT s.DBID, s.Instance_Number, s.SQL_ID,
                                              MIN(ss.Begin_Interval_Time) First_Occurence,
@@ -1897,6 +1897,37 @@ This selection evaluates current SGA.
                     ",
             :parameter=>[
                 {:name=>t(:dragnet_helper_106_param_1_name, :default=>'Minimum runtime for index access in seconds'), :size=>8, :default=>100, :title=>t(:dragnet_helper_106_param_1_hint, :default=>'Minimum runtime in seconds for index access since last load of SQL in SGA') },
+            ]
+        },
+        {
+            :name  => t(:dragnet_helper_115_name, :default => 'Excessive filtering after TABLE ACCESS BY ROWID due to weak index access criteria'),
+            :desc  => t(:dragnet_helper_115_desc, :default => 'INDEX RANGE SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
+You should consider to expand index by filter criterias of table access to reduce number of TABLE ACCESS BY ROWID.
+Result is sorted by time effort for operation TABLE ACCESS BY ROWID
+'),
+            :sql=>  " SELECT /* Panorama: cardinality_ratio index/table, thanks to Leonid Nossov */
+                             ta.Inst_ID, ta.SQL_ID, ta.Plan_Hash_Value, ta.ID SQL_Plan_Line_ID, ir.Object_Owner||'.'||ir.Object_Name Index_Name,  ta.Object_Owner||'.'||ta.Object_Name Table_Name, ir.Cardinality Cardinality_Index, ta.Cardinality Cardinality_Table,
+                             ir.Access_Predicates Access_Index, ir.Filter_Predicates Filter_Index, ta.Access_Predicates Access_Index, ta.Filter_Predicates Filter_Index, ROUND(ir.Cardinality/ta.Cardinality) Cardinality_Ratio, ash.Seconds Elapsed_Seconds,
+                             ash.Min_Sample_Time, ash.Max_Sample_Time
+                      FROM   (SELECT /*+ MO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, Address, Access_Predicates, Filter_Predicates, ID, Cardinality, Object_Owner, Object_Name
+                              FROM   gv$SQL_Plan
+                              WHERE  Operation = 'TABLE ACCESS' AND Options = 'BY INDEX ROWID'
+                             ) ta
+                      JOIN   (SELECT /*+ MO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, Address, Access_Predicates, Filter_Predicates, Parent_ID, Cardinality, Object_Owner, Object_Name
+                              FROM   gv$SQL_Plan
+                              WHERE  Operation = 'INDEX' AND Options = 'RANGE SCAN'
+                             ) ir ON ir.Inst_ID=ta.Inst_ID AND ir.SQL_ID=ta.SQL_ID AND ir.Plan_Hash_Value=ta.Plan_Hash_Value AND ir.Child_Number=ta.Child_Number AND ir.Address=ta.Address AND ir.Parent_ID=ta.ID
+                      JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Seconds, MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time
+                              FROM   gv$Active_Session_History
+                              GROUP BY Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+                             ) ash ON ash.Inst_ID=ta.Inst_ID AND ash.SQL_ID=ta.SQL_ID AND ash.SQL_Child_Number=ta.Child_Number AND ash.SQL_Plan_Hash_Value=ta.Plan_Hash_Value AND ash.SQL_Plan_Line_ID=ta.ID
+                      WHERE  ta.Cardinality < ir.Cardinality / ?
+                      AND    ash.Seconds > ?
+                      ORDER BY ash.Seconds DESC
+                    ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_115_param_1_name, :default=>'Minimum ratio of cardinality index/table'), :size=>8, :default=>10, :title=>t(:dragnet_helper_115_param_1_hint, :default=>'Minimum value for "cardinality of index / cardinality of table"') },
+                {:name=>t(:dragnet_helper_115_param_2_name, :default=>'Minimum database time in ASH for TABLE ACCESS BY ROWID'), :size=>8, :default=>100, :title=>t(:dragnet_helper_115_param_2_hint, :default=>'Minimum elapsed time for operation TABLE ACCESS BY ROWID in Active Session History to consider SQL in result') },
             ]
         },
       ]

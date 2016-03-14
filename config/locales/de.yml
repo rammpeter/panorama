@@ -1021,6 +1021,17 @@
   dragnet_helper_114_param_1_hint:                           Anzahl Zeichen der SQL-Statements für Vergleich (links beginnend)
   dragnet_helper_114_param_1_name:                           Anzahl Zeichen für Vergleich der SQLs
 
+  dragnet_helper_115_desc: |-
+    INDEX RANGE SCAN mit einer hohen Anzahl von Treffern und restriktiver Filter nach dem TABLE ACCESS BY ROWID führt zu unnötigem Aufwand in table access bevor die Zeilen aus dem Resultat verworfen werden.
+    Es sollte die Möglichkeit betrachtet werden, den Index um die Filter-Spalten des Tabellenzugriffs zu erweitern um die Anzahl TABLE ACCESS BY ROWID zu reduzieren.
+    Das Resultat ist sortiert nach dem Zeitaufwand für die Operation TABLE ACCESS BY ROWID.
+  dragnet_helper_115_name: |-
+    Exzessives Filtern nach TABLE ACCESS BY ROWID auf Grund unscharfem Kriterium im Index-Zugriff
+  dragnet_helper_115_param_1_hint:                           Minimaler Wert für "Cardinalität des Index / Cardinalität der Tabelle"
+  dragnet_helper_115_param_1_name:                           Minimales Verhältnis der Treffer Index / Table
+  dragnet_helper_115_param_2_hint:                           Minimale aufgelaufene Zeit für die Operation TABLE ACCESS BY ROWID in der Active Session History für Aufnahme des SQL im Ergebnis der Abfrage
+  dragnet_helper_115_param_2_name:                           Minimale Database-Time der Operation TABLE ACCESS BY ROWID in ASH
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
