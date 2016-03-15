@@ -425,6 +425,7 @@
   dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
   dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
   dragnet_helper_group_problems_with_parallel_query:        Eventuelle Probleme mit Parallel Query
+  dragnet_helper_group_suboptimal_index_index:              Suboptimale Nutzung von Indizes in SQL-Statements
   dragnet_helper_group_tuning_sga_pga:                      Tuning bzw. Entlastung von SGA/PGA-Strukturen
   dragnet_helper_group_unnecessary_executions:              Eventuell unnötige Ausührungen von SQL-Statements
   dragnet_helper_group_unnecessary_high_execution_frequency:  Eventuell unnötig hohe Frequenz von Executes/Fetches von SQL-Statements
