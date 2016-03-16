@@ -826,8 +826,16 @@ class DbaSchemaController < ApplicationController
                                            EXTRACT(HOUR FROM End_Time - Start_Time)*60*24 + EXTRACT(MINUTE FROM End_Time - Start_Time)*60 + EXTRACT(SECOND FROM End_Time - Start_Time) Duration
                                    FROM   sys.WRI$_OPTSTAT_OPR o
                                    WHERE  SUBSTR(Target, 1, DECODE(INSTR(target, '.', 1, 2), 0, 200, INSTR(target, '.', 1, 2)-1)) = ?  /* remove possibly following partition name */
-                                   ORDER BY Start_Time
+                                   ORDER BY Start_Time DESC
                                   ", "#{@owner}.#{@table_name}"]
+
+    @tab_history = sql_select_all ["SELECT t.*, o.Subobject_Name
+                                    FROM   DBA_Objects o
+                                    JOIN   sys.WRI$_OPTSTAT_TAB_HISTORY t ON t.Obj# = o.Object_ID
+                                    WHERE  o.Owner       = ?
+                                    AND    o.Object_Name = ?
+                                    ORDER BY t.AnalyzeTime DESC
+                                   ", @owner, @table_name]
 
     render_partial
   end
