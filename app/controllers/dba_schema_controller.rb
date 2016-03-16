@@ -818,5 +818,18 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_gather_historic
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
+    @operations = sql_select_all ["SELECT o.*,
+                                           EXTRACT(HOUR FROM End_Time - Start_Time)*60*24 + EXTRACT(MINUTE FROM End_Time - Start_Time)*60 + EXTRACT(SECOND FROM End_Time - Start_Time) Duration
+                                   FROM   sys.WRI$_OPTSTAT_OPR o
+                                   WHERE  SUBSTR(Target, 1, DECODE(INSTR(target, '.', 1, 2), 0, 200, INSTR(target, '.', 1, 2)-1)) = ?  /* remove possibly following partition name */
+                                   ORDER BY Start_Time
+                                  ", "#{@owner}.#{@table_name}"]
+
+    render_partial
+  end
 
 end
