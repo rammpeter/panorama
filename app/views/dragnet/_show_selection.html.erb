@@ -38,17 +38,19 @@
       <td>
         <div style="padding-bottom:5px;">
           <div style="float:left;"><%= t(:dragnet_show_selection_select_hint, :default=>"Select dragnet-SQL for execution") %></div>
-          <div style="text-align: right; width: 100%; ">
-            <span title="Filter shown SQLs by match in name or description">
-                Filter:
-                <input id="dragnet_filter" type="text" style="">
-            </span>
-            <span title="Match search string not only in name but also in description text of dragnet-SQL">
-                Include description
-                <%= check_box_tag(:include_description, 1, false) %>
-            </span>
-            <input type="submit" title="Search for hits in dragnet SQLs" value="Search" onclick="refresh_tree($('#dragnet_filter').val(), $('#include_description').prop('checked'));">
-          </div>
+          <form>
+            <div style="text-align: right; width: 100%; ">
+              <span title="Filter shown SQLs by match in name or description">
+                  Filter:
+                  <input id="dragnet_filter" type="text" style="">
+              </span>
+              <span title="Match search string not only in name but also in description text of dragnet-SQL">
+                  Include description
+                  <%= check_box_tag(:include_description, 1, false) %>
+              </span>
+              <input type="submit" title="Search for hits in dragnet SQLs" value="Search" onclick="refresh_tree($('#dragnet_filter').val(), $('#include_description').prop('checked')); return false;">
+            </div>
+            </form>
         </div>
         <div id="dragnet_selection_wrapper" style="clear: both; height: 300px; overflow-y: scroll; padding: 5px; background-color: #ffffff;">
         </div>
