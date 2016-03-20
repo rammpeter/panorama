@@ -3,6 +3,50 @@
 # Diverse Ajax-Aufrufe und fachliche Code-Schnipsel
 module AjaxHelper
 
+  # Render header line with caption
+  # Parameter:  caption text
+  #             Array of Hashes with commands for list, Keys: :name, :caption, :hint, :icon_class, :action (JS-function)
+  def render_page_caption(caption, command_array=nil)
+    output = ''
+    output << "<div class=\"page_caption\">"
+
+    unless command_array.nil?                                                   # render command button and list
+      div_id = get_unique_area_id                                               # Basis for DOM-IDs
+      output << "<div style=\"float:left; margin-left:5px;   \" class=\"slick-shadow\" >"
+        output << "<div id=\"#{div_id}\" style=\"padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer; \">"
+          output << "\u2261" # 3 waagerechte Striche ≡
+          # Construction context-menu
+          context_menu_id = "#{div_id}_context_menu"
+          output << "<div class=\"contextMenu\" id=\"#{context_menu_id}\" style=\"display:none;\"><ul>"
+          command_array.each do |ca|
+            output << "<li id=\"#{context_menu_id}_#{ca[:name]}\" title=\"#{ca[:hint]}\"><span class=\"#{ca[:icon_class]}\" style=\"float:left\"></span><span>#{ca[:caption]}</span></li>"
+          end
+          output << "</ul></div>"
+        output << "</div>"
+      output << "</div>"
+
+      output << "<script type=\"text/javascript\">"
+        output << "var bindings = {};"
+        command_array.each do |ca|
+          output << "bindings[\"#{context_menu_id}_#{ca[:name]}\"] = #{ca[:action]};"
+        end
+        output << "jQuery(\"##{div_id}\").contextMenu(\"#{context_menu_id}\", {
+                    menuStyle: {  width: '330px' },
+                    bindings:   bindings,
+                    onContextMenu : function(event, menu)                                   // dynamisches Anpassen des Context-Menü
+                    {
+                      return true;
+                    }
+                    });"
+        output << "jQuery(\"##{div_id}\").bind('click' , function( event ) { jQuery(\"##{div_id}\").trigger(\"contextmenu\", event); return false;  });"
+      output << "</script>"
+    end
+    output << my_html_escape(caption)
+    output << "</div>"
+    output.html_safe
+  end
+
+
   # Ajax-Formular definieren mit Indikator-Anzeige während Ausführung
   # Parameter url notfalls mit url_for formatieren
   def my_ajax_form_tag(url, html_options={})
@@ -19,6 +63,9 @@ module AjaxHelper
     link_to(caption ? caption : "", url, html_options)  # internen Rails-Helper verwenden
   end # my_ajax_link_to
 
+  # absetzen eines Ajax-Calls aus Javascript
+  def js_ajax_post_call(url_data)
+  end
 
   # Funktion nur brauchbar im Slickgrid oder anderen Funktionen, deren Daten im Browser nochmals per Javascript interpretiert werden
   # wegen doppeltem Escape von single Quote per \\x27

@@ -1,4 +1,16 @@
-<div class="page_caption" style="margin-bottom: 5px;"><%= t :dragnet_show_selection_header, :default=> "Dragnet investigation for performance bottlenecks and usage of anti-pattern   "%></div>
+<%= render_page_caption(
+        t(:dragnet_show_selection_header, :default=> "Dragnet investigation for performance bottlenecks and usage of anti-pattern"),
+        [
+            {
+                name:       :add_personal,
+                caption:    'Add personal selection',
+                hint:       'Add your personal SQL statement for extension of dragnet SQLs',
+                icon_class: 'ui-icon ui-icon-plus',
+                action:     'function(){alert("Hugo");}'
+            }
+        ]
+    )
+%>
 
 <script type="text/javascript">
     function refresh_tree(filter, include_description) {
@@ -32,7 +44,7 @@
     refresh_tree('', null);
 </script>
 
-
+<div style="margin-top: 5px;">
   <table width="100%">
     <tr>
       <td>
@@ -73,6 +85,7 @@
       </td>
     </tr>
   </table>
+</div>
 
 
 
