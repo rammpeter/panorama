@@ -3045,8 +3045,18 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
               :entries  => pl_sql_usage
           },
       ]
+
+      dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)   # personal extensions from cache
+      if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
+        @@dragnet_internal_list << { :name    => 'Personal extensions',
+                                     :entries => dragnet_personal_selection_list
+        }
+      end
+
     end
     @@dragnet_internal_list
   end
+
+
 
 end

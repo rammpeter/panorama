@@ -6,7 +6,7 @@
                 caption:    'Add personal selection',
                 hint:       'Add your personal SQL statement for extension of dragnet SQLs',
                 icon_class: 'ui-icon ui-icon-plus',
-                action:     'function(){alert("Hugo");}'
+                action:     js_ajax_post_call(:controller => :dragnet, :action =>:show_personal_selection_form , :update_area => :show_selection_result_area)
             }
         ]
     )
@@ -44,7 +44,7 @@
     refresh_tree('', null);
 </script>
 
-<div style="margin-top: 5px;">
+<div style="margin-top: 5px; margin-bottom:5px;">
   <table width="100%">
     <tr>
       <td>
@@ -79,6 +79,7 @@
                 <%= hidden_field_tag('dragnet_hidden_entry_id') %>
                 <div class="float_left"><%= submit_tag(t(:dragnet_show_selection_do_sql_caption, :default=>"Do selection"), :disabled=>true, :id=>'dragnet_show_selection_do_selection', :name=>:commit_exec, :title => t(:dragnet_show_selection_do_sql_hint, :default=>"Execute selected report")) %></div>
                 <div class="float_left"><%= submit_tag("Show SQL",  :disabled=>true,  :id=>'dragnet_show_selection_show_sql',           :name=>:commit_show, :title => t(:dragnet_show_selection_show_sql_hint, :default=>"show select SQL-statement")) %></div>
+                <div class="float_left"><%= submit_tag("Drop personal SQL",  :style=>'display: none;', :data => {:confirm => 'Do you really want to drop this selection'}, :id=>'dragnet_drop_personal_selection_button', :name=>:commit_drop, :title => t(:dragnet_show_selection_drop_personal_selection_button_hint, :default=>"Drop this personal selection from list")) %></div>
               </td></tr>
             </table>
         <% end %>

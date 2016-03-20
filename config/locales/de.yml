@@ -1049,6 +1049,8 @@
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
+  dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen
+
   dragnet_show_selection_do_sql_caption:                    Selektion ausführen
   dragnet_show_selection_do_sql_hint:                       Ausführen des ausgewählten Reports
   dragnet_show_selection_header:                            Rasterfahndung nach Performance-Bottlenecks und Nutzung von Anti-Pattern

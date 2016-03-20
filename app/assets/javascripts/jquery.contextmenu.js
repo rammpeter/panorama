@@ -81,7 +81,12 @@
     });
 
     var index = hash.length - 1;
-    $(this).bind('contextmenu', function(e) {
+    $(this).bind('contextmenu', function(e, clickEvent) {
+
+      // Ensure pageX and pageY are set after calling event handler be jQuery.trigger,  Peter Ramm, 20.03.2016
+      if (typeof e.pageX === 'undefined')
+        e = clickEvent;
+
       // Check if onContextMenu() defined
       var bShowContext = (!!hash[index].onContextMenu) ? hash[index].onContextMenu(e) : true;
 	  currentTarget = e.target;

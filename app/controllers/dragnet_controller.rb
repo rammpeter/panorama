@@ -1,6 +1,15 @@
 # encoding: utf-8
+
+require 'json'
+
 class DragnetController < ApplicationController
   include DragnetHelper
+
+  # Show dialog
+  def show_selection
+    params[:update_area] = :content_for_layout
+    render_partial :show_selection
+  end
 
   # Auswahl-Liste für jstree als json -Array mit folgender Struktur
   # Expected format of the node in json buffer (there are no required fields)
@@ -85,7 +94,7 @@ class DragnetController < ApplicationController
 
 
   public
-
+  # Show new selection diealog
   def refresh_selected_data
     entry = extract_entry_by_entry_id(params[:entry_id])
 
@@ -101,6 +110,7 @@ class DragnetController < ApplicationController
                                 $('#show_selection_param_area').html('#{j parameter }');
                                 $('#dragnet_show_selection_do_selection').prop('disabled', #{entry[:sql] ? 'false' : 'true'});
                                 $('#dragnet_show_selection_show_sql').prop('disabled', #{entry[:sql] ? 'false' : 'true'});
+                                $('#dragnet_drop_personal_selection_button').#{entry[:personal] ? 'show' : 'hide'}();
                                 $('#dragnet_hidden_entry_id').val('#{params[:entry_id]}');
                                "
       }
@@ -114,6 +124,11 @@ class DragnetController < ApplicationController
 
     if params[:commit_show]    # Verzweigen auf weitere Funktion bei Anwahl zweiter Button
       show_used_sql(dragnet_sql)
+      return
+    end
+
+    if params[:commit_drop]                                                     # Remove entry from list
+      drop_personal_selection(dragnet_sql)
       return
     end
 
@@ -150,9 +165,56 @@ class DragnetController < ApplicationController
   end
 
   def show_used_sql(dragnet_sql)
+    show_value = dragnet_sql[:sql]                                              # Default
+    if dragnet_sql[:personal]
+      show_dn = dragnet_sql.clone
+      show_dn.delete(:personal)                                                 # should not be shown
+      show_value = JSON.pretty_generate(show_dn)
+    end
+
     respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j "<div class='float_left' style='background-color:lightgray; margin-top: 10px;'><pre>#{my_html_escape(dragnet_sql[:sql])}</pre></div>" }');"}
+      format.js {render :js => "$('##{params[:update_area]}').html('#{j "<div class='float_left' style='background-color:lightgray; margin-top: 10px;'><pre>#{my_html_escape(show_value)}</pre></div>" }');"}
     end
   end
+
+
+  def show_personal_selection_form
+    render_partial
+  end
+
+  def add_personal_selection
+    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
+    dragnet_personal_selection_list = [] if dragnet_personal_selection_list.nil?
+
+    begin
+      new_selection = eval(params[:selection])
+      new_selection[:personal] = true                                           # Tag for control of drop-button
+    rescue Exception => e
+      raise "Error #{e.message} during parse of your selection"
+    end
+    dragnet_personal_selection_list << new_selection
+    write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
+
+    @@dragnet_internal_list = nil                                               # require new build of list with next request
+    show_selection                                                              # Show edited selection list again
+  end
+
+  # Drop selection from personal list
+  def drop_personal_selection(drop_selection)
+    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
+
+    dragnet_personal_selection_list.each do |dn|
+      if dn[:name] == drop_selection[:name]
+        dragnet_personal_selection_list.delete(dn)
+      end
+    end
+
+    write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
+
+    @@dragnet_internal_list = nil                                               # require new build of list with next request
+    show_selection                                                              # Show edited selection list again
+  end
+
+
 
 end
