@@ -261,7 +261,7 @@ class DbaSgaController < ApplicationController
 
     plans = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Operation, Options, Object_Owner, Object_Name, Object_Type, Object_Alias, QBlock_Name,
+          Operation, Options, Object_Owner, Object_Name, Object_Type, Object_Alias, QBlock_Name, p.Timestamp,
           CASE WHEN p.ID = 0 THEN (SELECT Optimizer    -- Separater Zugriff auf V$SQL_Plan, da nur dort die Spalte Optimizer gefüllt ist
                                     FROM  gV$SQL_Plan sp
                                     WHERE sp.SQL_ID          = p.SQL_ID

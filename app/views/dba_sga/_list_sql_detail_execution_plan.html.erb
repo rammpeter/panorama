@@ -205,7 +205,7 @@ column_options.concat [
 
    @caption = "Explain Plan"
    if @plans.length > 0
-     @caption << " Optimizer-Mode=#{@plans[0].optimizer}, Executions=#{fn(@plans[0].executions)}#{", first ASH-Sample in SGA from #{localeDateTime(@min_sample_time)}" if @min_sample_time}"
+     @caption << " parsed at #{localeDateTime(@plans[0].timestamp)}, Optimizer-Mode=#{@plans[0].optimizer}, Executions=#{fn(@plans[0].executions)}#{", first ASH-Sample in SGA from #{localeDateTime(@min_sample_time)}" if @min_sample_time}"
    end
 
 %>

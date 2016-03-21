@@ -599,7 +599,7 @@ class DbaHistoryController < ApplicationController
 
     all_plans = sql_select_all ["\
                          SELECT /*+ ORDERED USE_NL(p) Panorama-Tool Ramm */
-                                ps.DBID, ps.Plan_Hash_Value, ps.Parsing_Schema_Name,
+                                ps.DBID, ps.Plan_Hash_Value, ps.Parsing_Schema_Name, p.Timestamp,
                                 p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Object_Alias, p.QBlock_Name, p.Optimizer,
                                 p.Other_Tag, p.Other_XML, p.Search_Columns,
                                 DECODE(p.Other_Tag,
@@ -649,7 +649,10 @@ class DbaHistoryController < ApplicationController
     @multiplans.each do |mp|
       mp[:plans] = []   # Konkreter Ausführungsplan, aus Gesamtmenge aller Pläne auszufiltern
       all_plans.each do |p|
-        mp[:plans] << p if p.dbid == mp.dbid && p.plan_hash_value == mp.plan_hash_value && p.parsing_schema_name == mp.parsing_schema_name
+        if p.dbid == mp.dbid && p.plan_hash_value == mp.plan_hash_value && p.parsing_schema_name == mp.parsing_schema_name
+          mp[:plans] << p
+          mp[:timestamp] = p.timestamp                                          # Timestamp of parse
+        end
       end
 
       if get_db_version >= "11.2"     # Ab 11.2 sind ASH-Records mit Verweis auf Zeile des Ausführungsplans versehen
