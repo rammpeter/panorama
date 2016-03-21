@@ -144,8 +144,6 @@ class DragnetController < ApplicationController
       end
     end
 
-
-
     # Ausführen des SQL
     @res = sql_select_all command_array
 
@@ -186,7 +184,6 @@ class DragnetController < ApplicationController
   # Kompletten Menu-Baum durchsuchen nach Name und raise bei Dopplung
   def look_for_double_names(list, double_names)
     list.each do |l|
-      Rails.logger.info l[:name]
       look_for_double_names(l[:entries], double_names) if l[:entries]
       double_names[l[:name]] = 0 unless double_names[l[:name]]
       double_names[l[:name]] = double_names[l[:name]] + 1
@@ -210,7 +207,6 @@ class DragnetController < ApplicationController
     double_names = {}
     look_for_double_names(dragnet_personal_selection_list, double_names)
     double_names.each do |key, value|
-      Rails.logger.info("Key = #{key} value = #{value}")
       raise "Error: Name \"#{key}\" is duplicated" if value > 1
     end
 
