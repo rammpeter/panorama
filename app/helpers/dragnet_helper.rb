@@ -2968,7 +2968,16 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
     ]
   end
 
+  private
+  # Kompletten Menu-Baum taggen mit flag = true
+  def tag_external_selections(list, flag)
+    list.each do |l|
+      l[flag] = true
+      tag_external_selections(l[:entries], flag) if l[:entries]
+    end
+  end
 
+  public
   @@dragnet_internal_list = nil
 
   public
@@ -3048,6 +3057,8 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
 
       dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)   # personal extensions from cache
       if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
+        tag_external_selections(dragnet_personal_selection_list, :personal)     # Mark as personal
+
         @@dragnet_internal_list << { :name    => 'Personal extensions',
                                      :entries => dragnet_personal_selection_list
         }

@@ -182,32 +182,60 @@ class DragnetController < ApplicationController
     render_partial
   end
 
+  private
+  # Kompletten Menu-Baum durchsuchen nach Name und raise bei Dopplung
+  def look_for_double_names(list, double_names)
+    list.each do |l|
+      Rails.logger.info l[:name]
+      look_for_double_names(l[:entries], double_names) if l[:entries]
+      double_names[l[:name]] = 0 unless double_names[l[:name]]
+      double_names[l[:name]] = double_names[l[:name]] + 1
+    end
+  end
+
+  public
   def add_personal_selection
     dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
     dragnet_personal_selection_list = [] if dragnet_personal_selection_list.nil?
 
     begin
       new_selection = eval(params[:selection])
-      new_selection[:personal] = true                                           # Tag for control of drop-button
     rescue Exception => e
-      raise "Error #{e.message} during parse of your selection"
+      raise "Error \"#{e.message}\" during parse of your selection"
     end
-    dragnet_personal_selection_list << new_selection
+
+    new_selection = [new_selection] if new_selection.class == Hash              # ab jetzt immer Array
+    dragnet_personal_selection_list.concat(new_selection)                       # Add to possibly existing
+
+    double_names = {}
+    look_for_double_names(dragnet_personal_selection_list, double_names)
+    double_names.each do |key, value|
+      Rails.logger.info("Key = #{key} value = #{value}")
+      raise "Error: Name \"#{key}\" is duplicated" if value > 1
+    end
+
     write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
 
     @@dragnet_internal_list = nil                                               # require new build of list with next request
     show_selection                                                              # Show edited selection list again
   end
 
+  private
+  # Kompletten Menu-Baum durchsuchen nach Name und drop der Treffer
+  def drop_external_selection(list, name)
+    list.each do |l|
+      drop_external_selection(l[:entries], name) if l[:entries]
+      list.delete(l) if l[:name] == name
+    end
+  end
+
+
+  public
   # Drop selection from personal list
   def drop_personal_selection(drop_selection)
     dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
 
-    dragnet_personal_selection_list.each do |dn|
-      if dn[:name] == drop_selection[:name]
-        dragnet_personal_selection_list.delete(dn)
-      end
-    end
+    drop_external_selection(dragnet_personal_selection_list, drop_selection[:name])
 
     write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
 

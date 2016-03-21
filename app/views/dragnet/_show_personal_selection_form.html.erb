@@ -65,6 +65,43 @@ Syntax:
 <br/>
 
 <h3>Add list of selections for personal use (in current browser)</h3>
+You can define a list (array) of selections instead of single one.<br/>
+Example:<br/>
+<pre>
+[
+  {
+   name: \"Name of selection 1\",
+   desc: \"Explanation of selection 1 in right dialog\",
+   sql:  \"SELECT * FROM ALL_Users\",
+  },
+  {
+   name: \"Name of selection 2\",
+   desc: \"Explanation of selection 2 in right dialog\",
+   sql:  \"SELECT * FROM ALL_Tables\",
+  }
+]
+</pre>
+
+<h3>Create submenu structure for selections</h3>
+You can organize your selections in hierarchical submenu structure using \”entries\”-list.<br>
+Example:
+<pre>
+{
+  name:    \"My Submenu\",
+  entries: [
+             {
+               name: \"Name of selection 1\",
+               desc: \"Explanation of selection 1 in right dialog\",
+               sql:  \"SELECT * FROM ALL_Users\",
+             },
+             {
+               name: \"Name of selection 2\",
+               desc: \"Explanation of selection 2 in right dialog\",
+               sql:  \"SELECT * FROM ALL_Tables\",
+             }
+           ]
+}
+</pre>
 
 
 <h3>Provide selections by file for all user</h3>
@@ -100,26 +137,6 @@ Example for predefined_dragnet_selections.json:<br/>
     sql:  \"Your SQL-Statement without trailing ';'. Example: SELECT * FROM ALL_Users\",
   }
 ]
-</pre>
-<h3>Create submenu structure for selections</h3>
-You can organize your selections in hierarchical submenu structure using \”entries\”-list.<br>
-Example:
-<pre>
-{
-  name:    \"My Submenu\",
-  entries: [
-             {
-               name: \"Name of selection 1\",
-               desc: \"Explanation of selection 1 in right dialog\",
-               sql:  \"SELECT * FROM ALL_Users\",
-             },
-             {
-               name: \"Name of selection 1\",
-               desc: \"Explanation of selection 1 in right dialog\",
-               sql:  \"SELECT * FROM ALL_Users\",
-             }
-           ]
-}
 </pre>
 
 ").html_safe
