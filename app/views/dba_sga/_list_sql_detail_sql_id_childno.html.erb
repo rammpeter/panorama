@@ -12,14 +12,14 @@
 <%
    def link_session(instance, sid, serialno)
      my_ajax_link_to("#{sid}/#{serialno}",
-       url_for(:controller=>"dba",
-               :action => "show_session_detail",
-               :instance => instance,
-               :sid      => sid,
-               :serialno => serialno,
-               :update_area => @update_area
+       url_for(:controller    => :dba,
+               :action        => :show_session_detail,
+               :instance      => instance,
+               :sid           => sid,
+               :serialno      => serialno,
+               :update_area   => @update_area
               ),
-       :title=> t(:dba_sga_list_sql_detail_sql_id_link_session_hint, :details=>'Show details for session') )
+       :title=> t(:dba_sga_list_sql_detail_sql_id_link_session_hint, :default=>'Show details for session') )
    end
 %>
 
