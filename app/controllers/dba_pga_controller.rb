@@ -150,7 +150,7 @@ class DbaPgaController < ApplicationController
 
     column_options =
       [
-        {:caption=>"Zeitstempel",                         :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Beginn des Sample-Zeitraumes", :plot_master_time=>true},
+        {:caption=>"Timestamp",        :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sampe period", :plot_master_time=>true},
       ]
     known_columns.each do |key, value|
       column_options << {:caption=>value[:caption], :data=>value[:data], :name=>key, :title=>value[:title], :align=>"right" } if header[key]  # Spalte hinzufüegen wenn im Result auch wirklich vorhanden

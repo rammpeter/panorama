@@ -584,7 +584,7 @@ class ActiveSessionHistoryController < ApplicationController
                       GROUP BY Root_Snap_ID, Root_Rounded_Sample_Time, Root_Blocking_Session, Root_Blocking_Session_Serial#, Root_Blocking_Session_Status
                       #{', Root_Blocking_Inst_ID' if get_db_version >= '11.2'}
                     ) gr
-                    JOIN (SELECT ? DBID FROM DUAL) db ON 1=1
+                    CROSS JOIN (SELECT ? DBID FROM DUAL) db
                     #{if get_db_version >= '11.2'
                    "LEFT OUTER JOIN DBA_Hist_Active_Sess_History rhh ON  rhh.DBID                       = db.DBID
                                                                       AND rhh.Snap_ID                   = gr.Root_Snap_ID  /* Snap-ID innerhalb von RAC-Instanzen ist identisch, diese koennet von anderer Instanz stammen */
