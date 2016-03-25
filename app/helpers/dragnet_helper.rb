@@ -1,28 +1,25 @@
 # encoding: utf-8
 
-#require 'dragnet/optimal_index_storage_helper'
+# Liste der Rasterfahndungs-SQL
+include Dragnet::OptimalIndexStorageHelper
+include Dragnet::UnnecessaryIndexesHelper
+include Dragnet::IndexPartitioningHelper
+include Dragnet::UnusedTablesHelper
+include Dragnet::SqlsPotentialDbStructuresHelper
+include Dragnet::OptimizableFullScansHelper
+include Dragnet::ProblemsWithParallelQueryHelper
+include Dragnet::UnnecessaryExecutionsHelper
+include Dragnet::UnnecessaryHighExecutionFrequencyHelper
+include Dragnet::SuboptimalIndexUsageHelper
+include Dragnet::SqlsWrongExecutionPlanHelper
+include Dragnet::DragnetSqlsTuningSgaPgaHelper
+include Dragnet::SqlsCursorRedundanciesHelper
+include Dragnet::DragnetSqlsLogwriterRedoHelper
+include Dragnet::CascadingViewsHelper
+include Dragnet::SqlsConclusionApplicationHelper
+include Dragnet::PlSqlUsageHelper
 
 module DragnetHelper
-  # Liste der Rasterfahndungs-SQL
-
-  include Dragnet::OptimalIndexStorageHelper
-  include Dragnet::UnnecessaryIndexesHelper
-  include Dragnet::IndexPartitioningHelper
-  include Dragnet::UnusedTablesHelper
-  include Dragnet::SqlsPotentialDbStructuresHelper
-  include Dragnet::OptimizableFullScansHelper
-  include Dragnet::ProblemsWithParallelQueryHelper
-  include Dragnet::UnnecessaryExecutionsHelper
-  include Dragnet::UnnecessaryHighExecutionFrequencyHelper
-  include Dragnet::SuboptimalIndexUsageHelper
-  include Dragnet::SqlsWrongExecutionPlanHelper
-  include Dragnet::DragnetSqlsTuningSgaPgaHelper
-  include Dragnet::SqlsCursorRedundanciesHelper
-  include Dragnet::DragnetSqlsLogwriterRedoHelper
-  include Dragnet::CascadingViewsHelper
-  include Dragnet::SqlsConclusionApplicationHelper
-  include Dragnet::PlSqlUsageHelper
-
 
   private
   # Kompletten Menu-Baum taggen mit flag = true
@@ -113,32 +110,34 @@ module DragnetHelper
           },
       ]
 
-      # Estend list with predefined selections from file
-      predefined_filename = "#{Panorama::Application.config.panorama_var_home}/predefined_dragnet_selections.json"
-      if File.exist?(predefined_filename)
-        begin
-        dragnet_predefined_list = ""
-        File.open(predefined_filename, 'r'){|file|
-          dragnet_predefined_list = eval(file.read)
-        }
-        rescue Exception => e
-          raise "Error \"#{e.message}\" during parse of file #{predefined_filename}"
+      if defined?(Panorama)                                                     # not for generate_dragnet_html.rb
+
+        # Extend list with predefined selections from file
+        predefined_filename = "#{Panorama::Application.config.panorama_var_home}/predefined_dragnet_selections.json"
+        if File.exist?(predefined_filename)
+          begin
+          dragnet_predefined_list = ""
+          File.open(predefined_filename, 'r'){|file|
+            dragnet_predefined_list = eval(file.read)
+          }
+          rescue Exception => e
+            raise "Error \"#{e.message}\" during parse of file #{predefined_filename}"
+          end
+          @@dragnet_internal_list << { :name    => 'Predefined extensions from server instance',
+                                       :entries => dragnet_predefined_list
+          }
         end
-        @@dragnet_internal_list << { :name    => 'Predefined extensions from server instance',
-                                     :entries => dragnet_predefined_list
-        }
+
+        # Extend list with personal selections (dependent from browser cookie)
+        dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)   # personal extensions from cache
+        if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
+          tag_external_selections(dragnet_personal_selection_list, :personal)     # Mark as personal
+
+          @@dragnet_internal_list << { :name    => 'Personal extensions (per browser-cookie)',
+                                       :entries => dragnet_personal_selection_list
+          }
+        end
       end
-
-      # Extend list with personal selections (dependent from browser cookie)
-      dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)   # personal extensions from cache
-      if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
-        tag_external_selections(dragnet_personal_selection_list, :personal)     # Mark as personal
-
-        @@dragnet_internal_list << { :name    => 'Personal extensions (per browser-cookie)',
-                                     :entries => dragnet_personal_selection_list
-        }
-      end
-
 
     end
     @@dragnet_internal_list
