@@ -1046,6 +1046,34 @@
   dragnet_helper_116_param_2_hint:                           Minimale aufgelaufene Zeit in Sekunden für die Operation TABLE ACCESS BY ROWID in der Active Session History für Aufnahme des SQL im Ergebnis der Abfrage
   dragnet_helper_116_param_2_name:                           Minimale Database-Time der Operation TABLE ACCESS BY ROWID in ASH (Sekunden)
 
+  dragnet_helper_117_desc: |-
+    Für kleinere Tabellen mit wenig Spalten und exzessivem Zugriff ist es Wert,
+    den Indexzugriff und nachfolgenden Tabellenzugriff per TABLE ACCESS BY ROWID
+    zu ersetzen durch nur einen Indexzugriff auf einen Index mit allen relevanten Spalten.
+    Abfrage nutzbar nur mit Oracle 11g und höher.
+  dragnet_helper_117_name: |-
+    TABLE ACCESS BY ROWID komplett ersetzbar durch INDEX SCAN (aus aktueller SGA)
+
+  dragnet_helper_118_desc: |-
+    Für kleinere Tabellen mit wenig Spalten und exzessivem Zugriff ist es Wert,
+    den Indexzugriff und nachfolgenden Tabellenzugriff per TABLE ACCESS BY ROWID
+    zu ersetzen durch nur einen Indexzugriff auf einen Index mit allen relevanten Spalten.
+    Abfrage nutzbar nur mit Oracle 11g und höher.
+  dragnet_helper_118_name: |-
+    TABLE ACCESS BY ROWID komplett ersetzbar durch INDEX SCAN (aus AWR-Historie)
+
+  dragnet_helper_119_desc: |-
+    Aus den Zahlen des Commit- und Rollback-Verhaltens lassen sich Rückschlüsse auf evtl. problematisches Applikationsverhalten ziehen.
+  dragnet_helper_119_name: |-
+    Commit / Rollback - Aufkommen
+
+  dragnet_helper_120_desc: |-
+    Die Vorgaben von Recovery-Zeiten (fast_start_mttr_target) beeinflussen im Extrem drastisch das I/O-Verhalten der DB.
+    Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben können:
+    - Viele kleine asynchrone Write-Requests erzeugt werden statt weniger Requests mit mehreren Blöcken (im Normalfall bis 3000 DB-Blöcke / async.Write-Request)
+    - Die max. Anzahl async. Write-Requests des OS erreicht werden und massiv Verzögerungen im I/O der DB auftreten
+  dragnet_helper_120_name: |-
+    Einstellung Recovery-Verhalten
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

@@ -48,8 +48,8 @@ Solution can be the aggregation of multiple writes (bulk-processing).'),
                          {:name=> t(:dragnet_helper_75_param_2_name, :default=>'Minimum number of written rows'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_75_param_2_hint, :default=>'Minimum number of written rows for consideration in result')}]
         },
         {
-            :name  => 'Commit / Rollback - Aufkommen',
-            :desc  => 'Aus den Zahlen des Commit- und Rollback-Verhaltens lassen sich Rückschlüsse auf evtl. problematisches Applikationsverhalten ziehen.',
+            :name  => t(:dragnet_helper_119_name, :default=>'Commit / Rollback - Emergence'),
+            :desc  => t(:dragnet_helper_119_desc, :default=>'From the amount of commit and rollback operations one can conclude to possibly problematic application behaviour'),
             :sql=>  "SELECT /* DB-Tools Ramm Commits und Rollbacks in gegebenen Zeitraum */ Begin, Instance_Number, User_Commits, User_Rollbacks,
                          ROUND(User_Rollbacks/(DECODE(User_Commits+User_Rollbacks, 0, 1, User_Commits+User_Rollbacks))*100) Percent_Rollback,
                          Rollback_Changes
@@ -80,11 +80,12 @@ Solution can be the aggregation of multiple writes (bulk-processing).'),
                          {:name=> 'Instance', :size=>8, :default=>1, :title=> 'RAC-Instance'}]
         },
         {
-            :name  => 'Einstellung Recovery-Verhalten',
-            :desc  => 'Die Vorgaben von Recovery-Zeiten (fast_start_mttr_target) beeinflussen im Extrem drastisch das I/O-Verhalten der DB.
-Durch Erhöhung der Aggressivität des DB-Writers zur Einhaltung kurzer Vorgaben können:
-- Viele kleine asynchrone Write-Requests erzeugt werden statt weniger Requests mit mehreren Blöcken (im Normalfall bis 3000 DB-Blöcke / async.Write-Request)
-- Die max. Anzahl async. Write-Requests des OS erreicht werden und massiv Verzögerungen im I/O der DB auftreten',
+            :name  => t(:dragnet_helper_120_name, :default=>'Adjustment of recovery behaviour'),
+            :desc  => t(:dragnet_helper_120_desc, :default=>'The target for recovery times (fast_start_mttr_target) influences strongly the I/O-behaviour of your database.
+Short targets for recovery and therefore more aggressive DB-writer my lead to:
+- many small asychroneous write requests are executed instead of instead of less requests with more blocks per request (normally until 3000 DB-blocks per async. write request)
+- maximum limit of OS for simultaneous async. write requests is reached and I/O is considerably slowed down due to that
+'),
             :sql=> 'SELECT /*+ DB-Tools Ramm MTTR-Historie */ r.Instance_Number, ss.Begin_Interval_Time, target_mttr, estimated_mttr, optimal_logfile_size, CKPT_BLOCK_WRITES
                   FROM   dba_hist_instance_recovery r
                   JOIN   DBA_Hist_Snapshot ss ON ss.DBID = r.DBID AND ss.Instance_Number = r.Instance_Number AND ss.Snap_ID = r.Snap_ID

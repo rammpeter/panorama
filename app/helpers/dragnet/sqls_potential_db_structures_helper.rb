@@ -174,9 +174,9 @@ END;
              ",
         },
         {
-            :name  => 'Table access by rowid replaceable by index lookup (from current SGA)',
-            :desc  => 'For smaller tables with less columns and excessive access it can be worth to substitute index range scan + table access by rowid with single index range scan via special index with all accessed columns.
-Usable with Oracle 11g and above only.',
+            :name  => t(:dragnet_helper_117_name, :default=>'Table access by rowid replaceable by index lookup (from current SGA)'),
+            :desc  => t(:dragnet_helper_117_desc, :default=>'For smaller tables with less columns and excessive access it can be worth to substitute index range scan + table access by rowid with single index range scan via special index with all accessed columns.
+Usable with Oracle 11g and above only.'),
             :sql=> "SELECT x.*
                     FROM   (
                             SELECT /*+ USE_HASH(t) */
@@ -203,9 +203,9 @@ Usable with Oracle 11g and above only.',
                          {:name=> 'Minimum number of seconds in wait', :size=>8, :default=>10, :title=> 'Mimimum number of seconds in wait for table access by rowid on this table to be worth to consider.'}]
         },
         {
-            :name  => 'Table access by rowid replaceable by index lookup (from AWR history)',
-            :desc  => 'For smaller tables with less columns and excessive access it can be worth to substitute index range scan + table access by rowid with single index range scan via special index with all accessed columns.
-Usable with Oracle 11g and above only.',
+            :name  => t(:dragnet_helper_118_name, :default=>'Table access by rowid replaceable by index lookup (from AWR history)'),
+            :desc  => t(:dragnet_helper_118_desc, :default=>'For smaller tables with less columns and excessive access it can be worth to substitute index range scan + table access by rowid with single index range scan via special index with all accessed columns.
+Usable with Oracle 11g and above only.'),
             :sql=> "SELECT *
                     FROM   (
                             SELECT /*+ USE_HASH(t) */

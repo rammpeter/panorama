@@ -35,6 +35,7 @@ module DragnetHelper
 
   public
   @@dragnet_internal_list = nil
+  @@dragnet_list_language = nil
 
   public
   # liefert Array von Hashes mit folgender Struktur:
@@ -49,7 +50,8 @@ module DragnetHelper
   #       :title      MouseOver-Hint
 
   def dragnet_sql_list
-    if @@dragnet_internal_list.nil?
+    if @@dragnet_internal_list.nil? || @@dragnet_list_language != get_locale
+      @@dragnet_list_language = get_locale
       @@dragnet_internal_list = [
           {   :name     => t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'),
               :entries  => [{  :name    => t(:dragnet_helper_group_optimal_index_storage, :default => 'Ensure optimal storage parameter for indexes'),
