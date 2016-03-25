@@ -1075,6 +1075,33 @@
   dragnet_helper_120_name: |-
     Einstellung Recovery-Verhalten
 
+  dragnet_helper_121_desc: |-
+    Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
+    Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.
+  dragnet_helper_121_name: |-
+    Mehrfach offene Cursoren: Überblick über SQL
+
+  dragnet_helper_122_desc: |-
+    Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
+    Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.
+  dragnet_helper_122_name: |-
+    Mehrfach offene Cursoren: Mehrfach in Session geöffnete SQL
+
+  dragnet_helper_123_desc: |-
+    Dieser View listet Objekte an, die für ihre Platzierung im Shared Pool andere verdrängen mussten.
+    Bei der Selektion werden die Inhalte gelöscht, d.h., die Selektion zeigt die Verdrängungen seit der letzten Selektion (nur einmalig).
+    'No. Items flushed from shared pool' von 7..8 ist normal, höhere Werte zeigen Probleme Platz zu finden.
+  dragnet_helper_123_name: |-
+    Konkurrenz bzgl. Speicher: Verdrängung im Shared Pool
+
+  dragnet_helper_124_desc: |-
+    Bei Setzen des Parameters cursor_sharing=FORCE oder SIMILAR auf Session- oder Instance-Ebene werden function-based Indizes mit Literalen evtl. nicht mehr erkannt,
+    da diese Literale durch Bindevariablen ersetzt werden.
+    Lösung: Literale in PL/SQL-Function auslagern und diese im function-based Index aufrufen.
+    Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr für SQL-Ausführung verwendet wird
+  dragnet_helper_124_name: |-
+    Probleme mit Function-based Index bei cursor_sharing != EXACT
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

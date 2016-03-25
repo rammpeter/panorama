@@ -33,29 +33,31 @@ The length of the compared substring may be varied.'),
             :parameter=>[{:name=> t(:dragnet_helper_114_param_1_name, :default=>'Number of characters for comparison of SQLs'), :size=>8, :default=>60, :title=>t(:dragnet_helper_114_param_1_hint, :default=>'Number of characters for comparison of SQLs (beginning at left side of statement)') }]
         },
         {
-            :name  => 'Mehrfach offene Cursoren: Überblick über SQL',
-            :desc  => 'Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
-Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.',
-            :sql=>  "SELECT /* Anzahl Open Cursor gruppiert nach SQL */
+            :name  => t(:dragnet_helper_121_name, :default=>'Multiple open cursor: overview over SQL'),
+            :desc  => t(:dragnet_helper_121_desc, :default=>'Normally there should be only one open cursor per SQL statement and session.
+SQLs with multiple open cursors withon one session my flood session cursor cache and PGA
+'),
+            :sql=>  "SELECT /* Panorama: Number of open cursor grouped by SQL */
                              oc.*
                       FROM   (
                               SELECT Inst_ID, SQL_ID,
-                                     COUNT(*) Anzahl_OC,
-                                     COUNT(DISTINCT SID) Anzahl_SID,
-                                     ROUND(Count(*) / COUNT(DISTINCT SID),2) \"Anzahl OC je SID\",
+                                     COUNT(*) \"Number of open cursor\",
+                                     COUNT(DISTINCT SID) \"Number of sessions\",
+                                     ROUND(Count(*) / COUNT(DISTINCT SID),2) \"open cursors per session\",
                                      MIN(SQL_Text) SQL_Text
                               FROM   gv$Open_Cursor
                               GROUP BY Inst_ID, SQL_ID
                               HAVING Count(*) / COUNT(DISTINCT SID) > 1
                              ) oc
-                      ORDER BY Anzahl_OC DESC NULLS LAST",
+                      ORDER BY 3 DESC NULLS LAST",
         },
         {
-            :name  => 'Mehrfach offene Cursoren: Mehrfach in Session geöffnete SQL',
-            :desc  => 'Je Session sollte für ein SQL-Statement i.d.R. auch nur ein Cursor aktiv sein.
-Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und PGA.',
+            :name  => t(:dragnet_helper_122_name, :default=>'Multiple open cursor: SQLs opened multiple in session'),
+            :desc  => t(:dragnet_helper_122_desc, :default=>'Normally there should be only one open cursor per SQL statement and session.
+SQLs with multiple open cursors withon one session my flood session cursor cache and PGA
+'),
             :sql=>  "SELECT /* SQLs mehrfach als Cursor geoeffnet je Session */
-                             sq.*, cu.SID, s.UserName, cu.Anz_Open_Cursor \"Anzahl Open Cursor\", cu.Anz_Sql \"Anzahl SQL\",
+                             sq.*, cu.SID \"Session-ID\", s.UserName, cu.Anz_Open_Cursor \"Number of open cursor\", cu.Anz_Sql \"Number of SQLs\",
                              s.Client_Info, s.Machine, s.Program, s.Module, s.Action, cu.SQL_Text
                       FROM   (
                               SELECT oc.Inst_ID, oc.SID, oc.SQL_ID, COUNT(*) Anz_Open_Cursor, COUNT(DISTINCT oc.SQL_ID) Anz_Sql, MIN(oc.SQL_Text) SQL_Text
@@ -64,7 +66,7 @@ Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und 
                               HAVING count(*) > COUNT(DISTINCT oc.SQL_ID)
                              ) cu
                       JOIN   gv$Session s ON s.Inst_ID=cu.Inst_ID AND s.SID=cu.SID
-                      JOIN   (SELECT Inst_ID, SQL_ID, COUNT(*) Child_Anzahl, MIN(Parsing_schema_name) Parsing_schema_Name
+                      JOIN   (SELECT Inst_ID, SQL_ID, COUNT(*) \"Number of childs\", MIN(Parsing_schema_name) Parsing_schema_Name
                               FROM gv$SQL
                               GROUP BY Inst_ID, SQL_ID
                              )sq ON sq.Inst_ID = cu.Inst_ID AND sq.SQL_ID = cu.SQL_ID
@@ -72,10 +74,11 @@ Mehrfach geöffnete Cursor auf identischen SQL fluten Session_Cached_Cursor und 
                       ORDER BY cu.Anz_Open_Cursor-cu.Anz_Sql DESC NULLS LAST"
         },
         {
-            :name  => 'Konkurrenz bzgl. Speicher: Verdrängung im Shared Pool',
-            :desc  => "Dieser View listet Objekte an, die für ihre Platzierung im Shared Pool andere verdrängen mussten.
-Bei der Selektion werden die Inhalte gelöscht, d.h., die Selektion zeigt die Verdrängungen seit der letzten Selektion (nur einmalig).
-'No. Items flushed from shared pool' von 7..8 ist normal, höhere Werte zeigen Probleme Platz zu finden.",
+            :name  => t(:dragnet_helper_123_name, :default=>'Concurrency on memory: sqeezing out in shared pool'),
+            :desc  => t(:dragnet_helper_123_desc, :default=>"This view lists objects which squeezed out others from shared pool to get place.
+While selecting this view it's contents in SGA will be deleted. That means, this view shows replacement since the last execution of this view (only one time).
+Value for 'No. Items flushed from shared pool' from 7..8 is normal, higher values indicate problems to find place in shared pool.
+"),
             :sql=>  "SELECT /* DB-Tools Ramm  Verdreaengung Shared Pool */
                          RAWTOHEX(Addr)         \"row-address in array or SGA\",
                          Indx         \"index in fixed table array\",
@@ -99,12 +102,12 @@ Bei der Selektion werden die Inhalte gelöscht, d.h., die Selektion zeigt die Ve
                   ORDER BY KsmLrNum DESC NULLS LAST",
         },
         {
-            :name  => 'Probleme mit Function-based Index bei cusor_sharing != EXACT',
-            :desc  => 'Bei Setzen des Parameters cursor_sharing=FORCE oder SIMILAR auf Session- oder Instance-Ebene werden function-based Indizes mit Literalen evtl. nicht mehr erkannt,
-  da diese Literale durch Bindevariablen ersetzt werden.
-  Lösung: Bindevariablen in PL/SQL-Function auslagern und diese im function-based Index aufrufen.
-Die Abfrage selektiert potentielle Kandidaten, bei denen Index evtl. nicht mehr für SQL-Ausführung verwendet wird
-',
+            :name  => t(:dragnet_helper_124_name, :default=>'Problems with function based index if cursor_sharing != EXACT'),
+            :desc  => t(:dragnet_helper_124_desc, :default=>'If setting parameter cursor_sharing=FORCE or SIMILAR at session or instance level function based indexes with literals may not be considered for use,
+because this literals become replaced by bind variables.
+Solution: Transfer literals into PL/SQL-functions and call this function in function based index instead.
+This view selects potential hits for function based indexes no more used for SQL execution.
+'),
             :sql=>   "SELECT /* Panorama-Tool Ramm  */
                          i.Owner, i.Index_Name, i.Index_type, i.Table_Name, i.Num_Rows,
                          e.Column_Position, e.Column_Expression
