@@ -1182,9 +1182,6 @@
   menu_dba_redologs_historic_hint:                          Anlistung historischer Info der Redo-Logs
   menu_dba_sessions_hint:                                   Anlistung der aktuellen Session-Info
   menu_dba_temp_usage_hint:                                 Aktuelle Nutzung Temp-Tablespace
-  menu_dba_used_objects_caption:                            Objekte im Zugriff
-  menu_dba_used_objects_hint: |-
-    Aktuell im Zugriff befindliche Objekte (Vorsicht: Langsam auf großen Systemen)
 
   menu_historic_caption:                                    Historisch
 

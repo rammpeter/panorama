@@ -31,7 +31,11 @@ class DbaControllerTest < ActionController::TestCase
     post :list_blocking_dml_locks, :format=>:js
     assert_response :success
 
-    post :list_sessions, :format=>:js;   assert_response :success
+    post :list_sessions, :format=>:js;
+    assert_response :success
+
+    post :list_sessions, :format=>:js, :onlyActive=>1, :showOnlyUser=>1, :instance=>1, :filter=>'hugo', :object_owner=>'SYS', :object_name=>'HUGO';
+    assert_response :success
 
     xhr :get, :list_waits_per_event, :format=>:js, :event=>"db file sequential read", :instance=>"1", :update_area=>"hugo";
     assert_response :success
@@ -51,6 +55,9 @@ class DbaControllerTest < ActionController::TestCase
     post :list_open_cursor_per_session, :format=>:js, :instance=>@instance, :sid=>@sid, :serialno=>@serialno
     assert_response :success
 
+    post :list_accessed_objects, :format=>:js, :instance=>@instance, :sid=>@sid
+    assert_response :success
+
     post :list_session_statistic, :format=>:js, :instance=>@instance, :sid=>@sid
     assert_response :success
 
@@ -58,9 +65,6 @@ class DbaControllerTest < ActionController::TestCase
     assert_response :success
 
     post :show_session_details_waits_object, :format=>:js, :event=>"db file sequential read"
-    assert_response :success
-
-    xhr :get,  :used_objects, :format=>:js
     assert_response :success
 
     post  :show_explain_plan, :format=>:js, :statement => "SELECT SYSDATE FROM DUAL"

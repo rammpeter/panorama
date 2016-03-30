@@ -462,28 +462,6 @@ class DbaController < ApplicationController
 
   end # oracle_parameter
 
-  # Aktuell genutzt Objekte
-  def used_objects
-    @objects = sql_select_iterator("\
-      SELECT /* Panorama-Tool Ramm */
-             a.Inst_ID,
-             a.SID, 
-             s.SERIAL# sn, 
-             a.OBJECT, 
-             a.TYPE ObjectType, 
-             s.STATUS, 
-             s.OSUSER, 
-             s.PROCESS, 
-             s.MACHINE,
-             s.PROGRAM, 
-             s.LOGON_TIME
-      FROM gV$ACCESS a INNER JOIN gV$SESSION s ON a.SID = s.SID AND a.Inst_ID = s.Inst_ID
-      ORDER BY 1 ASC")
-    respond_to do |format|
-      format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/used_objects" }');"}
-    end
-  end
-
   # Latch-Waits wegen cache buffers chains
   def latch_cache_buffers_chains
     @waits = sql_select_all("\
@@ -558,6 +536,11 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     end
     if params[:showOnlyDbLink]=="1"
       where_string << " AND UPPER(s.program) like 'ORACLE@%' AND UPPER(s.Program) NOT LIKE 'ORACLE@'||(SELECT UPPER(i.Host_Name) FROM gv$Instance i WHERE i.Inst_ID=s.Inst_ID)||'%' "
+    end
+    if params[:object_owner] && params[:object_name]
+      where_string << " AND (s.Inst_ID, s.SID) IN (SELECT /*+ NO_MERGE */ Inst_ID, SID FROM GV$Access WHERE Owner = ? AND Object = ?)"
+      where_values << params[:object_owner]
+      where_values << params[:object_name]
     end
     if params[:filter] && params[:filter] != ""
       where_string << " AND ("
@@ -670,9 +653,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       WHERE 1=1 #{where_string}
       ORDER BY 1 ASC"].concat(where_values)
 
-    respond_to do |format|
-      format.js {render :js => "$('#list_sessions_area').html('#{j render_to_string :partial=>"list_sessions" }');"}
-    end
+    render_partial :list_sessions
   end
   
   def show_session_detail
@@ -1239,6 +1220,21 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
   def list_database_triggers
     @triggers = sql_select_iterator "SELECT * FROM dba_triggers where base_object_type LIKE 'DATABASE%' ORDER BY Triggering_Event, Trigger_Name"
     params[:update_area] = 'content_for_layout'
+    render_partial
+  end
+
+
+  def list_accessed_objects
+    @instance = params[:instance]
+    @sid      = params[:sid]
+
+    @objects = sql_select_iterator ["\
+      SELECT /*+ Panorama Ramm */ Owner, Object
+      FROM   gv$Access
+      WHERE  Inst_ID = ?
+      AND    SID     = ?
+      ", @instance, @sid]
+
     render_partial
   end
 

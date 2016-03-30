@@ -25,7 +25,6 @@ module MenuHelper
                 {:class=> 'item', :caption=>'DBA autotask jobs', :controller=>:dba,          :action=>:show_dba_autotask_jobs, :hint=>'Show jobs from DBA_Autotask_Client', :min_db_version => '11.2' },
             ]
             },
-            {:class=> 'item', :caption=>t(:menu_dba_used_objects_caption, :default=> 'Attached objects'), :controller=>:dba,             :action=> 'used_objects',      :hint=>t(:menu_dba_used_objects_hint, :default=> 'Currently attached objects (Attention: large response time at large systems)') },
             {:class=> 'item', :caption=> 'Explain Plan',       :controller=>:dba,             :action=> 'explain_plan',      :hint=>t(:menu_dba_explain_plan_hint, :default=> 'Show execution plan of SQL-statement') },
             ]
         },

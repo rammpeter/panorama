@@ -150,6 +150,18 @@ column_options =
       %>
   </div>
   <div class="float_left">
+    <%=
+        my_ajax_submit_tag('Objects accessed',
+                           url_for(:controller  => :dba,
+                                   :action      => :list_accessed_objects,
+                                   :update_area => @update_area,
+                                   :instance    => @instance,
+                                   :sid         => @sid,
+                           ),
+                           :title=> 'List objects accessed by this session in library cache (from GV$Access)')
+    %>
+  </div>
+  <div class="float_left">
       <%=
         my_ajax_submit_tag("Active Session History",
            url_for(:action => :show_prepared_active_session_history,

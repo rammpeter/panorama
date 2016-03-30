@@ -23,22 +23,31 @@ class DbaSchemaControllerTest < ActionController::TestCase
     xhr :get, :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
     assert_response :success;
 
-    xhr :get, :list_indexes, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    post :list_indexes, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
     assert_response :success;
 
-    xhr :get, :list_check_constraints, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
+    post :list_check_constraints, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
     assert_response :success;
 
-    xhr :get, :list_references_from, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
+    post :list_references_from, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
     assert_response :success;
 
-    xhr :get, :list_references_to, :format=>:js, :owner=>"SYS", :table_name=>"HS$_PARALLEL_SAMPLE_DATA"
+    post :list_references_to, :format=>:js, :owner=>"SYS", :table_name=>"HS$_PARALLEL_SAMPLE_DATA"
     assert_response :success;
 
-    xhr :get, :list_triggers, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    post :list_triggers, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
     assert_response :success;
 
-    #   list_trigger_body hat leider keine Table in SYS
+    post :list_lobs, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    assert_response :success;
+
+    post :list_db_cache_by_object_id, :format=>:js, :object_id => 5
+    assert_response :success;
+
+    post :list_sessions, :format=>:js, :object_owner=>"SYS", :object_name=>"AUD$"
+    assert_response :success;
+
+         #   list_trigger_body hat leider keine Table in SYS
 
     xhr :get, :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT"
     assert_response :success;

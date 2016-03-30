@@ -1,0 +1,18 @@
+<%
+   @update_area = get_unique_area_id
+
+   column_options =
+       [
+           {:caption=>"Object",         :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object)},  :title=>'Object accessed by this session'},
+       ]
+
+%>
+<%= gen_slickgrid(@objects, column_options, {
+    :caption => "Objects accessed by instance = #{@instance}, SID = #{@sid} (from GV$Access)",
+    :max_height=>450
+})
+%>
+
+<div id="<%= @update_area %>">
+</div>
+

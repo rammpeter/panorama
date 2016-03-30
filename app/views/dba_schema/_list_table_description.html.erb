@@ -244,6 +244,17 @@ column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.f
     %>
 </div>
 <div class="float_left">
+  <%= my_ajax_submit_tag('Sessions accessing',
+                         url_for(:update_area   => @update_area,
+                                 :controller    => :dba,
+                                 :action        => :list_sessions,
+                                 :object_owner  => @owner,
+                                 :object_name   => @table_name
+                         ),
+                         :title => "Sessions accessing object #{@owner}.#{@table_name} in library cache (from GV$Access)")
+  %>
+</div>
+<div class="float_left">
   <%= my_ajax_submit_tag('SQLs',
                          url_for(:update_area => @update_area,
                                  :controller  => :dba_sga,
