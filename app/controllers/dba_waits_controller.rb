@@ -93,11 +93,8 @@ class DbaWaitsController < ApplicationController
         d2_akt_index = d2_akt_index+1
       end
     end
-    
-    respond_to do |format|
-      format.js {render :js => "$('#system_events').html('#{j render_to_string :partial=>"show_system_events" }');
-                                $('#session_waits').html('');"}
-    end
+
+    render_partial
   end # show_system_events
 
   # TODO: wird diese Methode wirklich noch genutzt?

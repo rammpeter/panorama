@@ -413,6 +413,16 @@
   dba_waits_show_gc_request_latency_link_hint:              Anzeige der Objekte nach übertragenen Blöcken
   dba_waits_show_gc_request_latency_show_hint:              Anlistung der Request-Latency der einzelnen AWR-Snapshots
 
+  dba_waits_system_events_caption:                          Auswertung der aktuellen Wait-Events aus V$System_Event
+  dba_waits_system_events_filter_hint:                      Filter als Wildcard auf Event-Name
+  dba_waits_system_events_sample_length_caption:            Sample-Länge (sec)
+  dba_waits_system_events_sample_length_hint:               Länge des sample-snapshot in Sekunden
+  dba_waits_system_events_submit_caption:                   Events anzeigen
+  dba_waits_system_events_submit_hint:                      Anzeige der System-Events
+  dba_waits_system_events_suppress_idle_waits_caption:      Underdrücken Idle-Waits
+  dba_waits_system_events_suppress_idle_waits_hint:         Wait-Class Idle unterdrücken
+
+
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
   dragnet_helper_group_cascading_views:                     Views mit kaskadierenden Abhängigkeiten (mehrstufige Hierarchie)
