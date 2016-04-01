@@ -3,7 +3,6 @@
 
 <%= my_ajax_form_tag url_for(:controller=>:dba_waits, :action=>:show_system_events, :update_area=>@update_area) do %>
   <%= t(:dba_waits_system_events_sample_length_caption, :default=>'Sample length (sec)') %>
-  Sample-Länge (sec)
   <%= text_field_tag("sample_length", "1", :maxlength=>10, :size => 5, :title=>t(:dba_waits_system_events_sample_length_hint, :default=>'Duration of sample snapshot in seconds')) %>
   Filter
   <%= text_field_tag("filter", "", :maxlength=>100, :size => 20, :title=>t(:dba_waits_system_events_filter_hint, :default=>'Filter on event name as wildcard')) %>

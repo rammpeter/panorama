@@ -97,7 +97,6 @@ class DbaWaitsController < ApplicationController
     render_partial
   end # show_system_events
 
-  # TODO: wird diese Methode wirklich noch genutzt?
   def show_session_waits    # anzeige v$Session_Wait für gegebene Instance und Event
     @inst_id = prepare_param_instance
     @event   = params[:event]
@@ -113,10 +112,8 @@ class DbaWaitsController < ApplicationController
         AND   Event = ?",
     @inst_id, @event 
     ]
-    
-    respond_to do |format|
-      format.js {render :js => "$('#session_waits').html('#{j render_to_string :partial=>"show_session_waits" }');"}
-    end
+
+    render_partial :show_session_waits
   end # show_session_waits
   
   def show_session_wait_object

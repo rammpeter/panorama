@@ -31,5 +31,5 @@ column_options =
 
 %>
 
-<%= gen_slickgrid(@session_waits, column_options, {:caption=>"Daten aus GV$Session_wait, Inst_ID=#{@inst_id}, Event=#{@event}"}) %>
+<%= gen_slickgrid(@session_waits, column_options, {:caption=>"Sessions currently waiting for event '#{@event}' at instance=#{@inst_id} (from GV$Session_Wait)"}) %>
 
