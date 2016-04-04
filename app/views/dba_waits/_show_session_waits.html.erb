@@ -1,8 +1,6 @@
 <%
 def link_column_object(rec)
-  (""+
-    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "session_wait_object_#{rec.row_num}") +
-  "<div id=\"session_wait_object_#{rec.row_num}\">").html_safe
+    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "session_wait_object_#{rec.row_num}")
 end
 
 column_options =
