@@ -1,21 +1,7 @@
 <%
 def link_column_object(rec)
   (""+
-  my_ajax_link_to("#{rec.p1text}=#{rec.p1} #{rec.p2text}=#{rec.p2} #{rec.p3text}=#{rec.p3}",
-                url_for(:action => :show_session_wait_object,
-                        :instance => rec.inst_id,
-                        :event => rec.event,
-                        :p1text=> (rec.p1text ? rec.p1text   : ""),
-                        :p1    => (rec.p1     ? rec.p1.to_i : ""),
-                        :p1raw => rec.p1raw,
-                        :p2text=> (rec.p2text ? rec.p2text   : ""),
-                        :p2    => (rec.p2     ? rec.p2.to_i : ""),
-                        :p3text=> (rec.p3text ? rec.p3text   : ""),
-                        :p3    => (rec.p3     ? rec.p3.to_i : ""),
-                        :line_number => rec.row_num
-                       ),
-                :title => 'Anzeige der aktuellen Events zum Typ (Snapshot)'
-  ) +
+    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "session_wait_object_#{rec.row_num}") +
   "<div id=\"session_wait_object_#{rec.row_num}\">").html_safe
 end
 
@@ -23,10 +9,9 @@ column_options =
   [
     {:caption=>"I",                 :data=>proc{|rec| rec.inst_id },               :title=>"RAC-Instance"},
     {:caption=>"SID",               :data=>proc{|rec| rec.sid },                   :title=>"Session-Identifier"},
-    {:caption=>"Wait-time",         :data=>proc{|rec| fn(rec.wait_time) },         :title=>"0=Wartezeit, 0=waiting", :align=>:right},
-    {:caption=>"Seconds in wait",   :data=>proc{|rec| fn(rec.seconds_in_wait) },   :title=>"wenn wait-time=0, dann Sekunden im Wait", :align=>:right},
+    {:caption=>"Wait time (ms)",    :data=>proc{|rec| fn(rec.wait_time_ms, 2) },   :title=>'Wait time in current event im ms', :align=>:right},
     {:caption=>"State",             :data=>proc{|rec| rec.state },                 :title=>"Status"},
-    {:caption=>"Objekt",            :data=>proc{|rec| link_column_object(rec) },   :title=>"Vom wait betroffenes Objekt, Link zeigt konkreten Namen"},
+    {:caption=>'Parameter',         :data=>proc{|rec| link_column_object(rec) },   :title=>'Parameter for current wait event'},
   ]
 
 %>

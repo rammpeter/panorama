@@ -102,7 +102,8 @@ class DbaWaitsController < ApplicationController
     @event   = params[:event]
     @session_waits = sql_select_all ["\
         SELECT /* Panorama-Tool Ramm */
-          Event, Inst_ID, Sid, Wait_Time, Seconds_in_Wait, State,
+          Event, Inst_ID, Sid, State,
+          #{get_db_version >= '11.2' ? 'Wait_Time_Micro/1000' : 'Seconds_in_Wait*1000'} Wait_Time_ms,
           p1text, p1, RawToHex(p1raw) P1Raw, 
           p2text, p2, RawToHex(p2raw) P2Raw, 
           p3text, p3, RawToHex(p3raw) P3Raw,
@@ -116,19 +117,6 @@ class DbaWaitsController < ApplicationController
     render_partial :show_session_waits
   end # show_session_waits
   
-  def show_session_wait_object
-    @object = object_nach_wait_parameter(
-                params[:instance],
-                params[:event],
-                params[:p1], params[:p1raw], params[:p1text],
-                params[:p2], params[:p2raw], params[:p2text],
-                params[:p3], params[:p3raw], params[:p3text]
-              )
-    respond_to do |format|
-      format.js {render :js => "$('#session_wait_object_#{params[:line_number]}').html('#{j render_to_string :partial=>"show_session_wait_object" }');"}
-    end
-  end # show_session_wait_object
-
   def gc_request_latency
     @totals =  sql_select_all "\
                 SELECT /* Panorama-Tool Ramm */ b1.INST_ID,

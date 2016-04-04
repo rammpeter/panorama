@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.1.66)
+    Panorama (2.1.67)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -82,10 +82,10 @@ GEM
     krypt-provider-jdk (0.0.2)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
-    mail (2.6.3)
-      mime-types (>= 1.16, < 3)
+    mail (2.6.4)
+      mime-types (>= 1.16, < 4)
     memcache-client (1.8.5)
-    mime-types (2.6.2)
+    mime-types (2.99.1)
     minitest (5.8.4)
     multi_json (1.11.2)
     nokogiri (1.6.7.2-java)
@@ -117,7 +117,7 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (10.4.2)
-    sass (3.4.21)
+    sass (3.4.22)
     sprockets (3.3.4)
       rack (~> 1.0)
     sprockets-rails (2.3.3)
@@ -133,9 +133,8 @@ GEM
       thread_safe (~> 0.1)
     tzinfo-data (1.2016.2)
       tzinfo (>= 1.0.0)
-    uglifier (2.7.2)
-      execjs (>= 0.3.0)
-      json (>= 1.8.0)
+    uglifier (3.0.0)
+      execjs (>= 0.3.0, < 3)
 
 PLATFORMS
   java
