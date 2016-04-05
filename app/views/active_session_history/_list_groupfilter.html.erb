@@ -23,17 +23,17 @@
                                 :repeat_action => @repeat_action             # Zuletzt aufgerufene action wiederholen
                         ) do
         form_content = ""
-        form_content << "<div style=\"float:left;\">"
+        form_content << "<div class=\"float_left\">"
         form_content << @header
         form_content << "&nbsp;"
         form_content << "</div><div style=\"float:left;\">"
         form_content << "<table>"
         form_content << "<tr>"
         @groupfilter.each do|key,value|
-            form_content << "<th>#{key}</th>".html_safe if !groupfilter_value(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
+            form_content << "<th title=\"#{t(:active_session_history_list_group_filter_filter_hint, :default=>'Current active filter conditions for selection')}\">#{key}</th>".html_safe if !groupfilter_value(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
         end
-        form_content << "<th>Start time</th>"
-        form_content << "<th>End time</th>"
+        form_content << "<th title=\"#{t(:active_session_history_list_group_filter_filter_hint, :default=>'Current active filter conditions for selection')}\">Start time</th>"
+        form_content << "<th title=\"#{t(:active_session_history_list_group_filter_filter_hint, :default=>'Current active filter conditions for selection')}\">End time</th>"
         if @group_filter_addition
           form_content << "<th>"
           form_content << @group_filter_addition_header

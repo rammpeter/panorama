@@ -798,7 +798,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
              w.P2Text, w.P2, w.P2Raw,
              w.P3Text, w.P3, w.P3Raw,
              w.wait_Class,
-             w.Seconds_In_Wait,
+             #{get_db_version >= '11.2' ? 'w.Wait_Time_Micro/1000' : 'w.Seconds_in_Wait*1000'} Wait_Time_ms,
              w.State
       FROM   GV$Session_Wait w
       WHERE  w.Inst_ID = ?
@@ -816,7 +816,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
              w.P2Text, w.P2, w.P2Raw,
              w.P3Text, w.P3, w.P3Raw,
              w.wait_Class,
-             w.Seconds_In_Wait,
+             #{get_db_version >= '11.2' ? 'w.Wait_Time_Micro/1000' : 'w.Seconds_in_Wait*1000'} Wait_Time_ms,
              w.State
       FROM   GV$PX_Session px,
              GV$Session s,
@@ -829,9 +829,8 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
       AND    w.Inst_ID(+) = px.Inst_ID
       AND    w.SID(+)     = px.SID
       ", @instance, @sid]
-    respond_to do |format|
-      format.js {render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_session_details_waits" }');"}
-    end
+
+    render_partial :list_session_details_waits
   end
 
   def show_session_details_locks
