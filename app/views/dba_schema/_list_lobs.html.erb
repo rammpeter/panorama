@@ -66,8 +66,6 @@
    caption << ".#{@table_name}" if @table_name
 %>
 
-<%= get_db_version %>
-
 <%= gen_slickgrid(@lobs, column_options, {
                                   :caption => caption,
                                   :max_height => 450
