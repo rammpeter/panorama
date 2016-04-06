@@ -2,7 +2,9 @@
    @update_area = get_unique_area_id
 
    def link_lob_partitions(rec)
-     if rec.partition_count > 0
+     if rec.partition_count == 0
+       '0'
+     else
        my_ajax_link_to(fn(rec.partition_count),
                        url_for({:action       => :list_lob_partitions,
                                 :owner        => rec.owner,
@@ -16,9 +18,11 @@
    end
 
    def link_lob_subpartitions(rec)
-     if rec.subpartition_count > 0
+     if rec.subpartition_count == 0
+       '0'
+     else
        my_ajax_link_to(fn(rec.subpartition_count),
-                       url_for({:action       => :listlob_subpartitions,
+                       url_for({:action       => :list_lob_subpartitions,
                                 :owner        => rec.owner,
                                 :table_name   => rec.table_name,
                                 :lob_name      => rec.segment_name,
@@ -53,8 +57,8 @@
    column_options << {:caption=> 'Sub-Part.',           :data=>proc{|rec| link_lob_subpartitions(rec)}, :title=> "Number of subpartitions", :align=>:right}
    column_options << {:caption=> 'Secure file',         :data=>proc{|rec| rec.securefile},              :title=> 'Indicates whether the LOB is SecureFiles (YES) or not (NO)' } if get_db_version >= '11.2'
    column_options << {:caption=> 'Created',             :data=>proc{|rec| rec.segment_created},         :title=> 'Indicates whether the LOB segment has been created (YES) or not (NO)' } if get_db_version >= '11.2'
-   column_options << {:caption=> 'Retention type',      :data=>proc{|rec| rec.retention_type},          :title=> 'Type of retention used for this LOB.' } if get_db_version >= '11.2'
-   column_options << {:caption=> 'Retention value',     :data=>proc{|rec| fn(rec.retention_value)},     :title=> 'Minimum retention time (in seconds). This column is only meaningful for SecureFiles with RETENTION_TYPE set to MIN.', :align=>:right } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Retention type',      :data=>proc{|rec| rec.retention_type},          :title=> 'Type of retention used for this LOB.' } if get_db_version >= '11.2.3'
+   column_options << {:caption=> 'Retention value',     :data=>proc{|rec| fn(rec.retention_value)},     :title=> 'Minimum retention time (in seconds). This column is only meaningful for SecureFiles with RETENTION_TYPE set to MIN.', :align=>:right } if get_db_version >= '11.2.0.3'
 
 
    caption = 'LOB segments of '
@@ -62,7 +66,7 @@
    caption << ".#{@table_name}" if @table_name
 %>
 
-
+<%= get_db_version %>
 
 <%= gen_slickgrid(@lobs, column_options, {
                                   :caption => caption,

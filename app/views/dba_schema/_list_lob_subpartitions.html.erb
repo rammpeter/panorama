@@ -2,10 +2,11 @@
    @update_area = get_unique_area_id
 
    column_options = []
-   column_options << {:caption=> 'Table Partition',     :data=>proc{|rec| rec.partition_name},          :title=> 'Name of table partition'}
-   column_options << {:caption=> 'LOB Partition',       :data=>proc{|rec| rec.lob_partition_name},      :title=> 'Name of corresponding LOB partition'}
-   column_options << {:caption=> 'LOB Index Partition', :data=>proc{|rec| rec.lob_indpart_name},        :title=> 'Name of corresponding LOB index partition'}
-   column_options << {:caption=> 'Pos.',                :data=>proc{|rec| fn(rec.partition_position)},  :title=> 'Position of the LOB data partition within the LOB item', :align=>:right}
+   column_options << {:caption=> 'Table Sub-Partition', :data=>proc{|rec| rec.subpartition_name},       :title=> 'Name of table sub-partition'}
+   column_options << {:caption=> 'LOB Partition',       :data=>proc{|rec| rec.lob_partition_name},      :title=> 'Name of the LOB data partition to which this LOB data subpartition belongs'}
+   column_options << {:caption=> 'LOB Sub-Partition',   :data=>proc{|rec| rec.lob_sub_partition_name},  :title=> 'Name of the LOB subpartition'}
+   column_options << {:caption=> 'LOB Index Sub-Partition', :data=>proc{|rec| rec.lob_indsubpart_name},        :title=> 'Name of corresponding LOB index subpartition'}
+   column_options << {:caption=> 'Pos.',                :data=>proc{|rec| fn(rec.subpartition_position)},  :title=> 'Position of the LOB data subpartition within the LOB item', :align=>:right}
    column_options << {:caption=> 'Comp.',               :data=>proc{|rec| fn(rec.composite)},           :title=> 'Indicates whether the partition is composite (YES) or not (NO)'}
 
    column_options << {:caption=> 'Column',              :data=>proc{|rec| rec.column_name},             :title=> 'Column LOB belongs to'}
@@ -45,7 +46,7 @@
 
 
 <%= gen_slickgrid(@partitions, column_options, {
-    :caption => "Partitions of LOB #{@lob_name} of #{@owner}.#{@table_name}",
+    :caption => "Sub-Partitions of LOB #{@lob_name} of #{@owner}.#{@table_name}",
     :max_height => 450
 })
 %>

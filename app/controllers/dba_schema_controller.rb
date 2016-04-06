@@ -641,6 +641,20 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_lob_subpartitions
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+    @lob_name   = params[:lob_name]
+
+    @partitions = sql_select_all ["\
+      SELECT /*+ Panorama Ramm */ p.*, (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = p.Table_Owner AND s.Segment_Name = p.Lob_Name AND s.Partition_Name = p.Lob_SubPartition_Name) Size_MB
+      FROM   DBA_Lob_SubPartitions p
+      WHERE  p.Table_Owner = ? AND p.Table_Name = ? AND p.Lob_Name = ?
+      ", @owner, @table_name, @lob_name]
+
+    render_partial
+  end
+
 
   def list_audit_trail
     where_string = ""

@@ -8,6 +8,22 @@ class DbaSchemaControllerTest < ActionController::TestCase
     time_selection_start  = time_selection_end-100000
     @time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
     @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
+
+    lob_table = sql_select_first_row "SELECT Owner, Table_Name, Segment_Name FROM DBA_Lobs WHERE RowNum < 2"
+    if lob_table
+      @lob_owner      = lob_table.owner
+      @lob_table_name = lob_table.table_name
+      @lob_name       = lob_table.segment_name
+    end
+
+    lob_part_table = sql_select_first_row "SELECT Table_Owner, Table_Name, Lob_Name FROM DBA_Lobs WHERE RowNum < 2"
+    if lob_part_table
+      @lob_part_owner      = lob_part_table.table_owner
+      @lob_part_table_name = lob_part_table.table_name
+      @lob_part_lob_name   = lob_part_table.lob_name
+    end
+
+
   end
 
   test "show_object_size"       do xhr :get,  :show_object_size, :format=>:js;   assert_response :success; end
@@ -40,6 +56,11 @@ class DbaSchemaControllerTest < ActionController::TestCase
 
     post :list_lobs, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
     assert_response :success;
+
+    if @lob_part_owner                                                          # if lob partitions exists in this database
+      xhr :get, :list_lob_partitions, :format=>:js, :owner=>@lob_part_owner, :table_name=>@lob_part_table_name, :lob_name=>@lob_part_lob_name
+      assert_response :success;
+    end
 
     post :list_db_cache_by_object_id, :format=>:js, :object_id => 5
     assert_response :success;

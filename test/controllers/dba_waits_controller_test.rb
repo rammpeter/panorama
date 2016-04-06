@@ -37,9 +37,4 @@ class DbaWaitsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "show_session_wait_object" do
-    xhr :get, :show_session_wait_object,  :format=>:js, :instance=>1, :event=>"Hugo"
-    assert_response :success
-  end
-
 end
