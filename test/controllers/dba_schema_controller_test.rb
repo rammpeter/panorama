@@ -9,14 +9,7 @@ class DbaSchemaControllerTest < ActionController::TestCase
     @time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
     @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
 
-    lob_table = sql_select_first_row "SELECT Owner, Table_Name, Segment_Name FROM DBA_Lobs WHERE RowNum < 2"
-    if lob_table
-      @lob_owner      = lob_table.owner
-      @lob_table_name = lob_table.table_name
-      @lob_name       = lob_table.segment_name
-    end
-
-    lob_part_table = sql_select_first_row "SELECT Table_Owner, Table_Name, Lob_Name FROM DBA_Lobs WHERE RowNum < 2"
+    lob_part_table = sql_select_first_row "SELECT Table_Owner, Table_Name, Lob_Name FROM DBA_Lob_Partitions WHERE RowNum < 2"
     if lob_part_table
       @lob_part_owner      = lob_part_table.table_owner
       @lob_part_table_name = lob_part_table.table_name
