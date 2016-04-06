@@ -1,0 +1,35 @@
+<%
+   @update_area = get_unique_area_id
+
+   column_options = []
+   column_options << {:caption=> 'Table Partition',     :data=>proc{|rec| rec.partition_name},          :title=> 'Name of table partition'}
+   column_options << {:caption=> 'LOB Partition',       :data=>proc{|rec| rec.lob_partition_name},      :title=> 'Name of corresponding LOB partition'}
+   column_options << {:caption=> 'LOB Index Partition', :data=>proc{|rec| rec.lob_indpart_name},        :title=> 'Name of corresponding LOB index partition'}
+   column_options << {:caption=> 'Pos.',                :data=>proc{|rec| fn(rec.partition_position)},  :title=> 'Position of the LOB data partition within the LOB item', :align=>:right}
+
+   column_options << {:caption=> 'Column',              :data=>proc{|rec| rec.column_name},             :title=> 'Column LOB belongs to'}
+   column_options << {:caption=> 'Size (MB)',           :data=>proc{|rec| fn(rec.size_mb, 2)},          :title=> 'Size of LOB segment in MB', :align=>:right}
+   column_options << {:caption=> 'Tablespace',          :data=>proc{|rec| rec.tablespace_name},         :title=> 'Name of the tablespace containing the LOB segment'}
+   column_options << {:caption=> 'Chunk size (Bytes)',  :data=>proc{|rec| rec['chunk']},                :title=> 'Size (in bytes) of the LOB chunk as a unit of allocation or manipulation', :align=>:right}
+   column_options << {:caption=> 'Pct version',         :data=>proc{|rec| rec.pctversion},              :title=> 'Maximum percentage of the LOB space used for versioning', :align=>:right}
+   column_options << {:caption=> 'Retention',           :data=>proc{|rec| rec.retention},               :title=> 'Maximum time duration for versioning of the LOB space', :align=>:right}
+   column_options << {:caption=> 'Cache',               :data=>proc{|rec| rec.cache},                   :title=> 'Indicates whether and how the cluster is to be cached in the buffer cache (YES, NO, CACHEREADS)'}
+   column_options << {:caption=> 'Logging',             :data=>proc{|rec| rec.logging},                 :title=> 'Indicates whether changes to the LOB are logged (YES) or not (NO)' }
+   column_options << {:caption=> 'Encrypt',             :data=>proc{|rec| rec.encrypt},                 :title=> 'Indicates whether or not the LOB is encrypted.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Compress.',           :data=>proc{|rec| rec.compression},             :title=> 'Level of compression used for this LOB.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Dedup.',              :data=>proc{|rec| rec.deduplication},           :title=> 'Kind of deduplication used for this LOB.' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'In row',              :data=>proc{|rec| rec.in_row},                  :title=> 'Indicates whether some of the LOBs are stored inline with the base row (YES) or not (NO). For partitioned objects, refer to the *_LOB_PARTITIONS and *_PART_LOBS views.' }
+   column_options << {:caption=> 'Secure file',         :data=>proc{|rec| rec.securefile},              :title=> 'Indicates whether the LOB is SecureFiles (YES) or not (NO)' } if get_db_version >= '11.2'
+   column_options << {:caption=> 'Created',             :data=>proc{|rec| rec.segment_created},         :title=> 'Indicates whether the LOB segment has been created (YES) or not (NO)' } if get_db_version >= '11.2'
+
+%>
+
+
+
+<%= gen_slickgrid(@partitions, column_options, {
+    :caption => "Partitions of LOB #{@lob_name} of #{@owner}.#{@table_name}",
+    :max_height => 450
+})
+%>
+
+<div id="<%= @update_area %>"></div>

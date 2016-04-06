@@ -4,7 +4,7 @@
     {:caption=>"Wait-Event",       :data=>proc{|rec| rec.event},                              :title=>"Wait-Event", :data_title=>proc{|rec| explain_wait_event(rec.event)}},
     {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(@instance, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "list_session_details_wait_info_#{@instance}_#{@sid}") }, :title=>"Parameter of wait event"},
     {:caption=>"Class",            :data=>proc{|rec| rec.wait_class},                         :title=>"Wait class"},
-    {:caption=>"Sec.",             :data=>proc{|rec| fn(rec.wait_time_ms},                    :title=>"Seconds in current wait event"},
+    {:caption=>"Sec.",             :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Seconds in current wait event"},
     {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
   ]
 
