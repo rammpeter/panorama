@@ -34,7 +34,7 @@ column_options =
   {:caption=>"User",     :data=>proc{|rec| rec.username},         :title=>"DB-Username"},
   {:caption=>"OS-User",  :data=>proc{|rec| rec.osuser},           :title=>"User im Client-OS"},
   {:caption=>"Process",  :data=>proc{|rec| rec.process},          :title=>"Process im Client-OS"},
-  {:caption=>"Maschine", :data=>proc{|rec| rec.machine},          :title=>"Client-Maschine"},
+  {:caption=>"Maschine", :data=>proc{|rec| link_machine_ip_info(rec.machine)}, :title=>"Client-Maschine"},
   {:caption=>"Programm", :data=>proc{|rec| rec.program},          :title=>"Programm auf Client-Maschine"},
   {:caption=>"Modul",    :data=>proc{|rec| link_column_module(rec, rec.module)},          :title=>"Programm.Module auf Client-Maschine"},
 ]

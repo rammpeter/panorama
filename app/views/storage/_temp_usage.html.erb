@@ -51,7 +51,7 @@
       {:caption=>"Status",      :data=>proc{|rec| rec.status },                               :title=>"Session-Status"},
       {:caption=>"OS-User",     :data=>proc{|rec| rec.osuser },                               :title=>"OS-User-Name"},
       {:caption=>"Process",     :data=>proc{|rec| rec.process },                              :title=>"OS-Process-ID"},
-      {:caption=>"Machine",     :data=>proc{|rec| rec.machine },                              :title=>"Client-Maschine"},
+      {:caption=>"Machine",     :data=>proc{|rec| link_machine_ip_info(rec.machine) },        :title=>"Client-Maschine"},
       {:caption=>"Program",     :data=>proc{|rec| rec.program },                              :title=>"Client-Programm"},
       {:caption=>"Last Active", :data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>"Start of last active-state of session"},
       {:caption=>"TS",          :data=>proc{|rec| rec.tablespace },                           :title=>"Tablespace-Name"},

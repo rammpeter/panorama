@@ -32,7 +32,7 @@
     {:caption=>"W",                :data=>proc{|rec| fn(rec.seconds_in_wait)},        :title=>'Wait time in current event in seconds', :align=>:right},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                   :title=>"Oracle-Username"},
     {:caption=>"Proc",             :data=>proc{|rec| rec.spid},                       :title=>t(:dba_list_sessions_proc_hint, :default=>'Process-ID of Oracle shadow process on DB-server')},
-    {:caption=>"Machine",          :data=>proc{|rec| rec.machine},                    :title=>t(:dba_list_sessions_machine_hint, :default=>'Name of client machine')},
+    {:caption=>"Machine",          :data=>proc{|rec| link_machine_ip_info(rec.machine)}, :title=>t(:dba_list_sessions_machine_hint, :default=>'Name of client machine')},
     {:caption=>"C-User",           :data=>proc{|rec| rec.osuser},                     :title=>t(:dba_list_sessions_client_user_hint, :default=>'OS-user on client machine') },
     {:caption=>"C-Proc",           :data=>proc{|rec| rec.process},                    :title=>t(:dba_list_sessions_process_hint, :default=>'Process-ID of client process on client machine (1234 is dummy-process-ID of JDBC-driver, CONNECTION_PROPERTY_THIN_VSESSION_PROCESS_DEFAULT=1234)') },
     {:caption=>"Program",          :data=>proc{|rec| rec.program},                    :title=>t(:dba_list_sessions_program_hint, :default=>'Executed program of client process on client machine') },

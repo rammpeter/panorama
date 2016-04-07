@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require 'resolv'
+
 # Diverse Ajax-Aufrufe und fachliche Code-Schnipsel
 module AjaxHelper
 
@@ -174,6 +176,16 @@ module AjaxHelper
       :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
      }
     )
+  end
+
+  def link_machine_ip_info(machine_name)
+    my_ajax_link_to(machine_name,
+                    url_for(:action       => :list_machine_ip_info,
+                            :machine_name => machine_name
+                    ),
+                    :title=>'Show IP name resolution'
+    )
+
   end
 
   def link_table_structure(update_area, owner, segment_name, print_value=nil)

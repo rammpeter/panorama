@@ -675,4 +675,25 @@ module ApplicationHelper
     "[ #{t(:all, :default=>'All')} ]"
   end
 
+  # Verfügbar in allen Controllern
+  def list_machine_ip_info
+    machine_name = params[:machine_name]
+
+    resolver = Resolv::DNS.new
+    result = "DNS-info for machine name \"#{machine_name}\":\\n"
+
+    resolver.each_address(machine_name) do |address|
+      result << "IP-address = #{address}\\n"
+      resolver.each_name(address.to_s) do |name|
+        result << "Name for IP-address \"#{address}\" = #{name}\\n"
+      end
+    end
+
+    respond_to do |format|
+      format.js {render :js => "alert('#{result}');" }
+    end
+
+  end
+
+
 end

@@ -22,7 +22,7 @@
   column_options =
   [
     {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.timestamp)},           :title=> 'Timestamp of recorded action'},
-    {:caption=> 'Machine',           :data=>proc{|rec| rec.userhost},                            :title=> 'Client machine'},
+    {:caption=> 'Machine',           :data=>proc{|rec| link_machine_ip_info(rec.userhost)},      :title=> 'Client machine'},
     {:caption=> 'OS-User',           :data=>proc{|rec| rec.os_username},                         :title=> 'Client OS user name'},
     {:caption=> 'DB-User',           :data=>proc{|rec| rec.username},                            :title=> 'DB user name used to connect'},
     {:caption=> 'Proc',              :data=>proc{|rec| rec.os_process},                          :title=>"OS process identifier of the database's Oracle process"},
