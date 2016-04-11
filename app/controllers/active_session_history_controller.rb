@@ -796,9 +796,9 @@ class ActiveSessionHistoryController < ApplicationController
       ORDER BY #{group_by_value}
       "].concat(@dba_hist_where_values).concat(@global_where_values).concat([@groupfilter['time_selection_start'], @groupfilter['time_selection_end']])
 
+    @total_temp_mb = sql_select_one 'SELECT SUM(Bytes)/(1024*1024) FROM DBA_Temp_Files'
+
     render_partial :list_temp_usage_historic
-
-
   end
 
 end

@@ -1,7 +1,7 @@
 <% @update_area = get_unique_area_id %>
 
 <%
-   @header = 'TEMP and PGA usage by sessions in status "ACTIVE" '
+   @header = "TEMP and PGA usage by sessions in status \"ACTIVE\"<br/><br/>Total size of all temp files = #{fn @total_temp_mb} MB"
    @repeat_action = :list_temp_usage_historic
 
    @group_filter_addition_header = t(:grouping, :default=>'Grouping')
