@@ -682,7 +682,7 @@ class DbaSgaController < ApplicationController
               s.ROWS_PROCESSED,
               s.Rows_Processed / DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS) Rows_Processed_PER_EXECUTE,
               s.SQL_ID, s.Child_Number,
-              p.operation, p.options, p.access_predicates
+              p.operation, p.options, p.access_predicates, p.Search_Columns, p.Filter_Predicates
        FROM gV$SQL_Plan p
        JOIN gv$SQL s     ON (    s.SQL_ID          = p.SQL_ID
                              AND s.Plan_Hash_Value = p.Plan_Hash_Value
