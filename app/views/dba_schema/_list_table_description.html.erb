@@ -184,6 +184,16 @@ column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.f
   %>
 </div>
 <div class="float_left">
+  <%= my_ajax_submit_tag("#{@pkeys} Primary Key",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_primary_key,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show primary key for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
   <%= my_ajax_submit_tag("#{@check_constraints} Check Constraints",
                          url_for(:update_area => @update_area,
                                  :action      => :list_check_constraints,

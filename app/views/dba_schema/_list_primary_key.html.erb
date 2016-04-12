@@ -1,0 +1,22 @@
+<%=
+  @update_area = get_unique_area_id
+  column_options =
+      [
+          {:caption=> 'Constraint name',              :data=>proc{|rec| rec.constraint_name},             :title=> 'Primary Key constraint name'},
+          {:caption=> 'Columns',                      :data=>proc{|rec| rec.columns},                     :title=> 'Primary Key columns'},
+          {:caption=> 'Status',                       :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+          {:caption=> 'Deferred',                     :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+          {:caption=> 'Validated',                    :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+          {:caption=> 'Generated',                    :data=>proc{|rec| rec.generated},                   :title=> 'Indicates whether the name of the constraint is user-generated (USER NAME) or system-generated (GENERATED NAME)'},
+          {:caption=> 'Last change',                  :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
+          {:caption=> 'Index',                        :data=>proc{|rec| "#{rec.index_owner}.#{rec.index_name}" }, :title=> 'Index used for enforcement of primary key'},
+      ]
+
+  gen_slickgrid(@pkeys, column_options, {
+      :caption => "Primary-key constraint for  #{@table_type} #{@owner}.#{@table_name}",
+      :max_height => 450
+  })
+%>
+
+
+<div id="<%= @update_area %>"></div>

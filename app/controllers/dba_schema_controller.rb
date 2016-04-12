@@ -333,6 +333,8 @@ class DbaSchemaController < ApplicationController
       u[:columns] = u[:columns][0...-2]                                         # Letzte beide Zeichen des Strings entfernen
     end
 
+    @pkeys = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'P' AND Owner = ? AND Table_Name = ?", @owner, @table_name]
+
     @check_constraints = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'C' AND Owner = ? AND Table_Name = ? AND Generated != 'GENERATED NAME' /* Ausblenden implizite NOT NULL Constraints */", @owner, @table_name]
 
     @references_from = sql_select_one ["SELECT COUNT(*) FROM DBA_Constraints WHERE Constraint_Type = 'R' AND Owner = ? AND Table_Name = ?", @owner, @table_name]
@@ -403,6 +405,33 @@ class DbaSchemaController < ApplicationController
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
       #{" AND p.Partition_Name = ?" if @partition_name}
       ", @owner, @table_name, @partition_name]
+
+    render_partial
+  end
+
+  def list_primary_key
+    @owner      = params[:owner]
+    @table_name = params[:table_name]
+
+    @pkeys = sql_select_all ["\
+      SELECT * FROM DBA_constraints WHERE Owner = ? AND Table_Name = ? AND Constraint_Type = 'P'
+      ", @owner, @table_name]
+
+    if @pkeys.count > 0
+      columns =  sql_select_all ["\
+        SELECT Column_Name
+        FROM   DBA_Cons_Columns
+        WHERE  Owner = ?
+        AND    Table_Name = ?
+        AND    Constraint_Name = ?
+        ORDER BY Position
+        ", @owner, @table_name, @pkeys[0].constraint_name]
+      @pkeys[0][:columns] = ''
+      columns.each do |c|
+        @pkeys[0][:columns] << c.column_name+', '
+      end
+      @pkeys[0][:columns] = @pkeys[0][:columns][0...-2]                                         # Letzte beide Zeichen des Strings entfernen
+    end
 
     render_partial
   end

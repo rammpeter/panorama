@@ -150,10 +150,10 @@ function bind_special_ajax_callbacks(obj) {
          if (obj.parents(".slick-cell").length > 0){                            // ajax wurde aus einer slickgrid-Zelle heraus aufgerufen
              var grid_extended = obj.parents('.slickgrid_top').data('slickgridextended')
              if (!grid_extended){
-                 console.log("No slickgridextended found in data for "+inner_cell.html());
-                 return;
+                 console.log("No slickgridextended found in data for "+obj.parents(".slick-cell").html());
+             } else {
+                 grid_extended.save_new_cell_content(obj);  // unterstellen, dass dann auch der Inhalt dieser Zelle geändert sein könnte
              }
-             grid_extended.save_new_cell_content(obj);  // unterstellen, dass dann auch der Inhalt dieser Zelle geändert sein könnte
          }
      });
 }
@@ -177,11 +177,15 @@ function bind_ajax_callbacks() {
 
             var error_dialog_content = jQuery("#error_dialog_content");
 
-            if (jqXHR.responseText.search('Error at server ') == -1) {  // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
-                log_stack('Error:' + thrownError);
-                error_dialog_content.text(jqXHR.responseText);                      // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
+            if (jqXHR.responseText == undefined){                               // Server nicht erreichbar
+                error_dialog_content.text('Panorama-Server is not available');
             } else {
-                error_dialog_content.html(jqXHR.responseText);                      // Inhalt rendern, da vorformatierte Ausgabe vom Server
+                if (jqXHR.responseText.search('Error at server ') == -1) {      // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
+                    log_stack('Error:' + thrownError);
+                    error_dialog_content.text(jqXHR.responseText);              // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
+                } else {
+                    error_dialog_content.html(jqXHR.responseText);              // Inhalt rendern, da vorformatierte Ausgabe vom Server
+                }
             }
             // Zeileneilenumbrüche anzeigen in Dialog als <br>
             error_dialog_content.html(error_dialog_content.html().replace(/\\n/g, "<br>"));
