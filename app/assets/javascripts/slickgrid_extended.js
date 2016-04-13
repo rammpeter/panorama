@@ -756,36 +756,61 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
     }
 
     function grid2CSV(grid_id) {
-        var grid_div = jQuery("#"+grid_id);
-        var grid = grid_div.data("slickgrid");
-        var data = "";
-
         function escape(cell){
             return cell.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/;/g, "\\;");
         }
 
-        //Header
-        grid_div.find(".slick-header-columns").children().each(function(index, element) {
-            data += '"'+escape(jQuery(element).text())+'";'
-        });
-        data += "\n";
+        try {
+            var grid_div = jQuery("#"+grid_id);
+            var grid = grid_div.data("slickgrid");
+            var data = "";
 
-        // Zellen
-        var grid_data    = grid.getData().getItems();
-        var grid_columns = grid.getColumns();
 
-        for (var data_index in grid_data){
-            for (var col_index in grid_columns){
-                data += '"'+escape(grid_data[data_index][grid_columns[col_index]['field']])+'";'
+            //Header
+            grid_div.find(".slick-header-columns").children().each(function(index, element) {
+                data += '"'+escape(jQuery(element).text())+'";'
+            });
+            data += "\n";
+
+            // Zellen
+            var grid_data    = grid.getData().getItems();
+            var grid_columns = grid.getColumns();
+
+            for (var data_index in grid_data){
+                for (var col_index in grid_columns){
+                    data += '"'+escape(grid_data[data_index][grid_columns[col_index]['field']])+'";'
+                }
+                data += "\n"
             }
-            data += "\n"
-        }
 
-        if (navigator.appName.indexOf("Explorer") != -1)                            // Internet Explorer
-            document.location.href = 'data:Application/octet-stream,' + encodeURIComponent(data);
-        else {
-            document.location.href = 'data:Application/download,' + encodeURIComponent(data);
+
+            var byteNumbers = new Uint8Array(data.length);
+
+            for (var i = 0; i < data.length; i++)
+            {
+                byteNumbers[i] = data.charCodeAt(i);
+            }
+            var blob = new Blob([byteNumbers], {type: "text/csv"});
+
+            // Construct the uri
+            var uri = URL.createObjectURL(blob);
+
+            // Construct the <a> element
+            var link = document.createElement("a");
+            link.download = 'Panorama_Export.csv';
+            link.href = uri;
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup the DOM
+            document.body.removeChild(link);
+            //delete link;
+
+        } catch(e) {
+            alert('Error in grid2CSV: '+(e.message == undefined ? 'No error message provided' : e.message)+'! Eventually using FireFox will help.');
         }
+//            document.location.href = 'data:Application/download,' + encodeURIComponent(data);     // vorherige Variante
     }
 
     // Anzeige der Statistik aller Zeilen der Spalte (Summe etc.)
