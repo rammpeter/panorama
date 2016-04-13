@@ -35,6 +35,9 @@ class DbaSchemaControllerTest < ActionController::TestCase
     post :list_indexes, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
     assert_response :success;
 
+    post :list_primary_key, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
+    assert_response :success;
+
     post :list_check_constraints, :format=>:js, :owner=>"SYS", :table_name=>"HS$_INST_DD"
     assert_response :success;
 
