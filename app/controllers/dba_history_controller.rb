@@ -24,6 +24,7 @@ class DbaHistoryController < ApplicationController
              MAX(s.Max_Snap_ID)                 Max_Snap_ID,
              SUM(w.Time_Waited_Secs)            Time_Waited_Secs,
              AVG(w.Time_Waited_Avg_ms)          Time_Waited_Avg_ms,
+             MAX(s.Snaps)                       Snaps,
              SUM(Logical_reads_Delta)           Logical_Reads_Delta,
              SUM(Buffer_Busy_waits_Delta)       Buffer_Busy_waits_Delta,
              SUM(DB_Block_Changes_Delta)        DB_Block_Changes_Delta,
@@ -82,19 +83,13 @@ class DbaHistoryController < ApplicationController
                     AND   i.Index_Name = o.Object_Name)
                 ELSE NULL END"
                })                                 Num_Rows,
-             (#{@show_partitions=="1" ?
-                "CASE WHEN o.Object_Type LIKE '%PARTITION' THEN
-                   (SELECT SUM(Bytes) FROM DBA_Segments s WHERE s.Owner = o.Owner AND s.Segment_Name = o.Object_Name AND s.Partition_Name = o.SubObject_Name)
-                 ELSE
-                  (SELECT SUM(Bytes) FROM DBA_Segments s WHERE s.Owner = o.Owner AND s.Segment_Name = o.Object_Name)
-                 END" :
-                "SELECT SUM(Bytes) FROM DBA_Segments s WHERE s.Owner = o.Owner AND s.Segment_Name = o.Object_Name"
-             })/(1024*1024)                        MBytes
+               SUM(segs.MBytes)                   MBytes
       FROM   (
               SELECT /*+ NO_MERGE */ s.Obj#,
                      s.Instance_Number,
                      MIN(s.Snap_ID)                     Min_Snap_ID,
                      MAX(s.Snap_ID)                     Max_Snap_ID,
+                     COUNT(DISTINCT s.Snap_ID)          Snaps,
                      SUM(Logical_reads_Delta)           Logical_Reads_Delta,
                      SUM(Buffer_Busy_waits_Delta)       Buffer_Busy_waits_Delta,
                      SUM(DB_Block_Changes_Delta)        DB_Block_Changes_Delta,
@@ -142,6 +137,10 @@ class DbaHistoryController < ApplicationController
                          FROM   DBA_Hist_SQL_Plan po
                          GROUP BY Object_Owner, Object_Name
                         ) po ON po.Object_Owner = o.Owner AND po.Object_Name = o.Object_Name
+      LEFT OUTER JOIN   ( SELECT /*+ NO_MERGE */ Owner, Segment_Name, Partition_Name, SUM(Bytes)/(1024*1024) MBytes
+                          FROM   DBA_Segments
+                          GROUP BY Owner, Segment_Name, Partition_Name
+                        ) segs ON segs.Owner = o.Owner AND segs.Segment_Name = o.Object_Name AND NVL(segs.Partition_Name, '1') = NVL(o.SubObject_Name, '1')
       #{@object_name ? " WHERE o.Object_Name LIKE UPPER('%#{@object_name}%') " : "" }
       -- Gruppierung ueber Partitionen hinweg
       GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""},

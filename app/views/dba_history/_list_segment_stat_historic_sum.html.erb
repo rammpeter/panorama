@@ -30,7 +30,7 @@ def link_column_snap(rec, value)
                         :max_snap_id    => rec.max_snap_id,
                         :update_area    => @update_area
                        ),
-                :title => "Anzeige der einzelnen Snaphots zum Objekt"
+                :title => t(:dba_history_list_segment_stat_historic_sum_snaps_hint, :default=>'Show data of single AWR snapshots of this object')
   )
 end
 
@@ -61,7 +61,7 @@ def link_column_wait(rec, value)
                         :groupby        => "DB-Object",
                         :update_area    => @update_area
                        ),
-                :title => t(:dba_history_list_segment_stat_historic_sum_link_wait_hint, :default=>"deeper details on incurred wait times of object")
+                :title => t(:dba_history_list_segment_stat_historic_sum_link_wait_hint, :default=>"deeper details on incurred wait times of object from Active Session History")
   )
 end
 
@@ -70,26 +70,27 @@ column_options =
     {:caption=>"I",                             :data=>proc{|rec| rec.instance_number},                                                      :title=>"RAC-Instance"},
     {:caption=>"Object",                        :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}")},  :title=>"Object-Owner, Name, Partition-Name (optional)", :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
     {:caption=>"SQLs",                          :data=>proc{|rec| link_column_stmt(rec, fn(rec.sql_ids))},                                   :align=>:right, :title=>t(:dba_history_list_segment_stat_historic_sum_sqls_hint, :default =>"Total number of SQLs for this object in whole AWR history regardless of considered time slice")},
-    {:caption=>"Num Rows",                      :data=>proc{|rec| formattedNumber(rec.num_rows)},                                            :align=>:right, :title=>"Anzahl Records des Objektes (aus Statistik)"},
+    {:caption=>"Num Rows",                      :data=>proc{|rec| formattedNumber(rec.num_rows)},                                            :align=>:right, :title=>"Number of Records for this object (from analyze-statistics)"},
     {:caption=>"Object size (MB)",              :data=>proc{|rec| formattedNumber(rec.mbytes,2)},                                            :align=>:right, :title=>"Physical size in MByte from DBA_Segments",     :show_pct_hint=>true},
     {:caption=>"Time waited",                   :data=>proc{|rec| link_column_wait(rec, formattedNumber(rec.time_waited_secs))},             :align=>:right, :title=>"Time waited in secs.",            :show_pct_hint=>true, :show_pct_background=>true},
     {:caption=>"Avg. Time waited",              :data=>proc{|rec| link_column_wait(rec, formattedNumber(rec.time_waited_avg_ms,2))},    :align=>:right, :title=>"Average time waited per event in millisecs."},
-    {:caption=>"Logical reads",                 :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.logical_reads_delta))},          :align=>:right, :title=>"Logical Reads",       :show_pct_hint=>true},
-    {:caption=>"Buffer busy waits",             :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.buffer_busy_waits_delta))},      :align=>:right, :title=>"Buffer Busy Waits",   :show_pct_hint=>true},
-    {:caption=>"Block changes",                 :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.db_block_changes_delta))},       :align=>:right, :title=>"DB Block Changes",    :show_pct_hint=>true },
-    {:caption=>"Physical reads nondirect",      :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.physical_reads_delta-rec.physical_reads_direct_delta))},   :align=>:right,  :title=>"Physical Reads Non-Direct", :show_pct_hint=>true},
-    {:caption=>"Physical reads direct",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.physical_reads_direct_delta))},     :align=>:right, :title=>"Physical Reads Direct",:show_pct_hint=>true},
-    {:caption=>"Physical writes nondirect",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.physical_writes_delta-rec.physical_writes_direct_delta))},        :align=>:right, :title=>"Physical Writes Non-Direct",     :show_pct_hint=>true},
-    {:caption=>"Physical writes direct",        :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.physical_writes_direct_delta))},    :align=>:right, :title=>"Physical Writes Direct",   :show_pct_hint=>true},
-    {:caption=>"ITL",                           :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.itl_waits_delta))},                 :align=>:right, :title=>"ITL Waits",                :show_pct_hint=>true},
-    {:caption=>"Row lock waits",                :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.row_lock_waits_delta))},            :align=>:right, :title=>"Row Lock Waits",           :show_pct_hint=>true},
-    {:caption=>"Global cache buffer busy waits",:data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_buffer_busy_delta))},            :align=>:right, :title=>"GC Buffer Busy waits",     :show_pct_hint=>true},
-    {:caption=>"GC CR blocks received",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_cr_blocks_received_delta))},     :align=>:right, :title=>'Global cache blocks received in consistent mode',:show_pct_hint=>true},
-    {:caption=>"GC CU blocks received",         :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.gc_cu_blocks_received_delta))},     :align=>:right, :title=>'Global cache blocks received in cureent mode',:show_pct_hint=>true},
-    {:caption=>"Max. space used (MB)",          :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_used_total_mb, 2))},      :align=>:right, :title=>"Max. space used within time slice in MByte (sum over partition maxima)",    :show_pct_hint=>true},
-    {:caption=>"Max. space allocated (MB)",     :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.max_space_allocated_total_mb,2))},  :align=>:right, :title=>"Max. space allocated within time slice in MByte (sum over partition maxima)",  :show_pct_hint=>true},
-    {:caption=>"Space allocated delta (MB)",    :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.space_allocated_delta_mb,2))},      :align=>:right, :title=>"Difference for space allocated between last and first sample in time slice",  :show_pct_hint=>true},
-    {:caption=>"Full table scans",              :data=>proc{|rec| link_column_snap(rec, formattedNumber(rec.table_scans_delta))},               :align=>:right, :title=>"Number of full table scans",              :show_pct_hint=>true},
+    {:caption=>"AWR snaps.",                    :data=>proc{|rec| link_column_snap(rec, fn(rec.snaps))},                                     :align=>:right, :title=>'Number of AWR snapshots in considered period' },
+    {:caption=>"Logical reads",                 :data=>proc{|rec| formattedNumber(rec.logical_reads_delta)},              :align=>:right, :title=>"Logical Reads",       :show_pct_hint=>true},
+    {:caption=>"Buffer busy waits",             :data=>proc{|rec| formattedNumber(rec.buffer_busy_waits_delta)},          :align=>:right, :title=>"Buffer Busy Waits",   :show_pct_hint=>true},
+    {:caption=>"Block changes",                 :data=>proc{|rec| formattedNumber(rec.db_block_changes_delta)},           :align=>:right, :title=>"DB Block Changes",    :show_pct_hint=>true },
+    {:caption=>"Physical reads nondirect",      :data=>proc{|rec| formattedNumber(rec.physical_reads_delta-rec.physical_reads_direct_delta)},   :align=>:right,  :title=>"Physical Reads Non-Direct", :show_pct_hint=>true},
+    {:caption=>"Physical reads direct",         :data=>proc{|rec| formattedNumber(rec.physical_reads_direct_delta)},      :align=>:right, :title=>"Physical Reads Direct",:show_pct_hint=>true},
+    {:caption=>"Physical writes nondirect",     :data=>proc{|rec| formattedNumber(rec.physical_writes_delta-rec.physical_writes_direct_delta)},        :align=>:right, :title=>"Physical Writes Non-Direct",     :show_pct_hint=>true},
+    {:caption=>"Physical writes direct",        :data=>proc{|rec| formattedNumber(rec.physical_writes_direct_delta)},     :align=>:right, :title=>"Physical Writes Direct",   :show_pct_hint=>true},
+    {:caption=>"ITL",                           :data=>proc{|rec| formattedNumber(rec.itl_waits_delta)},                  :align=>:right, :title=>"ITL Waits",                :show_pct_hint=>true},
+    {:caption=>"Row lock waits",                :data=>proc{|rec| formattedNumber(rec.row_lock_waits_delta)},             :align=>:right, :title=>"Row Lock Waits",           :show_pct_hint=>true},
+    {:caption=>"GC buffer busy waits",          :data=>proc{|rec| formattedNumber(rec.gc_buffer_busy_delta)},             :align=>:right, :title=>"Global cache buffer busy waits",     :show_pct_hint=>true},
+    {:caption=>"GC CR blocks received",         :data=>proc{|rec| formattedNumber(rec.gc_cr_blocks_received_delta)},      :align=>:right, :title=>'Global cache blocks received in consistent mode',:show_pct_hint=>true},
+    {:caption=>"GC CU blocks received",         :data=>proc{|rec| formattedNumber(rec.gc_cu_blocks_received_delta)},      :align=>:right, :title=>'Global cache blocks received in cureent mode',:show_pct_hint=>true},
+    {:caption=>"Max. space used (MB)",          :data=>proc{|rec| formattedNumber(rec.max_space_used_total_mb, 2)},       :align=>:right, :title=>"Max. space used within time slice in MByte (sum over partition maxima)",    :show_pct_hint=>true},
+    {:caption=>"Max. space allocated (MB)",     :data=>proc{|rec| formattedNumber(rec.max_space_allocated_total_mb,2)},   :align=>:right, :title=>"Max. space allocated within time slice in MByte (sum over partition maxima)",  :show_pct_hint=>true},
+    {:caption=>"Space allocated delta (MB)",    :data=>proc{|rec| formattedNumber(rec.space_allocated_delta_mb,2)},       :align=>:right, :title=>"Difference for space allocated between last and first sample in time slice",  :show_pct_hint=>true},
+    {:caption=>"Full table scans",              :data=>proc{|rec| formattedNumber(rec.table_scans_delta)},                :align=>:right, :title=>"Number of full table scans",              :show_pct_hint=>true},
   ]
 
 %>
