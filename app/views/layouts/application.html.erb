@@ -13,6 +13,12 @@
       <%= render :partial => "default_includes" %>  <!-- Ablage unter views/application/_default_includes -->
 
       <script type="text/javascript">
+
+        // Handle javascript errors
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+          alert('Error: '+msg+'\nURL: '+url+'\nLine-No.: '+lineNo+'\nColumn-No.: '+columnNo)
+          return false;
+        }
           /* Initialisierung von Objekten bei startup der Seite */
           jQuery(document).ready(function(){
               bind_ajax_callbacks();                                                  // Callbacks für jeden Ajax-Aufruf binden
