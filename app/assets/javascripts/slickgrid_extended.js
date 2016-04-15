@@ -231,7 +231,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 }
 
                 function swap(a,b) {
-                    temp=data_array[a];
+                    var temp=data_array[a];
                     data_array[a]=data_array[b];
                     data_array[b]=temp;
                 }
@@ -465,7 +465,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var scrollHeight = viewport.prop('scrollHeight');
         var clientHeight = viewport.prop('clientHeight');
         // Test auf vertikalen Scrollbar nur vornehmen, wenn clientHeight wirklich gesetzt ist und dann Differenz zu ScrollHeight
-        return clientHeight > 0 && scrollHeight != clientHeight;
+        return clientHeight > 0 && scrollHeight > clientHeight;
     }
 
     /**
@@ -544,10 +544,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         this.gridContainer.data('last_resize_width', this.gridContainer.width());                   // Merken der aktuellen Breite, um unnötige resize-Events zu vermeiden
 
-        var vertical_scrollbar_width = 0;
-        if (has_slickgrid_vertical_scrollbar())
-            vertical_scrollbar_width = scrollbarWidth();
         if (options['width'] == "auto"){
+            var vertical_scrollbar_width = has_slickgrid_vertical_scrollbar() ? scrollbarWidth() : 0;
             if (max_table_width+vertical_scrollbar_width < current_grid_width)
                 this.gridContainer.css('width', max_table_width+vertical_scrollbar_width);  // Grid kann noch breiter dargestellt werden
             else
@@ -563,7 +561,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var row_height    = options['rowHeight'];                               // alter Wert
 
         var horizontal_scrollbar_width = 0;
-        if (current_table_width /*+vertical_scrollbar_width */ > this.gridContainer.parent().width() )    // nuss horizontaler Scrollbar existieren?
+        if (current_table_width > this.gridContainer.parent().width() )    // nuss horizontaler Scrollbar existieren?
             horizontal_scrollbar_width = scrollbarWidth();
 
         // Änderung der Darstellung horizontaler Scrollbar ?
@@ -605,6 +603,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                     + (options['rowHeight'] * this.grid.getDataLength() )       // Höhe aller Datenzeilen
                     + horizontal_scrollbar_width
                     + (options["showHeaderRow"] ? options["headerRowHeight"] : 0)
+                    + 1                                                         // Karrenz wegen evtl. Rundungsfehler
                 ;
 
             this.last_height_calculation_with_horizontal_scrollbar = horizontal_scrollbar_width > 0;
@@ -681,10 +680,12 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 } else {
                     options['sort_method'] = 'QuickSort';
                 }
-                jQuery("#"+context_menu_id+"_sort_method_label").html(locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']));
+                jQuery("#"+context_menu_id+"_sort_method_label")
+                    .html(locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']))
+                    .attr('title', locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']+'_hint'));
             },
             locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']),
-            locale_translate('slickgrid_context_menu_sort_method_hint')
+            locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']+'_hint')
         );
 
         for (var entry_index in menu_entries){
@@ -1369,9 +1370,13 @@ function get_slickgrid_translations() {
             'en': 'Switch column sort method to quick sort',
             'de': 'Sortier-Methode für Spalten auf Quick-Sort wechseln'
         },
-        'slickgrid_context_menu_sort_method_hint': {
-            'en': 'Switch column sort method between quick sort (fast) and bubble sort (remains last sort order for identical values)',
-            'de': 'Wechsel der Sortier-Methode zwischen Quick-Sort (schnell) und Bubble-Sort (erhält vorherige Sortierfolge für gleiche Werte)'
+        'slickgrid_context_menu_sort_method_QuickSort_hint': {
+            'en': 'Switch column sort method to bubble sort.\nSorts slower but remains last sort order for equal values of current sort-column.\nAllows multi-column sort by subsequent sorting of columns',
+            'de': 'Wechsel der Sortier-Methode auf Bubble-Sort.\nSortiert langsamer, aber erhält die vorherige Sortierfolge bei gleichen Werten der aktuellen Sortierspalte.\nErlaubt somit mehrspaltiges Sortieren durch aufeinanderfolgendes Klicken der zu sortierenden Spalten)'
+        },
+        'slickgrid_context_menu_sort_method_BubbleSort_hint': {
+            'en': 'Switch column sort method to quick sort.\n Sorts faster but ignores previous sort order for equal values of current sort-column',
+            'de': 'Wechsel der Sortier-Methode auf Quick-Sort.\nSortiert schnell, aber ignoriert die vorherige Sortierung bei gleichen Werten der aktuellen Sortierspalte'
         },
         'slickgrid_filter_hint_not_numeric': {
             'en': 'Filter by containing string',
