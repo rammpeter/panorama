@@ -492,7 +492,9 @@ class StorageController < ApplicationController
         SELECT /* Panorama-Tool Ramm */ s.*,
                t.Block_Size
         FROM   gv$Sort_Segment s
-        JOIN   DBA_Tablespaces t ON t.Tablespace_Name = s.Tablespace_Name"
+        JOIN   DBA_Tablespaces t ON t.Tablespace_Name = s.Tablespace_Name
+        ORDER BY Used_Blocks DESC
+    "
 
     @temp_ts_size = sql_select_one "\
         SELECT SUM(Size_MB) Size_MB
@@ -526,7 +528,9 @@ class StorageController < ApplicationController
         FROM GV$TempSeg_Usage t,
              gv$session s
         WHERE s.Inst_ID = t.Inst_ID
-        AND   s.SAddr = t.Session_Addr"
+        AND   s.SAddr = t.Session_Addr
+        ORDER BY t.Blocks DESC
+      "
 
     respond_to do |format|
       format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=>"storage/temp_usage" }');"}
