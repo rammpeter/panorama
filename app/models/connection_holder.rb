@@ -4,14 +4,10 @@ class ConnectionHolder < ActiveRecord::Base
   self.table_name   =  "DUAL"         # falls irgendwo die Struktur der zugehörigen Tabelle ermittelt werden soll
   self.primary_key  = "id"            # Festes übersteuern, da DUAL keine Info zum Primary Key liefert
 
-
-  @@current_database_name = nil
-
+  # löst SELECT SYS_CONTEXT('userenv', 'db_name') FROM dual; aus, nicht hochfrequent nutzen
   def self.current_database_name
-    @@current_database_name = ConnectionHolder.connection.current_database if @@current_database_name.nil?
-    @@current_database_name
+    ConnectionHolder.connection.current_database
   end
-
 
   @@current_controller_name  = nil                                              # Controller-Name after call of init_connection_for_new_request from ApplicationController.begin_request
   @@current_action_name      = nil                                              # dito for Action name

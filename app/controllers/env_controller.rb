@@ -242,7 +242,7 @@ class EnvController < ApplicationController
       return        # Fehler-Ausgang
     end
 
-    current_database[:database_name] = ConnectionHolder.current_database_name
+    current_database[:database_name] = ConnectionHolder.current_database_name   # Merken interner DB-Name ohne erneuten DB-Zugriff
     set_current_database(current_database)                                      # erneutes Persistieren im Cache mit Anpassungen
 
     @dictionary_access_msg = ""       # wird additiv belegt in Folge
