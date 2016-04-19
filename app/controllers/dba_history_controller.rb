@@ -655,24 +655,39 @@ class DbaHistoryController < ApplicationController
       end
 
       if get_db_version >= "11.2"     # Ab 11.2 sind ASH-Records mit Verweis auf Zeile des Ausführungsplans versehen
-        ash = sql_select_all ["\SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
-                                        NVL(SQL_PLan_Line_ID, 0)                                   SQL_PLan_Line_ID,   -- NULL auf den Knoten 0 des Plans zurückführen (0 wird in 11.2.0.3 nicht mit nach DBA_HAS übernommen
-                                        COUNT(*) * 10                                              DB_Time_Seconds,
-                                        SUM(CASE WHEN Session_State = 'ON CPU'  THEN 10 ELSE 0 END) CPU_Seconds,
-                                        SUM(CASE WHEN Session_State = 'WAITING' THEN 10 ELSE 0 END) Waiting_Seconds,
-                                        SUM(Delta_Read_IO_Requests)       Read_IO_Requests,
-                                        SUM(Delta_Write_IO_Requests)      Write_IO_Requests,
-                                        SUM(NVL(Delta_Read_IO_Requests,0)+NVL(Delta_Write_IO_Requests,0)) IO_Requests,
-                                        SUM(Delta_Read_IO_Bytes)          Read_IO_Bytes,
-                                        SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
-                                        SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
-                                        MIN(Sample_Time)                  Min_Sample_Time
-                                 FROM   DBA_Hist_Active_Sess_History h
-                                 WHERE  DBID = ?
-                                 AND    Snap_ID BETWEEN ? AND ?
-                                 AND    SQL_ID  = ?
-                                 AND    SQL_Plan_Hash_Value = ? #{ash_where_stmt}
-                                 GROUP BY SQL_Plan_Line_ID
+        ash = sql_select_all ["\SELECT SQL_PLan_Line_ID,
+                                       SUM(DB_Time_Seconds)       DB_Time_Seconds,
+                                       SUM(CPU_Seconds)           CPU_Seconds,
+                                       SUM(Waiting_Seconds)       Waiting_Seconds,
+                                       SUM(Read_IO_Requests)      Read_IO_Requests,
+                                       SUM(Write_IO_Requests)     Write_IO_Requests,
+                                       SUM(Interconnect_IO_Bytes) Interconnect_IO_Bytes,
+                                       MIN(Min_Sample_Time)       Min_Sample_Time,
+                                       MAX(Temp)/(1024*1024)      Max_Temp_ASH_MB,
+                                       MAX(PGA)/(1024*1024)       Max_PGA_ASH_MB
+                                FROM   (
+                                        SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
+                                                NVL(SQL_PLan_Line_ID, 0)                                   SQL_PLan_Line_ID,   -- NULL auf den Knoten 0 des Plans zurückführen (0 wird in 11.2.0.3 nicht mit nach DBA_HAS übernommen
+                                                COUNT(*) * 10                                              DB_Time_Seconds,
+                                                SUM(CASE WHEN Session_State = 'ON CPU'  THEN 10 ELSE 0 END) CPU_Seconds,
+                                                SUM(CASE WHEN Session_State = 'WAITING' THEN 10 ELSE 0 END) Waiting_Seconds,
+                                                SUM(Delta_Read_IO_Requests)       Read_IO_Requests,
+                                                SUM(Delta_Write_IO_Requests)      Write_IO_Requests,
+                                                SUM(NVL(Delta_Read_IO_Requests,0)+NVL(Delta_Write_IO_Requests,0)) IO_Requests,
+                                                SUM(Delta_Read_IO_Bytes)          Read_IO_Bytes,
+                                                SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
+                                                SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
+                                                MIN(Sample_Time)                  Min_Sample_Time,
+                                                SUM(Temp_Space_Allocated) Temp,
+                                                SUM(PGA_Allocated) PGA
+                                         FROM   DBA_Hist_Active_Sess_History h
+                                         WHERE  DBID = ?
+                                         AND    Snap_ID BETWEEN ? AND ?
+                                         AND    SQL_ID  = ?
+                                         AND    SQL_Plan_Hash_Value = ? #{ash_where_stmt}
+                                         GROUP BY SQL_Plan_Line_ID, NVL(QC_Session_ID, Session_ID), Sample_ID   -- Alle PQ-Werte mit auf Session kumulieren
+                                        )
+                                GROUP BY SQL_Plan_Line_ID
                               ", mp.dbid, mp.min_snap_id, mp.max_snap_id, @sql_id, mp.plan_hash_value].concat(ash_where_values)
         ash_hash = {} # Umkopieren in Hash um eindeutige Zugriffe zu landen
         ash.each do |a|
