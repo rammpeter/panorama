@@ -1200,6 +1200,7 @@ class DbaSgaController < ApplicationController
                                      ", instance, sid, serialno]
     raise "Session #{sid}/#{serialno} of instance #{instance} no longer exists!" if curr_sql.nil?
     raise "Session #{sid}/#{serialno} of instance #{instance} is no longer active!" if curr_sql.status != 'ACTIVE'
+    raise "Session #{sid}/#{serialno} of instance #{instance} is not executing the SQL (gv$Session.SQL_Exec_ID IS NULL)!\nMay be session is still parsing the SQL?" if curr_sql.sql_exec_id.nil?
 
     result = sql_select_one ["SELECT DBMS_SQLTUNE.report_sql_monitor(
                                       sql_id          => ?,
