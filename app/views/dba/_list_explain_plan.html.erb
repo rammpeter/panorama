@@ -3,14 +3,14 @@
 
 column_options =
   [
-    {:caption=>"Operation",             :data=>proc{|rec| rec.operation},               :title=>"Art des Zugriffs"},
-    {:caption=>"Options",               :data=>proc{|rec| rec.options},                 :title=>"Nähere Erläuterung des Zugriffs"},
-    {:caption=>"Object_name",           :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) }, :title=>"Name des Objekts"},
-    {:caption=>"Optimizer",             :data=>proc{|rec| rec.optimizer},               :title=>"Optimizer-Modus"},
-    {:caption=>"Access",                :data=>proc{|rec| rec.access_predicates},       :title=>"Zugrifskriterium auf Objekt"},
-    {:caption=>"Filter",                :data=>proc{|rec| rec.filter_predicates},       :title=>"Filterkriterium für Objekt"},
-    {:caption=>"Other_Tag",             :data=>proc{|rec| rec.other_tag},               :title=>"Other_Tag"},
-    {:caption=>"Distribution",          :data=>proc{|rec| rec.distribution},            :title=>"Distribution"},
+    {:caption=>"Operation",             :data=>proc{|rec| rec.operation},                           :title=>'Kind of access'},
+    {:caption=>"Options",               :data=>proc{|rec| rec.options},                             :title=>'Access details'},
+    {:caption=>"Object_name",           :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) }, :title=>'Object name'},
+    {:caption=>"Optimizer",             :data=>proc{|rec| rec.optimizer},                           :title=>'Optimizer mode'},
+    {:caption=>"Access",                :data=>proc{|rec| html_escape(rec.access_predicates)},      :title=>'Access criteria'},
+    {:caption=>"Filter",                :data=>proc{|rec| html_escape(rec.filter_predicates)},      :title=>'Filter criteria'},
+    {:caption=>"Other_Tag",             :data=>proc{|rec| rec.other_tag},                           :title=>"Other_Tag"},
+    {:caption=>"Distribution",          :data=>proc{|rec| rec.distribution},                        :title=>"Distribution"},
   ]
 %>
 
