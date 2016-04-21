@@ -199,6 +199,7 @@ class EnvController < ApplicationController
     end
 
     set_current_database(current_database)                                      # Persistieren im Cache
+    current_database = nil                                                      # Diese Variable nicht mehr verwenden ab jetzt, statt dessen get_current_database verwenden
 
     # First SQL execution opens Oracle-Connection
 
@@ -206,7 +207,7 @@ class EnvController < ApplicationController
     begin
       # Test auf Funktionieren der Connection
       begin
-        sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
+        sql_select_one "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
         Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
         Rails.logger.error e.message
@@ -215,7 +216,8 @@ class EnvController < ApplicationController
         database_helper_switch_sid_usage
         open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
         begin
-          sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"
+          sql_select_one("SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL")
+
         rescue Exception => e    # 3. Versuch mit alternativer SID-Deutung
           Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
           Rails.logger.error e.message
@@ -242,8 +244,7 @@ class EnvController < ApplicationController
       return        # Fehler-Ausgang
     end
 
-    current_database[:database_name] = ConnectionHolder.current_database_name   # Merken interner DB-Name ohne erneuten DB-Zugriff
-    set_current_database(current_database)                                      # erneutes Persistieren im Cache mit Anpassungen
+    set_current_database(get_current_database.merge({:database_name => ConnectionHolder.current_database_name}))        # Merken interner DB-Name ohne erneuten DB-Zugriff
 
     @dictionary_access_msg = ""       # wird additiv belegt in Folge
     @dictionary_access_problem = false    # Default, keine Fehler bei Zugriff auf Dictionary
