@@ -58,9 +58,6 @@ class DbaSchemaControllerTest < ActionController::TestCase
       assert_response :success;
     end
 
-    post :list_db_cache_by_object_id, :format=>:js, :object_id => 5
-    assert_response :success;
-
     post :list_sessions, :format=>:js, :object_owner=>"SYS", :object_name=>"AUD$"
     assert_response :success;
 
