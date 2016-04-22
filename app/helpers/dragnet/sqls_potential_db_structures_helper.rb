@@ -148,8 +148,8 @@ DECLARE
 
 BEGIN
   DBMS_OUTPUT.PUT_LINE('===========================================');
-  DBMS_OUTPUT.PUT_LINE('Ermittlung Chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER'));
-  DBMS_OUTPUT.PUT_LINE('Sampe-size='||Sample_Size||' rows');
+  DBMS_OUTPUT.PUT_LINE('Detection of chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER'));
+  DBMS_OUTPUT.PUT_LINE('Sample-size='||Sample_Size||' rows');
   SELECT Statistic# INTO StatNum FROM v$StatName WHERE Name='consistent gets';
   FOR Rec IN (SELECT Owner, Table_Name, Num_Rows
               FROM   DBA_Tables
@@ -162,7 +162,7 @@ BEGIN
       runTest(Rec.Owner, Rec.Table_Name);  -- der erste zum Warmlaufen und übersetzen der Cursor
       runTest(Rec.Owner, Rec.Table_Name);  -- dieser zum Zaehlen
       IF statdiff > Sample_Size THEN
-        DBMS_OUTPUT.PUT_LINE('Table='||Rec.Owner||'.'||Rec.Table_Name||',   num rows='||Rec.Num_Rows||',   consistent gets='||statdiff||',   Anteil chained rows='||((statdiff*100/sample_size)-100)||' %');
+        DBMS_OUTPUT.PUT_LINE('Table='||Rec.Owner||'.'||Rec.Table_Name||',   num rows='||Rec.Num_Rows||',   consistent gets='||statdiff||',   pct. chained rows='||((statdiff*100/sample_size)-100)||' %');
       END IF;
     EXCEPTION
       WHEN OTHERS THEN
