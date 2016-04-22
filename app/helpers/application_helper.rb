@@ -81,7 +81,7 @@ module ApplicationHelper
 
 
   def get_current_database
-    @buffered_current_database = read_from_client_info_store(:current_database) unless @buffered_current_database
+    @buffered_current_database = read_from_client_info_store(:current_database) if @buffered_current_database.nil?
     @buffered_current_database
   end
 

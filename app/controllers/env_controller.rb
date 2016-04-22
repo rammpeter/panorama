@@ -214,16 +214,16 @@ class EnvController < ApplicationController
         Rails.logger.error 'Switching between SID and SERVICE_NAME'
 
         database_helper_switch_sid_usage
-        open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
         begin
-          sql_select_one("SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL")
+          # Oracle-Connection aufbauen mit Wechsel zwischen SID und ServiceName
+          sql_select_one("SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL")     # Ruft implizit open_oracle_connection
 
         rescue Exception => e    # 3. Versuch mit alternativer SID-Deutung
           Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
           Rails.logger.error e.message
           Rails.logger.error 'Error persists, switching back between SID and SERVICE_NAME'
           database_helper_switch_sid_usage
-          open_oracle_connection   # Oracle-Connection aufbauen mit Wechsel zurück zwischen SID und ServiceName
+          # Oracle-Connection aufbauen mit Wechsel zurück zwischen SID und ServiceName, sql_select_all ruft implizit open_oracle_connection
           sql_select_all "SELECT /* Panorama Tool Ramm */ SYSDATE FROM DUAL"    # Provozieren der ursprünglichen Fehlermeldung wenn auch zweiter Versuch fehlschlägt
         end
       end

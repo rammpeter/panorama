@@ -11,7 +11,7 @@ module DatabaseHelper
     else
       current_database[:sid_usage] = :SID
     end
-    write_to_client_info_store(:current_database, current_database)
+    set_current_database(current_database)                                      # Schreiben und Cache verwerfen
   end
 
 
