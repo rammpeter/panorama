@@ -592,6 +592,7 @@ class DbaHistoryController < ApplicationController
                                     WHERE  s.SQL_ID = ?
                                     AND    ss.End_Interval_time   > TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
                                     AND    ss.Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
+                                    AND    s.Plan_Hash_Value != 0 -- count only real execution plans
                                     #{where_stmt}
                                     GROUP BY s.Plan_Hash_Value, s.DBID, s.Parsing_Schema_Name
                                     ORDER BY MIN(ss.Begin_Interval_Time)
