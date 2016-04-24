@@ -290,6 +290,7 @@ class DbaHistoryController < ApplicationController
           SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID,
                  CASE WHEN COUNT(DISTINCT s.Instance_number) = 1 THEN MIN(s.Instance_Number) ELSE NULL END Instance_Number,
                  COUNT(DISTINCT s.Instance_number)  Instance_Count,
+                 COUNT(DISTINCT CASE WHEN s.Plan_Hash_Value = 0 THEN NULL ELSE s.Plan_Hash_Value END)  Plans,
                  NVL(Parsing_Schema_Name, '[UNKNOWN]')  Parsing_Schema_Name, /* sollte immer gleich sein in Gruppe */
                  SUM(Executions_Delta)              Executions,
                  SUM(Elapsed_Time_Delta)/1000000    Elapsed_Time_Secs,

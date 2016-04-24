@@ -40,6 +40,7 @@ module Dragnet::SqlsWrongExecutionPlanHelper
                                       FROM   DBA_Hist_SQLStat s
                                       JOIN   DBA_Hist_SnapShot ss ON ss.DBID=ss.DBID AND ss.Instance_number=s.Instance_Number AND ss.Snap_ID=s.Snap_ID
                                       WHERE ss.Begin_Interval_Time > SYSDATE-?
+                                      AND    s.Plan_Hash_Value != 0   -- count only real execution plans
                                       GROUP BY s.DBID, s.Instance_Number, s.SQL_ID, s.Plan_Hash_Value
                                      ) s
                               GROUP BY DBID, Instance_Number, SQL_ID

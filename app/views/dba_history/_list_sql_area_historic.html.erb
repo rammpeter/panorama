@@ -51,6 +51,7 @@
     column_options.concat [
           {:caption=>"SQL-ID",      :data=>proc{|rec| link_column_sql(rec, rec.sql_id) },                                   :title=>"SQL-ID" },
           {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text },                                        :title=>"SQL-Text" },
+          {:caption=>"P",           :data=>proc{|rec| rec.plans },                                                          :title=>"Number of different execution plans in SGA of instance for this SQL_ID",  :align=>:right, :data_style=>proc{|rec| 'background-color:coral;' if rec.plans > 1 }  },
           {:caption=>"Parsing schema",   :data=>proc{|rec| rec.parsing_schema_name[0,8]+(rec.parsing_schema_name.length>8   ? "." : "") }, :title=>'Parsing schema name', :data_title=>proc{|rec| "%t = #{rec.parsing_schema_name}"} },
           {:caption=>t(:first_occurrence_caption, :default=>'First occurrence'), :data=>proc{|rec| localeDateTime(rec.first_occurrence)}, :title=>t(:first_occurrence_hint, :default=>'First occurrence within considered time period') },
           {:caption=>t(:last_occurrence_caption, :default=>'Last occurrence'),:data=>proc{|rec| localeDateTime(rec.last_occurrence) },    :title=>t(:last_occurrence_hint, :default=>'Last occurrence within considered time period') },
