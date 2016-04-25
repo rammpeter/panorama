@@ -16,8 +16,8 @@
      {:caption=>"ID",           :data=>proc{|rec| rec.id },                     :title=>"ID der Operation", :data_title=>proc{|rec| "Parent_ID=#{rec.parent_id}" }, :align=>:right  },
      {:caption=>"Object name",  :data=>proc{|rec| "#{rec.object_owner}.#{rec.object_name}" },  :title=>"Name des Objekts", :data_title=>proc{|rec| "Type=#{rec.object_type}" }  },
      {:caption=>"Parallel",     :data=>proc{|rec| rec.parallel_short },         :title=>"Parallelisierung (Other_Tag)", :data_title=>proc{|rec| rec.parallel }  },
-     {:caption=>"Access",       :data=>proc{|rec| html_escape rec.access_predicates },      :title=>"Zugrifskriterium auf Objekt"},
-     {:caption=>"Filter",       :data=>proc{|rec| html_escape rec.filter_predicates },      :title=>"Filterkriterium für Objekt"},
+     {:caption=>"Access",       :data=>proc{|rec| html_escape rec.access_predicates },      :title=>"Zugrifskriterium auf Objekt",  :max_wrap_width=>200, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.access_predicates}"} },
+     {:caption=>"Filter",       :data=>proc{|rec| html_escape rec.filter_predicates },      :title=>"Filterkriterium für Objekt",   :max_wrap_width=>200, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{html_escape rec.filter_predicates}"} },
    ]
 
    column_options.each do |c|
@@ -27,17 +27,19 @@
 %>
 
 <div style="width:100%; max-height:80%; overflow:scroll; ">
-  <table>
+  <table width="100%" >
     <tr>
-      <td valign="top">
+      <td valign="top" width="50%">
         <%= gen_slickgrid(@plan_1, column_options, {
-                :caption => "instance=#{@instance_1}, SQL-ID='#{@sql_id_1}', child number=#{@child_number_1}", :width=>:auto
+            :line_height_single => true,
+            :caption => "instance=#{@instance_1}, SQL-ID='#{@sql_id_1}', child number=#{@child_number_1}", :width=>:auto
         }) %>
       </td>
-      <td valign="top">
+      <td valign="top" width="50%">
 
         <%= gen_slickgrid(@plan_2, column_options, {
-                :caption=>"instance=#{@instance_2}, SQL-ID='#{@sql_id_2}', child number=#{@child_number_2}", :width=>:auto
+            :line_height_single => true,
+            :caption=>"instance=#{@instance_2}, SQL-ID='#{@sql_id_2}', child number=#{@child_number_2}", :width=>:auto
         }) %>
       </td>
     </tr>

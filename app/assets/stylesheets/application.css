@@ -17,16 +17,6 @@
  *= require_tree .
  */
 
-.table_cell {
-	padding: 2px;
-    word-wrap: break-word;
-}
-
-/*.field {
-	position: absolute;
-	left: 10em;	
-}
-*/
 
 .caption {
   background-image: url(bg_green.gif);
@@ -171,6 +161,7 @@ table,th,td{
 	border:1px solid #666;
 	border-collapse:collapse;
 }
+
 table{
 	border:none;
 	border-top:1px solid #000;
@@ -183,12 +174,14 @@ thead th{
 	color:#333;
 
 }
+
 tbody td,tbody th{
 	font-size: small;
     padding: 4px;
 	background:#eee;
-    word-wrap: break-word;
+    word-wrap: break-word;      /* Wer braucht das ??? */
 }
+
 tbody th{
 	background:url(bluechrome.gif) top left repeat-x #fff;
 	color:#333;

@@ -354,7 +354,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                 '<div class="slick-inner-cell" style="visibility:hidden; position: absolute; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; overflow: hidden;"></div></nobr></div>'+
                 // Zwei table für umgebrochene Zeichenbreite
                 //'<table style="visibility:hidden; position:absolute; width:1px;"><tr><td class="slick-inner-cell"  style="padding: 0; margin: 0;"><div id="' + test_cell_wrap_id + '"></div></td></tr></table>' +
-                '<div id="' + test_cell_wrap_id + '" style="visibility:hidden; position:absolute; width:1px; padding: 0; margin: 0;" class="slick-inner-cell"></div>' +
+                '<div  class="slick-inner-cell" id="' + test_cell_wrap_id + '" style="visibility:hidden; position:absolute; width:1px; padding: 0; margin: 0; word-wrap: normal;"></div>' +
                 '</div>'
         );
 
@@ -1157,7 +1157,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         if (!column['last_calc_value'] || (value != column['last_calc_value'] && value.length*9 > column['max_wrap_width'])){  // gleicher Wert muss nicht erneut gecheckt werden, neuer Wert muss > alter sein bei 10 Pixel Breite, aber bei erstem Male durchlauen
             fullvalue =  fullvalue.replace(/<wbr>/g, '');                       // entfernen von vorderfinierten Umbruchstellen, da diese in der Testzelle sofort zum Umbruch führen und die Ermittlung der Darstellungsbreite fehlschlägt
             test_cell.html(fullvalue);                                          // Test-DOM nowrapped mit voll dekoriertem Inhalt füllen
-            test_cell.attr('class', column['cssClass']);                        // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
+            test_cell.attr('class', 'slick-inner-cell '+column['cssClass']);    // Class ersetzen am Objekt durch aktuelle, dabei überschreiben evtl. vorheriger
             if (test_cell.prop("scrollWidth")  > column['max_nowrap_width']){
                 column['max_nowrap_width']  = test_cell.prop("scrollWidth");
                 thiz.slickgrid_render_needed = 1;
