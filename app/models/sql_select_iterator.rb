@@ -86,6 +86,13 @@ class SqlSelectIterator
   def each(&block)
     # Execute SQL and call block for every record of result
     ConnectionHolder.connection.iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, @query_timeout, &block)
+  rescue Exception => e
+    bind_text = ''
+    @binds.each do |b|
+      bind_text << "#{b[0].name} = #{b[1]}\n"
+    end
+
+    raise "Error while executing SQL:\n\n#{e.message}\n\n#{bind_text.length > 0 ? "Bind-Values:\n#{bind_text}" : ''}"
   end
 
 end
