@@ -168,7 +168,7 @@ module ApplicationHelper
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
   # return Array of Hash mit Columns des Records
-  def sql_select_all(sql, modifier=nil)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+  def sql_select_all(sql, modifier=nil, query_name = 'sql_select_all')   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
     #### alte standalone-Lösung
     # stmt, binds = sql_prepare_binds(sql)
     # result = ConnectionHolder.connection().select_all(stmt, 'sql_select_all', binds)
@@ -184,7 +184,7 @@ module ApplicationHelper
     # Mapping auf sql_select_iterator
 
     result = []
-    sql_select_iterator(sql, modifier).each do |r|
+    sql_select_iterator(sql, modifier, query_name).each do |r|
       result << r
     end
     result
@@ -194,23 +194,23 @@ module ApplicationHelper
   # liefert Objekt zur späteren Iteration per each, erst dann wird SQL-Select ausgeführt (jedesmal erneut)
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
-  def sql_select_iterator(sql, modifier=nil)
+  def sql_select_iterator(sql, modifier=nil, query_name = 'sql_select_iterator')
     ConnectionHolder.check_for_open_connection(self)                            # ensure opened Oracle-connection
     stmt, binds = sql_prepare_binds(sql)
-    SqlSelectIterator.new(stmt, binds, modifier, get_current_database[:query_timeout])      # kann per Aufruf von each die einzelnen Records liefern
+    SqlSelectIterator.new(stmt, binds, modifier, get_current_database[:query_timeout], query_name)      # kann per Aufruf von each die einzelnen Records liefern
   end
 
 
   # Select genau erste Zeile
-  def sql_select_first_row(sql)
-    result = sql_select_all(sql)
+  def sql_select_first_row(sql, query_name = 'sql_select_first_row')
+    result = sql_select_all(sql, nil, query_name)
     return nil if result.empty?
     result[0]     #.extend SelectHashHelper      # Erweitern Hash um Methodenzugriff auf Elemente
   end
 
   # Select genau einen Wert der ersten Zeile des Result
-  def sql_select_one(sql)
-    result = sql_select_first_row(sql)
+  def sql_select_one(sql, query_name = 'sql_select_one')
+    result = sql_select_first_row(sql, query_name)
     return nil unless result
     result.first[1]           # Value des Key/Value-Tupels des ersten Elememtes im Hash
   end

@@ -290,26 +290,45 @@ class DbaSgaController < ApplicationController
           NVL(t.Last_Analyzed, i.Last_Analyzed) Last_Analyzed,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
           #{", a.DB_Time_Seconds, a.CPU_Seconds, a.Waiting_Seconds, a.Read_IO_Requests, a.Write_IO_Requests,
-               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time  " if get_db_version >= "11.2"}
+               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time, a.Max_Temp_ASH_MB, a.Max_PGA_ASH_MB  " if get_db_version >= "11.2"}
         FROM  gV$SQL_Plan_Statistics_All p
         LEFT OUTER JOIN DBA_Tables  t ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
         LEFT OUTER JOIN DBA_Indexes i ON i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name
         #{" LEFT OUTER JOIN (SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
-                                    COUNT(*)                                                   DB_Time_Seconds,
-                                    SUM(CASE WHEN Session_State = 'ON CPU'  THEN 1 ELSE 0 END) CPU_Seconds,
-                                    SUM(CASE WHEN Session_State = 'WAITING' THEN 1 ELSE 0 END) Waiting_Seconds,
-                                    SUM(Delta_Read_IO_Requests)       Read_IO_Requests,
-                                    SUM(Delta_Write_IO_Requests)      Write_IO_Requests,
-                                    SUM(NVL(Delta_Read_IO_Requests,0)+NVL(Delta_Write_IO_Requests,0)) IO_Requests,
-                                    SUM(Delta_Read_IO_Bytes)          Read_IO_Bytes,
-                                    SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
-                                    SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
-                                    MIN(Sample_Time)                  Min_Sample_Time,
-                                    MAX(Sample_Time)                  Max_Sample_Time
-                             FROM   gv$Active_Session_History
-                             WHERE  SQL_ID  = ?
-                             AND    Inst_ID = ?
-                             #{(modus == 'GV$SQL' && restrict_ash_to_child ) ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
+                                    SUM(DB_Time_Seconds)                    DB_Time_Seconds,
+                                    SUM(CPU_Seconds)                        CPU_Seconds,
+                                    SUM(Waiting_Seconds)                    Waiting_Seconds,
+                                    SUM(Read_IO_Requests)                   Read_IO_Requests,
+                                    SUM(Write_IO_Requests)                  Write_IO_Requests,
+                                    SUM(IO_Requests)                        IO_Requests,
+                                    SUM(Read_IO_Bytes)                      Read_IO_Bytes,
+                                    SUM(Write_IO_Bytes)                     Write_IO_Bytes,
+                                    SUM(Interconnect_IO_Bytes)              Interconnect_IO_Bytes,
+                                    MIN(Min_Sample_Time)                    Min_Sample_Time,
+                                    MAX(Max_Sample_Time)                    Max_Sample_Time,
+                                    MAX(Temp)/(1024*1024)                   Max_Temp_ASH_MB,
+                                    MAX(PGA)/(1024*1024)                    Max_PGA_ASH_MB
+                             FROM   (
+                                     SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
+                                            COUNT(*)                                                   DB_Time_Seconds,
+                                            SUM(CASE WHEN Session_State = 'ON CPU'  THEN 1 ELSE 0 END) CPU_Seconds,
+                                            SUM(CASE WHEN Session_State = 'WAITING' THEN 1 ELSE 0 END) Waiting_Seconds,
+                                            SUM(Delta_Read_IO_Requests)       Read_IO_Requests,
+                                            SUM(Delta_Write_IO_Requests)      Write_IO_Requests,
+                                            SUM(NVL(Delta_Read_IO_Requests,0)+NVL(Delta_Write_IO_Requests,0)) IO_Requests,
+                                            SUM(Delta_Read_IO_Bytes)          Read_IO_Bytes,
+                                            SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
+                                            SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
+                                            MIN(Sample_Time)                  Min_Sample_Time,
+                                            MAX(Sample_Time)                  Max_Sample_Time,
+                                            SUM(Temp_Space_Allocated)         Temp,
+                                            SUM(PGA_Allocated)                PGA
+                                     FROM   gv$Active_Session_History
+                                     WHERE  SQL_ID  = ?
+                                     AND    Inst_ID = ?
+                                     #{(modus == 'GV$SQL' && restrict_ash_to_child ) ? 'AND    SQL_Child_Number = ?' : ''}   -- auch andere Child-Cursoren von PQ beruecksichtigen wenn Child-uebergreifend angefragt
+                                     GROUP BY SQL_Plan_Line_ID, SQL_Plan_Hash_Value, NVL(QC_Session_ID, Session_ID), Sample_ID   -- Alle PQ-Werte mit auf Session kumulieren
+                                    )
                              GROUP BY SQL_Plan_Line_ID, SQL_Plan_Hash_Value
                  ) a ON a.SQL_Plan_Line_ID = p.ID AND a.SQL_Plan_Hash_Value = p.Plan_Hash_Value
           " if get_db_version >= "11.2"}

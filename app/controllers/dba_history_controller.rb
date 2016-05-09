@@ -496,16 +496,18 @@ class DbaHistoryController < ApplicationController
         ", @sql.min_snap_id, @sql.max_snap_id, @dbid, @sql_id, @dbid, @sql_id, @sql.min_snap_id, @sql.max_snap_id].concat(@instance ? [@instance] : [])
 
 
-      sql_statement = sql_select_first_row(["\
+    end
+
+    sql_statement = sql_select_first_row(["\
        SELECT /* Panorama-Tool Ramm */ SQL_Text,
                    DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 0) Exact_Signature,
                    DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 1) Force_Signature
        FROM DBA_Hist_SQLText
        WHERE dbid = ?
        AND   SQL_ID = ?",
-       @dbid, @sql_id
-      ])
-    end
+                                          @dbid, @sql_id
+                                         ])
+
 
     if sql_statement
       @sql_statement      = sql_statement.sql_text

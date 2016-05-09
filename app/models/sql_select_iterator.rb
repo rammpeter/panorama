@@ -76,16 +76,17 @@ end #class_eval
 
 class SqlSelectIterator
 
-  def initialize(stmt, binds, modifier, query_timeout)
+  def initialize(stmt, binds, modifier, query_timeout, query_name = 'SqlSelectIterator')
     @stmt           = stmt
     @binds          = binds
     @modifier       = modifier              # proc for modifikation of record
     @query_timeout  = query_timeout
+    @query_name     = query_name
   end
 
   def each(&block)
     # Execute SQL and call block for every record of result
-    ConnectionHolder.connection.iterate_query(@stmt, 'sql_select_iterator', @binds, @modifier, @query_timeout, &block)
+    ConnectionHolder.connection.iterate_query(@stmt, @query_name, @binds, @modifier, @query_timeout, &block)
   rescue Exception => e
     bind_text = ''
     @binds.each do |b|
