@@ -1237,4 +1237,75 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
     render_partial
   end
 
+  def show_server_logs
+    @instance = sql_select_one "SELECT Instance_Number FROM v$Instance"
+
+    render_partial
+  end
+
+  def list_server_logs
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @log_type     = params[:log_type]
+    @incl_filter  = params[:incl_filter]
+    @excl_filter  = params[:excl_filter]
+    @incl_filter  = nil if @incl_filter == ''
+    @excl_filter  = nil if @excl_filter == ''
+    @suppress_defaults = params[:suppress_defaults] == '1'
+
+    where_filter = ''
+    where_values = []
+
+    unless @log_type == 'all'
+      where_filter << " AND TRIM(COMPONENT_ID)=?"
+      where_values << @log_type
+    end
+
+    if @suppress_defaults
+      if @excl_filter
+        @excl_filter << '|'
+      else
+        @excl_filter = ''
+      end
+      @excl_filter << "Thread 1 advanced to log sequence % (LGWR switch)|"
+      @excl_filter << "Current log# % seq# % mem#|"
+      @excl_filter << "LNS: Standby redo logfile selected for thread % sequence % for destination LOG_ARCHIVE_DEST|"
+      @excl_filter << "Archived Log entry % added for thread % sequence % ID % dest %:"
+
+
+
+    end
+
+    if @incl_filter
+      where_filter << " AND ("
+      incl_filters = @incl_filter.split('|')
+      incl_filters.each_index do |i|
+        where_filter << " Message_Text LIKE '%'||?||'%'"
+        where_values << " OR " if i < incl_filters.count-1
+        where_values << incl_filters[i]
+      end
+      where_filter << " )"
+    end
+
+    if @excl_filter
+      @excl_filter.split('|').each do |f|
+        where_filter << " AND Message_Text NOT LIKE '%'||?||'%'"
+        where_values << f
+      end
+    end
+
+    @result =  sql_select_iterator ["\
+      SELECT Inst_ID, Adr_Home, Originating_Timestamp, Component_ID,
+             Message_Type, Message_Level,
+             Process_ID, Message_Text, FileName
+      FROM   V$DIAG_ALERT_EXT
+      WHERE  Originating_Timestamp > TO_DATE(?, '#{sql_datetime_minute_mask}')
+      AND    Originating_Timestamp < TO_DATE(?, '#{sql_datetime_minute_mask}')
+      #{where_filter}
+      ORDER BY Originating_Timestamp, Record_ID
+   ", @time_selection_start, @time_selection_end].concat(where_values)
+
+    render_partial
+  end
+
+
 end # Class

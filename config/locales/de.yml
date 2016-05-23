@@ -1202,6 +1202,7 @@
   menu_dba_parameter_hint:                                  Anlistung der aktiven Instance-Parameter
   menu_dba_redologs_hint:                                   Anlistung der Redo-Logs
   menu_dba_redologs_historic_hint:                          Anlistung historischer Info der Redo-Logs
+  menu_dba_server_logs_hint:                                Anlistung des Inhaltes der Server-Logs (alert.log, listener.log, ASM-Log)
   menu_dba_sessions_hint:                                   Anlistung der aktuellen Session-Info
   menu_dba_temp_usage_hint:                                 Aktuelle Nutzung Temp-Tablespace
 

@@ -19,7 +19,8 @@ module MenuHelper
             },
             {:class=> 'item', :caption=> 'Sessions',           :controller=>:dba,             :action=>:show_sessions,     :hint=>t(:menu_dba_sessions_hint, :default=> 'Show info of current DB-sessions') },
             {:class=> 'item', :caption=> 'Oracle-Parameter',   :controller=>:dba,             :action=>:oracle_parameter,  :hint=>t(:menu_dba_parameter_hint, :default=> 'Show active instance-parameters') },
-            {:class=> 'item', :caption=> 'Audit Trail',        :controller=>:dba_schema,       :action=>:show_audit_trail,  :hint=>t(:menu_dba_schema_audit_trail_hint, :default=> 'Show activities logged by audit trail records') },
+            {:class=> 'item', :caption=> 'Audit Trail',        :controller=>:dba_schema,      :action=>:show_audit_trail,  :hint=>t(:menu_dba_schema_audit_trail_hint, :default=> 'Show activities logged by audit trail records') },
+            {:class=> 'item', :caption=> 'Server Logs',        :controller=>:dba,             :action=>:show_server_logs,  :hint=>t(:menu_dba_server_logs_hint, :default=> 'Show content of server logs (alert.log, listener.log, ASM-log)') , :min_db_version => '11.2'},
             {:class=> 'item', :caption=> 'Database Triggers',  :controller=>:dba,            :action=>:list_database_triggers,  :hint=>t(:menu_dba_database_triggers_hint, :default=> 'Show global database triggers (like LOGON etc.)') },
             { :class=> 'menu', :caption=> 'Scheduled Jobs', :content=>[
                 {:class=> 'item', :caption=>'DBA autotask jobs', :controller=>:dba,          :action=>:show_dba_autotask_jobs, :hint=>'Show jobs from DBA_Autotask_Client', :min_db_version => '11.2' },
