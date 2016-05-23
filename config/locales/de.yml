@@ -1123,6 +1123,15 @@
   dragnet_helper_125_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
   dragnet_helper_125_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
 
+  dragnet_helper_126_desc: |-
+    Diese Selektion zeigt die Anzahl LOGON-Operationen je Zeiteinheit für die Datenbank-Instanz des aktuellen Logins.
+    Exzessive LOOGON/LOGOFF-Operationen sollten vermieden werden. Alternative Lösungen sind die Verwendung von Session-Pools sowie die Vermeidung aufeinanderfolgender LOGON/LOGOFF-Operationen in Schleifen.
+    Detaillierte Informationen über LOGIN-Operationen sind verfügbar über Menüpunkt 'DBA allgemein / Server Logs'
+  dragnet_helper_126_name: |-
+    Anzahl der LOGON-Operationen je Zeiteinheit
+  dragnet_helper_126_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
+  dragnet_helper_126_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
