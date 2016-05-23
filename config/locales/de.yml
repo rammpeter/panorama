@@ -1115,6 +1115,15 @@
   dragnet_helper_124_name: |-
     Probleme mit Function-based Index bei cursor_sharing != EXACT
 
+  dragnet_helper_125_desc: |-
+    Anzahl der unterschiedlichen SQL-IDs je Zeit erlaubt die Identifikation von Zeiten mit Ausführung vieler SQLs mit fehlender Nutzung von Bindevariablen.
+    Eine Verfeinerung der Suche erlaubt die Ansicht der Einzel-Samples der Active Session History im Menü 'Session waits / Historisch'
+  dragnet_helper_125_name: |-
+    Anzahl unterschiedlicher SQLs je Zeit in Zeitleiste
+  dragnet_helper_125_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
+  dragnet_helper_125_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
+
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

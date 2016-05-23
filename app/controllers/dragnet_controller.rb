@@ -101,7 +101,7 @@ class DragnetController < ApplicationController
     parameter = ""
     if entry[:parameter]        # Parameter erwähnt (erwartet als Array)
       entry[:parameter].each do |p|
-        parameter << "<div title='#{p[:title]}'>#{p[:name]} <input name='#{p[:name]}' size='#{p[:size]}' value='#{p[:default]}' type='text'></div><br/>"
+        parameter << "<div title='#{my_html_escape(p[:title])}'>#{my_html_escape(p[:name])} <input name='#{p[:name]}' size='#{p[:size]}' value='#{p[:default]}' type='text'></div><br/>"
       end
     end
     respond_to do |format|

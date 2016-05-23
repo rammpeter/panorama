@@ -33,6 +33,33 @@ The length of the compared substring may be varied.'),
             :parameter=>[{:name=> t(:dragnet_helper_114_param_1_name, :default=>'Number of characters for comparison of SQLs'), :size=>8, :default=>60, :title=>t(:dragnet_helper_114_param_1_hint, :default=>'Number of characters for comparison of SQLs (beginning at left side of statement)') }]
         },
         {
+            :name  => t(:dragnet_helper_125_name, :default=>'Number of distinct SQL-IDs per time in time line'),
+            :desc  => t(:dragnet_helper_125_desc, :default=>"The number of dictinct SQL-IDs in time line allows you to identify times where multiple statements with missing bind variables are executed.
+You can refine your search using Panorama's view on single samples per time of active session history at menu 'Session waits / Historic'"),
+            :sql=>  "
+              SELECT Start_Time \"Start Time\", COUNT(*) \"Number of ASH-Samples\", COUNT(DISTINCT SQL_ID) \"Number of different SQLs\"
+              FROM   (SELECT TRUNC(Sample_Time, ?) Start_Time, SQL_ID
+                      FROM   (
+                              SELECT /*+ NO_MERGE ORDERED */
+                                     10 Sample_Cycle, Instance_Number, Sample_Time, SQL_ID
+                              FROM   DBA_Hist_Active_Sess_History s
+                              LEFT OUTER JOIN   (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID) v ON v.Inst_ID = s.Instance_Number
+                              WHERE  (v.Min_Sample_Time IS NULL OR s.Sample_Time < v.Min_Sample_Time)  -- Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen
+                              UNION ALL
+                              SELECT 1 Sample_Cycle, Inst_ID Instance_Number, Sample_Time, SQL_ID
+                              FROM   gv$Active_Session_History
+                             )
+                             WHERE  Sample_Time > SYSDATE - ?
+                     )s
+              GROUP BY Start_Time
+              ORDER BY 1
+             ",
+            :parameter=>[
+                {:name=> t(:dragnet_helper_125_param_1_name, :default=>'TRUNC-expression for grouping by time unit'), :size=>8, :default=>'MI', :title=>t(:dragnet_helper_125_param_1_hint, :default=>"Expression for TRUNC(Timestamp, 'xx') as grouping criteria ('MI' = minute, 'HH24' = hour etc.) ") },
+                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }
+            ]
+        },
+        {
             :name  => t(:dragnet_helper_121_name, :default=>'Multiple open cursor: overview over SQL'),
             :desc  => t(:dragnet_helper_121_desc, :default=>'Normally there should be only one open cursor per SQL statement and session.
 SQLs with multiple open cursors withon one session my flood session cursor cache and PGA
