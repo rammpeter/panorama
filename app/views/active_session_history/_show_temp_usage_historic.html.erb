@@ -11,6 +11,14 @@
       <%= text_field_tag(:instance, "", :size=>1) %>
     </div>
 
+    <div class="float_left" title="Number of seconds for fuzzy determination of max. values per session and timestamp.
+    Maximum values per session plus/minus x seconds are considered to bypass the inaccuracy due to resource claiming by inactive sessions
+    (that are not recorded by active session history).">
+      Fuzzy seconds
+      <%= text_field_tag(:fuzzy_seconds, '20', :size=>3, :style=>'text-align: right') %>
+    </div>
+
+
     <div class="float_left" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
       <%= t(:grouping, :default=>'Grouping')%>
       <select name="time_groupby">

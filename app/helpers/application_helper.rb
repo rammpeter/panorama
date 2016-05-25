@@ -197,6 +197,7 @@ module ApplicationHelper
   def sql_select_iterator(sql, modifier=nil, query_name = 'sql_select_iterator')
     ConnectionHolder.check_for_open_connection(self)                            # ensure opened Oracle-connection
     stmt, binds = sql_prepare_binds(sql)
+    stmt.gsub!(/\n[ \n]*\n/, "\n")                                                  # Remove empty lines in SQL-text
     SqlSelectIterator.new(stmt, binds, modifier, get_current_database[:query_timeout], query_name)      # kann per Aufruf von each die einzelnen Records liefern
   end
 

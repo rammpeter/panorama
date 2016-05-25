@@ -732,11 +732,13 @@ class ActiveSessionHistoryController < ApplicationController
 
 
 
-  def list_temp_usage_historic                  # Methode kann nur ab Version 11.2 aufgerufen werden
+  def list_temp_usage_historic                                                  # Methode kann nur ab Version 11.2 aufgerufen werden
     where_from_groupfilter(params[:groupfilter], nil)
-    @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
+    @dbid = params[:groupfilter][:DBID]                                         # identische DBID verwenden wie im groupfilter bereits gesetzt
 
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
+
+    @fuzzy_seconds = params[:fuzzy_seconds]                                     # Unscharfe Aufnahme der Max-Werte je Sessions +- x Sekunden
 
     case @time_groupby.to_sym
       when :second then group_by_value = "CAST(s.Sample_Time AS DATE)"
@@ -753,6 +755,7 @@ class ActiveSessionHistoryController < ApplicationController
       #{"procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)," if  @global_where_string['peo.'] ||  @global_where_string['po.']}
       samples AS (
         SELECT CAST (Sample_Time+INTERVAL '0.5' SECOND AS DATE) Sample_Time,
+               s.Instance_Number, s.Session_ID, s.Session_Serial_No,
                s.Sample_Cycle,                -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
                s.PGA_Allocated,
                s.Temp_Space_Allocated         -- eigentlich nichtssagend, da Summe über alle Sample-Zeiten hinweg, nur benutzt fuer AVG
@@ -782,19 +785,44 @@ class ActiveSessionHistoryController < ApplicationController
              SUM(Sample_Count)    Sample_Count,
              SUM(Time_Waited_Secs) Time_Waited_Secs,
              MAX(s.Sum_PGA_Allocated)/(1024*1024)                             Max_Sum_PGA_Allocated,
+             MAX(s.Sum_PGA_Floating)/(1024*1024 )                             Max_Sum_PGA_Floating,
              MAX(s.Max_PGA_Allocated_per_Session)/(1024*1024)                 Max_PGA_Alloc_Per_Session,
              SUM(s.Sum_PGA_Allocated)/SUM(s.Sample_Count)/(1024*1024)         Avg_PGA_Alloc_per_Session,
              MAX(s.Sum_Temp_Space_Allocated)/(1024*1024)                      Max_Sum_Temp_Space_Allocated,
+             MAX(s.Sum_Temp_Floating)/(1024*1024 )                            Max_Sum_Temp_Floating,
              MAX(s.Max_Temp_Space_Alloc_per_Sess)/(1024*1024)                 Max_Temp_Space_Alloc_per_Sess,
              SUM(s.Sum_Temp_Space_Allocated)/SUM(s.Sample_Count)/(1024*1024)  Avg_Temp_Space_Alloc_per_Sess
       FROM   (SELECT Sample_Time,
-                     COUNT(*)                     Sample_Count,
-                     SUM(Sample_Cycle)            Time_Waited_Secs,               -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
-                     SUM(PGA_Allocated)           Sum_PGA_Allocated,
-                     MAX(PGA_Allocated)           Max_PGA_Allocated_Per_Session,
-                     SUM(Temp_Space_Allocated)    Sum_Temp_Space_Allocated,       -- eigentlich nichtssagend, da Summe über alle Sample-Zeiten hinweg, nur benutzt fuer AVG
-                     MAX(Temp_Space_Allocated)    Max_Temp_Space_Alloc_per_Sess
-              FROM   Samples
+                     SUM(Sample_Count)      Sample_Count,                       -- Summation über die Sessions des Samples
+                     SUM(Time_Waited_Secs)  Time_Waited_Secs,                   -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
+                     SUM(PGA_Exact)         Sum_PGA_Allocated,                  -- Summation über die Sessions des Samples
+                     SUM(PGA_Floating)      Sum_PGA_Floating,                   -- Summation über die Sessions des Samples
+                     MAX(PGA_Exact)         Max_PGA_Allocated_Per_Session,      -- Max. Wert einer Session des Samples
+                     SUM(Temp_Exact)        Sum_Temp_Space_Allocated,           -- Summation über die Sessions des Samples
+                     SUM(Temp_Floating)     Sum_Temp_Floating,                  -- Summation über die Sessions des Samples
+                     MAX(Temp_Exact)        Max_Temp_Space_Alloc_per_Sess       -- Max. Wert einer Session des Samples
+              FROM   (SELECT Sample_Time,
+                             MAX(Sample_Count)      Sample_Count,
+                             MAX(Time_Waited_Secs)  Time_Waited_Secs,
+                             MAX(PGA_Exact)         PGA_Exact,
+                             MAX(PGA_Floating)      PGA_Floating,
+                             MAX(Temp_Exact)        Temp_Exact,                 -- Temp je Session zum Zeitpunkt des Samples
+                             MAX(Temp_Floating)     Temp_Floating               -- Max. Temp je Session zum Zeitpunkt +- x Sekunden
+                      FROM   (SELECT /*+ NO_MERGE */
+                                     t.Sample_Time,                   -- Jede vorkommende Sample_Time verknüpft mit Samples vorher und nachher
+                                     s.Instance_Number, s.Session_ID, s.Session_Serial_No,  -- Attribute der verknüpften Sessions
+                                     CASE WHEN t.Sample_Time = s.Sample_Time THEN 1 ELSE 0 END                                                      Sample_Count,
+                                     CASE WHEN t.Sample_Time = s.Sample_Time THEN ss.Sample_Cycle ELSE 0 END                                        Time_Waited_Secs, -- Gewichtete Zeit in der Annahme, dass Wait aktiv für die Dauer des Samples war (und daher vom Snapshot gesehen wurde)
+                                     CASE WHEN t.Sample_Time = s.Sample_Time THEN ss.PGA_Allocated ELSE 0 END                                       PGA_Exact,        -- konkreter Wert zu t.sample_Time
+                                     MAX(NVL(ss.PGA_Allocated, 0)) OVER (PARTITION BY s.Instance_Number, s.Session_ID, s.Session_Serial_No)         PGA_Floating,     -- Max. Wert je Session zu t.sample_Time +- x Sekunden
+                                     CASE WHEN t.Sample_Time = s.Sample_Time THEN ss.Temp_Space_Allocated ELSE 0 END                                Temp_Exact,       -- konkreter Wert zu t.sample_Time
+                                     MAX(NVL(ss.Temp_Space_Allocated, 0)) OVER (PARTITION BY s.Instance_Number, s.Session_ID, s.Session_Serial_No)  Temp_Floating     -- Max. Wert je Session zu t.sample_Time +- x Sekunden
+                              FROM   (SELECT DISTINCT Instance_Number, Sample_Time FROM Samples) t
+                              JOIN   (SELECT Sample_Time, Instance_Number, Session_ID, Session_Serial_No FROM Samples) s ON s.Instance_Number = t.Instance_Number AND t.Sample_Time > s.Sample_Time - INTERVAL '#{@fuzzy_seconds}' SECOND AND t.Sample_Time < s.Sample_Time + INTERVAL '#{@fuzzy_seconds}' SECOND
+                              LEFT OUTER JOIN Samples ss ON ss.Sample_Time = t.Sample_Time AND ss.Instance_Number = s.Instance_Number AND ss.Session_ID = s.Session_ID AND ss.Session_Serial_No = s.Session_Serial_No
+                             )
+                      GROUP BY Sample_Time, Instance_Number, Session_ID, Session_Serial_No  -- Verdichten des mit +- x Sekunden ausmultiplizierten Ergebnis zurück auf reale Menge
+                     )
               GROUP BY Sample_Time     -- Auf Ebene eines Samples reduzieren ueber RAC-Instanzen hinweg
              ) s
       WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
