@@ -13,9 +13,12 @@
 
     <div class="float_left" title="Number of seconds for fuzzy determination of max. values per session and timestamp.
     Maximum values per session plus/minus x seconds are considered to bypass the inaccuracy due to resource claiming by inactive sessions
-    (that are not recorded by active session history).">
+    (that are not recorded by active session history).
+
+    Reduce value to reduce runtime of selection.
+    Enlarge value to enlarge accuracy in also considering sessions that are inactive at sample time (until values are not changing no more).">
       Fuzzy seconds
-      <%= text_field_tag(:fuzzy_seconds, '20', :size=>3, :style=>'text-align: right') %>
+      <%= text_field_tag(:fuzzy_seconds, '0', :size=>3, :style=>'text-align: right') %>
     </div>
 
 

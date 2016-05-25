@@ -818,10 +818,10 @@ class ActiveSessionHistoryController < ApplicationController
                                      CASE WHEN t.Sample_Time = s.Sample_Time THEN ss.Temp_Space_Allocated ELSE 0 END                                Temp_Exact,       -- konkreter Wert zu t.sample_Time
                                      MAX(NVL(ss.Temp_Space_Allocated, 0)) OVER (PARTITION BY s.Instance_Number, s.Session_ID, s.Session_Serial_No)  Temp_Floating     -- Max. Wert je Session zu t.sample_Time +- x Sekunden
                               FROM   (SELECT DISTINCT Instance_Number, Sample_Time FROM Samples) t
-                              JOIN   (SELECT Sample_Time, Instance_Number, Session_ID, Session_Serial_No FROM Samples) s ON s.Instance_Number = t.Instance_Number AND t.Sample_Time > s.Sample_Time - INTERVAL '#{@fuzzy_seconds}' SECOND AND t.Sample_Time < s.Sample_Time + INTERVAL '#{@fuzzy_seconds}' SECOND
+                              JOIN   (SELECT Sample_Time, Instance_Number, Session_ID, Session_Serial_No FROM Samples) s ON s.Instance_Number = t.Instance_Number AND t.Sample_Time >= s.Sample_Time - INTERVAL '#{@fuzzy_seconds}' SECOND AND t.Sample_Time <= s.Sample_Time + INTERVAL '#{@fuzzy_seconds}' SECOND
                               LEFT OUTER JOIN Samples ss ON ss.Sample_Time = t.Sample_Time AND ss.Instance_Number = s.Instance_Number AND ss.Session_ID = s.Session_ID AND ss.Session_Serial_No = s.Session_Serial_No
                              )
-                      GROUP BY Sample_Time, Instance_Number, Session_ID, Session_Serial_No  -- Verdichten des mit +- x Sekunden ausmultiplizierten Ergebnis zurück auf reale Menge
+                      GROUP BY Sample_Time, Instance_Number, Session_ID, Session_Serial_No  -- Verdichten des mit +/- x Sekunden ausmultiplizierten Ergebnis zurück auf reale Menge
                      )
               GROUP BY Sample_Time     -- Auf Ebene eines Samples reduzieren ueber RAC-Instanzen hinweg
              ) s
