@@ -738,7 +738,16 @@ class ActiveSessionHistoryController < ApplicationController
 
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
-    @fuzzy_seconds = params[:fuzzy_seconds]                                     # Unscharfe Aufnahme der Max-Werte je Sessions +- x Sekunden
+    @fuzzy_seconds = params[:fuzzy_seconds].to_i                                # Unscharfe Aufnahme der Max-Werte je Sessions +- x Sekunden
+    # Fest vergleichbaren Wert für Hash-Join mitgeben, damit nicht komplette Menge kartesisch verknüpft werden vor Wirken der >= and <= Bedingung
+    fuzzy_round_filter = "ROUND(s.Sample_Time, 'HH') = ROUND(t.Sample_Time, 'HH')"  # Unschärfe bei Betrachtung über Stundengrenze wird billigend in Kauf genommen, damit kartesisches Produkt nur innerhalb einer Stunde entsteht
+
+    # Unbrauchbare Funktion, da Übergänge unsauber werden
+    #fuzzy_round_filter = "ROUND(TO_NUMBER(TO_CHAR(t.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} )) =
+    #                      ROUND(TO_NUMBER(TO_CHAR(s.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} ))"
+
+    #fuzzy_round_filter = "ROUND(s.Sample_Time, 'MI') = ROUND(t.Sample_Time, 'MI')"  if @fuzzy_seconds <= 30
+    fuzzy_round_filter = "s.Sample_Time = t.Sample_Time"                            if @fuzzy_seconds == 0        # Direkter Vergleich der Werte wenn keine fuzzy-Funktion gewünscht
 
     case @time_groupby.to_sym
       when :second then group_by_value = "CAST(s.Sample_Time AS DATE)"
@@ -808,7 +817,7 @@ class ActiveSessionHistoryController < ApplicationController
                              MAX(PGA_Floating)      PGA_Floating,
                              MAX(Temp_Exact)        Temp_Exact,                 -- Temp je Session zum Zeitpunkt des Samples
                              MAX(Temp_Floating)     Temp_Floating               -- Max. Temp je Session zum Zeitpunkt +- x Sekunden
-                      FROM   (SELECT /*+ NO_MERGE */
+                      FROM   (SELECT /*+ NO_MERGE ORDERED */
                                      t.Sample_Time,                   -- Jede vorkommende Sample_Time verknüpft mit Samples vorher und nachher
                                      s.Instance_Number, s.Session_ID, s.Session_Serial_No,  -- Attribute der verknüpften Sessions
                                      CASE WHEN t.Sample_Time = s.Sample_Time THEN 1 ELSE 0 END                                                      Sample_Count,
@@ -817,8 +826,10 @@ class ActiveSessionHistoryController < ApplicationController
                                      MAX(NVL(ss.PGA_Allocated, 0)) OVER (PARTITION BY s.Instance_Number, s.Session_ID, s.Session_Serial_No)         PGA_Floating,     -- Max. Wert je Session zu t.sample_Time +- x Sekunden
                                      CASE WHEN t.Sample_Time = s.Sample_Time THEN ss.Temp_Space_Allocated ELSE 0 END                                Temp_Exact,       -- konkreter Wert zu t.sample_Time
                                      MAX(NVL(ss.Temp_Space_Allocated, 0)) OVER (PARTITION BY s.Instance_Number, s.Session_ID, s.Session_Serial_No)  Temp_Floating     -- Max. Wert je Session zu t.sample_Time +- x Sekunden
-                              FROM   (SELECT DISTINCT Instance_Number, Sample_Time FROM Samples) t
-                              JOIN   (SELECT Sample_Time, Instance_Number, Session_ID, Session_Serial_No FROM Samples) s ON s.Instance_Number = t.Instance_Number AND t.Sample_Time >= s.Sample_Time - INTERVAL '#{@fuzzy_seconds}' SECOND AND t.Sample_Time <= s.Sample_Time + INTERVAL '#{@fuzzy_seconds}' SECOND
+                              FROM   (SELECT /*+ NO_MERGE */ DISTINCT Instance_Number, Sample_Time FROM Samples) t
+                              JOIN   (SELECT /*+ NO_MERGE */ Sample_Time, Instance_Number, Session_ID, Session_Serial_No FROM Samples) s ON  s.Instance_Number = t.Instance_Number
+                                                                                                                                         AND t.Sample_Time >= s.Sample_Time - INTERVAL '#{@fuzzy_seconds}' SECOND AND t.Sample_Time <= s.Sample_Time + INTERVAL '#{@fuzzy_seconds}' SECOND
+                                                                                                                                         #{ " AND #{fuzzy_round_filter}" if fuzzy_round_filter}
                               LEFT OUTER JOIN Samples ss ON ss.Sample_Time = t.Sample_Time AND ss.Instance_Number = s.Instance_Number AND ss.Session_ID = s.Session_ID AND ss.Session_Serial_No = s.Session_Serial_No
                              )
                       GROUP BY Sample_Time, Instance_Number, Session_ID, Session_Serial_No  -- Verdichten des mit +/- x Sekunden ausmultiplizierten Ergebnis zurück auf reale Menge

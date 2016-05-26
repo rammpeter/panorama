@@ -15,8 +15,9 @@
     Maximum values per session plus/minus x seconds are considered to bypass the inaccuracy due to resource claiming by inactive sessions
     (that are not recorded by active session history).
 
-    Reduce value to reduce runtime of selection.
-    Enlarge value to enlarge accuracy in also considering sessions that are inactive at sample time (until values are not changing no more).">
+    Reduce value to reduce runtime of selection (therefore default is 0).
+    Enlarge value to enlarge accuracy in also considering sessions that are inactive at sample time (until values are not growing no more).
+    Common values are 20 .. 80 seconds.">
       Fuzzy seconds
       <%= text_field_tag(:fuzzy_seconds, '0', :size=>3, :style=>'text-align: right') %>
     </div>
