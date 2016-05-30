@@ -224,23 +224,12 @@ class DbaSchemaController < ApplicationController
     end
 
     @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID,
-                                       m.Inserts, m.Updates, m.Deletes, m.Last_DML, m.Truncated, m.Drop_Segments
+                                       m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
                                 FROM DBA_Tables t
                                 JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
-                                LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Table_Owner, Table_Name,
-                                                        SUM(Inserts) Inserts,
-                                                        SUM(Updates) Updates,
-                                                        SUM(Deletes) Deletes,
-                                                        MAX(Timestamp) Last_DML,
-                                                        #{"CASE WHEN MAX(Truncated) = 'YES' THEN 'YES' ELSE 'NO' END Truncated, " if get_db_version >= '11.2'}
-                                                        SUM(Drop_Segments) Drop_Segments
-                                                 FROM   DBA_Tab_Modifications
-                                                 WHERE  Table_Owner = ?
-                                                 AND    Table_Name  = ?
-                                                 GROUP BY Table_Owner, Table_Name
-                                                ) m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
+                                LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name AND m.Partition_Name IS NULL    -- Summe der Partitionen wird noch einmal als Einzel-Zeile ausgewiesen
                                 WHERE t.Owner = ? AND t.Table_Name = ?
-                               ", @owner, @table_name, @owner, @table_name]
+                               ", @owner, @table_name]
 
     @comment = sql_select_one ["SELECT Comments FROM DBA_Tab_Comments WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
@@ -393,9 +382,11 @@ class DbaSchemaController < ApplicationController
                       WHERE s.Owner = ? AND s.Segment_Name = ?
                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
                       )
-      SELECT  st.MB Size_MB, p.*
+      SELECT  st.MB Size_MB, p.*,
+              m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
       FROM DBA_Tab_Partitions p
       LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
+      LEFT OUTER JOIN DBA_Tab_Modifications m ON  m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name IS NULL
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
       ", @owner, @table_name, @owner, @table_name]
 
@@ -413,8 +404,10 @@ class DbaSchemaController < ApplicationController
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
                    FROM   DBA_Segments s
                    WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.SubPartition_Name
-                  ) Size_MB
+                  ) Size_MB,
+             m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
       FROM DBA_Tab_SubPartitions p
+      LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name = p.SubPartition_Name
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
       #{" AND p.Partition_Name = ?" if @partition_name}
       ", @owner, @table_name, @partition_name]
