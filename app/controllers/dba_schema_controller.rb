@@ -232,7 +232,7 @@ class DbaSchemaController < ApplicationController
                                                         SUM(Updates) Updates,
                                                         SUM(Deletes) Deletes,
                                                         MAX(Timestamp) Last_DML,
-                                                        CASE WHEN MAX(Truncated) = 'YES' THEN 'YES' ELSE 'NO' END Truncated,
+                                                        #{"CASE WHEN MAX(Truncated) = 'YES' THEN 'YES' ELSE 'NO' END Truncated, " if get_db_version >= '11.2'}
                                                         SUM(Drop_Segments) Drop_Segments
                                                  FROM   DBA_Tab_Modifications
                                                  WHERE  Table_Owner = ?
