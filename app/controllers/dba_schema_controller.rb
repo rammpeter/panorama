@@ -223,11 +223,24 @@ class DbaSchemaController < ApplicationController
         raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
     end
 
-    @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID
+    @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID,
+                                       m.Inserts, m.Updates, m.Deletes, m.Last_DML, m.Truncated, m.Drop_Segments
                                 FROM DBA_Tables t
                                 JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
+                                LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Table_Owner, Table_Name,
+                                                        SUM(Inserts) Inserts,
+                                                        SUM(Updates) Updates,
+                                                        SUM(Deletes) Deletes,
+                                                        MAX(Timestamp) Last_DML,
+                                                        CASE WHEN MAX(Truncated) = 'YES' THEN 'YES' ELSE 'NO' END Truncated,
+                                                        SUM(Drop_Segments) Drop_Segments
+                                                 FROM   DBA_Tab_Modifications
+                                                 WHERE  Table_Owner = ?
+                                                 AND    Table_Name  = ?
+                                                 GROUP BY Table_Owner, Table_Name
+                                                ) m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
                                 WHERE t.Owner = ? AND t.Table_Name = ?
-                               ", @owner, @table_name]
+                               ", @owner, @table_name, @owner, @table_name]
 
     @comment = sql_select_one ["SELECT Comments FROM DBA_Tab_Comments WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
