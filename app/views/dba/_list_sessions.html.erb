@@ -28,6 +28,7 @@
     {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>'RAC instance ID'},
     {:caption=>"SID/SN",           :data=>proc{|rec| link_session(rec)},              :title=>'SID, SerialNo'},
     {:caption=>"Status",           :data=>proc{|rec| rec.status},                     :title=>"Session-Status"},
+    {:caption=>"SQL_ID",           :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.sql_child_number)},                     :title=>"Current SQL-ID of session"},
     {:caption=>"Wait event",       :data=>proc{|rec| rec.wait_event},                 :title=>'Wait-Event', :data_title=>proc{|rec| explain_wait_event(rec.wait_event)} },
     {:caption=>"W",                :data=>proc{|rec| fn(rec.seconds_in_wait)},        :title=>'Wait time in current event in seconds', :align=>:right},
     {:caption=>"User",             :data=>proc{|rec| rec.username},                   :title=>"Oracle-Username"},
