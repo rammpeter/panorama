@@ -690,7 +690,57 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  private
+  def audit_mode_xml?
+    sql_select_one("SELECT Value FROM v$Parameter WHERE Name = 'audit_trail'")['XML'] != nil
+  end
 
+  def audit_source
+    audit_mode_xml? ? 'gv$XML_Audit_Trail' :  'DBA_Audit_Trail'
+  end
+
+  # Liefert die FROM-Klausel in der Struktur von DBA_Audit_Trail
+  def audit_sql
+    if audit_mode_xml?
+      return "(SELECT a.Extended_Timestamp  Timestamp,
+                      a.OS_Host             UserHost,
+                      a.OS_User             OS_UserName,
+                      a.DB_User             UserName,
+                      a.OS_Process,
+                      a.Terminal,
+                      act.Name              Action_Name,
+                      a.Object_Schema       Owner,
+                      a.Object_Name         Obj_Name,
+                      a.Inst_ID             Instance_Number,
+                      a.Session_ID          SessionID,
+                      a.SQL_Text,
+                      a.SQL_Bind,
+                      a.New_Owner, a.New_Name,
+                      NULL                  Obj_Privilege,
+                      NULL                  Sys_Privilege,
+                      a.OS_Privilege        Admin_Option,
+                      a.Grantee,
+                      NULL                  Audit_Option,
+                      a.Ses_Actions,
+                      NULL                  Logoff_LRead,
+                      NULL                  Logoff_PRead,
+                      NULL                  Logoff_LWrite,
+                      NULL                  Logoff_DLock,
+                      NULL                  Session_CPU,
+                      a.Comment_Text,
+                      a.ReturnCode,
+                      a.Priv_Used,
+                      a.ClientIdentifier    Client_ID
+               FROM   gv$XML_Audit_Trail a
+               LEFT OUTER JOIN Audit_Actions act ON act.Action = a.Action
+WHERE RowNum < 100
+              )"
+    else
+      return "DBA_Audit_Trail"
+    end
+  end
+
+  public
   def list_audit_trail
     where_string = ""
     where_values = []
@@ -741,9 +791,12 @@ class DbaSchemaController < ApplicationController
     if params[:grouping] && params[:grouping] != "none"
       list_audit_trail_grouping(params[:grouping], where_string, where_values, params[:update_area], params[:top_x].to_i)
     else
+      audit_mode_xml = sql_select_one("SELECT Value FROM v$Parameter WHERE Name = 'audit_trail'")['XML'] != nil
+
+      @audit_source = audit_source
       @audits = sql_select_iterator ["\
                      SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
-                     FROM   DBA_Audit_Trail
+                     FROM   #{audit_sql}
                      WHERE  1=1 #{where_string}
                      ORDER BY Timestamp
                     "].concat(where_values)
@@ -757,18 +810,21 @@ class DbaSchemaController < ApplicationController
     @grouping = grouping
     @top_x    = top_x
 
+    @audit_source = audit_source
+
     audits = sql_select_all ["\
                    SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                    FROM   (SELECT TRUNC(Timestamp, '#{grouping}') Begin_Timestamp,
                                   MAX(Timestamp)+1/1440 Max_Timestamp,  -- auf naechste ganze Minute aufgerundet
                                   UserHost, OS_UserName, UserName, Action_Name,
                                   COUNT(*)         Audits
-                                  FROM   DBA_Audit_Trail
+                                  FROM   #{audit_sql}
                                   WHERE  1=1 #{where_string}
                                   GROUP BY TRUNC(Timestamp, '#{grouping}'), UserHost, OS_UserName, UserName, Action_Name
                           )
                    ORDER BY Begin_Timestamp, Audits
                   "].concat(where_values)
+
     def create_new_audit_result_record(audit_detail_record)
       {
                 :begin_timestamp => audit_detail_record.begin_timestamp,
