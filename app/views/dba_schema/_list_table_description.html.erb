@@ -42,7 +42,7 @@ column_options =
   {:caption=> 'Def.',              :data=>proc{|rec| rec.data_default},                        :title=> 'Default'},
   {:caption=> 'Distinct',          :data=>proc{|rec| fn(rec.num_distinct)},                    :title=> 'Number of distinct values in column', :align=>:right},
   {:caption=> 'Nulls',             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=> 'Number of null values in column',     :align=>:right},
-  {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes', :data_title=>proc{|rec| "%t\nSize = #{fn((@attribs[0].num_rows * rec.avg_col_len).to_f/(1024*1024) , 2)} MB"}, :align=>:right},
+  {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes', :data_title=>proc{|rec| "%t\nSize = #{fn((@attribs[0].num_rows * rec.avg_col_len).to_f/(1024*1024) , 2) rescue nil} MB"}, :align=>:right},
   {:caption=> 'Density',           :data=>proc{|rec| fn(rec.density, 4)},                      :title=> 'If a histogram is available on COLUMN_NAME, then this column displays the selectivity of a value that spans fewer than 2 endpoints in the histogram. It does not represent the selectivity of values that span 2 or more endpoints. If a histogram is not available on COLUMN_NAME, then the value of this column is 1/NUM_DISTINCT.',     :align=>:right},
   {:caption=> 'Buckets',           :data=>proc{|rec| link_histogram(fn(rec.num_buckets), rec)},:title=> 'Number of buckets in histogram for the column',     :align=>:right},
   {:caption=> 'Histogram',         :data=>proc{|rec| link_histogram(rec.histogram, rec)},      :title=> 'Indicates existence/type of histogram'},
