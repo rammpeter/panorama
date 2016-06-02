@@ -50,6 +50,22 @@ def link_column_session_info(instance, sid, serialno)
                  )
 end
 
+def link_column_id1id2(rec)
+  my_ajax_link_to("#{rec.id1}, #{rec.id2}",
+                  url_for(:action            => :list_dml_locks,
+                          :max_result_size   => 1000,
+                          :id1               => rec.id1,
+                          :id2               => rec.id2,
+                          :update_area       => @update_area
+                         ),
+                  :title => "Show all records from gv$Lock locking exactly this ID1/ID2\nThis list contains sessions holding locks on the object determined by ID1/ID2 and sessions requesting locks on this object"
+                 )
+end
+
+
+
+
+
 column_options =
   [
     {:caption=>"Root Blocking Session", :data=>proc{|rec| link_column_session_info(rec.root_blocking_instance_number, rec.root_blocking_sid, rec.root_blocking_serialno) }, :title=>t(:dba_list_blocking_dml_locks_root_blocking_session_hint, :default=>'Instance and SID of session triggering the lock-cascade'), :data_title=>proc{|rec| "%t, SerialNo=#{rec.root_blocking_serialno}"} },
@@ -70,7 +86,7 @@ column_options =
     {:caption=>"Wait Sec",              :data=>proc{|rec| formattedNumber(rec.seconds_in_wait)},                    :title=>t(:dba_list_blocking_dml_locks_waiting_seconds_hint, :default=>'Seconds in wait of waiting session'), :align=>"right"},
     {:caption=>"W. Objectname",         :data=>proc{|rec| rec.objectname},                                          :title=>t(:dba_list_blocking_dml_locks_waiting_object_hint, :default=>'Name of waiting object')},
     {:caption=>"LT",                    :data=>proc{|rec| rec.locktype},                                            :title=>t(:dba_list_blocking_dml_locks_waiting_locktype_hint, :default=>'Lock type of waiting session'),                                                       :data_title=>proc{|rec| "%t: #{lock_types(rec.locktype)}"} },
-    {:caption=>"ID1, ID2",              :data=>proc{|rec| "#{rec.id1}, #{rec.id2}"},                                :title=>t(:dba_list_blocking_dml_locks_waiting_id1id2_hint, :default=>'ID2, ID2 of waiting object')},
+    {:caption=>"ID1, ID2",              :data=>proc{|rec| link_column_id1id2(rec)},                                 :title=>t(:dba_list_blocking_dml_locks_waiting_id1id2_hint, :default=>'ID2, ID2 of waiting object')},
     {:caption=>"R",                     :data=>proc{|rec| rec.request},                                             :title=>t(:dba_list_blocking_dml_locks_request_hint, :default=>'Lock mode requested by waiting session'),                                                              :data_title=>proc{|rec| "%t: #{lock_modes(rec.request)}"} },
     {:caption=>"L",                     :data=>proc{|rec| rec.lockmode},                                            :title=>t(:dba_list_blocking_dml_locks_hold_hint, :default=>'Lock mode hold by blocking session'),                                                                 :data_title=>proc{|rec| "%t: #{lock_modes(rec.lockmode)}"} },
     {:caption=>"W. SQL-ID",             :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.sql_child_number, rec.username)}, :title=>t(:dba_list_blocking_dml_locks_sql_id_hint, :default=>'SQL-ID of current statement of waiting session')},

@@ -8,6 +8,20 @@ class DbaController < ApplicationController
     
     @max_result_size = params[:max_result_size].to_i
 
+    where_string =  ''
+    where_values = []
+
+    if params[:id1]
+      where_string << " AND l.ID1 = ?"
+      where_values << params[:id1].to_i
+    end
+
+    if params[:id2]
+      where_string << " AND l.ID2 = ?"
+      where_values << params[:id2].to_i
+    end
+
+
     @dml_locks = sql_select_all(["\
       WITH RawLock AS (SELECT /*+ MATERIALIZE NO_MERGE */ * FROM gv$Lock)
       SELECT /* Panorama-Tool Ramm */ *
@@ -57,10 +71,11 @@ class DbaController < ApplicationController
               -- Bei Request = 3 enthaelt row_wait_obj# zuweilen das vorherige Objekt statt des aktuellen, in dem Falle ist auch die RowID Murks
               LEFT OUTER JOIN DBA_Objects o     ON o.Object_ID = DECODE(s.P2Text, 'object #', s.P2, DECODE(s.Row_Wait_Obj#, -1, NULL, s.Row_Wait_Obj#))  -- Objekt, auf das gewartet wird wenn existiert
               WHERE   s.type          = 'USER'
+              #{where_string}
             )
       #{show_all_locks ? "" : " WHERE LockType NOT IN ('AE', 'PS') "  }  -- Type-Filter ausserhalb des Selects weil sonst auf Exadata/11g utopische Laufzeiten wegen Cartesian Join
       ORDER BY Inst_ID, SID, Locked_Object_Name
-      "])
+      "].concat(where_values))
     @result_size = @dml_locks.length       # Tatsaechliche anzahl Zeilen im Result
 
     # Entfernen der ueberzaehligen Zeilen des Results
@@ -76,9 +91,8 @@ class DbaController < ApplicationController
              Commit# Commit_No
       FROM   DBA_2PC_Pending"
 
-    respond_to do |format|
-      format.js {render :js => "$('#list_locks_area').html('#{j render_to_string :partial=>"list_dml_locks" }');"}
-    end
+
+    render_partial :list_dml_locks
   end # list_dml_locks
 
   def list_blocking_dml_locks
@@ -178,9 +192,7 @@ class DbaController < ApplicationController
       l.blocking_app_desc = explain_application_info(l.blocking_module)
     }
 
-    respond_to do |format|
-      format.js {render :js => "$('#list_locks_area').html('#{j render_to_string :partial=>"list_blocking_dml_locks" }');"}
-    end
+    render_partial :list_blocking_dml_locks
   end
 
   def convert_to_rowid
@@ -260,9 +272,8 @@ class DbaController < ApplicationController
 
     # Entfernen der ueberzaehligen Zeilen des Results
     #@ddl_locks.delete_at(@ddl_locks.length-1) while @ddl_locks.length > @max_result_size
-    respond_to do |format|
-      format.js {render :js => "$('#list_locks_area').html('#{j render_to_string :partial=>"list_ddl_locks" }');"}
-    end
+
+    render_partial :list_ddl_locks
   end # list_ddl_locks
 
   # Extrahieren des PKey und seines Wertes für RowID
