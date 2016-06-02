@@ -11,6 +11,7 @@ column_options =
    {:caption=>"Module",         :data=>proc{|rec| rec.module},          :title=>"Module"},
    {:caption=>"Action",         :data=>proc{|rec| rec.action},          :title=>"Action"},
    {:caption=>"Username",       :data=>proc{|rec| rec.username},        :title=>"Database Username"},
+   {:caption=>"Audit-SID",      :data=>proc{|rec| rec.audsid},          :title=>"Session-ID for auditing (gv$Session.AUDSID). Corresponds with DBA_Audit_Trail.Session_ID or gv$XML_Audit_Trail.Session_ID"},
    {:caption=>"Sh.Proc.",       :data=>proc{|rec| rec.spid},            :title=>"Process ID of database shadow process"},
    {:caption=>"Machine",        :data=>proc{|rec| link_machine_ip_info(rec.machine)}, :title=>"Client machine"},
    {:caption=>"OSUser",         :data=>proc{|rec| rec.osuser},          :title=>"Client OS user"},
