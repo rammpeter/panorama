@@ -206,7 +206,7 @@
   dba_list_blocking_dml_locks_level_hint:                       Hierarchie-Tiefe der Abhängigkeit vom Root-Blocker (1=Root-Blocker selbst)
   dba_list_blocking_dml_locks_link_cascade_hint:                Anzeige der kompletten Kaskade der auslösenden Blocker für diese Session
   dba_list_blocking_dml_locks_link_column_blocking_object_hint: Ermitteln der zugehörigen RowID
-  dba_list_blocking_dml_locks_link_sid_hint:                    Details zur Session
+  dba_list_blocking_dml_locks_link_sid_hint:                    Anzeige detaillierter Informationen zu dieser Session
   dba_list_blocking_dml_locks_request_hint:                     von wartender Session angeforderter Lock-Mode
   dba_list_blocking_dml_locks_root_blocking_session_hint:       Instance und SID der die Blocking-Kaskade auslösende Session
   dba_list_blocking_dml_locks_sql_id_hint:                      SQL-ID des aktuellen Statements der wartenden Session

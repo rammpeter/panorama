@@ -46,7 +46,7 @@ def link_column_session_info(instance, sid, serialno)
                           :serialno          => serialno,
                           :update_area       => @update_area
                          ),
-                  :title => "#{t(:dba_list_blocking_dml_locks_link_sid_hint, :details=>'List details for session')}, SerialNo=#{serialno}"
+                  :title => "#{t(:dba_list_blocking_dml_locks_link_sid_hint, :default=>'List detailed info for this session')}, SerialNo=#{serialno}"
                  )
 end
 
