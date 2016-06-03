@@ -340,7 +340,7 @@ class DbaController < ApplicationController
     end
     raise "Keine Daten gefunden für SQL: #{pkey_sql}" if pkey_vals.length == 0
 
-    result = "Tabelle #{table_name}, PKey (#{pkey_cols}) = '#{pkey_vals[0].line}'"
+    result = "#{t(:table, :default=>'table')} #{table_name}, PKey (#{pkey_cols}) = '#{pkey_vals[0].line}'"
 
     respond_to do |format|
       format.js {render :js => "$('##{params[:update_area]}').html('#{j result }');"}

@@ -30,6 +30,7 @@
   show:                                                     Anzeigen
   sorted_by:                                                Sortiert nach
   sqlid_optional_filter_hint:                               Einschränkung/Filterung auf konkrete SQL-ID (optional,  Wildcards (%,_) sind erlaubt)
+  table:                                                    Tabelle
   tables:                                                   Tabellen
   time_selection_start_caption:                             Start
   time_selection_start_hint:                                Start des Betrachtungszeitraumes im Format
