@@ -50,18 +50,23 @@
   def link_column_object(rec)
     update_area = "list_session_statistic_single_record_convert_rowid_#{rec.hash.abs}"
     if rec["current_row_no"] && rec.current_file_no && rec.current_file_no>0 && rec.current_block_no && rec.current_row_no # nach Oracle 11.2 und auch belegt
-      my_ajax_link_to("File#=#{rec.current_file_no}, Block#=#{rec.current_block_no}, Row#=#{rec.current_row_no}",
-                        url_for(:controller       => :dba,
-                                :action           => :convert_to_rowid,
-                                :update_area      => update_area,
-                                :waitingforobject => rec.root_blocking_object,
-                                :data_object_id   => rec.data_object_id,
-                                :row_wait_file_no => rec.current_file_no,
-                                :row_wait_block_no => rec.current_block_no,
-                                :row_wait_row_no  => rec.current_row_no
-                        ),
-                        :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
-           )+"<div id=\"#{update_area}\"></div>".html_safe
+      caption = "File#=#{rec.current_file_no}, Block#=#{rec.current_block_no}, Row#=#{rec.current_row_no}"
+      if rec.data_object_id.nil?
+        caption
+      else
+        my_ajax_link_to(caption,
+                          url_for(:controller       => :dba,
+                                  :action           => :convert_to_rowid,
+                                  :update_area      => update_area,
+                                  :waitingforobject => rec.root_blocking_object,
+                                  :data_object_id   => rec.data_object_id,
+                                  :row_wait_file_no => rec.current_file_no,
+                                  :row_wait_block_no => rec.current_block_no,
+                                  :row_wait_row_no  => rec.current_row_no
+                          ),
+                          :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
+             )+"<div id=\"#{update_area}\"></div>".html_safe
+      end
     else
       ""
     end
