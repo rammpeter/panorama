@@ -139,8 +139,7 @@ class EnvController < ApplicationController
         sql_select_all "SELECT /* Panorama Tool Ramm */ * FROM X$#{table_name_suffix} WHERE RowNum < 1"
         return true
       rescue Exception => e
-        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'User %{user} has no right to read on X$%{table_name_suffix} ! Therefore a very small number of functions of Panorama is not usable!')}<br/>"
-        msg << "#{e.message}<br/>"
+        msg << "<div>#{t(:env_set_database_xmem_line1, :user=>get_current_database[:user], :table_name_suffix=>table_name_suffix, :default=>'DB-User %{user} has no right to read on X$%{table_name_suffix} ! Therefore a very small number of functions of Panorama is not usable!')}<br/>"
         msg << "<a href='#' onclick=\"jQuery('#xbh_workaround').show(); return false;\">#{t(:moeglicher, :default=>'possible')} workaround:</a><br/>"
         msg << "<div id='xbh_workaround' style='display:none; background-color: lightyellow; padding: 20px;'>"
         msg << "#{t(:env_set_database_xmem_line2, :default=>'Alternative 1: Connect with role SYSDABA')}<br/>"
@@ -151,6 +150,15 @@ class EnvController < ApplicationController
         msg << "</div>"
         msg << "</div>"
         return false
+      end
+    end
+
+    def select_any_dictionary?(msg)
+      if sql_select_one("SELECT COUNT(*) FROM Session_Privs WHERE Privilege = 'SELECT ANY DICTIONARY'") == 0
+        msg << t(:env_set_database_select_any_dictionary_msg, :user=>get_current_database[:user], :default=>"DB-User %{user} doesn't have the grant 'SELECT ANY DICTIONARY'! Many functions of Panorama may be not usable!<br>")
+        false
+      else
+        true
       end
     end
 
@@ -292,6 +300,7 @@ class EnvController < ApplicationController
       </div>"
     end
 
+    @dictionary_access_problem = true unless select_any_dictionary?(@dictionary_access_msg)
     @dictionary_access_problem = true unless x_memory_table_accessible?("BH", @dictionary_access_msg )
 
     write_connection_to_last_logins

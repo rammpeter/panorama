@@ -54,7 +54,15 @@
   active_session_history_last_occurrence_caption:           Letztes Auftreten
   active_session_history_last_occurrence_hint:              Letztes Auftreten eines sample-record in Gruppierung
 
-  active_session_history_list_blocking_locks_historic_total_wait_caption: Summe Anzahl Sekunden die mittelbar und unmittelbar geblockte Sessions bereits im Wartezustand warten
+  active_session_history_list_blocking_locks_historic_sample_wait_caption: |-
+    Zeit in Sekunden die mittelbar und unmittelbar geblockte Sessions warteten innerhalb des betrachteten Zeitraumes
+    Gewichteter Wert berechnet aus der Anzahl Samples in der Active Session History
+
+  active_session_history_list_blocking_locks_historic_total_wait_caption: |-
+    Summe Anzahl Sekunden die mittelbar und unmittelbar geblockte Sessions bereits im Wartezustand warten.
+    Maximaler Wert zu einem Zeitpunkt des betrachteten Zeitraumes
+    Aus v$Session.Wait_Time+Time_waited
+    Kann kumulierte Werte enthalten von vor dem Beginn des betrachteten Zeitraumes
 
   active_session_history_list_groupfilter_delete_filter_hint: Refresh der Anzeige ohne diesen Filter
   active_session_history_list_groupfilter_refresh_hint:     Aktualisieren der Anzeige mit den geänderten Parametern
@@ -68,12 +76,13 @@
   active_session_history_list_blocking_locks_historic_blocking_sqlid_hint:    SQL-ID der blockenden Session
   active_session_history_list_blocking_locks_historic_blocking_user_hint:     User-Name der blockenden Session"
   active_session_history_list_blocking_locks_historic_caption:                Blocking Locks zwischen %{time_selection_start} und %{time_selection_end} hierarchisch gruppiert ausgehend von Root-Blockern
+  active_session_history_list_blocking_locks_historic_first_occur_hint:       Zeitpunkt des ersten Auftretens des Locks (gerundet auf 1 bzw. 10 Sekunden)
   active_session_history_list_blocking_locks_historic_sessions_indirect_hint: Anzahl unmittelbar und mittelbar blockierter Sessions durch diesen Blocker (< x >) oder konkrete geblockte Session wenn nur eine
   active_session_history_list_blocking_locks_historic_detail_instance_hint:   Instance der geblockten Session
+  active_session_history_list_blocking_locks_historic_last_occur_hint:        Zeitpunkt des letzten Auftretens des Locks (gerundet auf 1 bzw. 10 Sekunden)
   active_session_history_list_blocking_locks_historic_link_blocked_hint:      Anzeige der durch diese blocking Session geblockten Sessions
   active_session_history_list_blocking_locks_historic_link_sid_hint:          Anzeige der Historie der blocking Session in Active Session History
   active_session_history_list_blocking_locks_historic_sessions_direct_hint:   Anzahl unmittelbar durch diesen Blocker blockierter Sessions (< x >) oder konkrete geblockte Session wenn nur eine
-  active_session_history_list_blocking_locks_historic_snapshot_hint:          Zeitstempel der Aufzeichnung des Locks (gerundet auf 1 bzw. 10 Sekunden)
   active_session_history_list_blocking_locks_historic_waiting_event_hint:     Wait-Event der wartenden Session
   active_session_history_list_blocking_locks_historic_waiting_instance_hint:  Instance der wartenden Session
   active_session_history_list_blocking_locks_historic_waiting_sqlid_hint:     Aktuell ausgeführtes SQL der wartenden Session
@@ -1155,7 +1164,8 @@
   env_handling_hint_3:                                      Such-Filter, optionale Diagramm-Darstellung sowie Excel-Export sind verfügbar über Kontext-Menü (rechter Mouse-Button)
   env_licensing_header:                                     Lizensierung
 
-  env_set_database_xmem_line1:                              User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind sehr wenige Funktionen von Panorama nicht nutzbar!
+  env_set_database_select_any_dictionary_msg:               Dem DB-User %{user} fehlt das Recht 'SELECT ANY DICTIONARY'!<br>Viele FUnktionen von Panorama werden evtl. nicht nutzbar sein!<br>
+  env_set_database_xmem_line1:                              DB-User %{user} hat kein Leserecht auf X$%{table_name_suffix} ! Damit sind sehr wenige Funktionen von Panorama nicht nutzbar!
   env_set_database_xmem_line2: |-
     Variante 1: Anmelden mit Rolle SYSDBA
   env_set_database_xmem_line3: |-
