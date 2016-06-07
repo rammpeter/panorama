@@ -171,6 +171,28 @@ public
     end
   end
 
+    # Ersetzung in TO_CHAR / TO_DATE in SQL
+  def sql_datetime_date_mask
+    case get_locale
+      when "de" then "DD.MM.YYYY"
+      when "en" then "YYYY-MM-DD"
+      else "DD.MM.YYYY" # Deutsche Variante als default
+    end
+  end
+
+  # Entscheiden auf Grund der Länge der Eingabe, welche Maske hier zu verwenden ist
+  def sql_datetime_mask(datetime_string)
+    return "sql_datetime_mask: Parameter=nil" if datetime_string.nil?     # Maske nicht verwendbar
+    case datetime_string.length
+      when 10 then sql_datetime_date_mask
+      when 16 then sql_datetime_minute_mask
+      when 19 then sql_datetime_second_mask
+      else
+        raise "sql_datetime_mask: No SQL datetime mask found for '#{datetime_string}'"
+    end
+
+  end
+
   # Menschenlesbare Ausgabe in Hints etc
   def human_datetime_minute_mask
     case get_locale

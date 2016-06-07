@@ -19,7 +19,8 @@
   <div class="float_left" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
     <%= t(:grouping, :default=>'Grouping')%>
       <select name="groupby">
-        <% session_statistics_key_rules.each do |key, value| %>
+        <% session_statistics_key_rules.keys.sort.each do |key| %>
+            value = session_statistics_key_rules[key]
           <%=  "<option value='#{key}' #{"selected='selected'" if key=="Event"}>#{key}</option>".html_safe %>
         <% end %>
       </select>
