@@ -71,29 +71,28 @@ module ActiveSessionHistoryHelper
 
   # Ermitteln des SQL für NOT NULL oder NULL
   def groupfilter_value(key, value=nil)
-    unless @groupfilter_values_hash
-      @groupfilter_values_hash = {}
-      @groupfilter_values_hash["DBID"]                  = {:sql => "s.DBID",                          :hide_content => true}
-      @groupfilter_values_hash["Min_Snap_ID"]           = {:sql => "s.snap_id >= ?",                  :hide_content => true, :already_bound => true  }
-      @groupfilter_values_hash["Max_Snap_ID"]           = {:sql => "s.snap_id <= ?",                  :hide_content => true, :already_bound => true  }
-      @groupfilter_values_hash["Plan-Line-ID"]          = {:sql => "s.SQL_Plan_Line_ID" }
-      @groupfilter_values_hash["Plan-Hash-Value"]       = {:sql => "s.SQL_Plan_Hash_Value"}
-      @groupfilter_values_hash["Session-ID"]            = {:sql => "s.Session_ID"}
-      @groupfilter_values_hash["SerialNo"]              = {:sql => "s.Session_Serial_No"}
-      @groupfilter_values_hash["time_selection_start"]  = {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
-      @groupfilter_values_hash["time_selection_end"]    = {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')", :already_bound => true }
-      @groupfilter_values_hash["Idle_Wait1"]            = {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
-      @groupfilter_values_hash["Owner"]                 = {:sql => "UPPER(o.Owner)"}
-      @groupfilter_values_hash["Object_Name"]           = {:sql => "o.Object_Name"}
-      @groupfilter_values_hash["SubObject_Name"]        = {:sql => "o.SubObject_Name"}
-      @groupfilter_values_hash["Current_Obj_No"]        = {:sql => "s.Current_Obj_No"}
-      @groupfilter_values_hash["User-ID"]               = {:sql => "s.User_ID"}
-      @groupfilter_values_hash["Additional Filter"]     = {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||o.Object_Name||s.Program#{get_db_version >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
-
+    retval = case key
+      when "Blocking_Session"         then {:sql => "s.Blocking_Session"}
+      when "Blocking_Session_Status"  then {:sql => "s.Blocking_Session_Status"}
+      when "DBID"                     then {:sql => "s.DBID",                          :hide_content => true}
+      when "Min_Snap_ID"              then {:sql => "s.snap_id >= ?",                  :hide_content => true, :already_bound => true  }
+      when "Max_Snap_ID"              then {:sql => "s.snap_id <= ?",                  :hide_content => true, :already_bound => true  }
+      when "Plan-Line-ID"             then {:sql => "s.SQL_Plan_Line_ID" }
+      when "Plan-Hash-Value"          then {:sql => "s.SQL_Plan_Hash_Value"}
+      when "Session-ID"               then {:sql => "s.Session_ID"}
+      when "SerialNo"                 then {:sql => "s.Session_Serial_No"}
+      when "time_selection_start"     then {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+      when "time_selection_end"       then {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+      when "Idle_Wait1"               then {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
+      when "Owner"                    then {:sql => "UPPER(o.Owner)"}
+      when "Object_Name"              then {:sql => "o.Object_Name"}
+      when "SubObject_Name"           then {:sql => "o.SubObject_Name"}
+      when "Current_Obj_No"           then {:sql => "s.Current_Obj_No"}
+      when "User-ID"                  then {:sql => "s.User_ID"}
+      when "Additional Filter"        then {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||o.Object_Name||s.Program#{get_db_version >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
+      else                              { :sql => session_statistics_key_rule(key)[:sql] }                              # 2. Versuch aus Liste der Gruppierungskriterien
     end
-
-    retval = @groupfilter_values_hash[key]                                      # 1. Versuch aus Liste der zusätzlich definierten
-    retval = { :sql => session_statistics_key_rule(key)[:sql] } unless retval   # 2. Versuch aus Liste der Gruppierungskriterien
+    
     raise "groupfilter_value: unknown key '#{key}'" unless retval
     retval = retval.clone                                                       # Entkoppeln von Quelle so dass Änderungen lokal bleiben
     unless retval[:already_bound]                                               # Muss Bindung noch hinzukommen?
@@ -122,6 +121,7 @@ module ActiveSessionHistoryHelper
 
     @groupfilter.each do |key,value|
       @groupfilter.delete(key) if value.nil? || key == 'NULL'   # '' zulassen, da dies NULL signalisiert, Dummy-Werte ausblenden
+      @groupfilter[key] = value.strip if key == 'time_selection_start' || key == 'time_selection_end'                   # Whitespaces entfernen vom Rand des Zeitstempels
     end
 
     @groupfilter.each {|key,value|
