@@ -196,7 +196,6 @@ class DbaController < ApplicationController
   end
 
   def convert_to_rowid
-    #    @waitingforobject = params[:waitingforobject] # schema.objectname
     @data_object_id = params[:data_object_id]
 
     @rowid = sql_select_one ["SELECT RowIDTOChar(DBMS_RowID.RowID_Create(1, ?, ?, ?, ?)) FROM DUAL",

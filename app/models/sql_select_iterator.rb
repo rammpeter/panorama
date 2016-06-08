@@ -93,7 +93,10 @@ class SqlSelectIterator
       bind_text << "#{b[0].name} = #{b[1]}\n"
     end
 
-    raise "Error while executing SQL:\n\n#{e.message}\n\n#{bind_text.length > 0 ? "Bind-Values:\n#{bind_text}" : ''}"
+    # Ensure stacktrace of first exception is show
+    new_ex = Exception.new("Error while executing SQL:\n\n#{e.message}\n\n#{bind_text.length > 0 ? "Bind-Values:\n#{bind_text}" : ''}")
+    new_ex.set_backtrace(e.backtrace)
+    raise new_ex
   end
 
 end

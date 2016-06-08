@@ -103,6 +103,7 @@
   active_session_history_list_blocking_locks_historic_last_occur_hint:        Zeitpunkt des letzten Auftretens des Locks (gerundet auf 1 bzw. 10 Sekunden)
   active_session_history_list_blocking_locks_historic_link_blocked_hint:      Anzeige der durch diese blocking Session geblockten Sessions
   active_session_history_list_blocking_locks_historic_link_sid_hint:          Anzeige der Historie der blocking Session in Active Session History
+  active_session_history_list_blocking_locks_historic_samples_direct_hint:    Anzahl Records in Active Session History mit Blockade anderer Sessions durch diese Session
   active_session_history_list_blocking_locks_historic_sessions_direct_hint:   Anzahl unmittelbar durch diesen Blocker blockierter Sessions (< x >) oder konkrete geblockte Session wenn nur eine
   active_session_history_list_blocking_locks_historic_waiting_event_hint:     Wait-Event der direkt geblockten Sessions (oder Anzahl wenn mehrere)
   active_session_history_list_blocking_locks_historic_waiting_instance_hint:  Instance der direkt geblockten Sessions (oder Anzahl wenn mehrere)
@@ -156,7 +157,12 @@
   application_helper_ts_expected:                           Erwartet wird
   application_helper_usage_error:                           Exception beim Schreiben in
 
+  ajax_helper_link_file_block_row_hint: |-
+    Berechnung der RowID für file/block/row.
+    Dies erlaubt die Ermittlung des Wertes des Primary Key im nächsten Schritt
+
   ajax_helper_link_sql_id_title_prefix:                     Anzeige der Details in SGA für
+  ajax_helper_link_table_structure_hint:                    Anzeige der Struktur und Details für
   ajax_helper_link_wait_params_hint:                        Anzeige der Details zu den Wait-Parametern des Events
 
   dba_history_list_segment_stat_historic_sum_link_sql_hint: Anzeige der SQL-Statements des Zeitraums aus DBA_Hist_SQLStat mit Nutzung des Objekts im Explain Plan

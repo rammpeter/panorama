@@ -199,11 +199,35 @@ module AjaxHelper
                :segment_name => segment_name,
                :update_area  => update_area
               ),
-      :title=> "Show object structure and details for #{owner}.#{segment_name}")
+      :title=>"#{t(:ajax_helper_link_table_structure_hint, :default=>"Show object structure and details for")} #{owner}.#{segment_name}"
+    )
+  end
+
+  def link_file_block_row(file_no, block_no, row_no, data_object_id, update_area, linefeed_prefix = false)
+    if file_no && block_no && row_no && (file_no.to_i > 0 || block_no.to_i > 0)
+      value = "#{'<br>' if linefeed_prefix}File#=#{file_no}, Block#=#{block_no}, Row#=#{row_no}".html_safe
+      if data_object_id
+        my_ajax_link_to(value,
+                        url_for(:controller         => :dba,
+                                :action             => :convert_to_rowid,
+                                :update_area        => update_area,
+                                :data_object_id     => data_object_id,
+                                :row_wait_file_no   => file_no,
+                                :row_wait_block_no  => block_no,
+                                :row_wait_row_no    => row_no
+                        ),
+                        :title=>t(:ajax_helper_link_file_block_row_hint, :default=>"Calculate associated rowid for file/block/row.\nThis allows determination of primary key value in next step.")
+        )+"<div id=\"#{update_area}\"></div>".html_safe
+      else
+        value
+      end
+    else
+      ''
+    end
   end
 
 
-private
+  private
   # Aufbereiten der HTML-Options für Ajax
   def prepare_html_options(html_options)
     html_options[:remote] = true              # Ajax-Call verwenden

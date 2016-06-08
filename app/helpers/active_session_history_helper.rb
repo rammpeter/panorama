@@ -72,24 +72,26 @@ module ActiveSessionHistoryHelper
   # Ermitteln des SQL für NOT NULL oder NULL
   def groupfilter_value(key, value=nil)
     retval = case key
-      when "Blocking_Session"         then {:sql => "s.Blocking_Session"}
-      when "Blocking_Session_Status"  then {:sql => "s.Blocking_Session_Status"}
-      when "DBID"                     then {:sql => "s.DBID",                          :hide_content => true}
-      when "Min_Snap_ID"              then {:sql => "s.snap_id >= ?",                  :hide_content => true, :already_bound => true  }
-      when "Max_Snap_ID"              then {:sql => "s.snap_id <= ?",                  :hide_content => true, :already_bound => true  }
-      when "Plan-Line-ID"             then {:sql => "s.SQL_Plan_Line_ID" }
-      when "Plan-Hash-Value"          then {:sql => "s.SQL_Plan_Hash_Value"}
-      when "Session-ID"               then {:sql => "s.Session_ID"}
-      when "SerialNo"                 then {:sql => "s.Session_Serial_No"}
-      when "time_selection_start"     then {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
-      when "time_selection_end"       then {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
-      when "Idle_Wait1"               then {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
-      when "Owner"                    then {:sql => "UPPER(o.Owner)"}
-      when "Object_Name"              then {:sql => "o.Object_Name"}
-      when "SubObject_Name"           then {:sql => "o.SubObject_Name"}
-      when "Current_Obj_No"           then {:sql => "s.Current_Obj_No"}
-      when "User-ID"                  then {:sql => "s.User_ID"}
-      when "Additional Filter"        then {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||o.Object_Name||s.Program#{get_db_version >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
+      when 'Blocking_Instance'          then {:sql => "s.Blocking_Inst_ID"}
+      when "Blocking_Session"           then {:sql => "s.Blocking_Session"}
+      when 'Blocking_Session_Serial_No' then {:sql => "s.Blocking_Session_Serial_No"}
+      when "Blocking_Session_Status"    then {:sql => "s.Blocking_Session_Status"}
+      when "DBID"                       then {:sql => "s.DBID",                          :hide_content => true}
+      when "Min_Snap_ID"                then {:sql => "s.snap_id >= ?",                  :hide_content => true, :already_bound => true  }
+      when "Max_Snap_ID"                then {:sql => "s.snap_id <= ?",                  :hide_content => true, :already_bound => true  }
+      when "Plan-Line-ID"               then {:sql => "s.SQL_Plan_Line_ID" }
+      when "Plan-Hash-Value"            then {:sql => "s.SQL_Plan_Hash_Value"}
+      when "Session-ID"                 then {:sql => "s.Session_ID"}
+      when "SerialNo"                   then {:sql => "s.Session_Serial_No"}
+      when "time_selection_start"       then {:sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+      when "time_selection_end"         then {:sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+      when "Idle_Wait1"                 then {:sql => "NVL(s.Event, s.Session_State) != ?", :hide_content =>true, :already_bound => true}
+      when "Owner"                      then {:sql => "UPPER(o.Owner)"}
+      when "Object_Name"                then {:sql => "o.Object_Name"}
+      when "SubObject_Name"             then {:sql => "o.SubObject_Name"}
+      when "Current_Obj_No"             then {:sql => "s.Current_Obj_No"}
+      when "User-ID"                    then {:sql => "s.User_ID"}
+      when "Additional Filter"          then {:sql => "UPPER(u.UserName||s.Session_ID||s.Module||s.Action||o.Object_Name||s.Program#{get_db_version >= '11.2' ? '|| s.Machine' : ''}) LIKE UPPER('%'||?||'%')", :already_bound => true }  # Such-Filter
       else                              { :sql => session_statistics_key_rule(key)[:sql] }                              # 2. Versuch aus Liste der Gruppierungskriterien
     end
     
