@@ -240,7 +240,13 @@ Usable with Oracle 11g and above only.'),
 This would ensure that you do the more expensive TABLE ACCESS BY ROWID only if that table row matches all your access conditions checked by the index.
 This selection considers current SGA'),
             :sql=> "
-              SELECT *
+              SELECT Table_Owner, Table_Name, Index_Name,
+                     Elapsed_Secs               \"Elapsed time SQL total (sec.)\",
+                     Ash_Seconds_Tab            \"Table access time ASH (sec.)\",
+                     SQL_ID_Max_Elapsed_Secs    \"SQL-ID with max. total elapsed\",
+                     SQL_ID_Max_Ash_Seconds_Tab \"SQL-ID with max. ASH per table\",
+                     Index_Access               \"Access criteria on index\",
+                     Table_Filter               \"Filter criteria on table\"
               FROM   (
                       SELECT Table_Owner, Table_Name, Index_Name,
                              SUM(Elapsed_Secs) Elapsed_Secs, SUM(Ash_Seconds_Tab) Ash_Seconds_Tab,
