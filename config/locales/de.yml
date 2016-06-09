@@ -1171,6 +1171,19 @@
   dragnet_helper_126_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
   dragnet_helper_126_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
 
+  dragnet_helper_127_desc: |-
+    Wenn in einem SQL eine Tabelle zusätzliche Filterbedingungen hat die nicht vom Index abgedeckt werden dann kann überlegt werden, den Index um diese Filterbedingungen zu erweitern.
+    Dies sichert dass der teuerere TABLE ACCESS BY ROWID nur ausgeführt wird, wenn die Zeile allen Filterbedingungen entspricht, die durch den Index geprüft werden.
+    Diese Abfrage betrachtet die aktuelle SGA.
+  dragnet_helper_127_name: |-
+    Möglicherweise aufwändiger TABLE ACCESS BY INDEX ROWID mit zusätzlichen Filterbedingungen auf der Tabelle
+  dragnet_helper_127_param_1_hint:                           Minimale elapsed seconds die ein SQL in gv$SQL haben muss um in Abfrage berücksichtigt zu werden
+  dragnet_helper_127_param_1_name:                           Minimale elapsed seconds des SQL in der SGA um in Abfrage berücksichtigt zu werden
+  dragnet_helper_127_param_2_hint:                           Minimale elapsed seconds über alle SQLs in der SGA je zugegriffenen Tabelle um im Ergebnis gezeigt zu werden
+  dragnet_helper_127_param_2_name:                           Minimale elapsed seconds über alle SQLs in der SGA je zugegriffenen Tabelle
+  dragnet_helper_127_param_3_hint: |-
+    Minimale elapsed seconds in GV$Active_Session_History für TABLE ACCESS BY INDEX ROWID auf der betrachteten Tabelle um in Selektion aufgenommen zu werden. Wert=0 heißt: Anzeige dieses Tabellenzugriffs auch wenn keine Zeilen in Active Session History für diesen Zugriff (mehr) existieren
+  dragnet_helper_127_param_3_name:                           Minimale elapsed seconds in Active Session History für TABLE ACCESS BY INDEX ROWID
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

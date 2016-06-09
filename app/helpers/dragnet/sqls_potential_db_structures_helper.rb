@@ -234,6 +234,62 @@ Usable with Oracle 11g and above only.'),
                          {:name=> 'Maximum number of rows in table', :size=>14, :default=>100000, :title=> 'Maximum number of rows in table. For smaller table it is mostly no matter to have additional indexes.'},
                          {:name=> 'Minimum number of seconds in wait', :size=>8, :default=>100, :title=> 'Mimimum number of seconds in wait for table access by rowid on this table to be worth to consider.'}]
         },
+        {
+            :name  => t(:dragnet_helper_127_name, :default=>'Possibly expensive TABLE ACCESS BY INDEX ROWID with additional filter predicates on table'),
+            :desc  => t(:dragnet_helper_127_desc, :default=>'If in a SQL a table has additional filter conditions that are not covered by the used index you may consider to extend the index by these filter conditions.
+This would ensure that you do the more expensive TABLE ACCESS BY ROWID only if that table row matches all your access conditions checked by the index.
+This selection considers current SGA'),
+            :sql=> "
+              SELECT *
+              FROM   (
+                      SELECT Table_Owner, Table_Name, Index_Name,
+                             SUM(Elapsed_Secs) Elapsed_Secs, SUM(Ash_Seconds_Tab) Ash_Seconds_Tab,
+                             MAX(SQL_ID) KEEP (DENSE_RANK LAST ORDER BY Elapsed_Secs) SQL_ID_Max_Elapsed_Secs,
+                             MAX(SQL_ID) KEEP (DENSE_RANK LAST ORDER BY Ash_Seconds_Tab) SQL_ID_Max_Ash_Seconds_Tab,
+                             Index_Access, Table_Filter
+                      FROM   (
+                              SELECT ind.Inst_ID, ind.SQL_ID, ind.Plan_Hash_Value, ind.Child_Number, ind.ID Ind_ID, tab.ID tab_ID, tab.Table_Owner, tab.Table_Name, ind.Index_Name,
+                                     ROUND(s.Elapsed_Time/1000000) Elapsed_Secs, ash.ash_Seconds_Tab,
+                                     ind.Access_Predicates Index_Access, tab.Filter_Predicates Table_Filter
+                              FROM   (
+                                      SELECT /*+ NO_MERGE */  Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, ID, Object_Owner Index_Owner, Object_Name Index_Name, Access_Predicates
+                                      FROM   gv$SQL_Plan
+                                      WHERE  Access_Predicates IS NOT NULL
+                                      AND    Operation LIKE 'INDEX%'
+                                      AND    Object_Owner NOT IN ('SYS')
+                                     ) ind
+                              JOIN   DBA_Indexes i ON i.Owner = ind.Index_Owner AND i.Index_Name = ind.Index_Name
+                              JOIN   (
+                                      SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, ID, Object_Owner Table_Owner, Object_Name Table_Name, Filter_Predicates
+                                      FROM   gv$SQL_Plan
+                                      WHERE  Filter_Predicates IS NOT NULL
+                                      AND    Operation LIKE 'TABLE ACCESS%'
+                                      AND    Options LIKE 'BY INDEX ROWID%'
+                                      AND    Object_Owner NOT IN ('SYS')
+                                     ) tab ON tab.Inst_ID = ind.Inst_ID AND tab.SQL_ID = ind.SQL_ID AND tab.Plan_Hash_Value = ind.Plan_Hash_Value AND tab.Child_Number = ind.Child_Number AND
+                                              tab.Table_Owner = i.Table_Owner AND tab.Table_Name = i.Table_Name AND tab.ID < ind.ID -- Index kommt unter table beim index-Zugriff
+                              JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, Elapsed_Time
+                                      FROM   gv$SQL
+                                      WHERE  Elapsed_Time > ? * 1000000
+                                     )s ON S.INST_ID = ind.Inst_ID AND s.SQL_ID = ind.SQL_ID AND s.Plan_Hash_Value = ind.Plan_Hash_Value AND s.Child_Number = ind.Child_Number
+                              LEFT OUTER JOIN ( -- Ash may be removed after short time but SQL remains in SGA
+                                      SELECT /*+ NO_MERGE */ inst_ID, SQL_ID, SQL_Plan_Hash_Value, SQL_Child_Number, SQL_Plan_Line_ID, COUNT(*) Ash_Seconds_Tab
+                                      FROM   gv$Active_Session_History
+                                      WHERE  SQL_Plan_Hash_Value != 0 -- kein SQL
+                                      GROUP BY inst_ID, SQL_ID, SQL_Plan_Hash_Value, SQL_Child_Number, SQL_Plan_Line_ID
+                                     ) ash ON ash.INST_ID = ind.Inst_ID AND ash.SQL_ID = ind.SQL_ID AND ash.SQL_Plan_Hash_Value = ind.Plan_Hash_Value AND ash.SQL_Child_Number = ind.Child_Number AND ash.SQL_Plan_Line_ID = tab.ID
+                             )
+                      GROUP BY Table_Owner, Table_Name, Index_Name, Index_Access, Table_Filter
+                     )
+              WHERE  Elapsed_Secs >= ?
+              AND    NVL(Ash_Seconds_Tab, ?) >= 0
+              ORDER BY Elapsed_Secs + NVL(Ash_Seconds_Tab, 0) DESC
+            ",
+            :parameter=>[{:name=>t(:dragnet_helper_127_param_1_name, :default=>'Minimum elapsed seconds of SQL in SGA to be considered in selection'), :size=>8, :default=>10, :title=>t(:dragnet_helper_127_param_1_hint, :default=>'Minimum amount of elapsed seconds an SQL must have in GV$SQL to be considered in this selection') },
+                         {:name=>t(:dragnet_helper_127_param_2_name, :default=>'Minimum elapsed seconds as sum over all SQLs in SGA per accessed table'), :size=>8, :default=>100, :title=>t(:dragnet_helper_127_param_2_hint, :default=>'Minimum amount of elapsed seconds of all SQLs in SGA that are accessing the considered table to be shown in this selection') },
+                         {:name=>t(:dragnet_helper_127_param_3_name, :default=>'Minimum elapsed seconds in active session history for TABLE ACCESS BY ROWID'), :size=>8, :default=>0, :title=>t(:dragnet_helper_127_param_3_hint, :default=>"Minimum amount of elapsed seconds in GV$Active_Session_History of for TABLE ACCESS BY ROWID on the considered table to be shown in this selection. Value=0 means: show this table access also if there are no records in active session history for this access.") },
+            ]
+        },
     ]
   end # sqls_potential_db_structures
 
