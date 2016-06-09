@@ -117,7 +117,9 @@
   active_session_history_list_session_statistic_historic_grouping_header: Verdichtung nach
   active_session_history_list_session_statistic_historic_grouping_link_hint: Anzeige der unterschiedlichen
 
-  active_session_history_list_session_statistic_historic_single_record_caption:           Einzel Snapshot-Records für
+  active_session_history_list_session_statistic_historic_single_record_caption:             Einzel Snapshot-Records für
+  active_session_history_list_session_statistic_historic_single_record_group_no_hint:       Keine (Einzel-Records)
+  active_session_history_list_session_statistic_historic_single_record_group_second10_hint: 10 Sekunden
   active_session_history_list_session_statistic_historic_single_record_object_hint: |-
     Aktuell referenziertes Objekt aus gv$Session.Row_Wait_Obj#. Wenn p2Text="object#", dann wird diese genutzt anstatt row_wait_obj#. Achtung: Kann auch Objekt der vorherigen Aktion enthalten
   active_session_history_list_session_statistic_historic_single_record_plsql_hint: |-

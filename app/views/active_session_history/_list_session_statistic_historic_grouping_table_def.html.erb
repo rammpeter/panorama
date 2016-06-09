@@ -2,8 +2,13 @@
 
 <script type="text/javascript">
 
-  function call_ajax_single_rows<%=@update_area%>(group_by_value, record_count){
+  function call_ajax_single_rows<%=@update_area%>(min_snap_id, max_snap_id, group_by_value, record_count){
     var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>
+
+    if (min_snap_id)
+      json_data['groupfilter']['Min_Snap_ID'] = min_snap_id;
+    if (max_snap_id)
+      json_data['groupfilter']['Max_Snap_ID'] = max_snap_id;
 
     json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
     json_data['record_count'] = record_count;
@@ -53,8 +58,18 @@
   def decorator_single_rows
     # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
     "
+      var min_snap_id = dataContext[slickGrid.getColumnByName('min_snap_id').id]
+      if (!min_snap_id){
+        min_snap_id = 'null';
+      }
+
+      var max_snap_id = dataContext[slickGrid.getColumnByName('max_snap_id').id]
+      if (!max_snap_id){
+        max_snap_id = 'null';
+      }
+
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"}\" '+
-        'onclick=\"call_ajax_single_rows#{@update_area}('+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
+        'onclick=\"call_ajax_single_rows#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
          '>'+cell_value+'</a>'
     "
   end

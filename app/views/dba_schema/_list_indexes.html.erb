@@ -43,7 +43,7 @@
                    {:caption=> 'Size (MB)',        :data=>proc{|rec| fn(rec.size_mb, 2)},              :title=> 'Current object size in megabytes', :align=>:right},
                    {:caption=> 'B',                :data=>proc{|rec| fn(rec.blevel)},                  :title=> 'B-tree level', :align=>:right},
                    {:caption=> 'Leaf blocks',      :data=>proc{|rec| fn(rec.leaf_blocks)},             :title=> 'Number of leaf blocks in the index calculated by last analyze run', :align=>:right},
-                   {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},           :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, :data_title=>proc{|rec| "%t, #{fn((rec.num_rows.to_f/rec.distinct_keys rescue nil), 1)} rows per key" }},
+                   {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},           :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, :data_title=>proc{|rec| "%t, #{fn(rec.num_rows.to_f/rec.distinct_keys, 1) rescue nil} rows per key" }},
                    {:caption=> 'Avg. leaf blocks / key', :data=>proc{|rec| fn(rec.avg_leaf_blocks_per_key)}, :title=> 'The average number of leaf blocks per key calculated by last analyze run', :align=>:right},
                    {:caption=> 'Avg. data blocks / key', :data=>proc{|rec| fn(rec.avg_data_blocks_per_key)}, :title=> 'The average number of data blocks per key calculated by last analyze run', :align=>:right},
                    {:caption=> 'Cluster.',         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=> 'A measurement of the amount of (dis)order of the table this index is for', :align=>:right},

@@ -174,11 +174,13 @@ class ActiveSessionHistoryController < ApplicationController
     end
 
     case @time_groupby.to_sym
-      when :single then group_by_value = "s.Sample_ID, s.Instance_Number, s.Session_ID"         # Direkte Anzeige der Snapshots
-      when :minute then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
-      when :hour   then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
-      when :day    then group_by_value = "TRUNC(s.Sample_Time)"
-      when :week   then group_by_value = "TRUNC(s.Sample_Time) + INTERVAL '7' DAY"
+      when :single    then group_by_value = "s.Sample_ID, s.Instance_Number, s.Session_ID"         # Direkte Anzeige der Snapshots
+      when :second    then group_by_value = "TO_NUMBER(TO_CHAR(s.Sample_Time, 'DDD')) * 86400 + TO_NUMBER(TO_CHAR(s.Sample_Time, 'SSSSS'))"
+      when :second10  then group_by_value = "TO_NUMBER(TO_CHAR(s.Sample_Time, 'DDD')) * 8640 + TRUNC(TO_NUMBER(TO_CHAR(s.Sample_Time, 'SSSSS'))/10)"
+      when :minute    then group_by_value = "TRUNC(s.Sample_Time, 'MI')"
+      when :hour      then group_by_value = "TRUNC(s.Sample_Time, 'HH24')"
+      when :day       then group_by_value = "TRUNC(s.Sample_Time)"
+      when :week      then group_by_value = "TRUNC(s.Sample_Time) + INTERVAL '7' DAY"
       else
         raise "Unsupported value for parameter :groupby (#{@time_groupby})"
     end
@@ -196,6 +198,7 @@ class ActiveSessionHistoryController < ApplicationController
              MAX(Sample_Time)       End_Sample_Time,
              COUNT(*)               Sample_Count,
              AVG(s.Sample_Cycle)    Sample_Cycle,
+             SUM(Sample_Cycle)      Wait_Time_Seconds_Sample,
              #{ single_record_distinct_sql('s.Instance_Number') },
              #{ single_record_distinct_sql('s.Sample_ID') },
              #{ single_record_distinct_sql('s.Session_id') },
