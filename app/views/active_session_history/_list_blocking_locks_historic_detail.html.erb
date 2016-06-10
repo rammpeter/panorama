@@ -17,7 +17,8 @@
                                :blocking_session     => rec.session_id,
                                :blocking_session_serialno => rec.session_serialno
                              ),
-                      :title=>'Anzeige der durch diese blocking Session geblockten Sessions')
+                      :title=>t(:active_session_history_list_blocking_locks_historic_detail_sessions_direct_hint, :default=>"Show sessions blocked by this blocking session")
+                      )
     end
   end
 
@@ -46,7 +47,7 @@
               :groupby      => 'SQL-ID',
               :update_area  => @update_area
             ),
-         :title=>"Anzeige der Wait-Historie der blockierten Sessions gruppiert nach SQL-ID"
+         :title=>t(:active_session_history_list_blocking_locks_historic_detail_link_sql_id_hint, :default=>"Show wait history of blocked session grouped by SQL-ID")
       )
     else
       link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.username)
@@ -70,7 +71,7 @@
               :groupby      => 'Session/Sn.',
               :update_area  => @update_area
             ),
-         :title=>"Anzeige der Wait-Historie der blockierten Session"
+         :title=>t(:active_session_history_list_blocking_locks_historic_detail_link_sid_hint, :default=>"Show wait history of blocked session")
       )
   end
 
@@ -175,10 +176,19 @@
       {:caption=>"W.Action",                  :data=>proc{|rec| rec.blocked_action },                           :title=>'Action of directly blocked sessions (or count if multiple actions)'},
   
     ]
+
+  caption = 'Sessions locked by '
+  caption << "Instance=#{@blocking_instance}"             if @blocking_instance
+  caption << ", SID=#{@blocking_session}"                 if @blocking_session
+  caption << ", SerialNo=#{@blocking_session_serialno}"   if @blocking_session_serialno
+
+  caption << "GLOBAL (unknown sessions from other RAC-instances)" unless @blocking_session
   %>
 
+
+
 <%= gen_slickgrid(@locks, column_options, {
-        :caption  => "Sessions gelockt durch Instance=#{@blocking_instance}, SID=#{@blocking_session}, SerialNo=#{@blocking_session_serialno}",
+        :caption  => caption,
         :max_height => 450
 }) %>
 
