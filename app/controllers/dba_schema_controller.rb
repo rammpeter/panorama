@@ -226,7 +226,7 @@ class DbaSchemaController < ApplicationController
     @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID,
                                        m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
                                 FROM DBA_Tables t
-                                JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
+                                LEFT OUTER JOIN DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name AND o.Object_Type = 'TABLE'
                                 LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name AND m.Partition_Name IS NULL    -- Summe der Partitionen wird noch einmal als Einzel-Zeile ausgewiesen
                                 WHERE t.Owner = ? AND t.Table_Name = ?
                                ", @owner, @table_name]
@@ -383,8 +383,10 @@ class DbaSchemaController < ApplicationController
                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
                       )
       SELECT  st.MB Size_MB, p.*,
-              m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
+              m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
+              o.Created, o.Last_DDL_Time
       FROM DBA_Tab_Partitions p
+      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Table_Owner AND o.Object_Name = p.Table_Name AND o.SubObject_Name = p.Partition_Name AND o.Object_Type = 'TABLE PARTITION'
       LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
       LEFT OUTER JOIN DBA_Tab_Modifications m ON  m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name IS NULL
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
@@ -405,8 +407,10 @@ class DbaSchemaController < ApplicationController
                    FROM   DBA_Segments s
                    WHERE  s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.SubPartition_Name
                   ) Size_MB,
-             m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments
+             m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
+             o.Created, o.Last_DDL_Time
       FROM DBA_Tab_SubPartitions p
+      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Table_Owner AND o.Object_Name = p.Table_Name AND o.SubObject_Name = p.SubPartition_Name AND o.Object_Type = 'TABLE SUBPARTITION'
       LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name = p.SubPartition_Name
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
       #{" AND p.Partition_Name = ?" if @partition_name}

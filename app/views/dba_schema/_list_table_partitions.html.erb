@@ -34,6 +34,8 @@
       {:caption=> 'Blocks',                 :data=>proc{|rec| fn rec.blocks},                    :title=> 'Number of used data blocks in the partition (below high water mark)', :align=>:right},
       {:caption=> 'Avg. row len',           :data=>proc{|rec| fn rec.avg_row_len},               :title=> 'Average length of a row in the partition (in bytes)', :align=>:right},
       {:caption=> 'Sub-part.',              :data=>proc{|rec| link_tab_subpartitions(rec)},      :title=> 'Number of subpartitions for this partition', :align=>:right},
+      {:caption=> 'Created',                :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of partition creation'},
+      {:caption=> 'Last DDL',               :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on table partition'},
       {:caption=> 'Last analyzed',          :data=>proc{|rec| localeDateTime rec.last_analyzed}, :title=> 'Date on which this partition was most recently analyzed'},
     ]
 
