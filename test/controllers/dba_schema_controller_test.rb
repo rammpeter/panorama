@@ -16,6 +16,19 @@ class DbaSchemaControllerTest < ActionController::TestCase
       @lob_part_lob_name   = lob_part_table.lob_name
     end
 
+    subpart_table = sql_select_first_row "SELECT Table_Owner, Table_Name, Partition_Name FROM DBA_Tab_SubPartitions WHERE RowNum < 2"
+    if subpart_table
+      @subpart_table_owner            = subpart_table.table_owner
+      @subpart_table_table_name       = subpart_table.table_name
+      @subpart_table_partition_name   = subpart_table.partition_name
+    end
+
+    subpart_index = sql_select_first_row "SELECT Index_Owner, Index_Name, Partition_Name FROM DBA_Ind_SubPartitions WHERE RowNum < 2"
+    if subpart_index
+      @subpart_index_owner            = subpart_index.index_owner
+      @subpart_index_index_name       = subpart_index.index_name
+      @subpart_index_partition_name   = subpart_index.partition_name
+    end
 
   end
 
@@ -66,8 +79,25 @@ class DbaSchemaControllerTest < ActionController::TestCase
     xhr :get, :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT"
     assert_response :success;
 
+    if @subpart_table_owner
+      xhr :get, :list_table_subpartitions, :format=>:js, :owner=>@subpart_table_owner, :table_name=>@subpart_table_table_name
+      assert_response :success;
+
+      xhr :get, :list_table_subpartitions, :format=>:js, :owner=>@subpart_table_owner, :table_name=>@subpart_table_table_name, :partition_name => @subpart_table_partition_name
+      assert_response :success;
+    end
+
     xhr :get, :list_index_partitions, :format=>:js, :owner=>"SYS", :index_name=>"WRH$_SQLSTAT_PK"
     assert_response :success;
+
+    if @subpart_index_owner
+      xhr :get, :list_index_subpartitions, :format=>:js, :owner=>@subpart_index_owner, :index_name=>@subpart_index_index_name
+      assert_response :success;
+
+      xhr :get, :list_index_subpartitions, :format=>:js, :owner=>@subpart_index_owner, :index_name=>@subpart_index_index_name, :partition_name => @subpart_table_partition_name
+      assert_response :success;
+    end
+
   end
 
   test "list_audit_trail" do

@@ -5,7 +5,7 @@
      if rec.partition_number == 0
        rec.partition_number
      else
-       my_ajax_link_to("#{rec.partition_number}#{", #{rec.subpartition_number}" if rec.subpartition_number}",
+       my_ajax_link_to(fn(rec.partition_number),
                        url_for({:action       => :list_index_partitions,
                                 :owner        => rec.owner,
                                 :index_name   => rec.index_name,
@@ -15,6 +15,22 @@
        )
      end
    end
+
+   def link_ind_subpartitions(rec)
+     if rec.subpartition_number == 0
+       rec.subpartition_number
+     else
+       my_ajax_link_to(fn(rec.subpartition_number),
+                       url_for({:action       => :list_index_subpartitions,
+                                :owner        => rec.owner,
+                                :index_name   => rec.index_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show sub-partitions of index #{rec.index_name}"
+       )
+     end
+   end
+
 
    def link_using_sqls(rec)
        my_ajax_link_to('Show',
@@ -49,7 +65,8 @@
                    {:caption=> 'Cluster.',         :data=>proc{|rec| fn(rec.clustering_factor)},        :title=> 'A measurement of the amount of (dis)order of the table this index is for', :align=>:right},
                    {:caption=> 'Status',           :data=>proc{|rec| rec.subpartition_status ? rec.subpartition_status : (rec.partition_status ? rec.partition_status : rec.status) }, :title=> 'Index-Status'},
                    {:caption=> 'Dg.',              :data=>proc{|rec| fn(rec.degree)},                   :title=> 'Default parallel degree of table', :align=>:right},
-                   {:caption=> 'Part.',            :data=>proc{|rec| link_ind_partitions(rec)},         :title=> 'Number of index partitions and subpartitions', :align=>:right},
+                   {:caption=> 'Part.',            :data=>proc{|rec| link_ind_partitions(rec)},         :title=> 'Number of index partitions ', :align=>:right},
+                   {:caption=> 'Sub-<wbr>Part.',        :data=>proc{|rec| link_ind_subpartitions(rec)},      :title=> 'Number of index sub-partitions ', :align=>:right},
                    {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of index creation'},
                    {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on index'},
                    {:caption=> 'Last analyzed',    :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=> 'The date of the most recent time this table was analyzed'},

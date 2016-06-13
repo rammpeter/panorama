@@ -358,7 +358,7 @@ class DbaSchemaController < ApplicationController
   end
 
   private
-  def get_partition_expression(owner, table_name)
+  def get_table_partition_expression(owner, table_name)
     part_tab      = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if get_db_version >= "11.2"} FROM DBA_Part_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]
     part_keys     = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", owner, table_name]
     subpart_keys  = sql_select_all ["SELECT Column_Name FROM DBA_SubPart_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", owner, table_name]
@@ -368,12 +368,22 @@ class DbaSchemaController < ApplicationController
     partition_expression
   end
 
+  def get_index_partition_expression(owner, table_name)
+
+    part_ind      = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if get_db_version >= "11.2"} FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
+    part_keys     = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
+    sub_part_keys = sql_select_all ["SELECT Column_Name FROM DBA_SubPart_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
+
+    partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if get_db_version >= "11.2" && part_tab.interval}"
+    partition_expression << " Sub-Partition by #{part_ind.subpartitioning_type} (#{subpart_keys.map{|i| i.column_name}.join(",")})" if part_ind.subpartitioning_type != 'NONE'
+  end
+
   public
   def list_table_partitions
     @owner      = params[:owner]
     @table_name = params[:table_name]
 
-    @partition_expression = get_partition_expression(@owner, @table_name)
+    @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @partitions = sql_select_all ["\
       WITH Storage AS (SELECT /*+ NO_MERGE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB
@@ -400,7 +410,7 @@ class DbaSchemaController < ApplicationController
     @table_name     = params[:table_name]
     @partition_name = params[:partition_name]
 
-    @partition_expression = get_partition_expression(@owner, @table_name)
+    @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @subpartitions = sql_select_all ["\
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
@@ -615,19 +625,41 @@ class DbaSchemaController < ApplicationController
     @owner      = params[:owner]
     @index_name = params[:index_name]
 
-    part_ind = sql_select_first_row ["SELECT Partitioning_Type, SubPartitioning_Type #{", Interval" if get_db_version >= "11.2"} FROM DBA_Part_Indexes WHERE Owner = ? AND Index_Name = ?", @owner, @index_name]
-    part_keys = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
-
-    @partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if get_db_version >= "11.2" && part_ind.interval}"
+    @partition_expression = get_index_partition_expression(@owner, @index_name)
 
     @partitions = sql_select_all ["\
       SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
                    FROM   DBA_Segments s
                    WHERE  s.Owner = p.Index_Owner AND s.Segment_Name = p.Index_Name AND s.Partition_Name = p.Partition_Name
-                  ) Size_MB
+                  ) Size_MB,
+             o.Created, o.Last_DDL_Time
       FROM DBA_Ind_Partitions p
+      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Index_Owner AND o.Object_Name = p.Index_Name AND o.SubObject_Name = p.Partition_Name AND o.Object_Type = 'INDEX PARTITION'
       WHERE p.Index_Owner = ? AND p.Index_Name = ?
       ", @owner, @index_name]
+
+    render_partial
+  end
+
+
+  def list_index_subpartitions
+    @owner      = params[:owner]
+    @index_name = params[:index_name]
+    @partition_name = params[:partition_name]
+
+    @partition_expression = get_index_partition_expression(@owner, @index_name)
+
+    @subpartitions = sql_select_all ["\
+      SELECT p.*, (SELECT SUM(Bytes)/(1024*1024)
+                   FROM   DBA_Segments s
+                   WHERE  s.Owner = p.Index_Owner AND s.Segment_Name = p.Index_Name AND s.Partition_Name = p.SubPartition_Name
+                  ) Size_MB,
+             o.Created, o.Last_DDL_Time
+      FROM DBA_Ind_SubPartitions p
+      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Index_Owner AND o.Object_Name = p.Index_Name AND o.SubObject_Name = p.SubPartition_Name AND o.Object_Type = 'INDEX SUBPARTITION'
+      WHERE p.Index_Owner = ? AND p.Index_Name = ?
+      #{" AND p.Partition_Name = ?" if @partition_name}
+      ", @owner, @index_name, @partition_name]
 
     render_partial
   end
