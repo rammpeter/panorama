@@ -127,7 +127,7 @@ end
 %>
 
 <%= gen_slickgrid(@locks, column_options, {
-    :caption => t(:active_session_history_list_blocking_locks_historic_caption, :default=>'Blockings locks between %{time_selection_start} and %{time_selection_end} hierarchical grouped beginning with root-blockers', :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end),
+    :caption => t(:active_session_history_list_blocking_locks_historic_caption, :default=>'Blocking locks between %{time_selection_start} and %{time_selection_end} hierarchical grouped beginning with root-blockers', :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end),
     :max_height => 450
   })
 %>
