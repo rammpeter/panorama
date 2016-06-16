@@ -390,7 +390,7 @@ class DbaSchemaController < ApplicationController
     part_keys     = sql_select_all ["SELECT Column_Name FROM DBA_Part_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
     sub_part_keys = sql_select_all ["SELECT Column_Name FROM DBA_SubPart_Key_Columns WHERE Owner = ? AND Name = ? ORDER BY Column_Position", @owner, @index_name]
 
-    partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_tab.interval}" if get_db_version >= "11.2" && part_tab.interval}"
+    partition_expression = "Partition by #{part_ind.partitioning_type} (#{part_keys.map{|i| i.column_name}.join(",")}) #{"Interval #{part_ind.interval}" if get_db_version >= "11.2" && part_ind.interval}"
     partition_expression << " Sub-Partition by #{part_ind.subpartitioning_type} (#{subpart_keys.map{|i| i.column_name}.join(",")})" if part_ind.subpartitioning_type != 'NONE'
   end
 
