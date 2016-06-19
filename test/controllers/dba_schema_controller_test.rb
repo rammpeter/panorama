@@ -71,11 +71,6 @@ class DbaSchemaControllerTest < ActionController::TestCase
       assert_response :success;
     end
 
-    post :list_sessions, :format=>:js, :object_owner=>"SYS", :object_name=>"AUD$"
-    assert_response :success;
-
-         #   list_trigger_body hat leider keine Table in SYS
-
     xhr :get, :list_table_partitions, :format=>:js, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT"
     assert_response :success;
 
