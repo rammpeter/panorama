@@ -46,7 +46,7 @@ class DbaPgaController < ApplicationController
   def list_pga_stat_historic
     @instance = prepare_param_instance
     @dbid     = prepare_param_dbid
-    raise "Parameter 'Instance' muss belegt sein" unless @instance
+    raise "Parameter 'Instance' must be set" unless @instance
     save_session_time_selection   # werte in session puffern
 
 
@@ -57,6 +57,8 @@ class DbaPgaController < ApplicationController
         AND    Instance_Number = ?
         AND    Begin_Interval_Time BETWEEN  TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}') AND TO_TIMESTAMP(?, '#{sql_datetime_minute_mask}')
       ", @dbid, @instance, @time_selection_start, @time_selection_end ]
+
+    raise "There are no AWR-snapshots between #{@time_selection_start} and #{@time_selection_end}!\nPlease use a larger period with valid AWR data." if snaps.min_snap_id.nil? || snaps.max_snap_id.nil?
 
     stats = sql_select_iterator [
       " SELECT /*+ Panorama-Tool Ramm */ ss.Begin_Interval_Time, x.Name, x.Value
