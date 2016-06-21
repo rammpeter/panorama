@@ -241,4 +241,12 @@ table a:active{
 }
 
 
+.yellow-panel {
+    background-color: lightyellow;
+    padding: 5px;
+    box-shadow: 5px 5px 5px #888;
+    -webkit-box-shadow: 5px 5px 5px #888;
+    -moz-box-shadow: 5px 5px 5px #888;
+}
+
 

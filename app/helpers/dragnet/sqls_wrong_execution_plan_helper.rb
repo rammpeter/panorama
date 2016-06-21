@@ -142,22 +142,72 @@ Statement executes only for current connected RAC-Instance (due to runtime prble
                       ORDER BY Elapsed_Time DESC NULLS LAST",
         },
         {
-            :name  => t(:dragnet_helper_95_name, :default=>'Implicit conversion by INTERNAL_FUNCTION'),
+            :name  => t(:dragnet_helper_95_name, :default=>'Implicit conversion by TO_NUMBER or INTERNAL_FUNCTION (prevented usage of indexes)'),
             :desc  => t(:dragnet_helper_95_desc, :default=>'Implicit type conversions are often accidentially due to wrong type of bind variable.
-This conversion may cause unnecessary CPU load.
-By accessing column per INTERNAL_FUNCTION instead of direct access usage of existing index may be excluded.
-For this cases according data type should be used for bind variable.'),
+This conversion may lead to missing usage of existing indizes and cause unnecessary I/O and CPU load.
+Especially implicit conversion by TO_NUMBER while accessing VARCHAR2-columns with number bind type prevents usage of existing indizes.
+For this cases data type according to column type should be used for bind variable.'),
             :sql=>  "SELECT /*+ ORDERED USE_HASH(p s) */
-                              SQL_FullText, p.Inst_ID, s.SQL_ID, s.Parsing_Schema_Name,
-                              s.Elapsed_Time/1000000 Elasped_Secs,
-                              CPU_Time/1000000 CPU_Secs,
-                              Executions, Rows_Processed,
-                              p.Filter_Predicates
-                       FROM   (SELECT /*+ NO_MERGE */ * FROM gv$SQL_PLan WHERE Filter_Predicates LIKE '%INTERNAL_FUNCTION%') p
-                       JOIN   (SELECT /*+ NO_MERGE */ * FROM gv$SQLArea) s ON s.Inst_ID = p.Inst_ID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                       WHERE  s.Parsing_Schema_Name NOT IN ('SYS')
-                       ORDER BY Elapsed_Time DESC NULLS LAST
+                              p.Inst_ID                     \"Inst.\",
+                              s.SQL_ID                      \"SQL-ID\",
+                              p.Child_Number                \"Child number\",
+                              s.Parsing_Schema_Name         \"Parsing schema name\",
+                              s.Plan_Hash_Value             \"Plan hash value\",
+                              ROUND(s.Elapsed_Time/1000000) \"Elapsed secs.\",
+                              ROUND(CPU_Time/1000000)       \"CPU secs.\",
+                              Executions                    \"Execs.\",
+                              Rows_Processed                \"Rows processed\",
+                              p.ID                          \"SQL plan line ID\",
+                              p.Reason                      \"Reason for selection\",
+                              p.Operation                   \"Operation\",
+                              p.Options                     \"Options\",
+                              p.Object_Type                 \"Object type\",
+                              p.Object_Owner                \"Owner\",
+                              p.Object_Name                 \"Object name\",
+                              p.Object_Alias                \"Alias in SQL\",
+                              t.Num_Rows                    \"Num rows of table\",
+                              p.Column_Name                 \"Affected column name\",
+                              ic.Index_Name                 \"Existing index for aff. column\",
+                              ic.Column_Position            \"Position of column in index\",
+                              CASE WHEN tc.Num_Distinct > 0 THEN ROUND((t.Num_Rows-tc.Num_Nulls) / tc.Num_Distinct,1) ELSE NULL END \"Rows per key of column\",
+                              p.Access_Predicates,
+                              p.Filter_Predicates,
+                              s.SQL_Text
+                       FROM   (SELECT /*+ NO_MERGE */ pi.*,
+                                              SUBSTR(Hit_Fragment,
+                                                      INSTR(Hit_Fragment, '.')+2,
+                                                      INSTR(Hit_Fragment, ')')-INSTR(Hit_Fragment, '.')-3
+                                             )  Column_Name
+                               FROM   (SELECT Inst_ID, SQL_ID, Child_Number, Plan_Hash_Value, ID, Access_Predicates, Filter_Predicates,
+                                              Object_Owner, Object_Name, object_Alias, Object_Type, Operation, Options,
+                                              CASE WHEN Filter_Predicates LIKE '%TO_NUMBER(\"%\".\"%\")=%' THEN 'TO_NUMBER' ELSE 'INTERNAL_FUNCTION' END Reason,
+                                              CASE WHEN Filter_Predicates LIKE '%TO_NUMBER(\"%\".\"%\")=%' THEN
+                                                SUBSTR(Filter_Predicates, INSTR(Filter_Predicates, 'TO_NUMBER(\"')+11)
+                                              ELSE
+                                                SUBSTR(Filter_Predicates, INSTR(Filter_Predicates, 'INTERNAL_FUNCTION(\"')+11)
+                                              END Hit_Fragment
+                                       FROM   gv$SQL_PLan pi
+                                       WHERE  (    Filter_Predicates like '%TO_NUMBER(\"%\".\"%\")=%'
+                                               OR  Filter_Predicates LIKE '%INTERNAL_FUNCTION%'
+                                              )
+                                       AND    Object_Owner IS NOT NULL AND Object_Name IS NOT NULL  /* Dont show conditions on filter or view */
+                                      ) pi
+                              ) p
+                       JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, Child_Number, Plan_Hash_Value, Executions, Elapsed_Time, Rows_Processed, CPU_Time,
+                                      Parsing_Schema_Name, SQL_Text
+                               FROM   gv$SQL
+                               WHERE  Parsing_Schema_Name NOT IN ('SYS')
+                               AND    Elapsed_Time/1000000 > ?
+                              ) s ON s.Inst_ID = p.Inst_ID AND s.SQL_ID = p.SQL_ID AND s.Child_Number = p.Child_Number AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                       LEFT OUTER JOIN DBA_Ind_Columns ic ON ((p.Object_Type = 'INDEX' AND ic.Index_Owner = p.Object_Owner AND ic.Index_Name = p.Object_Name) OR (p.Object_Type = 'TABLE' AND ic.Table_Owner = p.Object_Owner AND ic.Table_Name = p.Object_Name))
+                                                          AND ic.Column_Name = p.Column_Name
+                       LEFT OUTER JOIN DBA_Tables t ON t.Owner = ic.Table_Owner AND t.Table_Name = ic.Table_Name
+                       LEFT OUTER JOIN DBA_Tab_Columns tc ON tc.Owner = ic.Table_Owner AND tc.Table_Name = ic.Table_Name AND tc.Column_Name = p.Column_Name
+                       ORDER BY ic.Column_Position NULLS LAST, Elapsed_Time DESC NULLS LAST
              ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_95_param1_name, :default=>'Min. elapsed time of SQL in sec.'), :size=>30, :default=>100, :title=>t(:dragnet_helper_95_param1_desc, :default=>'Minimum elapsed time of SQL in gv$SQLArea for consideration in result') },
+            ]
         },
         {
             :name  => t(:dragnet_helper_55_name, :default => 'Problematic usage of cartesian joins (from current SGA)'),

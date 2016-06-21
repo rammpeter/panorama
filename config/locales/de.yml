@@ -920,12 +920,13 @@
     Statement muss für jede RAC-Instanz separat angewandt werden, da wegen akzeptabler akzeptabler Laufzeit nur die aktuell angemeldete Instanz geprüft wird.
   dragnet_helper_94_name:                                   Iteration im Nested-Loop-Join gegen Full-Scan-Operation
 
+
   dragnet_helper_95_desc: |-
     Auslöser von impliziten Typ-Konvertierungen ist oftmals versehentlich mit falschem Typ gebundene Bindevariable.
-    Die Konvertierung verursacht möglicherweise unnötig CPU-Last auf der DB-Maschine.
-    Durch die Ansprache der Spalte per INTERNAL_FUNCTION statt direkt wird die mögliche Nutzung von Indizes für den Zugriff verhindert.
-    In diesen Fällen sollte tunlichst der entsprechende Datentyp für die Variablenbindung verwendet werden.
-  dragnet_helper_95_name:                                   Implizite Konvertierungen per INTERNAL_FUNCTION
+    Die Konvertierung verursacht möglicherweise die Nutzung vorhandener Indizes und erzeugt unnötig I/O- und CPU-Last auf der DB-Maschine.
+    Besonders die implizite Konvertierung per TO_NUMBER beim Zugriff auf VARCHAR2-Spalten mit numerischen Bindevariablen verhindert die Nutzung existierender Indizes.
+    In diesen Fällen sollte tunlichst der entsprechende Datentyp der Tabellen-Spalte als Typ für die Bindevariablen verwendet werden.
+  dragnet_helper_95_name:                                   Implizite Konvertierungen per TO_NUMBER oder INTERNAL_FUNCTION (verhinderte Index-Nutzung)
 
   dragnet_helper_96_desc: |-
     Statements mit hochfrequent gelesenen Blöcken im DB-Cache laufen Gefahr, durch 'cache buffers chains'-LatchWaits ausgebremst zu werden.

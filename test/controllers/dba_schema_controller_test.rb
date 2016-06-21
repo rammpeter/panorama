@@ -93,6 +93,9 @@ class DbaSchemaControllerTest < ActionController::TestCase
       assert_response :success;
     end
 
+    post :list_dbms_metadata_get_ddl, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    assert_response :success;
+
   end
 
   test "list_audit_trail" do
