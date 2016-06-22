@@ -476,13 +476,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * @param caller    Herkunfts-String
      */
     this.calculate_current_grid_column_widths = function(caller){
-
         var options = this.grid.getOptions();
         var viewport_div = this.gridContainer.children('.slick-viewport')
 
         var current_grid_width = this.gridContainer.parent().prop('clientWidth');           // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
         var columns = this.grid.getColumns();
-//        var columns_changed = false;
         var original_widths = [];
         var max_table_width = 0;                                                // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
         var column;
@@ -498,13 +496,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             if (column['fixedWidth']){
                 if (column['width'] != column['fixedWidth']) {                  // Feste Breite vorgegeben ?
                     column['width']      = column['fixedWidth'];                // Feste Breite der Spalte beinhaltet bereits padding
-//                    columns_changed = true;
                 }
 
             } else {                                                            // keine feste Breite vorgegeben
                 if (column['width'] != column['max_nowrap_width']+h_padding) {
                     column['width']      = column['max_nowrap_width']+h_padding;// per Default komplette Breite des Inhaltes als Spaltenbreite annehmen , Korrektur um padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
-//                    columns_changed = true;
                 }
             }
 
@@ -512,9 +508,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         }
         // Prüfen auf Möglichkeit des Umbruchs in der Zelle
         var current_table_width = max_table_width;                              // Summe aller max. Spaltenbreiten
-        var had_vertical_scrollbar = false;                                     // Hatte das Grid vorher einen vertikalen scrollbar?
         if (has_slickgrid_vertical_scrollbar()){
-            had_vertical_scrollbar = true;                                      // Vertikaler Scrollbar war bereits vorhanden
             current_table_width += scrollbarWidth();
         }
 
@@ -545,7 +539,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
                     if (current_table_width < current_grid_width && !columns[col_index]['fixedWidth']){
                         columns[col_index]['width']++;
                         current_table_width++;
-//                        columns_changed = true;
                     }
                 }
             }
