@@ -980,10 +980,8 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_option('sort_method',          'QuickSort');                       // QuickSort (Array.sort) oder BubbleSort
     };
 
-
-
     function trace_log(msg){
-        if (true){
+        if (false){
             console.log(msg);                                                           // Aktivieren trace-Ausschriften
         }
     };
