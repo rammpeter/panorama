@@ -4,12 +4,10 @@
 
   function call_ajax_single_rows<%=@update_area%>(min_snap_id, max_snap_id, group_by_value, record_count){
     var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>
-
     if (min_snap_id)
       json_data['groupfilter']['Min_Snap_ID'] = min_snap_id;
     if (max_snap_id)
       json_data['groupfilter']['Max_Snap_ID'] = max_snap_id;
-
     json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
     json_data['record_count'] = record_count;
     json_data['update_area'] = '<%= @update_area %>';
@@ -68,8 +66,10 @@
         max_snap_id = 'null';
       }
 
+      var groupby_value = dataContext.col0.replace(new RegExp(\"&\", 'g'), \"\\\\&\");
+
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_samples_link_hint, :default=>'Show single samples of group')} #{@groupby}"}\" '+
-        'onclick=\"call_ajax_single_rows#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
+        'onclick=\"call_ajax_single_rows#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+groupby_value+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
          '>'+cell_value+'</a>'
     "
   end
@@ -96,6 +96,7 @@
   # Alternativ-Variante für Aktualisierung des Links in Javascript
   def decorator_grouping(next_groupby)
     # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
+    # dataContext.col0: 1. Spalte des Results enthält den group-Value
     "
       var decorated_cell_value = '';
 
@@ -118,9 +119,10 @@
         max_snap_id = 'null';
       }
 
+      var groupby_value = dataContext.col0.replace(new RegExp(\"&\", 'g'), \"\\\\&\");
 
       return '<a href=\"#\" title=\"#{"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"}\" '+
-        'onclick=\"call_ajax_grouping#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+dataContext.col0+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+'); return false;\"'+
+        'onclick=\"call_ajax_grouping#{@update_area}('+min_snap_id+', '+max_snap_id+', '+String.fromCharCode(39)+groupby_value+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+'); return false;\"'+
          '>'+decorated_cell_value+'</a>'
     "
   end
