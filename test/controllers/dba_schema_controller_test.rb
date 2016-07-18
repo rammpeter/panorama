@@ -32,6 +32,11 @@ class DbaSchemaControllerTest < ActionController::TestCase
 
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
   test "show_object_size"       do xhr :get,  :show_object_size, :format=>:js;   assert_response :success; end
   test "list_objects"           do post :list_objects, :format=>:js, :tablespace=>{:name=>"USERS"}, :schema=>{:name=>"SCOTT"};       assert_response :success; end
 

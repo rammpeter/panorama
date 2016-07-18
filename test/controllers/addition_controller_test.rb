@@ -19,6 +19,11 @@ class AdditionControllerTest < ActionController::TestCase
 
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
   test "blocking_locks_history" do
     post :list_blocking_locks_history, :format=>:js,
          :time_selection_start =>"01.01.2011 00:00",

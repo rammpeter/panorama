@@ -11,6 +11,11 @@ class StorageControllerTest < ActionController::TestCase
     @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
   test "storage_controller" do
 
     xhr :get,  :datafile_usage, :format=>:js

@@ -60,7 +60,10 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     end
   end
 
-
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
 
   test "list_session_statistics_historic" do
     def do_test(groupby)

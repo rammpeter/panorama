@@ -21,6 +21,12 @@ class IoControllerTest < ActionController::TestCase
 
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
+
   ################### io_file ######################
   test "list_io_file_history" do
     def do_test(groupby)

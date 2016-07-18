@@ -24,6 +24,12 @@ class DbaSgaControllerTest < ActionController::TestCase
     @object_id = sql_select_one "SELECT objd FROM v$BH WHERE RowNum < 2"
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
+
   test "show_application_info" do
     xhr :get, :show_application_info, :format=>:js, :moduletext=>"Application = 128"
     assert_response :success

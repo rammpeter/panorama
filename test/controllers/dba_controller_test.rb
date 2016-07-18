@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'test_helper'
+include ActionView::Helpers::TranslationHelper
+#include ActionDispatch::Http::URL
 
 class DbaControllerTest < ActionController::TestCase
 
@@ -9,6 +11,11 @@ class DbaControllerTest < ActionController::TestCase
     time_selection_start  = time_selection_end-10000
     @time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
     @time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
+  end
+
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
   end
 
 
@@ -77,7 +84,12 @@ class DbaControllerTest < ActionController::TestCase
 
     xhr :get,  :segment_stat, :format=>:js
     assert_response :success
+
+#    xhr :get, :oracle_parameter, :format=>:js
+#    assert_response :success
   end
+
+
 
 
 end

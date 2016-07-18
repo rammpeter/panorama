@@ -20,6 +20,11 @@ class DbaHistoryControllerTest < ActionController::TestCase
     raise "No snapshot found before #{time_selection_end}" if @max_snap_id.nil?
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
 
   test "segment_stat_historic" do
     post :list_segment_stat_historic_sum, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end

@@ -8,6 +8,11 @@ class EnvControllerTest < ActionController::TestCase
     set_session_test_db_context{}
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
   test "should connect to test-db" do
     database = get_current_database
     database[:password] = database_helper_decrypt_value(database[:password])

@@ -20,6 +20,7 @@ class ActiveSupport::TestCase
   include ApplicationHelper
   include EnvHelper
   include MenuHelper
+  include ActionView::Helpers::TranslationHelper
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests
@@ -100,5 +101,28 @@ class ActiveSupport::TestCase
 
     # Rückstellen auf NullDB kann man sich hier sparen
   end
+
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  def test_controllers_menu_entries_with_actions
+
+    def test_menu_entry(menu_entry)
+      menu_entry[:content].each do |m|
+        test_menu_entry(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
+        if m[:class] == "item" &&
+            controller_action_defined?(m[:controller], m[:action]) &&           # Controller hat eine Action-Methode für diesen Menü-Eintrag
+            "#{m[:controller]}_controller".camelize == @controller.class.name   # Nur Menues des aktuellen Controllers testen
+          xhr :get, m[:action], :format=>:js
+          assert_response :success
+        end
+      end
+    end
+
+    # Iteration über Menues
+    menu_content.each do |mo|
+      test_menu_entry(mo)
+    end
+
+  end
+
 
 end

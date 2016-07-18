@@ -12,6 +12,12 @@ class DbaPgaControllerTest < ActionController::TestCase
 
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
+
   test "list_pga_stat_historic" do
     post :list_pga_stat_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :instance =>1
     assert_response :success

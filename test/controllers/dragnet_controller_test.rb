@@ -7,6 +7,12 @@ class DragnetControllerTest < ActionController::TestCase
     set_session_test_db_context{}
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
+
   test "get_selection_list"  do
     xhr :get, :get_selection_list, :format=>:json
     assert_response :success

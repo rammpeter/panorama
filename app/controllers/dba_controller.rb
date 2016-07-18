@@ -436,7 +436,7 @@ class DbaController < ApplicationController
         format.js {render :js => "$('#content_for_layout').html('#{j render_to_string :partial=> "dba/oracle_parameter" }');"}
       end
 
-    rescue
+    rescue Exception
       @hint = "Möglicherweise fehlende Zugriffsrechte auf Tabellen X$KSPPI und X$KSPPSV !</br>
   Es werden deshalb nur die documented Parameter aus GV$Parameter angezeigt.</br></br>
 

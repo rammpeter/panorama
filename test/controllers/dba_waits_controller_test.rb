@@ -11,6 +11,12 @@ class DbaWaitsControllerTest < ActionController::TestCase
 
   end
 
+  # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
+  test "test_controllers_menu_entries_with_actions" do
+    test_controllers_menu_entries_with_actions
+  end
+
+
   test "show_system_events" do
     post :show_system_events, :format=>:js, :sample_length=>"1", :filter=>"", :suppress_idle_waits=>"1"
     assert_response :success
