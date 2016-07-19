@@ -160,18 +160,31 @@
       my_html_escape(rec.other_xml).gsub(/&lt;info/, "\n&lt;info").gsub(/&lt;hint/, "\n&lt;hint")
    end
 
+  def parallel_text(rec)
+    output = "#{rec.parallel_short}"
+    output << "&nbsp;#{rec.min_pq_sessions}/#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 && rec.max_pq_sessions != rec.min_pq_sessions
+    output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 && rec.max_pq_sessions == rec.min_pq_sessions
+    output
+  end
+
+   def parallel_title(rec)
+     output = "%t:\n#{rec.other_tag}"
+     output << "\n\nMinimum number of different active PQ slaves within one ASH sample = #{rec.min_pq_sessions}" if rec.min_pq_sessions && rec.max_pq_sessions > 0
+     output << "\n\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0
+     output
+   end
 
    column_options =
     [
       {:caption=>'Operation',   :data=>proc{|rec| list_operation(rec)},         :no_wrap=>true, :title=>t(:dba_history_list_sql_detail_execution_plan_operation_hint, :default=>'Kind of access'), :data_title=>proc{|rec| "%t: #{rec.operation} #{rec.options}"}},
-      {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>t(:dba_history_list_sql_detail_execution_plan_id_hint, :default=>'ID of operation'),             :data_title=>proc{|rec| "Parent_ID=#{rec.parent_id}"} },
-      {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>t(:dba_history_list_sql_detail_execution_plan_order_hint, :default=>'Execution order of operation'),    :data_title=>proc{|rec| "ID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
+      {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>t(:dba_history_list_sql_detail_execution_plan_id_hint, :default=>'ID of operation'),             :data_title=>proc{|rec| "%t:\nParent_ID=#{rec.parent_id}"} },
+      {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>t(:dba_history_list_sql_detail_execution_plan_order_hint, :default=>'Execution order of operation'),    :data_title=>proc{|rec| "%t:\nID=#{rec.id}, Parent_ID=#{rec.parent_id}"} },
       {:caption=>'Object-name', :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) },   :title=>t(:dba_history_list_sql_detail_execution_plan_objectname_hint, :default=>'Name of object'),             :data_title=>proc{|rec| "%t,\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}"} },
       {:caption=>'Rows',        :data=>proc{|rec| fn(rec.num_rows) },                           :title=>"Number of rows of object (from analyze info)",     :align=>:right, :data_title=>proc{|rec| "%t, Last_Analyzed=#{localeDateTime(rec.last_analyzed)}"} },
       {:caption=>'MB',          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right },
       {:caption=>'Cost',        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| "%t\nCPU cost = #{fn rec.cpu_cost}\nIO cost = #{fn rec.io_cost}\nestimated bytes = #{fn rec.bytes}\nestimated time (secs.) = #{fn rec.time}\nPartition_Start = #{rec.partition_start}\nPartition_Stop = #{rec.partition_stop}\nPartition_ID = #{rec.partition_id}"} },
       {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| "%t\nCPU cost = #{fn rec.cpu_cost}\nIO cost = #{fn rec.io_cost}\nestimated bytes = #{fn rec.bytes}\nestimated time (secs.) = #{fn rec.time}\nPartition_Start = #{rec.partition_start}\nPartition_Stop = #{rec.partition_stop}\nPartition_ID = #{rec.partition_id}"} },
-      {:caption=>'Parallel',    :data=>proc{|rec| rec.parallel_short },                         :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| rec.other_tag } },
+      {:caption=>'Parallel',    :data=>proc{|rec| parallel_text(rec)},                          :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| parallel_title(rec)} },
       {:caption=>'A.',          :data=>proc{|rec| expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\nNumber of columns with matching predicates = #{rec.search_columns}"} },
       {:caption=>'F.',          :data=>proc{|rec| expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;" },
       {:caption=>'P.',          :data=>proc{|rec| html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;"},

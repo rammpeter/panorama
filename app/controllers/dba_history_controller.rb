@@ -668,7 +668,9 @@ class DbaHistoryController < ApplicationController
                                        SUM(Interconnect_IO_Bytes) Interconnect_IO_Bytes,
                                        MIN(Min_Sample_Time)       Min_Sample_Time,
                                        MAX(Temp)/(1024*1024)      Max_Temp_ASH_MB,
-                                       MAX(PGA)/(1024*1024)       Max_PGA_ASH_MB
+                                       MAX(PGA)/(1024*1024)       Max_PGA_ASH_MB,
+                                       MIN(PQ_Sessions)           Min_PQ_Sessions,    -- min. Anzahl PQ-Slaves + Koordinator für eine konkrete Koordinator-Session
+                                       MAX(PQ_Sessions)           Max_PQ_Sessions
                                 FROM   (
                                         SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
                                                 NVL(SQL_PLan_Line_ID, 0)                                   SQL_PLan_Line_ID,   -- NULL auf den Knoten 0 des Plans zurückführen (0 wird in 11.2.0.3 nicht mit nach DBA_HAS übernommen
@@ -682,8 +684,9 @@ class DbaHistoryController < ApplicationController
                                                 SUM(Delta_Write_IO_Bytes)         Write_IO_Bytes,
                                                 SUM(Delta_Interconnect_IO_Bytes)  Interconnect_IO_Bytes,
                                                 MIN(Sample_Time)                  Min_Sample_Time,
-                                                SUM(Temp_Space_Allocated) Temp,
-                                                SUM(PGA_Allocated) PGA
+                                                SUM(Temp_Space_Allocated)         Temp,
+                                                SUM(PGA_Allocated)                PGA,
+                                                COUNT(DISTINCT CASE WHEN QC_Session_ID IS NULL OR QC_Session_ID = Session_ID THEN NULL ELSE Session_ID END) PQ_Sessions   -- Anzahl unterschiedliche PQ-Slaves + Koordinator für diese Koordiantor-Session
                                          FROM   DBA_Hist_Active_Sess_History h
                                          WHERE  DBID = ?
                                          AND    Snap_ID BETWEEN ? AND ?
