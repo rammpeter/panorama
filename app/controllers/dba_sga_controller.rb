@@ -279,7 +279,7 @@ class DbaSgaController < ApplicationController
                  'PARALLEL_TO_SERIAL',            'P > S',
                  Other_Tag
                 ) Parallel_Short,
-          Other_Tag Parallel, Other_XML,
+          Other_Tag, Other_XML,
           Depth, Access_Predicates, Filter_Predicates, Projection, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
           ID, Parent_ID, Executions, p.Search_Columns,
           Last_Starts, Starts, Last_Output_Rows, Output_Rows, Last_CR_Buffer_Gets, CR_Buffer_Gets,
@@ -290,7 +290,7 @@ class DbaSgaController < ApplicationController
           NVL(t.Last_Analyzed, i.Last_Analyzed) Last_Analyzed,
           (SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner=p.Object_Owner AND s.Segment_Name=p.Object_Name) MBytes
           #{", a.DB_Time_Seconds, a.CPU_Seconds, a.Waiting_Seconds, a.Read_IO_Requests, a.Write_IO_Requests,
-               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time, a.Max_Temp_ASH_MB, a.Max_PGA_ASH_MB  " if get_db_version >= "11.2"}
+               a.IO_Requests, a.Read_IO_Bytes, a.Write_IO_Bytes, a.Interconnect_IO_Bytes, a.Min_Sample_Time, a.Max_Sample_Time, a.Max_Temp_ASH_MB, a.Max_PGA_ASH_MB, a.Max_PQ_Sessions " if get_db_version >= "11.2"}
         FROM  gV$SQL_Plan_Statistics_All p
         LEFT OUTER JOIN DBA_Tables  t ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
         LEFT OUTER JOIN DBA_Indexes i ON i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name
@@ -307,7 +307,8 @@ class DbaSgaController < ApplicationController
                                     MIN(Min_Sample_Time)                    Min_Sample_Time,
                                     MAX(Max_Sample_Time)                    Max_Sample_Time,
                                     MAX(Temp)/(1024*1024)                   Max_Temp_ASH_MB,
-                                    MAX(PGA)/(1024*1024)                    Max_PGA_ASH_MB
+                                    MAX(PGA)/(1024*1024)                    Max_PGA_ASH_MB,
+                                    MAX(PQ_Sessions)                        Max_PQ_Sessions     -- max. Anzahl PQ-Slaves + Koordinator für eine konkrete Koordinator-Session
                              FROM   (
                                      SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
                                             COUNT(*)                                                   DB_Time_Seconds,
@@ -322,7 +323,8 @@ class DbaSgaController < ApplicationController
                                             MIN(Sample_Time)                  Min_Sample_Time,
                                             MAX(Sample_Time)                  Max_Sample_Time,
                                             SUM(Temp_Space_Allocated)         Temp,
-                                            SUM(PGA_Allocated)                PGA
+                                            SUM(PGA_Allocated)                PGA,
+                                            COUNT(DISTINCT CASE WHEN QC_Session_ID IS NULL OR QC_Session_ID = Session_ID THEN NULL ELSE Session_ID END) PQ_Sessions   -- Anzahl unterschiedliche PQ-Slaves + Koordinator für diese Koordiantor-Session
                                      FROM   gv$Active_Session_History
                                      WHERE  SQL_ID  = ?
                                      AND    Inst_ID = ?

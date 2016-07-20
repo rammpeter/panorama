@@ -669,8 +669,7 @@ class DbaHistoryController < ApplicationController
                                        MIN(Min_Sample_Time)       Min_Sample_Time,
                                        MAX(Temp)/(1024*1024)      Max_Temp_ASH_MB,
                                        MAX(PGA)/(1024*1024)       Max_PGA_ASH_MB,
-                                       MIN(PQ_Sessions)           Min_PQ_Sessions,    -- min. Anzahl PQ-Slaves + Koordinator für eine konkrete Koordinator-Session
-                                       MAX(PQ_Sessions)           Max_PQ_Sessions
+                                       MAX(PQ_Sessions)           Max_PQ_Sessions     -- max. Anzahl PQ-Slaves + Koordinator für eine konkrete Koordinator-Session
                                 FROM   (
                                         SELECT /*+ PARALLEL(h,2) #{"FULL(h.ash)" if mp.max_snap_id-mp.min_snap_id > 10}*/
                                                 NVL(SQL_PLan_Line_ID, 0)                                   SQL_PLan_Line_ID,   -- NULL auf den Knoten 0 des Plans zurückführen (0 wird in 11.2.0.3 nicht mit nach DBA_HAS übernommen
