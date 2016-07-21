@@ -13,7 +13,7 @@ class StorageControllerTest < ActionController::TestCase
 
   # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
   test "test_controllers_menu_entries_with_actions" do
-    test_controllers_menu_entries_with_actions
+    call_controllers_menu_entries_with_actions
   end
 
   test "storage_controller" do

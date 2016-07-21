@@ -1,6 +1,7 @@
 # encoding: utf-8
 module MenuHelper
   include MenuExtensionHelper   # Helper-File, das von diese Engine nutzenden Apps überschrieben/überblendet werden kann
+  include ActionView::Helpers::TranslationHelper
 
 
   # Bereitstellung Menü-Einträge als Array von hashes, Hash mit Spezialhandling-DB als Parameter
