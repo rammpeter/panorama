@@ -46,7 +46,7 @@ Platform: <%= @platform_name%>
               <%=  "<option value='#{d.dbid}' #{"selected='selected'" if d.dbid==get_dbid}>DBID=#{d.dbid}, DB-name=#{d.db_name} from #{localeDateTime(d.min_ts)} until #{localeDateTime(d.max_ts)} with #{d.instances} instance#{'s' if d.instances > 1}, snap-interval=#{d.snap_interval_minutes} minutes, retention=#{d.snap_retention_days} days </option>".html_safe %>
           <% end %>
         </select>
-        <%= submit_tag("Select DBID for statistics", :title => "Select this DBID for statistic selections in AWR-history") %>
+        <%= submit_tag("Select this DBID for statistics", :title => "Choose this selected DBID for statistic selections in AWR-history") %>
     <% end %>
     <div id="dbid_response_area"></div>
 <% end %>
