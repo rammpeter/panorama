@@ -29,20 +29,19 @@ module ApplicationHelper
   # Ausliefern des client-Keys
   def get_cached_client_key
     if @@cached_encrypted_client_key.nil? || @@cached_decrypted_client_key.nil? || @@cached_encrypted_client_key != cookies[:client_key]        # gecachten Wert neu belegen bei anderem Cookie-Inhalt
-      if cookies[:client_key].nil?
-        params[:message_text] = "Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and try again."
-        redirect_to url_for(:controller => :env,:action => send_message, :method=>:get)
-      end
-      #raise "Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and try again." if cookies[:client_key].nil?
-      @@cached_decrypted_client_key = database_helper_decrypt_value(cookies[:client_key])                                                       # Merken des entschlüsselten Cookies in Memory
+      @@cached_decrypted_client_key = database_helper_decrypt_value(cookies[:client_key])                                                       # Merken des entschlüsselten Cookies in Memory, wirft ActiveSupport::MessageVerifier::InvalidSignature wenn cookies[:client_key] == nil
       @@cached_encrypted_client_key = cookies[:client_key]                                                                                      # Merken des verschlüsselten Cookies für Vergleich bei nächstem Zugriff
     end
     @@cached_decrypted_client_key
   rescue ActiveSupport::MessageVerifier::InvalidSignature => e
-    Rails.logger.error("Exception '#{e.message}' raised while decrypting cookies[:client_key]")
-    cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
-    cookies.delete(:client_salt)
-    raise "Exception '#{e.message}' while decrypting your client key from browser cookie. \nPlease enable usage of browser cookies for this URL and try again."
+    Rails.logger.error("Exception '#{e.message}' raised while decrypting cookies[:client_key] (#{cookies[:client_key]})")
+    if cookies[:client_key].nil?
+      raise("Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and reload the page.")
+    else
+      cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
+      cookies.delete(:client_salt)
+      raise "Exception '#{e.message}' while decrypting your client key from browser cookie. \nPlease try again."
+    end
   end
 
   public
