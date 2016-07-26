@@ -18,7 +18,8 @@ class EnvController < ApplicationController
     # Test ob sich client_key-Cookie entschlüsseln lässt
     begin
       database_helper_decrypt_value(cookies[:client_key])
-    rescue Exception
+    rescue Exception => e
+      Rails.logger.error("Exception #{e.message} while database_helper_decrypt_value(cookies[:client_key])")
       cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
       cookies.delete(:client_salt)
     end

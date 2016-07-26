@@ -33,6 +33,11 @@ module ApplicationHelper
       @@cached_encrypted_client_key = cookies[:client_key]                                                                                      # Merken des verschlüsselten Cookies für Vergleich bei nächstem Zugriff
     end
     @@cached_decrypted_client_key
+  rescue ActiveSupport::MessageVerifier::InvalidSignature => e
+    Rails.logger.error("Exception '#{e.message}' raised while decrypting cookies[:client_key]")
+    cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
+    cookies.delete(:client_salt)
+    raise "Exception '#{e.message}' while decrypting your client key from browser cookie. Please allow usage of cookies for this URL and try again."
   end
 
   public
