@@ -29,6 +29,11 @@ module ApplicationHelper
   # Ausliefern des client-Keys
   def get_cached_client_key
     if @@cached_encrypted_client_key.nil? || @@cached_decrypted_client_key.nil? || @@cached_encrypted_client_key != cookies[:client_key]        # gecachten Wert neu belegen bei anderem Cookie-Inhalt
+      if cookies[:client_key].nil?
+        params[:message_text] = "Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and try again."
+        redirect_to url_for(:controller => :env,:action => send_message, :method=>:get)
+      end
+      #raise "Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and try again." if cookies[:client_key].nil?
       @@cached_decrypted_client_key = database_helper_decrypt_value(cookies[:client_key])                                                       # Merken des entschlüsselten Cookies in Memory
       @@cached_encrypted_client_key = cookies[:client_key]                                                                                      # Merken des verschlüsselten Cookies für Vergleich bei nächstem Zugriff
     end
@@ -37,28 +42,22 @@ module ApplicationHelper
     Rails.logger.error("Exception '#{e.message}' raised while decrypting cookies[:client_key]")
     cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
     cookies.delete(:client_salt)
-    raise "Exception '#{e.message}' while decrypting your client key from browser cookie. Please allow usage of cookies for this URL and try again."
+    raise "Exception '#{e.message}' while decrypting your client key from browser cookie. \nPlease enable usage of browser cookies for this URL and try again."
   end
 
   public
   # Schreiben eines client-bezogenen Wertes in serverseitigen Cache
   def write_to_client_info_store(key, value)
-#    get_client_info_store.write("#{get_cached_client_key}_#{key}", value)
-
-    full_hash = get_client_info_store.read(get_cached_client_key)               # Kompletten Hash aus Cache auslesen
-    full_hash = {} if full_hash.nil? || full_hash.class != Hash                 # Neustart wenn Struktur nicht passt
-    full_hash[key] = value                                                      # Wert in Hash verankern
-    get_client_info_store.write(get_cached_client_key, full_hash)               # Überschreiben des kompletten Hashes im Cache
-
-  rescue ActiveSupport::MessageVerifier::InvalidSignature => e
-    Rails.logger.error("Exception '#{e.message}' raised while writing file store at '#{Panorama::Application.config.client_info_filename}'")
-    cached_client_key = get_cached_client_key                                   # Einzelschritte in separaten Zeilen um evtl. Problem zu erkennen
-    store             = get_client_info_store
-    store.delete(cached_client_key)
-    raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'. Please restart your browser and try again. If that does not help please delete the browser cookie for this URL"
-  rescue Exception =>e
-    Rails.logger.error("Exception '#{e.message}' raised while writing file store at '#{Panorama::Application.config.client_info_filename}'")
-    raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
+    cached_client_key = get_cached_client_key                                   # ausserhalb des Exception-Handlers, da evtl. ActiveSupport::MessageVerifier::InvalidSignature bereits in get_cached_client_key gefangen wird
+    begin
+      full_hash = get_client_info_store.read(cached_client_key)                 # Kompletten Hash aus Cache auslesen
+      full_hash = {} if full_hash.nil? || full_hash.class != Hash               # Neustart wenn Struktur nicht passt
+      full_hash[key] = value                                                    # Wert in Hash verankern
+      get_client_info_store.write(cached_client_key, full_hash)                 # Überschreiben des kompletten Hashes im Cache
+    rescue Exception =>e
+      Rails.logger.error("Exception '#{e.message}' raised while writing file store at '#{Panorama::Application.config.client_info_filename}'")
+      raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
+    end
   end
 
   # Lesen eines client-bezogenen Wertes aus serverseitigem Cache

@@ -388,5 +388,15 @@ public
     end
   end
 
+  # Anzeige einer Message im Browser
+  # Aufruf per:
+  #   params[:message_text] = "Show this"
+  #   redirect_to url_for(:controller => :env,:action => send_message, :method=>:get)
+  def send_message
+    respond_to do |format|
+      format.js {render :js => "alert('#{j params[:message_text]}');" }
+    end
+  end
+
 end
 
