@@ -44,7 +44,15 @@ module ApplicationHelper
     full_hash = {} if full_hash.nil? || full_hash.class != Hash                 # Neustart wenn Struktur nicht passt
     full_hash[key] = value                                                      # Wert in Hash verankern
     get_client_info_store.write(get_cached_client_key, full_hash)               # Überschreiben des kompletten Hashes im Cache
+
+  rescue ActiveSupport::MessageVerifier::InvalidSignature => e
+    Rails.logger.error("Exception '#{e.message}' raised while writing file store at '#{Panorama::Application.config.client_info_filename}'")
+    cached_client_key = get_cached_client_key                                   # Einzelschritte in separaten Zeilen um evtl. Problem zu erkennen
+    store             = get_client_info_store
+    store.delete(cached_client_key)
+    raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'. Please restart your browser and try again. If that does not help please delete the browser cookie for this URL"
   rescue Exception =>e
+    Rails.logger.error("Exception '#{e.message}' raised while writing file store at '#{Panorama::Application.config.client_info_filename}'")
     raise "Exception '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'"
   end
 
