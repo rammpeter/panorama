@@ -28,7 +28,7 @@
     {:caption=> 'Proc',              :data=>proc{|rec| rec.os_process},                          :title=>"OS process identifier of the database's Oracle process"},
     {:caption=> 'Terminal',           :data=>proc{|rec| rec.terminal},                           :title=> 'Terminal info'},
     {:caption=> 'Action',            :data=>proc{|rec| rec.action_name},                         :title=> 'Action name'},
-    {:caption=> 'Object',            :data=>proc{|rec| "#{rec.owner}.#{rec.obj_name}" if rec.owner || rec.obj_name},  :title=> 'Owner an name of affected object'},
+    {:caption=> 'Object',            :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.obj_name) },  :title=> 'Owner an name of affected object'},
     {:caption=> 'I',                 :data=>proc{|rec| rec.instance_number},                     :title=> 'Instance number as specified by the INSTANCE_NUMBER initialization parameter'},
     {:caption=> 'Session-ID',        :data=>proc{|rec| link_session(rec)},                       :title=> 'ID of database session (AUDSID)'},
     {:caption=> 'SQL-Text',          :data=>proc{|rec| link_sql_text(rec)},                      :title=> 'SQL-Text'},
