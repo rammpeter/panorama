@@ -1,6 +1,8 @@
 # hold open SQL-Cursor and iterate over SQL-result without storing whole result in Array
 # Peter Ramm, 02.03.2016
 
+require 'active_record/connection_adapters/oracle_enhanced/connection'
+
 # expand class by getter to allow access on internal variable @raw_statement
 ActiveRecord::ConnectionAdapters::OracleEnhancedJDBCConnection::Cursor.class_eval do
   def get_raw_statement
