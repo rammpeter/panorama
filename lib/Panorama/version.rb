@@ -1,6 +1,6 @@
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.2.07'
+  VERSION = '2.2.08'
   RELEASE_DATE = Date.parse('2016-07-27')
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day
