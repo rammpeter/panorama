@@ -35,7 +35,8 @@ Rails.application.configure do
   # Tell Action Mailer not to deliver emails to the real world.
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
-  config.action_mailer.delivery_method = :test
+  # Auskommentiert wegen Abhängigkeit zu ActionMailer, Ramm, 28.07.2016
+  # config.action_mailer.delivery_method = :test
 
   # Randomize the order test cases are executed.
   config.active_support.test_order = :random

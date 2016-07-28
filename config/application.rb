@@ -1,6 +1,23 @@
 require File.expand_path('../boot', __FILE__)
 
-require 'rails/all'
+# explizite Angabe der Rails-Komponenten die wirklich benutzt werden, Ramm, 28.ß7.2016
+#require 'rails/all'
+
+# statt require 'rails/all' nur Liste der wirklich benutzten Komponenten
+#require "rails"
+
+require "active_record/railtie"
+require "action_controller/railtie"
+require "action_view/railtie"
+require "sprockets/railtie"
+
+
+#  action_mailer/railtie
+#  active_job/railtie
+#  action_cable/engine
+#  rails/test_unit/railtie
+# Ende Liste der wirklich benutzten Komponenten
+
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

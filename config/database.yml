@@ -20,12 +20,13 @@ development:
   adapter: nulldb
 
 #  adapter:  oracle_enhanced
-#  url:      jdbc:oracle:thin:@linux-ramm-macpro:1521:RAMMMAC
+# url:      NULL
+#  url:      jdbc:oracle:thin:@0.0.0.0:1521:NULL
 #  #url:      jdbc:oracle:thin:@pepsi01.puc.ov.otto.de:1521:NOADB2
 #  url:      jdbc:oracle:thin:@ramm.osp-dd.de:1521:RAMM
-#  driver:   oracle.jdbc.driver.OracleDriver
-#  username: noa
-#  password: noa
+# driver:   oracle.jdbc.driver.OracleDriver
+#  username: dummy
+#  password: dummy
 
 
 # Konkrete Oracle-Test-DB wird erst in test_helper.rb  set_session_test_db_context geswitcht, Parameter werden schon hier gesetzt
