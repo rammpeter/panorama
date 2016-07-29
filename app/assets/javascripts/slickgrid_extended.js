@@ -576,7 +576,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             this.gridContainer.find(".slick-header-columns").children().each(function(){
                 var scrollHeight = jQuery(this).prop("scrollHeight");
                 var clientHeight = jQuery(this).prop("clientHeight");
-                if (scrollHeight > clientHeight && scrollHeight-4 > options['headerHeight']){ // Inhalt steht nach unten über
+                if ( (scrollHeight > clientHeight && scrollHeight-4 > options['headerHeight'] ) || // Inhalt steht nach unten über
+                    options['headerHeight'] == 1                                // es hat noch keine Anpassung von Header-Höhe stattgefunden
+                ){
                     options['headerHeight'] = scrollHeight-4;                   // Padding hinzurechnen, da Höhe auf Ebene des Zeilen-DIV gesetzt wird
                 }
             });
