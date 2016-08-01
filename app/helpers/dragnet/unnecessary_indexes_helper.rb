@@ -150,9 +150,15 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
             :sql=> "SELECT /* DB-Tools Ramm: unused indexes */ u.*, i.Num_Rows, i.Distinct_Keys,
                              (SELECT SUM(s.Bytes) FROM DBA_Segments s WHERE s.Owner=u.Owner AND s.Segment_Name=u.Index_Name)/(1024*1024) MBytes,
                              i.Tablespace_Name, i.Uniqueness, i.Index_Type,
-                             (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = u.Owner AND t.Table_Name = u.Table_Name) IOT_Type
+                             (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = u.Owner AND t.Table_Name = u.Table_Name) IOT_Type,
+                             (SELECT MIN(cc.Constraint_Name)
+                              FROM   DBA_Ind_Columns ic
+                              JOIN   DBA_Cons_Columns cc ON cc.Owner = ic.Table_Owner AND cc.Table_Name = ic.Table_Name AND cc.Column_Name = ic.Column_Name AND cc.Position = 1
+                              JOIN   DBA_Constraints c ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Constraint_Type = 'R'
+                              WHERE  ic.Index_Owner = u.Owner AND ic.Index_Name = u.Index_Name AND ic.Column_Position = 1
+                             ) foreign_key_protection
                       FROM   (
-                              SELECT u.UserName Owner, io.name Index_Name, t.name Table_Name,
+                              SELECT /*+ NO_MERGE */ u.UserName Owner, io.name Index_Name, t.name Table_Name,
                                      decode(bitand(i.flags, 65536), 0, 'NO', 'YES') Monitoring,
                                      decode(bitand(ou.flags, 1), 0, 'NO', 'YES') Used,
                                      ou.start_monitoring, ou.end_monitoring
@@ -161,14 +167,18 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                               JOIN   sys.obj$ io ON io.obj# = ou.obj#
                               JOIN   sys.obj$ t  ON t.obj# = i.bo#
                               JOIN   DBA_Users u ON u.User_ID = io.owner#  --
+                              CROSS JOIN (SELECT UPPER(?) Name FROM DUAL) schema
                               WHERE  TO_DATE(ou.Start_Monitoring, 'MM/DD/YYYY HH24:MI:SS') < SYSDATE-?
+                              AND    (schema.name IS NULL OR schema.Name = u.UserName)
                              )u
                       JOIN DBA_Indexes i ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
                       WHere Used='NO' AND Monitoring='YES'
                       AND i.Num_Rows > ?
-                      ORDER BY i.Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},
-                         {:name=>t(:dragnet_helper_9_param_2_name, :default=>'Minimum number of rows of index'), :size=>8, :default=>100, :title=>t(:dragnet_helper_9_param_2_hint, :default=>'Minimum number of rows of index for consideration in selection')}
+                      ORDER BY i.Num_Rows DESC NULLS LAST
+                     ",
+            :parameter=>[{:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_9_param_3_hint, :default=>'List only indexes for this schema (optional)')},
+                         {:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},
+                         {:name=>t(:dragnet_helper_9_param_2_name, :default=>'Minimum number of rows of index'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_9_param_2_hint, :default=>'Minimum number of rows of index for consideration in selection')}
             ]
         },
         {

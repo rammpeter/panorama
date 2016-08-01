@@ -585,6 +585,7 @@
   dragnet_helper_9_param_1_name:                            Tage rückwärts ohne Nutzung
   dragnet_helper_9_param_2_hint:                            Minimale Anzahl Rows des Index für Aufnahme in Selektion
   dragnet_helper_9_param_2_name:                            Minimale Anzahl Rows des Index
+  dragnet_helper_9_param_3_hint:                            Nur Indizes dieses Schemas anlisten (optional)
 
   dragnet_helper_10_name:                                   Identifikation von Indizes mit unnötigen Spalten mit geringer Selektivität
   dragnet_helper_10_desc: |-
