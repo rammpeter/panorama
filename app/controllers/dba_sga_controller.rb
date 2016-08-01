@@ -427,15 +427,10 @@ class DbaSgaController < ApplicationController
 
     @open_cursors = get_open_cursor_count(@instance, @sql_id)
 
-    respond_to do |format|
-      format.js { if @sql
-                    render :js => "$('##{params[:update_area]}').html('#{j render_to_string :partial=>"list_sql_detail_sql_id_childno" }');"
-                  else
-                    render :js => "$('##{params[:update_area]}').html('');
-                                   alert('#{j "Kein Treffer in GV$SQL gefunden für SQL_ID='#{@sql_id}', Instance=#{@instance}, Child_Number=#{@child_number}"}');
-                                   "
-                  end
-                }
+    if @sql
+      render_partial :list_sql_detail_sql_id_childno
+    else
+      show_popup_message("#{t(:dba_sga_list_sql_detail_sql_id_childno_no_hit_msg, :default=>'No record found in GV$SQL for')} SQL_ID='#{@sql_id}', Instance=#{@instance}, Child_Number=#{@child_number}")
     end
   end
 

@@ -444,7 +444,8 @@ class DbaHistoryController < ApplicationController
                  MAX(snaps.End_Snap_ID)             Max_Snap_ID,                /* evtl. ueber mehrere Instances hinweg */
                  MIN(s.Parsing_Schema_Name)         Min_Parsing_Schema_Name,
                  COUNT(DISTINCT Parsing_Schema_Name) Parsing_Schema_Count,      /* muss eindeutig sein */
-                 COUNT(*)                          Hit_Count
+                 COUNT(*)                           Hit_Count,
+                 MAX(s.SQL_Profile)                 SQL_Profile                 /* Eines der devt. benutzten Profiles */
          FROM   Snaps
           JOIN   DBA_Hist_SQLStat s ON s.DBID = Snaps.DBID AND s.Instance_Number = Snaps.Instance_Number AND s.Snap_ID BETWEEN Snaps.Start_Snap_ID AND Snaps.End_Snap_ID
           WHERE  s.SQL_ID = ?
