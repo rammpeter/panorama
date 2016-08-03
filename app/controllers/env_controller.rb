@@ -230,6 +230,13 @@ class EnvController < ApplicationController
         rescue Exception => e    # 3. Versuch mit alternativer SID-Deutung
           Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
           Rails.logger.error e.message
+
+          curr_line_no=0
+          e.backtrace.each do |bt|
+            Rails.logger.error bt if curr_line_no < 20                                # report First 20 lines of stacktrace in log
+            curr_line_no += 1
+          end
+
           Rails.logger.error 'Error persists, switching back between SID and SERVICE_NAME'
           database_helper_switch_sid_usage
           # Oracle-Connection aufbauen mit Wechsel zurück zwischen SID und ServiceName, sql_select_all ruft implizit open_oracle_connection

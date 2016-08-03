@@ -30,10 +30,11 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   #spec.add_dependency "rails", "~> 4.1.6"	# Use this rails version or above		
   #spec.add_dependency "rails", "= 4.2.6"	# Use exactly this rails version
   spec.add_dependency "rails", "= 4.2.7"	# Use exactly this rails version
+  #spec.add_dependency "rails", "= 5.0.0"	# Use exactly this rails version
   spec.add_dependency 'rails-html-sanitizer'
   spec.add_dependency 'activerecord-nulldb-adapter'
   spec.add_dependency 'activerecord-oracle_enhanced-adapter'     # lokal in Gemfile überschreiben mit : gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
-  spec.add_dependency 'memcache-client'
+#  spec.add_dependency 'memcache-client'
   spec.add_dependency "mime-types", "< 3.0"	    # Prevent Gem::InstallError: mime-types-data requires Ruby version >= 2.0.
 
   # JavaScript-Runtime für Server-Seite, wenn kein lokaler installiert ist wie z.B. nodejs (oft unter Linux der Fall)

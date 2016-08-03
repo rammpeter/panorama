@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
 
   # Ausführung vor jeden Request
   def begin_request
-    ConnectionHolder.init_connection_for_new_request(controller_name, action_name)  # Register new request for delayed connecttion to Oracle DB with first SQL execution
+    ConnectionHolder.init_connection_for_new_request(controller_name, action_name)  # Register new request for delayed connection to Oracle DB with first SQL execution
 
     begin
       I18n.locale = get_locale                                                  # fuer laufende Action Sprache aktivieren
@@ -128,7 +128,7 @@ protected
       message << "\n\n"
       #message << caller.to_s
       exception.backtrace.each do |bt|
-        message << bt
+        message << bt << "\n"
       end
     else
       message = 'ApplicationController.alert: Exception = nil'

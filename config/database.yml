@@ -18,7 +18,6 @@
 
 development:
   adapter: nulldb
-
 #  adapter:  oracle_enhanced
 # url:      NULL
 #  url:      jdbc:oracle:thin:@0.0.0.0:1521:NULL
