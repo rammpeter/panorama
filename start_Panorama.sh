@@ -13,9 +13,25 @@ echo "Starting Panorama, logfile is $LOG"
 # Remove all possible old work areas
 rm -rf $PANORAMA_VAR_HOME/work/*
 
-# Variant for Jetty app-server
-#java -Xmx1024m -XX:MaxPermSize=512M -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled -Djruby.compile.invokedynamic=true -Djetty.port=8090 -Djetty.requestHeaderSize=8192 -Djava.io.tmpdir=./work -jar $PANORAMA_HOME/Panorama.war 2>&1 | tee -a $LOG 
+# Optional Parameter:
+# -XX:ReservedCodeCacheSize=48M			Default = 48M, Buffer for JIT compiled code
+# -XX:+ UseCodeCacheFlushing			Flush old / unused code to enable JIT compilation of current code
+# -Xmx1024m					Maximum heap space
+# -Xms1024m					Initial heap space
+# -Djruby.compile.fastest=true			(EXPERIMENTAL) Turn on all experimental compiler optimizations.
+# -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events. 
+# -Djruby.compile.invokedynamic=true		Use invokedynamic for optimizing Ruby code., erroneous with Panorama
 
-# Variant for Winstone app-server
-java -Xmx1024m -Djava.io.tmpdir=$PANORAMA_VAR_HOME/work -jar $PANORAMA_HOME/Panorama.war --httpPort=$HTTP_PORT --debug=9  2>&1 | tee -a $LOG 
+# Variant for Jetty app-server
+java -Xmx1024m \
+     -Xms1024m \
+     -XX:+CMSClassUnloadingEnabled \
+     -XX:+CMSPermGenSweepingEnabled \
+     -XX:+UseCodeCacheFlushing \
+     -XX:ReservedCodeCacheSize=80M \
+     -Djruby.compile.fastest=true \
+     -Djruby.compile.threadless=true \
+     -Djava.io.tmpdir=./work \
+     -jar $PANORAMA_HOME/Panorama.war 2>&1 | tee -a $LOG 
+
 

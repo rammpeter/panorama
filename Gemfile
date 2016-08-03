@@ -10,7 +10,8 @@ gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
 
 # so lange keine 4.2-fähige Version des adapter raus ist
 #gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
-gem 'activerecord-oracle_enhanced-adapter', git: 'http://github.com/rsim/oracle-enhanced', branch: 'rails42'
+# gem 'activerecord-oracle_enhanced-adapter', git: 'http://github.com/rsim/oracle-enhanced', branch: 'rails42'
+gem 'activerecord-oracle_enhanced-adapter'
 
 
 group :development, :test do
@@ -23,5 +24,5 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 # NotImplementedError (fstat unimplemented unsupported or native support failed to load):
 #   org/jruby/RubyFile.java:1138:in `size'
 #   gems/gems/sprockets-3.1.0/lib/sprockets/cache/file_store.rb:110:in `set'
-gem 'sprockets', '2.12.3'
+# gem 'sprockets', '2.12.3'
 

@@ -127,7 +127,7 @@ Warbler::Config.new do |config|
   # config.excludes.
   # config.webinf_files += FileList["jboss-web.xml"]
   # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList['winstone.properties', 'jetty-web.xml', 'init.rb',
+  config.webinf_files += FileList['jetty-web.xml', 'init.rb',
                                   'lib/jee_xsd/web-app_3_1.xsd',
                                   'lib/jee_xsd/web-common_3_1.xsd',
                                   'lib/jee_xsd/javaee_7.xsd',
@@ -147,8 +147,8 @@ Warbler::Config.new do |config|
   # * <tt>winstone</tt> (default) - Winstone 0.9.10 from sourceforge
   # * <tt>jenkins-ci.winstone</tt> - Improved Winstone from Jenkins CI
   # * <tt>jetty</tt> - Embedded Jetty from Eclipse
-  # config.webserver = 'jetty'
-  config.webserver = 'jenkins-ci.winstone'
+  config.webserver = 'jetty'
+  # config.webserver = 'jenkins-ci.winstone'
   # config.webserver = 'winstone'
 
   # Value of RAILS_ENV for the webapp -- default as shown below
@@ -158,7 +158,7 @@ Warbler::Config.new do |config|
   # config.webxml.booter = :rails
 
   # Set JRuby to run in 1.9 mode.
-  config.webxml.jruby.compat.version = "1.9"
+  # config.webxml.jruby.compat.version = "1.9"
 
   # When using the :rack booter, "Rackup" script to use.
   # - For 'rackup.path', the value points to the location of the rackup
@@ -178,8 +178,8 @@ Warbler::Config.new do |config|
   # that you fix these values when running a production server!
   # If you're using threadsafe! mode, you probably don't want to set these values,
   # since 1 runtime(default for threadsafe mode) will be enough.
-  config.webxml.jruby.min.runtimes = 3
-  config.webxml.jruby.max.runtimes = 3
+  config.webxml.jruby.min.runtimes = 2
+  config.webxml.jruby.max.runtimes = 2
 
   # JNDI data source name
   # config.webxml.jndi = 'jdbc/rails'
