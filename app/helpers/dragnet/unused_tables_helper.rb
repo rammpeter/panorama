@@ -75,7 +75,7 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
         },
         {
             :name  => t(:dragnet_helper_128_name, :default=>'Tables without write access (DML) since last analysis'),
-            :desc  => t(:dragnet_helper_128_desc, :default=>'Tables without any access by insert/update/delete since last analysis.
+            :desc  => t(:dragnet_helper_128_desc, :default=>'Tables without any access by insert/update/delete/truncate or drop partition since last analysis.
 For master data this behaviour may be default, but for transaction data this may be a hint that this table are not used no more and therefore possibly may be deleted.
 For valid function of this selection table analysis should only be done if there has been DML on this table (stale-analysis).
 '),
@@ -83,12 +83,9 @@ For valid function of this selection table analysis should only be done if there
                     FROM   (
                             SELECT t.Owner, t.Table_Name, t.Last_Analyzed,
                                    ROUND(SYSDATE - t.Last_Analyzed, 2) Days_After_Analyze,
-                                   t.Num_Rows, s.Size_MB,
-                                   --(SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = t.Owner AND s.Segment_Name = t.Table_Name) Size_MB,
-                                   m.Truncated, m.Drop_Segments
+                                   t.Num_Rows, s.Size_MB
                             FROM   DBA_Tables t
-                            LEFT OUTER JOIN (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp,
-                                                    MAX(Truncated) Truncated, SUM(Drop_Segments) Drop_Segments
+                            LEFT OUTER JOIN (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp
                                              FROM sys.DBA_Tab_Modifications
                                              GROUP BY Table_Owner, Table_Name
                                              HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0  OR MAX(Truncated) = 'YES' OR SUM(Drop_Segments) != 0

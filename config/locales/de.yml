@@ -1192,7 +1192,7 @@
   dragnet_helper_127_param_3_name:                           Minimale elapsed seconds in Active Session History für TABLE ACCESS BY INDEX ROWID
 
   dragnet_helper_128_desc: |-
-    Tabellen ohne irgendeinen Insert-/Update-/Delete-Zugriff seit der letzten Analyse.
+    Tabellen ohne irgendeinen Insert-/Update-/Delete/Truncate-Zugriff oder Drop Partition seit der letzten Analyse.
     Für Stammdaten kann dieses Bild die Regel sein, für Bewegungsdaten kann es ein Hinweis sein, dass diese Tabellen nicht mehr genutzt werden und evtl. entfernt werden können.
     Für saubere Aussage dieser Abfrage sollte Tabellen-analyse nur durchgeführt werden wenn DML auf den Tabellen stattgefunden hat (stale-Auswertung).
   dragnet_helper_128_name: |-
