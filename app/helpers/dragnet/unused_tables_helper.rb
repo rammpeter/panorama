@@ -91,7 +91,7 @@ For valid function of this selection table analysis should only be done if there
                                                     MAX(Truncated) Truncated, SUM(Drop_Segments) Drop_Segments
                                              FROM sys.DBA_Tab_Modifications
                                              GROUP BY Table_Owner, Table_Name
-                                             HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0
+                                             HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0  OR MAX(Truncated) = 'YES' OR SUM(Drop_Segments) != 0
                                             ) m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
                             LEFT OUTER JOIN (SELECT Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024),1) Size_MB
                                              FROM DBA_Segments s
