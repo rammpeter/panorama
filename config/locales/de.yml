@@ -1191,6 +1191,18 @@
     Minimale elapsed seconds in GV$Active_Session_History für TABLE ACCESS BY INDEX ROWID auf der betrachteten Tabelle um in Selektion aufgenommen zu werden. Wert=0 heißt: Anzeige dieses Tabellenzugriffs auch wenn keine Zeilen in Active Session History für diesen Zugriff (mehr) existieren
   dragnet_helper_127_param_3_name:                           Minimale elapsed seconds in Active Session History für TABLE ACCESS BY INDEX ROWID
 
+  dragnet_helper_128_desc: |-
+    Tabellen ohne irgendeinen Insert-/Update-/Delete-Zugriff seit der letzten Analyse.
+    Für Stammdaten kann dieses Bild die Regel sein, für Bewegungsdaten kann es ein Hinweis sein, dass diese Tabellen nicht mehr genutzt werden und evtl. entfernt werden können.
+    Für saubere Aussage dieser Abfrage sollte Tabellen-analyse nur durchgeführt werden wenn DML auf den Tabellen stattgefunden hat (stale-Auswertung).
+  dragnet_helper_128_name: |-
+    Tabellen ohne schreibenden Zugriff (DML) seit letzter Analyse
+  dragnet_helper_128_param_1_hint:                           Nur Tabellen für dieses Schema untersuchen (optional)
+  dragnet_helper_128_param_2_hint:                           Minimale Anzahl Tage seit der letzten Tabellen-Analyse. Sichert, dass die Tabelle mindestens so lange keine DML-Operationen mehr hatte
+  dragnet_helper_128_param_2_name:                           Minimale Anzahl Tage seit der letzten Tabellen-Analyse
+
+
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

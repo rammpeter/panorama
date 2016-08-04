@@ -61,7 +61,7 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
 '),
             :sql=> "SELECT /* DB-Tools Ramm Housekeeping*/
                              m.Table_Owner, m.Table_Name, m.TimeStamp, t.Last_analyzed,
-                             ROUND(m.Timestamp - t.Last_Analyzed, 2) Tage_nach_Analyze,
+                             ROUND(m.Timestamp - t.Last_Analyzed, 2) Days_After_Analyze,
                              m.Inserts, m.Updates, m.Deletes, m.Truncated, m.Drop_Segments
                       FROM   (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp,
                                      SUM(Inserts) Inserts, SUM(Updates) Updates, SUM(Deletes) Deletes,
@@ -72,6 +72,45 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
                       JOIN   DBA_Tables t ON t.Owner = m.Table_Owner AND t.Table_Name = m.Table_Name
                       WHERE m.Deletes = 0 AND m.Truncated = 'NO'
                       ORDER BY m.Inserts+m.Updates+m.Deletes DESC NULLS LAST",
+        },
+        {
+            :name  => t(:dragnet_helper_128_name, :default=>'Tables without write access (DML) since last analysis'),
+            :desc  => t(:dragnet_helper_128_desc, :default=>'Tables without any access by insert/update/delete since last analysis.
+For master data this behaviour may be default, but for transaction data this may be a hint that this table are not used no more and therefore possibly may be deleted.
+For valid function of this selection table analysis should only be done if there has been DML on this table (stale-analysis).
+'),
+            :sql=> "SELECT *
+                    FROM   (
+                            SELECT t.Owner, t.Table_Name, t.Last_Analyzed,
+                                   ROUND(SYSDATE - t.Last_Analyzed, 2) Days_After_Analyze,
+                                   t.Num_Rows, s.Size_MB,
+                                   --(SELECT SUM(Bytes)/(1024*1024) FROM DBA_Segments s WHERE s.Owner = t.Owner AND s.Segment_Name = t.Table_Name) Size_MB,
+                                   m.Truncated, m.Drop_Segments
+                            FROM   DBA_Tables t
+                            LEFT OUTER JOIN (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp,
+                                                    MAX(Truncated) Truncated, SUM(Drop_Segments) Drop_Segments
+                                             FROM sys.DBA_Tab_Modifications
+                                             GROUP BY Table_Owner, Table_Name
+                                             HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0
+                                            ) m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
+                            LEFT OUTER JOIN (SELECT Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024),1) Size_MB
+                                             FROM DBA_Segments s
+                                             WHERE Owner NOT IN ('SYS', 'OUTLN', 'SYSTEM', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB', 'APPQOSSYS')
+                                             GROUP BY Owner, Segment_Name
+                                            ) s ON s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
+                            CROSS JOIN (SELECT UPPER(?) Name FROM DUAL) schema
+                            WHERE  m.Table_Owner IS NULL AND m.Table_Name IS NULL
+                            AND    t.Owner NOT IN ('SYS', 'OUTLN', 'SYSTEM', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB', 'APPQOSSYS')
+                            AND    (schema.name IS NULL OR schema.Name = t.Owner)
+                           )
+                    WHERE  Days_After_Analyze > ?
+                    AND    Num_Rows >= ?
+                    ORDER BY Num_Rows*Days_After_Analyze DESC
+                    ",
+            :parameter=>[
+                {:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_128_param_1_hint, :default=>'Check only tables for this schema (optional)')},
+                {:name=> t(:dragnet_helper_128_param_2_name, :default=>'Minimum number of days after last analyze'), :size=>8, :default=>8, :title=> t(:dragnet_helper_128_param_2_hint, :default=>'Minimum number of days after last analyze to ensure that table had no DML for at least that time')},
+                {:name=> t(:dragnet_helper_128_param_3_name, :default=>'Minimum number of rows'), :size=>14, :default=>0, :title=> t(:dragnet_helper_128_param_3_hint, :default=>'Check only tables with at least this number of rows. Use "0" to check also tables that have never been used (NumRows=0)')}]
         },
         {
             :name  => t(:dragnet_helper_66_name, :default=>'Detection of not used columns (all values = NULL)'),
