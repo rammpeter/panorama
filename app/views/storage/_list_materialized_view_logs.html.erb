@@ -26,8 +26,8 @@ end
 column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner},                                   :title=>"Owner of materialized view log"},
-    {:caption=>"Master",                :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
-    {:caption=>"Log table",             :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.log_table, rec.log_table)}, :title=>"Name of the table where the changes to the master table or master materialized view are logged"},
+    {:caption=>"Master", :data=>proc{|rec| link_object_description(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
+    {:caption=>"Log table", :data=>proc{|rec| link_object_description(@update_area, rec.log_owner, rec.log_table, rec.log_table)}, :title=>"Name of the table where the changes to the master table or master materialized view are logged"},
     {:caption=>"Num rows",              :data=>proc{|rec| link_real_num_rows(rec)},                         :title=>"Number of rows of this MView-log recorded at last analyze", :align=>:right},
     {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                               :title=>"Real current physical size of materialized view log in MBytes", :align=>:right},
     {:caption=>"RowID",                 :data=>proc{|rec| rec.rowids},                                      :title=>"If YES, records rowid information"},

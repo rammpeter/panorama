@@ -41,13 +41,13 @@ class DbaSchemaControllerTest < ActionController::TestCase
   test "list_objects"           do post :list_objects, :format=>:js, :tablespace=>{:name=>"USERS"}, :schema=>{:name=>"SCOTT"};       assert_response :success; end
 
   test "list_table_description" do
-    xhr :get, :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"AUD$"
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"AUD$"
     assert_response :success;
 
-    xhr :get, :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"TAB$"
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"TAB$"
     assert_response :success;
 
-    xhr :get, :list_table_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
     assert_response :success;
 
     post :list_indexes, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"

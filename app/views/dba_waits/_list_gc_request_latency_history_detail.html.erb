@@ -3,7 +3,7 @@
 
 column_options =
   [
-    {:caption=>"Object",        :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}") }, :title=>"Object-Owner, Name, Partition-Name (optional)"},
+    {:caption=>"Object", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}") }, :title=>"Object-Owner, Name, Partition-Name (optional)"},
     {:caption=>"Log.Rd.",       :data=>proc{|rec| fn(rec.logical_reads_delta)},                 :title=>"Logical Reads", :align=>:right},
     {:caption=>"BBW",           :data=>proc{|rec| fn(rec.buffer_busy_waits_delta) },            :title=>"Buffer Busy Waits", :align=>:right},
     {:caption=>"Bl.Chg.",       :data=>proc{|rec| fn(rec.db_block_changes_delta) },             :title=>"DB Block Changes", :align=>:right},

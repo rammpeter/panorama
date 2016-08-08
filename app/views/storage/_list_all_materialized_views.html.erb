@@ -48,7 +48,7 @@ end
 column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.owner.downcase},      :title=>"Owner and name of materialized view"},
-    {:caption=>"Name",                  :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.mview_name, rec.mview_name) },   :title=>"Owner and name of materialized view", :data_title=>proc{|rec| "%t: Physical table name = #{rec.table_name}"}},
+    {:caption=>"Name", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.mview_name, rec.mview_name) }, :title=>"Owner and name of materialized view", :data_title=>proc{|rec| "%t: Physical table name = #{rec.table_name}"}},
     {:caption=>"Num rows",              :data=>proc{|rec| link_real_num_rows(rec)}, :title=>"Number of rows of this MView-log recorded at last analyze (for local MViews only)", :align=>:right},
     {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},       :title=>"Real current physical size of materialized view in MBytes", :align=>:right},
     {:caption=>"Master owner",          :data=>proc{|rec| rec.master_owner},        :title=>"Owner of the master table of MView"},

@@ -17,7 +17,7 @@ def link_column_blocking_reason_cascade(rec, value)
 end
 
 def show_blocking_object(rec)
-  output = link_table_structure(@update_area, rec.blocking_object_schema, rec.blocking_object_name)
+  output = link_object_description(@update_area, rec.blocking_object_schema, rec.blocking_object_name)
   output << " (#{rec.blocking_subobject_name})" if rec.blocking_subobject_name
   output << " - "
   output << link_column_blocking_object(rec)

@@ -171,56 +171,102 @@ class DbaSchemaController < ApplicationController
     render_partial :list_objects
   end # objekte_nach_groesse
 
-  def list_table_description
-    @owner        = params[:owner].upcase         if params[:owner]
-    @segment_name = params[:segment_name].upcase  if params[:segment_name]
+  private
 
-    if @owner.nil? || @owner == ''
-      @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=?", @segment_name]
-      @owner = @objects[0].owner if @objects.count == 1
-      if @objects.count > 1
-        render_partial :list_table_description_owner_choice
-        return
-      end
+  def get_dependencies_count(owner, object_name, object_type)
+    sql_select_one ["SELECT SUM(Anzahl) FROM (SELECT COUNT(*) Anzahl FROM DBA_Dependencies WHERE Owner = ? AND Name = ? AND Type = ?
+                                    UNION ALL SELECT COUNT(*) Anzahl FROM DBA_Dependencies WHERE Referenced_Owner = ? AND Referenced_Name = ? AND Referenced_Type = ?
+                    )", owner, object_name, object_type, owner, object_name, object_type]
+  end
+
+  def get_grant_count(owner, object_name)
+    sql_select_one ["SELECT COUNT(*) FROM DBA_Tab_Privs WHERE Owner = ? AND Table_Name = ?", owner, object_name]
+  end
+
+  public
+
+  def list_object_description
+    @owner       = params[:owner].upcase          if params[:owner]
+    @owner       = nil                            if @owner == ''
+    @object_name = params[:segment_name].upcase   if params[:segment_name]
+    @object_type = params[:object_type].upcase    if params[:object_type]
+    @object_type = nil                            if @object_type == ''
+
+    case
+      when @owner.nil? && @object_type.nil? then
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=?", @object_name]
+      when @owner.nil?
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=? AND Object_Type = ?", @object_name, @object_type]
+      when @object_type.nil?
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=? AND Owner = ?", @object_name, @owner]
+      else
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name=? AND Owner = ? AND Object_Type = ?", @object_name, @owner, @object_type]
     end
 
-    objects = sql_select_all ["SELECT * FROM DBA_Objects WHERE Owner=? AND Object_Name=?", @owner, @segment_name]
-    raise "Object #{@owner}.#{@segment_name} does not exist in database" if objects.count == 0
-    object = objects[0]
 
-    @table_type = "table"
-    @table_type = "materialized view" if objects.count == 2 && (objects[0].object_type == "MATERIALIZED VIEW" || objects[1].object_type == "MATERIALIZED VIEW")
+
+    if @objects.count > 1
+      render_partial :list_table_description_owner_choice
+      return
+    end
+
+    raise "Object #{@owner}.#{@object_name} does not exist in database" if @objects.count == 0
+    object = @objects[0]
+
+    @owner                = object.owner
+    @object_type          = object.object_type
+    params[:owner]        = @owner                                              # Vorbelegung falls Funktionsaufruf weitergegeben wird
+    params[:object_name]  = @object_name                                        # Vorbelegung falls Funktionsaufruf weitergegeben wird
+    params[:object_type]  = @object_type                                        # Vorbelegung falls Funktionsaufruf weitergegeben wird
+
+    @table_type = "TABLE"
+    @table_type = "MATERIALIZED VIEW" if @objects[0].object_type == "MATERIALIZED VIEW"
 
     # Ermitteln der zu dem Objekt gehörenden Table
-    case object.object_type
+    case @object_type
       when "TABLE", "TABLE PARTITION", "TABLE SUBPARTITION", "MATERIALIZED VIEW"
-        if @segment_name[0,12] == "SYS_IOT_OVER"
-          res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @segment_name[13,10]]
-          raise "Segment #{@owner}.#{@segment_name} is not known table type" unless res
+        if @object_name[0,12] == "SYS_IOT_OVER"
+          res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @object_name[13,10]]
+          raise "Segment #{@owner}.#{@object_name} is not known table type" unless res
           @owner      = res.table_owner
           @table_name = res.table_name
         else
-          @table_name = @segment_name
+          @table_name = @object_name
         end
       when "INDEX", "INDEX PARTITION", "INDEX SUBPARTITION"
-        if @segment_name[0,6] == "SYS_IL"
-          res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @segment_name[6,10]]
+        if @object_name[0,6] == "SYS_IL"
+          res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @object_name[6,10]]
         else
-          res = sql_select_first_row ["SELECT Table_Owner, Table_Name FROM DBA_Indexes WHERE Owner=? AND Index_Name=?", @owner, @segment_name]
+          res = sql_select_first_row ["SELECT Table_Owner, Table_Name FROM DBA_Indexes WHERE Owner=? AND Index_Name=?", @owner, @object_name]
         end
-        raise "Segment #{@owner}.#{@segment_name} is not known index type" unless res
+        raise "Segment #{@owner}.#{@object_name} is not known index type" unless res
         @owner      = res.table_owner
         @table_name = res.table_name
       when "LOB"
-        res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @segment_name[7,10]]
+        res = sql_select_first_row ["SELECT Owner Table_Owner, Object_Name Table_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(?)", @object_name[7,10]]
         @owner      = res.table_owner
         @table_name = res.table_name
       when "SEQUENCE"
-        @seqs = sql_select_all ["SELECT * FROM DBA_Sequences WHERE Sequence_Owner = ? AND Sequence_Name = ?", @owner, @segment_name]
+        @seqs = sql_select_all ["SELECT * FROM DBA_Sequences WHERE Sequence_Owner = ? AND Sequence_Name = ?", @owner, @object_name]
         render_partial "list_sequence_description"
         return
+      when 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'FUNCTION'
+        list_plsql_description
+        return
+      when 'TRIGGER'
+        rec = sql_select_first_row ["SELECT Table_Owner, Table_Name FROM DBA_Triggers WHERE Owner=? AND Trigger_Name=?", @owner, @object_name]
+        params[:owner] = rec.table_owner
+        params[:table_name] = rec.table_name
+        list_triggers
+        return
+      when 'SYNONYM'
+        list_synonym
+        return
+      when 'VIEW'
+        list_view_description
+        return
       else
-        raise "Segment #{@owner}.#{@segment_name} is of unsupported type #{object.object_type}"
+        raise "Segment #{@owner}.#{@object_name} is of unsupported type #{object.object_type}"
     end
 
     @attribs = sql_select_all ["SELECT t.*, o.Created, o.Last_DDL_Time, o.Object_ID Table_Object_ID,
@@ -319,7 +365,7 @@ class DbaSchemaController < ApplicationController
 
     @indexes = sql_select_one ['SELECT COUNT(*) FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?', @owner, @table_name]
 
-    if @table_type == "materialized view"
+    if @table_type == "MATERIALIZED VIEW"
       @viewtext = sql_select_one ["SELECT m.query
                                    FROM   sys.dba_mviews m
                                    WHERE  Owner      = ?
@@ -370,7 +416,10 @@ class DbaSchemaController < ApplicationController
 
     @lobs = sql_select_one ["SELECT COUNT(*) FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
-    render_partial :list_table_description
+    @dependencies = get_dependencies_count(@owner, @table_name, @table_type)
+    @grants       = get_grant_count(@owner, @table_name)
+
+    render_partial :list_object_description
   end
 
   private
@@ -621,7 +670,86 @@ class DbaSchemaController < ApplicationController
       AND    t.Table_Name  = ?
       ", @owner, @table_name]
 
+    render_partial :list_triggers
+  end
+
+  def list_dependencies
+    @owner       = params[:owner]
+    @object_name = params[:object_name]
+    @object_type = params[:object_type]
+
+    @dependencies_from_me = sql_select_all ["SELECT d.*,
+                                                    (SELECT COUNT(*) FROM DBA_Dependencies di WHERE di.Referenced_Owner =d.Owner AND di.Referenced_Name = d.Name AND di.Referenced_Type = d.Type) Depending
+                                             FROM   DBA_Dependencies d
+                                             WHERE  Referenced_Owner = ?
+                                             AND    Referenced_Name = ?
+                                             AND    Referenced_Type = ?
+                                            ", @owner, @object_name, @object_type]
+
+    @dependencies_im_from = sql_select_all ["SELECT d.*,
+                                                    (SELECT COUNT(*) FROM DBA_Dependencies di WHERE di.Owner =d.Referenced_Owner AND di.Name = d.Referenced_Name AND di.Type = d.Referenced_Type) Depending
+                                             FROM   DBA_Dependencies d
+                                             WHERE  Owner = ?
+                                             AND    Name = ?
+                                             AND    Type = ?
+                                            ", @owner, @object_name, @object_type]
+
     render_partial
+  end
+
+  def list_grants
+    @owner       = params[:owner]
+    @object_name = params[:object_name]
+
+    @grants = sql_select_iterator ["SELECT * FROM DBA_Tab_Privs WHERE Owner = ? AND Table_Name = ?", @owner, @object_name]
+    render_partial
+  end
+
+
+  def list_plsql_description
+    @owner         = params[:owner]
+    @object_name   = params[:object_name]
+    @object_type   = params[:object_type]
+
+    @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
+    @grants       = get_grant_count(@owner, @object_name)
+
+
+    @source = 'CREATE OR REPLACE '
+    sql_select_all(["SELECT Text FROM DBA_Source WHERE Owner=? AND Name=? AND Type = ? ORDER BY Line", @owner, @object_name, @object_type]).each do |r|
+      @source << r.text
+    end
+
+    render_partial :list_plsql_description
+  end
+
+  def list_synonym
+    @owner         = params[:owner]
+    @object_name   = params[:object_name]
+    @object_type   = params[:object_type]
+
+    syn_data = sql_select_first_row ["SELECT * FROM DBA_Synonyms WHERE Owner = ? AND Synonym_Name = ?", @owner, @object_name]
+    @result = "Is synonym for #{syn_data.table_owner}.#{syn_data.table_name}"
+    @result << "@#{syn_data.db_link}" if syn_data.db_link
+
+    @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
+
+    render_partial :list_synonym
+  end
+
+
+  def list_view_description
+    @owner         = params[:owner]
+    @object_name   = params[:object_name]
+    @object_type   = params[:object_type]
+
+    @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
+    @grants       = get_grant_count(@owner, @object_name)
+
+
+    @view = sql_select_first_row ["SELECT * FROM DBA_Views WHERE Owner = ? AND View_Name = ?", @owner, @object_name]
+
+    render_partial :list_view_description
   end
 
   def list_trigger_body

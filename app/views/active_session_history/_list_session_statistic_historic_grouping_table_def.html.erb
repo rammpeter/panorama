@@ -79,8 +79,8 @@
 
     case @groupby
       when "SQL-ID"         then link_column_sql_id(rec)
-      when "DB-Object"      then if rec.group_value['[Unknown]'].nil?; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
-      when "DB-Sub-Object"  then if rec.group_value['[Unknown]'].nil?; link_table_structure(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
+      when "DB-Object"      then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
+      when "DB-Sub-Object"  then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
       when 'Machine'        then link_machine_ip_info(rec.group_value)
     else rec.group_value
     end

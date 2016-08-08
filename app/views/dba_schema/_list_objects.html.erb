@@ -23,7 +23,7 @@
   [
     {:caption=> 'TS',                :data=>proc{|rec| rec.tablespace_name},                     :title=> 'Tablespace-Name'},
     {:caption=> 'Schema',            :data=>proc{|rec| rec.owner},                               :title=> 'Schema-Name'},
-    {:caption=> 'Name',              :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.segment_name, rec.segment_name_qual)}, :title=> 'Object-Name'},
+    {:caption=> 'Name', :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.segment_name, rec.segment_name_qual)}, :title=> 'Object-Name'},
     {:caption=> 'Partition',         :data=>proc{|rec| link_partition(rec)},                      :title=> t(:dba_schema_list_objects_partition_hint, :default=>'Partition name or number of partitions')},
     {:caption=> 'Type',              :data=>proc{|rec| rec.segment_type},                        :title=> 'Object-Type'},
     {:caption=> 'Compression',       :data=>proc{|rec| h rec.compression},                       :title=> t(:dba_schema_list_objects_compression_hint, :default => 'Type of compression if compression is used')},

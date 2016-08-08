@@ -1,0 +1,25 @@
+<div class="page_caption">Description of <%= @object_type %> <%= @owner %>.<%= @object_name %></div>
+
+<% @update_area = get_unique_area_id %>
+
+<div id="<%= @update_area %>_spec">
+  <%=  @result %>
+</div>
+
+<script type="text/javascript">
+  render_yellow_pre("<%= @update_area %>_spec");
+</script>
+
+
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@dependencies} Dependencies",
+                         url_for(:update_area  => @update_area,
+                                 :action       => :list_dependencies,
+                                 :owner        => @owner,
+                                 :object_name  => @object_name,
+                                 :object_type  => @object_type
+                         ),
+                         :title => "Show object dependencies for #{@object_type} #{@owner}.#{@table_name}")
+  %>
+</div>
+<div id="<%= @update_area %>" style="clear:both;"></div>

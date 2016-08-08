@@ -68,7 +68,7 @@ end
 column_options =
   [
     {:caption=>"I",                             :data=>proc{|rec| rec.instance_number},                                                      :title=>"RAC-Instance"},
-    {:caption=>"Object",                        :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}")},  :title=>"Object-Owner, Name, Partition-Name (optional)", :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
+    {:caption=>"Object", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name} #{rec.subobject_name ? "(#{rec.subobject_name})" : ""}")}, :title=>"Object-Owner, Name, Partition-Name (optional)", :data_title=>proc{|rec| "Type=#{rec.object_type}"} },
     {:caption=>"SQLs",                          :data=>proc{|rec| link_column_stmt(rec, fn(rec.sql_ids))},                                   :align=>:right, :title=>t(:dba_history_list_segment_stat_historic_sum_sqls_hint, :default =>"Total number of SQLs for this object in whole AWR history regardless of considered time slice")},
     {:caption=>"Num Rows",                      :data=>proc{|rec| formattedNumber(rec.num_rows)},                                            :align=>:right, :title=>"Number of Records for this object (from analyze-statistics)"},
     {:caption=>"Object size (MB)",              :data=>proc{|rec| formattedNumber(rec.mbytes,2)},                                            :align=>:right, :title=>"Physical size in MByte from DBA_Segments",     :show_pct_hint=>true},

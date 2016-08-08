@@ -4,7 +4,7 @@
 
 def link_text(rec, value)
   if rec.mbytes
-    link_table_structure(@update_area, rec.owner, rec.name, rec.name)
+    link_object_description(@update_area, rec.owner, rec.name, rec.name)
   else
     my_ajax_link_to(value,
                     url_for(:action          => :list_registered_mview_query_text,

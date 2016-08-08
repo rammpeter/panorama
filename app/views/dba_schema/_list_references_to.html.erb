@@ -3,7 +3,7 @@
     column_options =
             [
                     {:caption=> 'Referencing table owner',     :data=>proc{|rec| rec.owner},                       :title=> 'Owner of referencing table'},
-                    {:caption=> 'Referencing table name',      :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.table_name, rec.table_name) }, :title=> 'Name of referencing table'},
+                    {:caption=> 'Referencing table name', :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.table_name, rec.table_name) }, :title=> 'Name of referencing table'},
                     {:caption=> 'Referencing constraint name', :data=>proc{|rec| rec.constraint_name},             :title=> 'Referencing constraint name'},
                     {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
                     {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Constraint name'},

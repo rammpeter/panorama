@@ -5,7 +5,7 @@
                     {:caption=> 'Constraint name',             :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
                     {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
                     {:caption=> 'Referenced table owner',      :data=>proc{|rec| rec.r_owner},                     :title=> 'Owner of referenced table'},
-                    {:caption=> 'Referenced table name',       :data=>proc{|rec| link_table_structure(@update_area, rec.r_owner, rec.r_table_name, rec.r_table_name) }, :title=> 'Name of referenced table'},
+                    {:caption=> 'Referenced table name', :data=>proc{|rec| link_object_description(@update_area, rec.r_owner, rec.r_table_name, rec.r_table_name) }, :title=> 'Name of referenced table'},
                     {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Referenced constraint name'},
                     {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
                     {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule'},

@@ -1,4 +1,4 @@
-<h3>Description of <%= @table_type %> <%= @owner %>.<%= @table_name %></h3>
+<div class="page_caption">Description of <%= @table_type %> <%= @owner %>.<%= @table_name %></div>
 
 <% @update_area = get_unique_area_id %>
 
@@ -240,6 +240,17 @@ column_options =
   %>
 </div>
 <div class="float_left">
+  <%= my_ajax_submit_tag("#{@dependencies} Dependencies",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_dependencies,
+                                 :owner       => @owner,
+                                 :object_name  => @table_name,
+                                 :object_type  => @table_type
+                         ),
+                         :title => "Show object dependencies for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
   <%= my_ajax_submit_tag("#{@lobs} LOBs",
                          url_for(:update_area => @update_area,
                                  :action      => :list_lobs,
@@ -247,6 +258,16 @@ column_options =
                                  :table_name  => @table_name
                          ),
                          :title => "Show LOB-segments for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@grants} Grants",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_grants,
+                                 :owner       => @owner,
+                                 :object_name => @table_name
+                         ),
+                         :title => "Show grants for #{@object_type} #{@owner}.#{@table_name}")
   %>
 </div>
 <div class="float_left">

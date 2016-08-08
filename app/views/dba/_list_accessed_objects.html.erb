@@ -3,7 +3,7 @@
 
    column_options =
        [
-           {:caption=>"Object",         :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.object)},  :title=>'Object accessed by this session'},
+           {:caption=>"Object", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.object)}, :title=>'Object accessed by this session'},
        ]
 
 %>

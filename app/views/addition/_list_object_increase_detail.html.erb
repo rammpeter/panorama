@@ -16,7 +16,7 @@
 column_options =
   [
     {:caption=>"Owner",           :data=>proc{|rec| rec.owner},                      :title=>"Object-owner"},
-    {:caption=>"Name",            :data=>proc{|rec| link_table_structure(@update_area, rec.owner, rec.segment_name, rec.segment_name)}, :title=>"Segment-name"},
+    {:caption=>"Name", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.segment_name, rec.segment_name)}, :title=>"Segment-name"},
     {:caption=>"Type",            :data=>proc{|rec| rec.segment_type},               :title=>"Segment-type"},
     {:caption=>"Tablespace",      :data=>proc{|rec| rec.last_ts},                    :title=>"Tablespace des Objektes am Ende der Betrachtung"},
     {:caption=>"Start",           :data=>proc{|rec| localeDateTime(rec.date_start)}, :title=>"Erste Aufzeichnung der Größe"},

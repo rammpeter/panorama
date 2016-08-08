@@ -188,18 +188,19 @@ module AjaxHelper
 
   end
 
-  def link_table_structure(update_area, owner, segment_name, print_value=nil)
+  def link_object_description(update_area, owner, segment_name, print_value=nil, object_type=nil)
     owner         = owner.upcase        if owner
     segment_name  = segment_name.upcase if segment_name
     print_value = "#{owner}.#{segment_name}" unless print_value
     my_ajax_link_to(print_value,
        url_for(:controller   => :dba_schema,
-               :action       => :list_table_description,
+               :action       => :list_object_description,
                :owner        => owner,
                :segment_name => segment_name,
+               :object_type  => object_type,
                :update_area  => update_area
               ),
-      :title=>"#{t(:ajax_helper_link_table_structure_hint, :default=>"Show object structure and details for")} #{owner}.#{segment_name}"
+      :title=>"#{t(:ajax_helper_link_object_description_hint, :default=>"Show object structure and details for")} #{owner}.#{segment_name}"
     )
   end
 

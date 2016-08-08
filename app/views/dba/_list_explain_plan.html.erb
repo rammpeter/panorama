@@ -5,7 +5,7 @@ column_options =
   [
     {:caption=>"Operation",             :data=>proc{|rec| rec.operation},                           :title=>'Kind of access'},
     {:caption=>"Options",               :data=>proc{|rec| rec.options},                             :title=>'Access details'},
-    {:caption=>"Object_name",           :data=>proc{|rec| link_table_structure(@update_area, rec.object_owner, rec.object_name) }, :title=>'Object name'},
+    {:caption=>"Object_name", :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name) }, :title=>'Object name'},
     {:caption=>"Optimizer",             :data=>proc{|rec| rec.optimizer},                           :title=>'Optimizer mode'},
     {:caption=>"Access",                :data=>proc{|rec| html_escape(rec.access_predicates)},      :title=>'Access criteria'},
     {:caption=>"Filter",                :data=>proc{|rec| html_escape(rec.filter_predicates)},      :title=>'Filter criteria'},

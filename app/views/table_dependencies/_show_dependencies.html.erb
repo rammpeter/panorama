@@ -6,8 +6,8 @@
    column_options =
            [
                    {:caption=>"Level",                  :data=>proc{|rec| fn(rec.level)},       :align => :right,                                   :title=>"Hierarchie-Level ( Tiefe der Abhängigkeit)"},
-                   {:caption=>"Abhängige Tabelle",      :data=>proc{|rec| link_table_structure(@update_area, rec.childowner, rec.childtable) },     :title=>"Tabelle mit einer referentiellen Abhängigkeit"},
-                   {:caption=>"Abhängig von Tabelle",   :data=>proc{|rec| link_table_structure(@update_area, rec.parentowner, rec.parenttable)},    :title=>"Tabelle von der die erstgenannte referentiell abhänigig ist"},
+                   {:caption=>"Abhängige Tabelle", :data=>proc{|rec| link_object_description(@update_area, rec.childowner, rec.childtable) }, :title=>"Tabelle mit einer referentiellen Abhängigkeit"},
+                   {:caption=>"Abhängig von Tabelle", :data=>proc{|rec| link_object_description(@update_area, rec.parentowner, rec.parenttable)}, :title=>"Tabelle von der die erstgenannte referentiell abhänigig ist"},
 
            ]
 

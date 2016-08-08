@@ -1,7 +1,7 @@
 <div class="page_caption" style="margin-bottom: 10px;">Describe database object</div>
 
 <% @update_area = get_unique_area_id %>
-<%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_table_description, :update_area => @update_area) do %>
+<%= my_ajax_form_tag url_for(:controller => :dba_schema, :action => :list_object_description, :update_area => @update_area) do %>
     Object-Owner
     <%= text_field_tag(:owner, "", :size=>40, :title=>'Schema name of object (optional)') %>
     Object-Name

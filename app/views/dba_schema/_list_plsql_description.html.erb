@@ -1,0 +1,62 @@
+<div class="page_caption">Description of <%= @object_type %> <%= @owner %>.<%= @object_name %></div>
+
+<% @update_area = get_unique_area_id %>
+
+<div id="<%= @update_area %>_spec">
+  <%=  my_html_escape(@source).html_safe %>
+</div>
+
+<script type="text/javascript">
+  render_yellow_pre("<%= @update_area %>_spec", 450);
+</script>
+
+<% if @object_type == 'PACKAGE' %>
+    <div class="float_left">
+      <%= my_ajax_submit_tag("Package Body",
+                             url_for(:update_area  => @update_area,
+                                     :action       => :list_plsql_description,
+                                     :owner        => @owner,
+                                     :object_name  => @object_name,
+                                     :object_type  => 'PACKAGE BODY'
+                             ),
+                             :title => "Show description of package body for #{@owner}.#{@table_name}")
+      %>
+    </div>
+<% end %>
+
+<% if @object_type == 'PACKAGE BODY' %>
+    <div class="float_left">
+      <%= my_ajax_submit_tag("Package",
+                             url_for(:update_area  => @update_area,
+                                     :action       => :list_plsql_description,
+                                     :owner        => @owner,
+                                     :object_name  => @object_name,
+                                     :object_type  => 'PACKAGE'
+                             ),
+                             :title => "Show description of package spec for #{@owner}.#{@table_name}")
+      %>
+    </div>
+<% end %>
+
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@dependencies} Dependencies",
+                         url_for(:update_area  => @update_area,
+                                 :action       => :list_dependencies,
+                                 :owner        => @owner,
+                                 :object_name  => @object_name,
+                                 :object_type  => @object_type
+                         ),
+                         :title => "Show object dependencies for #{@object_type} #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@grants} Grants",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_grants,
+                                 :owner       => @owner,
+                                 :object_name => @object_name
+                         ),
+                         :title => "Show grants for #{@object_type} #{@owner}.#{@object_name}")
+  %>
+</div>
+<div id="<%= @update_area %>" style="clear:both;"></div>

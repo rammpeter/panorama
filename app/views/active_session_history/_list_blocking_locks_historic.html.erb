@@ -58,7 +58,7 @@ def link_column_object(rec)
   result = ''
   result << rec.root_blocking_object_type << ' ' if rec.root_blocking_object_type && rec.root_blocking_object_type != '< 0 >'
   if rec.root_blocking_object_owner && rec.root_blocking_object && rec.root_blocking_object_owner[0] != '<' && rec.root_blocking_object[0] != '<'
-    result << link_table_structure(@update_area, rec.root_blocking_object_owner, rec.root_blocking_object)
+    result << link_object_description(@update_area, rec.root_blocking_object_owner, rec.root_blocking_object)
     result << " (#{rec.root_blocking_subobject})"       if rec.root_blocking_subobject        && rec.root_blocking_subobject        != '< 0 >'
     result << " (#{rec.root_blocking_object_addition})" if rec.root_blocking_object_addition  && rec.root_blocking_object_addition  != '< 0 >'
   else

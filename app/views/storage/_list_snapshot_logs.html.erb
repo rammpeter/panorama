@@ -24,7 +24,7 @@ end
 column_options =
   [
     {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner.downcase},                      :title=>"Owner of materialized view log"},
-    {:caption=>"Master",                :data=>proc{|rec| link_table_structure(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
+    {:caption=>"Master", :data=>proc{|rec| link_object_description(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
     {:caption=>"Log table",             :data=>proc{|rec| link_mview_log(rec)},                         :title=>"Name of MView log table"},
     {:caption=>"Last refresh",          :data=>proc{|rec| localeDateTime(rec.current_snapshots)},       :title=>"Date of last refresh of materialzed view"},
     {:caption=>"Snapshot ID",           :data=>proc{|rec| link_registered_mview(rec)},                  :title=>"Materialized view identifier"},

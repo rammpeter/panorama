@@ -88,7 +88,7 @@ if @res.count > 0
                                 owner = rec["owner"]                if rec["owner"]         && !owner
                                 owner = rec["Owner"]                if rec["Owner"]         && !owner
                                 if owner
-                                  link_table_structure(:exec_dragnet_sql_detail_area, owner, my_html_escape(rec[col[:caption]]), my_html_escape(rec[col[:caption]]))
+                                  link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(rec[col[:caption]]), my_html_escape(rec[col[:caption]]))
                                 else
                                   my_html_escape(rec[col[:caption]])            # Ohne Link
                                 end
