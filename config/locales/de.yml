@@ -1200,7 +1200,10 @@
   dragnet_helper_128_param_1_hint:                           Nur Tabellen für dieses Schema untersuchen (optional)
   dragnet_helper_128_param_2_hint:                           Minimale Anzahl Tage seit der letzten Tabellen-Analyse. Sichert, dass die Tabelle mindestens so lange keine DML-Operationen mehr hatte
   dragnet_helper_128_param_2_name:                           Minimale Anzahl Tage seit der letzten Tabellen-Analyse
-
+  dragnet_helper_128_param_3_hint:                           Nur Tabellen betrachten mit mindestens der Anzahl Rows. "0" setzen um auf Tabellen zu prüfen die niemals genutzt wurden.
+  dragnet_helper_128_param_3_name:                           Minimale Anzahl Records der Tabelle
+  dragnet_helper_128_param_4_hint:                           Minimales Alter der Tabelle in Tagen (Zeit seit der Anlage) um auszuschliessen dass die ungenutzte Tabelle eine aktuelle Vorbereitung auf die nächste Software-Lieferung ist
+  dragnet_helper_128_param_4_name:                           Minimales Alter der Tabelle in Tagen
 
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result

@@ -79,9 +79,11 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
 For master data this behaviour may be default, but for transaction data this may be a hint that this table are not used no more and therefore possibly may be deleted.
 For valid function of this selection table analysis should only be done if there has been DML on this table (stale-analysis).
 '),
-            :sql=> "SELECT *
+            :sql=> "SELECT Owner, Table_Name, Max_Created \"Creation time\", ROUND(SYSDATE-Max_Created) \"Age in days\",Max_Last_DDL_Time \"Last DDL Time\", Last_Analyzed \"Last analyze time\",
+                                   Days_After_Analyze \"Days after last analyze\",
+                                   Num_Rows, Size_MB
                     FROM   (
-                            SELECT t.Owner, t.Table_Name, t.Last_Analyzed,
+                            SELECT t.Owner, t.Table_Name, o.Max_Created, o.Max_Last_DDL_Time, t.Last_Analyzed,
                                    ROUND(SYSDATE - t.Last_Analyzed, 2) Days_After_Analyze,
                                    t.Num_Rows, s.Size_MB
                             FROM   DBA_Tables t
@@ -95,6 +97,11 @@ For valid function of this selection table analysis should only be done if there
                                              WHERE Owner NOT IN ('SYS', 'OUTLN', 'SYSTEM', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB', 'APPQOSSYS')
                                              GROUP BY Owner, Segment_Name
                                             ) s ON s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
+                            LEFT OUTER JOIN (SELECT Owner, Object_Name, MAX(Created) Max_Created, MAX(Last_DDL_Time) Max_Last_DDL_Time
+                                             FROM   DBA_Objects
+                                             WHERE  Object_Type LIKE 'TABLE%'
+                                             GROUP BY Owner, Object_Name
+                                            ) o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
                             CROSS JOIN (SELECT UPPER(?) Name FROM DUAL) schema
                             WHERE  m.Table_Owner IS NULL AND m.Table_Name IS NULL
                             AND    t.Owner NOT IN ('SYS', 'OUTLN', 'SYSTEM', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB', 'APPQOSSYS')
@@ -102,12 +109,15 @@ For valid function of this selection table analysis should only be done if there
                            )
                     WHERE  Days_After_Analyze > ?
                     AND    Num_Rows >= ?
+                    AND    Max_Created < SYSDATE - ?
                     ORDER BY Num_Rows*Days_After_Analyze DESC
                     ",
             :parameter=>[
                 {:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_128_param_1_hint, :default=>'Check only tables for this schema (optional)')},
                 {:name=> t(:dragnet_helper_128_param_2_name, :default=>'Minimum number of days after last analyze'), :size=>8, :default=>8, :title=> t(:dragnet_helper_128_param_2_hint, :default=>'Minimum number of days after last analyze to ensure that table had no DML for at least that time')},
-                {:name=> t(:dragnet_helper_128_param_3_name, :default=>'Minimum number of rows'), :size=>14, :default=>0, :title=> t(:dragnet_helper_128_param_3_hint, :default=>'Check only tables with at least this number of rows. Use "0" to check also tables that have never been used (NumRows=0)')}]
+                {:name=> t(:dragnet_helper_128_param_3_name, :default=>'Minimum number of rows'), :size=>14, :default=>0, :title=> t(:dragnet_helper_128_param_3_hint, :default=>'Check only tables with at least this number of rows. Use "0" to check also tables that have never been used (NumRows=0)')},
+                {:name=> t(:dragnet_helper_128_param_4_name, :default=>'Minimum age of table (days)'), :size=>10, :default=>60, :title=> t(:dragnet_helper_128_param_4_hint, :default=>'Minimum age of table in days (time since creation) to ensure that unused table is not a current preparation for next software release')},
+            ]
         },
         {
             :name  => t(:dragnet_helper_66_name, :default=>'Detection of not used columns (all values = NULL)'),
