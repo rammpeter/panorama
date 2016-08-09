@@ -50,6 +50,20 @@ class DbaSchemaControllerTest < ActionController::TestCase
     xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
     assert_response :success;
 
+    post :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"COL$"
+    assert_response :success;
+
+    xhr :get, :list_object_description, :format=>:js, :owner=>"PUBLIC", :segment_name=>"V$ARCHIVE"  # Synonym
+    assert_response :success;
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"DBMS_LOCK"     # Package oder Body
+    assert_response :success;
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"DBMS_LOCK", :object_type=>'PACKAGE'
+    assert_response :success;
+    xhr :get, :list_object_description, :format=>:js, :owner=>"SYS", :segment_name=>"DBMS_LOCK", :object_type=>'PACKAGE BODY'
+    assert_response :success;
+    xhr :get, :list_object_description, :format=>:js, :segment_name=>"ALL_TABLES"                   # View
+    assert_response :success;
+
     post :list_indexes, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
     assert_response :success;
 
@@ -99,6 +113,18 @@ class DbaSchemaControllerTest < ActionController::TestCase
     end
 
     post :list_dbms_metadata_get_ddl, :format=>:js, :owner=>"SYS", :table_name=>"AUD$"
+    assert_response :success;
+
+    post :list_dependencies, :format=>:js, :owner=>"SYS", :object_name=>"AUD$", :object_type=>'TABLE'
+    assert_response :success;
+    post :list_dependencies, :format=>:js, :owner=>"SYS", :object_name=>"DBA_AUDIT_TRAIL", :object_type=>'VIEW'
+    assert_response :success;
+    post :list_dependencies, :format=>:js, :owner=>"SYS", :object_name=>"DBMS_LOCK", :object_type=>'PACKAGE'
+    assert_response :success;
+    post :list_dependencies, :format=>:js, :owner=>"SYS", :object_name=>"DBMS_LOCK", :object_type=>'PACKAGE BODY'
+    assert_response :success;
+
+    post :list_grants, :format=>:js, :owner=>"SYS", :object_name=>"AUD$"
     assert_response :success;
 
   end

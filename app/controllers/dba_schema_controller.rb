@@ -616,8 +616,7 @@ class DbaSchemaController < ApplicationController
              #{get_db_version >= "11.2" ?
                                       "(SELECT LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
                                        (SELECT LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
-                                      "
-                                  :
+                                      " :
                                       "(SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,
                                        (SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns
                                       "
@@ -642,8 +641,7 @@ class DbaSchemaController < ApplicationController
              #{get_db_version >= "11.2" ?
                                       "(SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
                                        (SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
-                                      "
-                                   :
+                                      " :
                                       "(SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
                                        (SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
                                       "
@@ -714,6 +712,7 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
+    @attribs = sql_select_all ["SELECT o.Created, o.Last_DDL_Time, o.Status FROM DBA_Objects o WHERE o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?", @owner, @object_name, @object_type]
 
     @source = 'CREATE OR REPLACE '
     sql_select_all(["SELECT Text FROM DBA_Source WHERE Owner=? AND Name=? AND Type = ? ORDER BY Line", @owner, @object_name, @object_type]).each do |r|
@@ -734,6 +733,8 @@ class DbaSchemaController < ApplicationController
 
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
 
+    @attribs = sql_select_all ["SELECT o.Created, o.Last_DDL_Time, o.Status FROM DBA_Objects o WHERE o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?", @owner, @object_name, @object_type]
+
     render_partial :list_synonym
   end
 
@@ -746,6 +747,7 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
+    @attribs = sql_select_all ["SELECT o.Created, o.Last_DDL_Time, o.Status FROM DBA_Objects o WHERE o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?", @owner, @object_name, @object_type]
 
     @view = sql_select_first_row ["SELECT * FROM DBA_Views WHERE Owner = ? AND View_Name = ?", @owner, @object_name]
 

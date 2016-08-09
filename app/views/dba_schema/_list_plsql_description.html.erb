@@ -1,6 +1,17 @@
-<div class="page_caption">Description of <%= @object_type %> <%= @owner %>.<%= @object_name %></div>
-
 <% @update_area = get_unique_area_id %>
+
+<%
+  column_options =
+      [
+          {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
+          {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
+          {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
+      ]
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto}) %>
+
 
 <div id="<%= @update_area %>_spec">
   <%=  my_html_escape(@source).html_safe %>

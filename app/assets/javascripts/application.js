@@ -246,14 +246,20 @@ function render_yellow_pre(id, max_height){
     var elem = $("#"+id);
 
     elem.wrap('<pre class="yellow-panel"></pre>');
+
+
+    if (elem.height() > max_height){
+        elem.height(max_height);
+        elem.css('overflow-y', 'scroll');
+    }
+
+    if (elem.prop('scrollWidth') > elem.width()){
+        elem.css('overflow-x', 'scroll');
+    }
+
     elem.resizable();
     elem.find(".ui-resizable-e").remove();                    // Entfernen des rechten resizes-Cursors
     elem.find(".ui-resizable-se").remove();                   // Entfernen des rechten unteren resize-Cursors
-    if (elem.height() > max_height){
-        elem.height(max_height);
-        elem.css('overflow', 'scroll')
-    }
-
 }
 
 
