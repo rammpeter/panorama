@@ -50,6 +50,44 @@ ORDER BY Elapsed_Secs DESC, SQL_ID, NVL_Level, CHAR_Level
                 {:name=> t(:dragnet_helper_58_param1_name, :default=>'Minimum runtime of SQL in seconds'), :size=>8, :default=> 1000, :title=> t(:dragnet_helper_58_param1_desc, :default=>'Minimum runtime of SQL in seconds for consideration in selection')},
             ]
         },
+        {
+            :name  => t(:dragnet_helper_129_name, :default=>'Identification of probably unused PL/SQL-objects'),
+            :desc  => t(:dragnet_helper_129_desc, :default=>"PL/SQL-code may assumed to be unused and dispensable if there are no dependencies from other PL/SQL-code.
+This must not be true because you need entry points to PL/SQL-processing that doesn't have dependencies from other PL/SQL-objects but are essential.
+Therefor additional selection is useful, e.g. by filter based on name convention.
+"),
+            :sql=> "SELECT o.Owner, o.Object_Name, o.Object_Type, o.Created, o.Last_DDL_Time, o.Status
+                    FROM   DBA_Objects o
+                    CROSS JOIN (SELECT UPPER(?) Name FROM DUAL) schema
+                    CROSS JOIN (SELECT UPPER(?) Filter FROM DUAL) name_filter_incl
+                    CROSS JOIN (SELECT UPPER(?) Filter FROM DUAL) name_filter_excl
+                    WHERE  o.Object_Type IN ('PROCEDURE', 'PACKAGE', 'TYPE', 'FUNCTION', 'SYNONYM')
+                    AND    o.Owner NOT IN ('SYS', 'OUTLN', 'SYSTEM', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB', 'APPQOSSYS')
+                    AND    (schema.name IS NULL OR schema.Name = o.Owner)
+                    AND    (name_filter_incl.Filter IS NULL OR o.Object_name LIKE '%'||name_filter_incl.Filter||'%')
+                    AND    (name_filter_excl.Filter IS NULL OR o.Object_name NOT LIKE '%'||name_filter_excl.Filter||'%')
+                    AND NOT EXISTS (SELECT 1
+                                    FROM   DBA_Dependencies d
+                                    WHERE  d.Referenced_Owner = o.Owner
+                                    AND    d.Referenced_Name = o.Object_Name
+                                    AND    d.Referenced_Type = o.Object_Type
+                                    AND    (d.Type != 'SYNONYM' OR EXISTS (SELECT 1 FROM DBA_Dependencies di WHERE  di.Referenced_Owner = d.Owner AND di.Referenced_Name = d.Name AND di.Referenced_Type = d.Type) ) -- Synonyme ohne weitere Abhängigkeiten nicht werten
+                                    AND    (   d.Type != 'PACKAGE BODY'
+                                            OR d.Name != d.Referenced_Name                          /* Referenz von anderslautendem Body zählt als Abhängigkeit */
+                                            OR EXISTS (SELECT 1 FROM DBA_Dependencies di WHERE  di.Referenced_Owner = d.Owner AND di.Referenced_Name = d.Name AND di.Referenced_Type = d.Type) /* Weitere Abhängigkeiten des Bodys eines Package zählen als Abhängigkeiten */
+                                           )
+                                   )
+                    AND    o.Created < SYSDATE - ?
+                    AND    o.Last_DDL_Time < SYSDATE - ?
+           ",
+            :parameter=>[
+                {:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_129_param_1_hint, :default=>'Check only PL/SQL-objects for this schema (optional)')},
+                {:name=>t(:dragnet_helper_129_param2_name, :default=>'Limit result to object names with this wildcard (optional)'),  :size=>30, :default=>'',   :title=>t(:dragnet_helper_129_param_2_hint, :default=>'Check only PL/SQL objects with names matching this wildcard-filter(optional)')},
+                {:name=>t(:dragnet_helper_129_param3_name, :default=>'Exclude object_names with this wildcard from result (optional)'),  :size=>30, :default=>'',   :title=>t(:dragnet_helper_129_param_3_hint, :default=>'Exclude PL/SQL objects with names matching this wildcard-filter from check (optional)')},
+                {:name=>t(:dragnet_helper_129_param4_name, :default=>'Minimum age of objects in days'), :size=>8, :default=> 100, :title=> t(:dragnet_helper_128_param4_desc, :default=>'Minimum number of days since creation of object')},
+                {:name=>t(:dragnet_helper_129_param5_name, :default=>'Minimum days since last DDL'), :size=>8, :default=> 10, :title=> t(:dragnet_helper_128_param5_desc, :default=>'Minimum number of days since last DDL-operation on object')},
+            ]
+        },
     ]
   end
 

@@ -1205,6 +1205,22 @@
   dragnet_helper_128_param_4_hint:                           Minimales Alter der Tabelle in Tagen (Zeit seit der Anlage) um auszuschliessen dass die ungenutzte Tabelle eine aktuelle Vorbereitung auf die nächste Software-Lieferung ist
   dragnet_helper_128_param_4_name:                           Minimales Alter der Tabelle in Tagen
 
+  dragnet_helper_129_desc: |-
+    PL/SQL-Code kann als ungenutzt und verzichtbar angenommen werden wenn es keine Abhängigkeiten von anderem PL/SQL-Code gibt.
+    Dies muss nicht wahr sein, da Eintrittspunkte in die PL/SQL-Verarbeitung benötigt werden die keine Abhängigkeiten von anderem PL/SQL-Code haben aber wesentlich sind.
+    Daher ist weitere Abgrenzung sinnvoll, z.B. über Filter auf Namenskonventionen.
+  dragnet_helper_129_name: |-
+    Identifikation evtl. ungenutzter PL/SQL-Objekte
+  dragnet_helper_129_param_1_hint:                           Nur PL/SQL-Objekte für dieses Schema untersuchen (optional)
+  dragnet_helper_129_param_2_hint:                           Nur Prüfung von PL/SQL-Objekten, deren Name diesen Suchbegriff enthält (optional)
+  dragnet_helper_129_param_2_name:                           Einschränkung des Ergebnis auf Object-Namen mit diesem Bestandteil (optional)
+  dragnet_helper_129_param_3_hint:                           Ausschluss von PL/SQL-Objekten von der Prüfung, deren Name diesen Suchbegriff enthält (optional)
+  dragnet_helper_129_param_3_name:                           Ausschluss von Object-Namen mit diesem Bestandteil (optional)
+  dragnet_helper_129_param_4_hint:                           Minimale Anzahl Tage seit der Anlage des Objektes
+  dragnet_helper_129_param_4_name:                           Minimales Alter des Objektes in Tagen
+  dragnet_helper_129_param_5_hint:                           Minimale Anzahl Tage seit der letzten DDL-Operation auf dem Objekt
+  dragnet_helper_129_param_5_name:                           Minimale Anzahl Tage seit dem letzten DDL des Objektes
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
