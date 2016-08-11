@@ -12,14 +12,7 @@
 
 <%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto}) %>
 
-
-<div id="<%= @update_area %>_spec">
-  <%=  my_html_escape(@source).html_safe %>
-</div>
-
-<script type="text/javascript">
-  render_yellow_pre("<%= @update_area %>_spec", 450);
-</script>
+<%= render_yellow_pre(@source, 450) %>
 
 <% if @object_type == 'PACKAGE' %>
     <div class="float_left">

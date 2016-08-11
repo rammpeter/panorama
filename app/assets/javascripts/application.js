@@ -248,7 +248,7 @@ function render_yellow_pre(id, max_height){
     elem.wrap('<pre class="yellow-panel"></pre>');
 
 
-    if (elem.height() > max_height){
+    if (max_height && elem.height() > max_height){
         elem.height(max_height);
         elem.css('overflow-y', 'scroll');
     }

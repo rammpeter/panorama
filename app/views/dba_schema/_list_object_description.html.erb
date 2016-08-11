@@ -154,7 +154,7 @@ column_options =
 
 <% if @viewtext %>
 <h4>Viewtext of <%= @table_type %> <%= @owner %>.<%= @table_name %></h4>
-<pre class="slick-shadow" style="background-color: lightyellow"><%=  @viewtext %></pre>
+    <%= render_yellow_pre(@viewtext, 450) %>
 <% end %>
 
 <% if @unique_constraints.count > 0 %>
