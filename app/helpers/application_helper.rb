@@ -714,7 +714,7 @@ module ApplicationHelper
     output = "<div id=\"#{div_id}\">#{my_html_escape(text).html_safe}</div>
               <script type=\"text/javascript\">
                 render_yellow_pre(\"#{div_id}\"#{max_height.nil? ? '' : ", #{max_height}"});
-    </script>
+              </script>
     ".html_safe
   end
 

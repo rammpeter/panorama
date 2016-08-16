@@ -210,7 +210,11 @@ class DbaSchemaController < ApplicationController
       return
     end
 
-    raise "Object #{@owner}.#{@object_name} does not exist in database" if @objects.count == 0
+    #raise "Object #{@owner}.#{@object_name} does not exist in database"
+    if @objects.count == 0
+      show_popup_message "Object #{@owner}.#{@object_name} does not exist in database"
+      return
+    end
     object = @objects[0]
 
     @owner                = object.owner
