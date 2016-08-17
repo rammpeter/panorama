@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   #protect_from_forgery with: :exception                  # cross site scripting verhindern
-  protect_from_forgery with: :null_session               # cross site scripting verhindern
+  protect_from_forgery :with => :null_session              # cross site scripting verhindern
 
 
   #force_ssl
@@ -116,7 +116,7 @@ class ApplicationController < ActionController::Base
   end
 
 
-protected  
+protected
   # Ausgabe der Meldungen einer Exception
   def alert(exception, header='')
     if exception
@@ -149,5 +149,5 @@ protected
     end
 
   end
-  
+
 end

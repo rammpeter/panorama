@@ -29,7 +29,7 @@ module Dragnet::OptimalIndexStorageHelper
             ]
         },
         {
-            :name  => t(:dragnet_helper_2_name, :default=> 'Test for recommendable index-compression'),
+            :name  => t(:dragnet_helper_2_name, :default=> 'Recommendations for index-compression, test by selectivity'),
             :desc  => t(:dragnet_helper_2_desc, :default=> 'Index-compression (COMPRESS) is usefull by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
   For poor selective indexes reduction of size by 1/4 to 1/3 is possible.'),
             :sql=> "SELECT /* DB-Tools Ramm Komprimierung Indizes */  *
@@ -76,6 +76,36 @@ module Dragnet::OptimalIndexStorageHelper
                       AND    i.Compression = 'DISABLED'
                       ORDER BY Avg_Leaf_Blocks_Per_Key*Num_Rows DESC NULLS LAST",
             :parameter=>[{:name=> 'Min. Leaf-Blocks/Key', :size=>8, :default=>1, :title=>t(:dragnet_helper_3_param_1_hint, :default=> 'Minimum number of leaf-blocks / key') },
+            ]
+        },
+        {
+            :name  => t(:dragnet_helper_2_name, :default=> 'Recommendations for index-compression, test by selectivity of single columns from multicolumn index'),
+            :desc  => t(:dragnet_helper_2_desc, :default=> 'For multicolumn-indexes compression of single index columns (beginning from left) may be useful even if this multicolumn-index has overall Num_Rows=Distinct_Keys (selectivity=1).
+Partial index-compression (COMPRESS x) assumes that index-column to be compressed has position 1 in index or all columns before are also compressed.
+This selections shows recommendations for compression of single columns of multicolumn indexes beginning with column-position 1.'),
+            :sql=> "SELECT i.Owner, i.Table_Name, i.Index_Name, i.Index_Type, i.Compression, i.Prefix_Length, i.Num_Rows, i.Last_Analyzed, i.Partitioned, ica.Columns, ic.Column_Name, ic.Column_Position,
+                           tc.Num_Distinct, tc.Avg_Col_Len, ROUND(i.Num_Rows/DECODE(tc.Num_Distinct,0,1,tc.Num_Distinct)) Rows_per_Key,
+                           (SELECT  ROUND(SUM(bytes)/(1024*1024),1) MBytes
+                            FROM   DBA_SEGMENTS s
+                            WHERE s.SEGMENT_NAME = i.Index_Name
+                            AND     s.Owner      = i.Owner
+                           ) MBytes
+                    FROM   DBA_Indexes i
+                    JOIN   (SELECT Index_Owner, Index_Name, COUNT(*) Columns
+                            FROM   DBA_Ind_Columns
+                            GROUP BY Index_Owner, Index_Name
+                            HAVING COUNT(*) > 1
+                           ) ica ON ica.Index_Owner = i.Owner AND ica.Index_Name = i.Index_Name
+                    JOIN   DBA_Ind_Columns ic ON ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name
+                    JOIN   DBA_Tab_Columns tc ON tc.Owner = i.Table_Owner AND tc.Table_Name = i.Table_Name AND tc.Column_Name = ic.Column_Name
+                    WHERE  i.Owner NOT IN ('SYS', 'SYSTEM', 'OUTLN', 'DBSNMP', 'WMSYS', 'CTXSYS', 'XDB')
+                    AND    i.Index_Type NOT IN ('BITMAP')
+                    AND    i.Num_Rows > ?
+                    AND    i.Num_Rows/DECODE(tc.Num_Distinct,0,1,tc.Num_Distinct) > ?
+                    AND    (i.Compression = 'DISABLED' OR i.Prefix_Length < ic.Column_Position)
+                    ORDER BY ic.Column_Position, NVL(tc.Avg_Col_Len, 5) * i.Num_Rows * i.Num_Rows/DECODE(tc.Num_Distinct,0,1,tc.Num_Distinct) DESC NULLS LAST",
+            :parameter=>[{:name=> t(:dragnet_helper_130_param_1_name, :default=>'Min. number of rows of index'), :size=>10, :default=>1000000, :title=>t(:dragnet_helper_130_param_1_hint, :default=> 'Minimum number of rows of index to be considered in this selection') },
+                         {:name=> 'Min. rows/key per column', :size=>8, :default=>10, :title=>t(:dragnet_helper_130_param_2_hint, :default=> 'Minimum number of index rows per DISTINCT Key of single index column') },
             ]
         },
         {

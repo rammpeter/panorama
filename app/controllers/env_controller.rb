@@ -9,7 +9,7 @@ class EnvController < ApplicationController
   include LicensingHelper
 
   # Verhindern "ActionController::InvalidAuthenticityToken" bei erstem Aufruf der Seite
-  protect_from_forgery except: :index
+  protect_from_forgery :except => :index
 
   public
   MAX_NEW_KEY_TRIES  = 1000

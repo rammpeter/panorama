@@ -515,7 +515,7 @@
   dragnet_helper_2_desc: |-
     Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
     Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
-  dragnet_helper_2_name:                                    Test auf empfehlenswerte Index-Komprimierung
+  dragnet_helper_2_name:                                    Empfehlungen für Index-Komprimierung, Test auf Selektivität
   dragnet_helper_2_param_1_hint:                            Mindestanzahl Zeilen des Index je DISTINCT Key
   dragnet_helper_2_param_2_name:                            Schwellwert für Index-Größe (MB)
   dragnet_helper_2_param_2_hint:                            Selection von Indizes, deren Größe in MB diesen Wert überschreitet
@@ -524,7 +524,7 @@
     Index-Kompression (COMPRESS) bringt sinnvolle Ergebnisse durch Reduktion der physischen Größe für OLTP-Indizes mit geringer Selektivität.
     Bei geringer Selektivität der Indizes ist Reduzierung der Größe durch Komprimierung um 1/4 bis 1/3 möglich.
     Bei komprimiertem Index sollten alle Verweise auf Data-Blocks eines Keys in einen Leaf-Block passen
-  dragnet_helper_3_name:                                    Empfehlungen für Index-Komnprimierung, Test auf Leaf-Blocks
+  dragnet_helper_3_name:                                    Empfehlungen für Index-Komprimierung, Test auf Leaf-Blocks
   dragnet_helper_3_param_1_hint:                            Mindestanzahl Leaf-Blocks / Key
 
   dragnet_helper_4_desc: |-
@@ -1221,6 +1221,15 @@
   dragnet_helper_129_param_5_hint:                           Minimale Anzahl Tage seit der letzten DDL-Operation auf dem Objekt
   dragnet_helper_129_param_5_name:                           Minimale Anzahl Tage seit dem letzten DDL des Objektes
 
+  dragnet_helper_130_desc: |-
+    Für Mehrspaltenindizes kann auch die Komprimierung einer einzelnen Spalte (von links beginnend) hilfreich sein, selbst wenn der Mehrspaltenindex im Ganzen  Num_Rows=Distinct_Keys hat (Selectivität=1).
+    Spaltenweise Index-Komprimierung (COMPRESS x) erwartet dass die zu komprimierende Spalte an Position 1 steht oder alle vorherigen Spalten ebenfalls komprimiert sind.
+    Diese Selektion zeigt Empfehlungen für die Komprimierung einzelner Spalten von Mehrspaltenindizes beginnend mit Spalten an Position 1.
+  dragnet_helper_130_name: |-
+    Empfehlungen für Index-Komprimierung, Test auf Selektivität einer einzelnen Spalte eines Mehrspaltenindex
+  dragnet_helper_130_param_1_hint:                           Minimale Anzahl Records des Index um in Selektion berücksichtigt zu werden
+  dragnet_helper_130_param_2_hint:                           Minimale Anzahl Rows je Distinct Key für eine Spalte des Index
+  dragnet_helper_130_param_2_name:                           Minimale Rows/Key für eine Spalte
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

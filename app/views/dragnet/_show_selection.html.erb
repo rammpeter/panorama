@@ -2,11 +2,11 @@
         t(:dragnet_show_selection_header, :default=> "Dragnet investigation for performance bottlenecks and usage of anti-pattern"),
         [
             {
-                name:       :add_personal,
-                caption:    'Add personal selection',
-                hint:       'Add your personal SQL statement for extension of dragnet SQLs',
-                icon_class: 'ui-icon ui-icon-plus',
-                action:     js_ajax_post_call(:controller => :dragnet, :action =>:show_personal_selection_form , :update_area => :show_selection_result_area)
+                :name =>       :add_personal,
+                :caption =>    'Add personal selection',
+                :hint =>       'Add your personal SQL statement for extension of dragnet SQLs',
+                :icon_class => 'ui-icon ui-icon-plus',
+                :action =>     js_ajax_post_call(:controller => :dragnet, :action =>:show_personal_selection_form , :update_area => :show_selection_result_area)
             }
         ]
     )
