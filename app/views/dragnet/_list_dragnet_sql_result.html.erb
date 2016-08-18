@@ -85,6 +85,7 @@ if @res.count > 0
                                 owner = nil                                     # Default
                                 owner = rec["table_owner"]          if rec["table_owner"]   && !owner
                                 owner = rec["Table owner"]          if rec["Table owner"]   && !owner
+                                owner = rec["object_owner"]         if rec["object_owner"]  && !owner
                                 owner = rec["owner"]                if rec["owner"]         && !owner
                                 owner = rec["Owner"]                if rec["Owner"]         && !owner
                                 if owner
@@ -102,7 +103,7 @@ if @res.count > 0
 
 <%= gen_slickgrid(@res, @column_options, {:caption => @caption, :plot_area_id => "exec_dragnet_sql_detail_area", :max_height=>450}) %>
 
-<div id='exec_dragnet_sql_detail_area'></div>
+<div id='exec_dragnet_sql_detail_area'  style="padding-top: 5px;"></div>
 
 <%
 else

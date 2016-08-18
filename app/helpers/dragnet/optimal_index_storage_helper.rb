@@ -112,7 +112,7 @@ This selections shows recommendations for compression of single columns of multi
                             AND    i.Num_Rows/DECODE(tc.Num_Distinct,0,1,tc.Num_Distinct) > ?
                             AND    (i.Compression = 'DISABLED' OR i.Prefix_Length < ic.Column_Position)
                            )
-                    ORDER BY Column_Position, NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/DECODE(Num_Distinct,0,1,Num_Distinct)/DECODE(Partitions, 0, 1, Partitions) DESC NULLS LAST",
+                    ORDER BY Column_Position, NVL(Avg_Col_Len, 5) * NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/DECODE(Num_Distinct,0,1,Num_Distinct)/DECODE(Partitions, 0, 1, Partitions) DESC NULLS LAST",
             :parameter=>[{:name=> t(:dragnet_helper_130_param_1_name, :default=>'Min. number of rows of index'), :size=>10, :default=>1000000, :title=>t(:dragnet_helper_130_param_1_hint, :default=> 'Minimum number of rows of index to be considered in this selection') },
                          {:name=> 'Min. rows/key per column', :size=>8, :default=>10, :title=>t(:dragnet_helper_130_param_2_hint, :default=> 'Minimum number of index rows per DISTINCT Key of single index column') },
             ]

@@ -180,11 +180,14 @@ Usable with Oracle 11g and above only.'),
             :sql=> "SELECT x.*
                     FROM   (
                             SELECT /*+ USE_HASH(t) */
-                                   p.Inst_ID, p.SQL_ID, p.Child_Number, p.Plan_Hash_Value, h.SQL_Plan_Line_ID, p.Object_Owner, p.Object_Name,
+                                   p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, h.SQL_Plan_Line_ID, p.Object_Owner, p.Object_Name,
                                    t.Num_Rows, t.Avg_Row_Len,
                                    h.Samples Seconds_per_SQL,
                                    SUM(Samples) OVER (PARTITION BY p.Object_Owner, p.Object_Name) Seconds_per_Object
-                            FROM   gv$SQL_Plan p
+                            FROM   (
+                                    SELECT DISTINCT Inst_ID, ID, Operation, Options, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name
+                                    FROM   gv$SQL_Plan
+                                   ) p
                             JOIN   (
                                     SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time, SQL_ID,
                                            SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Samples
