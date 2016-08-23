@@ -2,11 +2,12 @@
 <%
 column_options =
 [
-  {:caption=>"I",     :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
-  {:caption=>"Pool",  :data=>proc{|rec| rec.pool},                                           :title=>"Pool within the SGA"},
-  {:caption=>"Bytes", :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Size in bytes", :align=>"right"},
-  {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Size in megabytes", :align=>"right"},
-  {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Size in gigabytes", :align=>"right"},
+  {:caption=>"I",         :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Pool",      :data=>proc{|rec| rec.pool},                                           :title=>"Pool within the SGA"},
+  {:caption=>"Bytes",     :data=>proc{|rec| formattedNumber(rec.bytes)},                         :title=>"Size in bytes", :align=>"right"},
+  {:caption=>"MBytes",    :data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Size in megabytes", :align=>"right"},
+  {:caption=>"GBytes",    :data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Size in gigabytes", :align=>"right"},
+  {:caption=>"Parameter", :data=>proc{|rec| rec.parameter},                                      :title=>"Corresponding initialization parameter of instance"},
 ]
 
 %>

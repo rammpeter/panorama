@@ -276,6 +276,37 @@ Due to the poor selectivity such indexes are mostly not useful for access optimi
                          {:name=> t(:dragnet_helper_6_param_3_name, :default=>'Max. number of referencing tables'), :size=>8, :default=>20, :title=>t(:dragnet_helper_6_param_3_hint, :default=>'Max. number of referencing tables (with large number there may be problems with FullTableScan during delete on master table)')},
             ]
         },
+        {
+            :name  => t(:dragnet_helper_131_name, :default=> 'Indexes on partitioned tables with same columns like partition keys'),
+            :desc  => t(:dragnet_helper_131_desc, :default=>"If an index on partitioned table indexes the same columns like partition key and partitioning itself is selective enough by partition pruning
+than this index can be removed"),
+            :sql=> "SELECT x.Owner, x.Index_Name, x.Table_Owner, x.Table_Name, x.Uniqueness, x.Index_Partitioned, x.Num_Rows, x.Distinct_Keys, x.Partition_Columns, x.Table_Partitions, x.MBytes
+                    FROM   (
+                            SELECT i.Owner, i.Index_Name, i.Table_Owner, i.Table_Name, i.Uniqueness, i.Partitioned Index_Partitioned, i.Num_Rows, i.Distinct_Keys,
+                                   COUNT(DISTINCT pc.Column_Name) Partition_Columns, COUNT(ic.Column_Name) Matching_Index_Columns,
+                                   (SELECT COUNT(*) FROM DBA_Ind_Columns ici WHERE ici.Index_Owner = i.Owner AND ici.Index_Name = i.Index_Name) Total_Index_Columns,
+                                   (SELECT COUNT(*)
+                                    FROM   DBA_Tab_Partitions tp
+                                    WHERE  tp.Table_Owner = i.Table_Owner
+                                    AND    tp.Table_Name  = i.Table_Name
+                                   ) Table_Partitions,
+                                   (SELECT  ROUND(SUM(bytes)/(1024*1024),1) MBytes
+                                    FROM   DBA_SEGMENTS s
+                                    WHERE  s.SEGMENT_NAME = i.Index_Name
+                                    AND    s.Owner        = i.Owner
+                                   ) MBytes
+                            FROM   DBA_Indexes i
+                            JOIN   DBA_Part_Key_Columns pc ON pc.Owner = i.Table_Owner AND pc.Name = i.Table_Name AND pc.Object_Type = 'TABLE'
+                            LEFT OUTER JOIN DBA_Ind_Columns ic ON  ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name AND ic.Column_Name = pc.Column_Name AND ic.Column_Position = pc.Column_Position
+                            WHERE  i.Owner NOT IN ('SYSTEM', 'SYS')
+                            AND    i.Uniqueness != 'UNIQUE'
+                            GROUP BY i.Owner, i.Index_Name, i.Table_Owner, i.Table_Name, i.Uniqueness, i.Partitioned,  i.Num_Rows, i.Distinct_Keys
+                           ) x
+                    WHERE Partition_Columns      = Matching_Index_Columns
+                    AND   Matching_Index_Columns = Total_Index_Columns      -- keine weiteren Spalten des Index
+                    ORDER BY x.Distinct_Keys / DECODE(Table_Partitions, 0, 1, Table_Partitions), x.Num_Rows DESC
+                    ",
+        },
 
     ]
   end # unnecessary_indexes

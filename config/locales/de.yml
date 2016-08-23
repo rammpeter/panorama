@@ -611,7 +611,7 @@
 
   dragnet_helper_12_name:                                   Local-Partitionierung von Unique Indizes mit Partition-Key=Index-Spalte
   dragnet_helper_12_desc: |-
-    Unqiue Indizes lassen sich auch local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
+    Auch unqiue Indizes lassen sich auch local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
     Somit kann auch für Zugriffe über diese Indizes Partition-Pruning auf Index-Ebene genutzt werden sowie möglicherweise der BLevel des Index reduziert werden.
 
   dragnet_helper_13_name:                                   Local-Partitionierung mit Overhead im Zugriff
@@ -1230,6 +1230,12 @@
   dragnet_helper_130_param_1_hint:                           Minimale Anzahl Records des Index um in Selektion berücksichtigt zu werden
   dragnet_helper_130_param_2_hint:                           Minimale Anzahl Rows je Distinct Key für eine Spalte des Index
   dragnet_helper_130_param_2_name:                           Minimale Rows/Key für eine Spalte
+
+  dragnet_helper_131_desc: |-
+    Wenn ein Index auf einer partitionierten Tabelle die selben Spalten indiziert wie die Partition-Keys und die Partitionierung selbst selektiv genug ist durch Partition Pruning,
+    dann kann der Index möglicherweise entfernt werden.
+  dragnet_helper_131_name: |-
+    Indizes auf partitionierten Tabellen mit selben Spalten wie Partition-Keys
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

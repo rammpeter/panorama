@@ -546,13 +546,26 @@ class DbaSgaController < ApplicationController
   # SGA-Komponenten 
   def list_sga_components
     @instance        = prepare_param_instance
-    @sums = sql_select_iterator ["\
+    @sums = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             Inst_ID, NVL(Pool, Name) Pool, sum(Bytes) Bytes
+             Inst_ID, NVL(Pool, Name) Pool, sum(Bytes) Bytes, NULL Parameter
       FROM   gv$sgastat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
       GROUP BY Inst_ID, NVL(Pool, Name)
       ORDER BY 3 DESC", @instance]
+
+    @sums.each do |s|
+      s['parameter'] =
+          case s.pool
+            when 'buffer_cache' then "db_block_buffers = #{ sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'db_block_buffers'])}, db_cache_size = #{sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'db_cache_size'])}"
+            when 'java pool'    then "java_pool_size = #{   sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'java_pool_size'])}"
+            when 'large pool'   then "large_pool_size = #{  sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'large_pool_size'])}"
+            when 'log_buffer'   then "log_buffer = #{       sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'log_buffer'])}"
+            when 'shared pool'  then "shared_pool_size = #{ sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'shared_pool_size'])}"
+            when 'streams pool' then "streams_pool_size = #{sql_select_one(["SELECT Value FROM gv$Parameter WHERE Inst_ID = ? AND Name = ?", s.inst_id, 'streams_pool_size'])}"
+          end
+
+    end
 
     @components = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
