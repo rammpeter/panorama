@@ -108,13 +108,26 @@ column_options =
     )
    end
 
-column_options =
+   def link_real_num_rows(rec)
+     update_area = "#{@update_area}_num_rows"
+     my_ajax_link_to(rec.num_rows ? fn(rec.num_rows) : "[No analyze]",
+                     url_for(:controller      => :storage,
+                             :action          => :list_real_num_rows,
+                             :owner           => @owner,
+                             :name            => @table_name,
+                             :update_area     => update_area
+                            ),
+                     :title=>"Count current number of rows in Table. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+   end
+
+
+   column_options =
 [
   {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name'},
   {:caption=> 'Pct Free',         :data=>proc{|rec| fn(rec.pct_free)},                     :title=> 'Percent free', :align=>:right},
   {:caption=> 'Ini Trans',        :data=>proc{|rec| fn(rec.ini_trans)},                    :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
   {:caption=> 'Max Trans',        :data=>proc{|rec| fn(rec.max_trans)},                    :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
-  {:caption=> 'Rows',             :data=>proc{|rec| fn(rec.num_rows)},                     :title=> 'Number of rows calculated by last analyze run', :align=>:right},
+  {:caption=> 'Rows',             :data=>proc{|rec| link_real_num_rows(rec)},              :title=> 'Number of rows calculated by last analyze run', :align=>:right},
   {:caption=> 'Size (MB) Table',  :data=>proc{|rec| fn(@size_mb_table, 2)},                :title=> 'Current table size in megabytes', :align=>:right},
   {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right},
   {:caption=> 'Blocks',           :data=>proc{|rec| fn(rec.blocks)},                       :title=> 'Number of allocated blocks calculated by last analyze run', :align=>:right},
