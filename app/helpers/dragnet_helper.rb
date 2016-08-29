@@ -116,14 +116,15 @@ module DragnetHelper
         predefined_filename = "#{Panorama::Application.config.panorama_var_home}/predefined_dragnet_selections.json"
         if File.exist?(predefined_filename)
           begin
-          dragnet_predefined_list = ""
-          File.open(predefined_filename, 'r'){|file|
-            dragnet_predefined_list = eval(file.read)
-          }
+            dragnet_predefined_list = ""
+            File.open(predefined_filename, 'r'){|file|
+              dragnet_predefined_list = eval(file.read)
+            }
+            Rails.logger.info("Predefined dragnet selections read from #{predefined_filename}")
           rescue Exception => e
             raise "Error \"#{e.message}\" during parse of file #{predefined_filename}"
           end
-          @@dragnet_internal_list << { :name    => 'Predefined extensions from server instance',
+          @@dragnet_internal_list << { :name    => t(:dragnet_helper_predefined_menu_name, :default=> 'Predefined extensions from local Panorama server instance'),
                                        :entries => dragnet_predefined_list
           }
         end
