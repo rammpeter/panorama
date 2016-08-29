@@ -501,6 +501,8 @@
   dragnet_helper_param_minimal_ela_per_exec_hint:           Minimale elapsed time per execution in Sekunden für Aufnahme in Selektion
   dragnet_helper_param_minimal_ela_per_exec_name:           Minimale elapsed time/Execution (Sec.)
 
+  dragnet_helper_predefined_menu_name:                      Vordefinierte Erweiterungen hinterlegt auf dem lokalen Panorama-Server
+
   dragnet_helper_1_desc: |-
     Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
     Mit PCTFree < 10 (insbesondere = 0) sind Probleme mit automatischer Ausbalancierung zu erwarten, insbesondere beim Insert der Daten in vorsortierter Folge
