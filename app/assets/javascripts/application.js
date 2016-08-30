@@ -2,6 +2,7 @@
 // This file is automatically included by javascript_include_tag :defaults
 
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
+// jquery_3.1.0 führt zu Problemen beim Ändern der Spaltenbreite
 //= require jquery-2.1.4
 //= require jquery-ui
 //= require jquery.ui.touch-punch.js

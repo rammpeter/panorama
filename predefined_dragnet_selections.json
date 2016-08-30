@@ -20,9 +20,9 @@
     ]
   },
   {
-    name: "Test-Selection 2",
-    desc: "Explanation of selection 2 in right dialog",
-    sql:  "SELECT * FROM ALL_Users",
+    name: "Überzählige Tables in CORE-Schemata",
+    desc: "Tabellen in CORE-Schemata, die nicht in EMTable dokumentiert sind",
+    sql:  "SELECT * FROM DBA_Tables t WHERE Owner = 'AUFTRAG' AND NOT EXISTS (SELECT 1 FROM auftrag.EMTable e WHERE UPPER(e.Name) = t.Table_Name)
+    "
   }
 ]
-

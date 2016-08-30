@@ -28,9 +28,10 @@
  * @return {SlickGridExtended} object
  */
 function createSlickGridExtended(container_id, data, columns, options, additional_context_menu){
-    var sle = new SlickGridExtended(container_id, data, columns, options, additional_context_menu);
+    var sle = new SlickGridExtended(container_id, options);
     sle.initSlickGridExtended(container_id, data, columns, options, additional_context_menu);
-    // sle.calculate_current_grid_column_widths('createSlickGridExtended');        // Sicherstellen, dass mindestens ein zweites Mal diese Funktion durchlaufen wird und Scrollbars real berücksichtigt werden
+    sle.calculate_current_grid_column_widths('createSlickGridExtended');        // Sicherstellen, dass mindestens ein zweites Mal diese Funktion durchlaufen wird und Scrollbars real berücksichtigt werden
+    setTimeout(async_calc_all_cell_dimensions, 0, sle, 0);                      // Asynchrone Berechnung der noch nicht vermessenen Zellen für Kalkulation der Dimensionen
     return sle;
 }
 
@@ -39,13 +40,9 @@ function createSlickGridExtended(container_id, data, columns, options, additiona
  * @class SlickGridExtended
  * @constructor
  * @param {Node}              container_id  ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix).  This Container should not have additional styles (margin, padding, etc.)
- * @param {Array}             data          An array of objects for databinding.
- * @param {Array}             columns       An array of column definitions.
- * @param {Object}            options       Grid options.
- * @param {Array}             additional_context_menu Array with additional context menu entries as object
- *                             { label: "Menu-Label", hint: "MouseOver-Hint", ui_icon: "ui-icon-image", action:  function(t){ ActionName } }
+ * @param {Object}      options         Grid options.
  **/
-function SlickGridExtended(container_id, data, columns, options, additional_context_menu){
+function SlickGridExtended(container_id, options){
     // ###################### Begin Constructor-Code #######################
     var thiz = this;                                                            // Persistieren Objekt-Zeiger über Constructor hinaus, da this in privaten Methoden nicht mehr gültig ist
 
@@ -77,6 +74,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * @param columns                   An array of column definitions.
      * @param options                   Grid options.
      * @param additional_context_menu   additional_context_menu Array with additional context menu entries as object
+     *                             { label: "Menu-Label", hint: "MouseOver-Hint", ui_icon: "ui-icon-image", action:  function(t){ ActionName } }
      */
     this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
         this.all_columns = columns;                                             // Column-Deklaration in der Form wie dem SlickGrid übergeben inkl. hidden columns
@@ -154,9 +152,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
 
         initialize_slickgrid(this.grid);                                        // einmaliges Initialisieren des SlickGrid
 
-        this.calculate_current_grid_column_widths('setup_slickgrid');           // erstmalige Berechnung der Größen
+        // auskommentiert weil calculate_current_grid_column_widths erst nach asynchronem calc_cell_dimensions Sinn macht
+        //this.calculate_current_grid_column_widths('setup_slickgrid');           // erstmalige Berechnung der Größen
 
-        adjust_real_grid_height();                                              // Anpassen der Höhe des Grid an maximale Höhe des Inhaltes
+        // auskommentiert weil calculate_current_grid_column_widths erst nach asynchronem calc_cell_dimensions Sinn macht
+        //adjust_real_grid_height();                                              // Anpassen der Höhe des Grid an maximale Höhe des Inhaltes
 
         build_slickgrid_context_menu(container_id, additional_context_menu);    // Aufbau Context-Menu fuer Liste
 
@@ -259,12 +259,11 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
             grid.render();
         });
 
-        grid.onScroll.subscribe(function(){
-            if (thiz.slickgrid_render_needed ==1){
-                thiz.slickgrid_render_needed = 0;
-                thiz.calculate_current_grid_column_widths('onScroll');
-            }
-        });
+//        grid.onScroll.subscribe(function(){
+//            if (thiz.slickgrid_render_needed ==1){
+//                thiz.calculate_current_grid_column_widths('onScroll');
+//            }
+//        });
 
         grid.onHeaderCellRendered.subscribe(function(node, column){
             jQuery(column.node).css('height', column.grid.getOptions()['headerHeight']);        // Höhe der Header-Zeile setzen nach dem initialen setzen der Höhe durch slickgrid
@@ -487,6 +486,9 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         var h_padding       = 10;                                               // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
 
         trace_log(caller+": start calculate_current_grid_column_widths ");
+
+        this.slickgrid_render_needed = 0;                                       // Falls das Flag gesetzt war, wird das rendern jetzt durchgeführt und Flag damit entwertet
+
         viewport_div.css('overflow', '')                                        // Default-Einstellung des SlickGrid für Scrollbar entfernen
 
         for (var col_index in columns) {
@@ -868,7 +870,7 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
      * Setzen/Limitieren der Höhe des Grids auf maximale Höhe des Inhaltes
      */
     function adjust_real_grid_height(){
-        // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Plastz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
+        // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Platz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
         var total_height = thiz.gridContainer.data('total_height');             // gespeicherte Inhaltes-Höhe aus calculate_current_grid_column_widths
         //console.log('adjust_real_grid_height: total_height old='+total_height+' thiz.gridContainer.height()='+thiz.gridContainer.height());
         if (total_height < thiz.gridContainer.height())                         // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
@@ -982,11 +984,6 @@ function SlickGridExtended(container_id, data, columns, options, additional_cont
         init_option('sort_method',          'QuickSort');                       // QuickSort (Array.sort) oder BubbleSort
     };
 
-    function trace_log(msg){
-        if (false){
-            console.log(msg);                                                           // Aktivieren trace-Ausschriften
-        }
-    };
 
     /**
      * Speichern Inhalt und Erneutes Berechnen der Breite und Höhe einer Zelle nach Änderung ihres Inhaltes + Aktualisieren der Anzeige,
@@ -1240,6 +1237,64 @@ function resize_handler(){
     TO = setTimeout(resize_slickGrids, 100); //200 is time in miliseconds
 }
 
+
+function async_calc_all_cell_dimensions(slickGrid, start_row){
+    var columns = slickGrid.grid.getColumns();
+    var data    = slickGrid.grid.getData().getItems();
+
+    var current_row = start_row;
+
+    while (current_row < data.length && current_row < start_row+50){
+        var rec = data[current_row];
+        for (var col_index in columns){
+            var column = columns[col_index];
+            var column_metadata = rec['metadata']['columns'][column['field']];  // Metadata der Spalte der Row
+            if (!column_metadata['dc'] || column_metadata['dc']==0) {            // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
+                HTML_Formatter_prepare(slickGrid, current_row, col_index, rec[column['field']], column, rec, column_metadata);
+            }
+        }
+        current_row++;
+    }
+    if (current_row < data.length){
+        setTimeout(async_calc_all_cell_dimensions, 0, slickGrid, current_row);  // Erneut Aufruf einstellen für den Rest des Arrays
+    } else {
+        if (slickGrid.slickgrid_render_needed ==1){
+            slickGrid.calculate_current_grid_column_widths('async_calc_all_cell_dimensions');
+        }
+    }
+}
+
+
+/**
+ * Aufbereitung der anzuzeigenden Daten mit optionaler Berechnung der Abmessungen
+ * Liefert den vollständig gerenderten Wert für die Zelle
+ *
+ * @param slickGrid         das SlickGridExtended-Objekt
+ * @param row               row-Nr. beginnend mit 0
+ * @param cell              cell-Nr. beginnend mit 0
+ * @param value             Wert der Zelle in data
+ * @param columnDef         Spaltendefinition
+ * @param dataContext       komplette Zeile aus data-Array
+ * @param column_metadata   die Metadaten der konkreten Spalte der Row
+ * @returns {string}
+ */
+function HTML_Formatter_prepare(slickGrid, row, cell, value, columnDef, dataContext, column_metadata){
+    var fullvalue = value;                                                      // wenn keine dekorierten Daten vorhanden sind, dann Nettodaten verwenden
+    if (column_metadata['fulldata'])
+        fullvalue = column_metadata['fulldata'];                                // Ersetzen des data-Wertes durch komplette Vorgabe incl. html-tags etc.
+
+    if (columnDef['field_decorator_function']){                                 // Decorator-Funktion existiert für Spalte, dann ausführen
+        fullvalue = columnDef['field_decorator_function'](slickGrid, row, cell, value, fullvalue, columnDef, dataContext);
+    }
+
+    if (!column_metadata['dc'] || column_metadata['dc']==0){                    // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
+        slickGrid.calc_cell_dimensions(value, fullvalue, columnDef);            // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
+        column_metadata['dc'] = 1;                                              // Zeile als berechnet markieren
+    }
+    return fullvalue;
+}
+
+
 /**
  * Default-Formatter für Umsetzung HTML in SlickGrid
  *
@@ -1253,18 +1308,8 @@ function resize_handler(){
 function HTMLFormatter(row, cell, value, columnDef, dataContext){
     var column_metadata = dataContext['metadata']['columns'][columnDef['field']];  // Metadata der Spalte der Row
     var slickGrid = columnDef['slickgridExtended'];
-    var fullvalue = value;                                                      // wenn keine dekorierten Daten vorhanden sind, dann Nettodaten verwenden
-    if (column_metadata['fulldata'])
-        fullvalue = column_metadata['fulldata'];                                // Ersetzen des data-Wertes durch komplette Vorgabe incl. html-tags etc.
 
-    if (columnDef['field_decorator_function']){                                 // Decorator-Funktion existiert für Spalte, dann ausführen
-        fullvalue = columnDef['field_decorator_function'](slickGrid, row, cell, value, fullvalue, columnDef, dataContext);
-    }
-
-    if (!column_metadata['dc'] || column_metadata['dc']==0){                    // bislang fand noch keine Messung der Dimensionen der Zellen dieser Zeile statt
-        slickGrid.calc_cell_dimensions(value, fullvalue, columnDef);            // Werte ermitteln und gegen bislang bekannte Werte der Spalte testen
-        column_metadata['dc'] = 1;                                              // Zeile als berechnet markieren
-    }
+    var fullvalue = HTML_Formatter_prepare(slickGrid, row, cell, value, columnDef, dataContext, column_metadata);   // Aufbereitung der anzuzeigenden Daten mit optionaler Berechnung der Abmessungen
 
     var output = "<div class='slick-inner-cell' row="+row+" column='"+columnDef['field']+"'";           // sichert u.a. 100% Ausdehnung im Parent und Wiedererkennung der Spalte bei Mouse-Events
 
@@ -1308,6 +1353,14 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
     output += "</div>";
     return output;
 }
+
+
+function trace_log(msg){
+    if (false){
+        console.log(msg);                                                           // Aktivieren trace-Ausschriften
+    }
+};
+
 
 /**
  * Übersetzungsliste
