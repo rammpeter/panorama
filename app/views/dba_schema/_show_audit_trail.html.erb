@@ -42,9 +42,27 @@
       <%= text_field_tag(:top_x, "5", :size=>5) %>
     </div>
     <div class="float_left">
-    <%= submit_tag("Show audit trail", :title => "Show audit trail records") %>
+    <%= submit_tag("Show audit trail", :title => "Show audit trail records\n\nUse grouping by time unit if you expect large amount of audit records!") %>
   </div>
 <% end %>
 <div id="<%= @update_area %>" style="clear: both; width:100%; ">
+  <%
+    column_options =
+        [
+            {:caption=> 'User',             :data=>proc{|rec| rec.user_name},       :title=> "User name if by user auditing.\nANY CLIENT if access by a proxy on behalf of a client is being audited.\nNULL for system-wide auditing"},
+            {:caption=> 'Proxy',            :data=>proc{|rec| rec.proxy_name},      :title=> "The name of the proxy user which is performing an operation for the client.\nNULL if the client is performing the operation directly."},
+            {:caption=> 'Audit-Option',     :data=>proc{|rec| rec.audit_option},    :title=> "Name of the system auditing option"},
+            {:caption=> 'Success',          :data=>proc{|rec| rec.success},         :title=> "Mode for WHENEVER SUCCESSFUL system auditing"},
+            {:caption=> 'Failure',          :data=>proc{|rec| rec.failure},         :title=> "Mode for WHENEVER NOT SUCCESSFUL system auditing"},
+        ]
+  %>
+
+  <%=
+    gen_slickgrid(@audits, column_options, {
+        :caption    => 'Active auditing rules',
+        :max_height => 450,
+        :width      => :auto
+    })
+  %>
 </div>
 

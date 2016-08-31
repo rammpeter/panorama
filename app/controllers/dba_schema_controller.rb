@@ -877,6 +877,11 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def show_audit_trail
+    @audits = sql_select_all "SELECT * FROM DBA_Stmt_Audit_Opts ORDER BY Audit_Option"
+    render_partial
+  end
+
   private
   def audit_mode_xml?
     sql_select_one("SELECT Value FROM v$Parameter WHERE Name = 'audit_trail'")['XML'] != nil
