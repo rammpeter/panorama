@@ -15,12 +15,16 @@
                      :title=> 'Show depent results for dependency')
    end
 
+  def link_name(rec)
+    link_object_description(@update_area, rec.name.split(".")[0], rec.name.split(".")[1]);
+  end
+
 
    column_options =
            [
                    {:caption=>'ID',             :data=>proc{|rec| formattedNumber(rec.id)}, :title=>'Identifier for the cache object (also the ID of the first block)', :align=>:right},
                    {:caption=>"Status",         :data=>proc{|rec| rec.status},                                         :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
-                   {:caption=>"Name",           :data=>proc{|rec| rec.name},                                           :title=>"Name of object"},
+                   {:caption=>"Name",           :data=>proc{|rec| link_name(rec)},                                      :title=>"Name of object"},
                    {:caption=>'Creation',       :data=>proc{|rec| localeDateTime(rec.creation_timestamp)},              :title=>'Time when the object was created'},
                    {:caption=>"Creator",        :data=>proc{|rec| rec.username},                                        :title=>'User that created the object'},
                    {:caption=>'Depend. count',  :data=>proc{|rec| link_dependents(rec)},                                :title=>'Number of single dependent cached results', :align=>:right},
