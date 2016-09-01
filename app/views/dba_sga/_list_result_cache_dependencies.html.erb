@@ -16,14 +16,15 @@
    end
 
   def link_name(rec)
-    link_object_description(@update_area, rec.name.split(".")[0], rec.name.split(".")[1]);
+    link_object_description(@update_area, rec.name.split(".")[0], rec.name.split(".")[1], nil, rec.object_type);
   end
 
 
    column_options =
            [
                    {:caption=>'ID',             :data=>proc{|rec| formattedNumber(rec.id)}, :title=>'Identifier for the cache object (also the ID of the first block)', :align=>:right},
-                   {:caption=>"Status",         :data=>proc{|rec| rec.status},                                         :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
+                   {:caption=>"Status",         :data=>proc{|rec| rec.status},                                          :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
+                   {:caption=>'Object type',    :data=>proc{|rec| rec.object_type},                                     :title=>"Object type from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
                    {:caption=>"Name",           :data=>proc{|rec| link_name(rec)},                                      :title=>"Name of object"},
                    {:caption=>'Creation',       :data=>proc{|rec| localeDateTime(rec.creation_timestamp)},              :title=>'Time when the object was created'},
                    {:caption=>"Creator",        :data=>proc{|rec| rec.username},                                        :title=>'User that created the object'},

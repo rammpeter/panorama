@@ -904,10 +904,12 @@ class DbaSgaController < ApplicationController
     @dependencies =  sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
              o.*,
-             u.UserName
+             u.UserName,
+             j.Object_Type
       FROM   gV$RESULT_CACHE_DEPENDENCY d
       JOIN   gv$Result_Cache_Objects o ON o.Inst_ID = d.Inst_ID AND o.ID = d.Depend_ID
       LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      LEFT OUTER JOIN DBA_objects j ON j.Object_ID = o.Object_No
       WHERE  d.Inst_ID    = ?
       AND    d.Result_ID  = ?
       AND    o.Type       = 'Dependency'
@@ -925,7 +927,8 @@ class DbaSgaController < ApplicationController
     @dependencies =  sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
              o.*,
-             u.UserName
+             u.UserName,
+             j.Object_Type
       FROM   (SELECT /*+ NO_MERGE */ d.Inst_ID, d.Depend_ID
               FROM  gv$Result_Cache_Objects r
               JOIN  gV$RESULT_CACHE_DEPENDENCY d ON d.Inst_ID = r.Inst_ID AND d.Result_ID = r.ID
@@ -937,6 +940,7 @@ class DbaSgaController < ApplicationController
              ) d
       JOIN   gv$Result_Cache_Objects o ON o.Inst_ID = d.Inst_ID AND o.ID = d.Depend_ID
       LEFT OUTER JOIN DBA_Users u ON u.User_ID = o.Creator_UID
+      LEFT OUTER JOIN DBA_objects j ON j.Object_ID = o.Object_No
       WHERE  o.Type       = 'Dependency'
       ", @instance, @status, @name, @namespace]
 

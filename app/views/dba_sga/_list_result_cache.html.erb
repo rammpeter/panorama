@@ -49,7 +49,9 @@ column_options =
 [
   {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                     :title=>"Instance"},
   {:caption=>"Status",          :data=>proc{|rec| rec.status},                                      :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
-  {:caption=>"Name",            :data=>proc{|rec| rec.name},                                        :title=>"Name of object"},
+  {:caption=>"Name",            :data=>proc{|rec| rec.name},                                        :title=>"Name of object as recorded in GV$RESULT_CACHE_OBJECTS.Name"},
+#  {:caption=>'Object type',     :data=>proc{|rec| rec.object_type},                                 :title=>"Object type from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
+#  {:caption=>'Object name',     :data=>proc{|rec|  link_object_description(@update_area, rec.owner, rec.object_name)}, :title=>"Object owner and name from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
   {:caption=>"Namespace",       :data=>proc{|rec| rec.namespace},                                   :title=>"Namespace of object"},
   {:caption=>"Results",         :data=>proc{|rec| link_single_results(rec)},                        :title=>'Number of single results', :align=>"right"},
   {:caption=>"Space total",     :data=>proc{|rec| fn(rec.space_overhead_kb+rec.space_unused_kb)},   :title=>"Space total in kBytes (overhead+unused)", :align=>"right"},
