@@ -76,12 +76,19 @@
 
   def show_groupkey_value(rec)
     return nil if rec.group_value.nil?
-
+    # Zerlegen der ersten Spalten in Elemente für optionalen Link
     case @groupby
-      when "SQL-ID"         then link_column_sql_id(rec)
       when "DB-Object"      then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
       when "DB-Sub-Object"  then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
+      when "Entry-PL/SQL"   then if rec.group_value['[Unknown]'].nil?
+                                   full_obj = rec.group_value.split(" ")[1]
+                                   puts "####################{full_obj}"
+                                   link_object_description(@update_area, full_obj.split(".")[0], full_obj.split(".")[1], rec.group_value);
+                                 else
+                                   rec.group_value
+                                 end
       when 'Machine'        then link_machine_ip_info(rec.group_value)
+      when "SQL-ID"         then link_column_sql_id(rec)
     else rec.group_value
     end
   end
@@ -107,6 +114,14 @@
         decorated_cell_value = '<&nbsp;'+cnt_value+'&nbsp;>';
       } else {
         decorated_cell_value = cell_value;
+
+        // Einsetzen von optionalen Umbruch-Stellen in Strings
+        console.log(columnDef['name']+' '+columnDef['sort_type']);
+        if (columnDef['sort_type'] == 'string'){
+
+            decorated_cell_value = decorated_cell_value.replace('.', '.<wbr>');                       // Optionaler Wort-Umbruch
+            console.log(decorated_cell_value);
+        }
       }
 
       var min_snap_id = dataContext[slickGrid.getColumnByName('min_snap_id').id]
