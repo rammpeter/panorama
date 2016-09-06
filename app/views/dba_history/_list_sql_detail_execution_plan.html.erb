@@ -162,13 +162,13 @@
 
   def parallel_text(rec)
     output = "#{rec.parallel_short}"
-    output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0
+    output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0  if get_db_version >= "11.2"
     output
   end
 
    def parallel_title(rec)
      output = "%t:\n#{rec.other_tag}"
-     output << "\n\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0
+     output << "\n\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if get_db_version >= "11.2"
      output
    end
 
