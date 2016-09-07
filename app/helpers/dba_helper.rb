@@ -57,6 +57,7 @@ module DbaHelper
       when p1text=="address" && p2text=="number" && p3text=='tries' then
         p1raw = p1.to_i.to_s(16).upcase unless p1raw   # Rück-Konvertierung aus p1 wenn raw nicht belegt ist
         # Auslesen Objekt über Cache-Block
+        begin
         result = sql_select_one ["\
           SELECT /*+ ORDERED USE_NL(b o) */ /* Panorama-Tool Ramm */
                  o.Owner||'.'||o.Object_Name||':'||o.SubObject_Name||' ('||o.Object_Type||')'  Value
@@ -65,7 +66,10 @@ module DbaHelper
           WHERE  b.hladdr = HexToRaw(?)
           AND    RowNum           < 2 /* ein Cluster-Node mit Treffer reicht */ ",
           p1raw ]
-        result = "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}" unless result
+          result = "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}" unless result
+        rescue Exception=>e
+          result = "You don't have the right to access view X$BH ! Function not available."
+        end
         result
       when p1text == "idn" && p2text == "value" && p3text == "where"
         if event.match('cursor: ') then
