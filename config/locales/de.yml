@@ -1239,6 +1239,15 @@
   dragnet_helper_131_name: |-
     Indizes auf partitionierten Tabellen mit selben Spalten wie Partition-Keys
 
+  dragnet_helper_132_desc: |-
+    Exzessive Anzahlen von Logon-Operationen können signifikant CPU-Last verursachen und evtl. Write-I/O (z.B. durch Auditing).
+    Des weiteren verlangsamt es die auf die Connecion wartenden Applikationen.
+    Grund für das Verhalteb ist oftmals Connect/Disconnect innerhalb von Schleifen.
+    Diese Selektion zeigt die Logon-Operationen pro Minute für die DB-Instance mit der Sie verbunden sind.
+    Für die Auswertung von RAC_Systemen muss die Abfrage für jede betrachtete RAC-Instanz ausgeführt werden direkt angemeldet auf diesem RAC-Knoten.
+  dragnet_helper_132_name: |-
+    Exzessive logon-Operationen (über Listener-Log)
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

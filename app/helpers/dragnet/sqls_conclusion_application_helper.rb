@@ -290,6 +290,62 @@ Therefore primary key columns should not occur in SET-clause of UPDATE statement
                 {:name=> t(:dragnet_helper_62_param_1_name, :default=>'Minimum duration (seconds) since last activity of session'), :size=>8, :default=>60, :title=> t(:dragnet_helper_62_param_1_hint, :default=>'Minimum duration (seconds) since end of last activity of session')},
             ]
         },
+        {
+            :name  => t(:dragnet_helper_132_name, :default=>'Excessive logon operations (by listener-log)'),
+            :desc  => t(:dragnet_helper_132_desc, :default=>'An excessive number of logon operations may cause significant CPU-usage and possibly write I/O (e.g. for auditing).
+It also slows down the application waiting for the connect.
+A Reason for this behavior often is connect/disconnect within loops.
+This selection shows the logon operations per minute for the database instance you are connected on.
+For evaluation of RAC-systems you have to execute this selection once for every considered RAC-node directly connected to this node.
+           '),
+            :sql=>  "
+              SELECT Inst_ID, Timestamp, SUM(Connects) Connects_Total,
+                     MAX(Client_Host  ||' ('||Connects_Client_Host||')')   KEEP (DENSE_RANK LAST ORDER BY Connects_Client_Host)  Top_Client_Host,
+                     MAX(Client_IP    ||' ('||Connects_Client_IP||')')     KEEP (DENSE_RANK LAST ORDER BY Connects_Client_IP)    Top_Client_IP,
+                     MAX(Client_User  ||' ('||Connects_Client_User||')')   KEEP (DENSE_RANK LAST ORDER BY Connects_Client_User)  Top_Client_User,
+                     MAX(Service_Name ||' ('||Connects_Service_Name||')')  KEEP (DENSE_RANK LAST ORDER BY Connects_Service_Name) Top_Service_Name,
+                     MAX(Connects) Connects_by_Top_Combination
+              FROM   (
+                      SELECT Inst_ID, TRUNC(Originating_Timestamp, 'MI') Timestamp, Client_IP, Client_User, Client_Host, Service_Name, COUNT(*) Connects,
+                             MAX(Connects_Client_IP)    Connects_Client_IP,
+                             MAX(Connects_Client_User)  Connects_Client_User,
+                             MAX(Connects_Client_Host)  Connects_Client_Host,
+                             MAX(Connects_Service_Name) Connects_Service_Name
+                      FROM   (
+                              SELECT Inst_ID, Originating_Timestamp, Client_IP, Client_User, Client_Host, Service_Name,
+                                     SUM(DECODE(Client_IP,    NULL, 0, 1)) OVER (PARTITION BY TRUNC(Originating_Timestamp, 'MI'), Client_IP)    Connects_Client_IP,
+                                     SUM(DECODE(Client_User,  NULL, 0, 1)) OVER (PARTITION BY TRUNC(Originating_Timestamp, 'MI'), Client_User)  Connects_Client_User,
+                                     SUM(DECODE(Client_Host,  NULL, 0, 1)) OVER (PARTITION BY TRUNC(Originating_Timestamp, 'MI'), Client_Host)  Connects_Client_Host,
+                                     SUM(DECODE(Service_Name, NULL, 0, 1)) OVER (PARTITION BY TRUNC(Originating_Timestamp, 'MI'), Service_Name) Connects_Service_Name
+                              FROM   (
+                                      SELECT Inst_ID, Originating_Timestamp,
+                                             SUBSTR(SUBSTR(Address, INSTR(Address, 'HOST=')+5), 1, INSTR(SUBSTR(Address, INSTR(Address, 'HOST=')+5), ')')-1) Client_IP,
+                                             SUBSTR(UserName, 1, INSTR(UserName, ')')-1)        Client_User,
+                                             SUBSTR(ClientHost, 1, INSTR(ClientHost, ')')-1)    Client_Host,
+                                             SUBSTR(ServiceName, 1, INSTR(ServiceName, ')')-1)  Service_Name
+                                      FROM   (
+                                              SELECT Inst_ID, Originating_Timestamp, Message_Text,
+                                                     SUBSTR(Message_Text, INSTR(Message_Text, 'ADDRESS=')) Address,
+                                                     SUBSTR(Message_Text, INSTR(Message_Text, 'USER=')+5) UserName,
+                                                     CASE WHEN INSTR(Message_Text, 'SERVICE_NAME=') >0  THEN SUBSTR(Message_Text, INSTR(Message_Text, 'SERVICE_NAME=')+13) END ServiceName,
+                                                     SUBSTR(Message_Text, INSTR(Message_Text, 'HOST=')+5) ClientHost
+                                              FROM   V$DIAG_ALERT_EXT
+                                              WHERE  TRIM(Component_ID) = 'tnslsnr'
+                                              AND    Message_Text LIKE '%CONNECT_DATA%'
+                                              AND    Message_Text LIKE '%* establish *%'
+                                              AND    Originating_Timestamp > SYSDATE - ?
+                                             )
+                                     )
+                             )
+                      GROUP BY Inst_ID, TRUNC(Originating_Timestamp, 'MI'), Client_IP, Client_User, Client_Host, Service_Name
+                     )
+              GROUP BY Inst_ID, Timestamp
+              ORDER BY Inst_ID, Timestamp
+           ",
+            :parameter=>[
+                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>1, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+            ]
+        },
     ]
   end
 
