@@ -336,6 +336,7 @@ class EnvController < ApplicationController
                                     dateFormat: '#{timepicker_dateformat }'
                                  };
                                 $.timepicker.setDefaults($.timepicker.regional);
+                                $.datepicker.setDefaults({ firstDay: 1, dateFormat: '#{timepicker_dateformat }'});
                                 numeric_decimal_separator = '#{numeric_decimal_separator}';
                                 var session_locale = '#{get_locale}';
                                 $('#content_for_layout').html('#{j render_to_string :partial=> "env/set_database"}');

@@ -169,6 +169,10 @@
   ajax_helper_link_object_description_hint:                 Anzeige der Struktur und Details für
   ajax_helper_link_wait_params_hint:                        Anzeige der Details zu den Wait-Parametern des Events
 
+  dba_history_compare_sql_area_historic_caption:            Vergleich der Laufzeiten von Statements zweier Tage aus DBA_Hist_SQLStat
+  dba_history_compare_sql_area_historic_day1_caption:       Tag 1
+  dba_history_compare_sql_area_historic_day1_hint:          Erster Tag des Vergleiches im Format '%{mask}'
+
   dba_history_list_segment_stat_historic_sum_link_sql_hint: Anzeige der SQL-Statements des Zeitraums aus DBA_Hist_SQLStat mit Nutzung des Objekts im Explain Plan
   dba_history_list_segment_stat_historic_sum_link_wait_hint: Detaillierung der angefallenen Wartezeiten des Objektes in Active Session History
   dba_history_list_segment_stat_historic_sum_sqls_hint:     Anzahl SQLs für dieses Objekt in kompletter AWR-Historie unanhängig von gewähltem Zeitraum
@@ -1170,15 +1174,6 @@
   dragnet_helper_125_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
   dragnet_helper_125_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
 
-  dragnet_helper_126_desc: |-
-    Diese Selektion zeigt die Anzahl LOGON-Operationen je Zeiteinheit für die Datenbank-Instanz des aktuellen Logins.
-    Exzessive LOOGON/LOGOFF-Operationen sollten vermieden werden. Alternative Lösungen sind die Verwendung von Session-Pools sowie die Vermeidung aufeinanderfolgender LOGON/LOGOFF-Operationen in Schleifen.
-    Detaillierte Informationen über LOGIN-Operationen sind verfügbar über Menüpunkt 'DBA allgemein / Server Logs'
-  dragnet_helper_126_name: |-
-    Anzahl der LOGON-Operationen je Zeiteinheit
-  dragnet_helper_126_param_1_hint:                           Ausdruch für TRUNC(Timestamp, 'xx') als Gruppierungskriterium ('MI' = Minute, 'HH24' = Stunde etc.)
-  dragnet_helper_126_param_1_name:                           TRUNC-Ausdruck für Gruppierung nach Zeiteinheit
-
   dragnet_helper_127_desc: |-
     Wenn in einem SQL eine Tabelle zusätzliche Filterbedingungen hat die nicht vom Index abgedeckt werden dann kann überlegt werden, den Index um diese Filterbedingungen zu erweitern.
     Dies sichert dass der teuerere TABLE ACCESS BY ROWID nur ausgeführt wird, wenn die Zeile allen Filterbedingungen entspricht, die durch den Index geprüft werden.
@@ -1242,9 +1237,10 @@
   dragnet_helper_132_desc: |-
     Exzessive Anzahlen von Logon-Operationen können signifikant CPU-Last verursachen und evtl. Write-I/O (z.B. durch Auditing).
     Des weiteren verlangsamt es die auf die Connecion wartenden Applikationen.
-    Grund für das Verhalteb ist oftmals Connect/Disconnect innerhalb von Schleifen.
+    Alternative Lösungen sind die Verwendung von Session-Pools sowie die Vermeidung aufeinanderfolgender LOGON/LOGOFF-Operationen in Schleifen.
     Diese Selektion zeigt die Logon-Operationen pro Minute für die DB-Instance mit der Sie verbunden sind.
     Für die Auswertung von RAC_Systemen muss die Abfrage für jede betrachtete RAC-Instanz ausgeführt werden direkt angemeldet auf diesem RAC-Knoten.
+    Detaillierte Informationen über LOGIN-Operationen sind verfügbar über Menüpunkt 'DBA allgemein / Server Logs'
   dragnet_helper_132_name: |-
     Exzessive logon-Operationen (über Listener-Log)
 
