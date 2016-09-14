@@ -147,7 +147,11 @@ module MenuHelper
                 {:class=> 'item', :caption=>'Stored outlines',            :controller=> 'dba_sga',     :action=> 'show_stored_outlines', :hint=>t(:menu_sga_pga_stored_outlines_hint, :default=> 'Show all stored outlines for this database') },
                   ])
             },
-            {:class=> 'item', :caption=> 'Compare execution plans',      :controller=> 'dba_sga',     :action=> 'show_compare_execution_plans',  :hint=>t(:menu_sga_pga_compare_execution_plans, :default=> 'Compare execution plan of two different cursors in SGA') },
+            { :class=> 'menu', :caption=> 'Compare execution plans', :content=>[
+                {:class=> 'item', :caption=> 'in current SGA',        :controller=> 'dba_sga',      :action=> 'show_compare_execution_plans',           :hint=>t(:menu_sga_pga_compare_execution_plans, :default=> 'Compare execution plan of two different cursors in SGA') },
+                {:class=> 'item', :caption=> 'in historic AWR data',  :controller=> 'dba_history',  :action=> 'show_compare_execution_plans_historic',  :hint=>t(:menu_sga_pga_compare_execution_plans_historic, :default=> 'Compare two execution plans from AWR history') },
+                ]
+            },
             ]
         },
         { :class=> 'menu', :caption=>t(:menu_addition_caption, :default=> 'Spec. additions'), :content=>[

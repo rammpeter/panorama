@@ -1677,7 +1677,7 @@ FROM (
     @sql_id = nil if @sql_id == ""
 
     # !!! Kein Filter auf DBID in diesem SQL, damit nach Abzug und Neuaufbau einer DB die Historien miteinander verglichen werden können
-    where_string = " WHERE TRUNC(ss.Begin_Interval_Time) = TO_TIMESTAMP(?, 'DD.MM.YYYY') "
+    where_string = " WHERE TRUNC(ss.Begin_Interval_Time) = TO_TIMESTAMP(?, '#{sql_datetime_date_mask}') "
     where_string_global = ""
     where_values1 = [@tag1]
     where_values2 = [@tag2]
@@ -1764,10 +1764,12 @@ FROM (
                      HAVING SUM(Executions_Delta) > 0
                     ) t2 ON t1.SQL_ID = t2.SQL_ID AND t1.Parsing_Schema_Name = t2.Parsing_Schema_Name
              JOIN   DBA_Hist_SQLText t ON t.DBID = t1.dbID AND t.SQL_ID = t1.SQL_ID
-             WHERE  t2.Elapsed_time/t2.Executions > t1.Elapsed_Time/t1.Executions * (100 + ?)/100
+             WHERE  (   (t2.Elapsed_time/t2.Executions)  / (t1.Elapsed_Time/t1.Executions) <  (100-?)/100
+                     OR (t2.Elapsed_time/t2.Executions)  / (t1.Elapsed_Time/t1.Executions) >  100/(100-?)
+                    )
              #{where_string_global}
-             ORDER BY (t2.Elapsed_Time/t2.Executions - t1.Elapsed_Time/t1.Executions) * t2.Executions DESC
-             "].concat(where_values1).concat(where_values2).concat([@minProzDiff]).concat(where_values_global)
+             ORDER BY ABS(t2.Elapsed_Time/t2.Executions - t1.Elapsed_Time/t1.Executions) * t2.Executions DESC
+             "].concat(where_values1).concat(where_values2).concat([@minProzDiff, @minProzDiff]).concat(where_values_global)
 
     respond_to do |format|
       format.js {render :js => "$('#compare_sql_area_historic_area').html('#{j render_to_string :partial=>"list_compare_sql_area_historic" }');"}

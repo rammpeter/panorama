@@ -1,22 +1,22 @@
-<div class="page_caption">Vergleich der Laufzeiten von Statements zweier Tage aus DBA_Hist_SQLStat</div>
+<div class="page_caption"><%= t(:dba_history_compare_sql_area_historic_caption, :default=>'Compare runtime of SQL for two days (by DBA_Hist_SQLStat)') %></div>
 
 <%= my_ajax_form_tag "dba_history/list_compare_sql_area_historic" do %>
-  <div class="float_left">
-    <%= label_tag(:minProzDiff, "Laufzeitdiff >", :title => "Laufzeitz am Tag 2 mindestens x % größer") %>
-    <%= text_field_tag(:minProzDiff, "50", :size=>2, :title => "Laufzeitz am Tag 2 mindestens x % größer") %>
+  <div class="float_left" title="<%= t(:dba_history_compare_sql_area_historic_diff_hint, :default=>'Difference of runtime per execution is at least x %')%>">
+    <%= t(:dba_history_compare_sql_area_historic_diff_caption, :default=>'Runtime difference >') %>
+    <%= text_field_tag(:minProzDiff, "50", :size=>2) %>
     %
   </div>
-  <div class="float_left">
-    Tag 1
-    <%= text_field_tag(:tag1, localeDateTime(Date.today, :days), :size=>8, :title => "Erster Tag des Vergleiches im Format '#{human_datetime_day_mask}'") %>
+  <div class="float_left" title="<%= t(:dba_history_compare_sql_area_historic_day1_hint, :default=>"First day to compary in format '%{mask}'", :mask=>human_datetime_day_mask) %>">
+    <%= t(:dba_history_compare_sql_area_historic_day1_caption, :default=>'Day 1') %>
+    <%= text_field_tag(:tag1, localeDateTime(Date.today, :days), :size=>12) %>
   </div>
-  <div class="float_left">
-    Tag 2
-    <%= text_field_tag(:tag2, localeDateTime(Date.today, :days), :size=>8, :title => "Zweiter Tag des Vergleiches im Format '#{human_datetime_day_mask}'") %>
+  <div class="float_left" title="<%= t(:dba_history_compare_sql_area_historic_day2_hint, :default=>"Second day to compary in format '%{mask}'", :mask=>human_datetime_day_mask) %>">
+    <%= t(:dba_history_compare_sql_area_historic_day2_caption, :default=>'Day 2') %>
+    <%= text_field_tag(:tag2, localeDateTime(Date.today, :days), :size=>12) %>
   </div>
-  <div class="float_left">
+  <div class="float_left" title="<%= t(:dba_history_compare_sql_area_historic_filter_hint, :default=>'Considered SQL statement mut contain this filter string (optional)') %>">
     Filter
-    <%= text_field_tag(:filter, "", :size=>20, :title=>"Filter-string muss in betrachteten SQL-Statements enthalten sein (wenn belegt)") %>
+    <%= text_field_tag(:filter, "", :size=>20) %>
   </div>
   <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
     Instance
@@ -33,3 +33,12 @@
 
 <div id="compare_sql_area_historic_area" style="float:left; width:100%;">
 </div>
+
+<script type='text/javascript'>
+  $('#tag1').datepicker();
+  $('#tag2').datepicker();
+</script>
+
+
+
+

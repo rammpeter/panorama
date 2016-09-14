@@ -292,12 +292,13 @@ Therefore primary key columns should not occur in SET-clause of UPDATE statement
         },
         {
             :name  => t(:dragnet_helper_132_name, :default=>'Excessive logon operations (by listener-log)'),
-            :desc  => t(:dragnet_helper_132_desc, :default=>'An excessive number of logon operations may cause significant CPU-usage and possibly write I/O (e.g. for auditing).
+            :desc  => t(:dragnet_helper_132_desc, :default=>"An excessive number of logon operations may cause significant CPU-usage and possibly write I/O (e.g. for auditing).
 It also slows down the application waiting for the connect.
-A Reason for this behavior often is connect/disconnect within loops.
+Alternative solutions are usage of session pools, prevent subsequent LOGON/LOGOFF operations in loops.
 This selection shows the logon operations per minute for the database instance you are connected on.
 For evaluation of RAC-systems you have to execute this selection once for every considered RAC-node directly connected to this node.
-           '),
+Detailed information about LOGON operations is available via menu 'DBA general / Server Logs'
+            "),
             :sql=>  "
               SELECT Inst_ID, Timestamp, SUM(Connects) Connects_Total,
                      MAX(Client_Host  ||' ('||Connects_Client_Host||')')   KEEP (DENSE_RANK LAST ORDER BY Connects_Client_Host)  Top_Client_Host,

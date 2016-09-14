@@ -293,28 +293,6 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       AND    EXISTS (SELECT 1 FROM gv$Parameter pi WHERE pi.Inst_ID=p.Inst_ID AND pi.Name='cursor_sharing' AND pi.value!='EXACT' )
                      ",
         },
-        {
-            :name  => t(:dragnet_helper_126_name, :default=>'Amount of logon processes per time'),
-            :desc  => t(:dragnet_helper_126_desc, :default=>"This selection shows yout the amount of logon processes per time unit for the database instance you are logged on.
-You should avoid excessive LOGON/LOGOFF operations. Alternative solutions are usage of session pools, prevent subsequent LOGON/LOGOFF operations in loops.\n
-Detailed information about LOGON operations is available via menu 'DBA general / Server Logs'"),
-            :sql=>  "
-              SELECT Start_Time, COUNT(*) Logons
-              FROM   (
-                      SELECT TRUNC(Originating_Timestamp, ?) Start_Time
-                      FROM   V$DIAG_ALERT_EXT
-                      WHERE  TRIM(COMPONENT_ID)='tnslsnr'
-                      AND    Message_Text LIKE '%CONNECT_DATA%'
-                      AND    Originating_Timestamp > SYSDATE - ?
-                     )
-              GROUP BY Start_Time
-             ",
-            :parameter=>[
-                {:name=> t(:dragnet_helper_126_param_1_name, :default=>'TRUNC-expression for grouping by time unit'), :size=>8, :default=>'MI', :title=>t(:dragnet_helper_126_param_1_hint, :default=>"Expression for TRUNC(Timestamp, 'xx') as grouping criteria ('MI' = minute, 'HH24' = hour etc.) ") },
-                {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }
-            ]
-        },
-
     ]
   end
 
