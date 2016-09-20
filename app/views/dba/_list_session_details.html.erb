@@ -212,14 +212,17 @@ column_options =
     %>
   </div>
   <div class="float_left">
-    <%= form_tag(url_for(:controller   => :dba_sga,
-                         :action       => :list_sql_monitor,
-                         :instance     => @instance,
-                         :sid          => @sid,
-                         :serialno     => @serialno
-                        ), :target=>'_blank') do %>
-      <%= submit_tag('SQL Monitor', :disabled=>!@sql_monitor_exists, :title =>"Generate SQL-Monitor report by calling DBMS_SQLTUNE.report_sql_monitor on new page.\n- requires active internet connection at client\n- requires Adobe Flash installed at client browser\n- requires licensing of Oracle Tuning Pack\n- Available only if data exists in gv$SQL_Monitor") %>
-    <% end %>
+    <%= my_ajax_submit_tag("SQL Monitor",
+                                   url_for(:controller   => :dba_sga,
+                                           :action       => :list_sql_monitor_sessions,
+                                           :instance     => @instance,
+                                           :sid          => @sid,
+                                           :serialno     => @serialno,
+                                           :update_area  => @update_area
+                                   ),
+                                   {:disabled=>!@sql_monitor_exists, :title =>strings(:sql_monitor_link_title) }
+                )
+      %>
   </div>
 </div>
 

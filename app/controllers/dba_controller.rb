@@ -569,7 +569,6 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
 
     @sessions = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
-        s.SID||','||s.Serial# SidSn,
         s.SID,
         s.Serial# SerialNo,                                                                                          
         s.Status,
@@ -682,7 +681,7 @@ Möglicherweise fehlende Zugriffsrechte auf Table X$BH! Lösung: Exec als User '
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
                   s.Logon_Time, p.spID,
                   c.AUTHENTICATION_TYPE
-                  #{", c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver" if get_db_version >= "11.2" }
+                  #{", c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver, s.SQL_Exec_ID" if get_db_version >= "11.2" }
            FROM   GV$Session s
            JOIN   GV$process p                       ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
            LEFT OUTER JOIN (SELECT Inst_ID, SID#{', Serial#' if get_db_version >= '11.2'}, AUTHENTICATION_TYPE

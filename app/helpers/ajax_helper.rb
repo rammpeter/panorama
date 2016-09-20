@@ -161,12 +161,12 @@ module AjaxHelper
     prefix << "ChildNo=#{childno} : " if childno
     my_ajax_link_to(sql_id,
      url_for( :controller     => :dba_sga,
-              :action         => childno ? :list_sql_detail_sql_id_childno : :list_sql_detail_sql_id,
+              :action         => childno ||child_address ? :list_sql_detail_sql_id_childno : :list_sql_detail_sql_id,
               :update_area    => update_area,
               :instance       => instance,
               :sql_id         => sql_id,
               :child_number   => childno,
-              :child_address  => child_address,
+              :child_address  => child_address,               # mittels RAWTOHEX auslesen
               :parsing_schema_name => parsing_schema_name,   # Sichern der Eindeutigkeit bei mehrfachem Vorkommen identischer SQL in verschiedenen Schemata
               :object_status  => object_status
             ),
@@ -177,6 +177,20 @@ module AjaxHelper
      }
     )
   end
+
+
+  def link_session_details(update_area, instance, sid, serialno)
+    my_ajax_link_to("#{sid}, #{serialno}",
+                    url_for(:controller   => :dba,
+                            :action       => :show_session_detail,
+                            :instance     => instance,
+                            :sid          => sid,
+                            :serialno     => serialno,
+                            :update_area  => update_area
+                    ),
+                    :title=>t(:dba_list_sessions_show_session_hint, :default=>'Show session details') )
+  end
+
 
   def link_machine_ip_info(machine_name)
     my_ajax_link_to(machine_name,

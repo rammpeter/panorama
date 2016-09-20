@@ -10,6 +10,7 @@ module ApplicationHelper
   include DatabaseHelper
   include SlickgridHelper
   include ExplainApplicationInfoHelper
+  include StringsHelper
 
   def get_client_info_store
     if $login_client_store.nil?

@@ -2,14 +2,7 @@
    @update_area = get_unique_area_id
 
  def link_session(rec)
-   my_ajax_link_to(rec.sidsn,
-     url_for(:action => "show_session_detail",
-             :instance => rec.inst_id,
-             :sid      => rec.sid,
-             :serialno => rec.serialno,
-             :update_area => @update_area
-            ),
-     :title=>t(:dba_list_sessions_show_session_hint, :default=>'Show session details') )
+   link_session_details(@update_area, rec.inst_id, rec.sid, rec.serialno)
  end
 
  def link_QC_session(rec)

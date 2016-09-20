@@ -67,4 +67,19 @@
     </div>
 <% end %>
 
+<div class="float_left">
+  <%=
+    my_ajax_submit_tag("SQL-Monitor (#{@sql_monitor_sessions})",
+                       url_for(:action          => :list_sql_monitor_sessions,
+                               :instance        => @instance,
+                               :sql_id          => @sql_id,
+                               :plan_hash_value => (@sql.plan_hash_value_count == 1 ? @sql.plan_hash_value : nil),
+                               :update_area=> @update_area
+                       ),
+                       #:disabled => (@sql_monitor_sessions == 0),
+                       :title    => strings(:sql_monitor_link_title)
+    )
+  %>
+</div>
+
 <div  style="clear: both;"></div>
