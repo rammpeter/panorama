@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    Panorama (2.2.21)
+    Panorama (2.2.22)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -79,7 +79,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.6.4)
       mime-types (>= 1.16, < 4)
-    mime-types (2.99.2)
+    mime-types (2.99.3)
     minitest (5.9.0)
     multi_json (1.12.1)
     nokogiri (1.6.8-java)
