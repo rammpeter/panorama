@@ -189,7 +189,7 @@ class DbaSchemaController < ApplicationController
     @owner       = params[:owner].upcase          if params[:owner]
     @owner       = nil                            if @owner == ''
     @object_name = params[:segment_name].upcase   if params[:segment_name]
-    @object_type = params[:object_type].upcase    if params[:object_type]
+    @object_type = params[:object_type] ? params[:object_type].upcase : nil
     @object_type = nil                            if @object_type == ''
 
     case

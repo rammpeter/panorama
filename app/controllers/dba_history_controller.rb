@@ -1326,22 +1326,22 @@ FROM (
 
     single_stats = sql_select_iterator [stmt].concat(binds)
 
-    @stats = []      # Komplettes Result
-    rec = {}        # einzelner Record des Results
-    columns = {}    # Verwendete Statistiken mit Value != 0
+    @stats = []                                                                 # Komplettes Result
+    record = {}                                                                 # einzelner Record des Results
+    columns = {}                                                                # Verwendete Statistiken mit Value != 0
     ts = nil
     empty = true
     single_stats.each do |s|
       empty = false
       if ts != s.begin_time
-        @stats << rec if ts                      # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
-        rec = {:begin_time => s.begin_time }     # Neuer Record
-        ts = s.begin_time                        # Vergleichswert fur naechsten Record
+        @stats << record if ts                                                  # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
+        record = {:begin_time => s.begin_time }                                 # Neuer Record
+        ts = s.begin_time                                                       # Vergleichswert fur naechsten Record
       end
-      rec[s.metric_id] = {:value=>s.value, :minvalue=>s.minvalue, :maxvalue=>s.maxvalue } if s.value != 0    # 0-Values nicht speichern
+      record[s.metric_id] = {:value=>s.value, :minvalue=>s.minvalue, :maxvalue=>s.maxvalue } if s.value != 0    # 0-Values nicht speichern
       columns[s.metric_id] = {:metric_name=>s.metric_name, :metric_unit=>s.metric_unit} if s.value != 0   # Statistik als verwendet kennzeichnen
     end
-    @stats << rec  unless empty                  # letzten Record wegschreiben, wenn Result exitierte
+    @stats << record  unless empty                                              # letzten Record wegschreiben, wenn Result exitierte
 
     column_options =
     [

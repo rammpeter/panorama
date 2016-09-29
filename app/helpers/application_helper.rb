@@ -13,7 +13,7 @@ module ApplicationHelper
   include StringsHelper
 
   def get_client_info_store
-    if $login_client_store.nil?
+    if !defined?($login_client_store) || $login_client_store.nil?
       $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
       Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
     end
@@ -81,7 +81,7 @@ module ApplicationHelper
 
   # Cachen diverser Client-Einstellungen in lokalen Variablen
   def get_locale
-    @buffered_locale = read_from_client_info_store(:locale) unless @buffered_locale
+    @buffered_locale = read_from_client_info_store(:locale) if !defined?(@buffered_locale) || @buffered_locale.nil?
     @buffered_locale
   end
 
@@ -93,7 +93,7 @@ module ApplicationHelper
 
 
   def get_current_database
-    @buffered_current_database = read_from_client_info_store(:current_database) if @buffered_current_database.nil?
+    @buffered_current_database = read_from_client_info_store(:current_database) if !defined?(@buffered_current_database) || @buffered_current_database.nil?
     @buffered_current_database
   end
 
@@ -103,22 +103,22 @@ module ApplicationHelper
   end
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
-    @buffered_dbid = read_from_client_info_store(:dbid) unless @buffered_dbid
+    @buffered_dbid = read_from_client_info_store(:dbid) if !defined?(@buffered_dbid) || @buffered_dbid.nil?
     @buffered_dbid
   end
 
   def get_db_version    # Oracle-Version
-    @buffered_db_version = read_from_client_info_store(:db_version) unless @buffered_db_version
+    @buffered_db_version = read_from_client_info_store(:db_version) if !defined?(@buffered_db_version) || @buffered_db_version.nil?
     @buffered_db_version
   end
 
   def get_db_block_size    # Oracle block size
-    @buffered_db_block_size = read_from_client_info_store(:db_block_size) unless @buffered_db_block_size
+    @buffered_db_block_size = read_from_client_info_store(:db_block_size) if !defined?(@buffered_db_block_size) || @buffered_db_block_size.nil?
     @buffered_db_block_size
   end
 
   def get_db_wordsize    # word size des Oracle-Servers
-    @buffered_wordsize = read_from_client_info_store(:db_wordsize) unless @buffered_wordsize
+    @buffered_wordsize = read_from_client_info_store(:db_wordsize) if !defined?(@buffered_wordsize) || @buffered_wordsize.nil?
     @buffered_wordsize
   end
 
@@ -128,7 +128,7 @@ module ApplicationHelper
   end
 
   def get_cached_time_selection_start
-    @buffered_time_selection_start = read_from_client_info_store(:time_selection_start) unless @buffered_time_selection_start
+    @buffered_time_selection_start = read_from_client_info_store(:time_selection_start) if !defined?(@buffered_time_selection_start) ||  @buffered_time_selection_start.nil?
     @buffered_time_selection_start
   end
 
@@ -138,7 +138,7 @@ module ApplicationHelper
   end
 
   def get_cached_time_selection_end
-    @buffered_time_selection_end = read_from_client_info_store(:time_selection_end) unless @buffered_time_selection_end
+    @buffered_time_selection_end = read_from_client_info_store(:time_selection_end) if !defined?(@buffered_time_selection_end) || @buffered_time_selection_end.nil?
     @buffered_time_selection_end
   end
 

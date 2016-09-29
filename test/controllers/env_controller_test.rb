@@ -39,19 +39,19 @@ class EnvControllerTest < ActionController::TestCase
 =end
   end
 
-  # Test aller generischer Menü-Einträge ohne korrespondierende Action im Controller
-  test "render_menu_action" do
-    def test_menu_entry(menu_entry)
-      menu_entry[:content].each do |m|
-        test_menu_entry(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
-        if m[:class] == "item" && !controller_action_defined?(m[:controller], m[:action])
-          xhr :get, :render_menu_action, :format=>:js, :redirect_controller => m[:controller], :redirect_action => m[:action]
-          assert_response :success
-        end
+
+  def test_menu_entry(menu_entry)
+    menu_entry[:content].each do |m|
+      test_menu_entry(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
+      if m[:class] == "item" && !controller_action_defined?(m[:controller], m[:action])
+        xhr :get, :render_menu_action, :format=>:js, :redirect_controller => m[:controller], :redirect_action => m[:action]
+        assert_response :success
       end
     end
+  end
 
-
+  # Test aller generischer Menü-Einträge ohne korrespondierende Action im Controller
+  test "render_menu_action" do
     menu_content.each do |mo|
       test_menu_entry(mo)
     end

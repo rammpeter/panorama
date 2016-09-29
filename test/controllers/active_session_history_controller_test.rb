@@ -66,103 +66,74 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   end
 
   test "list_session_statistics_historic" do
-    def do_test(groupby)
+    # Iteration über Gruppierungskriterien
+    session_statistics_key_rules.each do |groupby, value|
       post :list_session_statistic_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
       assert_response :success
 
       post :list_session_statistic_historic, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby, :filter=>'sys'
       assert_response :success
     end
-
-    # Iteration über Gruppierungskriterien
-    session_statistics_key_rules.each do |key, value|
-      do_test key
-    end
   end
 
   test "list_session_statistic_historic_grouping" do
-    def do_inner_test(groupby, outer_groupby, bind_value)
-      add_filter = {outer_groupby => bind_value}
-      post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
-           :groupfilter => @groupfilter.merge(add_filter)
-      assert_response :success
-
-      post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby,
-           :groupfilter => @groupfilter.merge(add_filter).merge('Additional Filter'=>'sys')
-      assert_response :success
-
-    end
-
-    def do_outer_test(outer_groupby)
+    session_statistics_key_rules.each do |outer_groupby, value|
       # Iteration über Gruppierungskriterien
-      session_statistics_key_rules.each do |key, value|
-        do_inner_test key, outer_groupby, bind_value_from_key_rule(outer_groupby)   # Test mit realem Wert
-        do_inner_test key, outer_groupby, nil                                       # Test mit NULL als Filterkriterium
-      end
-    end
+      session_statistics_key_rules.each do |groupby, value|
+        # Test mit realem Wert
+        add_filter = {outer_groupby => bind_value_from_key_rule(outer_groupby)}
+        post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter)
+        assert_response :success
 
-    session_statistics_key_rules.each do |key, value|
-      do_outer_test key
+        post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter).merge('Additional Filter'=>'sys')
+        assert_response :success
+
+        # Test mit NULL als Filterkriterium
+        add_filter = {outer_groupby => nil}
+        post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter)
+        assert_response :success
+
+        post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter).merge('Additional Filter'=>'sys')
+        assert_response :success
+      end
     end
   end
 
   test "refresh_time_selection" do
-
-    def do_test(groupby)
+    session_statistics_key_rules.each do |groupby, value|
       post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby, :repeat_action => :list_session_statistic_historic_grouping
       assert_response :success   # redirect_to schwierig im Test?
     end
-
-    session_statistics_key_rules.each do |key, value|
-      do_test(key)
-    end
-
   end
 
   test "list_session_statistic_historic_single_record" do
-    def do_test(groupby, bind_value)
-      add_filter = {groupby => bind_value}
+    session_statistics_key_rules.each do |groupby, value|
+      add_filter = {groupby => bind_value_from_key_rule(groupby)}
       post :list_session_statistic_historic_single_record, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter)
       assert_response :success
     end
-
-    session_statistics_key_rules.each do |key, value|
-      do_test key, bind_value_from_key_rule(key)
-    end
   end
 
   test "list_session_statistics_historic_timeline" do
-    def do_test(groupby, bind_value)
-      add_filter = {groupby => bind_value}
+    session_statistics_key_rules.each do |groupby, value|
+      add_filter = {groupby => bind_value_from_key_rule(groupby)}
       post :list_session_statistic_historic_timeline, :format=>:js, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter),
            :top_values => ["1", "2", "3"], :group_seconds=>60
       assert_response :success
     end
-
-    session_statistics_key_rules.each do |key, value|
-      do_test key, bind_value_from_key_rule(key)
-    end
   end
 
   test "list_temp_usage_historic" do
-    def do_inner_test(time_groupby, outer_filter, bind_value)
-      add_filter = {outer_filter => bind_value}
-      post :list_temp_usage_historic, :format=>:js, :time_groupby=>time_groupby, :groupfilter => @groupfilter.merge(add_filter)
-      assert_response :success
-    end
-
-    def do_outer_test(outer_filter)
-      # Iteration über Gruppierungskriterien
-      temp_historic_grouping_options.each do |key, value|
-        do_inner_test key, outer_filter, bind_value_from_key_rule(outer_filter)
-      end
-    end
-
     if get_db_version >= "11.2"
-      session_statistics_key_rules.each do |key, value|
-        do_outer_test key
+      session_statistics_key_rules.each do |outer_filter, value|
+        # Iteration über Gruppierungskriterien
+        temp_historic_grouping_options.each do |time_groupby, value|
+          add_filter = {outer_filter => bind_value_from_key_rule(outer_filter)}
+          post :list_temp_usage_historic, :format=>:js, :time_groupby=>time_groupby, :groupfilter => @groupfilter.merge(add_filter)
+          assert_response :success
+        end
       end
     end
   end

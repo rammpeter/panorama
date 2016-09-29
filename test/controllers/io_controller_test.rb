@@ -29,172 +29,108 @@ class IoControllerTest < ActionController::TestCase
 
   ################### io_file ######################
   test "list_io_file_history" do
-    def do_test(groupby)
+    io_file_key_rules.each do |groupby, value|
       post :list_io_file_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
       assert_response :success
     end
-
-    io_file_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_io_file_history_grouping" do
-    def do_test(groupby)
+    io_file_key_rules.each do |groupby, value|
       post :list_io_file_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
       assert_response :success
     end
-
-    io_file_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_io_file_history_samples" do
-    def do_test(groupby)
+    io_file_key_rules.each do |groupby, value|
       post :list_io_file_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
       assert_response :success
     end
-
-    io_file_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_io_file_history_timeline" do
-    def do_test(groupby)
+    io_file_key_rules.each do |groupby, value|
       post :list_io_file_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
       assert_response :success
     end
-
-    io_file_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "refresh_time_selection" do
-    def do_test(groupby)
+    io_file_key_rules.each do |groupby, value|
       post :refresh_time_selection, :format=>:js, :groupfilter=>@groupfilter, :grooupby=>'Instance', :repeat_action => :list_io_file_history_grouping, :groupby=>groupby
       assert_response :success   # redirect_to schwierig im Test?
     end
-
-    io_file_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
 
   #################### iostat_detail #######################
   test "list_iostat_detail_history" do
-    def do_test(groupby)
+    iostat_detail_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_detail_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
         assert_response :success
       end
     end
-
-    iostat_detail_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_detail_history_grouping" do
-    def do_test(groupby)
+    iostat_detail_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_detail_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
         assert_response :success
       end
     end
-
-    iostat_detail_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_detail_history_samples" do
-    def do_test(groupby)
+    iostat_detail_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_detail_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
         assert_response :success
       end
     end
-
-    iostat_detail_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_detail_history_timeline" do
-    def do_test(groupby)
+    iostat_detail_key_rules.each do |groupby, value|
       post :list_iostat_detail_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
       assert_response :success
     end
-
-    iostat_detail_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   #################### iostat_filetype #######################
   test "list_iostat_filetype_history" do
-    def do_test(groupby)
+    iostat_filetype_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_filetype_history, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby
         assert_response :success
       end
     end
-
-    iostat_filetype_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_filetype_history_grouping" do
-    def do_test(groupby)
+    iostat_filetype_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_filetype_history_grouping, :format=>:js, :groupfilter=>@groupfilter, :groupby=>groupby
         assert_response :success
       end
     end
-
-    iostat_filetype_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_filetype_history_samples" do
-    def do_test(groupby)
+    iostat_filetype_key_rules.each do |groupby, value|
       if ENV['DB_VERSION'] >= '11.2'
         post :list_iostat_filetype_history_samples, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
         assert_response :success
       end
     end
-
-    iostat_filetype_key_rules.each do |key, value|
-      do_test key
-    end
-
   end
 
   test "list_iostat_filetype_history_timeline" do
-    def do_test(groupby)
+    iostat_filetype_key_rules.each do |groupby, value|
       post :list_iostat_filetype_history_timeline, :format=>:js, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end
       assert_response :success
-    end
-
-    iostat_filetype_key_rules.each do |key, value|
-      do_test key
     end
 
   end

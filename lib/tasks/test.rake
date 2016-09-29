@@ -1,3 +1,24 @@
+desc "Run tests"
+task :test do
+  require 'bundler/gem_tasks'
+
+  require 'rake/testtask'
+
+  Rake::TestTask.new(:test) do |t|
+    t.libs << 'lib'
+    t.libs << 'test'
+    t.pattern = 'test/**/*_test.rb'
+    t.verbose = false
+  end
+
+
+
+end
+
+
+
+
+
 Rake::TaskManager.class_eval do
       def delete_task(task_name)
         @tasks.delete(task_name.to_s)

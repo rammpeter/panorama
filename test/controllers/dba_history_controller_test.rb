@@ -157,16 +157,12 @@ class DbaHistoryControllerTest < ActionController::TestCase
   end
 
   test "mutex_statistics_historic" do
-    def do_test_list_mutex_statistics_historic(submit_name)
+    [:Blocker, :Waiter, :Timeline].each do |submit_name|
       post :list_mutex_statistics_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :instance=>1, submit_name=>"Hugo"
       assert_response :success
       post :list_mutex_statistics_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, submit_name=>"Hugo"
       assert_response :success
     end
-
-    do_test_list_mutex_statistics_historic(:Blocker)
-    do_test_list_mutex_statistics_historic(:Waiter)
-    do_test_list_mutex_statistics_historic(:Timeline)
 
     xhr :get, :list_mutex_statistics_historic_samples, :format=>:js, :instance=>1, :mutex_type=>:Hugo, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
         :filter=>:Blocking_Session, :filter_session=>@sid

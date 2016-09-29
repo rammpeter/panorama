@@ -74,30 +74,23 @@ class AdditionControllerTest < ActionController::TestCase
     xhr :get, :show_object_increase, :format=>:js    if ENV['DB_VERSION'] >= '11.2'
     assert_response :success
 
-    def do_test_list_object_increase(submit_tag, gruppierung_tag)
-      if showObjectIncrease                                                     # Nur Testen wenn Tabelle(n) auch existieren
-        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                      :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
-        assert_response :success
+    ['Segment_Type', 'Tablespace_Name', 'Owner'].each do |gruppierung_tag|
+      [{:detail=>1}, {:timeline=>1}].each do |submit_tag|
+        if showObjectIncrease                                                     # Nur Testen wenn Tabelle(n) auch existieren
+          post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                        :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+          assert_response :success
 
-        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                      :tablespace=>{"name"=>'USERS'}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
-        assert_response :success
+          post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                        :tablespace=>{"name"=>'USERS'}, "schema"=>{"name"=>"[Alle]"}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+          assert_response :success
 
-        post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                      :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>'SYS'}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
-        assert_response :success
+          post :list_object_increase,  {:format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
+                                        :tablespace=>{"name"=>"[Alle]"}, "schema"=>{"name"=>'SYS'}, :gruppierung=>{"tag"=>gruppierung_tag} }.merge(submit_tag)
+          assert_response :success
+        end
       end
     end
-
-    def do_test_list_object_increase_outer(gruppierung_tag)
-      do_test_list_object_increase({:detail=>1},   gruppierung_tag)
-      do_test_list_object_increase({:timeline=>1}, gruppierung_tag)
-    end
-
-    do_test_list_object_increase_outer("Segment_Type")
-    do_test_list_object_increase_outer("Tablespace_Name")
-    do_test_list_object_increase_outer("Owner")
 
     xhr :get, :list_object_increase_object_timeline, :format=>:js, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :owner=>'Hugo', :name=>'Hugo'
     assert_response :success
