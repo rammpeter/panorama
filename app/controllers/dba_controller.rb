@@ -408,6 +408,7 @@ class DbaController < ApplicationController
   end
 
   def oracle_parameter
+    @hint = nil
 
     record_modifier = proc{|rec|
       rec.value = rec.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults."  if rec.name == 'cursor_sharing'

@@ -1,5 +1,5 @@
 <%
-  @update_area = get_unique_area_id unless @update_area  # Kann auch durch Aufrufer vorbelegt sein
+  @update_area = get_unique_area_id if !defined?(@update_area) || @update_area  # Kann auch durch Aufrufer vorbelegt sein
 
   def link_column(rec)
     if rec.record_count == 1

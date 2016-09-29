@@ -5,7 +5,7 @@ module ActiveSessionHistoryHelper
 
   def session_statistics_key_rules
     # Regelwerk zur Verwendung der jeweiligen Gruppierungen und Verdichtungskriterien
-    unless @session_statistics_key_rules_hash
+    if !defined?(@session_statistics_key_rules_hash) || @session_statistics_key_rules_hash.nil?
       @session_statistics_key_rules_hash = {}
       @session_statistics_key_rules_hash["Instance"]    = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
       if get_db_version >= "11.2"
@@ -145,7 +145,7 @@ module ActiveSessionHistoryHelper
 
   # Gruppierungskriterien für list_temp_usage_historic
   def temp_historic_grouping_options
-    unless @temp_historic_grouping_options_hash
+    if !defined?(@temp_historic_grouping_options_hash) || @temp_historic_grouping_options_hash.nil?
       @temp_historic_grouping_options_hash = {}
       @temp_historic_grouping_options_hash[:second] = t(:second, :default=>'Second')
       @temp_historic_grouping_options_hash[:minute] = 'Minute'

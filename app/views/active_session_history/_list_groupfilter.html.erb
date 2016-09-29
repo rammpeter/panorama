@@ -34,7 +34,7 @@
         end
         form_content << "<th title=\"#{t(:active_session_history_list_group_filter_filter_hint, :default=>'Current active filter conditions for selection')}\">Start time</th>"
         form_content << "<th title=\"#{t(:active_session_history_list_group_filter_filter_hint, :default=>'Current active filter conditions for selection')}\">End time</th>"
-        if @group_filter_addition
+        if defined?(@group_filter_addition) && !@group_filter_addition.nil?
           form_content << "<th>"
           form_content << @group_filter_addition_header
           form_content << "</th>"
@@ -58,7 +58,7 @@
         form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>20, :id=>@time_selection_end_id,   :title => "#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'")
         form_content << "</td><td>"
 
-        if @group_filter_addition
+        if defined?(@group_filter_addition) && !@group_filter_addition.nil?
           form_content << @group_filter_addition
           form_content << "</td><td>"
         end
