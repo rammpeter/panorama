@@ -1,9 +1,9 @@
 # coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+#lib = File.expand_path('../lib', __FILE__)
+#$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 # Alternative aus rails plugin new ... fuer o.g. Sequenz
-# $:.push File.expand_path("../lib", __FILE__)
+$:.push File.expand_path("../lib", __FILE__)
 
 require 'Panorama/version'
 
@@ -20,7 +20,7 @@ Aims to issues that are inadequately analyzed and presented by other existing to
   spec.homepage      = "https://github.com/rammpeter/Panorama_Gem"
   spec.license       = "GNU General Public License"
 
-  spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
+  spec.files = Dir["{app,config,db,lib}/**/*", "Rakefile", "README.rdoc"]
   #spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files = Dir["test/**/*"]
