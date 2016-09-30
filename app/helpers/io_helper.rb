@@ -34,7 +34,7 @@ module IoHelper
   # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
   def io_file_values_column_options
 
-    if @io_file_values_column_options.nil? || !defined?(@io_file_values_column_options)
+    if !defined?(@io_file_values_column_options) || @io_file_values_column_options.nil?
 
       @io_file_values_column_options = [
           {:caption=>"Phys. reads",           :data=>proc{|rec| fn(rec.physical_reads)},                                            :title=>"Number of physical reads done",              :align=>"right",  :raw_data=>proc{|rec| rec.physical_reads},                            :data_title=>proc{|rec| "%t, #{fn(rec.physical_reads_mb,2)} MB read"}},

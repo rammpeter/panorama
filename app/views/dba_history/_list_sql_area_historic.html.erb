@@ -72,7 +72,7 @@
 <%=
     gen_slickgrid(@sqls, column_options, {
         :max_height => 450,
-        :caption    => "Statement history from DBA_Hist_SQLStat executed between #{@time_selection_start} and #{@time_selection_end} #{"with access on object '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if @object_name}"
+        :caption    => "Statement history from DBA_Hist_SQLStat executed between #{@time_selection_start} and #{@time_selection_end} #{"with access on object '#{"#{@object_owner}." if @object_owner}#{@object_name}'" if defined?(@object_name) && !@object_name.nil?}"
 })
 %>
 
