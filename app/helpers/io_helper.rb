@@ -4,7 +4,7 @@ module IoHelper
 
   def io_file_key_rules
     # Regelwerk zur Verwendung der jeweiligen Gruppierungen und Verdichtungskriterien
-    unless @io_file_key_rules_hash
+    if !defined?(@io_file_key_rules_hash) || @io_file_key_rules_hash.nil?
       @io_file_key_rules_hash = {}
       @io_file_key_rules_hash["Database"]    = {:sql => "SYS_CONTEXT('USERENV', 'DB_NAME')",   :sql_alias => "database",    :Name => 'DB',         :Title => 'Sums over whole database' }
       @io_file_key_rules_hash["Instance"]    = {:sql => "f.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC-Instance' }
@@ -34,7 +34,7 @@ module IoHelper
   # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
   def io_file_values_column_options
 
-    unless @io_file_values_column_options
+    if @io_file_values_column_options.nil? || !defined?(@io_file_values_column_options)
 
       @io_file_values_column_options = [
           {:caption=>"Phys. reads",           :data=>proc{|rec| fn(rec.physical_reads)},                                            :title=>"Number of physical reads done",              :align=>"right",  :raw_data=>proc{|rec| rec.physical_reads},                            :data_title=>proc{|rec| "%t, #{fn(rec.physical_reads_mb,2)} MB read"}},
@@ -60,7 +60,7 @@ module IoHelper
   ########################## iostat_detail #################
   def iostat_detail_key_rules
     # Regelwerk zur Verwendung der jeweiligen Gruppierungen und Verdichtungskriterien
-    unless @iostat_detail_key_rules_hash
+    if !defined?(@iostat_detail_key_rules_hash) || @iostat_detail_key_rules_hash.nil?
       @iostat_detail_key_rules_hash = {}
       @iostat_detail_key_rules_hash["Database"]       = {:sql => "SYS_CONTEXT('USERENV', 'DB_NAME')",   :sql_alias => "database",    :Name => 'DB',   :Title => 'Sums over whole database' }
       @iostat_detail_key_rules_hash["Instance"]       = {:sql => "f.Instance_Number", :sql_alias => "instance_number",    :Name => 'Inst.',           :Title => 'RAC-Instance' }
@@ -88,7 +88,7 @@ module IoHelper
   # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
   def iostat_detail_values_column_options
 
-    unless @iostat_detail_values_column_options
+    if !defined?(@iostat_detail_values_column_options) || @iostat_detail_values_column_options.nil?
 
       @iostat_detail_values_column_options = [
           {:caption=>"Small read (MB/sec.)",      :data=>proc{|rec| fn(secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs),2)},    :title=>"Number of single block MB read per second",             :raw_data=>proc{|rec| secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs)},      :data_title=>proc{|rec| "%t, #{fn(rec.small_read_megabytes,2)} MB read"}},
@@ -113,7 +113,7 @@ module IoHelper
   ########################## iostat_filetype #################
   def iostat_filetype_key_rules
     # Regelwerk zur Verwendung der jeweiligen Gruppierungen und Verdichtungskriterien
-    unless @iostat_filetype_key_rules_hash
+    if  !defined?(@iostat_filetype_key_rules_hash) || @iostat_filetype_key_rules_hash.nil?
       @iostat_filetype_key_rules_hash = {}
       @iostat_filetype_key_rules_hash["Database"]       = {:sql => "SYS_CONTEXT('USERENV', 'DB_NAME')",   :sql_alias => "database",    :Name => 'DB',   :Title => 'Sums over whole database' }
       @iostat_filetype_key_rules_hash["Instance"]       = {:sql => "f.Instance_Number", :sql_alias => "instance_number",    :Name => 'Inst.',           :Title => 'RAC-Instance' }
@@ -140,7 +140,7 @@ module IoHelper
   # Spalten mit numerischen Werten von DBA_Hist_FileStatxs für Anwendung in mehreren Views
   def iostat_filetype_values_column_options
 
-    unless @iostat_filetype_values_column_options
+    if !defined?(@iostat_filetype_values_column_options) || @iostat_filetype_values_column_options.nil?
 
       @iostat_filetype_values_column_options = [
           {:caption=>"Small read (MB/sec.)",      :data=>proc{|rec| fn(secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs),2)},    :title=>"Number of single block MB read per second",             :raw_data=>proc{|rec| secure_div(rec.small_read_megabytes,  rec.sample_dauer_secs)},   :data_title=>proc{|rec| "%t, #{fn(rec.small_read_megabytes,2)} MB read"}},

@@ -58,12 +58,12 @@
 <%=
     caption = "Audit-Records from #{@audit_source}"
     caption << ", from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
-    caption << ", Session-ID=#{@sessionid}"      if @sessionid
-    caption << ", OS-User LIKE '#{@os_user}'"    if @os_user
-    caption << ", DB-User LIKE '#{@os_user}'"    if @db_user
-    caption << ", Machine LIKE '#{@machine}'"    if @machine
-    caption << ", Object LIKE '#{@object_name}'" if @object_name
-    caption << ", Action LIKE '#{@action_name}'" if @action_name
+    caption << ", Session-ID=#{@sessionid}"      if defined?(@sessionid)    && !@sessionid.nil?
+    caption << ", OS-User LIKE '#{@os_user}'"    if defined?(@os_user)      && !@os_user.nil?
+    caption << ", DB-User LIKE '#{@os_user}'"    if defined?(@db_user)      && !@db_user.nil?
+    caption << ", Machine LIKE '#{@machine}'"    if defined?(@machine)      && !@machine.nil?
+    caption << ", Object LIKE '#{@object_name}'" if defined?(@object_name)  && !@object_name.nil?
+    caption << ", Action LIKE '#{@action_name}'" if defined?(@action_name)  && !@action_name.nil?
 
     gen_slickgrid(@audits, column_options, {
         :caption => caption,
