@@ -1,6 +1,6 @@
 <div>
     <h3 style="float: left"><%= t(:dba_sga_list_sql_sga_stat_caption, :default=>'Statement details of current SGA from') %> <%= @modus %></h3>
-    <div style="float:right; padding: 20px;">  <%= @list_sql_sga_stat_msg %></div>
+    <div style="float:right; padding: 20px;">  <%= defined?(@list_sql_sga_stat_msg) ? @list_sql_sga_stat_msg : ''%></div>
 </div>
 <div style="clear: both"></div>
 <div><%= @sql[:warning_message] %></div>

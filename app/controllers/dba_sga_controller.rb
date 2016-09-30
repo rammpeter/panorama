@@ -472,7 +472,6 @@ class DbaSgaController < ApplicationController
     @sql_id   = params[:sql_id]
     @object_status= params[:object_status]
     @object_status='VALID' unless @object_status  # wenn kein status als Parameter uebergeben, dann VALID voraussetzen
-    @list_sql_sga_stat_msg = nil                                                # Initialisierung
 
     # Liste der Child-Cursoren
     @sqls = fill_sql_area_list("GV$SQL", @instance, nil, @sql_id, 100, nil)
