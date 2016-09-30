@@ -77,9 +77,9 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   end
 
   test "list_session_statistic_historic_grouping" do
-    session_statistics_key_rules.each do |outer_groupby, value|
+    session_statistics_key_rules.each do |outer_groupby, value_outer|
       # Iteration über Gruppierungskriterien
-      session_statistics_key_rules.each do |groupby, value|
+      session_statistics_key_rules.each do |groupby, value_inner|
         # Test mit realem Wert
         add_filter = {outer_groupby => bind_value_from_key_rule(outer_groupby)}
         post :list_session_statistic_historic_grouping, :format=>:js, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter)
