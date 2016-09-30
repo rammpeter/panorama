@@ -2,13 +2,12 @@
 # Erweiterung der Klasse Hash um Zugriff auf Inhalte per Methode
 module SelectHashHelper
 
-  # Ermittelns Spaltenwert aus korrespondierendem Hash-Value
+  # Ermittelns Spaltenwert aus korrespondierendem Hash-Value, Parameter wird als String erwartet
   def get_hash_value(key)
     if has_key?(key)
       self[key]
     else
-      raise "column '#{key}' does not exist in result-Hash" unless has_key?(key.to_sym)
-      self[key.to_sym]
+      raise "column '#{key}' does not exist in result-Hash with key-class 'String'"
     end
   end
 
@@ -19,7 +18,7 @@ module SelectHashHelper
 
   # Überschreiben der existierenden Methode "id" der Klasse Hash um Spalte "id" auszulesen
   def id
-    get_hash_value "id"
+    get_hash_value 'id'
   end
 
   # Umlenken des Methoden-Aufrufes auf den Hash-Inhalt gleichen Namens
