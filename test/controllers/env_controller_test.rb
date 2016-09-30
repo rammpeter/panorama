@@ -40,9 +40,9 @@ class EnvControllerTest < ActionController::TestCase
   end
 
 
-  def test_menu_entry(menu_entry)
+  def exec_menu_entry_action(menu_entry)
     menu_entry[:content].each do |m|
-      test_menu_entry(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
+      exec_menu_entry_action(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
       if m[:class] == "item" && !controller_action_defined?(m[:controller], m[:action])
         xhr :get, :render_menu_action, :format=>:js, :redirect_controller => m[:controller], :redirect_action => m[:action]
         assert_response :success
@@ -53,7 +53,7 @@ class EnvControllerTest < ActionController::TestCase
   # Test aller generischer Menü-Einträge ohne korrespondierende Action im Controller
   test "render_menu_action" do
     menu_content.each do |mo|
-      test_menu_entry(mo)
+      exec_menu_entry_action(mo)
     end
   end
 
