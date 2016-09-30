@@ -43,28 +43,28 @@ class DbaHistoryControllerTest < ActionController::TestCase
 
 
   test "sql_area_historic" do
-    def do_test_list_sql_area_historic(topSort)
-      def do_inner_test(topSort, instance, filter, sql_id)
-        post :list_sql_area_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
-             :maxResultCount=>100, :topSort=>topSort, :instance=>instance, :filter=>filter, :sql_id=>sql_id
-        assert_response :success
-      end
+    ['ElapsedTimePerExecute',
+     'ElapsedTimeTotal',
+     'ExecutionCount',
+     'RowsProcessed',
+     'ExecsPerDisk',
+     'BufferGetsPerRow',
+     'CPUTime',
+     'BufferGets',
+     'ClusterWaits'
+    ].each do |topSort|
+      post :list_sql_area_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :maxResultCount=>100, :topSort=>topSort
+      assert_response :success
 
-      do_inner_test(topSort, nil, nil,  nil)
-      do_inner_test(topSort, nil, nil,  '14147ß1471')
-      do_inner_test(topSort, nil, 'hugo<>%&', nil)
-      do_inner_test(topSort, 1,   nil,  nil)
+      post :list_sql_area_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :maxResultCount=>100, :topSort=>topSort, :sql_id=>'14147ß1471'
+      assert_response :success
+
+      post :list_sql_area_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :maxResultCount=>100, :topSort=>topSort, :filter=>'hugo<>%&'
+      assert_response :success
+
+      post :list_sql_area_historic, :format=>:js,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :maxResultCount=>100, :topSort=>topSort, :instance=>1
+      assert_response :success
     end
-
-    do_test_list_sql_area_historic "ElapsedTimePerExecute"
-    do_test_list_sql_area_historic "ElapsedTimeTotal"
-    do_test_list_sql_area_historic "ExecutionCount"
-    do_test_list_sql_area_historic "RowsProcessed"
-    do_test_list_sql_area_historic "ExecsPerDisk"
-    do_test_list_sql_area_historic "BufferGetsPerRow"
-    do_test_list_sql_area_historic "CPUTime"
-    do_test_list_sql_area_historic "BufferGets"
-    do_test_list_sql_area_historic "ClusterWaits"
 
     post :list_sql_detail_historic, :format=>:js, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end,
          :sql_id=>@sga_sql_id
@@ -128,32 +128,27 @@ class DbaHistoryControllerTest < ActionController::TestCase
   test "list_sysmetric_historic" do
     # Evtl. als sysdba auf Test-DB Table loeschen wenn noetig: truncate table sys.WRH$_SYSMETRIC_HISTORY;
 
-    def do_test(grouping)
-      # Zeitabstand deutlich kuerzer fuer diesen Test
-      time_selection_end  = Time.new
-      time_selection_start  = time_selection_end-80          # x Sekunden Abstand
-      time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
-      time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
-
-      post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :detail=>1, :grouping=>{:tag =>grouping}
-      assert_response :success
-      post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :instance=>1, :detail=>1, :grouping=>{:tag =>grouping}
-      assert_response :success
-      post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :summary=>1, :grouping=>{:tag =>grouping}
-      assert_response :success
-      post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :instance=>1, :summary=>1, :grouping=>{:tag =>grouping}
-      assert_response :success
-    end
-
     if get_current_database[:host] == "ramm.osp-dd.de"                              # Nur auf DB ausführen wo Test-User ein ALTER-Grant auf sys.WRH$_SYSMETRIC_HISTORY hat
       puts "Prepare for Test: Executing ALTER INDEX sys.WRH$_SYSMETRIC_HISTORY_INDEX shrink space"
       ActiveRecord::Base.connection.execute("ALTER INDEX sys.WRH$_SYSMETRIC_HISTORY_INDEX shrink space");
     end
 
-    do_test("SS")
-    do_test("MI")
-    do_test("HH24")
-    do_test("DD")
+   ['SS', 'MI', 'HH24', 'DD'].each do |grouping|
+     # Zeitabstand deutlich kuerzer fuer diesen Test
+     time_selection_end  = Time.new
+     time_selection_start  = time_selection_end-80          # x Sekunden Abstand
+     time_selection_end = time_selection_end.strftime("%d.%m.%Y %H:%M")
+     time_selection_start = time_selection_start.strftime("%d.%m.%Y %H:%M")
+
+     post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :detail=>1, :grouping=>{:tag =>grouping}
+     assert_response :success
+     post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :instance=>1, :detail=>1, :grouping=>{:tag =>grouping}
+     assert_response :success
+     post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :summary=>1, :grouping=>{:tag =>grouping}
+     assert_response :success
+     post :list_sysmetric_historic, :format=>:js,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :instance=>1, :summary=>1, :grouping=>{:tag =>grouping}
+     assert_response :success
+   end
   end
 
   test "mutex_statistics_historic" do
