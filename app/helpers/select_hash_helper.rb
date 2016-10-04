@@ -7,7 +7,8 @@ module SelectHashHelper
     if has_key?(key)
       self[key]
     else
-      raise "column '#{key}' does not exist in result-Hash with key-class 'String'"
+      raise "column '#{key}' does not exist in result-Hash with key-class 'String' or 'Symbol'" unless has_key?(key.to_sym)
+      self[key.to_sym]
     end
   end
 
