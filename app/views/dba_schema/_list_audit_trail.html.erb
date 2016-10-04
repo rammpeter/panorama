@@ -15,7 +15,7 @@
     def link_sql_text(rec)
       if rec.sql_text
         # Da der Inhalt nachträeglich erst per JSaufgerufen wird, müssen ' doppelt escaped werden
-        "<a title=\"Show complete SQL-Statement (below)\" onclick=\"jQuery('##{@update_area}').html('<pre>#{j (my_html_escape rec.sql_text.gsub(/'/, "\\\\'") ) }</pre>');\">#{rec.sql_text[0,30]}</a>".html_safe
+        "<a title=\"Show complete SQL-Statement (below)\" onclick=\"jQuery('##{@update_area}').html('<pre>#{j(my_html_escape rec.sql_text.gsub(/'/, "\\\\'") ) }</pre>');\">#{rec.sql_text[0,30]}</a>".html_safe
       end
     end
 
