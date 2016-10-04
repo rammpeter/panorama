@@ -167,7 +167,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
-    if @time_groupby.nil? || @time_groupby == ''
+    if !defined?(@time_groupby) || @time_groupby.nil? || @time_groupby == ''
       record_count = params[:record_count].to_i
       @time_groupby = :single        # Default
       @time_groupby = :hour if record_count > 1000
