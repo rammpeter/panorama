@@ -151,12 +151,9 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                              (SELECT SUM(s.Bytes) FROM DBA_Segments s WHERE s.Owner=u.Owner AND s.Segment_Name=u.Index_Name)/(1024*1024) MBytes,
                              i.Tablespace_Name, i.Uniqueness, i.Index_Type,
                              (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = u.Owner AND t.Table_Name = u.Table_Name) IOT_Type,
-                             (SELECT MIN(cc.Constraint_Name)
-                              FROM   DBA_Ind_Columns ic
-                              JOIN   DBA_Cons_Columns cc ON cc.Owner = ic.Table_Owner AND cc.Table_Name = ic.Table_Name AND cc.Column_Name = ic.Column_Name AND cc.Position = 1
-                              JOIN   DBA_Constraints c ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Constraint_Type = 'R'
-                              WHERE  ic.Index_Owner = u.Owner AND ic.Index_Name = u.Index_Name AND ic.Column_Position = 1
-                             ) foreign_key_protection
+                             c.Constraint_Name foreign_key_protection,
+                             rc.Owner||'.'||rc.Table_Name  Referenced_Table,
+                             rt.Num_Rows     Num_Rows_Referenced_Table
                       FROM   (
                               SELECT /*+ NO_MERGE */ u.UserName Owner, io.name Index_Name, t.name Table_Name,
                                      decode(bitand(i.flags, 65536), 0, 'NO', 'YES') Monitoring,
@@ -171,8 +168,13 @@ Additional information about index usage can be requested from DBA_Hist_Seg_Stat
                               WHERE  TO_DATE(ou.Start_Monitoring, 'MM/DD/YYYY HH24:MI:SS') < SYSDATE-?
                               AND    (schema.name IS NULL OR schema.Name = u.UserName)
                              )u
-                      JOIN DBA_Indexes i ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
-                      WHere Used='NO' AND Monitoring='YES'
+                      JOIN DBA_Indexes i                    ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
+                      LEFT OUTER JOIN DBA_Ind_Columns ic    ON ic.Index_Owner = u.Owner AND ic.Index_Name = u.Index_Name AND ic.Column_Position = 1
+                      LEFT OUTER JOIN DBA_Cons_Columns cc   ON cc.Owner = ic.Table_Owner AND cc.Table_Name = ic.Table_Name AND cc.Column_Name = ic.Column_Name AND cc.Position = 1
+                      LEFT OUTER JOIN DBA_Constraints c     ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Constraint_Type = 'R'
+                      LEFT OUTER JOIN DBA_Constraints rc    ON rc.Owner = c.R_Owner AND rc.Constraint_Name = c.R_Constraint_Name
+                      LEFT OUTER JOIN DBA_Tables rt         ON rt.Owner = rc.Owner AND rt.Table_Name = rc.Table_Name
+                      WHERE u.Used='NO' AND u.Monitoring='YES'
                       AND i.Num_Rows > ?
                       ORDER BY i.Num_Rows DESC NULLS LAST
                      ",
