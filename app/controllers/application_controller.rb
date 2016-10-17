@@ -17,8 +17,8 @@ class ApplicationController < ActionController::Base
 
   include ApplicationHelper # Erweiterung der Controller um Helper-Methoden des GUI's 
 
-  before_filter :begin_request # , :except -Liste wird direkt in begin_request gehandelt
-  after_filter  :after_request
+  before_action :begin_request # , :except -Liste wird direkt in begin_request gehandelt
+  after_action  :after_request
 
   rescue_from Exception, :with => :global_exception_handler
 

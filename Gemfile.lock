@@ -9,7 +9,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.2.22)
+    Panorama (2.2.23)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
@@ -61,16 +61,16 @@ GEM
       activemodel (= 5.0.0.1)
       activesupport (= 5.0.0.1)
       arel (~> 7.0)
-    activerecord-oracle_enhanced-adapter (1.7.2)
+    activerecord-oracle_enhanced-adapter (1.7.4)
       activerecord (~> 5.0.0)
-      arel (~> 7.1.0)
+      arel (~> 7.1.4)
       ruby-plsql (>= 0.5.0)
     activesupport (5.0.0.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    arel (7.1.2)
+    arel (7.1.4)
     builder (3.2.2)
     concurrent-ruby (1.0.2-java)
     erubis (2.7.0)
@@ -96,7 +96,7 @@ GEM
     minitest (5.9.1)
     multi_json (1.12.1)
     nio4r (1.2.1-java)
-    nokogiri (1.6.8-java)
+    nokogiri (1.6.8.1-java)
     rack (2.0.1)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -161,4 +161,4 @@ DEPENDENCIES
   rake
 
 BUNDLED WITH
-   1.13.1
+   1.13.5
