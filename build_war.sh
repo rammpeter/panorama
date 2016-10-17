@@ -10,6 +10,9 @@ then
   jruby -S rake assets:precompile
 fi
 
+# NoMethodError: protected method `pathmap_replace' called for "public/404.html":String
+# Fixen durch auskommentieren des protection-Flags für pathmap_replace in gems/rake-11.3.0/lib/rake/ext/string.rb
+
 echo "Create Panorama.war"
 jruby -S warble 
 

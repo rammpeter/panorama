@@ -26,7 +26,6 @@ rm -rf $PANORAMA_VAR_HOME/work/*
 java -Xmx1024m \
      -Xms1024m \
      -XX:+CMSClassUnloadingEnabled \
-     -XX:+CMSPermGenSweepingEnabled \
      -XX:+UseCodeCacheFlushing \
      -XX:ReservedCodeCacheSize=80M \
      -Djruby.compile.fastest=true \

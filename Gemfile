@@ -11,7 +11,12 @@ gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
 # so lange keine 4.2-fähige Version des adapter raus ist
 #gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
 # gem 'activerecord-oracle_enhanced-adapter', git: 'http://github.com/rsim/oracle-enhanced', branch: 'rails42'
-gem 'activerecord-oracle_enhanced-adapter'
+gem 'activerecord-oracle_enhanced-adapter', "~> 1.7.2"
+
+#gem 'activerecord-nulldb-adapter', github: 'mnoack/nulldb', branch: 'rails5'
+gem 'activerecord-nulldb-adapter', :git => 'http://github.com/mnoack/nulldb', :branch =>'rails5'
+
+
 
 
 group :development, :test do
