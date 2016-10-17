@@ -12,6 +12,9 @@ gemspec
 
 #gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'rails42'
 
+gem 'activerecord-nulldb-adapter', github: 'mnoack/nulldb', branch: 'rails5'
+
+
 
 
 

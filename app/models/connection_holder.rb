@@ -27,9 +27,14 @@ class ConnectionHolder < ActiveRecord::Base
     if @@request_connection_state != :opened
       controller.open_oracle_connection                                         # start Oracle-Connection if not already exists
 
+      #self.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
+      #                                          [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil, ActiveRecord::Type::Value.new), "#{@@current_controller_name}/#{@@current_action_name}"]]
+      #)
+
       self.connection().exec_update("call dbms_application_info.set_Module('Panorama', :action)", nil,
-                                                [[ActiveRecord::ConnectionAdapters::Column.new(':action', nil, ActiveRecord::Type::Value.new), "#{@@current_controller_name}/#{@@current_action_name}"]]
+                                    [ActiveRecord::Relation::QueryAttribute.new(':action', "#{@@current_controller_name}/#{@@current_action_name}", ActiveRecord::Type::Value.new)]
       )
+
       @@request_connection_state  = :opened                                     # Oracle connection guaranteed from now
     end
   end

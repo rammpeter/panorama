@@ -1,4 +1,13 @@
-Panorama::Application.routes.draw do
+Rails.application.routes.draw do
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+  root :to => 'env#index', as: "default_panorama_root"+Random.rand(1000).to_s
+
+  get  ':controller/:action'
+  post ':controller/:action'
+
+end
+
+#Panorama::Application.routes.draw do
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
@@ -6,7 +15,7 @@ Panorama::Application.routes.draw do
 
   # random-Names fuer root-Route, da bei Existenz lib/Panorama/engine.rb die Routen doppelt gesetzt werden und dabei folgender Fehler auftritt:
   # ArgumentError: Invalid route name, already in use: 'root'
-  root :to => 'env#index', as: "default_panorama_root"+Random.rand(1000).to_s
+#  root :to => 'env#index', as: "default_panorama_root"+Random.rand(1000).to_s
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
@@ -57,6 +66,6 @@ Panorama::Application.routes.draw do
   #     resources :products
   #   end
 
-  get  ':controller/:action'
-  post ':controller/:action'
-end
+#  get  ':controller/:action'
+#  post ':controller/:action'
+#end

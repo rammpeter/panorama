@@ -168,10 +168,11 @@ class EnvController < ApplicationController
     write_to_client_info_store(:last_used_menu_caption,    "Login")
     write_to_client_info_store(:last_used_menu_hint,       t(:menu_env_set_database_hint, :default=>"Start of application after connect to database"))
 
-    current_database = params[:database].symbolize_keys                         # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
+    #current_database = params[:database].to_h.symbolize_keys                    # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
+    current_database = params[:database]                                        # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
 
-    if params[:database][:modus] == 'tns'                    # TNS-Alias auswerten
-      tns_records = read_tnsnames                            # Hash mit Attributen aus tnsnames.ora für gesuchte DB
+    if params[:database][:modus] == 'tns'                                       # TNS-Alias auswerten
+      tns_records = read_tnsnames                                               # Hash mit Attributen aus tnsnames.ora für gesuchte DB
       tns_record = tns_records[current_database[:tns]]
       unless tns_record
         respond_to do |format|
@@ -220,6 +221,7 @@ class EnvController < ApplicationController
       rescue Exception => e    # 2. Versuch mit alternativer SID-Deutung
         Rails.logger.error "Error connecting to database: URL='#{jdbc_thin_url}' TNSName='#{get_current_database[:tns]}' User='#{get_current_database[:user]}'"
         Rails.logger.error e.message
+        #Rails.logger.error e.backtrace
         Rails.logger.error 'Switching between SID and SERVICE_NAME'
 
         database_helper_switch_sid_usage

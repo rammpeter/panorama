@@ -19,10 +19,13 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
   # Method comparable with ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
   # but without storing whole result in memory
   def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, query_timeout = nil, &block)
-    type_casted_binds = binds.map { |col, val|
-      [col, type_cast(val, col)]
-    }
-    log(sql, name, type_casted_binds) do
+    # Variante für Rails 5
+    type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
+
+    # Variante für Rails 4
+    # type_casted_binds = binds.map { |col, val|  [col, type_cast(val, col)] }
+
+    log(sql, name, binds) do
       cursor = nil
       cached = false
       if without_prepared_statement?(binds)
@@ -34,15 +37,12 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
 
         cursor = @statements[sql]
 
-        binds.each_with_index do |bind, i|
-          col, val = bind
-          cursor.bind_param(i + 1, type_cast(val, col), col)
-        end
+        cursor.bind_params(type_casted_binds)
 
         cached = true
       end
 
-      cursor.get_raw_statement.setQueryTimeout(query_timeout) if query_timeout
+      cursor.get_raw_statement.setQueryTimeout(query_timeout) if query_timeout          # Erweiterunge gegenüber exec_query
 
       cursor.exec
 
@@ -50,6 +50,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.class_eval do
         res = true
       else
         columns = cursor.get_col_names.map do |col_name|
+          # @connection.oracle_downcase(col_name)                               # Rails 5-Variante
           @connection.oracle_downcase(col_name).freeze
         end
         fetch_options = {:get_lob_value => (name != 'Writable Large Object')}
@@ -92,7 +93,7 @@ class SqlSelectIterator
   rescue Exception => e
     bind_text = ''
     @binds.each do |b|
-      bind_text << "#{b[0].name} = #{b[1]}\n"
+      bind_text << "#{b.name} = #{b.value}\n"
     end
 
     # Ensure stacktrace of first exception is show
