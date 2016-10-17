@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/mnoack/nulldb.git
+  remote: http://github.com/mnoack/nulldb
   revision: aa36e3c934d3619c6d57169dad5c04aa278d7549
   branch: rails5
   specs:
@@ -9,7 +9,7 @@ GIT
 PATH
   remote: .
   specs:
-    Panorama (2.2.23)
+    Panorama (2.2.24)
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       jquery-rails
