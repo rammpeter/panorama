@@ -2,6 +2,7 @@
 # Peter Ramm, 02.03.2016
 
 require 'active_record/connection_adapters/oracle_enhanced/connection'
+require 'active_record/connection_adapters/oracle_enhanced_adapter'
 
 # expand class by getter to allow access on internal variable @raw_statement
 ActiveRecord::ConnectionAdapters::OracleEnhancedJDBCConnection::Cursor.class_eval do

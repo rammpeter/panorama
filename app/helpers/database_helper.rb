@@ -26,7 +26,8 @@ module DatabaseHelper
 
   private
   def get_salted_encryption_key
-    "#{cookies[:client_salt]}#{Rails.application.config.secret_key_base}"
+    #"#{cookies[:client_salt]}#{Rails.application.config.secret_key_base}"
+    "#{cookies[:client_salt]}#{Rails.application.secrets.secret_key_base}"       # Position of key after siwtch to config/secrets.yml
   end
 
   public

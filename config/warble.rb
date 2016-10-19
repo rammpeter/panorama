@@ -26,7 +26,7 @@ Warbler::Config.new do |config|
   # own versions if you directly set the value
   # config.java_libs += FileList["lib/java/*.jar"]
   # Explizites Laden der beiden Jar-Files aus jruby-Inhalt, erforderlich ab jruby-1.7.13, sonst Fehler: org.jruby.exceptions.RaiseException: (LoadError) load error: jopenssl/load -- java.lang.NoClassDefFoundError: org/bouncycastle/asn1/DERBoolean
-  config.java_libs += ["#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcprov-jdk15on/1.47/bcprov-jdk15on-1.47.jar", "#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcpkix-jdk15on/1.47/bcpkix-jdk15on-1.47.jar"]
+  # config.java_libs += ["#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcprov-jdk15on/1.47/bcprov-jdk15on-1.47.jar", "#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcpkix-jdk15on/1.47/bcpkix-jdk15on-1.47.jar"]
 
   # Loose Java classes and miscellaneous files to be included.
   # config.java_classes = FileList["target/classes/**.*"]

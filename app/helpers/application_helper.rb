@@ -87,7 +87,7 @@ module ApplicationHelper
 
   def set_current_database(current_database)
     @buffered_current_database = nil                                            # lokalen Cache verwerfen
-    current_database[:query_timeout] = current_database[:query_timeout].to_i
+    current_database[:query_timeout] = current_database[:query_timeout].to_i if !current_database.nil?
     write_to_client_info_store(:current_database, current_database)
   end
 
