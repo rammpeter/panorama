@@ -3,7 +3,7 @@
 
 class EnvController < ApplicationController
   layout 'application'
-  #include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
+  include ApplicationHelper       # application_helper leider nicht automatisch inkludiert bei Nutzung als Engine in anderer App
   include EnvHelper
   include MenuHelper
   include LicensingHelper
