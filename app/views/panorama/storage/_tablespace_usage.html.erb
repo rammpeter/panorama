@@ -1,0 +1,141 @@
+<% @update_area = get_unique_area_id %>
+
+<div class="page_caption"><%= t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')%>  <%= get_current_database[:sid] %> <%= localeDateTime(Time.now, :minutes) %></div>
+
+<%
+def total_data_style(rec)
+  "font-weight:bold;" if rec.contents == "TOTAL"
+end
+
+column_options =
+[
+  {:caption=>"Typ",         :data=>proc{|rec| rec.contents},                    :title=>t(:storage_tablespace_usage_total_type_hint, :default=>'Type of allocation'),   :data_style=>proc{|rec| total_data_style(rec)} },
+  {:caption=>"MB Total",    :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>t(:storage_tablespace_usage_total_size_total_hint, :default=>'Total size in MBytes'),        :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+  {:caption=>"MB Used",     :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>t(:storage_tablespace_usage_total_size_used_hint, :default=>'Used size in MBytes'),    :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+  {:caption=>"MB Free",     :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>t(:storage_tablespace_usage_total_size_free_hint, :default=>'Free size in MBytes'),       :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+  {:caption=>"% used",      :data=>proc{|rec| formattedNumber(rec.mbused.to_f/rec.mbtotal*100,1)},  :title=>t(:storage_tablespace_usage_total_pct_hint, :default=>'Percent used'),                   :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+]
+
+%>
+<div>
+  <%= gen_slickgrid(@totals, column_options, {:caption=>t(:storage_tablespace_usage_total_caption, :default=>'Sums total'), :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+</div>
+
+<%
+column_options =
+[
+  {:caption=>"Segment-Type",   :data=>proc{|rec| rec.segment_type},                   :title=>t(:storage_tablespace_usage_segment_type_hint, :default=>'Segment type of sum')},
+  {:caption=>"MBytes",       :data=>proc{|rec| formattedNumber(rec.mbytes)},          :title=>t(:storage_tablespace_usage_segment_mbytes_hint, :default=>'Size of segment type (used space net) in MBytes'),        :align=>:right},
+]
+
+%>
+
+<div>
+  <%= gen_slickgrid(@segments, column_options, {:caption =>t(:storage_tablespace_usage_segment_caption, :default=>'Net sums in TS by segment types'), :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+</div>
+
+<%
+   # Alternativ-Variante für Aktualisierung des Links in Javascript
+   def decorator_mb_used
+     link_text = my_ajax_link_to('VALUE_ALIAS',
+                 url_for({:controller   => :dba_schema,
+                          :action       => :list_objects,
+                          :tablespace   => {:name => 'TS_NAME_VALUE_ALIAS'},
+                          :update_area  => @update_area,
+                         }),
+                 :title=>t(:storage_tablespace_usage_tablespaces_link_hint, :default=>'Show objects of tablespace')
+     )
+
+     "
+       var link_text = '#{link_text}';
+       if (dataContext[slickGrid.all_columns[1].id] == 'PERMANENT' ){
+         return link_text
+           .replace(/TS_NAME_VALUE_ALIAS/g,    dataContext[slickGrid.all_columns[0].id])
+           .replace(/VALUE_ALIAS/g,            cell_value)
+         ;
+       } else {
+         return cell_value;
+       }
+     "
+   end
+
+   column_options =
+[
+  {:caption=>"Tablespace",          :data=>proc{|rec| rec.tablespace_name},             :title=>t(:storage_tablespace_usage_tablespace_name_hint, :default=>'Name of tablespace')},
+  {:caption=>"Contents",            :data=>proc{|rec| rec.contents},                    :title=>t(:storage_tablespace_usage_tablespace_content_hint, :default=>'Type/content of tablespace') },
+  {:caption=>"Blocksize",           :data=>proc{|rec| formattedNumber(rec.blocksize)},  :title=>t(:storage_tablespace_usage_tablespace_blocksize_hint, :default=>'Blocksize of tablespace in Bytes'),        :align=>:right},
+  {:caption=>"MB Total",            :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>"Größe des Tablespace gesamt in MB",        :align=>:right},
+  {:caption=>"MB Used",             :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>"Genutzter Platz des Tablespaces in MB",    :align=>:right, :field_decorator_function=>decorator_mb_used},
+  {:caption=>"MB Free",             :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>"Freier Platz des Tablespaces in MB",       :align=>:right},
+  {:caption=>"% used",              :data=>proc{|rec| formattedNumber(rec.pctused,1)},  :title=>"Prozentuale Auslastung",                   :align=>:right},
+  {:caption=>"Allocation Type",     :data=>proc{|rec| rec.allocation_type}},
+  {:caption=>"Segment Space Mgmt.", :data=>proc{|rec| rec.segment_space_management}},
+  {:caption=>"Auto ext.",           :data=>proc{|rec| rec.autoextensible},              :title=>"Auto-Extensible ?"},
+]
+
+%>
+
+<div>
+  <%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-Usage", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+</div>
+
+<% if @fra_usage.length > 0 %>
+
+<%
+   column_options =
+           [
+                   {:caption=>"File type",  :data=>proc{|rec| rec.file_type},                    :title=>'File type within fast recovery area'},
+                   {:caption=>"MBytes",     :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MB',        :align=>:right},
+                   {:caption=>"% used",     :data=>proc{|rec| fn(rec.percent_space_used,2)},     :title=>'Percentage used from total',        :align=>:right},
+           ]
+
+%>
+
+<div>
+  <%= gen_slickgrid(@fra_usage, column_options, {:caption=> "Usage of fast recovery area (FRA), total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) } GB", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+</div>
+
+<% end %>
+
+<%
+   # Alternativ-Variante für Aktualisierung des Links in Javascript
+   def decorator_total_mb
+     link_text = my_ajax_link_to('VALUE_ALIAS',
+                 url_for({:controller   => :dba_schema,
+                          :action       => :list_objects,
+                          :schema       => {:name => 'SCHEMA_NAME_VALUE_ALIAS'},
+                          :update_area  => @update_area,
+                         }),
+                 :title=>t(:storage_tablespace_usage_schemas_link_hint, :default=>'Show objects of schema')
+     )
+
+     "
+       var link_text = '#{link_text}';
+       return link_text
+         .replace(/SCHEMA_NAME_VALUE_ALIAS/g,    dataContext[slickGrid.all_columns[0].id])
+         .replace(/VALUE_ALIAS/g,                cell_value)
+       ;
+     "
+   end
+
+
+
+column_options =
+[
+  {:caption=>"Schema",  :data=>proc{|rec| rec.schema},                  :title=>"Schema / Owner"},
+]
+
+@schema_segment_types.each do |type, dummy|
+  column_options <<  {:caption=>type,  :data=>proc{|rec| formattedNumber(rec[type])}, :title=>t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type'),  :align=>:right}
+end
+column_options <<  {:caption=>'Total MB',  :data=>proc{|rec| fn(rec.total_mbytes)}, :title=>t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type'),  :align=>:right, :field_decorator_function=>decorator_total_mb}
+
+
+%>
+
+<div>
+  <%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Usage ( if > 1 MB)", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+</div>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

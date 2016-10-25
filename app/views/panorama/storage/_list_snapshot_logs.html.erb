@@ -1,0 +1,51 @@
+<%
+@update_area = get_unique_area_id
+
+def link_mview_log(rec)
+  my_ajax_link_to(rec.log_table,
+                  url_for(:action          => :list_materialized_view_logs,
+                          :log_owner       => rec.log_owner,
+                          :log_name        => rec.log_table,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show details for materialized view log")
+end
+
+def link_registered_mview(rec)
+  my_ajax_link_to(rec.snapshot_id,
+                  url_for(:action          => :list_registered_materialized_views,
+                          :snapshot_id     => rec.snapshot_id,
+                          :update_area     => @update_area
+                         ),
+                  :title=>"Show details for registered materialized view with this snapshot id")
+end
+
+
+column_options =
+  [
+    {:caption=>"Owner",                 :data=>proc{|rec| rec.log_owner.downcase},                      :title=>"Owner of materialized view log"},
+    {:caption=>"Master", :data=>proc{|rec| link_object_description(@update_area, rec.log_owner, rec.master, rec.master)}, :title=>"Name of master table of materialized view log"},
+    {:caption=>"Log table",             :data=>proc{|rec| link_mview_log(rec)},                         :title=>"Name of MView log table"},
+    {:caption=>"Last refresh",          :data=>proc{|rec| localeDateTime(rec.current_snapshots)},       :title=>"Date of last refresh of materialzed view"},
+    {:caption=>"Snapshot ID",           :data=>proc{|rec| link_registered_mview(rec)},                  :title=>"Materialized view identifier"},
+    {:caption=>"MV owner",              :data=>proc{|rec| rec.mv_owner},                                :title=>"Owner of registered materialized view"},
+    {:caption=>"MV name",               :data=>proc{|rec| rec.mv_name},                                 :title=>"Name of registered materialized view"},
+    {:caption=>"MView site",            :data=>proc{|rec| rec.mview_site},                              :title=>"Global name of the materialized view site"},
+    {:caption=>"RowID",                 :data=>proc{|rec| rec.rowids},                                  :title=>"If YES, records rowid information"},
+    {:caption=>"PKey",                  :data=>proc{|rec| rec.primary_key},                             :title=>"If YES, records primary key information"},
+    {:caption=>"Obj",                   :data=>proc{|rec| rec.contains_object_id},                      :title=>"If YES, records object identifier information in an object table"},
+    {:caption=>"Flt.",                  :data=>proc{|rec| rec.filter_columns},                          :title=>"If YES, records filter columns"},
+    {:caption=>"Seq.",                  :data=>proc{|rec| rec.sequence},                                :title=>"If YES, records the sequence value, which provides additional ordering information"},
+    {:caption=>"New",                   :data=>proc{|rec| rec.include_new_values},                      :title=>"If YES, records both old and new values. If NO, records old values, but does not record new values."},
+  ]
+
+%>
+
+<%= gen_slickgrid(@snaps, column_options, {
+        :max_height => 450,
+        :caption => "Data from sys.DBA_Snapshot_Logs for#{@grid_caption}"
+
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>

@@ -1,0 +1,229 @@
+<div style="clear:both; padding: 5px;"></div>
+<h2><%= t(:dba_list_session_details_caption, :default=>'Details for session') %>  SID=<%= @sid%>, Serial#=<%= @serialno%>, Instance=<%= @instance %>, <%= localeDateTime(Time.now) %></h2>
+<% @prev_update_area = @update_area
+   @update_area = get_unique_area_id
+%>
+<%
+column_options =
+ [
+   {:caption=>"Status",         :data=>proc{|rec| rec.status},          :title=>"Status"},
+   {:caption=>"Client-Info",    :data=>proc{|rec| rec.client_info},     :title=>"Client-Info"},
+   {:caption=>"Module",         :data=>proc{|rec| rec.module},          :title=>"Module"},
+   {:caption=>"Action",         :data=>proc{|rec| rec.action},          :title=>"Action"},
+   {:caption=>"Username",       :data=>proc{|rec| rec.username},        :title=>"Database Username"},
+   {:caption=>"Audit-SID",      :data=>proc{|rec| rec.audsid},          :title=>"Session-ID for auditing (gv$Session.AUDSID). Corresponds with DBA_Audit_Trail.Session_ID or gv$XML_Audit_Trail.Session_ID"},
+   {:caption=>"Sh.Proc.",       :data=>proc{|rec| rec.spid},            :title=>"Process ID of database shadow process"},
+   {:caption=>"Machine",        :data=>proc{|rec| link_machine_ip_info(rec.machine)}, :title=>"Client machine"},
+   {:caption=>"OSUser",         :data=>proc{|rec| rec.osuser},          :title=>"Client OS user"},
+   {:caption=>"Process",        :data=>proc{|rec| rec.process},         :title=>"Client process ID"},
+   {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
+   {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"},
+   {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"},
+   {:caption=>'Auth. type',     :data=>proc{|rec| rec.authentication_type}, :title=>'How the user was authenticated. See V$SESSION_CONNECT_INFO.Authentication_Type'},
+ ]
+column_options << {:caption=>'Client char set',     :data=>proc{|rec| rec.client_charset},     :title=>'Client character set as specified in the NLS_LANG environment variable or in the OCIEnvNlsCreate() call; Unknown if the Oracle client is older than release 11.1 or the connection is through the JDBC thin driver'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client connection',   :data=>proc{|rec| rec.client_connection},  :title=>'Client server connection flags'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client OCI lib',      :data=>proc{|rec| rec.client_oci_library}, :title=>'OCI client library'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client version',      :data=>proc{|rec| rec.client_version},     :title=>'Client library version number'} if get_db_version >= '11.2'
+column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client_driver},      :title=>'Client driver name'} if get_db_version >= '11.2'
+
+%>
+<%= gen_slickgrid(@dbsessions, column_options, {:caption=>"Details for session SID=#{@sid}, Serial#=#{@serialno}, Instance=#{@instance}" , :width=>:auto}) %>
+
+<% if @pq_coordinator.count > 0 # Betrachete Session ist ein PQ-Slave, dann Info zum Coordinator hinzufügen %>
+    <%
+
+       def link_session(rec)
+         my_ajax_link_to("#{rec.sid},#{rec.serialno}",
+           url_for(:action => "show_session_detail",
+                   :instance => rec.inst_id,
+                   :sid      => rec.sid,
+                   :serialno => rec.serialno,
+                   :update_area => @update_area
+                  ),
+           :title=> "Anzeige Details zu Session")
+       end
+
+    column_options =
+     [
+       {:caption=>"SID/SN",         :data=>proc{|rec| link_session(rec)},    :title=>"SID, serial number of query coordinator session"},
+       {:caption=>"Status",         :data=>proc{|rec| rec.status},          :title=>"Status"},
+       {:caption=>"SQL-ID",         :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, rec.sql_child_number)},  :title=>"SQL-ID of query coordinator session"},
+       {:caption=>"Client-Info",    :data=>proc{|rec| rec.client_info},     :title=>"Client-Info"},
+       {:caption=>"Module",         :data=>proc{|rec| rec.module},          :title=>"Module"},
+       {:caption=>"Action",         :data=>proc{|rec| rec.action},          :title=>"Action"},
+       {:caption=>"Username",       :data=>proc{|rec| rec.username},        :title=>"Database Username"},
+       {:caption=>"Sh.Proc.",       :data=>proc{|rec| rec.spid},            :title=>"Process ID of database shadow process"},
+       {:caption=>"Machine",        :data=>proc{|rec| link_machine_ip_info(rec.machine)}, :title=>"Client machine"},
+       {:caption=>"OSUser",         :data=>proc{|rec| rec.osuser},          :title=>"Client OS user"},
+       {:caption=>"Process",        :data=>proc{|rec| rec.process},         :title=>"Client process ID"},
+       {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
+       {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"},
+       {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"},
+     ]
+
+    %>
+    <%= gen_slickgrid(@pq_coordinator, column_options, {:caption=>"Considered session SID=#{@sid}, Serial#=#{@serialno}, Instance=#{@instance} is PQ-slave, details for PQ-coordinator are:" , :width=>:auto}) %>
+
+<% end %>
+
+<%
+   column_options =
+ [
+   {:caption=>"",         :data=>proc{|rec| rec[:caption]} },
+   {:caption=>"SQL-ID",   :data=>proc{|rec| link_sql_id(@update_area, @instance, rec[:sql_id], rec[:sql_child_number])}  },
+   {:caption=>"SQL-Text", :data=>proc{|rec| "#{convert_word_wrap_comma(rec[:sql_text])}" }     },
+#   {:caption=>"SQL-Text", :data=>proc{|rec| "<div class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</div>" } , :css_class=>"monospace"   },
+ ]
+
+%>
+<div style="padding: 5px;"></div>
+<%= gen_slickgrid([
+        {:caption           => "Aktuelles SQL-Statement",
+         :sql_id            => @dbsession.sql_id,
+         :sql_child_number  => @dbsession.sql_child_number,
+         :sql_text          => (@current_sql.html_safe if @current_sql)
+        },
+        {:caption           => "Vorheriges SQL-Statement",
+         :sql_id            => @dbsession.prev_sql_id,
+         :sql_child_number  => @dbsession.prev_child_number,
+         :sql_text          => (@previous_sql.html_safe if @previous_sql)
+        },
+                  ], column_options, :width=>:auto
+    )
+%>
+
+<%
+column_options =
+ [
+   {:caption=>"Category",       :data=>proc{|rec| rec.category},            :title=>"Kategorie"},
+   {:caption=>"Allocated",      :data=>proc{|rec| fn(rec.allocated)},       :align=>:right,    :title=>"Bytes of PGA memory allocated by the process for the category. For the 'Freeable' category, it is the amount of free PGA memory eligible to be released to the operating system."},
+   {:caption=>"Used",           :data=>proc{|rec| fn(rec.used)},            :align=>:right,    :title=>"Bytes of PGA memory used by the process for the category. For 'Freeable', the value is zero. For 'Other', the value is NULL for performance reasons."},
+   {:caption=>"Max Allocated",  :data=>proc{|rec| fn(rec.max_allocated)},   :align=>:right,    :title=>"Maximum bytes of PGA memory ever allocated by the process for the category."},
+ ]
+
+%>
+<%= gen_slickgrid(@pmems, column_options, :caption=> "Process Memory (incl. PQ-Server) aus GV$Process_Memory", :width=>:auto) %>
+
+<div style="clear:both;">
+  <div class="float_left">
+    <%= my_ajax_submit_tag("Wait-Status",
+       url_for(:action => "show_session_details_waits",
+               :update_area => @update_area,
+               :instance => @instance,
+               :sid      => @sid,
+               :serialno => @serialno),
+      :title => t(:dba_list_session_details_link_wait, :default=>'Show current wait status of session') )
+    %>
+  </div>
+  <div class="float_left">
+    <%= my_ajax_submit_tag("Locks",
+       url_for(:action => "show_session_details_locks",
+               :update_area => @update_area,
+               :instance => @instance,
+               :sid      => @sid,
+               :serialno => @serialno),
+      :title => t(:dba_list_session_details_link_locks, :default=>'Show locks of session') )
+    %>
+  </div>
+  <div class="float_left">
+    <%= my_ajax_submit_tag("Temp-Usage",
+       url_for(:action => :show_session_details_temp,
+               :update_area => @update_area,
+               :instance => @instance,
+               :saddr      => @dbsession.saddr,
+               :sid        => @sid,
+               :serialno   => @serialno),
+      :title => t(:dba_list_session_details_link_temp, :default=>'Show TEMP-usage of session') )
+    %>
+  </div>
+  <div class="float_left">
+      <%=
+        my_ajax_submit_tag("#{@open_cursor_counts.total} #{t(:dba_list_session_details_link_open_cursor_caption, :default=>'open cursor')}",
+           url_for(:action => "list_open_cursor_per_session",
+                   :controller => :dba,
+                   :update_area => @update_area,
+                   :instance  => @instance,
+                   :sid       => @sid,
+                   :serialno  => @serialno
+                   ),
+           :title=> t(:dba_list_session_details_link_open_cursor_hint, :default=>'Show open cursor of session (GV$OPEN_CURSOR) %{own_saddr} with identical SAddr', :own_saddr=>@open_cursor_counts.own_saddr))
+      %>
+  </div>
+  <div class="float_left">
+    <%=
+        my_ajax_submit_tag('Objects accessed',
+                           url_for(:controller  => :dba,
+                                   :action      => :list_accessed_objects,
+                                   :update_area => @update_area,
+                                   :instance    => @instance,
+                                   :sid         => @sid,
+                           ),
+                           :title=> 'List objects accessed by this session in library cache (from GV$Access)')
+    %>
+  </div>
+  <div class="float_left">
+      <%=
+        my_ajax_submit_tag("Active Session History",
+           url_for(:action => :show_prepared_active_session_history,
+                   :controller => :active_session_history,
+                   :update_area => @update_area,
+                   :instance  => @instance,
+                   :sid       => @sid,
+                   :serialno  => @serialno
+                   ),
+           :title=> t(:dba_list_session_details_link_ash, :default=>'Show wait history of session from Active Session History'))
+      %>
+  </div>
+  <div class="float_left">
+      <%=
+        my_ajax_submit_tag("Session-Statistics",
+           url_for(:action => :list_session_statistic,
+                   :update_area => @update_area,
+                   :instance  => @instance,
+                   :sid       => @sid
+                   ),
+           :title=> t(:dba_list_session_details_link_stat, :default=>'Show session statistics from V$SessStat'))
+      %>
+  </div>
+  <div class="float_left">
+      <%=
+        my_ajax_submit_tag("Audit Trail",
+                           url_for(:controller   => :dba_schema,
+                                   :action       => :list_audit_trail,
+                                   :sessionid    => @dbsession.audsid,
+                                   :update_area  => @update_area
+                           ),
+                           :title=> "Show audit trail records from DBA_Audit_Trail"
+        )
+      %>
+  </div>
+  <div class="float_left">
+    <%=
+        my_ajax_submit_tag("Optimizer Env.",
+                           url_for(:controller   => :dba,
+                                   :action       => :list_session_optimizer_environment,
+                                   :instance     => @instance,
+                                   :sid          => @sid,
+                                   :update_area  => @update_area
+                           ),
+                           :title=> "Show audit optimizer environment for this session"
+        )
+    %>
+  </div>
+  <div class="float_left">
+    <%= my_ajax_submit_tag("SQL Monitor",
+                                   url_for(:controller   => :dba_sga,
+                                           :action       => :list_sql_monitor_sessions,
+                                           :instance     => @instance,
+                                           :sid          => @sid,
+                                           :serialno     => @serialno,
+                                           :update_area  => @update_area
+                                   ),
+                                   {:disabled=>!@sql_monitor_exists, :title =>strings(:sql_monitor_link_title) }
+                )
+      %>
+  </div>
+</div>
+
+<div id="<%= @update_area %>" style="clear: both;"></div>

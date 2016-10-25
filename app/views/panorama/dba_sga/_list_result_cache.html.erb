@@ -1,0 +1,80 @@
+<% @update_area = get_unique_area_id %>
+<%
+column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                        :title=>"Instance"},
+  {:caption=>"Used total",      :data=>proc{|rec| formattedNumber(rec.space_bytes)},                   :title=>"Space total in bytes (overhead+unused)", :align=>"right"},
+  {:caption=>"Max. size",       :data=>proc{|rec| formattedNumber(rec.max_size)},                      :title=>"Configured instance value for result_cache_max_size in bytes", :align=>"right"},
+  {:caption=>"Usage %",         :data=>proc{|rec| rec.max_size.to_f>0 ? formattedNumber((rec.space_bytes.to_f/rec.max_size.to_f)*100, 1) : nil},  :title=>"%-usage of available memory", :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@sums, column_options, {
+        :caption => "Memory usage summary ",
+        :max_height => 450,
+        :width => :auto
+}) %>
+
+
+<%
+   def link_single_results(rec)
+     my_ajax_link_to(fn(rec.result_count),
+                     url_for(:controller    => :dba_sga,
+                             :action        => :list_result_cache_single_results,
+                             :instance      => rec.inst_id,
+                             :status        => rec.status,
+                             :name          => rec.name,
+                             :namespace     => rec.namespace,
+                             :update_area => @update_area
+                     ),
+                     :title=> 'Show single results for name')
+   end
+
+
+   def link_dependencies(rec)
+     my_ajax_link_to(fn(rec.depend_count),
+                     url_for(:controller    => :dba_sga,
+                             :action        => :list_result_cache_dependencies_by_name,
+                             :instance      => rec.inst_id,
+                             :status        => rec.status,
+                             :name          => rec.name,
+                             :namespace     => rec.namespace,
+                             :update_area => @update_area
+                     ),
+                     :title=> 'Show depencies for result')
+   end
+
+
+   column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},                                     :title=>"Instance"},
+  {:caption=>"Status",          :data=>proc{|rec| rec.status},                                      :title=>"Status of object: 'New'=Result is still under construction, 'Published'=Result is available for use, 'Bypass'=Result will be bypassed from use, 'Expired'=Result has exceeded expiration time, 'Invalid'=Result is no longer available for use"},
+  {:caption=>"Name",            :data=>proc{|rec| rec.name},                                        :title=>"Name of object as recorded in GV$RESULT_CACHE_OBJECTS.Name"},
+#  {:caption=>'Object type',     :data=>proc{|rec| rec.object_type},                                 :title=>"Object type from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
+#  {:caption=>'Object name',     :data=>proc{|rec|  link_object_description(@update_area, rec.owner, rec.object_name)}, :title=>"Object owner and name from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
+  {:caption=>"Namespace",       :data=>proc{|rec| rec.namespace},                                   :title=>"Namespace of object"},
+  {:caption=>"Results",         :data=>proc{|rec| link_single_results(rec)},                        :title=>'Number of single results', :align=>"right"},
+  {:caption=>"Space total",     :data=>proc{|rec| fn(rec.space_overhead_kb+rec.space_unused_kb)},   :title=>"Space total in kBytes (overhead+unused)", :align=>"right"},
+  {:caption=>"Space overhead",  :data=>proc{|rec| fn(rec.space_overhead_kb)},                       :title=>"Space overhead in kBytes", :align=>"right"},
+  {:caption=>"Space unused",    :data=>proc{|rec| fn(rec.space_unused_kb)},                         :title=>"Space unused in kBytes", :align=>"right"},
+  {:caption=>"Min. creation",   :data=>proc{|rec| localeDateTime(rec.min_creationts)},              :title=>"First creation-timestamp of object"},
+  {:caption=>"Max. creation",   :data=>proc{|rec| localeDateTime(rec.max_creationts)},              :title=>"Last creation-timestamp of object"},
+  {:caption=>'Creator',         :data=>proc{|rec| rec.creator},                                     :title=>"User creating result (or count if more than one)", :data_title=>proc{|rec| "%t: first creator='#{rec.min_creator}', last creator='#{rec.max_creator}'"}},
+  {:caption=>"Depend. count",   :data=>proc{|rec| link_dependencies(rec)},                          :title=>"Number of dependencies", :align=>"right"},
+  {:caption=>'Block count',     :data=>proc{|rec| fn(rec.block_count)},                             :title=>'Total number of blocks in the cached object', :align=>"right"},
+  {:caption=>"Pin count",       :data=>proc{|rec| fn(rec.pin_count)},                               :title=>"Number of active scans on this result", :align=>"right"},
+  {:caption=>"Scan count",      :data=>proc{|rec| fn(rec.scan_count)},                              :title=>"Total number of scans initiated on the cached result", :align=>"right"},
+  {:caption=>"Max. row size",   :data=>proc{|rec| fn(rec.row_size_max)},                            :title=>"Size of the largest row (in bytes)", :align=>"right"},
+  {:caption=>"Min. row size",   :data=>proc{|rec| fn(rec.row_size_min)},                            :title=>"Size of the smallest row (in bytes)", :align=>"right"},
+  {:caption=>"Avg. row size",   :data=>proc{|rec| fn(rec.row_size_avg)},                            :title=>"Average size of a row (in bytes)", :align=>"right"},
+  {:caption=>'Build time',      :data=>proc{|rec| fn(rec.build_time.to_f/100, 3)},                  :title=>'Amount of time in seconds it took to build the cached result', :align=>"right"},
+]
+
+%>
+<%= gen_slickgrid(@usage, column_options, {
+        :caption => "Result cache usage by objects",
+        :max_height => 450
+}) %>
+
+
+<div id="<%= @update_area %>"></div>

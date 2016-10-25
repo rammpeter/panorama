@@ -1,0 +1,328 @@
+<div class="page_caption">Description of <%= @table_type %> <%= @owner %>.<%= @table_name %></div>
+
+<% @update_area = get_unique_area_id %>
+
+<div class="yellow-panel">
+    <%=  my_html_escape(@comment).html_safe %>
+</div>
+
+<%
+
+   def link_lob(rec)
+       my_ajax_link_to(rec.lob_segment,
+                          url_for(:update_area => @update_area,
+                                  :action      => :list_lobs,
+                                  :owner       => @owner,
+                                  :table_name  => @table_name,
+                                  :segment_name=> rec.lob_segment
+                          ),
+                          :title => "Show LOB-segment for column")
+    end
+
+   def link_histogram(value, rec)
+     my_ajax_link_to(value,
+                        url_for(:update_area => @update_area,
+                                :action      => :list_histogram,
+                                :owner       => @owner,
+                                :table_name  => @table_name,
+                                :data_type   => rec.data_type,
+                                :num_rows    => (@attribs[0].num_rows - rec.num_nulls rescue 0),
+                                :column_name => rec.column_name
+                        ),
+                        :title => 'Show histogram data for column')
+   end
+
+column_options =
+[
+  {:caption=> 'Col.Name',          :data=>proc{|rec| rec.column_name},                         :title=> 'Column-Name'},
+  {:caption=> 'Type',              :data=>proc{|rec| rec.data_type},                           :title=> 'Data-Type'},
+  {:caption=> 'Prec.',             :data=>proc{|rec| rec.precision},                           :title=> 'Precision', :align=>:right},
+  {:caption=> 'Sc.',               :data=>proc{|rec| rec.data_scale},                          :title=> 'Scale', :align=>:right},
+  {:caption=> 'N.',                :data=>proc{|rec| rec.nullable},                            :title=> 'Nullable'},
+  {:caption=> 'Def.',              :data=>proc{|rec| rec.data_default},                        :title=> 'Default'},
+  {:caption=> 'Distinct',          :data=>proc{|rec| fn(rec.num_distinct)},                    :title=> 'Number of distinct values in column', :data_title=>proc{|rec| "%t\n#{fn((@attribs[0].num_rows - rec.num_nulls)  / rec.num_distinct) rescue 0} rows per value" }, :align=>:right},
+  {:caption=> 'Nulls',             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=> 'Number of null values in column',     :align=>:right},
+  {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes', :data_title=>proc{|rec| "%t\nSize = #{fn((@attribs[0].num_rows * rec.avg_col_len).to_f/(1024*1024) , 2) rescue nil} MB"}, :align=>:right},
+  {:caption=> 'Density',           :data=>proc{|rec| fn(rec.density, 4)},                      :title=> 'If a histogram is available on COLUMN_NAME, then this column displays the selectivity of a value that spans fewer than 2 endpoints in the histogram. It does not represent the selectivity of values that span 2 or more endpoints. If a histogram is not available on COLUMN_NAME, then the value of this column is 1/NUM_DISTINCT.',     :align=>:right},
+  {:caption=> 'Buckets',           :data=>proc{|rec| link_histogram(fn(rec.num_buckets), rec)},:title=> 'Number of buckets in histogram for the column',     :align=>:right},
+  {:caption=> 'Histogram',         :data=>proc{|rec| link_histogram(rec.histogram, rec)},      :title=> 'Indicates existence/type of histogram'},
+  {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
+  {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segement for LOB columns'},
+]
+
+   column_options << {:caption=> 'EQ',                :data=>proc{|rec| fn(rec.equality_preds)},                  :title=> 'Number of usage as equality predicate, from sys.Col_Usage$',       :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'EQJ',               :data=>proc{|rec| fn(rec.equijoin_preds)},                  :title=> 'Number of usage as equi join predicate, from sys.Col_Usage$',      :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'NEQJ',              :data=>proc{|rec| fn(rec.nonequijoin_preds)},               :title=> 'Number of usage as nonequi join predicate, from sys.Col_Usage$',   :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Range',             :data=>proc{|rec| fn(rec.range_preds)},                     :title=> 'Number of usage as range predicate, from sys.Col_Usage$',          :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Like',              :data=>proc{|rec| fn(rec.like_preds)},                      :title=> 'Number of usage as like predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Null',              :data=>proc{|rec| fn(rec.null_preds)},                      :title=> 'Number of usage as null predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2'
+%>
+
+<%= gen_slickgrid(@columns, column_options, {
+      :caption => "Columns of #{@table_type}  #{@owner}.#{@table_name}",
+      :max_height => 450
+    })
+%>
+
+
+<%
+
+   def link_tab_partitions
+     if @partition_count == 0
+       @partition_count
+     else
+       my_ajax_link_to(fn(@partition_count),
+                       url_for({:action       => :list_table_partitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show partitions of table #{@owner}.#{@table_name}"
+         )
+     end
+   end
+
+   def link_tab_subpartitions
+     if @subpartition_count == 0
+       @subpartition_count
+     else
+       my_ajax_link_to(fn(@subpartition_count),
+                       url_for({:action       => :list_table_subpartitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               }),
+                       :title=>"Show sub-partitions of table #{@owner}.#{@table_name}"
+       )
+     end
+   end
+
+   def link_last_analyzed(rec)
+     my_ajax_post_link(localeDateTime(rec.last_analyzed),
+                {:action      => :list_gather_historic,
+                 :owner       => @owner,
+                 :table_name  => @table_name,
+                 :update_area => @update_area,
+                },
+                :title=>'Show historic gather_table_stats-operations for table'
+    )
+   end
+
+   def link_real_num_rows(rec)
+     update_area = "#{@update_area}_num_rows"
+     my_ajax_link_to(rec.num_rows ? fn(rec.num_rows) : "[No analyze]",
+                     url_for(:controller      => :storage,
+                             :action          => :list_real_num_rows,
+                             :owner           => @owner,
+                             :name            => @table_name,
+                             :update_area     => update_area
+                            ),
+                     :title=>"Count current number of rows in Table. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+   end
+
+
+   column_options =
+[
+  {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name'},
+  {:caption=> 'Pct Free',         :data=>proc{|rec| fn(rec.pct_free)},                     :title=> 'Percent free', :align=>:right},
+  {:caption=> 'Ini Trans',        :data=>proc{|rec| fn(rec.ini_trans)},                    :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
+  {:caption=> 'Max Trans',        :data=>proc{|rec| fn(rec.max_trans)},                    :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
+  {:caption=> 'Rows',             :data=>proc{|rec| link_real_num_rows(rec)},              :title=> 'Number of rows calculated by last analyze run', :align=>:right},
+  {:caption=> 'Size (MB) Table',  :data=>proc{|rec| fn(@size_mb_table, 2)},                :title=> 'Current table size in megabytes', :align=>:right},
+  {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right},
+  {:caption=> 'Blocks',           :data=>proc{|rec| fn(rec.blocks)},                       :title=> 'Number of allocated blocks calculated by last analyze run', :align=>:right},
+  {:caption=> 'Empty',            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=> 'Number of empty (never used) blocks calculated by last analyze run', :align=>:right},
+  {:caption=> 'Avg. Space',       :data=>proc{|rec| fn(rec.avg_space)},                    :title=> 'Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run', :align=>:right},
+  {:caption=> 'Chained',          :data=>proc{|rec| fn(rec.chain_cnt)},                    :title=> 'Number of chained rows calculated by last analyze run', :align=>:right},
+  {:caption=> 'RowLen',           :data=>proc{|rec| fn(rec.avg_row_len)},                  :title=> 'Avg. row len in bytes calculated by last analyze run', :align=>:right},
+  {:caption=> 'Dg.',              :data=>proc{|rec| fn(rec.degree)},                       :title=> 'Default parallel degree of table', :align=>:right},
+  {:caption=> 'Cache',            :data=>proc{|rec| rec.cache},                            :title=> 'Whether the table is to be cached in the buffer cache'},
+  {:caption=> 'Part.',            :data=>proc{|rec| link_tab_partitions},                  :title=> "Number of table's partitions", :align=>:right},
+  {:caption=> 'Sub-Part.',        :data=>proc{|rec| link_tab_subpartitions},               :title=> "Number of table's subpartitions", :align=>:right},
+  {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation'},
+  {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table'},
+  {:caption=> 'Last analyzed',    :data=>proc{|rec| link_last_analyzed(rec)},              :title=> "The date of the most recent time this table was analyzed, Prefs: #{@stat_prefs}" },
+  {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                       :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } },
+  {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                       :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } },
+  {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                       :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } },
+]
+   column_options << {:caption=> 'Trunc.',           :data=>proc{|rec| rec.truncated},                        :title=> "Has table been truncated since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}  if get_db_version >= '11.2'
+   column_options << {:caption=> 'Drop seg.',        :data=>proc{|rec| fn rec.drop_segments},                 :title=> "Number of partition and subpartition segments dropped since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+   column_options << {:caption=> 'Last DML',         :data=>proc{|rec| localeDateTime(rec.last_dml)},         :title=> "Timestamp of last DML-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}
+   column_options << {:caption=> 'IOT',              :data=>proc{|rec| rec.iot_type},                         :title=> 'If index-only table, then IOT_TYPE is IOT or IOT_OVERFLOW or IOT_MAPPING else NULL'}
+   column_options << {:caption=> 'T',                :data=>proc{|rec| rec.temporary},                        :title=> 'Temporary table ?', :data_title=>proc{|rec| "%t, Lifetime of temporary content = #{rec.duration.gsub(/SYS\$/, '') if rec.duration }" }}
+   column_options << {:caption=> 'Compr.',           :data=>proc{|rec| rec.compression},                      :title=> 'Whether table compression is enabled or not'}
+   column_options << {:caption=> 'Comp. for',       :data=>proc{|rec| rec.compress_for},        :title=> 'Compress what kind of operations'} if get_db_version >= '11.2'
+   column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+   column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {
+      :caption => "Attributes of #{@table_type} #{@owner}.#{@table_name}",
+      :height => :auto
+})
+%>
+
+
+<% if @viewtext %>
+<h4>Viewtext of <%= @table_type %> <%= @owner %>.<%= @table_name %></h4>
+    <%= render_yellow_pre(@viewtext, 450) %>
+<% end %>
+
+<% if @unique_constraints.count > 0 %>
+    <%=
+        column_options =
+                [
+                        {:caption=> 'Constraint name',       :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                        {:caption=> 'Column(s)',             :data=>proc{|rec| rec.columns},                     :title=> 'Columns for enforcement of uniqueness'},
+                        {:caption=> 'Status',                :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+                        {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+                        {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+                        {:caption=> 'Last change',           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
+                        {:caption=> 'Index',                 :data=>proc{|rec| rec.index_name},                  :title=> 'Name of index used for enforcement of unique constraint'},
+                ]
+
+        gen_slickgrid(@unique_constraints, column_options, {
+                :caption => "Unique constraints for  #{@table_type} #{@owner}.#{@table_name}",
+                :height => :auto
+        })
+    %>
+
+<% end %>
+
+
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@indexes} Indexes",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_indexes,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show indexes for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@pkeys} Primary Key",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_primary_key,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show primary key for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@check_constraints} Check Constraints",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_check_constraints,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show check constraints for object #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@references_from} References from",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_references_from,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show foreign key references from table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@references_to} References to",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_references_to,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show foreign key references to table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@triggers} Triggers",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_triggers,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show triggers for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@dependencies} Dependencies",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_dependencies,
+                                 :owner       => @owner,
+                                 :object_name  => @table_name,
+                                 :object_type  => @table_type
+                         ),
+                         :title => "Show object dependencies for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@lobs} LOBs",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_lobs,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show LOB-segments for table #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag("#{@grants} Grants",
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_grants,
+                                 :owner       => @owner,
+                                 :object_name => @table_name
+                         ),
+                         :title => "Show grants for #{@object_type} #{@owner}.#{@table_name}")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag('DBMS_METADATA',
+                         url_for(:update_area => @update_area,
+                                 :action      => :list_dbms_metadata_get_ddl,
+                                 :owner       => @owner,
+                                 :table_name  => @table_name
+                         ),
+                         :title => "Show DDL create statement for #{@owner}.#{@table_name} generated by DBMS_METADATA.GET_DDL")
+  %>
+</div>
+<div class="float_left">
+    <%= my_ajax_submit_tag('DB-Cache',
+                           url_for(:update_area => @update_area,
+                                   :action      => :list_db_cache_by_object_id,
+                                   :controller  => :dba_sga,
+                                   :object_id    => @attribs[0].table_object_id
+                           ),
+                           :title => "Usage of DB-cache for object #{@owner}.#{@table_name}")
+    %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag('Sessions accessing',
+                         url_for(:update_area   => @update_area,
+                                 :controller    => :dba,
+                                 :action        => :list_sessions,
+                                 :object_owner  => @owner,
+                                 :object_name   => @table_name
+                         ),
+                         :title => "Sessions accessing object #{@owner}.#{@table_name} in library cache (from GV$Access)")
+  %>
+</div>
+<div class="float_left">
+  <%= my_ajax_submit_tag('SQLs',
+                         url_for(:update_area => @update_area,
+                                 :controller  => :dba_sga,
+                                 :action      => :show_using_sqls,
+                                 :ObjectOwner => @owner,
+                                 :ObjectName  => @table_name
+                         ),
+                         :title => "List SQLs in SGA (via gv$SQL_Plan) accessing #{@owner}.#{@table_name}")
+  %>
+</div>
+<div id="<%= @update_area %>" style="clear:both;"></div>

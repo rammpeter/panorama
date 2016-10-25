@@ -1,0 +1,61 @@
+<!-- Vom Aufrufer zu belegen: @header, @groupfilter, @last_action, @repeat_action, @key_rule_proc
+-->
+
+<%
+%>
+
+<%
+   @time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
+   @time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
+
+   @caption = ""
+   @caption << (my_ajax_form_tag url_for(:controller => :io, :action        => :refresh_time_selection,
+                                         :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
+                                         :groupfilter   => @groupfilter,            # Groupfilter des letzten Aufrufes wiederverwenden, reduziert um Fehlerquellen
+                                         :update_area   => params[:update_area],         # Update_area des letzten Aufrufes wiederverwenden
+                                         :repeat_action => @repeat_action             # Zuletzt aufgerufene Action im selben Controller wiederholen
+                                 ) do
+     form_content = ""
+     form_content << "<div style=\"float:left;\">"
+     form_content << @header
+     form_content << "&nbsp;"
+     form_content << "</div><div style=\"float:left;\">"
+     form_content << "<table>"
+     form_content << "<tr>"
+     @groupfilter.each do|key,value|
+       form_content << "<th>#{key}</th>".html_safe if !@key_rule_proc.call(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
+     end
+     form_content << "<th>Start time</th>"
+     form_content << "<th>End time</th>"
+
+     form_content << "</tr><tr>"
+     @groupfilter.each do|key,value|
+       if !@key_rule_proc.call(key)[:hide_content] &&  key != "time_selection_start" && key != "time_selection_end"
+         form_content << "<td>"
+         form_content << "#{value}".html_safe
+         form_content << submit_tag("x", :name=>key, :title => t(:active_session_history_list_groupfilter_delete_filter_hint, :default=>"Refresh content without this filter"), :style=>"color:red")
+         form_content << "</td>"
+       end
+     end
+     form_content << "<td>"
+     form_content << text_field_tag(:time_selection_start, @groupfilter["time_selection_start"], :size=>16, :id=>@time_selection_start_id, :title => "#{t :time_selection_start_hint, :default=>"Start of considered time period in format '#{human_datetime_minute_mask}'"}")
+     form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
+     form_content << "</td><td>"
+     form_content << text_field_tag(:time_selection_end,   @groupfilter["time_selection_end"]  , :size=>16, :id=>@time_selection_end_id,   :title => "#{t :time_selection_end_hint, :default=>"End of considered time period in format '#{human_datetime_minute_mask}'"}")
+     form_content << submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
+
+
+     form_content << "</td>"
+
+     form_content << "</tr>"
+     form_content << "</table>"
+     form_content << "</div>"
+     form_content << "<div style=\"clear: both;\"></div>"           # Umbruch ermöglichen, damit Grid nicht rechts angefügt wird
+     form_content.html_safe
+   end)
+%>
+
+
+
+
+

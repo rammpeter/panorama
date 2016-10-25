@@ -1,0 +1,16 @@
+<div class="page_caption">PGA-history from DBA_Hist_PGAStat</div>
+
+
+<%= my_ajax_form_tag url_for(:controller=>:dba_pga, :action=>"list_pga_stat_historic", :update_area=>"list_pga_stat_historic_area") do %>
+  <%= include_start_end_timepicker %>
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+    Instance
+    <%= text_field_tag(:instance, (read_from_client_info_store(:instance) ? read_from_client_info_store(:instance) : 1), :size=>1) %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag("SQL anzeigen", :title => "Anlistung der SQL-Statements") %>
+  </div>
+<% end %>
+<div id="list_pga_stat_historic_area" style="float:left; width:100%;">
+
+</div>

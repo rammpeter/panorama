@@ -1,0 +1,71 @@
+<div class="page_caption"><%=t(:dba_history_show_sql_area_historic_caption, :default=>"SQL's from DBA_Hist_SQLStat") %></div>
+
+
+<%= my_ajax_form_tag url_for(:controller=>:dba_history, :action=>:list_sql_area_historic, :update_area=>:list_sql_historic_area) do %>
+  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_max_result_count_hint, :default=>'Restrict result size to number of top records (after sort by choosen criteria)')%>">
+    <%= t(:dba_history_show_sql_area_historic_max_result_count_caption, :default=>'Hit limit') %>
+    <%= text_field_tag(:maxResultCount, "100", :size=>5) %>
+  </div>
+
+  <%= include_start_end_timepicker %>
+
+  <div class="float_left" title="<%= t(:dba_history_show_sql_area_historic_filter_hint, :default=>'Filter string must be found in considered SQL statement. Wildcards (%,_) can be used in filter. (optional)') %>">
+    Filter
+    <%= text_field_tag(:filter, "", :size=>30) %>
+  </div>
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+    Instance
+    <%= text_field_tag(:instance, read_from_client_info_store(:instance), :size=>1) %>
+  </div>
+  <div class="float_left" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional, wildcards (%,_) can be used)') %>">
+    SQL-ID
+    <%= text_field_tag(:sql_id, "", :size=>14) %>
+  </div>
+  <div class="float_left">
+    <%= submit_tag(t(:dba_history_show_sql_area_historic_submit_caption, :default=>'Show SQL'), :title => t(:dba_history_show_sql_area_historic_submit_hint, :default=>'Show SQL statements according to filter conditions')) %>
+  </div>
+  <div style="clear: both;">
+    <fieldset>
+      <legend> <%= t(:sorted_by, :default=>'Sorted by') %></legend>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ElapsedTimePerExecute, true) %>
+        Elapsed Time per execute
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ElapsedTimeTotal, false) %>
+        Elapsed Time total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ExecutionCount, false) %>
+        total Executions
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :RowsProcessed, false) %>
+        RowsProcessed
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ExecsPerDisk, false) %>
+        Executions per Disk-Read
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :BufferGetsPerRow, false) %>
+        Buffer gets per result-row
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :CPUTime, false) %>
+        CPU-Time total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :BufferGets, false) %>
+        Buffer Gets total
+      </div>
+      <div class="float_left">
+        <%= radio_button_tag(:topSort, :ClusterWaits, false) %>
+        Cluster waits total
+      </div>
+    </fieldset>
+  </div>
+<% end %>
+<div id="list_sql_historic_area" style="float:left; width:100%;">
+
+</div>

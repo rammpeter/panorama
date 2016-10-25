@@ -1,0 +1,21 @@
+<html>
+    <head>
+      <%= stylesheet_link_tag 'application' %>
+      <%=javascript_include_tag 'application' %>
+      <title>Panorama : <%= t :help, :default=>"Help" %></title>
+    </head>
+    <body style="background-color: #ccccff;
+                 color: #333;
+                 font-family: sans-serif;
+                 margin: 0;
+                 padding:  5px;
+                ">
+        <div class="usage_help_head_block">
+            <h2 style="margin: 10px; padding: 15px; color:white; ">
+              <div style="float:left;">Panorama : Online-<%= t :help, :default=>"Help" %></div>
+              <div align="right" ><%= link_to t(:content, :default=>"Content"), { :controller => "help", :action=>"overview" }, :title=>t(:menu_help_overview_hint, :default=>'Help-overview'), :style=>"color:white;"  %></div>
+            </h2>
+        </div>
+    <%= yield %>
+    </body>
+</html>

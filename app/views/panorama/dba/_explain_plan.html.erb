@@ -1,0 +1,10 @@
+<div class="page_caption">Show explain plan</div>
+
+<%= my_ajax_form_tag url_for(:controller=>:dba, :action=>:show_explain_plan, :update_area => :explain_plan_area) do %>
+  <%= text_area_tag("statement", "", :cols=>120, :rows=>15) %>
+  <%= submit_tag("Show explain plan",
+    :title => 'Show explain plan for statement')
+  %>
+<% end %>
+<div id="explain_plan_area" style="float:left; width:100%; ">
+</div>

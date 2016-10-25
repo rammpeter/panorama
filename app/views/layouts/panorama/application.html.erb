@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <%= favicon_link_tag('favicon.ico', :sizes=>'16x16') %>
+  <%= favicon_link_tag('favicon_32x32.png', :sizes=>'32x32') %>
+  <%= favicon_link_tag('favicon_32x32.png', :sizes=>'32x32', :rel=>'icon', :type=>'image/png') %>
+  <%= favicon_link_tag('favicon_64x64.png', :sizes=>'64x64') %>
+
+  <%= favicon_link_tag('favicon_64x64.png', :sizes=>'64x64', :rel=>'apple-touch-icon', :type=>'image/png') %>
+
+  <title>Panorama</title>
+  <%= stylesheet_link_tag    "panorama/application", media: "all" %>
+  <%= javascript_include_tag "panorama/application" %>
+  <!-- rails requires an authenticity token to do form posts back to the server.
+       This helps protect your site against CSRF attacks.
+       In order to handle this requirement the driver looks for two meta tags that must be defined in your page's head.
+  -->
+  <%= csrf_meta_tags %>
+
+  <script type="text/javascript">
+
+    // Handle javascript errors
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      alert('Error: '+msg+'\nURL: '+url+'\nLine-No.: '+lineNo+'\nColumn-No.: '+columnNo)
+      return false;
+    }
+    /* Initialisierung von Objekten bei startup der Seite */
+    jQuery(document).ready(function(){
+      bind_ajax_callbacks();                                                  // Callbacks für jeden Ajax-Aufruf binden
+      jQuery("#ajax_indicator").dialog({
+        dialogClass: "no-close",
+        autoOpen:false,
+        modal:true,
+        title:'Loading ...',
+        closeText: ''
+      });
+      jQuery("#login_dialog")
+          .dialog({
+            autoOpen:false,
+            modal:true,
+            width:650,
+            draggable:true,
+            title:'<%= t(:login_submit_caption, :default=>'Panorama: Login to target database') %>'
+          })
+      //        .position({ my: "center center", at: "center center", of: window })
+      ;
+      jQuery("#submit_login_dialog").focus();
+      jQuery("#error_dialog").dialog({ autoOpen:false,
+        modal:true,
+        width:700,
+        draggable:true,
+        title:'Panorama: <%= t(:error, :default=>'Error') %>',
+        beforeClose:function(){jQuery('#error_dialog_content').html('')}  // übergreifend auf body wirkenden css-Inhalt entsorgen
+      });
+
+      jQuery('body').resize(function(){ check_menu_width();});
+
+      // Oeffnen und Schliessen des DateTimePickers, damit weißer Hintergrund vor erster Benutzung geklärt ist
+      $('#datetimedummy')
+          .datetimepicker()
+          .focus()
+          .datetimepicker("hide")
+          .hide()
+      ;
+
+      register_tooltip(jQuery(document));                               // Jquery-UI Tooltips verwenden
+
+      jQuery.ajax({type: 'GET', url:'panorama/env/get_tnsnames_records', async: false});
+      jQuery('#login_dialog').dialog('open');                           // Erst jetzt den Anmeldedialog oeffnen
+    });
+  </script>
+
+
+
+</head>
+<body>
+
+<!-- Login-Dialog zur Anmeldung bei Datenbank -->
+<div id="login_dialog" class="slick-shadow" >
+  <table width="100%">
+    <tr>
+      <th style="border-style: solid; border-width: 1px;border-color: gray; padding: 5px;">
+        <%= t(:login_caption, :default=>"Please choose saved connection or<br>insert your connection info").html_safe %>
+      </th>
+    </tr>
+    <tr>
+      <td>
+        <%  last_logins = read_last_logins %>
+
+        <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_id), :remote=>true, :id=>:formSavedLogin do %>
+            <div class="float_left" title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+              <select name="saved_logins_id"  autocomplete="off" >
+                <% last_logins.each_index do |index| %>
+                    <% database = last_logins[index] %>
+                    <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:sid]} ( #{database[:user]} ) - #{database[:host]} : #{database[:port]} " %></option>
+                <% end %>
+              </select>
+            </div>
+            <%= submit_tag t(:login_submit_caption, :default=>"Login"), :name => "login", :title => t(:login_saved_login_title, :default=>"Login with selected saved credentials") %>
+            <%= submit_tag t(:login_saved_delete_caption, :default=>"Delete"), :name => "delete", :title => t(:login_saved_delete_title, :default=>"Delete selected saved login information"), data: { confirm: t(:login_saved_delete_confirmation, :default=>"Do you really want to delete this saved login credential?") } %>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+  <br/>
+  <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_params), :remote => true, :id=>:formLoginDialog do %>
+      <table width="100%">
+        <tr>
+          <th><%= t :login_lang_caption, :default=>"Language" %></th>
+          <td align="center">
+            <%
+              sprachen = {:de=>"deutsch", :en=>"english"}
+              @locale_options = ""
+              sprachen.each do |key, value|
+                @locale_options << "<option #{I18n.locale==key ? "selected" : ""} value='#{key}'>#{value}</option>"
+              end
+            %>
+            <!-- Wechsel der Sprache und neu laden der gesamten Seite -->
+            <div title="<%= t(:login_locale_title, :default=>"Select application language")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+              <select name="database[locale]"  autocomplete="off" onchange="jQuery.ajax({type: 'POST', url:'panorama/env/set_locale', data: {locale: this.value} });">
+                <%= @locale_options.html_safe %>
+              </select>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th><%= t(:login_mode_caption, :default=>"DB identification mode") %></th>
+          <td align="center">
+            <div title="<%= t(:login_mode_title, :default=>"Select mode for identification of database")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+              <select name="database[modus]"  autocomplete="off" onchange="if (this.value == 'tns') { jQuery('.login_tns').css('display', ''); jQuery('.login_host').css('display', 'none');} else {jQuery('.login_tns').css('display', 'none'); jQuery('.login_host').css('display', '');}">
+                <option selected="selected" value="tns">tnsnames.ora</option>
+                <option value="host">Host, Port, SID / Service</option>
+              </select>
+            </div>
+          </td>
+        </tr>
+        <tr class="login_tns">
+          <th title="<%= t :login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)" %>">TNS-Alias</th>
+          <% @tnsnames = read_tnsnames %>
+          <td align="center">
+            <div title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+              <select id="database_tns" name="database[tns]" style="width: 95%;">
+                <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_records -->
+              </select>
+            </div>
+          </td>
+        </tr>
+        <tr class="login_host" style="display: none">
+          <th title="Host-name. Übersteuert TNS-Alias wenn belegt">Host</th>
+          <td align="center"><%= text_field( 'database', 'host', :size=>20, :title=>t(:login_database_host_hint, :default=>"hostname or IP adress") ) %></td>
+        </tr>
+        <tr class="login_host" style="display: none">
+          <th>Port</th>
+          <td align="center"><%= text_field( 'database', 'port', :size=>20, :title=>"Port-Nummer" ) %></td>
+        </tr>
+        <tr class="login_host" style="display: none">
+          <th>SID/Service</th>
+          <td align="center"><%= text_field( 'database', 'sid', :size=>20, :title=>t(:login_database_sid_hint, :default=>"SID or service name of database")) %></td>
+        </tr>
+        <tr>
+          <th>User</th>
+          <td align="center"><%= text_field( 'database', 'user', :size=>20, :title=>"Oracle-User" )  %></td>
+        </tr>
+        <tr>
+          <th>Password</th>
+          <td align="center"><%= password_field( 'database', 'password', :size=>20, :title=>"Oracle-Password" ) %> </td>
+        </tr>
+        <tr id="login_dialog_authorization" style="display:none; ">
+          <th>Autorisierung</th>
+          <td align="center"><%= password_field( 'database', 'authorization', :title=>t(:login_authorization_hint, :default=>"Additional authoriztion for special applications (like NOA)") ) %> </td>
+        </tr>
+        <tr>
+          <th><%= t :login_role_caption, :default=>"Role" %></th>
+          <td align="center">
+            <div title="Select database role">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+              <select name="database[privilege]">
+                <option value="normal" selected="selected">Normal</option>
+                <option value="sysoper">SysOper</option>
+                <option value="sysdba">SysDba</option>
+              </select>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>Query Timeout</th>
+          <td align="center">
+            <div title="<%= t(:login_query_timeout_hint, :default=>"Query-Timeout in seconds for long running SELECT-queries against database. \nAfter timeout current query in database will be automatically cancelled.\nYou receive the error message: \"Java::JavaSql::SQLTimeoutException: ORA-01013\"") %>">
+              <%= text_field_tag( 'database[query_timeout]', 300, :size=>6, :style => "text-align: Right" ) %>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th><%= t :login_save_login_caption, :default=>"Save login?" %></th>
+          <td align="center"><%= check_box_tag(:saveLogin, 1, true, :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
+        </tr>
+        <tr>
+          <td colspan="2" align="center">
+            <%= submit_tag t(:login_submit_caption, :default=>"Login"), :id => "submit_login_dialog" %>
+          </td>
+        </tr>
+      </table>
+  <% end # form %>
+
+</div> <!-- login_dialog -->
+
+
+<div class="head_block">
+  <div id="main_menu" style="float: left; margin:4px;">
+  </div>
+  <div id="head_links" style="float: right; padding-right: 10px;">
+    <br>
+    <a href="#" onclick="window.location.reload(); return false;" ><span id="current_tns" style="color: white;"><%= current_tns %></span></a>
+  </div>
+</div>
+<div style="height: 45px;"></div> <!-- Platzhalter für Höhe des absolut positionierten divs "head" -->
+<div id="content_for_layout" style="clear: both; width:100%; " >
+  <%= render :partial => 'start_screen_before_login' %>
+</div>
+
+<!-- Verlaufsdialog zur Anzeige bei Wartezustaenden -->
+<div id="ajax_indicator" style="background-color: #A9BCF5; ">
+  <div id='ajax_indicator_gif' align="center" style="margin-top:20px; margin-bottom: 20px;"><img src="assets/panorama/ajax-loader.gif"></div>
+</div>
+
+
+<div id="error_dialog" style="background-color: white;">
+  <b><div id="error_dialog_status">
+  </div></b>
+  <div id="error_dialog_content">
+  </div>
+  <div id="error_dialog_stacktrace">
+  </div>
+  <input value="<%= t(:close, :default=>'Close') %>" type="submit" onclick="jQuery('#error_dialog').dialog('close');"/>
+</div>
+
+<div id="initializer_dummy">
+  <input id="datetimedummy" type="text" style="visibility: hidden;">
+  <div id="length_control_dummy" style="width: 10px; visibility: hidden"></div>  <!-- Element für Javascript-Funktion rpad -->
+</div>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<% # Parameter für nachfolgendes Partial list_groupfilter
+   @header = "Sample-Records. Filter: "
+   @repeat_action = :list_io_file_history_samples
+   @key_rule_proc = proc{|key| io_file_key_rule(key)}
+%>
+
+<%= render :partial => 'list_groupfilter' %>
+
+<%
+column_options =
+  [
+    {:caption=>"Sample-Time",           :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sample interval, rounded on minute", :plot_master_time=>true},
+  ]
+column_options.concat io_file_values_column_options         # Feldliste der numerischen Werte zur Mehrfachverwendung in diversen Views
+
+%>
+
+<%= gen_slickgrid(@samples, column_options, {
+        :caption => @caption,
+        :plot_area_id => "list_io_file_samples_detail_area",
+        :max_height => 450
+}) %>
+
+<div id="list_io_file_samples_detail_area"></div>
+<script type="text/javascript">
+    $("#<%= @time_selection_start_id %>").datetimepicker();
+    $("#<%= @time_selection_end_id   %>").datetimepicker();
+</script>
