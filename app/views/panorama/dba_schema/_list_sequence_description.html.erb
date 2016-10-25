@@ -1,0 +1,19 @@
+<%
+   column_options =
+           [
+                   {:caption=> 'Min. value',        :data=>proc{|rec| rec.min_value},               :title=> 'Minimum value of the sequence', :align=>:right},
+                   {:caption=> 'Max. value',        :data=>proc{|rec| rec.max_value},               :title=> 'Maximum value of the sequence', :align=>:right},
+                   {:caption=> 'Increment',         :data=>proc{|rec| rec.increment_by},            :title=> 'Value by which sequence is incremented', :align=>:right},
+                   {:caption=> 'Cycle',             :data=>proc{|rec| rec.cycle_flag},              :title=> 'Does sequence wrap around on reaching limit?'},
+                   {:caption=> 'Order',             :data=>proc{|rec| rec.cycle_flag},              :title=> 'Are sequence numbers generated in order?'},
+                   {:caption=> 'Cache',             :data=>proc{|rec| rec.cache_size},              :title=> 'Number of sequence numbers to cache'},
+                   {:caption=> 'Last number',       :data=>proc{|rec| rec.last_number},             :title=> 'Last sequence number written to disk'},
+           ]
+%>
+
+<%= gen_slickgrid(@seqs, column_options, {
+        :caption => "Details for sequence #{@owner}.#{@segment_name}",
+        :max_height => 450
+})
+%>
+

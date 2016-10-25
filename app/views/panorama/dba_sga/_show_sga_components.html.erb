@@ -1,0 +1,16 @@
+<div class="page_caption"><%= t(:dba_sga_show_sga_components_caption, :default=>'Show memory consumption in SGA') %></div>
+
+
+<%= my_ajax_form_tag url_for(:controller=>:dba_sga, :action=>"list_sga_components", :update_area=>"show_sga_components_area") do %>
+  <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+    Instance
+    <%= text_field_tag(:instance, "", :size=>1) %>
+  </div>
+  <div class="float_left">
+  <%= submit_tag(t(:dba_sga_show_sga_components_submit_caption, :default=>'Show memory components'), :title => t(:dba_sga_show_sga_components_submit_hint, :default=>'Show memory components of SGA')) %>
+  </div>
+<% end %>
+<div id="show_sga_components_area" style="float:left; width:100%;">
+
+
+</div>

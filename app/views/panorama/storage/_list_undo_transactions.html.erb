@@ -1,0 +1,52 @@
+<%
+   @update_area = get_unique_area_id
+
+
+   def link_session(rec)
+     my_ajax_link_to("#{rec.sid},#{rec.serialno}",
+                     url_for(:controller      => :dba,
+                             :action          => :show_session_detail,
+                             :instance        => rec.inst_id,
+                             :sid             => rec.sid,
+                             :serialno        => rec.serialno,
+                             :update_area     => @update_area
+                     ),
+                     :title=> 'Show session details')
+   end
+
+
+   column_options =
+           [
+                   {:caption=>'I',                      :data=>proc{|rec| rec.inst_id},                     :title=>'RAC-instance', :align=>:right},
+                   {:caption=>'Trans. ID',              :data=>proc{|rec| rec.xid},                         :title=>'Transaction-ID'},
+                   {:caption=>'Undo segment, slot, sequence', :data=>proc{|rec| "#{rec.segment}, #{rec.slot}, #{rec.sequence}"}, :title=>'Undo segment number, slot number and sequence number'},
+                   {:caption=>'SID, Serial#',           :data=>proc{|rec| link_session(rec)},               :title=>'SID, Serial# of session'},
+                   {:caption=>'Status',                 :data=>proc{|rec| rec.status},                      :title=>'Session-Status'},
+                   {:caption=>'User',                   :data=>proc{|rec| rec.username},                    :title=>'Database user name'},
+                   {:caption=>'Program',                :data=>proc{|rec| rec.program},                     :title=>'Program'},
+                   {:caption=>'C-User',                 :data=>proc{|rec| rec.osuser},                      :title=>'OS-User on client machine'},
+                   {:caption=>"Client-Info",            :data=>proc{|rec| rec.client_info},                 :title=>"Client-Info"},
+                   {:caption=>"Module",                 :data=>proc{|rec| rec.module},                      :title=>"Module-Info"},
+                   {:caption=>"Action",                 :data=>proc{|rec| rec.action},                      :title=>"Action-Info"},
+                   {:caption=>"Start time",             :data=>proc{|rec| rec.start_time},                  :title=>"Start time of transaction"},
+                   {:caption=>"Rec.",                   :data=>proc{|rec| rec.recursive},                   :title=>"Recursive transaction?"},
+                   {:caption=>'Used undo blocks',       :data=>proc{|rec| fn rec.used_undo_blocks},         :title=>'Number of undo blocks used', :align=>:right},
+                   {:caption=>"Used undo (MB)",         :data=>proc{|rec| fn(get_db_block_size.to_f * rec.used_undo_blocks/(1024*1024),2)},  :title=>'Amount of undo space used in megabytes', :align=>:right},
+                   {:caption=>'Written undo records',   :data=>proc{|rec| fn rec.used_undo_records},        :title=>'Number of undo records written by this transaction', :align=>:right},
+                   {:caption=>'Log. I/O',               :data=>proc{|rec| fn rec.log_io},                   :title=>'Logical I/O', :align=>:right},
+                   {:caption=>'Phys. I/O',              :data=>proc{|rec| fn rec.phy_io},                   :title=>'Physical I/O', :align=>:right},
+                   {:caption=>'CR gets',                :data=>proc{|rec| fn rec.cr_get},                   :title=>'Consistent gets', :align=>:right},
+                   {:caption=>'CR changes',             :data=>proc{|rec| fn rec.cr_change},                :title=>'Consistent changes', :align=>:right},
+           ]
+
+%>
+
+<%= gen_slickgrid(@undo_transactions, column_options, {
+        :max_height => 450,
+        :caption => "Current transactions #{"for undo segment id = #{@segment_id}" if @segment_id}"
+
+}) %>
+
+<div id="<%= @update_area %>" style="clear: both; width:100%;">
+</div>
+

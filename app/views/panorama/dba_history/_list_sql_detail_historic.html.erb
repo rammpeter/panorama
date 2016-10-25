@@ -1,0 +1,248 @@
+<%
+
+  @update_area = get_unique_area_id
+# Anzeige sowohl des konkreten Wertes als auch je Execution in zwei TD-Abschnitten
+def show_both_values(name, param, decimals, title="")
+  param = param.to_f   # Sicherstellen Typ
+  execs = @sql.executions.to_i==0 ? 1 : @sql.executions.to_i;
+  "<tr><td title='#{title}'>#{name}</td><td align='right' title='#{title}'>#{formattedNumber(param,decimals)}</td><td align='right' title='#{title} #{t(:per_execution, :default=>'per execution')}'>#{formattedNumber( (param/execs),(decimals+2))}</td></tr>".html_safe
+end
+
+# Anzeige des konkreten Wertes ohne je Execution in zwei TD-Abschnitten
+def show_single_value(name, param, decimals, title="", second_value="-", second_title="")
+  "<tr><td title='#{title}'>#{name}</td><td align='right' title='#{title}'>#{formattedNumber(param,decimals)}</td><td title='#{second_title}' align='center'>#{second_value}</td></tr>".html_safe
+end
+%>
+
+<h3>Statement-Details <%= t(:from_until, :default=>'from')%> <%= @sql.first_occurrence ? localeDateTime(@sql.first_occurrence) : @time_selection_start %> <%= t(:until, :default=>'until')%> <%= @sql.last_occurrence ? localeDateTime(@sql.last_occurrence) : @time_selection_end %> Instance = <%= @instance %></h3>
+<table border="0">
+  <tr>
+    <td valign="top"class="monospace"><%= convert_word_wrap_comma(@sql_statement) %></td>
+    <td valign="top">
+      <table border="1" style="font-size:small;">
+        <tr><th>Name</th><th>Total</th><th>Per Exec.</th></tr>
+        <tr>
+          <td title="Instance / SQL_ID / Plan-Hash-Value, <%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time period")%>">Instance / SQL-ID / Plan-Hash-Value</td>
+          <td align="right" title="Instance / SQL-ID / <%= t(:dba_history_list_sql_detail_historic_last_plan_hash_hint, :default=>"Hash-value of last execution plan") %>"><%= "#{@instance} / #{@sql_id} / #{@sql.last_plan_hash_value}" %></td>
+          <td align="center" style="<%= @sql.plan_hash_value_count > 1 ? "background-color:orange;" : "" %>" title="<%= t(:dba_history_list_sql_detail_historic_plan_count_hint, :default=>"Number of different execution plans in time period")%>"><%= @sql.plan_hash_value_count %> </td>
+        </tr>
+        <tr>
+          <td title="<%= t(:dba_history_list_sql_detail_historic_module_action_hint, :default=>"Module and action of last parsing session")%>">Parsing Module / Action</td>
+          <td title='Module'>
+            <%=
+              my_ajax_link_to(@sql.last_module,
+                    url_for(:controller   => :dba_sga,
+                            :action       => :show_application_info,
+                            :update_area  => :list_sql_detail_historic_module,
+                            :org_text     => @sql.last_module
+                          ),
+                   :title=>t(:dba_history_list_sql_detail_historic_module_link_hint, :default=>'Explanation of module name'))
+            %>
+            <div id="list_sql_detail_historic_module"></div>
+          </td>
+          <td title="Action">
+            <%=
+              my_ajax_link_to(@sql.last_action,
+                    url_for(:controller   => :dba_sga,
+                            :action       => :show_application_info,
+                            :update_area  => :list_sql_detail_historic_action,
+                            :org_text     => @sql.last_action
+                          ),
+                   :title=>t(:dba_history_list_sql_detail_historic_action_link_hint, :default=>'Explanation of action name'))
+            %>
+            <div id="list_sql_detail_historic_action"></div>
+          </td>
+        </tr>
+        <tr>
+          <td title="Hash-value over total optimizer environment">Optimizer Env Hash-Value</td>
+          <td align="right" title="Hash-value of last optimizer environment"><%= @sql.last_optimizer_env_hash_value %></td>
+          <td align="center" title="Number of different optimizer environments in time period"><%= @sql.optimizer_env_hash_value_count %> </td>
+        </tr>
+        <%= show_single_value("Executions / Parsing schema", @sql.executions,0, "Number of executions in time period", @sql.min_parsing_schema_name, "Parsing Schema-Name") %>
+        <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time period (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
+        <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time period") %>
+        <tr>
+          <td title="Number of rows processed in time period">Rows processed</td>
+          <td align='right' title="Number of rows processed in time period"><%= fn(@sql.rows_processed)%></td>
+          <td align='right' title="Number of rows processed in time period per execution"><%= fn(@sql.rows_processed.to_f/ (@sql.executions.to_i==0 ? 1 : @sql.executions), 2) %></td>
+        </tr>
+        <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of DB-blocks read from disk") %>
+        <tr>
+          <td title="Time per db block read from disk / Avg. disk transfer speed in MB/sec. per session (if using PQ)">ms/disk read, transfer speed (MB/sec.)</td>
+          <td title="Time per db block read from disk in milliseconds" align="right"><%= formattedNumber((@sql.disk_reads && @sql.disk_reads>0 ? @sql.user_io_wait_time_secs*1000/@sql.disk_reads : 0),2) %></td>
+          <td title="Avg. disk transfer speed in MB/sec. per session (if using PQ)" align="right"><%= formattedNumber((@sql.user_io_wait_time_secs && @sql.user_io_wait_time_secs>0 ? @sql.disk_reads * get_db_block_size / (1024*1024) / @sql.user_io_wait_time_secs : 0),2) %></td>
+        </tr>
+        <tr>
+          <td title="Number of total DB-blocks read">Buffer gets</td>
+          <td align='right' title="Number of total DB-blocks read, <%= fn(@sql.buffer_gets.to_f/(@sql.rows_processed.to_i==0 ? 1 : @sql.rows_processed), 1) %> buffer gets per result row"><%= fn(@sql.buffer_gets)%></td>
+          <td align='right' title="Number of total DB-blocks read per execution, <%= fn(@sql.buffer_gets.to_f/(@sql.rows_processed.to_i==0 ? 1 : @sql.rows_processed), 1) %> buffer gets per result row"><%= fn(@sql.buffer_gets.to_f/ (@sql.executions.to_i==0 ? 1 : @sql.executions), 2) %></td>
+        </tr>
+
+        <%= show_both_values("Elapsed time (sec), incl. parallel query slaves", @sql.elapsed_time_secs,2, "Runtime total in Seconds, sum over all PQ-processes")%>
+        <%= show_both_values("CPU-time (sec)", @sql.cpu_time_secs, 2, "CPU-time total in seconds, sum over all PQ-processes") %>
+        <%= show_both_values("Application wait time (sec)", @sql.application_wait_time_secs, 2, "Application wait-time total in seconds, incl. row lock waits") %>
+        <%= show_both_values("Concurrency wait time (sec)", @sql.concurrency_wait_time_secs, 2, "Concurrency wait-time total in seconds") %>
+        <%= show_both_values("Cluster wait time (sec)", @sql.cluster_wait_time_secs, 2) %>
+        <%= show_both_values("User-IO wait time (sec)", @sql.user_io_wait_time_secs, 2) %>
+        <%= show_both_values("PL/SQL execution time (sec)", @sql.plsql_exec_time_secs, 2, "PL/SQL Execution-Time (Sec.) anteilig von CPU-Time") %>
+        <tr>
+          <td title="First occurrence in AWR-snapshot or active session history">First Occurrence</td>
+          <td title="Begin of AWR-snapshot of first occurrence"><%= localeDateTime(@sql.first_occurrence) %></td>
+          <td title="Earliest sample in active session history"><%= localeDateTime(@sql.min_sample_time) %></td>
+        </tr>
+        <tr>
+          <td title="Last occurrence in AWR-snapshot or active session history">Last Occurrence</td>
+          <td title="End of AWR-snapshot of last occurrence"><%= localeDateTime(@sql.last_occurrence) %></td>
+          <td title="Latest sample in active session history"><%= localeDateTime(@sql.max_sample_time) %></td>
+        </tr>
+        <%= show_single_value("Hit ratio", @sql.hit_ratio,2, "Ratio cache-hits / buffer gets") %>
+        <%= show_single_value("Parse calls", @sql.parse_calls,0) %>
+        <%= show_single_value("Loads", @sql.loads,0) %>
+      </table>
+    </td>
+  </tr>
+</table>
+
+</b>
+
+<%= render :partial=>"dba_sga/list_sql_profiles" %>
+
+<%
+def link_bind_samples(rec)
+  my_ajax_link_to(fn(rec.samples),
+                  url_for(:action               => :list_bind_samples_historic,
+                          :sql_id               => @sql_id,
+                          :instance             => rec.instance_number,
+                          :position             => rec.position,
+                          :min_snap_id          => @sql.min_snap_id,
+                          :max_snap_id          => @sql.max_snap_id,
+                          :update_area=> @update_area
+                  ),
+                  :title=>'List all samples for this bind position in time period' )
+end
+%>
+
+<%=
+column_options = [
+        {:caption=>"I",          :data=>proc{|rec| rec.instance_number},                        :title=>'RAC-Instance' },
+    {:caption=>"Pos",           :data=>proc{|rec| formattedNumber(rec.position)},   :title=>t(:dba_history_list_sql_detail_historic_bind_pos, :default=>"Position of bind variable in statement"), :align=>"right"},
+    {:caption=>"Name",          :data=>proc{|rec| rec.name},                        :title=>t(:dba_history_list_sql_detail_historic_bind_name, :default=>"Name of bind variable in statement") },
+    {:caption=>"Typ",           :data=>proc{|rec| rec.datatype_string},             :title=>"data type of bind variable"},
+    {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)}, :title=>"time of last capture"},
+    {:caption=>"Value",         :data=>proc{|rec| rec.value_string},                :title=>"Value of bind variable represented as string"},
+    {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
+    {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
+    {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
+    {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
+    {:caption=>"Samples",       :data=>proc{|rec| link_bind_samples(rec)},                  :title=>'Number of samples for this bind position in time period'},
+]
+
+ gen_slickgrid(@binds, column_options, {
+        :caption => t(:dba_history_list_sql_detail_historic_binds_caption, :default=>'Last captured bind variables'),
+        :width => :auto
+}) %>
+
+<br><b><%= t(:additional_infos, :default=>'Additional information') %></b><br><br>
+<div class="float_left">
+    <%= my_ajax_submit_tag("Execution-Plan (#{@sql.plan_hash_value_count})",
+     url_for(:update_area          => @update_area,
+             :action               => :list_sql_history_execution_plan,
+             :controller           => :dba_history,
+             :instance             => @instance,
+             :sql_id               => @sql_id,
+             :parsing_schema_name  => @parsing_schema_name,
+             :time_selection_start => @time_selection_start,
+             :time_selection_end   => @time_selection_end
+            ),
+    :title => "Show execution plan(s) in given time period")
+    %>
+</div>
+&nbsp;
+<div class="float_left">
+    <%=
+        groupfilter = {:DBID                   => @dbid,
+                       :Idle_Wait1             => "PX Deq Credit: send blkd",
+                       :Min_Snap_ID            => @sql.min_snap_id,
+                       :Max_Snap_ID            => @sql.max_snap_id,
+                       :time_selection_start   => @time_selection_start,
+                       :time_selection_end     => @time_selection_end ,
+                       "SQL-ID"                => @sql_id
+        }
+
+        groupfilter[:Instance] = @instance if @instance
+        groupfilter['User'] = @parsing_schema_name if @parsing_schema_name
+
+
+        my_ajax_submit_tag("Active Session History",
+     url_for(:update_area => @update_area,
+             :action      => :list_session_statistic_historic_grouping,
+             :controller  => :active_session_history,
+             :groupfilter => groupfilter,
+             :groupby     => "SQL-ID"
+            ),
+     :title =>t(:list_session_statistic_historic_grouping_link_title, :default=>"Show wait states of SQL in Active Session History for given time period") )
+  %>
+</div>
+&nbsp;
+<div class="float_left">
+  <%= my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_complete_timeline_caption, :default=>'Complete time line of SQL'),
+   url_for(:update_area => @update_area,
+           :action      => :list_sql_history_snapshots,
+           :controller  => :dba_history,
+           :instance    => @instance,
+           :dbid        => @dbid,
+           :sql_id      => @sql_id,
+           :groupby     => :day,
+           :parsing_schema_name => @parsing_schema_name
+          ),
+  :title => t(:dba_history_list_sql_detail_historic_complete_timeline_hint, :default=>'List complete history of SQL in time'))
+  %>
+</div>
+&nbsp;
+<div class="float_left">
+    <%= my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_current_sga_caption, :default=>'SQL in current SGA'),
+     url_for(:update_area    => @update_area,
+             :controller     => :dba_sga,
+             :action         => :list_sql_detail_sql_id,
+             :instance       => @instance,
+             :sql_id         => @sql_id
+            ),
+    :title => t(:dba_history_list_sql_detail_historic_current_sga_hint, :default=>'Show data of SQL from current SGA (if still exists in SGA)'))
+    %>
+</div>
+<% if @instance %>
+    &nbsp;
+    <div class="float_left">
+      <%= form_tag(url_for(:controller            => :dba_history,
+                           :action                => :list_awr_sql_report_html,
+                           :instance              => @instance,
+                           :time_selection_start  => @time_selection_start,
+                           :time_selection_end    => @time_selection_end ,
+                           :sql_id                => @sql_id
+                   ), {:method => 'get', :target=>'_blank'}) do %>
+        <%= submit_tag(t(:dba_history_list_sql_detail_historic_sql_report_caption, :default=>'Generate SQL report'), :title =>t(:dba_history_list_sql_detail_historic_current_sga_hint, :default=>'Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML')) %>
+      <% end %>
+    </div>
+<% end %>
+<% if get_db_version >= '11.2' %>
+  &nbsp;
+  <div class="float_left">
+    <%=
+        my_ajax_submit_tag(t(:dba_history_list_sql_detail_historic_create_baseline_caption, :default=>'Generate SQL plan baseline'),
+                           url_for(:controller      => :dba_history,
+                                   :action          => :generate_baseline_creation,
+                                   :update_area     => @update_area,
+                                   :sql_id          => @sql_id,
+                                   :plan_hash_value => @sql.last_plan_hash_value,
+                                   :min_snap_id     => @sql.min_snap_id,
+                                   :max_snap_id     => @sql.max_snap_id
+                           ),
+                           :disabled => (@sql.optimizer_env_hash_value_count != 1),
+                           :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.\nAvailable only if exactly one execution plan exists for this SQL in considered time slice."))
+
+    %>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear:both; width:100%;">
+</div>

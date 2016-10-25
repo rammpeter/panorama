@@ -1,0 +1,41 @@
+<%
+
+   def link_column(result, value)
+     my_ajax_link_to(value,
+       url_for(:action     => :list_system_events_historic_detail,
+               :instance   => result.instance_number,
+               :event_id   => result.event_id,
+               :event_name => result.event_name,
+               :time_selection_start => @time_selection_start,
+               :time_selection_end   => @time_selection_end,
+               :min_snap_id=> result.min_snap_id,
+               :max_snap_id=> result.max_snap_id,
+               :update_area=> :list_system_events_historic_detail_area
+             ),
+      :title=>"Anzeige der einzelnen Snaphots des Events (unterhalb)")
+   end
+
+
+  column_options =
+  [
+    {:caption=>"I",             :data=>proc{|rec| link_column(rec, rec.instance_number)},         :title=>"RAC-Instance"},
+    {:caption=>"Name",          :data=>proc{|rec| link_column(rec, rec.event_name)},              :title=>"Name des Wait-Events", :data_title=>'#{explain_wait_event(rec.event_name)}' },
+    {:caption=>"Klasse",        :data=>proc{|rec| link_column(rec, rec.wait_class)},              :title=>"Wait-Klasse des Events"},
+    {:caption=>"Waits",         :data=>proc{|rec| link_column(rec, formattedNumber(rec.waits))},  :title=>"Anzahl Warte-Ereignisse", :align=>"right"},
+    {:caption=>"Timeouts",      :data=>proc{|rec| link_column(rec, formattedNumber(rec.timeouts))},  :title=>"Timeouts", :align=>"right"},
+    {:caption=>"Time waited",   :data=>proc{|rec| link_column(rec, formattedNumber(rec.time_waited_secs, 2))},        :title=>"Gewartete Zeit (sec)", :align=>"right"},
+    {:caption=>"Avg. Wait",     :data=>proc{|rec| link_column(rec, rec.waits > 0 ? formattedNumber(rec.time_waited_secs*1000/rec.waits.to_f, 2) : '')},  :title=>"Durchschnittliche Wartezeit (Millisekunden)", :align=>"right"},
+  ]
+
+%>
+
+<%= gen_slickgrid(@events, column_options, {
+        :caption => "System-Events von #{@time_selection_start} bis #{@time_selection_end}#{" für Instance #{@instance}" if @instance}",
+        :max_height => 450
+
+})
+%>
+
+<div id="list_system_events_historic_detail_area" style="float:left; width:100%; ">
+</div>
+

@@ -1,0 +1,59 @@
+<%=
+    @update_area = get_unique_area_id
+
+    def link_tab_subpartitions(rec)
+      if rec.subpartition_count == 0
+        rec.subpartition_count
+      else
+        my_ajax_link_to(fn(rec.subpartition_count),
+                        url_for({:action         => :list_table_subpartitions,
+                                 :owner          => @owner,
+                                 :table_name     => @table_name,
+                                 :partition_name => rec.partition_name,
+                                 :update_area    => @update_area,
+                                }),
+                        :title=>"Show sub-partitions of table #{@owner}.#{@table_name}, partition #{rec.partition_name}"
+        )
+      end
+    end
+
+
+    column_options =
+    [
+      {:caption=> 'Part. name',             :data=>proc{|rec| rec.partition_name},               :title=> 'Partition name'},
+      {:caption=> 'High value',             :data=>proc{|rec| rec.high_value},                   :title=> 'Partition bound value expression'},
+      {:caption=> 'Pos.',                   :data=>proc{|rec| fn rec.partition_position},        :title=> 'Position of the partition within the table', :align=>:right},
+      {:caption=> 'Tablespace',             :data=>proc{|rec| rec.tablespace_name},              :title=> 'Name of the tablespace containing the partition'},
+      {:caption=> 'Pct. free',              :data=>proc{|rec| fn rec.pct_free},                  :title=> 'Minimum percentage of free space in a block', :align=>:right},
+      {:caption=> 'Ini. trans',             :data=>proc{|rec| fn rec.ini_trans},                 :title=> 'Initial number of transactions', :align=>:right},
+    ]
+
+    column_options.concat [
+      {:caption=> 'Num. rows',              :data=>proc{|rec| fn rec.num_rows},                  :title=> 'Number of rows in the partition', :align=>:right},
+      {:caption=> 'Size (MB)',              :data=>proc{|rec| fn(rec.size_mb,2)},                :title=> 'Current object size in megabytes', :align=>:right},
+      {:caption=> 'Blocks',                 :data=>proc{|rec| fn rec.blocks},                    :title=> 'Number of used data blocks in the partition (below high water mark)', :align=>:right},
+      {:caption=> 'Avg. row len',           :data=>proc{|rec| fn rec.avg_row_len},               :title=> 'Average length of a row in the partition (in bytes)', :align=>:right},
+      {:caption=> 'Sub-part.',              :data=>proc{|rec| link_tab_subpartitions(rec)},      :title=> 'Number of subpartitions for this partition', :align=>:right},
+      {:caption=> 'Created',                :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of partition creation'},
+      {:caption=> 'Last DDL',               :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on table partition'},
+      {:caption=> 'Last analyzed',          :data=>proc{|rec| localeDateTime rec.last_analyzed}, :title=> 'Date on which this partition was most recently analyzed'},
+    ]
+
+    column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                  :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+    column_options << {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                  :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+    column_options << {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                  :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+    column_options << {:caption=> 'Trunc.',           :data=>proc{|rec| rec.truncated},                   :title=> "Has table been truncated since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}  if get_db_version >= '11.2'
+    column_options << {:caption=> 'Drop seg.',        :data=>proc{|rec| fn rec.drop_segments},            :title=> "Number of partition and subpartition segments dropped since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+    column_options << {:caption=> 'Last DML',         :data=>proc{|rec| localeDateTime(rec.last_dml)},    :title=> "Timestamp of last DML-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}
+    column_options << {:caption=> 'Compression',      :data=>proc{|rec| rec.compression},                 :title=> 'Indicates the actual compression property for a partition'}
+    column_options << {:caption=> 'Compress for',     :data=>proc{|rec| rec.compress_for},                :title=> 'Default compression for what kind of operations'} if get_db_version >= '11.2'
+    column_options << {:caption=> 'Flash cache',      :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+    column_options << {:caption=> 'Cell flash cache', :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+
+    gen_slickgrid(@partitions, column_options, {
+      :caption => "Partitions of table #{@owner}.#{@table_name} #{@partition_expression}",
+      :max_height => 450
+})
+%>
+
+<div id="<%= @update_area %>"></div>
