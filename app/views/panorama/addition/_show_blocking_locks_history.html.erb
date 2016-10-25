@@ -1,0 +1,31 @@
+<div class="page_caption"><%= "Historie aus #{read_from_client_info_store(:dba_hist_blocking_locks_owner)}.DBA_Hist_Blocking_Locks" %></div>
+
+
+<%= my_ajax_form_tag url_for(:controller=>:addition, :action=>:list_blocking_locks_history, :update_area=>:list_blocking_locks_history_area) do %>
+  <div class="float_left">
+      <%= include_start_end_timepicker %>
+  </div>
+
+
+  <div class="float_left" style="border:1px solid gray; margin: 2px; padding: 2px; ; height: 40px;">
+    <div class="float_left">
+      Zeitscheibe (Minuten)
+      <%= text_field_tag(:timeslice, "10", :size=>5, :title=>"Verdichtung auf Zeitscheibe von x Minuten je Ergebinszeile") %>
+    </div>
+
+    <div class="float_left">
+      Auch lange nichtblockierende anzeigen
+      <%= check_box_tag(:show_non_blocking, 1, true, :title=>"Auch nicht-blockierende, aber lang anhaltende Locks anzeigen ?") %>
+    </div>
+    <div class="float_left">
+      <%= submit_tag("Tabellarisch", :name => "commit_table", :title => "Anlistung der Treffer") %>
+    </div>
+  </div>
+  <div class="float_left" style="border:1px solid gray; margin: 2px; padding: 2px; height: 40px;">
+    <div class="float_left">
+      <%= submit_tag("Hierarchie der Blocker", :name => "commit_hierarchy", :title => "Anlistung der Hierarchie Blocker/Blocking beginnend mit Root-Knoten") %>
+    </div>
+  </div>
+<% end %>
+<div id="list_blocking_locks_history_area" style="float:left; width:100%;">
+</div>

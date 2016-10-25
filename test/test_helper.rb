@@ -1,7 +1,25 @@
+# Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
-require File.expand_path('../../config/environment', __FILE__)
-require 'rails/test_help'
+
+require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
+#ActiveRecord::Migrator.migrations_paths = [File.expand_path("../../test/dummy/db/migrate", __FILE__)]
+#ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', __FILE__)
+require "rails/test_help"
+
 require 'fileutils'
+
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
+
+
+# Load fixtures from the engine
+#if ActiveSupport::TestCase.respond_to?(:fixture_path=)
+#  ActiveSupport::TestCase.fixture_path = File.expand_path("../fixtures", __FILE__)
+#  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+#  ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "/files"
+#  ActiveSupport::TestCase.fixtures :all
+#end
 
 # Globales Teardown für alle Tests
 class ActionController::TestCase
@@ -17,10 +35,11 @@ end
 
 
 
+#class ActionDispatch::IntegrationTest
 class ActiveSupport::TestCase
-  include ApplicationHelper
-  include EnvHelper
-  include MenuHelper
+  include Panorama::ApplicationHelper
+  include Panorama::EnvHelper
+  include Panorama::MenuHelper
 
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
@@ -48,7 +67,7 @@ class ActiveSupport::TestCase
     Rails.logger.info "Starting Test with configuration test_#{ENV['DB_VERSION']}"
 
     # Array mit Bestandteilen der Vorgabe aus database.yml
-    test_config = Panorama::Application.config.database_configuration["test_#{ENV['DB_VERSION']}"]
+    test_config = Dummy::Application.config.database_configuration["test_#{ENV['DB_VERSION']}"]
     test_url = test_config['test_url'].split(":")
 
     current_database = {}
@@ -60,9 +79,9 @@ class ActiveSupport::TestCase
 
     # Config im Cachestore ablegen
     # Sicherstellen, dass ApplicationHelper.get_cached_client_key nicht erneut den client_key entschlüsseln will
-    @@cached_encrypted_client_key = 100
-    @@cached_decrypted_client_key = 100
-    cookies[:client_key]          = 100
+    @@cached_encrypted_client_key = '100'
+    @@cached_decrypted_client_key = '100'
+    cookies[:client_key]          = '100'
 
 
     # Passwort verschlüsseln in session
@@ -93,7 +112,7 @@ class ActiveSupport::TestCase
     # Client Info store entfernen, da dieser mit anderem Schlüssel verschlüsselt sein kann
     #FileUtils.rm_rf(Panorama::Application.config.client_info_filename)
 
-
+    #initialize_client_key_cookie                                                # Ensure browser cookie for client_key exists
     connect_oracle_db
     sql_row = sql_select_first_row "SELECT /* Panorama-Tool Ramm */ SQL_ID, Child_Number, Parsing_Schema_Name
                                           FROM   v$SQL

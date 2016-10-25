@@ -1,0 +1,20 @@
+<%=
+    @update_area = get_unique_area_id
+
+    column_options =
+            [
+                    {:caption=> 'Constraint name',       :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                    {:caption=> 'Check condition',       :data=>proc{|rec| rec.search_condition},            :title=> 'Check condition'},
+                    {:caption=> 'Status',                :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+                    {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+                    {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+                    {:caption=> 'Last change',           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
+            ]
+
+    gen_slickgrid(@check_constraints, column_options, {
+                                            :caption => "Check constraints for  #{@table_type} #{@owner}.#{@table_name}",
+                                            :max_height => 450
+                                    })
+%>
+
+<div id="<%= @update_area %>"></div>

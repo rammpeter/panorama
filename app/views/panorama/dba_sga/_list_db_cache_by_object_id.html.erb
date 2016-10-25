@@ -1,0 +1,26 @@
+<% stati = {
+        "xcur" => "",
+        "scur" => "a current mode block, shared with other instances",
+        "cr" =>   "",
+        "read" => "The buffer is reserved for a block that is currently being read from disk.",
+        "mrec" => "in media recovery mode",
+        "irec" => "in instance (crahs) recovery mode",
+        "pi"   => "Buffer state ‘PI’ indicates that block access mode is NULL. It means that the instance has made changes to the block but retains copies of past images."
+}
+
+  column_options =
+  [
+    {:caption=>"I",         :data=>proc{|rec| rec.inst_id },                :title=>'RAC-Instance'},
+    {:caption=>"Size (MB)", :data=>proc{|rec| fn(rec.mb_total,3)},          :title=>"Total size of object in DB blocks in MBytes",:align=>:right },
+    {:caption=>"% total",   :data=>proc{|rec| fn(rec.pct,3)},               :title=>"Percentage from total DB cache size",:align=>:right },
+    {:caption=>"Blocks",    :data=>proc{|rec| fn(rec.blocks)},              :title=>"Total number of DB blocks in Cache",         :align=>:right },
+    {:caption=>"Dirty",     :data=>proc{|rec| fn(rec.dirty)},               :title=>"Number of dirty DB blocks in Cache",         :align=>:right },
+    {:caption=>"xcur",      :data=>proc{|rec| fn(rec.xcur)},                :title=>"Number of blocks in status \"xcur\": This is a RAM block that has been acquired in exclusive current mode. According the  Oracle documentation, if a buffer state is exclusive current (XCUR), an instance owns the resource in exclusive mode.",         :align=>:right },
+    {:caption=>"scur",      :data=>proc{|rec| fn(rec.scur)},                :title=>"Number of blocks in status \"scur\": a current mode block, shared with other instances",         :align=>:right },
+    {:caption=>"cr",        :data=>proc{|rec| fn(rec.cr)},                  :title=>"Number of blocks in status \"cr\": This mode indicates a \"cloned\" RAM block (a \"stale\" block), that was once in xcur mode. The instance has shared access to the block and can only perform reads.  The cr state means the owning instance can perform a consistent read of the block, if the instance holds an older version of the data.",         :align=>:right },
+    {:caption=>"read",      :data=>proc{|rec| fn(rec.read)},                :title=>"Number of blocks in status \"read\": The buffer is reserved for a block that is currently being read from disk.",         :align=>:right },
+  ]
+
+%>
+
+<%= gen_slickgrid(@caches, column_options, {:caption => "DB cache usage for #{@object_row.owner}.#{@object_row.object_name}"}) %>

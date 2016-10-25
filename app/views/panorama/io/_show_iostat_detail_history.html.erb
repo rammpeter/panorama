@@ -1,0 +1,29 @@
+<div class="page_caption">I/O History from DBA_Hist_IOStat_Detail</div>
+
+<%= my_ajax_form_tag url_for(:controller=> :io, :action => :list_iostat_detail_history, :update_area => :list_iostat_detail_history_area) do %>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="float_left" title="<%= t(:instance_optional_filter_hint, :default=>'Filter on specific RAC instance (optional)') %>">
+      Instance
+      <%= text_field_tag(:instance, "", :size=>1) %>
+    </div>
+    <div class="float_left">
+      <%= t(:grouping, :default=>"Grouped by") %>
+    </div>
+    <div class="float_left" title="<%= t(:grouping_hint, :default=>'Group result by attribute') %>">
+      <select name="groupby">
+        <% iostat_detail_key_rules.each do |key, value| %>
+            <%=  "<option value='#{key}' #{"selected='selected'" if key=="Instance"}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="float_left">
+      <%= submit_tag("Show I/O history", :title => "Show I/O history") %>
+    </div>
+<% end %>
+
+<div id="list_iostat_detail_history_area" style="float:left; width:100%; ">
+</div>
+

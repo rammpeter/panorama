@@ -1,0 +1,61 @@
+<%
+
+   @update_area = get_unique_area_id
+
+   def link_column_workarea(rec, value)
+       my_ajax_link_to(value,
+       url_for( :controller        => "dba_sga",
+                :action            => "list_cursor_memory",
+                :update_area       => @update_area,
+                :instance          => @instance,
+                :sql_id            => rec.oc_sql_id
+              ),
+        :title => "Anzeige Details des PGA-Workarea"
+        )
+   end
+
+   def link_saddr_session(rec)
+     output = rec.own_saddr
+     if rec.own_saddr == 'NO'
+       output << ": "
+       output << my_ajax_link_to("NO: SID=#{rec.saddr_sid}, Serial#=#{rec.saddr_serialno}",
+                       url_for(:action => :show_session_detail,
+                               :instance => @instance,
+                               :sid      => rec.saddr_sid,
+                               :serialno => rec.saddr_serialno,
+                               :update_area => @update_area
+                              ),
+                       :title => "Show details for session referenced by gv$Open_Cursor.SAddr"
+        )
+     end
+     output.html_safe
+   end
+
+  column_options =
+  [
+    {:caption=>"SQL-ID",        :data=>proc{|rec| link_sql_id(@update_area, @instance, rec.oc_sql_id)},                                     :title=>"SQL-ID des Statements"},
+    {:caption=>"Est.Opt.Size",  :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.estimated_optimal_size))}, :align=>"right", :title=>"Estimated size required by this work area to execute the operation completely in memory (optimal execution). Derived from either optimizer statistics or previous executions in bytes."},
+    {:caption=>"Est.Onep.Size", :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.estimated_onepass_size))}, :align=>"right", :title=>"Estimated size required by this work area to execute the operation in a single pass. Derived from either optimizer statistics or previous executions in bytes."},
+    {:caption=>"Last Mem.Used", :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.last_memory_used))},       :align=>"right", :title=>"Memory used by this work area during the last execution of the cursor in bytes"},
+    {:caption=>"Active Time",   :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.active_time))}, :align=>"right",            :title=>"Average time this work area is active (in hundredths of a second)"},
+    {:caption=>"Max. Temp",     :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.max_tempseg_size))}, :align=>"right",       :title=>"Maximum temporary segment size (in bytes) created by an instantiation of this work area. This column is null if this work area has never spilled to disk."},
+    {:caption=>"Last Temp",     :data=>proc{|rec| link_column_workarea(rec, formattedNumber(rec.last_tempseg_size))}, :align=>"right",      :title=>"Temporary segment size (in bytes) created in the last instantiation of this work area. This column is null if the last instantiation of this work area did not spill to disk."},
+    {:caption=>"SQL-Text",      :data=>proc{|rec| rec.sql_text},                                                                            :title=>"SQL-Text"},
+    {:caption=>"Own SAddr",     :data=>proc{|rec| link_saddr_session(rec)},                                                                 :title=>"Does gv$Open_Cursor.SAddr reference same session like gv$Open_Cursor.SID? If not, session referenced by SAddr is shown"},
+  ]
+
+%>
+<%= gen_slickgrid(@opencursors, column_options, {
+        :caption    => "Offene Cursoren für Instance=#{@instance}, SID=#{@sid}",
+        :max_height => 450,
+        :width      => :auto
+}) %>
+
+<div style="clear: both;"></div>
+
+
+
+
+  <div id="<%= @update_area %>">
+
+  </div>
