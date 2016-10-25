@@ -1,3 +1,10 @@
 Panorama.war
-log/*log
-client_info.store/*
+Gemfile.lock
+.bundle/
+log/*.log
+test/dummy/db/*.sqlite3
+test/dummy/db/*.sqlite3-journal
+test/dummy/log/*.log
+test/dummy/tmp/
+test/dummy/client_info.store/*
+~
