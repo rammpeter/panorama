@@ -17,15 +17,16 @@ Rails.application.configure do
 
   # Disable serving static files from the `/public` folder by default since
   # Apache or NGINX already handles this.
-  config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
+  #config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
+  # Ramm, 26.10.2016 Ensure routing and access to /public/* in production mode
+  config.public_file_server.enabled = true
 
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = :uglifier
   # config.assets.css_compressor = :sass
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
-  # Ramm, 25.10.2016 =true necessary to supress "no route matches" while accessing images in production mode
-  config.assets.compile = true
+  config.assets.compile = false
 
   # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
 
@@ -90,4 +91,5 @@ Rails.application.configure do
 
   # Additions for running Panorama via Jetty
   # config.serve_static_assets = false
+
 end
