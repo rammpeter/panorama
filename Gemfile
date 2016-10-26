@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 
 # Variante für build war-file
-#gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
+gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
 
 # Development-Variante mit direktem File-Zugriff
-gem 'Panorama', path: '~/Documents/Projekte/rammpeter.github/Panorama_Gem'
+#gem 'Panorama', path: '~/Documents/Projekte/rammpeter.github/Panorama_Gem'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
