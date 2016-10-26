@@ -23,6 +23,7 @@ gem 'activerecord-oracle_enhanced-adapter', "~> 1.7.2"
 gem 'activerecord-nulldb-adapter', :git => 'http://github.com/mnoack/nulldb', :branch =>'rails5'
 
 
+gem 'listen', group: :development
 
 
 group :development, :test do
