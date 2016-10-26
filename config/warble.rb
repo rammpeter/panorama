@@ -5,13 +5,14 @@
 Warbler::Config.new do |config|
   # Features: additional options controlling how the jar is built.
   # Currently the following features are supported:
-  # - gemjar: package the gem repository in a jar file in WEB-INF/lib
-  # - executable: embed a web server and make the war executable
-  # - compiled: compile .rb files to .class files
+  # - *gemjar*: package the gem repository in a jar file in WEB-INF/lib
+  # - *executable*: embed a web server and make the war executable
+  # - *runnable*: allows to run bin scripts e.g. `java -jar my.war -S rake -T`
+  # - *compiled*: compile .rb files to .class files
   config.features = %w(executable)
 
   # Application directories to be included in the webapp.
-  config.dirs = %w(app config lib log script vendor tmp)
+  config.dirs = %w(app config lib log vendor tmp)
 
   # Additional files/directories to include, above those in config.dirs
   # config.includes = FileList["db"]
@@ -24,20 +25,15 @@ Warbler::Config.new do |config|
   # JRuby and JRuby-Rack are pre-loaded in this list.  Be sure to include your
   # own versions if you directly set the value
   # config.java_libs += FileList["lib/java/*.jar"]
-  # Explizites Laden der beiden Jar-Files aus jruby-Inhalt, erforderlich ab jruby-1.7.13, sonst Fehler: org.jruby.exceptions.RaiseException: (LoadError) load error: jopenssl/load -- java.lang.NoClassDefFoundError: org/bouncycastle/asn1/DERBoolean
-  # Problem gefixt durch /init.rb, daher auskommentiert
-  # config.java_libs += ["#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcprov-jdk15on/1.50/bcprov-jdk15on-1.50.jar", "#{ENV['MY_RUBY_HOME']}/lib/ruby/shared/org/bouncycastle/bcpkix-jdk15on/1.50/bcpkix-jdk15on-1.50.jar"]
-
 
   # Loose Java classes and miscellaneous files to be included.
-  # config.java_classes = FileList["web-app_3_1.xsd"]
+  # config.java_classes = FileList["target/classes/**.*"]
 
   # One or more pathmaps defining how the java classes should be copied into
   # the archive. The example pathmap below accompanies the java_classes
   # configuration above. See http://rake.rubyforge.org/classes/String.html#M000017
   # for details of how to specify a pathmap.
   # config.pathmaps.java_classes << "%{target/classes/,}p"
-  #config.pathmaps.java_classes << "%{target/classes/xmlns.jcp.org/xml/ns/javaee/,}p"
 
   # Bundler support is built-in. If Warbler finds a Gemfile in the
   # project directory, it will be used to collect the gems to bundle
@@ -62,12 +58,12 @@ Warbler::Config.new do |config|
 
   # The most recent versions of gems are used.
   # You can specify versions of gems by using a hash assignment:
-  # config.gems["rails"] = "2.3.10"
+  # config.gems["rails"] = "4.2.5"
 
   # You can also use regexps or Gem::Dependency objects for flexibility or
   # finer-grained control.
-  # config.gems << /^merb-/
-  # config.gems << Gem::Dependency.new("merb-core", "= 0.9.3")
+  # config.gems << /^sinatra-/
+  # config.gems << Gem::Dependency.new("sinatra", "= 1.4.7")
 
   # Include gem dependencies not mentioned specifically. Default is
   # true, uncomment to turn off.
@@ -83,8 +79,13 @@ Warbler::Config.new do |config|
 
   # Name of the archive (without the extension). Defaults to the basename
   # of the project directory.
-  config.jar_name = 'Panorama'
+  config.jar_name = "Panorama"
 
+  # File extension for the archive. Defaults to either 'jar' or 'war'.
+  # config.jar_extension = "jar"
+
+  # Destionation for the created archive. Defaults to project's root directory.
+  # config.autodeploy_dir = "dist/"
 
   # Name of the MANIFEST.MF template for the war file. Defaults to a simple
   # MANIFEST.MF that contains the version of Warbler used to create the war file.
@@ -94,6 +95,10 @@ Warbler::Config.new do |config|
   # files will be compiled. Default is to compile all \.rb files in
   # the application.
   # config.compiled_ruby_files = FileList['app/**/*.rb']
+
+  # Determines if ruby files in supporting gems will be compiled.
+  # Ignored unless compile feature is used.
+  # config.compile_gems = false
 
   # When set it specify the bytecode version for compiled class files
   # config.bytecode_version = "1.6"
@@ -112,9 +117,17 @@ Warbler::Config.new do |config|
   # If set to true, moves jar files into WEB-INF/lib. Prior to version 1.4.2 of Warbler this was done
   # by default. But since 1.4.2 this config defaults to false. It may need to be set to true for
   # web servers that do not explode the WAR file.
+  # Alternatively, this option can be set to a regular expression, which will
+  # act as a jar selector -- only jar files that match the pattern will be
+  # included in the archive.
   # config.move_jars_to_webinf_lib = false
 
   # === War files only below here ===
+
+  # Embedded webserver to use with the 'executable' feature. Currently supported
+  # webservers are:
+  # - *jetty* - Embedded Jetty from Eclipse
+  config.webserver = 'jetty'
 
   # Path to the pre-bundled gem directory inside the war file. Default
   # is 'WEB-INF/gems'. Specify path if gems are already bundled
@@ -127,7 +140,7 @@ Warbler::Config.new do |config|
   # config.excludes.
   # config.webinf_files += FileList["jboss-web.xml"]
   # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList['jetty-web.xml', 'init.rb',
+  config.webinf_files += FileList['jetty-web.xml', 
                                   'lib/jee_xsd/web-app_3_1.xsd',
                                   'lib/jee_xsd/web-common_3_1.xsd',
                                   'lib/jee_xsd/javaee_7.xsd',
@@ -142,23 +155,14 @@ Warbler::Config.new do |config|
   # Pathmaps for controlling how public HTML files are copied into the .war
   # config.pathmaps.public_html = ["%{public/,}p"]
 
-  # Embedded webserver to use with the 'executable' feature. Currently supported
-  # webservers are:
-  # * <tt>winstone</tt> (default) - Winstone 0.9.10 from sourceforge
-  # * <tt>jenkins-ci.winstone</tt> - Improved Winstone from Jenkins CI
-  # * <tt>jetty</tt> - Embedded Jetty from Eclipse
-  config.webserver = 'jetty'
-  # config.webserver = 'jenkins-ci.winstone'
-  # config.webserver = 'winstone'
-
   # Value of RAILS_ENV for the webapp -- default as shown below
-  config.webxml.rails.env = ENV['RAILS_ENV'] || 'production'
+  # config.webxml.rails.env = ENV['RAILS_ENV'] || 'production'
 
-  # Application booter to use, one of :rack, :rails, or :merb (autodetected by default)
+  # Public ROOT mapping, by default assets are copied into .war ROOT directory.
+  # config.public.root = ''
+
+  # Application booter to use, either :rack or :rails (autodetected by default)
   # config.webxml.booter = :rails
-
-  # Set JRuby to run in 1.9 mode.
-  # config.webxml.jruby.compat.version = "1.9"
 
   # When using the :rack booter, "Rackup" script to use.
   # - For 'rackup.path', the value points to the location of the rackup

@@ -31,6 +31,7 @@ java -Xmx1024m \
      -Djruby.compile.fastest=true \
      -Djruby.compile.threadless=true \
      -Djava.io.tmpdir=./work \
+     -Dwarbler.port=$HTTP_PORT \
      -jar $PANORAMA_HOME/Panorama.war 2>&1 | tee -a $LOG 
 
 

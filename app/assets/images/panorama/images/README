@@ -1,6 +1,0 @@
-# Peter Ramm, 25.10.2016
-
-Folder /vendor/assets/stylesheets/images moved to /app/assets/images/panorama/images
-because Jetty wants to load vendor's images by http://....assets/panorama/images/*.* in production mode
-
-For function with webbrick in development mode this folder is also linked from  /vendor/assets/stylesheets/images
