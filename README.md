@@ -1,28 +1,22 @@
-# Panorama
-Short description and motivation.
+Panorama
+========
 
-## Usage
-How to use my plugin.
+Web-tool for monitoring performance issues of Oracle databases.
+Provides easy access to several internal information.<br>
+Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
-## Installation
-Add this line to your application's Gemfile:
+Here you can find more information about Panorama (including download link for instant runnable bundled web archive file):
+http://rammpeter.github.io/
 
-```ruby
-gem 'panorama'
-```
+<b>RubyOnRails-Application:</b>
+- immmediately startable as Java war-File with built-in Jetty application Server. ( java -jar Panorama.war )
+- may be deployed as web application to every JEE or web container (Glassfish, JBoss, Tomcat ...)
 
-And then execute:
-```bash
-$ bundle
-```
+<b>Preconditions for Server machine:</b>
+- if using tnsnames.ora it should be in $ORACLE_HOME/network/admin or below $TNS_ADMIN
+- Java runtime environment Java 6 or above
+- Some problems may occur with IBM JVM. If so please use JVM from SUN/Oracle.
 
-Or install it yourself as:
-```bash
-$ gem install panorama
-```
+This GitHub-project is intended to build a bundled web archive file with integrated JETTY application server.
+Function is included as Rails-engine via Panorama-gem at https://github.com/rammpeter/Panorama_Gem
 
-## Contributing
-Contribution directions go here.
-
-## License
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
