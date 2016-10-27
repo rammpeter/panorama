@@ -5,8 +5,8 @@ then
 fi
 
 echo "Entfernen der assets unter public"
-rm -r public/assets/*
-rm -r public/assets/.sprockets*
+rm -rf public/assets/*
+rm -rf public/assets/.sprockets*
 
 if [ "$1" != "without_assets" ]
 then
