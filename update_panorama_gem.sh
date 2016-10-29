@@ -1,1 +1,1 @@
-bundle update --source Panorama
+bundle update --source Panorama_Gem

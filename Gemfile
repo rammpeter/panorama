@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Variante für build war-file
-gem 'Panorama', :git => 'http://github.com/rammpeter/Panorama_Gem'
+gem 'panorama_gem', :git => 'http://github.com/rammpeter/Panorama_Gem'
 
 # Development-Variante mit direktem File-Zugriff
 #gem 'Panorama', path: '~/Documents/Projekte/rammpeter.github/Panorama_Gem'

@@ -5,6 +5,7 @@ require 'rails/all'
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
+require "panorama_gem"
 
 module PanoramaApp
   class Application < Rails::Application
@@ -13,3 +14,6 @@ module PanoramaApp
     # -- all .rb files in that directory are automatically loaded.
   end
 end
+
+
+
