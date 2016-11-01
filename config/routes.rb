@@ -11,9 +11,11 @@
 #  end
 #end
 
-Rails.logger.info "################ $LOAD_PATH is :"
-Rails.logger.info $LOAD_PATH
-Rails.logger.info "################ end of $LOAD_PATH"
+#Rails.logger.info "################ $LOAD_PATH is :"
+#$LOAD_PATH.each do |p|
+#  Rails.logger.info p
+#end
+#Rails.logger.info "################ end of $LOAD_PATH"
 
 # Require controller only after addition of LOAD_PATH
 #require 'env_controller'
