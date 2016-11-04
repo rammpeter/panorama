@@ -1,3 +1,11 @@
 echo "Killing java process with Panorama.war"
-kill $(ps aux | grep Panorama.war | grep java | awk '{print $2}')
+
+PID=`ps aux | grep Panorama.war | grep java | awk '{print $2}'`
+if [ -z "$PID" ]
+then
+  echo "Nothing to do, Panorama is not running"
+else
+  echo "Killing Panorma with PID $PID"
+  kill $PID
+fi
 
