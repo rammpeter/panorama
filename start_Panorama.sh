@@ -14,7 +14,7 @@ echo "Starting Panorama, logfile is $LOG"
 rm -f $LOG
 
 # Remove all possible old work areas
-rm -rf $PANORAMA_VAR_HOME/work/*
+rm -rf $PANORAMA_VAR_HOME/work
 
 # Ensure existence of work dir
 mkdir -p $PANORAMA_VAR_HOME/work
