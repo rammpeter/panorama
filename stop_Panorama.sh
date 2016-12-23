@@ -5,7 +5,7 @@ if [ -z "$PID" ]
 then
   echo "Nothing to do, Panorama is not running"
 else
-  echo "Killing Panorma with PID $PID"
+  echo "Killing Panorama with PID $PID"
   kill $PID
 fi
 

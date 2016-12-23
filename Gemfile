@@ -8,7 +8,7 @@ gem 'panorama_gem', :git => 'http://github.com/rammpeter/Panorama_Gem'
 #gem 'Panorama', path: '~/Temp/Panorama_Gem_Before_git_scrumble'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
+#gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 gem 'activerecord-nulldb-adapter', :git => 'http://github.com/mnoack/nulldb', :branch =>'rails5'
 # Use Puma as the app server
 gem 'puma', '~> 3.0'
