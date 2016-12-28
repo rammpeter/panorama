@@ -1,19 +1,13 @@
 #!/bin/bash
 
-# Unix-start-script for Panorama.war
-# Peter Ramm, 07.12.2015
+# Docker-executable
+# Peter Ramm, 28.12.2016
 
 export PANORAMA_HOME=$PWD
 export HTTP_PORT=8080
 
 # Writable directory for work area, usage-log and client_info-store, used by Panorama internally
 export PANORAMA_VAR_HOME=$PANORAMA_HOME
-
-export LOG=$PANORAMA_VAR_HOME/Panorama.log
-echo "Starting Panorama, logfile is $LOG"
-
-# Start with new logfile
-rm -f $LOG
 
 # Remove all possible old work areas
 rm -rf $PANORAMA_VAR_HOME/work
@@ -39,28 +33,8 @@ java -Xmx1024m \
      -Djruby.compile.threadless=true \
      -Djava.io.tmpdir=./work \
      -Dwarbler.port=$HTTP_PORT \
-     -jar $PANORAMA_HOME/Panorama.war 2>>$LOG >>$LOG &
+     -jar $PANORAMA_HOME/Panorama.war 
 
-export MAX_WAIT=300
-export URL="http://localhost:$HTTP_PORT/Panorama/"
-
-typeset -i LOOP_COUNT=0
-while [ $LOOP_COUNT -lt $MAX_WAIT ]
-do
-  echo -n '.'
-  curl $URL 2>/dev/null >/dev/null
-  if [ $? -eq 0 ]
-  then
-    echo
-    echo "Panorama can be used now at $URL after $LOOP_COUNT seconds startup time"
-    exit 0
-  fi
-
-  LOOP_COUNT=LOOP_COUNT+1
-  sleep 1
-done
-echo
-echo "Problem: Panorama not reachable after $MAX_WAIT seconds at $URL"
-exit 1
-
+# docker stop will cancel running jetty
+echo "Panorama.war stopped"
 

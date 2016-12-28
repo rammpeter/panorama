@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Killing java process with Panorama.war"
 
 PID=`ps aux | grep Panorama.war | grep java | awk '{print $2}'`
