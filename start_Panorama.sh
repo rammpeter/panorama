@@ -3,6 +3,9 @@
 # Unix-start-script for Panorama.war
 # Peter Ramm, 07.12.2015
 
+# Ensure that classes and jars are used from Panorama.war only
+unset CLASSPATH
+
 export PANORAMA_HOME=$PWD
 export HTTP_PORT=8080
 
