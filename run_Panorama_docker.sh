@@ -15,6 +15,12 @@ rm -rf $PANORAMA_VAR_HOME/work
 # Ensure existence of work dir
 mkdir -p $PANORAMA_VAR_HOME/work
 
+if [ ! -n "$MAX_JAVA_HEAP_SPACE_MB" ]
+then
+  MAX_JAVA_HEAP_SPACE_MB=1024
+fi
+echo "max. Java heap space set to $MAX_JAVA_HEAP_SPACE_MB megabytes"
+
 # Optional Parameter:
 # -XX:ReservedCodeCacheSize=48M			Default = 48M, Buffer for JIT compiled code
 # -XX:+ UseCodeCacheFlushing			Flush old / unused code to enable JIT compilation of current code
@@ -26,8 +32,7 @@ mkdir -p $PANORAMA_VAR_HOME/work
 # -Dwarbler.port=<port>                         Set http-port to use
 
 # Variant for Jetty app-server, start Panorama-server in Background
-java -Xmx1024m \
-     -Xms1024m \
+java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
      -XX:ReservedCodeCacheSize=80M \
      -Djruby.compile.fastest=true \
      -Djruby.compile.threadless=true \

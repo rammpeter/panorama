@@ -25,7 +25,9 @@ gem 'jquery-rails'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.5'
 
-gem 'listen', group: :development
+# Allow to run jar with RAILS_ENV=development to get the SQLs
+gem 'listen'
+#gem 'listen', group: :development
 
 
 

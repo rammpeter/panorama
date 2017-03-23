@@ -2,11 +2,11 @@
 # Peter Ramm, 28.12.2016
 
 # Usage:
-# Build image:                    > docker build -t panorama-2.4.72 .
-# Create container from image:    > docker run --name panorama -p8080:8080 -d panorama-2.4.72 
+# Build image:                    > docker build -t rammpeter/panorama .
+# Create container from image:    > docker run --name panorama -p8080:8080 -d rammpeter/panorama
 
 # create container with tnsnames.ora from host and timezone set
-# > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d panorama-2.4.72
+# > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
 #FROM	java:8-jre
 FROM	anapsix/alpine-java:8_server-jre_unlimited
