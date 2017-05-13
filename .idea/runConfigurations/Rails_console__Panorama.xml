@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Rails console: Panorama" type="IrbRunConfigurationType" factoryName="IRB console">
+    <module name="Panorama" />
+    <IRB_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
+    <IRB_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+    <IRB_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+    <IRB_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+    <IRB_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+    <envs />
+    <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
+    <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
+    <EXTENSION ID="RubyCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" track_test_folders="true" runner="rcov">
+      <COVERAGE_PATTERN ENABLED="true">
+        <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+      </COVERAGE_PATTERN>
+    </EXTENSION>
+    <IRB_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/bin/rails" />
+    <IRB_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="console" />
+    <IRB_RUN_CONFIG NAME="IS_RAILS_CONSOLE" VALUE="true" />
+    <method />
+  </configuration>
+</component>
