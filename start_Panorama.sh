@@ -44,6 +44,13 @@ java -Xmx1024m \
      -Dwarbler.port=$HTTP_PORT \
      -jar $PANORAMA_HOME/Panorama.war 2>>$LOG >>$LOG &
 
+if [ $? -ne 0 ]
+then
+  echo "Error starting Panorama, $LOG follows"
+  cat $LOG
+  exit 1
+fi
+
 export MAX_WAIT=300
 export URL="http://localhost:$HTTP_PORT/Panorama/"
 
