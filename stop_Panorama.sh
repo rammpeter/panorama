@@ -8,5 +8,6 @@ then
 else
   echo "Killing Panorama with PID $PID"
   kill $PID
+  kill -9 $PID 2>/dev/null
 fi
 
