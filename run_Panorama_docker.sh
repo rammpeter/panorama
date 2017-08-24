@@ -7,10 +7,12 @@ export PANORAMA_HOME=$PWD
 export HTTP_PORT=8080
 
 # Writable directory for work area, usage-log and client_info-store, used by Panorama internally
-export PANORAMA_VAR_HOME=$PANORAMA_HOME
+export PANORAMA_VAR_HOME=/var/opt/panorama
 
 # Remove all possible old work areas
 rm -rf $PANORAMA_VAR_HOME/work
+
+echo "Starting Panorama at $PANORAMA_HOME, variable data is stored at $PANORAMA_VAR_HOME"
 
 # Ensure existence of work dir
 mkdir -p $PANORAMA_VAR_HOME/work
@@ -36,7 +38,7 @@ java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
      -XX:ReservedCodeCacheSize=80M \
      -Djruby.compile.fastest=true \
      -Djruby.compile.threadless=true \
-     -Djava.io.tmpdir=./work \
+     -Djava.io.tmpdir=$PANORAMA_VAR_HOME/work \
      -Dwarbler.port=$HTTP_PORT \
      -jar $PANORAMA_HOME/Panorama.war 
 
