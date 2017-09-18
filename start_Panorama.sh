@@ -33,6 +33,7 @@ mkdir -p $PANORAMA_VAR_HOME/work
 # -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events. 
 # -Xcompile.invokedynamic=true                  Use invokedynamic for optimizing Ruby code., erroneous with Panorama
 # -Dwarbler.port=<port>                         Set http-port to use
+# -Djava.security.egd=file:/dev/urandom	        Start Panorama with non-blocking entropy generator, protects from read block on /dev/random during encryption operations if headless virtualised server does not generate enough entropy values
 
 # Variant for Jetty app-server, start Panorama-server in Background
 java -Xmx1024m \
@@ -42,6 +43,7 @@ java -Xmx1024m \
      -Djruby.compile.threadless=true \
      -Djava.io.tmpdir=./work \
      -Dwarbler.port=$HTTP_PORT \
+     -Djava.security.egd=file:/dev/urandom \
      -jar $PANORAMA_HOME/Panorama.war 2>>$LOG >>$LOG &
 
 if [ $? -ne 0 ]
