@@ -32,6 +32,7 @@ echo "max. Java heap space set to $MAX_JAVA_HEAP_SPACE_MB megabytes"
 # -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events. 
 # -Xcompile.invokedynamic=true                  Use invokedynamic for optimizing Ruby code., erroneous with Panorama
 # -Dwarbler.port=<port>                         Set http-port to use
+# -Djava.security.egd=file:/dev/urandom         Start Panorama with non-blocking entropy generator, protects from read block on /dev/random during encryption operations if headless virtualised server does not generate enough entropy values
 
 # Variant for Jetty app-server, start Panorama-server in Background
 java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
@@ -40,6 +41,7 @@ java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
      -Djruby.compile.threadless=true \
      -Djava.io.tmpdir=$PANORAMA_VAR_HOME/work \
      -Dwarbler.port=$HTTP_PORT \
+     -Djava.security.egd=file:/dev/urandom \
      -jar $PANORAMA_HOME/Panorama.war 
 
 # docker stop will cancel running jetty

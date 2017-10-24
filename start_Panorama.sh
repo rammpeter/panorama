@@ -11,6 +11,7 @@ export HTTP_PORT=8080
 
 # Writable directory for work area, usage-log and client_info-store, used by Panorama internally
 export PANORAMA_VAR_HOME=$PANORAMA_HOME
+export WORK_DIR=$PANORAMA_VAR_HOME/work
 
 export LOG=$PANORAMA_VAR_HOME/Panorama.log
 echo "Starting Panorama, logfile is $LOG"
@@ -19,10 +20,10 @@ echo "Starting Panorama, logfile is $LOG"
 rm -f $LOG
 
 # Remove all possible old work areas
-rm -rf $PANORAMA_VAR_HOME/work
+rm -rf $WORK_DIR
 
 # Ensure existence of work dir
-mkdir -p $PANORAMA_VAR_HOME/work
+mkdir -p $WORK_DIR
 
 # Optional Parameter:
 # -XX:ReservedCodeCacheSize=48M			Default = 48M, Buffer for JIT compiled code
@@ -41,7 +42,7 @@ java -Xmx1024m \
      -XX:ReservedCodeCacheSize=80M \
      -Djruby.compile.fastest=true \
      -Djruby.compile.threadless=true \
-     -Djava.io.tmpdir=./work \
+     -Djava.io.tmpdir=$WORK_DIR \
      -Dwarbler.port=$HTTP_PORT \
      -Djava.security.egd=file:/dev/urandom \
      -jar $PANORAMA_HOME/Panorama.war 2>>$LOG >>$LOG &
