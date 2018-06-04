@@ -88,6 +88,9 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
+  # Don't colorize ActiveRecord SQL log
+  config.colorize_logging = false
+
 
   # Additions for running Panorama via Jetty
   # config.serve_static_assets = false

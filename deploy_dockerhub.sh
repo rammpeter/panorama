@@ -3,6 +3,10 @@
 
 # docker login must be succesfully succeded
 echo "Deploy Panorama.war as Docker image to dockerhub.com"
+
+# Ensure using latest version
+docker pull anapsix/alpine-java:8_server-jre_unlimited
+
 VERSION_FILE="`bundle show panorama_gem --paths`/lib/panorama_gem/version.rb"
 echo VERSION_FILE=$VERSION_FILE
 PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`

@@ -16,6 +16,8 @@ export WORK_DIR=$PANORAMA_VAR_HOME/work
 export LOG=$PANORAMA_VAR_HOME/Panorama.log
 echo "Starting Panorama, logfile is $LOG"
 
+export PANORAMA_SAMPLER_MASTER_PASSWORD=dummy
+
 # Start with new logfile
 rm -f $LOG
 
