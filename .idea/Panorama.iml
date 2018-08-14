@@ -180,8 +180,8 @@
     <orderEntry type="library" scope="PROVIDED" name="activejob (v5.2.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activemodel (v5.2.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activerecord (v5.2.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="activerecord-nulldb-adapter (v0.3.8, RVM: jruby-9.1.17.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="activerecord-oracle_enhanced-adapter (v5.2.2, RVM: jruby-9.1.17.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="activerecord-nulldb-adapter (v0.3.9, RVM: jruby-9.1.17.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="activerecord-oracle_enhanced-adapter (v5.2.3, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activestorage (v5.2.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activesupport (v5.2.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="arel (v9.0.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
@@ -205,12 +205,12 @@
     <orderEntry type="library" scope="PROVIDED" name="marcel (v0.3.2, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="method_source (v0.9.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="mimemagic (v0.3.2, RVM: jruby-9.1.17.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="mini_mime (v1.0.0, RVM: jruby-9.1.17.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="mini_mime (v1.0.1, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="minitest (v5.11.3, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="multi_json (v1.13.1, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nio4r (v2.3.1, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nokogiri (v1.8.2, RVM: jruby-9.1.17.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="panorama_gem (v2.7.44@2851f3, RVM: jruby-9.1.17.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="panorama_gem (v2.7.57@401e34, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="puma (v3.11.4, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack (v2.0.5, RVM: jruby-9.1.17.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-test (v1.0.0, RVM: jruby-9.1.17.0) [gem]" level="application" />

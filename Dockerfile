@@ -19,3 +19,5 @@ RUN	mkdir /var/opt/panorama
 EXPOSE	8080
 CMD	/opt/panorama/run_Panorama_docker.sh
 
+HEALTHCHECK --interval=5m --timeout=3s CMD wget localhost:8080/Panorama -O - 2>/dev/null | grep "Please choose saved connection " >/dev/null || exit 1
+
