@@ -12,5 +12,9 @@ Rails.application.config.assets.version = '1.0'
 
 Rails.application.config.assets.precompile += %w( *.ico *.gif *.png *.jpg )
 #Rails.application.config.assets.precompile += %w( favicon.ico favicon_32x32.png favicon_64x64.png )
+#
+
+# Load fonts in asset pipeline
+Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/
 
 
