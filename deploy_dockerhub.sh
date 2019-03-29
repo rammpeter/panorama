@@ -5,7 +5,8 @@
 echo "Deploy Panorama.war as Docker image to dockerhub.com"
 
 # Ensure using latest version
-docker pull anapsix/alpine-java:8_server-jre_unlimited
+#docker pull anapsix/alpine-java:8_server-jre_unlimited
+docker pull openjdk:13
 
 VERSION_FILE="`bundle show panorama_gem --paths`/lib/panorama_gem/version.rb"
 echo VERSION_FILE=$VERSION_FILE
@@ -16,6 +17,13 @@ docker build -t rammpeter/panorama .
 
 # Aktualisierung Dockerhub.com
 docker tag rammpeter/panorama:latest rammpeter/panorama:$PANORAMA_VERSION
+
+# Check active login at dockerhub
+grep "https://index.docker.io/v1/" ~/.docker/config.json >/dev/null
+if [ $? -ne 0 ]; then
+  echo "########## You are not logged in to dockerhub! Please login before ##########"
+  exit 1
+fi
 
 docker push rammpeter/panorama:latest
 docker push rammpeter/panorama:$PANORAMA_VERSION

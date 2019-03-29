@@ -25,3 +25,6 @@ client_info.store/*
 /vendor/bundle
 
 .rvmrc
+
+mycert.pem
+mycert.key

@@ -19,6 +19,12 @@ fi
 
 echo "Create Panorama.war"
 jruby -S warble 
+if [ $? -ne 0 ]
+then
+  echo "######### Error creating war file"
+  exit 1
+fi
+
 
 echo "Entfernen der assets unter public"
 rm -r public/assets/*

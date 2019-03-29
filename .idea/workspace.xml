@@ -4,10 +4,10 @@
     <bookmark url="file://$PROJECT_DIR$/../Panorama_Gem/app/models/panorama_sampler_structure_check.rb" description="XID" line="167" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Allow logging of SQL-statemenmts">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.rakeTasks" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.rakeTasks" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
     </list>
     <ignored path="Panorama.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -22,11 +22,12 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/Panorama@warble.coverage" NAME="warble Coverage Results" MODIFIED="1492190407933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Panorama" />
-    <SUITE FILE_PATH="coverage/Panorama@IRB_console__Panorama.coverage" NAME="IRB console: Panorama Coverage Results" MODIFIED="1477590245547" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
-    <SUITE FILE_PATH="coverage/Panorama@Development__Panorama.coverage" NAME="Development: Panorama Coverage Results" MODIFIED="1493222423235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
     <SUITE FILE_PATH="coverage/Panorama@Rails_console__Panorama.coverage" NAME="Rails console: Panorama Coverage Results" MODIFIED="1477590036153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
+    <SUITE FILE_PATH="coverage/Panorama@warble.coverage" NAME="warble Coverage Results" MODIFIED="1492190407933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Panorama" />
+    <SUITE FILE_PATH="coverage/Panorama@Rails_console__Panorama.rcov" NAME="Rails console: Panorama Coverage Results" MODIFIED="1535374852790" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
     <SUITE FILE_PATH="coverage/Panorama@Production__Panorama.coverage" NAME="Production: Panorama Coverage Results" MODIFIED="1477577502796" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
+    <SUITE FILE_PATH="coverage/Panorama@Development__Panorama.coverage" NAME="Development: Panorama Coverage Results" MODIFIED="1493222423235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
+    <SUITE FILE_PATH="coverage/Panorama@IRB_console__Panorama.coverage" NAME="IRB console: Panorama Coverage Results" MODIFIED="1477590245547" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -63,11 +64,25 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Dockerfile" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Dockerfile" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Dockerfile">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="330">
-              <caret line="22" lean-forward="true" selection-start-line="21" selection-end-line="22" />
+              <caret line="22" selection-start-line="21" selection-end-line="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="precompile.rake" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/tasks/precompile.rake">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="assets.rb" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/config/initializers/assets.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="17" column="72" selection-start-line="17" selection-end-line="17" selection-end-column="72" />
             </state>
           </provider>
         </entry>
@@ -96,6 +111,8 @@
       <find>jar</find>
       <find>mini</find>
       <find>log</find>
+      <find>linear</find>
+      <find>l</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -124,7 +141,6 @@
         <option value="$PROJECT_DIR$/bin/rails" />
         <option value="$PROJECT_DIR$/config/boot.rb" />
         <option value="$PROJECT_DIR$/log/production.log" />
-        <option value="$PROJECT_DIR$/lib/tasks/precompile.rake" />
         <option value="$PROJECT_DIR$/config/application.rb" />
         <option value="$USER_HOME$/.rvm/gems/jruby-9.1.4.0/bundler/gems/Panorama_Gem-c46e4b4e3aa5/app/controllers/env_controller.rb" />
         <option value="$PROJECT_DIR$/jetty-web.xml" />
@@ -140,6 +156,9 @@
         <option value="$PROJECT_DIR$/config/environments/production.rb" />
         <option value="$PROJECT_DIR$/config/initializers/sql_logging.rb" />
         <option value="$PROJECT_DIR$/Dockerfile" />
+        <option value="$PROJECT_DIR$/lib/tasks/precompile.rake" />
+        <option value="$PROJECT_DIR$/public/assets/application-03a77feb0624cd3659ba4507fbe87daef01b4d541d4012eb1fd37c116778ab29.css" />
+        <option value="$PROJECT_DIR$/config/initializers/assets.rb" />
       </list>
     </option>
   </component>
@@ -165,11 +184,11 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="333" />
-    <option name="y" value="167" />
-    <option name="width" value="2002" />
-    <option name="height" value="1107" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="60" />
+    <option name="y" value="23" />
+    <option name="width" value="1620" />
+    <option name="height" value="1027" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -177,6 +196,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -193,19 +213,16 @@
               <item name="Panorama" type="b2602c69:ProjectViewProjectNode" />
               <item name="Panorama" type="462c0819:PsiDirectoryNode" />
               <item name="config" type="462c0819:PsiDirectoryNode" />
-              <item name="environments" type="462c0819:PsiDirectoryNode" />
+              <item name="initializers" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Panorama" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Panorama" type="462c0819:PsiDirectoryNode" />
-              <item name="config" type="462c0819:PsiDirectoryNode" />
-              <item name="initializers" type="462c0819:PsiDirectoryNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="RailsProjectView" />
     </panes>
   </component>
@@ -243,27 +260,52 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Rails.Development: Panorama">
+  <component name="RunManager" selected="IRB console.Rails console: Panorama">
     <configuration default="true" type="docker-deploy" factoryName="Docker Deployment">
       <method />
     </configuration>
-    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+    <configuration name="Rails console: Panorama" type="IrbRunConfigurationType" factoryName="IRB console" temporary="true">
+      <module name="Panorama" />
+      <IRB_RUN_CONFIG NAME="RUBY_ARGS" VALUE="" />
+      <IRB_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+      <IRB_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <IRB_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <IRB_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
+      <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <IRB_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/bin/rails" />
+      <IRB_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="console" />
+      <IRB_RUN_CONFIG NAME="IS_RAILS_CONSOLE" VALUE="true" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp">
       <node-interpreter>project</node-interpreter>
       <node-options />
       <gulpfile />
       <tasks />
       <arguments />
       <pass-parent-envs>true</pass-parent-envs>
+      <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Rake.test: Panorama" />
-      <item itemvalue="Rake.spec: Panorama" />
-      <item itemvalue="Rails.Production: Panorama" />
-      <item itemvalue="Rails.Development: Panorama" />
       <item itemvalue="IRB console.Rails console: Panorama" />
       <item itemvalue="IRB console.IRB console: Panorama" />
+      <item itemvalue="Rails.Production: Panorama" />
+      <item itemvalue="Rails.Development: Panorama" />
+      <item itemvalue="Rake.test: Panorama" />
+      <item itemvalue="Rake.spec: Panorama" />
       <item itemvalue="Ruby.warble" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="IRB console.Rails console: Panorama" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpringUtil" SPRING_PRE_LOADER_OPTION="true" />
   <component name="SvnConfiguration">
@@ -415,7 +457,11 @@
       <workItem from="1531652823304" duration="2157000" />
       <workItem from="1532349690961" duration="1190000" />
       <workItem from="1533383010873" duration="1760000" />
-      <workItem from="1533409926115" duration="1377000" />
+      <workItem from="1533409926115" duration="3822000" />
+      <workItem from="1534761064499" duration="7132000" />
+      <workItem from="1535903023485" duration="1148000" />
+      <workItem from="1535904181346" duration="2879000" />
+      <workItem from="1537455642887" duration="866000" />
     </task>
     <task id="LOCAL-00001" summary="Initiale commit">
       <created>1420547337937</created>
@@ -690,11 +736,25 @@
       <option name="project" value="LOCAL" />
       <updated>1528138525937</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="Docker Healthcheck">
+      <created>1534232318837</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1534232318837</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Load fonts in asset pipeline">
+      <created>1535904607481</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1535904607481</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="251772000" />
+    <option name="totallyTimeSpent" value="266242000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -706,31 +766,31 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="333" y="167" width="2002" height="1107" extended-state="0" />
+    <frame x="55" y="23" width="1625" height="1027" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info anchor="bottom" id="TODO" order="6" visible="true" weight="0.27821782" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50250316" side_tool="true" weight="0.39914164" />
-      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49749687" weight="0.44478065" />
-      <window_info anchor="bottom" id="Version Control" order="7" weight="0.3290469" />
-      <window_info anchor="bottom" id="Terminal" order="7" weight="0.32980332" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.5761803" visible="true" weight="0.22346939" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.5761803" visible="true" weight="0.36449778" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.30215055" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50250316" side_tool="true" weight="0.39914164" />
       <window_info anchor="right" id="Database" order="3" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3290469" />
+      <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49749687" weight="0.44408602" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.3290469" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.32980332" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49749687" weight="0.39914164" />
       <window_info id="Favorites" order="2" sideWeight="0.42381975" side_tool="true" weight="0.26097867" />
+      <window_info anchor="bottom" id="Changes" order="7" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Changes" order="7" />
       <window_info anchor="bottom" id="Application Servers" order="7" />
-      <window_info anchor="bottom" id="Messages" order="7" visible="true" weight="0.10136157" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3290469" />
+      <window_info anchor="bottom" id="Messages" order="7" weight="0.10136157" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -748,8 +808,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Change to rails 4.2.3" />
-    <MESSAGE value="JEE xsd-files local in aoolication instead of internet access during xsd validation at startup" />
     <MESSAGE value="Use exactly 3 runtimes at startup for winstone" />
     <MESSAGE value="Test instance at heroku" />
     <MESSAGE value="Switch to jRuby 9 and jetty application server" />
@@ -773,7 +831,9 @@
     <MESSAGE value="Threaded" />
     <MESSAGE value="Deprecation fixed, use /dev/urandom" />
     <MESSAGE value="Allow logging of SQL-statemenmts" />
-    <option name="LAST_COMMIT_MESSAGE" value="Allow logging of SQL-statemenmts" />
+    <MESSAGE value="Docker Healthcheck" />
+    <MESSAGE value="Load fonts in asset pipeline" />
+    <option name="LAST_COMMIT_MESSAGE" value="Load fonts in asset pipeline" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -793,34 +853,6 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Gemfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Gemfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Gemfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Gemfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Gemfile">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
@@ -1138,7 +1170,19 @@
     <entry file="file://$PROJECT_DIR$/Dockerfile">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
-          <caret line="22" lean-forward="true" selection-start-line="21" selection-end-line="22" />
+          <caret line="22" selection-start-line="21" selection-end-line="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/public/assets/application-03a77feb0624cd3659ba4507fbe87daef01b4d541d4012eb1fd37c116778ab29.css" />
+    <entry file="file://$PROJECT_DIR$/public/assets/.sprockets-manifest-bc40e57bb5762bbd4d947350449e13e6.json" />
+    <entry file="file://$PROJECT_DIR$/lib/tasks/precompile.rake">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/initializers/assets.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="72" selection-start-line="17" selection-end-line="17" selection-end-column="72" />
         </state>
       </provider>
     </entry>
