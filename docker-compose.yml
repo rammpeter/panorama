@@ -24,7 +24,7 @@ services:
       - "8080"
     environment:
       - TNS_ADMIN=/etc
-      - TZ="Europe/Berlin"
+      - TZ=Europe/Berlin
       - MAX_JAVA_HEAP_SPACE_MB=4096
       - PANORAMA_VAR_HOME=/var/opt/panorama
       - PANORAMA_SAMPLER_MASTER_PASSWORD=$PANORAMA_SAMPLER_MASTER_PASSWORD
