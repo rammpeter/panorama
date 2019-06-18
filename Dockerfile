@@ -14,7 +14,10 @@ MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
 WORKDIR	/opt/panorama
 COPY	Panorama.war run_Panorama_docker.sh /opt/panorama/
-RUN	mkdir /var/opt/panorama
+RUN	    mkdir /var/opt/panorama
+# wget missing in openjdk image starting 2019-06
+RUN     yum install -y wget
+
 #RUN     echo "Europe/Berlin" > /etc/timezone; dpkg-reconfigure -f noninteractive tzdata
 EXPOSE	8080
 CMD	/opt/panorama/run_Panorama_docker.sh

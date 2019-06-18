@@ -4,9 +4,12 @@
     <bookmark url="file://$PROJECT_DIR$/../Panorama_Gem/app/models/panorama_sampler_structure_check.rb" description="XID" line="167" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Using docker-compose&#10;use java 13">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Additional info">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_war.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_war.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/environments/production.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/environments/production.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/initializers/sql_logging.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/sql_logging.rb" afterDir="false" />
     </list>
     <ignored path="Panorama.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -54,10 +57,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/config/environments/production.rb">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="765">
+              <caret line="51" selection-start-line="51" selection-end-line="52" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/config/initializers/sql_logging.rb">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="15">
-              <caret line="1" column="88" selection-start-line="1" selection-start-column="88" selection-end-line="1" selection-end-column="88" />
+              <caret line="1" column="65" selection-start-line="1" selection-start-column="65" selection-end-line="1" selection-end-column="65" />
             </state>
           </provider>
         </entry>
@@ -65,8 +77,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Dockerfile">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" selection-start-line="21" selection-end-line="22" />
+            <state relative-caret-position="285">
+              <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
             </state>
           </provider>
         </entry>
@@ -85,12 +97,12 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="225">
-                <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+              <first_editor relative-caret-position="285">
+                <caret line="19" selection-start-line="19" selection-end-line="19" />
               </first_editor>
               <second_editor />
             </state>
@@ -163,13 +175,13 @@
         <option value="$PROJECT_DIR$/config/warble.rb" />
         <option value="$PROJECT_DIR$/config/initializers/new_framework_defaults.rb" />
         <option value="$PROJECT_DIR$/config/environment.rb" />
-        <option value="$PROJECT_DIR$/config/environments/production.rb" />
-        <option value="$PROJECT_DIR$/config/initializers/sql_logging.rb" />
-        <option value="$PROJECT_DIR$/Dockerfile" />
         <option value="$PROJECT_DIR$/lib/tasks/precompile.rake" />
         <option value="$PROJECT_DIR$/public/assets/application-03a77feb0624cd3659ba4507fbe87daef01b4d541d4012eb1fd37c116778ab29.css" />
         <option value="$PROJECT_DIR$/config/initializers/assets.rb" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/config/environments/production.rb" />
+        <option value="$PROJECT_DIR$/Dockerfile" />
+        <option value="$PROJECT_DIR$/config/initializers/sql_logging.rb" />
       </list>
     </option>
   </component>
@@ -186,10 +198,9 @@
     <option name="FILTER_DEBUG" value="true" />
     <option name="CUSTOM_FILTER" />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="60" />
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1620" />
+    <option name="width" value="1639" />
     <option name="height" value="1027" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -210,6 +221,12 @@
               <item name="Panorama" type="b2602c69:ProjectViewProjectNode" />
               <item name="Panorama" type="462c0819:PsiDirectoryNode" />
               <item name="config" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Panorama" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Panorama" type="462c0819:PsiDirectoryNode" />
+              <item name="config" type="462c0819:PsiDirectoryNode" />
+              <item name="environments" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Panorama" type="b2602c69:ProjectViewProjectNode" />
@@ -460,7 +477,17 @@
       <workItem from="1535903023485" duration="1148000" />
       <workItem from="1535904181346" duration="2879000" />
       <workItem from="1537455642887" duration="866000" />
-      <workItem from="1553857027110" duration="1977000" />
+      <workItem from="1553857027110" duration="8792000" />
+      <workItem from="1554380002347" duration="604000" />
+      <workItem from="1554713957814" duration="4183000" />
+      <workItem from="1555266470800" duration="9883000" />
+      <workItem from="1557411185019" duration="2063000" />
+      <workItem from="1558210902728" duration="62000" />
+      <workItem from="1558211045747" duration="766000" />
+      <workItem from="1558509424106" duration="2519000" />
+      <workItem from="1559743496672" duration="1207000" />
+      <workItem from="1560262421882" duration="464000" />
+      <workItem from="1560346593598" duration="3164000" />
     </task>
     <task id="LOCAL-00001" summary="Initiale commit">
       <created>1420547337937</created>
@@ -756,11 +783,25 @@
       <option name="project" value="LOCAL" />
       <updated>1553857114196</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="Additional info">
+      <created>1553882805809</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1553882805809</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Timezone setting without &quot;&quot;">
+      <created>1553937436712</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1553937436712</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="268219000" />
+    <option name="totallyTimeSpent" value="299949000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -772,10 +813,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="42" y="23" width="1638" height="1027" extended-state="6" />
+    <frame x="0" y="23" width="1639" height="1027" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.5761803" visible="true" weight="0.25689223" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.5761803" visible="true" weight="0.28804007" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" sideWeight="0.42381975" side_tool="true" weight="0.26097867" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -811,8 +852,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Test instance at heroku" />
-    <MESSAGE value="Switch to jRuby 9 and jetty application server" />
     <MESSAGE value="Switch to Rails 5" />
     <MESSAGE value="Remove session store from git" />
     <MESSAGE value="Fix git scrumble problem" />
@@ -836,7 +875,9 @@
     <MESSAGE value="Docker Healthcheck" />
     <MESSAGE value="Load fonts in asset pipeline" />
     <MESSAGE value="Using docker-compose&#10;use java 13" />
-    <option name="LAST_COMMIT_MESSAGE" value="Using docker-compose&#10;use java 13" />
+    <MESSAGE value="Additional info" />
+    <MESSAGE value="Timezone setting without &quot;&quot;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Timezone setting without &quot;&quot;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -883,13 +924,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config/environments/production.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="277">
-          <caret line="66" lean-forward="true" selection-start-line="66" selection-end-line="66" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/assets/application-03a77feb0624cd3659ba4507fbe87daef01b4d541d4012eb1fd37c116778ab29.css" />
     <entry file="file://$PROJECT_DIR$/public/assets/.sprockets-manifest-bc40e57bb5762bbd4d947350449e13e6.json" />
     <entry file="file://$PROJECT_DIR$/Gemfile">
@@ -906,27 +940,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config/initializers/sql_logging.rb">
+    <entry file="file://$PROJECT_DIR$/config/environments/production.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="88" selection-start-line="1" selection-start-column="88" selection-end-line="1" selection-end-column="88" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Dockerfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" selection-start-line="21" selection-end-line="22" />
+        <state relative-caret-position="765">
+          <caret line="51" selection-start-line="51" selection-end-line="52" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/tasks/precompile.rake">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deploy_dropbox.sh">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/deploy_dockerhub.sh">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/config/initializers/assets.rb">
@@ -939,10 +960,30 @@
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="225">
-            <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+          <first_editor relative-caret-position="285">
+            <caret line="19" selection-start-line="19" selection-end-line="19" />
           </first_editor>
           <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deploy_dropbox.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deploy_dockerhub.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Dockerfile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" lean-forward="true" selection-start-line="19" selection-end-line="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/initializers/sql_logging.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="65" selection-start-line="1" selection-start-column="65" selection-end-line="1" selection-end-column="65" />
         </state>
       </provider>
     </entry>

@@ -12,6 +12,11 @@ if [ "$1" != "without_assets" ]
 then
   echo "Compile assets"
   jruby -S rake assets:precompile
+  if [ $? -ne 0 ]
+  then
+    echo "######### Error running rake assets:precompile"
+    exit 1
+  fi
 fi
 
 # NoMethodError: protected method `pathmap_replace' called for "public/404.html":String
