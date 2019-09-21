@@ -1,19 +1,15 @@
 # Deploy Panorama to Dockerhub.com and Dockerhub.osp-dd.de
 # Peter Ramm, 29.01.2017
 
+./create_docker_image.sh 
+if [ $? -ne 0 ]
+then
+  echo "Error during create_docker_image.sh, exit"
+  exit 1
+fi
+
 # docker login must be succesfully succeded
 echo "Deploy Panorama.war as Docker image to dockerhub.com"
-
-# Ensure using latest version
-#docker pull anapsix/alpine-java:8_server-jre_unlimited
-docker pull openjdk:13
-
-VERSION_FILE="`bundle show panorama_gem --paths`/lib/panorama_gem/version.rb"
-echo VERSION_FILE=$VERSION_FILE
-PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
-echo PANORAMA_VERSION=$PANORAMA_VERSION
-
-docker build -t rammpeter/panorama .
 
 # Aktualisierung Dockerhub.com
 docker tag rammpeter/panorama:latest rammpeter/panorama:$PANORAMA_VERSION
