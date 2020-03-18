@@ -12,6 +12,7 @@
 !/log/.keep
 /tmp
 /work/*
+/.idea/*
 **.orig
 rerun.txt
 pickle-email-*.html

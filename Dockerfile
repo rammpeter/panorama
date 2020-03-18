@@ -8,7 +8,7 @@
 # create container with tnsnames.ora from host and timezone set
 # > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
-FROM	openjdk:13
+FROM	openjdk:14
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
 RUN     useradd panorama                 &&\
