@@ -74,7 +74,14 @@ Rails.application.configure do
   config.active_support.deprecation = :notify
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
-  config.log_formatter = ::Logger::Formatter.new
+  # config.log_formatter = ::Logger::Formatter.new
+
+  config.log_formatter = proc do |severity, datetime, progname, msg|
+    # date and thread are not logged because it is done by jetty
+    #date_format = datetime.strftime("%Y-%m-%d %H:%M:%S")
+    #"[#{date_format}] #{severity} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
+    "#{msg}\n"
+  end
 
   # Use a different logger for distributed setups.
   # require 'syslog/logger'

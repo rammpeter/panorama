@@ -23,6 +23,8 @@ fi
 # Fixen durch auskommentieren des protection-Flags für pathmap_replace in gems/rake-11.3.0/lib/rake/ext/string.rb
 
 echo "Create Panorama.war"
+# fix unavailable repo repo2.maven.org/
+export MAVEN_REPO=https://repo1.maven.org/maven2
 jruby -S warble 
 if [ $? -ne 0 ]
 then

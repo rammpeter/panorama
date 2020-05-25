@@ -49,8 +49,7 @@ CMD="java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
      -jar $PANORAMA_HOME/Panorama.war "
 
 echo "Starting $CMD"
-$CMD 
+exec $CMD 
 
 # docker stop will cancel running jetty
-echo "Panorama.war stopped"
 
