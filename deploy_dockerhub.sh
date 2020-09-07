@@ -1,7 +1,7 @@
 # Deploy Panorama to Dockerhub.com and Dockerhub.osp-dd.de
 # Peter Ramm, 29.01.2017
 
-VERSION_FILE="`bundle show panorama_gem --paths`/lib/panorama_gem/version.rb"
+VERSION_FILE="`bundle info panorama_gem --path`/lib/panorama_gem/version.rb"
 echo VERSION_FILE=$VERSION_FILE
 PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
 echo PANORAMA_VERSION=$PANORAMA_VERSION
@@ -19,6 +19,7 @@ echo "Deploy Panorama.war as Docker image to dockerhub.com"
 # Aktualisierung Dockerhub.com
 docker tag rammpeter/panorama:latest rammpeter/panorama:$PANORAMA_VERSION
 
+# $DH_TOKEN ist set in local workstation environment
 docker login -u rammpeter -p $DH_TOKEN
 
 # Check active login at dockerhub

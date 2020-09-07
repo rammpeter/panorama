@@ -8,16 +8,13 @@
 # create container with tnsnames.ora from host and timezone set
 # > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
-FROM	openjdk:14
+FROM	openjdk:16
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
-RUN     useradd panorama                 &&\
-        mkdir /opt/panorama              &&\
-        chown panorama /opt/panorama     &&\
-        mkdir /var/opt/panorama          &&\
-        chown panorama /var/opt/panorama
+RUN     mkdir /opt/panorama              &&\
+        mkdir /var/opt/panorama
 
-USER    panorama
+# USER    panorama          # No useradd or yum command supported in openjdk images yet
 WORKDIR	/opt/panorama
 
 COPY	Panorama.war run_Panorama_docker.sh /opt/panorama/
