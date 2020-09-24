@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="install wget during docker build&#10;fix ENV['PANORAMA_LOG_SQL'] &amp;&amp; ENV['PANORAMA_LOG_SQL'].upcase == 'TRUE' &#10;respond to precompile errors&#10;respond to ENV['PANORAMA_LOG_LEVEL']">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Switch to openjdk 16&#10;User panorama removed due to missing system utilities">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deploy_dockerhub.sh" beforeDir="false" afterPath="$PROJECT_DIR$/deploy_dockerhub.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/secrets.yml" beforeDir="false" afterPath="$PROJECT_DIR$/config/secrets.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +111,7 @@
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
-  <component name="SpringUtil" SPRING_PRE_LOADER_OPTION="true" />
+  <component name="SpringUtil" SPRING_PRE_LOADER_OPTION="true" RAKE_SPRING_PRE_LOADER_OPTION="false" RAILS_SPRING_PRE_LOADER_OPTION="false" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -290,7 +291,10 @@
       <workItem from="1567431952701" duration="1792000" />
       <workItem from="1585388145789" duration="651000" />
       <workItem from="1591691479533" duration="321000" />
-      <workItem from="1599476998864" duration="924000" />
+      <workItem from="1599476998864" duration="1028000" />
+      <workItem from="1600757540496" duration="37000" />
+      <workItem from="1600786260786" duration="880000" />
+      <workItem from="1600855661413" duration="540000" />
     </task>
     <task id="LOCAL-00001" summary="Initiale commit">
       <created>1420547337937</created>
@@ -607,7 +611,14 @@
       <option name="project" value="LOCAL" />
       <updated>1560845811418</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="Switch to openjdk 16&#10;User panorama removed due to missing system utilities">
+      <created>1599478462433</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1599478462433</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TodoView">
@@ -631,7 +642,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Remove session store from git" />
     <MESSAGE value="Fix git scrumble problem" />
     <MESSAGE value="Fix git scrumble problem Part 2&#10;" />
     <MESSAGE value="Reconstruct readme&#10;" />
@@ -656,14 +666,23 @@
     <MESSAGE value="Additional info" />
     <MESSAGE value="Timezone setting without &quot;&quot;" />
     <MESSAGE value="install wget during docker build&#10;fix ENV['PANORAMA_LOG_SQL'] &amp;&amp; ENV['PANORAMA_LOG_SQL'].upcase == 'TRUE' &#10;respond to precompile errors&#10;respond to ENV['PANORAMA_LOG_LEVEL']" />
-    <option name="LAST_COMMIT_MESSAGE" value="install wget during docker build&#10;fix ENV['PANORAMA_LOG_SQL'] &amp;&amp; ENV['PANORAMA_LOG_SQL'].upcase == 'TRUE' &#10;respond to precompile errors&#10;respond to ENV['PANORAMA_LOG_LEVEL']" />
+    <MESSAGE value="Switch to openjdk 16&#10;User panorama removed due to missing system utilities" />
+    <option name="LAST_COMMIT_MESSAGE" value="Switch to openjdk 16&#10;User panorama removed due to missing system utilities" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="739" y="522" width="1557" height="655" key="find.popup" timestamp="1591691594124">
-      <screen x="0" y="23" width="2506" height="1417" />
+    <state x="383" y="64" key="CommitChangelistDialog2" timestamp="1600974659087">
+      <screen x="0" y="23" width="1633" height="1027" />
     </state>
-    <state x="739" y="522" width="1557" height="655" key="find.popup/0.23.2506.1417/-1680.254.1680.1027@0.23.2506.1417" timestamp="1591691594124" />
-    <state x="1077" y="522" width="1273" height="655" key="find.popup/50.23.2510.1417/2560.97.1680.1027@50.23.2510.1417" timestamp="1585388197810" />
+    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974659087" />
+    <state x="586" y="80" key="CommitChangelistDialog2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478462245" />
+    <state x="585" y="175" key="SettingsEditor" timestamp="1600757565417">
+      <screen x="0" y="23" width="2498" height="1417" />
+    </state>
+    <state x="585" y="175" key="SettingsEditor/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1600757565417" />
+    <state x="684" y="276" key="Vcs.Push.Dialog.v2" timestamp="1599478466431">
+      <screen x="0" y="23" width="2498" height="1417" />
+    </state>
+    <state x="684" y="276" key="Vcs.Push.Dialog.v2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478466431" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
