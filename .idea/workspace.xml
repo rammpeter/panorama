@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Switch to openjdk 16&#10;User panorama removed due to missing system utilities">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="secret key base generated as fallback">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/secrets.yml" beforeDir="false" afterPath="$PROJECT_DIR$/config/secrets.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -294,7 +291,7 @@
       <workItem from="1599476998864" duration="1028000" />
       <workItem from="1600757540496" duration="37000" />
       <workItem from="1600786260786" duration="880000" />
-      <workItem from="1600855661413" duration="540000" />
+      <workItem from="1600855661413" duration="639000" />
     </task>
     <task id="LOCAL-00001" summary="Initiale commit">
       <created>1420547337937</created>
@@ -618,7 +615,14 @@
       <option name="project" value="LOCAL" />
       <updated>1599478462433</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="secret key base generated as fallback">
+      <created>1600974718011</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1600974718011</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TodoView">
@@ -642,7 +646,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fix git scrumble problem" />
     <MESSAGE value="Fix git scrumble problem Part 2&#10;" />
     <MESSAGE value="Reconstruct readme&#10;" />
     <MESSAGE value="Use also native images in public/assets" />
@@ -667,21 +670,23 @@
     <MESSAGE value="Timezone setting without &quot;&quot;" />
     <MESSAGE value="install wget during docker build&#10;fix ENV['PANORAMA_LOG_SQL'] &amp;&amp; ENV['PANORAMA_LOG_SQL'].upcase == 'TRUE' &#10;respond to precompile errors&#10;respond to ENV['PANORAMA_LOG_LEVEL']" />
     <MESSAGE value="Switch to openjdk 16&#10;User panorama removed due to missing system utilities" />
-    <option name="LAST_COMMIT_MESSAGE" value="Switch to openjdk 16&#10;User panorama removed due to missing system utilities" />
+    <MESSAGE value="secret key base generated as fallback" />
+    <option name="LAST_COMMIT_MESSAGE" value="secret key base generated as fallback" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="383" y="64" key="CommitChangelistDialog2" timestamp="1600974659087">
+    <state x="383" y="64" key="CommitChangelistDialog2" timestamp="1600974717825">
       <screen x="0" y="23" width="1633" height="1027" />
     </state>
-    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974659087" />
+    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974717825" />
     <state x="586" y="80" key="CommitChangelistDialog2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478462245" />
     <state x="585" y="175" key="SettingsEditor" timestamp="1600757565417">
       <screen x="0" y="23" width="2498" height="1417" />
     </state>
     <state x="585" y="175" key="SettingsEditor/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1600757565417" />
-    <state x="684" y="276" key="Vcs.Push.Dialog.v2" timestamp="1599478466431">
-      <screen x="0" y="23" width="2498" height="1417" />
+    <state x="447" y="206" key="Vcs.Push.Dialog.v2" timestamp="1600974722270">
+      <screen x="0" y="23" width="1633" height="1027" />
     </state>
+    <state x="447" y="206" key="Vcs.Push.Dialog.v2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974722270" />
     <state x="684" y="276" key="Vcs.Push.Dialog.v2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478466431" />
   </component>
   <component name="XDebuggerManager">
