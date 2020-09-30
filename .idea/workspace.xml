@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="secret key base generated as fallback">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/secrets.yml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,8 +100,8 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="IRB.IRB console: Panorama" />
       <item itemvalue="IRB.Rails console: Panorama" />
+      <item itemvalue="IRB.IRB console: Panorama" />
       <item itemvalue="Rails.Production: Panorama" />
       <item itemvalue="Rails.Development: Panorama" />
       <item itemvalue="Rake.spec: Panorama" />
@@ -291,7 +293,11 @@
       <workItem from="1599476998864" duration="1028000" />
       <workItem from="1600757540496" duration="37000" />
       <workItem from="1600786260786" duration="880000" />
-      <workItem from="1600855661413" duration="639000" />
+      <workItem from="1600855661413" duration="1242000" />
+      <workItem from="1600976381311" duration="11000" />
+      <workItem from="1600977106545" duration="596000" />
+      <workItem from="1601278453541" duration="581000" />
+      <workItem from="1601448887431" duration="608000" />
     </task>
     <task id="LOCAL-00001" summary="Initiale commit">
       <created>1420547337937</created>
@@ -622,7 +628,14 @@
       <option name="project" value="LOCAL" />
       <updated>1600974718011</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="secret key base generated as fallback">
+      <created>1600974771467</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1600974771467</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="TodoView">
@@ -674,10 +687,10 @@
     <option name="LAST_COMMIT_MESSAGE" value="secret key base generated as fallback" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="383" y="64" key="CommitChangelistDialog2" timestamp="1600974717825">
+    <state x="383" y="64" key="CommitChangelistDialog2" timestamp="1600974771298">
       <screen x="0" y="23" width="1633" height="1027" />
     </state>
-    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974717825" />
+    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974771298" />
     <state x="586" y="80" key="CommitChangelistDialog2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478462245" />
     <state x="585" y="175" key="SettingsEditor" timestamp="1600757565417">
       <screen x="0" y="23" width="2498" height="1417" />
