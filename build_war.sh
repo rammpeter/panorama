@@ -11,7 +11,7 @@ rm -rf public/assets/.sprockets*
 if [ "$1" != "without_assets" ]
 then
   echo "Compile assets"
-  jruby -S rake assets:precompile
+  rake assets:precompile
   if [ $? -ne 0 ]
   then
     echo "######### Error running rake assets:precompile"
@@ -25,7 +25,7 @@ fi
 echo "Create Panorama.war"
 # fix unavailable repo repo2.maven.org/
 export MAVEN_REPO=https://repo1.maven.org/maven2
-jruby -S warble 
+warble
 if [ $? -ne 0 ]
 then
   echo "######### Error creating war file"

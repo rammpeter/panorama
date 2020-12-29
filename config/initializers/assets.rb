@@ -15,6 +15,6 @@ Rails.application.config.assets.precompile += %w( *.ico *.gif *.png *.jpg )
 #
 
 # Load fonts in asset pipeline
-Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/
+#Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/
 
 

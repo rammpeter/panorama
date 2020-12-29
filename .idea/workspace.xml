@@ -2,9 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="secret key base used">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.ruby-version" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/assets/config/manifest.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bin/yarn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.generators" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.rakeTasks" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/warble.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/warble.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gemfile" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_war.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_war.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/initializers/assets.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/assets.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/warble.rb" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +55,8 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$USER_HOME$/Temp/Panorama_Before_Rails5" />
     <property name="options.lastSelected" value="org.jetbrains.plugins.ruby.settings.RubyActiveModuleSdkConfigurable" />
@@ -67,7 +79,7 @@
       <recent name="$PROJECT_DIR$/doc/images" />
     </key>
   </component>
-  <component name="RunManager" selected="IRB.IRB console: Panorama">
+  <component name="RunManager" selected="Rails.Development: Panorama">
     <configuration default="true" type="docker-deploy" factoryName="Docker Deployment">
       <method />
     </configuration>
@@ -80,11 +92,12 @@
       <IRB_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
       <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
       <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
-      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov">
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov" ENABLE_FORKED_COVERAGE="true">
         <COVERAGE_PATTERN ENABLED="true">
           <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
         </COVERAGE_PATTERN>
       </EXTENSION>
+      <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
       <IRB_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/bin/rails" />
       <IRB_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="console" />
       <IRB_RUN_CONFIG NAME="IS_RAILS_CONSOLE" VALUE="true" />
@@ -100,13 +113,13 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="IRB.Rails console: Panorama" />
-      <item itemvalue="IRB.IRB console: Panorama" />
       <item itemvalue="Rails.Production: Panorama" />
       <item itemvalue="Rails.Development: Panorama" />
       <item itemvalue="Rake.spec: Panorama" />
       <item itemvalue="Rake.test: Panorama" />
       <item itemvalue="Ruby.warble" />
+      <item itemvalue="Ruby Console.IRB console: Panorama" />
+      <item itemvalue="Ruby Console.Rails console: Panorama" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -297,14 +310,9 @@
       <workItem from="1600976381311" duration="11000" />
       <workItem from="1600977106545" duration="596000" />
       <workItem from="1601278453541" duration="581000" />
-      <workItem from="1601448887431" duration="1264000" />
-    </task>
-    <task id="LOCAL-00001" summary="Initiale commit">
-      <created>1420547337937</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1420547337937</updated>
+      <workItem from="1601448887431" duration="1923000" />
+      <workItem from="1608555872380" duration="19686000" />
+      <workItem from="1608710632558" duration="1596000" />
     </task>
     <task id="LOCAL-00002" summary="Readme">
       <created>1420547951837</created>
@@ -642,7 +650,14 @@
       <option name="project" value="LOCAL" />
       <updated>1601468031014</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="secret key base used">
+      <created>1601473121957</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1601473121957</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="TodoView">
@@ -693,23 +708,6 @@
     <MESSAGE value="secret key base used" />
     <option name="LAST_COMMIT_MESSAGE" value="secret key base used" />
   </component>
-  <component name="WindowStateProjectService">
-    <state x="585" y="80" key="CommitChangelistDialog2" timestamp="1601468030823">
-      <screen x="0" y="23" width="2494" height="1417" />
-    </state>
-    <state x="383" y="64" key="CommitChangelistDialog2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974771298" />
-    <state x="585" y="80" key="CommitChangelistDialog2/0.23.2494.1417/-1680.254.1680.1027@0.23.2494.1417" timestamp="1601468030823" />
-    <state x="586" y="80" key="CommitChangelistDialog2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478462245" />
-    <state x="585" y="175" key="SettingsEditor" timestamp="1600757565417">
-      <screen x="0" y="23" width="2498" height="1417" />
-    </state>
-    <state x="585" y="175" key="SettingsEditor/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1600757565417" />
-    <state x="447" y="206" key="Vcs.Push.Dialog.v2" timestamp="1600974722270">
-      <screen x="0" y="23" width="1633" height="1027" />
-    </state>
-    <state x="447" y="206" key="Vcs.Push.Dialog.v2/0.23.1633.1027@0.23.1633.1027" timestamp="1600974722270" />
-    <state x="684" y="276" key="Vcs.Push.Dialog.v2/0.23.2498.1417/-1680.254.1680.1027@0.23.2498.1417" timestamp="1599478466431" />
-  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
@@ -718,12 +716,26 @@
           <line>19</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$USER_HOME$/.rvm/gems/jruby-9.2.14.0/gems/sprockets-4.0.2/lib/sprockets/uri_utils.rb</url>
+          <line>79</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="RubyRunConfigurationType">
         <watch expression="cached_path" language="ruby" />
       </configuration>
+      <configuration name="RailsRunConfigurationType">
+        <watch expression="source.specs.specs.keys.sort" language="ruby" />
+      </configuration>
     </watches-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Panorama@Development__Panorama.rcov" NAME="Development: Panorama Coverage Results" MODIFIED="1608584957380" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Panorama" />
   </component>
 </project>

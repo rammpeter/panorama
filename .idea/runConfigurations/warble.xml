@@ -1,21 +1,21 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="warble" type="RubyRunConfigurationType" factoryName="Ruby">
     <module name="Panorama" />
-    <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="-e $stdout.sync=true;$stderr.sync=true;load($0=ARGV.shift)" />
+    <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="" />
     <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="" />
     <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="true" />
     <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="RVM: jruby-9.1.8.0" />
     <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
-    <envs />
     <EXTENSION ID="BundlerRunConfigurationExtension" bundleExecEnabled="false" />
     <EXTENSION ID="JRubyRunConfigurationExtension" NailgunExecEnabled="false" />
-    <EXTENSION ID="RubyCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" track_test_folders="true" runner="rcov">
+    <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov" ENABLE_FORKED_COVERAGE="true">
       <COVERAGE_PATTERN ENABLED="true">
         <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
       </COVERAGE_PATTERN>
     </EXTENSION>
+    <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
     <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$USER_HOME$/.rvm/gems/jruby-9.1.8.0/bin/warble" />
     <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
-    <method />
+    <method v="2" />
   </configuration>
 </component>
