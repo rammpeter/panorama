@@ -212,7 +212,7 @@
     <orderEntry type="library" scope="PROVIDED" name="minitest (v5.14.2, RVM: jruby-9.2.14.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nio4r (v2.5.4, RVM: jruby-9.2.14.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="nokogiri (v1.10.10, RVM: jruby-9.2.14.0) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="panorama_gem (v2.10.3@8ae38b, RVM: jruby-9.2.14.0) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="panorama_gem (v2.10.3@8fb5c4, RVM: jruby-9.2.14.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="puma (v5.1.1, RVM: jruby-9.2.14.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack (v2.2.3, RVM: jruby-9.2.14.0) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-test (v1.1.0, RVM: jruby-9.2.14.0) [gem]" level="application" />

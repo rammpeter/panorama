@@ -1,20 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="secret key base used">
-      <change afterPath="$PROJECT_DIR$/.ruby-version" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/assets/config/manifest.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bin/yarn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.generators" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.rakeTasks" beforeDir="false" />
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Move to jruby 9.2.14.0 and next rails version">
       <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/warble.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/warble.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gemfile" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_war.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_war.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/initializers/assets.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/assets.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/warble.rb" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -313,13 +303,8 @@
       <workItem from="1601448887431" duration="1923000" />
       <workItem from="1608555872380" duration="19686000" />
       <workItem from="1608710632558" duration="1596000" />
-    </task>
-    <task id="LOCAL-00002" summary="Readme">
-      <created>1420547951837</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1420547951837</updated>
+      <workItem from="1609246760093" duration="182000" />
+      <workItem from="1609538352385" duration="363000" />
     </task>
     <task id="LOCAL-00003" summary="Wiki">
       <created>1420549343412</created>
@@ -657,7 +642,14 @@
       <option name="project" value="LOCAL" />
       <updated>1601473121957</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="Move to jruby 9.2.14.0 and next rails version">
+      <created>1609246933667</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1609246933668</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TodoView">
@@ -681,7 +673,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Reconstruct readme&#10;" />
     <MESSAGE value="Use also native images in public/assets" />
     <MESSAGE value="remove sprocket manifest before build" />
     <MESSAGE value="require Engine in routes.rb" />
@@ -706,7 +697,8 @@
     <MESSAGE value="Switch to openjdk 16&#10;User panorama removed due to missing system utilities" />
     <MESSAGE value="secret key base generated as fallback" />
     <MESSAGE value="secret key base used" />
-    <option name="LAST_COMMIT_MESSAGE" value="secret key base used" />
+    <MESSAGE value="Move to jruby 9.2.14.0 and next rails version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Move to jruby 9.2.14.0 and next rails version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
