@@ -11,7 +11,9 @@
 FROM	openjdk:16
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
-RUN     mkdir /opt/panorama              &&\
+# There is no yum in openjdk images starting with openjdk:14
+RUN     microdnf update             && \
+        mkdir /opt/panorama         && \
         mkdir /var/opt/panorama
 
 # USER    panorama          # No useradd or yum command supported in openjdk images yet

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Move to jruby 9.2.14.0 and next rails version">
-      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="include fonts into asset pipeline">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/initializers/assets.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/assets.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -304,14 +303,8 @@
       <workItem from="1608555872380" duration="19686000" />
       <workItem from="1608710632558" duration="1596000" />
       <workItem from="1609246760093" duration="182000" />
-      <workItem from="1609538352385" duration="363000" />
-    </task>
-    <task id="LOCAL-00003" summary="Wiki">
-      <created>1420549343412</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1420549343412</updated>
+      <workItem from="1609538352385" duration="395000" />
+      <workItem from="1609944091407" duration="75000" />
     </task>
     <task id="LOCAL-00004" summary="Readme">
       <created>1420718421411</created>
@@ -649,7 +642,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609246933668</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="include fonts into asset pipeline">
+      <created>1609538749297</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1609538749298</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="TodoView">
@@ -673,7 +673,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Use also native images in public/assets" />
     <MESSAGE value="remove sprocket manifest before build" />
     <MESSAGE value="require Engine in routes.rb" />
     <MESSAGE value="Runnable with Linux" />
@@ -698,7 +697,8 @@
     <MESSAGE value="secret key base generated as fallback" />
     <MESSAGE value="secret key base used" />
     <MESSAGE value="Move to jruby 9.2.14.0 and next rails version" />
-    <option name="LAST_COMMIT_MESSAGE" value="Move to jruby 9.2.14.0 and next rails version" />
+    <MESSAGE value="include fonts into asset pipeline" />
+    <option name="LAST_COMMIT_MESSAGE" value="include fonts into asset pipeline" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
