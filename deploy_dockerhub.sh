@@ -30,14 +30,16 @@ if [ $? -ne 0 ]; then
 fi
 
 docker push rammpeter/panorama:latest
+if [ $? -ne 0 ]; then
+  echo "########## error while docker push :latest ##########"
+  exit 1
+fi
 docker push rammpeter/panorama:$PANORAMA_VERSION
+if [ $? -ne 0 ]; then
+  echo "########## error while docker push :$PANORAMA_VERSION ##########"
+  exit 1
+fi
 
-# Aktualisierung Dockerhub.osp-dd.de
-docker tag rammpeter/panorama:latest dockerhub.osp-dd.de/pramm/panorama:latest
-docker tag rammpeter/panorama:latest dockerhub.osp-dd.de/pramm/panorama:$PANORAMA_VERSION
-
-docker push dockerhub.osp-dd.de/pramm/panorama:latest
-docker push dockerhub.osp-dd.de/pramm/panorama:$PANORAMA_VERSION
 
 
 
