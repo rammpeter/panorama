@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="include fonts into asset pipeline">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="use microdnf for updating docker image">
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/initializers/cookies_serializer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/cookies_serializer.rb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,7 +91,7 @@
       <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
       <IRB_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/bin/rails" />
       <IRB_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="console" />
-      <IRB_RUN_CONFIG NAME="IS_RAILS_CONSOLE" VALUE="true" />
+      <IRB_RUN_CONFIG NAME="CONSOLE_TYPE" VALUE="RAILS" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp">
@@ -305,13 +307,10 @@
       <workItem from="1609246760093" duration="182000" />
       <workItem from="1609538352385" duration="395000" />
       <workItem from="1609944091407" duration="75000" />
-    </task>
-    <task id="LOCAL-00004" summary="Readme">
-      <created>1420718421411</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1420718421411</updated>
+      <workItem from="1609944175739" duration="28000" />
+      <workItem from="1613735511717" duration="20000" />
+      <workItem from="1614981007210" duration="147000" />
+      <workItem from="1615133188207" duration="8000" />
     </task>
     <task id="LOCAL-00005" summary="Use rails42 branch of oracle adapter">
       <created>1424859277843</created>
@@ -649,7 +648,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609538749298</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="use microdnf for updating docker image">
+      <created>1609944197999</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1609944197999</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TodoView">
@@ -673,7 +679,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="remove sprocket manifest before build" />
     <MESSAGE value="require Engine in routes.rb" />
     <MESSAGE value="Runnable with Linux" />
     <MESSAGE value="Runnable with Linux: Completed for Oracle Linux" />
@@ -698,7 +703,8 @@
     <MESSAGE value="secret key base used" />
     <MESSAGE value="Move to jruby 9.2.14.0 and next rails version" />
     <MESSAGE value="include fonts into asset pipeline" />
-    <option name="LAST_COMMIT_MESSAGE" value="include fonts into asset pipeline" />
+    <MESSAGE value="use microdnf for updating docker image" />
+    <option name="LAST_COMMIT_MESSAGE" value="use microdnf for updating docker image" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
