@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="use microdnf for updating docker image">
-      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="cookies_same_site_protection = :lax">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/initializers/cookies_serializer.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/cookies_serializer.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/initializers/assets.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/assets.rb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -311,13 +309,8 @@
       <workItem from="1613735511717" duration="20000" />
       <workItem from="1614981007210" duration="147000" />
       <workItem from="1615133188207" duration="8000" />
-    </task>
-    <task id="LOCAL-00005" summary="Use rails42 branch of oracle adapter">
-      <created>1424859277843</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1424859277843</updated>
+      <workItem from="1615207708257" duration="640000" />
+      <workItem from="1615472407526" duration="602000" />
     </task>
     <task id="LOCAL-00006" summary="Switch from jetty to winstone application server">
       <created>1425311531942</created>
@@ -655,7 +648,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609944197999</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="cookies_same_site_protection = :lax">
+      <created>1615207747700</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1615207747700</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="TodoView">
@@ -679,7 +679,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="require Engine in routes.rb" />
     <MESSAGE value="Runnable with Linux" />
     <MESSAGE value="Runnable with Linux: Completed for Oracle Linux" />
     <MESSAGE value="Runnable with Linux: Completed for Oracle Linux, comments removed" />
@@ -704,7 +703,8 @@
     <MESSAGE value="Move to jruby 9.2.14.0 and next rails version" />
     <MESSAGE value="include fonts into asset pipeline" />
     <MESSAGE value="use microdnf for updating docker image" />
-    <option name="LAST_COMMIT_MESSAGE" value="use microdnf for updating docker image" />
+    <MESSAGE value="cookies_same_site_protection = :lax" />
+    <option name="LAST_COMMIT_MESSAGE" value="cookies_same_site_protection = :lax" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
