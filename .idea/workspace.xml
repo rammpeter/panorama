@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="cookies_same_site_protection = :lax">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="woff2 added to assets">
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/initializers/assets.rb" beforeDir="false" afterPath="$PROJECT_DIR$/config/initializers/assets.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.ruby-version" beforeDir="false" afterPath="$PROJECT_DIR$/.ruby-version" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -310,14 +312,8 @@
       <workItem from="1614981007210" duration="147000" />
       <workItem from="1615133188207" duration="8000" />
       <workItem from="1615207708257" duration="640000" />
-      <workItem from="1615472407526" duration="602000" />
-    </task>
-    <task id="LOCAL-00006" summary="Switch from jetty to winstone application server">
-      <created>1425311531942</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1425311531942</updated>
+      <workItem from="1615472407526" duration="620000" />
+      <workItem from="1616145908999" duration="1216000" />
     </task>
     <task id="LOCAL-00007" summary="https-mode only comments, error with Java 8 in self created certificate">
       <created>1425369448639</created>
@@ -655,7 +651,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615207747700</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="woff2 added to assets">
+      <created>1615473022110</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1615473022110</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TodoView">
@@ -679,7 +682,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Runnable with Linux" />
     <MESSAGE value="Runnable with Linux: Completed for Oracle Linux" />
     <MESSAGE value="Runnable with Linux: Completed for Oracle Linux, comments removed" />
     <MESSAGE value="warbler: without app dir" />
@@ -704,7 +706,8 @@
     <MESSAGE value="include fonts into asset pipeline" />
     <MESSAGE value="use microdnf for updating docker image" />
     <MESSAGE value="cookies_same_site_protection = :lax" />
-    <option name="LAST_COMMIT_MESSAGE" value="cookies_same_site_protection = :lax" />
+    <MESSAGE value="woff2 added to assets" />
+    <option name="LAST_COMMIT_MESSAGE" value="woff2 added to assets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
