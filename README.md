@@ -17,3 +17,7 @@ More information about Panorama you may find at https://rammpeter.github.io/
 This GitHub-project is intended to build a bundled web archive file with integrated JETTY application server.
 Function is included as Rails-engine via Panorama-gem at https://github.com/rammpeter/Panorama_Gem
 
+<b>Download:</b>
+
+Download Panorama.war from https://rammpeter.github.io/panorama_download.html or from latest release of this site.
+The easier way would be to use it as Docker container from https://hub.docker.com/repository/docker/rammpeter/panorama.

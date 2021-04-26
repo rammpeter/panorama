@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="jruby 9.2.16.0">
+    <list default="true" id="c648cfde-9d9b-4238-865a-e0c8e746b634" name="Default" comment="Switch to jRuby 9.2.17.0">
+      <change beforePath="$PROJECT_DIR$/.idea/Panorama.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Panorama.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.ruby-version" beforeDir="false" afterPath="$PROJECT_DIR$/.ruby-version" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gemfile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -312,14 +314,8 @@
       <workItem from="1615207708257" duration="640000" />
       <workItem from="1615472407526" duration="620000" />
       <workItem from="1616145908999" duration="1240000" />
-      <workItem from="1618244471429" duration="19000" />
-    </task>
-    <task id="LOCAL-00008" summary="Switch to jruby 1.7.20">
-      <created>1431422949537</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1431422949537</updated>
+      <workItem from="1618244471429" duration="693000" />
+      <workItem from="1619439888870" duration="408000" />
     </task>
     <task id="LOCAL-00009" summary="Switch to jruby 1.7.20">
       <created>1431423767359</created>
@@ -657,7 +653,14 @@
       <option name="project" value="LOCAL" />
       <updated>1616244022364</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="Switch to jRuby 9.2.17.0">
+      <created>1618244517726</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1618244517727</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="TodoView">
@@ -681,7 +684,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Runnable with Linux: Completed for Oracle Linux, comments removed" />
     <MESSAGE value="warbler: without app dir" />
     <MESSAGE value="max. 4 runtime processes" />
     <MESSAGE value="remove turbolinks" />
@@ -706,7 +708,8 @@
     <MESSAGE value="cookies_same_site_protection = :lax" />
     <MESSAGE value="woff2 added to assets" />
     <MESSAGE value="jruby 9.2.16.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="jruby 9.2.16.0" />
+    <MESSAGE value="Switch to jRuby 9.2.17.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="Switch to jRuby 9.2.17.0" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
