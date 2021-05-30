@@ -63,6 +63,7 @@ GEM
     crass (1.0.6)
     erubi (1.10.0)
     execjs (2.8.0)
+    ffi (1.15.0)
     ffi (1.15.0-java)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
@@ -85,11 +86,17 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.0)
     minitest (5.14.4)
+    nio4r (2.5.7)
     nio4r (2.5.7-java)
-    nokogiri (1.11.3-java)
+    nokogiri (1.11.6-java)
       racc (~> 1.4)
+    nokogiri (1.11.6-x86_64-linux)
+      racc (~> 1.4)
+    puma (5.3.0)
+      nio4r (~> 2.0)
     puma (5.3.0-java)
       nio4r (~> 2.0)
+    racc (1.5.2)
     racc (1.5.2-java)
     rack (2.2.3)
     rack-test (1.1.0)
@@ -143,6 +150,7 @@ GEM
 
 PLATFORMS
   universal-java-15
+  x86_64-linux
 
 DEPENDENCIES
   jbuilder
