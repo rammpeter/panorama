@@ -5,7 +5,7 @@ Web-tool for monitoring performance issues of Oracle databases.
 Provides easy access to several internal information.<br>
 Aims to issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager.
 
-More information about Panorama you may find at https://rammpeter.github.io/
+More information about Panorama you may find at https://rammpeter.github.io/panorama.html
 
 <b>The application:</b>
 - implemented with Ruby on Rails
@@ -19,5 +19,5 @@ Function is included as Rails-engine via Panorama-gem at https://github.com/ramm
 
 <b>Download:</b>
 
-Download Panorama.war from https://rammpeter.github.io/panorama_download.html or from latest release of this site.
+Download Panorama.war from https://github.com/rammpeter/panorama/releases/latest/download/Panorama.war.
 The easier way would be to use it as Docker container from https://hub.docker.com/repository/docker/rammpeter/panorama.
