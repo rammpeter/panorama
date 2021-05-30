@@ -21,6 +21,7 @@ pickle-email-*.html
 Usage.log
 Panorama.war
 Panorama_jetty.log
+start_Panorama.bat
 
 client_info.store/*
 /.bundle
