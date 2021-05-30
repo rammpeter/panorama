@@ -8,15 +8,18 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Update Github command line tool
+echo "Update Github command line tool"
 brew upgrade gh
 
 # Panorama-Version
 PANORAMA_VERSION=`grep "panorama_gem (" Gemfile.lock | sed 's/    panorama_gem (//' | sed 's/)//'`
 echo "Panorama version = $PANORAMA_VERSION"
 
-gh release create v$PANORAMA_VERSION './Panorama.war#war-file to start with java -jar Panorama.war' --notes "Continuous development" --title "Release $PANORAMA_VERSION"
-if [ $? -ne 0 ]; then
+echo "Create release"
+gh release create v$PANORAMA_VERSION './Panorama.war#Panorama.war: Download and start with "java -jar Panorama.war"' --notes "Continuous development" --title "Release $PANORAMA_VERSION"
+if [ $? -eq 0 ]; then
+  echo "Release created"
+else
   echo "Returncode != 0 for gh command"
 fi
 
