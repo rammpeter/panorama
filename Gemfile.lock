@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: e7bf966e62833e0c306ddbae0158c5146d24614f
+  revision: 62a7880b6abdd202b782e2e65f2c7939fcb4ee7b
   specs:
-    panorama_gem (2.10.59)
+    panorama_gem (2.10.66)
       actionmailer (= 6.1.3.2)
       actionpack (= 6.1.3.2)
       actionview (= 6.1.3.2)
@@ -143,6 +143,7 @@ GEM
 
 PLATFORMS
   universal-java-15
+  universal-java-16
 
 DEPENDENCIES
   jbuilder
