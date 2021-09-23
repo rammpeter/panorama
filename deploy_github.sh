@@ -1,5 +1,9 @@
 # Deploy a github release for Panorama
 
+git stage Gemfile.lock
+git commit -m "Next version" Gemfile.lock
+git push
+
 # Check if repository is up to date
 git status | grep "nothing to commit, working tree clean"
 if [ $? -ne 0 ]; then
