@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: ba34d98e2693ccfa0fdd83c2522f2e7f8133efbf
+  revision: d659333a7415b12fcc7f4d3da622dd28e9f969e7
   specs:
-    panorama_gem (2.10.87)
+    panorama_gem (2.10.89)
       actionmailer (= 6.1.4.1)
       actionpack (= 6.1.4.1)
       actionview (= 6.1.4.1)
@@ -12,7 +12,7 @@ GIT
       activerecord-nulldb-adapter
       activerecord-oracle_enhanced-adapter
       activesupport (= 6.1.4.1)
-      i18n (= 1.8.7)
+      i18n
       railties (= 6.1.4.1)
       sass-rails (~> 5.0)
 
@@ -63,10 +63,10 @@ GEM
     crass (1.0.6)
     erubi (1.10.0)
     execjs (2.8.1)
-    ffi (1.15.3-java)
+    ffi (1.15.4-java)
     globalid (0.5.2)
       activesupport (>= 5.0)
-    i18n (1.8.7)
+    i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     jbuilder (2.11.2)
       activesupport (>= 5.0.0)
@@ -86,9 +86,9 @@ GEM
     mini_mime (1.1.1)
     minitest (5.14.4)
     nio4r (2.5.8-java)
-    nokogiri (1.12.4-java)
+    nokogiri (1.12.5-java)
       racc (~> 1.4)
-    puma (5.4.0-java)
+    puma (5.5.0-java)
       nio4r (~> 2.0)
     racc (1.5.2-java)
     rack (2.2.3)
@@ -135,14 +135,14 @@ GEM
     tilt (2.0.10)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2021.1)
+    tzinfo-data (1.2021.2)
       tzinfo (>= 1.0.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
     zeitwerk (2.4.2)
 
 PLATFORMS
-  universal-java-16
+  universal-java-17
 
 DEPENDENCIES
   jbuilder
@@ -157,4 +157,4 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
 
 BUNDLED WITH
-   2.2.26
+   2.2.28
