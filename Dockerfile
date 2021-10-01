@@ -8,11 +8,12 @@
 # create container with tnsnames.ora from host and timezone set
 # > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
-FROM	openjdk:16
+#FROM	openjdk:16
+FROM   openjdk:17-jdk-alpine
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
-# There is no yum in openjdk images starting with openjdk:14
-RUN     microdnf update             && \
+# There is no yum in openjdk images starting with openjdk:14, microdnf update instead
+RUN     apk update && apk upgrade && apk add bash && \
         mkdir /opt/panorama         && \
         mkdir /var/opt/panorama
 
