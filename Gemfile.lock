@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: d659333a7415b12fcc7f4d3da622dd28e9f969e7
+  revision: 7247190748b3f3ed3c96ed5d04c840c3b8b8019a
   specs:
-    panorama_gem (2.10.89)
+    panorama_gem (2.10.90)
       actionmailer (= 6.1.4.1)
       actionpack (= 6.1.4.1)
       actionview (= 6.1.4.1)
@@ -83,14 +83,14 @@ GEM
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     method_source (1.0.0)
-    mini_mime (1.1.1)
+    mini_mime (1.1.2)
     minitest (5.14.4)
     nio4r (2.5.8-java)
     nokogiri (1.12.5-java)
       racc (~> 1.4)
-    puma (5.5.0-java)
+    puma (5.5.2-java)
       nio4r (~> 2.0)
-    racc (1.5.2-java)
+    racc (1.6.0-java)
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -135,11 +135,11 @@ GEM
     tilt (2.0.10)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2021.2)
+    tzinfo-data (1.2021.4)
       tzinfo (>= 1.0.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
-    zeitwerk (2.4.2)
+    zeitwerk (2.5.1)
 
 PLATFORMS
   universal-java-17
