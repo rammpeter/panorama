@@ -13,7 +13,7 @@ FROM   openjdk:17-jdk-alpine
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
 # There is no yum in openjdk images starting with openjdk:14, microdnf update instead
-RUN     apk update && apk upgrade && apk add bash && \
+RUN     apk update && apk upgrade && apk add bash curl && \
         mkdir /opt/panorama         && \
         mkdir /var/opt/panorama
 
