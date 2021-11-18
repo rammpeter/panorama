@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gem 'panorama_gem', :git => 'http://github.com/rammpeter/Panorama_Gem'
 
 # Development-Variante mit direktem File-Zugriff
-#gem 'Panorama', path: '~/Documents/Projekte/rammpeter.github/Panorama_Gem'
+#gem 'panorama_gem', path: '~/Documents/Projekte/rammpeter.github/Panorama_Gem'
 
 # Use Puma as the app server
 gem 'puma'
@@ -18,9 +18,9 @@ gem 'jquery-rails'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder'
 # gem 'sass-rails', '>= 6'
-gem 'sass-rails', '~> 5.0'
+# gem 'sass-rails', '~> 5.0'
 # Use the deprecated sass instead of sassc because sassc is not compatible with warbler (pure ruby needed)
-gem 'sass'
+# gem 'sass'
 
 gem 'listen', group: :development
 

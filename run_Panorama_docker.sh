@@ -29,27 +29,28 @@ then
 fi
 echo "max. Java heap space set to $MAX_JAVA_HEAP_SPACE_MB megabytes"
 
+export RAILS_LOG_TO_STDOUT_AND_FILE=true
+export RAILS_SERVE_STATIC_FILES=true
+export RAILS_MIN_THREADS=10
+# Default for RAILS_MAX_THREADS is set as ENV in Dockerfile
+
 # Optional Parameter:
 # -XX:ReservedCodeCacheSize=48M			Default = 48M, Buffer for JIT compiled code
 # -XX:+ UseCodeCacheFlushing			Flush old / unused code to enable JIT compilation of current code
 # -Xmx1024m					Maximum heap space
 # -Xms1024m					Initial heap space
 # -Djruby.compile.fastest=true			(EXPERIMENTAL) Turn on all experimental compiler optimizations.
-# -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events. 
+# -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events.
 # -Xcompile.invokedynamic=true                  Use invokedynamic for optimizing Ruby code., erroneous with Panorama
 # -Dwarbler.port=<port>                         Set http-port to use
 
-# Variant for Jetty app-server, start Panorama-server in Background
-CMD="java -Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
-     -XX:ReservedCodeCacheSize=80M \
-     -Djruby.compile.fastest=true \
-     -Djruby.compile.threadless=true \
-     -Djava.io.tmpdir=$PANORAMA_HOME/work \
-     -Dwarbler.port=$HTTP_PORT \
-     -jar $PANORAMA_HOME/Panorama.war "
+export JAVA_OPTS="-Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
+                  -XX:ReservedCodeCacheSize=80M \
+                  -Djruby.compile.fastest=true \
+                  -Djruby.compile.threadless=true"
 
+CMD="bundle exec rails server --port $HTTP_PORT --environment production"
 echo "Starting $CMD"
-exec $CMD 
-
-# docker stop will cancel running jetty
-
+# "exec ..." ensures that rails server runs in the same process like shell script before
+# this ensures that application is gracefully shut down at docker stop
+exec $CMD

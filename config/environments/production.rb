@@ -22,7 +22,7 @@ Rails.application.configure do
   config.public_file_server.enabled = true
 
   # Compress JavaScripts and CSS.
-  config.assets.js_compressor = :uglifier
+  # config.assets.js_compressor = :uglifier
   # config.assets.css_compressor = :sass
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
@@ -75,12 +75,9 @@ Rails.application.configure do
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   # config.log_formatter = ::Logger::Formatter.new
-
   config.log_formatter = proc do |severity, datetime, progname, msg|
-    # date and thread are not logged because it is done by jetty
-    #date_format = datetime.strftime("%Y-%m-%d %H:%M:%S")
-    #"[#{date_format}] #{severity} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
-    "#{msg}\n"
+    date_format = datetime.strftime("%Y-%m-%d %H:%M:%S.%3N")
+    "[#{date_format}] #{severity} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
   end
 
   # Use a different logger for distributed setups.
@@ -91,6 +88,16 @@ Rails.application.configure do
     logger           = ActiveSupport::Logger.new(STDOUT)
     logger.formatter = config.log_formatter
     config.logger = ActiveSupport::TaggedLogging.new(logger)
+  end
+
+  if ENV["RAILS_LOG_TO_STDOUT_AND_FILE"].present?
+    console_logger = ActiveSupport::Logger.new(STDOUT)
+    console_logger.formatter = config.log_formatter
+    tagged_console_logger = ActiveSupport::TaggedLogging.new(console_logger)
+    file_logger = ActiveSupport::Logger.new( Rails.root.join("log", Rails.env + ".log" ), 5 , 10*1024*1024 )  # max. 50 MB logfile ( 5 files á 10 MB)
+    file_logger.formatter = config.log_formatter
+    combined_logger = tagged_console_logger.extend(ActiveSupport::Logger.broadcast(file_logger))
+    config.logger = combined_logger
   end
 
   # Do not dump schema after migrations.
