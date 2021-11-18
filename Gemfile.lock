@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: 2af0afb486f9e1b2bc41641e0db0f343750cd123
+  revision: 050ef5d4f9e961085bd69c331b7616ebbde9953f
   specs:
-    panorama_gem (2.10.94)
+    panorama_gem (2.10.99)
       actionmailer (= 6.1.4.1)
       actionpack (= 6.1.4.1)
       actionview (= 6.1.4.1)
@@ -66,9 +66,9 @@ GEM
     ffi (1.15.4-java)
     globalid (0.5.2)
       activesupport (>= 5.0)
-    i18n (1.8.10)
+    i18n (1.8.11)
       concurrent-ruby (~> 1.0)
-    jbuilder (2.11.2)
+    jbuilder (2.11.3)
       activesupport (>= 5.0.0)
     jquery-rails (4.4.0)
       rails-dom-testing (>= 1, < 3)
@@ -124,9 +124,9 @@ GEM
     sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-rails (3.2.2)
-      actionpack (>= 4.0)
-      activesupport (>= 4.0)
+    sprockets-rails (3.4.0)
+      actionpack (>= 5.2)
+      activesupport (>= 5.2)
       sprockets (>= 3.0.0)
     therubyrhino (2.1.2)
       therubyrhino_jar (>= 1.7.4, < 1.7.9)
@@ -135,7 +135,7 @@ GEM
     tilt (2.0.10)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2021.4)
+    tzinfo-data (1.2021.5)
       tzinfo (>= 1.0.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
@@ -150,11 +150,9 @@ DEPENDENCIES
   listen
   panorama_gem!
   puma
-  sass
-  sass-rails (~> 5.0)
   therubyrhino
   tzinfo-data
   uglifier (>= 1.3.0)
 
 BUNDLED WITH
-   2.2.29
+   2.2.31
