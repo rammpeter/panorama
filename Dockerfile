@@ -58,11 +58,11 @@ COPY ${BACKEND_SRC_PATH} .
 RUN  bundle exec rake assets:precompile
 
 RUN echo "### reduce storage / remove unnecessary packages" && \
-    rm -f /usr/java/latest/lib/src.zip && \
-    rm -f Panorama.war && \
-    rm -f Panorama.log && \
-    rm -f Usage.log && \
-    rm -rf tmp/cache/*
+    rm -f /usr/java/latest/lib/src.zip                      && \
+    rm -f Panorama.war                                      && \
+    rm -f Panorama.log                                      && \
+    rm -f Usage.log                                         && \
+    rm -rf tmp/cache/*                                      && \
     rm -rf log/*
 
 FROM oraclelinux:8-slim as run_stage
