@@ -63,6 +63,7 @@ RUN echo "### reduce storage / remove unnecessary packages" && \
     rm -f Panorama.log && \
     rm -f Usage.log && \
     rm -rf tmp/cache/*
+    rm -rf log/*
 
 FROM oraclelinux:8-slim as run_stage
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
@@ -70,13 +71,16 @@ MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 ENV JRUBY_VERSION   9.3.1.0
 ENV PATH            "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 ENV JAVA_HOME       /usr/java/latest
+
+RUN   echo "### microdnf update" && \
+      microdnf update && \
+      echo "### Register java package" && \
+      alternatives --install /usr/bin/java java /usr/java/latest/bin/java 1
+
 WORKDIR /opt/panorama
 COPY --from=build_stage /usr/java                   /usr/java
 COPY --from=build_stage /opt/jruby-$JRUBY_VERSION   /opt/jruby-$JRUBY_VERSION
 COPY --from=build_stage /opt/panorama               /opt/panorama
-
-# Register java package
-RUN alternatives --install /usr/bin/java java /usr/java/latest/bin/java 1
 
 EXPOSE 8080/tcp
 

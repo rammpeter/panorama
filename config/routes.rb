@@ -37,4 +37,7 @@ Rails.application.routes.draw do
 
   root  'env#index'
 
+  # Ensure that URLs like http://localhost/Panorama also direct to root
+  get '/Panorama', to: redirect('/')
+
 end

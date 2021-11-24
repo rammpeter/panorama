@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: 050ef5d4f9e961085bd69c331b7616ebbde9953f
+  revision: f2dfa6903631aa2c9a1a6e69ecdd6d3ec676bdc8
   specs:
-    panorama_gem (2.10.99)
+    panorama_gem (2.11.02)
       actionmailer (= 6.1.4.1)
       actionpack (= 6.1.4.1)
       actionview (= 6.1.4.1)
@@ -124,7 +124,7 @@ GEM
     sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-rails (3.4.0)
+    sprockets-rails (3.4.1)
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
