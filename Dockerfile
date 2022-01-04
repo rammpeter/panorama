@@ -13,7 +13,7 @@ FROM oraclelinux:8-slim as build_stage
 ENV BACKEND_SRC_PATH=.
 # Default for RAILS_MAX_THREADS to work for every CMD in docker container
 ENV RAILS_MAX_THREADS=300
-ENV JRUBY_VERSION=9.3.1.0
+ENV JRUBY_VERSION=9.3.2.0
 ENV PATH "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 
 RUN  echo "### microdnf update" && \
@@ -35,10 +35,6 @@ RUN  echo "### microdnf update" && \
      ln -s /opt/jruby-$JRUBY_VERSION/bin/rake /opt/jruby-$JRUBY_VERSION/bin/jrake && \
      echo "### update installed system gems" && \
      gem update --system --no-doc && \
-     echo "### remove unnecessary gems" && \
-     gem uninstall -x -a ruby-maven ruby-maven-libs && \
-     echo "### update system gems to fix trivy findings" && \
-     gem update --no-doc rdoc && \
      echo "### install bundler gems" && \
      gem install --no-document bundler && \
      echo "### set .gemrc" && \
@@ -68,7 +64,7 @@ RUN echo "### reduce storage / remove unnecessary packages" && \
 FROM oraclelinux:8-slim as run_stage
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
-ENV JRUBY_VERSION   9.3.1.0
+ENV JRUBY_VERSION   9.3.2.0
 ENV PATH            "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 ENV JAVA_HOME       /usr/java/latest
 
