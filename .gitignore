@@ -13,6 +13,7 @@
 /tmp
 /work/*
 /.idea/*
+/public/assets/*
 /config/secret_key_base
 /config/secrets.yml
 **.orig
