@@ -13,7 +13,7 @@ FROM oraclelinux:8-slim as build_stage
 ENV BACKEND_SRC_PATH=.
 # Default for RAILS_MAX_THREADS to work for every CMD in docker container
 ENV RAILS_MAX_THREADS=300
-ENV JRUBY_VERSION=9.3.2.0
+ARG JRUBY_VERSION
 ENV PATH "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 
 RUN  echo "### microdnf update" && \
@@ -64,7 +64,7 @@ RUN echo "### reduce storage / remove unnecessary packages" && \
 FROM oraclelinux:8-slim as run_stage
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
-ENV JRUBY_VERSION   9.3.2.0
+ARG JRUBY_VERSION
 ENV PATH            "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 ENV JAVA_HOME       /usr/java/latest
 
@@ -74,6 +74,7 @@ RUN   echo "### microdnf update" && \
       alternatives --install /usr/bin/java java /usr/java/latest/bin/java 1
 
 WORKDIR /opt/panorama
+COPY --from=build_stage /root                       /root
 COPY --from=build_stage /usr/java                   /usr/java
 COPY --from=build_stage /opt/jruby-$JRUBY_VERSION   /opt/jruby-$JRUBY_VERSION
 COPY --from=build_stage /opt/panorama               /opt/panorama

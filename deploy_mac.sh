@@ -11,4 +11,4 @@ $GF_HOME/bin/asadmin deploy Panorama.war
 $GF_HOME/bin/asadmin stop-domain 
 $GF_HOME/bin/asadmin start-domain
 
-open "http://localhost:8080/panorama"
+open "http://localhost:8080"

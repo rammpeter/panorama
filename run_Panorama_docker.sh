@@ -49,7 +49,7 @@ export JAVA_OPTS="-Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
                   -Djruby.compile.fastest=true \
                   -Djruby.compile.threadless=true"
 
-CMD="bundle exec rails server --port $HTTP_PORT --environment production"
+CMD="bundle exec bin/rails server --port $HTTP_PORT --environment production"
 echo "Starting $CMD"
 # "exec ..." ensures that rails server runs in the same process like shell script before
 # this ensures that application is gracefully shut down at docker stop

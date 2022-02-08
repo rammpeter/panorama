@@ -6,7 +6,10 @@ for FROM in `grep "^FROM" Dockerfile | awk '{print $2}' | tail -n1`; do
   docker pull $FROM
 done
 
-docker build -t rammpeter/panorama .
+JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+echo JRUBY_VERSION=$JRUBY_VERSION
+
+docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t rammpeter/panorama .
 RC=$?
 if [ $RC -ne 0 ]
 then
