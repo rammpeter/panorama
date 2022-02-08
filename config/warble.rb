@@ -4,6 +4,10 @@
 # Workaround to fix: NoMethodError: undefined method `new_ostruct_member' for No value for 'public' found
 # https://github.com/jruby/warbler/issues/508
 # TODO: Remove after new_ostruct_member problem ist fixed in warbler
+#
+# Workaround works for warbler but not for Panorama.war
+# Alternative: build war file on Linux with jRuby 9.2.2.0
+=begin
 class Warbler::Traits::War::WebxmlOpenStruct
   def new_ostruct_member(name)
     unless @table.key?(name) || is_method_protected!(name)
@@ -18,7 +22,7 @@ class Warbler::Traits::War::WebxmlOpenStruct
     end
   end
 end
-
+=end
 
 # Warbler web application assembly configuration file
 Warbler::Config.new do |config|
