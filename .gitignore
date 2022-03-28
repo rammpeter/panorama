@@ -27,6 +27,7 @@ start_Panorama.bat
 client_info.store/*
 /.bundle
 /vendor/bundle
+node_modules
 
 .rvmrc
 
