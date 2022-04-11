@@ -10,16 +10,7 @@
 =begin
 class Warbler::Traits::War::WebxmlOpenStruct
   def new_ostruct_member(name)
-    unless @table.key?(name) || is_method_protected!(name)
-      getter_proc = Proc.new { @table[name] }
-      setter_proc = Proc.new {|x| @table[name] = x}
-      if defined?(::Ractor)
-        ::Ractor.make_shareable(getter_proc)
-        ::Ractor.make_shareable(setter_proc)
-      end
-      define_singleton_method!(name, &getter_proc)
-      define_singleton_method!("#{name}=", &setter_proc)
-    end
+    send(:new_ostruct_member!, name)
   end
 end
 =end

@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: a458212011dec508bc73ddc66bb78bd2565f8dff
+  revision: e0dc9c7f6728ad73616b926a03802547ed73bf31
   specs:
-    panorama_gem (2.13.16)
+    panorama_gem (2.14.1)
       actionmailer (= 6.1.5)
       actionpack (= 6.1.5)
       actionview (= 6.1.5)
@@ -78,7 +78,7 @@ GEM
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.15.0)
+    loofah (2.16.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
@@ -89,7 +89,7 @@ GEM
     nio4r (2.5.8-java)
     nokogiri (1.13.3-java)
       racc (~> 1.4)
-    puma (5.6.2-java)
+    puma (5.6.4-java)
       nio4r (~> 2.0)
     racc (1.6.0-java)
     rack (2.2.3)
@@ -143,7 +143,7 @@ GEM
     zeitwerk (2.5.4)
 
 PLATFORMS
-  universal-java-17
+  universal-java-18
 
 DEPENDENCIES
   jbuilder
