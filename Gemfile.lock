@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: e0dc9c7f6728ad73616b926a03802547ed73bf31
+  revision: 4bbf88cb3af311aef0373cab6cfd761db3160ed8
   specs:
-    panorama_gem (2.14.1)
+    panorama_gem (2.14.2)
       actionmailer (= 6.1.5)
       actionpack (= 6.1.5)
       actionview (= 6.1.5)
@@ -87,7 +87,7 @@ GEM
     mini_mime (1.1.2)
     minitest (5.15.0)
     nio4r (2.5.8-java)
-    nokogiri (1.13.3-java)
+    nokogiri (1.13.4-java)
       racc (~> 1.4)
     puma (5.6.4-java)
       nio4r (~> 2.0)
