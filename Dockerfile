@@ -24,6 +24,7 @@ RUN  echo "### microdnf update" && \
      echo "### install java" && \
      wget https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.rpm && \
      rpm -Uvh jdk-17_linux-x64_bin.rpm && rm jdk-17_linux-x64_bin.rpm && \
+     java -version && \
      echo "### install jruby" && \
      cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz && \
      cd /opt && tar -xvf jruby-dist-$JRUBY_VERSION-bin.tar.gz && rm jruby-dist-$JRUBY_VERSION-bin.tar.gz && \
