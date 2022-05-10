@@ -11,8 +11,6 @@
 FROM oraclelinux:8-slim as build_stage
 
 ENV BACKEND_SRC_PATH=.
-# Default for RAILS_MAX_THREADS to work for every CMD in docker container
-ENV RAILS_MAX_THREADS=300
 ARG JRUBY_VERSION
 ENV PATH "$PATH:/opt/jruby-$JRUBY_VERSION/bin"
 
