@@ -9,7 +9,7 @@ done
 JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
 echo JRUBY_VERSION=$JRUBY_VERSION
 
-docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t rammpeter/panorama .
+docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION --progress=plain -t rammpeter/panorama .
 RC=$?
 if [ $RC -ne 0 ]
 then
