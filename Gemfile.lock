@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: dcac354b32aa43d1e302a7c865ec35b2f886a40c
+  revision: a87ceedf435c8fd87bf3d54b822115eefe8164a9
   specs:
-    panorama_gem (2.15.13)
+    panorama_gem (2.15.15)
       actionmailer (= 6.1.6.1)
       actionpack (= 6.1.6.1)
       actionview (= 6.1.6.1)
