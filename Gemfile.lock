@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: a87ceedf435c8fd87bf3d54b822115eefe8164a9
+  revision: a99efa13e74121ea51ccd9215f55b1f483e0e07c
   specs:
-    panorama_gem (2.15.15)
+    panorama_gem (2.15.18)
       actionmailer (= 6.1.6.1)
       actionpack (= 6.1.6.1)
       actionview (= 6.1.6.1)
@@ -78,7 +78,7 @@ GEM
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.18.0)
+    loofah (2.19.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
