@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: 40419981fd169738198448e0634ec4fe1a3be5b8
+  revision: ae7d64ec2c1e68b431b7a67652c7eadb88b61e9a
   specs:
-    panorama_gem (2.15.27)
+    panorama_gem (2.15.28)
       actionmailer (= 6.1.7)
       actionpack (= 6.1.7)
       actionview (= 6.1.7)
@@ -136,7 +136,7 @@ GEM
     tilt (2.0.11)
     tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2022.3)
+    tzinfo-data (1.2022.4)
       tzinfo (>= 1.0.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
@@ -156,4 +156,4 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
 
 BUNDLED WITH
-   2.3.21
+   2.3.22
