@@ -30,3 +30,8 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 # Build Panorama.war with warbler (./build_war.sh), Use warbler directly from git
 # gem install specific_install
 # gem specific_install https://github.com/jruby/warbler.git
+
+# Adding warbler this waay sadly doesn't install the executable warble
+#group :development do
+#  gem 'warbler', :git => 'https://github.com/jruby/warbler.git'
+#end
