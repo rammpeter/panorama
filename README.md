@@ -1,4 +1,4 @@
-Panorama
+Panorama for Oracle-DB
 ========
 
 Web-tool for monitoring performance issues of Oracle databases.
