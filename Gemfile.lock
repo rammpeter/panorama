@@ -1,8 +1,8 @@
 GIT
   remote: http://github.com/rammpeter/Panorama_Gem
-  revision: a508c308230d2d8fd8516390a723acba2e7f1b74
+  revision: 18f3643770735a0b3b280c951432a76027dc7fae
   specs:
-    panorama_gem (2.15.46)
+    panorama_gem (2.15.47)
       actionmailer (= 6.1.7)
       actionpack (= 6.1.7)
       actionview (= 6.1.7)
@@ -140,7 +140,7 @@ GEM
       tzinfo (>= 1.0.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
-    zeitwerk (2.6.5)
+    zeitwerk (2.6.6)
 
 PLATFORMS
   universal-java-19
