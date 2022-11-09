@@ -84,12 +84,6 @@ Rails.application.configure do
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
 
-  if ENV["RAILS_LOG_TO_STDOUT"].present?
-    logger           = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
-  end
-
   if ENV["RAILS_LOG_TO_STDOUT_AND_FILE"].present?
     console_logger = ActiveSupport::Logger.new(STDOUT)
     console_logger.formatter = config.log_formatter
@@ -98,6 +92,11 @@ Rails.application.configure do
     file_logger.formatter = config.log_formatter
     combined_logger = tagged_console_logger.extend(ActiveSupport::Logger.broadcast(file_logger))
     config.logger = combined_logger
+  else
+    # Behviour regularly controlled by RAILS_LOG_TO_STDOUT used as default to ensure newlines are not esacped with | in jetty
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger = ActiveSupport::TaggedLogging.new(logger)
   end
 
   # Do not dump schema after migrations.
