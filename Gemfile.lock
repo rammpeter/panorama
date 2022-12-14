@@ -62,9 +62,11 @@ GEM
     builder (3.2.4)
     concurrent-ruby (1.1.10)
     crass (1.0.6)
+    date (3.3.1)
     date (3.3.1-java)
     erubi (1.11.0)
     execjs (2.8.1)
+    ffi (1.15.5)
     ffi (1.15.5-java)
     globalid (1.0.0)
       activesupport (>= 5.0)
@@ -81,7 +83,7 @@ GEM
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.19.0)
+    loofah (2.19.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.8.0)
@@ -101,11 +103,17 @@ GEM
       timeout
     net-smtp (0.3.3)
       net-protocol
+    nio4r (2.5.8)
     nio4r (2.5.8-java)
     nokogiri (1.13.10-java)
       racc (~> 1.4)
+    nokogiri (1.13.10-x86_64-linux)
+      racc (~> 1.4)
+    puma (6.0.0)
+      nio4r (~> 2.0)
     puma (6.0.0-java)
       nio4r (~> 2.0)
+    racc (1.6.1)
     racc (1.6.1-java)
     rack (2.2.4)
     rack-test (2.0.2)
@@ -113,8 +121,8 @@ GEM
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.4.3)
-      loofah (~> 2.3)
+    rails-html-sanitizer (1.4.4)
+      loofah (~> 2.19, >= 2.19.1)
     railties (6.1.7)
       actionpack (= 6.1.7)
       activesupport (= 6.1.7)
@@ -160,6 +168,7 @@ GEM
 
 PLATFORMS
   universal-java-19
+  x86_64-linux
 
 DEPENDENCIES
   jbuilder
