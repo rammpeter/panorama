@@ -1,5 +1,8 @@
 # Deploy a github release for Panorama
 
+# ensure git output is english
+export LANG=en_US.UTF-8
+
 git stage Gemfile.lock
 git commit -m "Next version" Gemfile.lock
 git push
