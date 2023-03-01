@@ -1,0 +1,304 @@
+<div id="edit_config_global_area">
+
+  <%= render_page_caption("#{@modus==:new ? 'Add new' : 'Edit'} Panorama-Sampler configuration#{" '#{@config[:name]}'" if @modus!=:new}") %>
+
+<%= ajax_form(
+        :controller   => :panorama_sampler,
+        :action       => :save_config,
+        :update_area  => :content_for_layout,
+        :modus        => @modus,
+        :id           => @config[:id]
+    ) do %>
+  <div style="text-align: center">
+
+    <div id="sampler_config_tab_container" style="display: inline-block;" class="tab-container">
+      <ul class="etabs">
+        <li class="tab"><a href="#tab-database-config">Database connect info</a></li>
+        <li class="tab"><a href="#tab-awr-ash">AWR and ASH</a></li>
+        <li class="tab"><a href="#tab-object-size-history">Object size history</a></li>
+        <li class="tab"><a href="#tab-db-cache-history">DB-cache history</a></li>
+        <li class="tab"><a href="#tab-blocking-locks-history">Blocking locks history</a></li>
+        <li class="tab"><a href="#tab-longterm-trend-history">Long-term trend </a></li>
+      </ul>
+      <div class="panel-container">
+        <div id="tab-database-config">
+          <div>
+            <table style="width: 100%">
+              <tr title="Unique identifier for config entry">
+                <td>ID</td><td style="text-align: center"><%= @config[:id] %></td>
+              </tr>
+
+              <tr>
+                <td>Config name</td><td style="text-align: center" title="Name / description for configuration"><%= text_field_tag(:config_name, @config[:name], :name=>'config[name]', :style=>"width:95%;",) %></td>
+              </tr>
+
+              <tr>
+                <td>DB identification mode</td>
+                <td style="text-align: center">
+                  <div title="Select mode for identification of database">
+                    <%= radio_button_tag(:config_modus, :tns,  true,  {:name=>'config[modus]', :onclick => "jQuery('.edit_config_tns').css('display', '');     jQuery('.edit_config_host').css('display', 'none');" }) %>TNS-Names
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <%= radio_button_tag(:config_modus, :host, false, {:name=>'config[modus]', :onclick => "jQuery('.edit_config_tns').css('display', 'none'); jQuery('.edit_config_host').css('display', '');" }) %>Host, Port, SID/Service-Name
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="edit_config_tns">
+                <td title="<%= t :login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)" %>">TNS-Alias</td>
+                <% @tnsnames = read_tnsnames %>
+                <td style="text-align: center">
+                  <div title="<%= t(:login_tns_hint, :default=>"Choose Oracle TNS-Alias (from tnsnames.ora at server side)") %>">
+                    <div id="config_tns"></div> <!-- Befuellung geschieht durch Ajax-Call auf env/get_tnsnames_content -->
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="edit_config_host" style="display: none" title="Hostname or IP-address">
+                <td>Host</td>
+                <td style="text-align: center"><%= text_field_tag(:config_host, @config[:host], :name=>'config[host]', :style=>"width:95%;") %></td>
+              </tr>
+
+              <tr class="edit_config_host" style="display: none" title="Port-number">
+                <td>Port</td>
+                <td style="text-align: center"><%= text_field_tag(:config_port, @config[:port], :name=>'config[port]', :style=>"width:95%;" ) %></td>
+              </tr>
+
+              <tr class="edit_config_host" style="display: none">
+                <td>SID/Service</td>
+                <td style="text-align: center">
+                  <div title="<%= t(:login_sid_service_title, :default=>"Interpret value as SID or Service-Name?") %>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+                    <%= radio_button_tag('config_sid_usage', :SID,          true,  {:name=>'config[sid_usage]'}) %>SID
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <%= radio_button_tag('config_sid_usage', :SERVICE_NAME, false, {:name=>'config[sid_usage]'}) %>Service-Name
+                  </div>
+                  <div style="padding-top: 5px;">
+                    <%= text_field_tag(:config_sid, @config[:sid], :name=>'config[sid]', :style=>"width:95%;", :title=>t(:login_database_sid_hint, :default=>"SID or service name of database")) %>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td>Username</td>
+                <td style="text-align: center"><%= text_field_tag(:config_user, @config[:user], :name=>'config[user]', :style=>"width:95%;", :title=>"Name of user to connect to database for workload recording") %></td>
+              </tr>
+
+              <tr>
+                <td>Password</td>
+                <td style="text-align: center"><%= password_field_tag(:config_password, @config[:password], :name=>'config[password]', :style=>"width:95%;", :title=>"Password of user to store Panorama's tables for workload recording.\nPassword is changed only if new password entered here.\nLeave empty to preserve existing password.") %></td>
+              </tr>
+
+              <tr>
+                <td>Schema owner</td>
+                <td style="text-align: center"><%= text_field_tag(:config_owner, @config[:owner], :name=>'config[owner]', :style=>"width:95%;", :title=>"Name of user/schema to store Panorama's tables for workload recording.\nConnection user must have rights to create objects in this schema.\nNeed to define only if different from connection username.") %></td>
+              </tr>
+            </table>
+
+          </div>
+        </div>
+
+        <div id="tab-awr-ash">
+          <table width="100%">
+            <tr title="Enable or disable sampling of Panorama's counterparts for Active Workload Repository (AWR) and Active Session History (ASH).
+          Disabling Panorama's AWR and ASH sampling allows you to use only the other sampling functions of Panorama if you already have Diagnostics Pack running.
+          For RAC you need to configure it's own sampling config for every instance where TNS-service points exactly to the RAC-instance.">
+              <td>Sample AWR and ASH</td>
+              <td style="text-align: center"><%= check_box_tag(:config_awr_ash_active, 1, @config[:awr_ash_active], :name=>'config[awr_ash_active]') %></td>
+            </tr>
+            <tr title="Delay between snapshots in minutes">
+              <td>Snapshot cycle (minutes)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_awr_ash_snapshot_cycle, @config[:awr_ash_snapshot_cycle], :name=>'config[awr_ash_snapshot_cycle]', size: 20, :style => "text-align: right;") %></td>
+            </tr>
+
+            <tr title="Retention time for snapshot data in days before deletion">
+              <td>Snapshot retention (days)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_awr_ash_snapshot_retention, @config[:awr_ash_snapshot_retention], :name=>'config[awr_ash_snapshot_retention]', size: 20, :style => "text-align: right;") %></td>
+            </tr>
+
+            <tr title="or-combined limits for SQLs within snapshot cycle to be recorded by Panorama-Sampler">
+              <td>Limits for SQL-history</td>
+              <td style="text-align: center">
+                <% one_of_both_text = "One of both conditions must be fulfilled for SQL to be recorded in snahpshot." %>
+                Min. executions
+                <%= text_field_tag(:sql_min_no_of_execs,  @config[:sql_min_no_of_execs],  :name=>'config[sql_min_no_of_execs]', size: 4,  :style => "text-align: right;", :title=>"Minimum number of SQL executions in snapshot cycle to be recorded by Panorama-Sampler\n#{one_of_both_text}") %>
+                &nbsp;Min. runtime (ms)
+                <%= text_field_tag(:sql_min_runtime_millisecs, @config[:sql_min_runtime_millisecs], :name=>'config[sql_min_runtime_millisecs]', size: 6, :style => "text-align: right;", :title=>"Minimum amount of total SQL runtime (milliseconds) within one snapshot cycle to be recorded by Panorama-Sampler\n#{one_of_both_text}") %>
+              </td>
+            </tr>
+
+            <tr title="Keep time in hours before housekeeping for the 1-second samples of ASH (comparable to v$Active_Session_History). These samples are condensed to 10 seconds and stored at each AWR-snapshot, but it may make sense to keep them available for a limited time also after AWR-snaphots.">
+              <td>Keep time for 1-second ASH samples (hours)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_ash_1sec_sample_keep_hours, @config[:ash_1sec_sample_keep_hours], :name=>'config[ash_1sec_sample_keep_hours]', size: 20, :style => "text-align: right;") %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div id="tab-object-size-history">
+          <table width="100%">
+            <tr title="Enable or disable sampling of tablespace-object sizes (tables, indexes, partitions).
+            For RAC you need to configure this sampling only once because it is not instance-dependent.">
+              <td>Sample object sizes</td>
+              <td style="text-align: center"><%= check_box_tag(:config_object_size_active, 1, @config[:object_size_active], :name=>'config[object_size_active]') %></td>
+            </tr>
+            <tr title="Delay between snapshots of object sizes in hours">
+              <td>Snapshot cycle (hours)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_object_size_snapshot_cycle, @config[:object_size_snapshot_cycle], :name=>'config[object_size_snapshot_cycle]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+
+            <tr title="Retention time for object size snapshot data in days before deletion">
+              <td>Snapshot retention (days)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_object_size_snapshot_retention, @config[:object_size_snapshot_retention], :name=>'config[object_size_snapshot_retention]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+
+          </table>
+        </div>
+
+        <div id="tab-db-cache-history">
+          <table width="100%">
+            <tr title="Enable or disable sampling of DB-cache contents per object (tables, indexes, partitions).
+            For RAC you need to configure it's own sampling config for every instance where TNS-service points exactly to the RAC-instance.">
+              <td>Sample DB-cache objects</td>
+              <td style="text-align: center"><%= check_box_tag(:config_cache_objects_active, 1, @config[:cache_objects_active], :name=>'config[cache_objects_active]') %></td>
+            </tr>
+            <tr title="Delay between snapshots of cache objects in minutes">
+              <td>Snapshot cycle (minutes)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_cache_objects_snapshot_cycle, @config[:cache_objects_snapshot_cycle], :name=>'config[cache_objects_snapshot_cycle]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+            <tr title="Retention time for cache objects snapshot data in days before deletion">
+              <td>Snapshot retention (days)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_cache_objects_snapshot_retention, @config[:cache_objects_snapshot_retention], :name=>'config[cache_objects_snapshot_retention]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+
+          </table>
+        </div>
+
+        <div id="tab-blocking-locks-history">
+          <table width="100%">
+            <tr title="Enable or disable sampling of blocking lock situations.
+            For RAC you need to configure this sampling only once because it samples over all instances at once.">
+              <td>Sample blocking locks</td>
+              <td style="text-align: center"><%= check_box_tag(:config_blocking_locks_active, 1, @config[:blocking_locks_active], :name=>'config[blocking_locks_active]') %></td>
+            </tr>
+            <tr title="Delay between snapshots of blocking locks in minutes">
+              <td>Snapshot cycle (minutes)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_blocking_locks_snapshot_cycle, @config[:blocking_locks_snapshot_cycle], :name=>'config[blocking_locks_snapshot_cycle]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+            <tr title="Retention time for blocking locks snapshot data in days before deletion">
+              <td>Snapshot retention (days)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_blocking_locks_snapshot_retention, @config[:blocking_locks_snapshot_retention], :name=>'config[blocking_locks_snapshot_retention]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+            <tr title="Limit for long lasting DB-locks.\nLocks lasting longer than his limit are also recorded even if they are not blocking other transactions">
+              <td>Limit for long locks (seconds)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_blocking_locks_long_locks_limit, @config[:blocking_locks_long_locks_limit], :name=>'config[blocking_locks_long_locks_limit]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div id="tab-longterm-trend-history">
+          <table width="100%">
+            <tr title="Enable or disable sampling of long-term trend.
+
+            For RAC you need to configure this sampling only once because it samples over all instances at once.">
+              <td>Sample long-term trend</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_active, 1, @config[:longterm_trend_active], :name=>'config[longterm_trend_active]') %></td>
+            </tr>
+            <tr title="Select data source for sampling of long-term trend.
+            If you choose 'Oracle-ASH' you should have licensed the Oracle Diagnostics Pack!!!">
+              <td>Data source</td>
+              <td style="text-align: center">
+                <div>
+                  <span title="Select data from Oracle's original Active Session History (ASH) as part of Active Workload Repository (AWR).
+                  Be careful: You have to have an Enterprise Edition and the Diagnostics Pack licensed
+                  if you choose this option!!!">
+                    <%= radio_button_tag(:config_longterm_trend_data_source, :oracle_ash,       @config[:longterm_trend_data_source] == :oracle_ash,        {:name=>'config[longterm_trend_data_source]'}) %>&nbsp;Oracle-ASH
+                  </span>
+                  &nbsp;&nbsp;&nbsp;&nbsp;
+                  <span title="Active Session History sampled by Panorama-Sampler.
+                  You should also activate 'AWR and ASH' for Panorama-Sampler to ensure that data exists where this function is based on.">
+                    <%= radio_button_tag(:config_longterm_trend_data_source, :panorama_sampler, @config[:longterm_trend_data_source] == :panorama_sampler,  {:name=>'config[longterm_trend_data_source]'}) %>&nbsp;Panorama-Sampler
+                  </span>
+                </div>
+              </td>
+            </tr>
+
+            <tr title="Delay between snapshots of long-term trend in hours">
+              <td>Snapshot cycle (hours)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_longterm_trend_snapshot_cycle, @config[:longterm_trend_snapshot_cycle], :name=>'config[longterm_trend_snapshot_cycle]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+            <tr title="Retention time for long-term trend snapshot data in days before deletion">
+              <td>Snapshot retention (days)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_longterm_trend_snapshot_retention, @config[:longterm_trend_snapshot_retention], :name=>'config[longterm_trend_snapshot_retention]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'Wait class' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log wait class</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_wait_class, 1, @config[:longterm_trend_log_wait_class], :name=>'config[longterm_trend_log_wait_class]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'Wait event' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log wait event</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_wait_event, 1, @config[:longterm_trend_log_wait_event], :name=>'config[longterm_trend_log_wait_event]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'DB user' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log user</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_user, 1, @config[:longterm_trend_log_user], :name=>'config[longterm_trend_log_user]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'TNS-service' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log service</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_service, 1, @config[:longterm_trend_log_service], :name=>'config[longterm_trend_log_service]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'Client machine' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log machine</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_machine, 1, @config[:longterm_trend_log_machine], :name=>'config[longterm_trend_log_machine]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'Module' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log module</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_module, 1, @config[:longterm_trend_log_module], :name=>'config[longterm_trend_log_module]') %></td>
+            </tr>
+            <tr title="Enable or disable detail level 'Action' for sampling
+            Disabling reduces amount of sampled data">
+              <td>Log action</td>
+              <td style="text-align: center"><%= check_box_tag(:config_longterm_trend_log_action, 1, @config[:longterm_trend_log_action], :name=>'config[longterm_trend_log_action]') %></td>
+            </tr>
+            <tr title="Limit for categories to be named exactly.
+            If wait time for a category within a snapshot is less than x * 1/1000 of total wait time for this snapshot
+            than this category is subsumed under '[OTHERS]' instead of using the original name.
+            This reduces the amount of sampled data.
+            0 = switch of this function">
+              <td>Subsume limit (per mille)</td>
+              <td style="text-align: center"><%= text_field_tag(:config_longterm_trend_subsume_limit, @config[:longterm_trend_subsume_limit], :name=>'config[longterm_trend_subsume_limit]', size: 6, :style => "text-align: right;") %></td>
+            </tr>
+          </table>
+        </div>
+
+
+      </div>
+
+
+    </div>
+    <script type="text/javascript">
+        $( function() {
+            $( "#sampler_config_tab_container" ).easytabs();
+        } );
+    </script>
+
+    <br/>
+    <%= submit_tag('Test connection', :title =>"Save configuration if connection to configured database has been tested successful" ) %>
+    <%= submit_tag('Save', :title =>"Save configuration data (ignore possible connect errors with this configuration)" ) %>
+    <input type="button" value="Cancel" onclick="jQuery('#edit_config_global_area').html('');">
+  </div>
+
+
+<% end %>
+
+<script type="text/javascript">
+    if ('<%= @config[:modus] %>' === 'host')
+        jQuery('#config_modus_host').click();
+    if ('<%= @config[:sid_usage] %>' === 'SERVICE_NAME')
+        jQuery('#config_sid_usage_SERVICE_NAME').click();
+    jQuery.ajax({type: 'GET', url:'env/get_tnsnames_content?target_object=config&selected=<%= @config[:tns] %>', async: false});
+</script>
+</div>

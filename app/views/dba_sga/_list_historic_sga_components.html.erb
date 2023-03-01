@@ -1,0 +1,19 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options <<  {caption: 'Start time',    data: proc{|rec| localeDateTime(rec.rounded_begin_interval_time)}, title: "Start timestamp of AWR cycle\nrounded to minute to catch values all RAC instances in one line", plot_master_time: true}
+  column_options <<  {caption: 'Total (MB)',    data: proc{|rec| fn(rec.total_mb)}, title: "Total size of SGA in MBytes", data_title: proc{|rec| "%t\n\n#{size_explain(rec.total_mb)}"}, align: :right}
+  @pools.reverse_each do |p|
+    column_options <<  {caption: "#{p} (MB)",  data: proc{|rec| fn(rec[p])}, title: "Size of particular pool in SGA in MBytes", data_title: proc{|rec| "%t\n\n#{size_explain(rec[p])}"}, align: :right}
+  end
+
+
+%>
+
+<%= gen_slickgrid(@sga_stats, column_options, {
+  caption: "Historic SGA components from #{@time_selection_start} until #{@time_selection_end}#{", instance = #{@instance}" if @instance}#{", Con-ID = #{@con_id}" if @con_id}",
+  max_height: 450,
+  width: :auto, show_pin_icon: 1
+}) %>
+<div id="<%= @update_area %>"></div>

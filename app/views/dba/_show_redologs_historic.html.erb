@@ -1,0 +1,18 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Historic redo log info from #{PanoramaConnection.adjust_table_name('DBA_Hist_Log')}") %>
+
+
+<%= ajax_form(:controller => :dba, :action => :list_redologs_historic, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= submit_tag("Show redo log info", :title => "Show historic redo log info") %>
+    </div>
+
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear:both;">
+</div>

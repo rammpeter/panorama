@@ -1,0 +1,22 @@
+<%
+    @update_area = get_unique_area_id
+
+    column_options =
+    [
+      {:caption=>"SQL-ID",         :data=>proc{|rec| link_sql_id(@update_area, @instance, rec.sql_id)}          },
+      {:caption=>"Tablespace",     :data=>proc{|rec| rec.tablespace}      },
+      {:caption=>"Contents",       :data=>proc{|rec| rec.contents}        },
+      {:caption=>"Seg.Type",       :data=>proc{|rec| rec.segtype},                                                   :title=>"segment type"},
+      {:caption=>"Extents",        :data=>proc{|rec| formattedNumber(rec.extents)}     , :align=>"right"     },
+      {:caption=>"Blocks",         :data=>proc{|rec| formattedNumber(rec.blocks)}, :align=>"right"          },
+      {:caption=>"MBytes",         :data=>proc{|rec| formattedNumber(rec.blocks * PanoramaConnection.db_blocksize / (1024*1024), 3)}, :align=>"right"           },
+    ]
+
+%>
+<%= gen_slickgrid(@temps, column_options, {:caption=>"Current Temp-usage for instance=#{@instance}, SID=#{@sid}", :width=>:auto, show_pin_icon: 1,
+                                           update_area: @update_area}) %>
+
+
+
+
+

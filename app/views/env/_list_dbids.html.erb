@@ -1,0 +1,42 @@
+<%
+  def link_select(rec)
+    ajax_link(rec.dbid, {
+              :controller   => :env,
+              :action       => :set_dbid,
+              :dbid        => rec.dbid,
+              :update_area  => params[:update_area]
+              },
+      {:title => "Select this DBID for selections in AWR history and Active Session History. Other DBIDs are ignored in several selections!"}
+    )
+  end
+
+  def selected(rec)
+    'x ' if rec.dbid == get_dbid
+  end
+
+  column_options =
+    [
+        {:caption=> 'S',                :data=>proc{|rec| selected(rec)},                 :title=> 'The selected DBID is used for statistics'},
+        {:caption=> 'DBID',             :data=>proc{|rec| link_select(rec)},              :title=> 'Database ID\nOnly the selected DBID is used for statistics'},
+        {:caption=> 'Name',             :data=>proc{|rec| rec.db_name},                   :title=> 'Name of database'},
+        {:caption=> 'First usage',      :data=>proc{|rec| localeDateTime(rec.min_ts)},    :title=> 'First usage of database with this name and DBID'},
+        {:caption=> 'Last usage',       :data=>proc{|rec| localeDateTime(rec.max_ts)},    :title=> 'Last usage of database with this name and DBID'},
+        {:caption=> 'Instances',        :data=>proc{|rec| fn(rec.instances)},             :title=> 'Number of RAC-instances', :align=>:right},
+        {:caption=> 'AWR interval',     :data=>proc{|rec| fn(rec.snap_interval_minutes)}, :title=> "AWR snapshot interval in minutes\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right},
+        {:caption=> 'AWR retention',    :data=>proc{|rec| fn(rec.snap_retention_days)},   :title=> "AWR retention time for snapshots in days\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right},
+    ]
+  column_options << {:caption=> 'Con-ID',    :data=>proc{|rec| fn(rec.con_id)},   :title=> "Container ID to which the data pertains. Possible values include:\n0: The entire CDB. This value is also used for rows in non-CDBs.\n1: Data that pertain to only the root-CDB\nn: Application PDB", :align=>:right} if get_db_version >= '12.1'
+
+%>
+
+
+
+<%=
+  if !@dbids.nil? && @dbids.count > 1
+    gen_slickgrid(@dbids, column_options, {
+      :caption => '<span style="color: red">Data for multiple database IDs is recorded in AWR history. Please select your preferred DBID</span>'.html_safe,
+      :width => :auto,
+      :max_height => 200
+    })
+  end
+%>

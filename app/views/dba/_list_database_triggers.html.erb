@@ -1,0 +1,44 @@
+<%
+   @update_area = get_unique_area_id
+
+   def show_source(rec)
+     ajax_link(rec.description.html_safe,
+                             {:controller   => :dba_schema,
+                              :action       => :list_trigger_body,
+                              :owner        => rec.owner,
+                              :trigger_name => rec.trigger_name,
+                              :update_area  => @update_area,
+                             },
+                     :title=>"Show body of trigger #{rec.owner}.#{rec.trigger_name}"
+     )
+   end
+
+   column_options =
+           [
+                   {:caption=> 'Owner',        :data=>proc{|rec| rec.owner},              :title=> 'Owner of trigger'},
+                   {:caption=> 'Name',         :data=>proc{|rec| rec.trigger_name},       :title=> 'Name of trigger'},
+                   {:caption=> 'Type',         :data=>proc{|rec| rec.trigger_type},       :title=> 'Type of trigger'},
+                   {:caption=> 'Event',        :data=>proc{|rec| rec.triggering_event},   :title=> 'Triggering event'},
+                   {:caption=> 'Status',       :data=>proc{|rec| rec.status},             :title=> 'Status of trigger'},
+                   {:caption=> 'Description',  :data=>proc{|rec| show_source(rec)},       :title=> 'Description of trigger'},
+                   {:caption=> 'When clause',  :data=>proc{|rec| rec.when_clause},        :title=> 'When-clause of trigger'},
+                   {:caption=> 'Action type',  :data=>proc{|rec| rec.action_type},        :title=> 'Action type of trigger'},
+                   {:caption=> 'Created',      :data=>proc{|rec| localeDateTime(rec.created)},        :title=> 'Timestamp of trigger creation'},
+                   {:caption=> 'Last DDL',     :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},  :title=> 'Timestamp of last DDL operation on trigger'},
+                   { caption: 'Spec. TS',      data: proc{|rec| localeDateTime(rec.spec_ts)},         title: "Timestamp for the last specification change of the trigger" },
+           ]
+
+%>
+
+<%=
+    gen_slickgrid(@triggers, column_options, {
+                                   :caption => "Triggers for Base_Object_Type='DATABASE' from DBA_Triggers",
+                                   :max_height => 450,
+                                   show_pin_icon: 1,
+                                   update_area:   @update_area
+
+    })
+%>
+
+
+

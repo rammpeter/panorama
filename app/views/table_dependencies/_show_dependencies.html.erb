@@ -1,0 +1,32 @@
+
+<%
+
+  @update_area = get_unique_area_id
+
+  show_level = proc do |rec|
+    out = ''
+    rec.level.downto 1 do
+      out << '&nbsp;&nbsp;&nbsp;'
+    end
+    out << "#{rec.level}"
+    puts out
+    out
+  end
+
+   column_options =
+           [
+                   {:caption=>"Level",                          :data=>show_level,                                                                          :title=>"Hierarchy-level (depth of dependency)"},
+                   {:caption=> 'Cycle',                         :data=>proc{|rec| rec.connect_by_iscycle},                                                  :title=> 'Cyclic dependency broken at this relation?'},
+                   {:caption=>'Dependent table',                :data=>proc{|rec| link_object_description(@update_area, rec.childowner, rec.childtable) },  :title=>"Table with referential dependency"},
+                   {:caption=>'Foreign key constraint name ',   :data=>proc{|rec| rec.child_constraint_name },                                              :title=>"Referential integrity constraint name on table with referential dependency"},
+                   {:caption=>'Dependent on table',             :data=>proc{|rec| link_object_description(@update_area, rec.parentowner, rec.parenttable)}, :title=>"Table that is referenced from the other table"},
+                   {:caption=>'Primary key / unique constraint name ',   :data=>proc{|rec| rec.parent_constraint_name },                                    :title=>"Name of the primary key or unique constraint of the referenced table"},
+
+           ]
+
+%>
+
+<%= gen_slickgrid(@dependencies, column_options, :caption => "Tables dependent from #{@username}.#{@tablename} by foreign key constraint", show_pin_icon: 1) %>
+
+
+<div id="<%= @update_area %>"></div>

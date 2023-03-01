@@ -1,0 +1,24 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'Start timestamp',           :data=>proc{|rec| localeDateTime(rec[:normalized_begin_time]) },  :title=>'Begin of considered time interval', :data_title=>proc{|rec| "%t\nTEMP-usage recorded between #{localeDateTime(rec[:min_begin_time])} and #{localeDateTime(rec[:max_end_time])}"}, :plot_master_time=>true},
+          {:caption=>'Total MB allocated',        :data=>proc{|rec| fn(rec[:total_allocated], 2) },                 :title=>"Total MB of TEMP-tablespace allocated by sessions over all instances (from #{PanoramaConnection.adjust_table_name('DBA_Hist_Sysstat')})", :data_title=>proc{|rec| "%t\nrecorded at the end of sample period from #{localeDateTime(rec[:min_begin_interval_time])} until #{localeDateTime(rec[:max_end_interval_time])}"}, :align=>:right},
+          {:caption=>'Total MB used',             :data=>proc{|rec| fn(rec[:total_used], 2) },                      :title=>"Total MB of TEMP-tablespace used by sessions over all instances (from #{PanoramaConnection.adjust_table_name('DBA_Hist_Sysmetric_Summary')} and GV$SysMetric_History)", :data_title=>proc{|rec| "%t\nTEMP-usage recorded once per minute between #{localeDateTime(rec[:min_begin_time])} and #{localeDateTime(rec[:max_end_time])}"}, :align=>:right},
+      ]
+  @instances.keys.sort.each do |i|
+    column_options << {:caption=>"MB allocated Instance #{i}",  :data=>proc{|rec| fn(rec[i][:value_allocated], 2) rescue nil}, :title=>"TEMP-tablespace in MB allocated by sessions for RAC-instance #{i}", :data_title=>proc{|rec| "%t\nrecorded at the end of sample period from #{localeDateTime(rec[i][:begin_interval_time])} until #{localeDateTime(rec[i][:end_interval_time])}" rescue nil}, :align=>:right}
+    column_options << {:caption=>"MB used Instance #{i}",       :data=>proc{|rec| fn(rec[i][:value_used],      2) rescue nil}, :title=>"Maximum MB of TEMP-tablespace used by sessions for RAC-instance #{i}", :data_title=>proc{|rec| "%t\nTEMP-usage recorded once per minute between #{localeDateTime(rec[i][:begin_time])} and #{localeDateTime(rec[i][:end_time])}" rescue nil}, :align=>:right}
+  end
+
+%>
+
+<%= gen_slickgrid(@temp_usage, column_options, {
+    :max_height       => 450,
+    :caption          => "TEMP-usage between #{@time_selection_start} and #{@time_selection_end}",
+    :multiple_y_axes  => false,
+    show_pin_icon: 1
+}) %>
+
+<div id="<%= @update_area %>"></div>

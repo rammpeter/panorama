@@ -26,7 +26,7 @@ Warbler::Config.new do |config|
   config.features = %w(executable)
 
   # Application directories to be included in the webapp.
-  config.dirs = %w(config lib log tmp)
+  config.dirs = %w(app config lib log tmp)
 
   # Additional files/directories to include, above those in config.dirs
   # config.includes = FileList["db"]
@@ -146,7 +146,7 @@ Warbler::Config.new do |config|
   # Path to the pre-bundled gem directory inside the war file. Default
   # is 'WEB-INF/gems'. Specify path if gems are already bundled
   # before running Warbler. This also sets 'gem.path' inside web.xml.
-  config.gem_path = "WEB-INF/gems"
+  #  config.gem_path = "WEB-INF/gems"
 
   # Files for WEB-INF directory (next to web.xml). This contains
   # web.xml by default. If there is an .erb-File it will be processed

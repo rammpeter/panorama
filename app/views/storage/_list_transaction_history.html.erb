@@ -1,0 +1,57 @@
+<% @update_area = get_unique_area_id %>
+
+<% if @history.count > 0 %>
+  <%
+
+    column_options =
+        [
+            {caption: 'Start SCN',                  data: proc{|rec| fn(rec.start_scn) },                        title: 'Transaction start system change number (SCN)', align: :right },
+            {caption: 'Commit SCN',                 data: proc{|rec| fn(rec.commit_scn) },                       title: 'Transaction commit system change number; NULL for active transactions', align: :right },
+            {caption: 'Start TS',                   data: proc{|rec| localeDateTime(rec.start_timestamp) },      title: 'Transaction start timestamp' },
+            {caption: 'Commit TS',                  data: proc{|rec| localeDateTime(rec.commit_timestamp) },     title: 'Transaction commit timestamp; NULL for active transactions' },
+            {caption: 'Duration (Sec.)',            data: proc{|rec| fn(rec.duration_secs) },                    title: 'Duration of transaction in seconds', align: :right },
+            {caption: 'Logon user',                 data: proc{|rec| rec.logon_user },                           title: 'Logon user for the transaction' },
+        ]
+
+  %>
+
+  <%= gen_slickgrid([@history[0]], column_options, {
+      :max_height => 450,
+      :caption => "Transaction details from Flashback_Transaction_Query for Tx.ID = '#{@xid}'",
+      show_pin_icon: 1
+
+  }) %>
+
+
+<% end %>
+
+
+<%
+  link_change_no = proc do |rec|
+    if rec.cumulated
+      "#{fn(rec.undo_change_no)} .. #{fn(rec.last_undo_change_no)} (#{fn(rec.undo_change_no-rec.last_undo_change_no+1)} records)"
+    else
+      fn(rec.undo_change_no)
+    end
+  end
+
+  column_options =
+      [
+          {caption: 'Undo change no.',            data: link_change_no,                                        title: "Undo system change number (1 or higher).\nDescribes execution order with descending values.\nIdentical subsequent operations are compressed to one record.", align: :right },
+          {caption: 'Operation',                  data: proc{|rec| rec.operation },                            title: "Forward-going DML operation performed by the transaction:\nD - Delete\nI - Insert\nU - Update\n- B\n- UNKNOWN" },
+          {caption: 'Table name',                 data: proc{|rec| rec.table_name },                           title: 'Name of the table to which the DML applies' },
+          {caption: 'Table owner',                data: proc{|rec| rec.table_owner },                          title: 'Owner of the table to which the DML applies' },
+          {caption: 'Row-ID',                     data: proc{|rec| rec.row_id},                                title: 'Rowid of the row that was modified by the DML' },
+          {caption: 'Undo SQL',                   data: proc{|rec| rec.undo_sql },                             title: 'SQL to undo the DML indicated by OPERATION' },
+      ]
+
+%>
+
+<%= gen_slickgrid(@history, column_options, {
+    :max_height => 450,
+    :caption => "Transaction history from Flashback_Transaction_Query for Tx.ID = '#{@xid}'",
+    show_pin_icon: 1
+
+}) %>
+
+<div id="<%= @update_area %>"></div>

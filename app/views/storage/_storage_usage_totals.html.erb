@@ -1,0 +1,47 @@
+<%
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+%>
+<div class="flex-row-container">
+
+  <%
+    def total_data_style(rec)
+      "font-weight:bold;" if rec.contents == "TOTAL"
+    end
+
+    column_options =
+      [
+        {:caption=>"Typ",         :data=>proc{|rec| rec.contents},                    :title=>t(:storage_tablespace_usage_total_type_hint, :default=>'Type of allocation'), data_title: proc{|rec| "%t: #{rec.content_hint}"},  :data_style=>proc{|rec| total_data_style(rec)} },
+        {:caption=>"MB Total",    :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>t(:storage_tablespace_usage_total_size_total_hint, :default=>'Total size in MBytes'),        :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)}, data_title: proc{|rec| "%t\n#{size_explain(rec.mbtotal)}"} },
+        {:caption=>"MB Used",     :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>t(:storage_tablespace_usage_total_size_used_hint, :default=>'Used size in MBytes'),    :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)},  data_title: proc{|rec| "%t\n#{size_explain(rec.mbused)}"} },
+        {:caption=>"MB Free",     :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>t(:storage_tablespace_usage_total_size_free_hint, :default=>'Free size in MBytes'),       :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)},  data_title: proc{|rec| "%t\n#{size_explain(rec.mbfree)}"} },
+        {:caption=>"% used",      :data=>proc{|rec| formattedNumber((rec.mbused.to_f * 100/rec.mbtotal rescue nil),1)},  :title=>t(:storage_tablespace_usage_total_pct_hint, :default=>'Percent used'),                   :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+      ]
+
+  %>
+
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@totals, column_options, {:caption=>t(:storage_tablespace_usage_total_caption, :default=>'Sums total'), :width=>:auto, :max_height=>450, :no_wrap=>true, caption_title: 'Based on DBA_Tablespaces, DBA_Free_Space ...'}) %>
+  </div>
+
+<% if @fra_usage.length > 0 %>
+
+  <%
+    column_options =
+      [
+        {:caption=>"File type",      :data=>proc{|rec| rec.file_type},                       :title=>'File type within fast recovery area'},
+        {:caption=>"MB used",        :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MBytes', data_title: proc{|rec| "%t\n#{size_explain((rec.percent_space_used*@fra_size_bytes/(1024*1024)/100 rescue nil))}"}, :align=>:right, show_pct_hint: true},
+        {:caption=>"% used",         :data=>proc{|rec| fn(rec.percent_space_used,2)},        :title=>'Percentage used from total',        :align=>:right},
+        {:caption=>"% recl.",     :data=>proc{|rec| fn(rec.percent_space_reclaimable,2)}, :title=>'Percentage reclaimable compared to total',        :align=>:right},
+      ]
+
+    caption = "Usage of fast recovery area (FRA)
+total FRA size = #{fn(@fra_size_bytes/(1024*1024*1024),2) }&nbsp;GB
+not reclaimable usage = <span #{'style="background-color:coral;"' if @fra_not_reclaimable_usage > 80}>#{fn(@fra_not_reclaimable_usage,2)}&nbsp;%</span>"
+  %>
+
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@fra_usage, column_options, {:caption=> caption, :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+  </div>
+
+<% end %>
+</div>

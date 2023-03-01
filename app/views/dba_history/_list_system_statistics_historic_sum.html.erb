@@ -1,0 +1,38 @@
+<%
+  @update_area = get_unique_area_id
+
+   def link_column(rec, value)
+     ajax_link(value, {
+               :action                => :list_system_statistics_historic_detail,
+               :instance              => rec.instance_number,
+               :stat_id               => rec.stat_id,
+               :stat_name             => rec.stat_name,
+               :time_selection_start  => @time_selection_start,
+               :time_selection_end    => @time_selection_end,
+               :min_snap_id           => rec.min_snap_id,
+               :max_snap_id           => rec.max_snap_id,
+               :update_area           => @update_area
+             },
+      :title=>"Show single snapshots of statistic")
+   end
+
+
+column_options =
+[
+  {:caption=>"Instance",      :data=>proc{|rec| rec.instance_number},                 :title=>"RAC-Instance"},
+  {:caption=>"Name",          :data=>proc{|rec| rec.stat_name},                       :title=>"Statistics name" },
+  {:caption=>"Class",         :data=>proc{|rec| statistic_class(rec.class_id)},       :title=>"Statistics class(es)" },
+  {:caption=>"Snapshots",     :data=>proc{|rec| link_column(rec, fn(rec.snapshots))}, :title=>"Number of AWR-snapshots in period", :align=>:right },
+  {:caption=>'Value',         :data=>proc{|rec| fn(rec.value)},                       :title=>"Value of statistic cumulated between start and end of considered period", :align=>:right },
+]
+
+%>
+
+<%= gen_slickgrid(@statistics, column_options, {
+      :caption    => "System-Statistics from #{@time_selection_start} until #{@time_selection_end}#{" for instance #{@instance}" if @instance}",
+      :max_height => 450, show_pin_icon: 1,
+      update_area: @update_area
+
+})
+%>
+

@@ -1,0 +1,158 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_real_num_rows = proc do |rec|
+    if rec.segment_type['TABLE'] || rec.segment_type == 'INDEX'                 # index partitions not supported here
+      update_area = "#{@update_area}_num_rows_#{rec.rownum}"
+      ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
+                              :controller      => :storage,
+                              :action          => :list_real_num_rows,
+                              :owner           => rec.owner,
+                              :name            => rec.segment_name,
+                              object_type:     rec.segment_type,
+                              partition_name:  @show_partitions ? rec.partition_name : nil,
+                              :update_area     => update_area
+                             },
+                      :title=>"Count current number of rows in object. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+    else
+      fn(rec.num_rows)
+    end
+  end
+
+
+   link_partition = proc do |rec|
+     if @show_partitions
+       rec.partition_name
+     else
+       ajax_link(fn(rec.partition_count),     # Verhindern Zeilenumbruch in Anzeige
+                     {:action           => :list_objects,
+                      :tablespace       => {:name => @tablespace_name},
+                      :schema           => {:name => rec.owner},
+                      :segment_name     => rec.segment_name,
+                      :showPartitions   => 1,
+                      :update_area      => @update_area,
+                             },
+                     :title=>'Show details for partitions'
+       )
+     end
+   end
+
+  init_ext_data = proc do |rec|
+    if rec.min_init_ext_kb == rec.max_init_ext_kb
+      fn(rec.min_init_ext_kb)
+    else
+      '<several>'
+    end
+  end
+
+  init_ext_data_title = proc do |rec|
+    result = "%t"
+    result << "\nInitial extend = #{fn(rec.min_init_ext_kb.to_f/1024, 1) rescue nil} MB (#{fn(rec.min_init_ext_kb.to_f/(1024*1024), 1) rescue nil} GB)" if rec.min_init_ext_kb == rec.max_init_ext_kb
+    result << "\nSum of initial extents over all partitions = #{fn(rec.sum_init_ext_kb.to_f/1024,1) rescue nil} MB (#{fn(rec.sum_init_ext_kb.to_f/(1024*1024), 1) rescue nil} GB)" unless @show_partitions
+    result
+  end
+
+  next_ext_data = proc do |rec|
+    if rec.min_next_ext_kb == rec.max_next_ext_kb
+      fn(rec.min_next_ext_kb)
+    else
+      '<several>'
+    end
+  end
+
+  next_ext_data_title = proc do |rec|
+    result = "%t"
+    result << "\nNext extend = #{fn(rec.min_next_ext_kb.to_f/1024, 1) rescue nil} MB (#{fn(rec.min_next_ext_kb.to_f/(1024*1024), 1) rescue nil} GB)" if rec.min_next_ext_kb == rec.max_next_ext_kb
+    result
+  end
+
+  min_exts_data = proc do |rec|
+    if rec.min_min_exts == rec.max_min_exts
+      fn(rec.min_min_exts)
+    else
+      '<several>'
+    end
+  end
+
+  min_exts_data_title = proc do |rec|
+    result = "%t"
+    result << "\nSum of min extents over all partitions = #{fn(rec.sum_min_exts)}" unless @show_partitions
+    result << "\nMaximum number of extents = #{fn(rec.min_max_exts)}" if rec.min_max_exts == rec.max_max_exts
+    result << "\nSum of max extents over all partitions = #{fn(rec.sum_max_exts)}" unless @show_partitions
+    result
+  end
+
+  link_space_usage = proc do |rec, value|
+#    if rec.subpartition_count && rec.subpartition_count > 0                                    # show space only for non-subpartitoned
+    if false
+      value
+    else
+      ajax_link(value,
+                              {:action       => :list_space_usage,
+                               :owner        => rec.owner,
+                               :segment_name => rec.segment_name,
+                               partition_name:  (@show_partitions ? rec.partition_name : nil),
+                               :update_area  => @update_area,
+                              },
+                      :title=>"Show space usage for #{rec.owner}.#{rec.segment_name} from DBMS_SPACE.SPACE_USAGE"
+        )
+    end
+  end
+
+  blocksize = PanoramaConnection.db_blocksize                                   # call only once
+
+  link_pct_unused = proc do |rec|
+    link_space_usage.call(rec, fn(calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)))
+  end
+
+  data_title_pct_unused = proc do |rec|
+    "%t\n\nDetailled Value = #{fn(calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks), 3)}"
+  end
+
+  link_mb_unused  = proc do |rec|
+    link_space_usage.call(rec, fn(calc_free_space_mb_by_avg_row_len( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)))
+  end
+
+  data_title_mb_unused = proc do |rec|
+    "%t\n#{size_explain(calc_free_space_mb_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks))}"
+  end
+
+  column_options =
+  [
+    {:caption=> 'TS',                :data=>proc{|rec| rec.tablespace_name},                     :title=> 'Tablespace-Name'},
+    {:caption=> 'Schema',            :data=>proc{|rec| rec.owner},                               :title=> 'Schema-Name'},
+    {:caption=> 'Name', :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.segment_name, rec.segment_name_qual)}, :title=> 'Object-Name'},
+    {:caption=> 'Part.',             :data=>link_partition,                                      :title=> t(:dba_schema_list_objects_partition_hint, :default=>'Partition name or number of partitions')},
+    {:caption=> 'Type',              :data=>proc{|rec| rec.segment_type},                        :title=> 'Object-Type'},
+    {:caption=> 'Compr.',            :data=>proc{|rec| h rec.compression},                       :title=> t(:dba_schema_list_objects_compression_hint, :default => 'Type of compression if compression is used')},
+    {:caption=> 'Init. ext. (KB)',   :data=>init_ext_data,                                                            :align=>:right, :title=> "Size of initial extent in kByte", data_title: init_ext_data_title},
+    {:caption=> 'Next ext. (KB)',    :data=>next_ext_data,                                                            :align=>:right, :title=> "Size of next extent in kByte", data_title: next_ext_data_title},
+    {:caption=> 'Min. ext.',         :data=>min_exts_data,                                                            :align=>:right, :title=> "Minimum number of extents allocated at object creation", data_title: min_exts_data_title},
+    {:caption=> 'Used ext.',         :data=>proc{|rec| fn(rec.used_ext)},                                             :align=>:right, :title=> t(:dba_schema_list_objects_used_extents_hint, :default=>'Number of used extents')},
+    {:caption=> 'Ini. trans.',       :data=>proc{|rec| fn(rec.ini_trans)},                                            :align=>:right, :title=> "Value for INI_TRANS of object. For partitioned objects this is average weighted by number of blocks"},
+    {:caption=> 'Pct free',          :data=>proc{|rec| fn(rec.pct_free)},                                             :align=>:right, :title=> "Value for PCT_FREE of object. For partitioned objects this is average weighted by number of blocks"},
+    {:caption=> 'MBytes',            :data=>proc{|rec| link_space_usage.call(rec, fn(rec.mbytes))},                   :align=>:right, :title=> t(:dba_schema_list_objects_mbytes_hint, :default=>"Size of the object in tablespace in MBytes\nSum over size of all allocated extents."),  :show_pct_hint=>true, data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}\n\nNumber of blocks = #{fn(rec.blocks)}"}},
+    {:caption=> 'No. of rows',       :data=>link_real_num_rows,                                                       :align=>:right, :title=> t(:dba_schema_list_objects_num_rows_hint, :default=>'Number of rows acording to last analysis')},
+    {:caption=> 'Avg. row len.',     :data=>proc{|rec| fn(rec.avg_rowlen)},                                           :align=>:right, :title=> t(:dba_schema_list_objects_row_len_hint, :default=>'Average size of record according to last analysis (Avg_Row_Len for Tables, Sum of Avg_Col_Len for indexes)')  },
+    {:caption=> '% unused',          data: link_pct_unused,                                       :align=>:right, :title=> "Unused storage within the allocated extents in %.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_pct_unused},
+    {:caption=> 'MBytes unused ARL', data: link_mb_unused,                                        :align=>:right, :title=> "Unused storage within extents in MBytes.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_mb_unused },
+    {:caption=> 'Blocks empty',      :data=>proc{|rec| fn(rec.empty_blocks)},                                         :align=>:right, :title=> t(:dba_schema_list_objects_empty_blocks_hint, :default=>'Unused blocks according to empty_blocks')},
+    {:caption=> 'Avg. Space',        :data=>proc{|rec| fn(rec.avg_space)},                                            :align=>:right, :title=> t(:dba_schema_list_objects_avg_space_hint, :default=>'Average unused bytes per block according to avg_space') },
+    {:caption=> 'Created',           :data=>proc{|rec| localeDateTime(rec.created)},             :title=> "Timestamp of object creation.\nIf grouped over partitions this is the creation timestamp of the oldest partition" },
+    {:caption=> 'Last DDL time',     :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},       :title=> "Timestamp of last DDL operation on object.\nIf grouped over partitions this is the last DDL operation on any partition" },
+    {:caption=> 'Last spec. time',   :data=>proc{|rec| localeDateTime(rec.spec_ts)},             :title=> "Timestamp of last specification change on object.\nIf grouped over partitions this is the last specification change on any partition" },
+    {:caption=> 'Analyzed',          :data=>proc{|rec| localeDateTime(rec.last_analyzed)},       :title=> "Timestamp of last analysis for object\nIf grouped over partitions this is oldest last analysis timestamp per partition" },
+    {:caption=> 'Last DML',          :data=>proc{|rec| localeDateTime(rec.last_dml_timestamp)},  :title=> "Timestamp of last DML on object.\nIf object is an index than last DML on table is shown.\nIf last DML is empty then no DML has happened since timestamp of last analysis" },
+  ]
+
+  column_options << {:caption=> 'InMemory', :data=>proc{|rec| rec.inmemory}, :title=> "Indicates whether the In-Memory Column Store (IM column store) is enabled (ENABLED) or disabled (DISABLED) for this segment" } if get_db_version >= '12.1.0.2'
+%>
+
+<%= gen_slickgrid(@objects, column_options, {
+        :caption => "#{t(:dba_schema_list_objects_caption, :default=>'Objects for')}#{" Tablespace='#{@tablespace_name}'" if @tablespace_name}#{" Schema='#{@schema_name}'" if @schema_name}#{" SQL_ID='#{@sql_id}'" if @sql_id}#{" Instance=#{@instance}" if @instance}",
+        :max_height => 450, show_pin_icon: 1
+})
+%>
+
+
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,45 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption(t(:dragnet_show_personal_selection_form_caption, :default=> "Extend dragnet SQLs with your personal selections")) %>
+
+<%= ajax_form(:controller=>:dragnet, :action=>:add_personal_selection, :update_area => 'content_for_layout') do %>
+    <%
+       template = "
+{
+  \"name\": \"Select table attributes for one table\",
+  \"desc\": \"Select attributes from DBA_Tables for your selected table\",
+  \"sql\":  \"SELECT * FROM DBA_Tables WHERE Owner = UPPER(?) AND Table_Name = UPPER(?)\",
+  \"parameter\": [
+    {
+      \"name\":     \"Owner\",
+      \"title\":    \"Name of table owner\",
+      \"size\":     30,
+      \"default\":  \"SYS\"
+    },
+    {
+      \"name\":     \"Table name\",
+      \"title\":    \"Name of table\",
+      \"size\":     30,
+      \"default\":  \"OBJ$\"
+    }
+  ]
+}
+    "
+    %>
+
+    <div style="margin: 10px;">
+      <%= text_area_tag("selection", template, :cols=>120, :rows=>25) %>
+      <div style="padding-top: 5px;">
+        <%= submit_tag(' Help ', :title => 'Show usage hints for personal selection', :onclick=>"jQuery('#dragnet_show_personal_selection_form_help').show(); return false;") %>
+        <%= submit_tag(' Add ', :title => 'Add selection to dragnet SQLs in upper list') %>
+      </div>
+      <div id="dragnet_show_personal_selection_form_help" style="display: none; ">
+        <%= render partial: 'dragnet/personal_selection_help' %>
+      </div>
+    </div>
+<% end %>
+
+
+<div id="<%= @update_area %>" style="clear: both; width:100%; ">
+</div>
+

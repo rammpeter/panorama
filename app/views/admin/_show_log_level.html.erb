@@ -1,0 +1,39 @@
+<%= render_page_caption("Set log level for panorama server (current level is #{@log_level})") %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(controller:         :admin,
+              action:             :set_log_level,
+              update_area:        :dummy,
+    ) do %>
+  <br/>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      DEBUG
+      <%= radio_button_tag(:log_level, 'DEBUG', @log_level == 'DEBUG') %>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+    <div class="flex-row-element">
+      INFO
+      <%= radio_button_tag(:log_level, 'INFO', @log_level == 'INFO') %>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+    <div class="flex-row-element">
+      WARN
+      <%= radio_button_tag(:log_level, 'WARN', @log_level == 'WARN') %>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+    <div class="flex-row-element">
+      ERROR
+      <%= radio_button_tag(:log_level, 'ERROR', @log_level == 'ERROR') %>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+    <div class="flex-row-element">
+      FATAL
+      <%= radio_button_tag(:log_level, 'FATAL', @log_level == 'FATAL') %>
+    </div>
+    &nbsp;&nbsp;&nbsp;
+    <div class="flex-row-element">
+      <%= submit_tag('Set log level', :title =>"Set the log level to the choosen value" ) %>
+    </div>
+  </div>
+<% end %>

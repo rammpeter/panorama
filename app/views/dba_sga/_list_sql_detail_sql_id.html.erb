@@ -1,0 +1,10 @@
+<% @update_area = get_unique_area_id %>
+
+<% @modus = "GV$SQLArea" # Ab jetzt Summen-Info anzeigen%>
+<%= render :partial=>"list_sql_sga_stat" %>
+
+<% @modus = "GV$SQLArea" # Ab jetzt wieder Summen-Info anzeigen%>
+<%= render :partial=>"list_sql_sga_stat_footer" %>
+
+<div style="clear: both;" id="<%= @update_area %>"></div>
+

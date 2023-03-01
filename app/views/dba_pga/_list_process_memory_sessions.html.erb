@@ -1,0 +1,33 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'I',                                   :data=>proc{|rec| rec.inst_id},                   :title=>"RAC-Instance", :align=>:right},
+          {:caption=>'SID / Sn.',                           :data=>proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)},              :title=>"Session-ID / serial number"},
+          {:caption=>'Status',                              :data=>proc{|rec| rec.status},                    :title=>"Database session status" },
+          {:caption=>"Allocated PGA (MB '#{@category}')",   :data=>proc{|rec| fn(rec.allocated_mb, 2)},       :title=>"MBytes of PGA memory for category = \'#{@category}\' allocated by the process for the category.\nFor the 'Freeable' category, it is the amount of free PGA memory eligible to be released to the operating system.", :align=>:right},
+          {:caption=>"Used PGA (MB '#{@category})",         :data=>proc{|rec| fn(rec.used_mb, 2)},            :title=>"MBytes of PGA memory for category = \'#{@category}\' used by the process for the category.\nFor 'Freeable', the value is zero.\nFor 'Other', the value is NULL for performance reasons.", :align=>:right},
+          {:caption=>"Max. allocated PGA (MB '#{@category})",:data=>proc{|rec| fn(rec.max_allocated_mb, 2)},   :title=>"Maximum MBytes of PGA memory for category = \'#{@category}\' ever allocated by the process for the category.", :align=>:right},
+          {:caption=>'Logon time',                          :data=>proc{|rec| localeDateTime(rec.logon_time)},:title=>"Logon time of DB session" },
+          {:caption=>'Process ID',                          :data=>proc{|rec| rec.spid},                      :title=>"Database process ID" },
+          {:caption=>'Process Program',                     :data=>proc{|rec| rec.p_program},                 :title=>"Program of database shadow process" },
+          {:caption=>'Client user',                         :data=>proc{|rec| rec.osuser},                    :title=>"Client OS user name" },
+          {:caption=>'DB user',                             :data=>proc{|rec| rec.db_user},                   :title=>"Database user name" },
+          {:caption=>'Machine',                             :data=>proc{|rec| rec.machine},                   :title=>"Client machine name" },
+          {:caption=>'Program',                             :data=>proc{|rec| rec.program},                   :title=>"Client program name" },
+          {:caption=>"Total PGA in use (MB)",               :data=>proc{|rec| fn(rec.pga_used_mb)},           :title=>"Indicates how much PGA memory is currently consumed by work areas. This number can be used to determine how much memory is consumed by other consumers of the PGA memory (for example, PL/SQL or Java).", :align=>:right},
+          {:caption=>"Total PGA allocated (MB)",            :data=>proc{|rec| fn(rec.pga_alloc_mb)},          :title=>"Current amount of PGA memory allocated by the instance. The Oracle Database attempts to keep this number below the value of the PGA_AGGREGATE_TARGET initialization parameter. However, it is possible for the PGA allocated to exceed that value by a small percentage and for a short period of time when the work area workload is increasing very rapidly or when PGA_AGGREGATE_TARGET is set to a small value.", :align=>:right},
+          {:caption=>"Freeable PGA (MB)",                   :data=>proc{|rec| fn(rec.pga_freeable_mb)},       :title=>"Number of bytes of PGA memory in all processes that could be freed back to the operating system.", :align=>:right},
+      ]
+%>
+
+<%=
+  gen_slickgrid(@sessions, column_options, {
+      :caption => "DB processes consuming PGA memory in category = '#{@category}' (from gv$Process_Memory, gv$Process, gv$Session)",
+      :max_height => 450,
+      show_pin_icon: 1,
+      update_area: @update_area
+  })
+%>
+

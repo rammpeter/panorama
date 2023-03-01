@@ -1,0 +1,16 @@
+<%= render_page_caption("PGA-history from #{PanoramaConnection.adjust_table_name('DBA_Hist_PGAStat')}") %>
+
+
+<%= ajax_form(:controller=>:dba_pga, :action=>"list_pga_stat_historic", :update_area=>"list_pga_stat_historic_area") do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(required: true) %>
+    <%= dbid_selection %>
+    <div class="flex-row-element">
+      <%= submit_tag("Show PGA usage", :title => "Show PGA usage in period") %>
+    </div>
+  </div>
+<% end %>
+<div id="list_pga_stat_historic_area" style="float:left; width:100%;">
+
+</div>

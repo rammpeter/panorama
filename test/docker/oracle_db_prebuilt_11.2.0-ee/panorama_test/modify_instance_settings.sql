@@ -1,0 +1,5 @@
+-- Modify instance settings
+ALTER SYSTEM SET SGA_MAX_SIZE=1500M scope=spfile;
+ALTER SYSTEM SET SGA_TARGET=1500M scope=spfile;
+SHUTDOWN IMMEDIATE;
+STARTUP;

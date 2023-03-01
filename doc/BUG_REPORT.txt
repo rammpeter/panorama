@@ -1,0 +1,61 @@
+
+27.04.2017
+http-Requests kommen nicht zurück unter Oracle-Linux 6.5 (panorama.osp-dd.de), wenn jruby-jars 9.1.8.0 verwendet werden. Zurück auf 9.1.7.0 löste das Problem
+https://stackoverflow.com/questions/45193359/upgrading-from-jruby-9-0-5-0-hangs-tomcat
+says:
+sounds like an enthropy depletion might be going on,
+export JRUBY_OPTS=-J-Djava.security.egd=file:/dev/./urandom
+or in your case :
+export CATALINA_OPTS=-Djava.security.egd=file:/dev/./urandom
+
+01.05.2017
+problem with Marshal in Rails 5.0.2
+
+$ rails c
+Loading development environment (Rails 5.0.2)
+>> Marshal.load(Marshal.dump("my secret data"))
+NoMethodError: undefined method `call' for nil:NilClass
+Looks like it might be something we're doing since just using jirb works:
+
+$ jirb
+>> Marshal.load(Marshal.dump("my secret data"))
+=> "my secret data"
+A workaround for the moment is to use JSON as the serializer if that's okay, e.g:
+
+$ rails c
+>> salt = SecureRandom.random_bytes(64)
+>> key = ActiveSupport::KeyGenerator.new('password').generate_key(salt, 32)
+>> crypt = ActiveSupport::MessageEncryptor.new(key, serializer: JSON)
+>> encrypted_data = crypt.encrypt_and_sign('my secret data')
+>> crypt.decrypt_and_verify(encrypted_data)
+=> "my secret data"
+
+Turns out this is a known bug that's fixed in the upcoming 9.1.9.0 release of jRuby - see jruby/jruby#4526
+
+20.11.2017
+warble with bundler v 1.16.0 and jruby 1.9.14 leads to:
+Unable to detect bundler spec under '/Users/pramm/.rvm/gems/jruby-9.1.14.0/gems/bundler-1.16.0'' and its sub-dirs
+bundler 1.15.4 runs ok
+
+27.03.2018 chromedriver-helper relies on 2.34, but current chrome 65.0 only works with chromedriver 2.36
+Solution: remove chromedriver from jruby/bin
+
+12.04.2018
+Problem: NameError: uninitialized constant Minitest::Rails::TestUnit
+Solution: change "Rails" to "::Rails" in .rvm/gems/jruby-9.1.16.0/gems/railties-5.2.0/lib/minitest/rails_plugin.rb:16
+
+20.06.2018
+NameError: uninitialized constant Minitest::Rails::TestUnit
+
+go to gems/railties-5.2.0/lib/minitest/rails_plugin.rb and replaced
+Rails::TestUnit::Runner.attach_before_load_options(opts)
+with
+::Rails::TestUnit::Runner.attach_before_load_options(opts),
+it's working on a new 5.2 project.
+
+
+16.01.2019
+Problem: With Oracle Linux 7 Server delivers website (rendered xxx in log) but browser does not get the response
+
+19.02.2019
+Catch console-output from chromedriver into logfile

@@ -1,0 +1,27 @@
+<%=
+    @update_area = get_unique_area_id
+    column_options =
+            [
+                    {:caption=> 'Referencing table owner',     :data=>proc{|rec| rec.owner},                       :title=> 'Owner of referencing table'},
+                    {:caption=> 'Referencing table name', :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.table_name, rec.table_name) }, :title=> 'Name of referencing table'},
+                    {:caption=> 'Referencing constraint name', :data=>proc{|rec| rec.constraint_name},             :title=> 'Referencing constraint name'},
+                    {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
+                    {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Constraint name'},
+                    {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
+                    {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule of referential integrity constraint'},
+                    {:caption=> 'Status',                      :data=>proc{|rec| rec.status},                      :title=> 'Status of referential integrity constraint'},
+                    {:caption=> 'Deferred',                    :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status of referential integrity constraint'},
+                    {:caption=> 'Validated',                   :data=>proc{|rec| rec.validated},                   :title=> 'Validate status of referential integrity constraint'},
+                    {:caption=> 'Num. rows',                   :data=>proc{|rec| fn(rec.num_rows)},                :title=> 'Number of rows of referencing table', :align=>:right},
+                    {:caption=> 'Last change',                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change of referential integrity constraint (Including ENABLE and DISABLE)'},
+                    {:caption=> 'Protecting index name',       :data=>proc{|rec| link_object_description(@update_area, rec.min_index_owner, rec.min_index_name, rec.min_index_name) }, :title => "Name of index for protection of foreign key constraint.\nChecked for first column of constraint only (if constraint has multiple columns).", data_title: proc {|rec| "%t\nIf no index exists for constraints column(s) than each DELETE on #{@table_name} fires a full table scan on #{rec.table_name}.\nThis and some lock issues are only a problem if #{@table_name} is a larger table with frequent DML-operations.\nWorking without an index here may be useful if #{@table_name} has only few records and there is less or no DML on #{@table_name}.#{"\n\nThere are #{rec.index_number} indexes on #{rec.table_name} starting with the same column!" if !rec.index_number.nil? && rec.index_number > 1}"}},
+            ]
+
+    gen_slickgrid(@referencing, column_options, {
+                                      :caption => "Foreign keys referencing to  #{@table_type} #{@owner}.#{@table_name}",
+                                      :max_height => 450, show_pin_icon: 1
+                              })
+%>
+
+
+<div id="<%= @update_area %>"></div>

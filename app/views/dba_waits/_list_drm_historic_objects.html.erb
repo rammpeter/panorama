@@ -1,0 +1,41 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_object = proc do |rec|
+    if rec.owner && rec.object_name
+      link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner}. #{rec.object_name}#{" (#{rec.subobject_name})" if rec.subobject_name}")
+    else
+      "No longer existing object with Data_Object_ID = #{rec.data_object_id}"
+    end
+  end
+
+  link_records = proc do |rec|
+    ajax_link(fn(rec.record_count), {
+                        action:               :list_drm_historic_single_records,
+                        time_selection_start: localeDateTime(rec.first_occurrence),
+                        time_selection_end:   localeDateTime(rec.last_occurrence),
+                        data_object_id:       rec.data_object_id,
+                        policy_event:         (@policy_event == '[All]' ? nil : @policy_event),
+                        update_area:          @update_area
+                },
+                :title=>'Show single records of object for period' )
+  end
+
+
+
+  column_options =
+      [
+          {caption: "Object",           data: link_object,                                          title: "Object master role has changed for"},
+          {caption: "First occurrence", data: proc{|rec| localeDateTime(rec.first_occurrence)},     title: "Timestamp of first occurrence of event for object in period"},
+          {caption: "Last occurrence",  data: proc{|rec| localeDateTime(rec.last_occurrence)},      title: "Timestamp of last occurrence of event for object in period"},
+          {caption: "Event count",      data: link_records,                                         title: "Number of dynamic remastering events for object in period", align: :right},
+      ]
+
+%>
+<%= gen_slickgrid(@objects, column_options, {
+    :caption => "Objects with dynamic remastering events from gv$Policy_History (Policy event = '#{@policy_event}') from #{@time_selection_start} until #{@time_selection_end}",
+    :max_height => 450, show_pin_icon: 1
+})
+%>
+
+<div id="<%= @update_area %>"></div>

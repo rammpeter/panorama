@@ -1,0 +1,26 @@
+<%= render_page_caption("Blocking Locks #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}") %>
+
+
+<%= ajax_form(:controller  => :active_session_history,
+                             :action      => :fork_blocking_locks_historic_call,
+                             :update_area => :show_blocking_locks_detail_area
+                     ) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element" style="border:1px solid gray; padding-left: 5px;">
+      <%= submit_tag('Blocking locks session dependency tree', title: "Show blocking locks history starting with root blocker", id: :session_dependency) %>
+    </div>
+     &nbsp;
+    <div class="flex-row-element" style="border:1px solid gray; padding-left: 5px;">
+      <span title="Show event dependency per instance for RAC?">
+      Instances
+        <%= check_box_tag(:show_instances, 1, false) %>
+      </span>
+
+      <%= submit_tag('Blocking locks event dependency', title: "Show blocking locks history aggregated by event dependency", id: :event_dependency ) %>
+    </div>
+  </div>
+<% end %>
+<div id="show_blocking_locks_detail_area"></div>
+

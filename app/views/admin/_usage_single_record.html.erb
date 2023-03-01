@@ -1,0 +1,35 @@
+<%
+   @update_area = "single_record_detail_area"
+
+   def show_client(rec)
+     ajax_link(rec.IP_Address, {
+               :controller  => :admin,                                      # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+               :action      => :ip_info,
+               :ip_address  => rec.IP_Address,
+               :update_area => @update_area
+             },
+      :title=>"Details per IP-address")
+   end
+
+column_options = [
+        {:caption=>"Timestamp",     :data=>proc{|rec| rec.Timestamp},   },
+        {:caption=>"Database",      :data=>proc{|rec| rec.Database},   },
+        {:caption=>"Client",        :data=>proc{|rec| show_client(rec)},   },
+        {:caption=>"Controller",    :data=>proc{|rec| rec.Controller},   },
+        {:caption=>"Action",        :data=>proc{|rec| rec.Action},   },
+        {:caption=>"URL",           :data=>proc{|rec| rec.URL},             :title=> 'Attached host:port:sid/servicename'},
+        ]
+
+   caption = "Single records, filter: "
+   @filter.each do |key, value|
+     caption << "#{key}=#{value}, "
+   end
+
+%>
+
+<%= gen_slickgrid(@recs, column_options, {:caption=>caption, :max_height=>450, :width=>"auto"}) %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>
+
+

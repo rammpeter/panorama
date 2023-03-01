@@ -1,0 +1,39 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_name = proc do |rec|
+    link_object_description(@update_area, rec.owner, rec.segment_name, rec.segment_name)
+  end
+
+  def render_action_buttons(rec)
+    ajax_link('Detailed snapshots', {
+              :action               => :list_object_increase_object_timeline,
+              :owner                => rec.owner,
+              :name                 => rec.segment_name,
+              :time_selection_start => @time_selection_start,
+              :time_selection_end   => @time_selection_end,
+              :update_area          => @update_area
+            },
+     :title=>"Show single snapshots of object in period")
+  end
+
+  column_options =
+      [
+          {:caption=>"Owner",           :data=>proc{|rec| rec.owner},                         :title=>"Object-owner"},
+          {:caption=>"Name",            :data=>show_name,                                     :title=>"Segment-name"},
+          {:caption=>"Type",            :data=>proc{|rec| rec.segment_type},                  :title=>"Segment-type"},
+          {:caption=>"Tablespace",      :data=>proc{|rec| rec.tablespace_name},               :title=>"Tablespace name"},
+          {:caption=>"MBytes",          :data=>proc{|rec| fn(rec.bytes.to_f/(1024*1024), 2)}, :title=>"Size of object in MB at this sample timestamp",              :align=>:right},
+          {:caption=>"Num. rows",       :data=>proc{|rec| fn(rec.num_rows)},                  :title=>"Number of rows of object at this sample timestamp",                 :align=>:right},
+          {:caption=>'Action',          :data=>proc{|rec| render_action_buttons(rec)},        :title=>"Execute action for selected row" },
+      ]
+%>
+
+<%=
+  gen_slickgrid(@objects, column_options,
+                {:caption=>"Object sizes for gather date = #{@gather_date}#{", object type = '#{@segment_type}'" if @segment_type}#{", tablespace = '#{@tablespace_name}'" if @tablespace_name}#{", schema = '#{@owner}'" if @owner}",
+                 :max_height => 450,
+                 show_pin_icon: 1,
+                 update_area:   @update_area
+                })
+%>

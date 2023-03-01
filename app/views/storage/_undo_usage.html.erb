@@ -1,0 +1,80 @@
+<%
+   @update_area = get_unique_area_id
+
+
+   column_options =
+           [
+                   {:caption=>"Owner",                 :data=>proc{|rec| rec.owner},                        :title=>"Owner of UNDO tablespace"},
+                   {:caption=>"Tablespace",            :data=>proc{|rec| rec.tablespace_name},              :title=>"Name of UNDO tablespace"},
+                   {:caption=>"I",                     :data=>proc{|rec| rec.inst_id},                      :title=>'RAC-instance if tablespace is defined as "undo_tablespace" for this instance', :align=>:right},
+                   {:caption=>"Size total (MB)",       :data=>proc{|rec| fn(rec.size_mb,2)},                :title=>"Total size of UNDO segment in tablespace",     :align=>:right},
+                   {:caption=>"Size active (MB)",      :data=>proc{|rec| fn(rec.size_mb_active,2)},         :title=>"Size of active extents in UNDO segment",       :align=>:right},
+                   {:caption=>"Size unexpired (MB)",   :data=>proc{|rec| fn(rec.size_mb_unexpired,2)},      :title=>"Size of unexpired extents in UNDO segment",    :align=>:right},
+                   {:caption=>"Size expired (MB)",     :data=>proc{|rec| fn(rec.size_mb_expired,2)},        :title=>"Size of expired extents in UNDO segment",      :align=>:right},
+           ]
+
+%>
+
+<div>
+  <%= gen_slickgrid(@undo_tablespaces, column_options, {
+      :caption => 'Current UNDO tablespaces (from DBA_UNDO_Extents)',
+      show_pin_icon: 2
+  }) %>
+</div>
+
+
+<%
+   def link_tx(rec)
+     ajax_link(fn(rec.transactions), {
+                             :action          => :list_undo_transactions,
+                             :segment_id      => rec.segment_id,
+                             :update_area     => @update_area
+                     },
+                     :title=>"Show transactions for undo segment")
+   end
+
+=begin
+                                               STATUS	VARCHAR2(16)	 	Rollback segment status:
+                                                                                            OFFLINE
+                                               ONLINE
+                                               NEEDS RECOVERY
+                                               PARTLY AVAILABLE
+                                               UNDEFINED
+                                               INSTANCE_NUM	VARCHAR2(40)	 	Rollback segment owning Real Application Clusters instance number
+                                               RELATIVE_FNO	NUMBER	NOT NULL	Relative file number of the segment header
+=end
+
+
+   column_options =
+           [
+                   {:caption=>"RBS owner",             :data=>proc{|rec| rec.owner},                        :title=>"Owner of the rollback segment"},
+                   {:caption=>"Extent owner",          :data=>proc{|rec| rec.extent_owner},                 :title=>"Owner of UNDO tablespace extents"},
+                   {:caption=>"Segment ID",            :data=>proc{|rec| rec.segment_id},                   :title=>"UNDO segment ID", align: :right},
+                   {:caption=>"Segment name",          :data=>proc{|rec| rec.segment_name},                 :title=>"Name of UNDO segment"},
+                   {:caption=>"Status",                :data=>proc{|rec| rec.status},                       :title=>"Rollback segment status"},
+                   {:caption=>"Tablespace",            :data=>proc{|rec| rec.tablespace_name},              :title=>"Name of UNDO tablespace"},
+                   {:caption=>"Inst.",                 :data=>proc{|rec| rec.instance_num},                 :title=>'RAC-instance if tablespace is defined as "undo_tablespace" for this instance', :align=>:right},
+                   {:caption=>"Transactions",          :data=>proc{|rec| link_tx(rec)},                     :title=>"Number of current active transactions in undo segment",     :align=>:right},
+                   {:caption=>"Size total (MB)",       :data=>proc{|rec| fn(rec.size_mb,2)},                :title=>"Total size of UNDO segment in tablespace",     :align=>:right},
+                   {:caption=>"Size active (MB)",      :data=>proc{|rec| fn(rec.size_mb_active,2)},         :title=>"Size of active extents in UNDO segment",       :align=>:right},
+                   {:caption=>"Size unexpired (MB)",   :data=>proc{|rec| fn(rec.size_mb_unexpired,2)},      :title=>"Size of unexpired extents in UNDO segment",    :align=>:right},
+                   {:caption=>"Size expired (MB)",     :data=>proc{|rec| fn(rec.size_mb_expired,2)},        :title=>"Size of expired extents in UNDO segment",      :align=>:right},
+                   {caption: 'Initial extent (KB)',    :data=>proc{|rec| fn((rec.initial_extent/1024 rescue nil))},       title: "Initial extent size in kBytes",      align: :right},
+                   {caption: 'Next extent (KB)',       :data=>proc{|rec| fn((rec.next_extent/1024 rescue nil))},          title: "Secondary extent size in kBytes",      align: :right},
+                   {caption: 'Min extents',            :data=>proc{|rec| fn(rec.min_extents)},              title: "Minimum number of extents",      align: :right},
+                   {caption: 'Max extents',            :data=>proc{|rec| fn(rec.max_extents)},              title: "Maximum number of extents",      align: :right},
+                   {caption: 'Pct. increase',          :data=>proc{|rec| fn(rec.pct_increase)},             title: "Percent increase for extent size",      align: :right},
+           ]
+
+%>
+
+<div>
+  <%= gen_slickgrid(@undo_segments, column_options, {
+      :max_height => 450, show_pin_icon: 2,
+      :caption => 'Current UNDO segments (from DBA_Rollback_Segs and DBA_UNDO_Extents)'
+
+  }) %>
+
+  <div id="<%= @update_area %>"></div>
+</div>
+

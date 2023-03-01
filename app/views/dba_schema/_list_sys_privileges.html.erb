@@ -1,0 +1,21 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_privileges = proc do |rec|
+    ajax_link(fn(rec.grantees),
+              {action:      :list_granted_sys_privileges,
+               privilege:     rec.privilege,
+               update_area: @update_area,
+              },
+              title: "Show users granted to system privilege '#{rec.privilege}'"
+    )
+  end
+
+  column_options = []
+  column_options << {caption: 'Privilege',          data: proc{|rec| rec.privilege},      title: "System privilege"}
+  column_options << {caption: 'Granted privileges', data: link_privileges,                title: 'Number of users granted to this system privilege', align: :right}
+%>
+
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted system privileges from DBA_Sys_Privs", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

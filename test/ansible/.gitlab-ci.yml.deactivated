@@ -1,0 +1,510 @@
+# Test Panorama from https://github.com/rammpeter/Panorama_Gem
+# Requires:
+#  - prebuilt database image with test users
+# 2022-09-01 Pipeline deactivated, running now at GitHub https://github.com/rammpeter/panorama_gem
+
+image: rammpeter/jruby_with_chrome:9.3.4.0
+
+variables:
+  CI_PROJECT_DIR: /home/jruby
+  TEST_HOST: "oracle-db"
+  # maybe CI_DEBUG_SERVICES becomes available in the future
+  CI_DEBUG_SERVICES: trace
+  JRUBY_OPTS: "-J-Djava.security.egd=file:/dev/./urandom"
+
+# Separate stages because pending jobs get stuck after one hour (hard limit)
+stages:
+  - code_analysis
+  - test_11.2_EE
+  - test_12.1_EE_CDB
+  - test_12.1_EE_PDB
+  - test_12.2_EE_CDB
+  - test_12.2_EE_PDB
+  - test_18.3_EE_CDB
+  - test_18.3_EE_PDB
+  - test_18.4_XE
+  - test_19.3_EE_CDB
+  - test_19.3_EE_PDB
+  - test_19.10_EE_CDB
+  - test_19.10_EE_PDB
+  - test_19.10_SE2
+  - finish_test
+  - build
+  - deploy
+
+#before_script:
+#  - git clone https://github.com/rammpeter/Panorama_Gem
+#  - sh -c "cd Panorama_Gem && bundle install"
+
+#after_script:
+#  - cp Panorama_Gem/test/dummy/log/test.log last_test.log
+
+brakeman_analysis:
+  stage: code_analysis
+  script:
+    - sh -c "git clone https://github.com/rammpeter/Panorama_Gem"
+    - sh -c "cd Panorama_Gem && bundle install --jobs 8"
+    - gem install --no-doc brakeman
+    - sh -c "cd Panorama_Gem && brakeman -A"
+
+.tests:
+  script:
+    - echo "running as `id`"
+    - date
+    - rm -rf Panorama_Gem                                                       # Remove Artifacts of previous stage
+    - sh -c "git clone https://github.com/rammpeter/Panorama_Gem"
+    - sh -c "cd Panorama_Gem && bundle config set deployment 'true'"
+    - sh -c "cd Panorama_Gem && bundle install --jobs 8"
+    # TODO: playwright here only as test
+    - sh -c "npm install playwright"
+    - sh -c "cd Panorama_Gem && bundle exec rake -f lib/tasks/wait_for_db_available.rake 'ci_preparation:wait_for_db_available[10]'"
+    #- docker exec jruby sh -c "cd Panorama_Gem && export CHROME_BIN=/usr/bin/chromium-browser && export CHROME_PATH=/usr/lib/chromium/ && export DB_VERSION='11.2' && rake test"
+    #- docker exec jruby sh -c "cd Panorama_Gem && export DB_VERSION='11.2' && rake test TEST=test/system/dba_general_test.rb"
+    - sh -c "cd Panorama_Gem && bundle exec rake test"
+    #- sh -c "cd Panorama_Gem && rake test TEST=test/system/spec_additions_test.rb"
+  artifacts:
+    when: always
+    paths:
+#     - last_test.log
+      - Panorama_Gem/test/dummy/log/
+      - Panorama_Gem/test/dummy/tmp/screenshots/
+    expire_in: 1 month
+
+################### test_18.4_autonomous_cloud
+#18.4_autonomous_cloud:
+#  stage: test_18.4_autonomous_cloud
+#  extends: .tests
+#  variables:
+#    MANAGEMENT_PACK_LICENSE:  "diagnostics_and_tuning_pack"
+#    TEST_HOST:                "adb.eu-frankfurt-1.oraclecloud.com"
+#    TEST_PORT:                1522,
+#TEST_SERVICENAME        Default: ORCLPDB1
+#TEST_USERNAME           Default: panorama_test
+#TEST_PASSWORD           Default: panorama_test
+#TEST_SYSPASSWORD        Default: oracle
+
+
+
+
+################### test templates 11.2_EE
+.tests_11.2_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:11.2.0.4-ee
+      alias: oracle-db
+  variables:
+    TEST_SERVICENAME: "ORCL"
+
+################### test_11.2_EE
+
+11.2-ee_diagnostics_and_tuning_pack:
+  stage: test_11.2_EE
+  extends: .tests_11.2_EE
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+11.2-ee_diagnostics_pack:
+  stage: test_11.2_EE
+  extends: .tests_11.2_EE
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+11.2-ee_panorama_sampler:
+  stage: test_11.2_EE
+  extends: .tests_11.2_EE
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+11.2-ee_none:
+  stage: test_11.2_EE
+  extends: .tests_11.2_EE
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+
+################### test templates 12.1_EE
+.tests_12.1_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:12.1.0.2-ee
+      alias: oracle-db
+
+.tests_12.1_EE_CDB:
+  extends: .tests_12.1_EE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_12.1_EE_PDB:
+  extends: .tests_12.1_EE
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_12.1_EE_CDB
+
+12.1-ee_diagnostics_and_tuning_pack_CDB:
+  stage: test_12.1_EE_CDB
+  extends: .tests_12.1_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+# 12.1-ee_diagnostics_pack_CDB: only executed for PDB
+
+12.1-ee_panorama_sampler_CDB:
+  stage: test_12.1_EE_CDB
+  extends: .tests_12.1_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 12.1-ee_none_CDB: only executed for PDB
+
+################### test_12.1_EE_PDB
+
+12.1-ee_diagnostics_and_tuning_pack_PDB:
+  stage: test_12.1_EE_PDB
+  extends: .tests_12.1_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+12.1-ee_diagnostics_pack_PDB:
+  stage: test_12.1_EE_PDB
+  extends: .tests_12.1_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+# 12.1-ee_panorama_sampler_PDB: only executed for CBD
+
+12.1-ee_none_PDB:
+  stage: test_12.1_EE_PDB
+  extends: .tests_12.1_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 12.2_EE
+.tests_12.2_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:12.2.0.1-ee
+      alias: oracle-db
+
+.tests_12.2_EE_CDB:
+  extends: .tests_12.2_EE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_12.2_EE_PDB:
+  extends: .tests_12.2_EE
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_12.2_EE_CDB
+
+12.2-ee_diagnostics_and_tuning_pack_CDB:
+  stage: test_12.2_EE_CDB
+  extends: .tests_12.2_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+# 12.2-ee_diagnostics_pack_CDB: only executed for PDB
+
+12.2-ee_panorama_sampler_CDB:
+  stage: test_12.2_EE_CDB
+  extends: .tests_12.2_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 12.2-ee_none_CDB: only executed for PDB
+
+################### test_12.2_EE_PDB
+
+12.2-ee_diagnostics_and_tuning_pack_PDB:
+  stage: test_12.2_EE_PDB
+  extends: .tests_12.2_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+12.2-ee_diagnostics_pack_PDB:
+  stage: test_12.2_EE_PDB
+  extends: .tests_12.2_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+# 12.2-ee_panorama_sampler_PDB:  only executed for CBD
+
+12.2-ee_none_PDB:
+  stage: test_12.2_EE_PDB
+  extends: .tests_12.2_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 18.3_EE
+.tests_18.3_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:18.3.0.0-ee
+      alias: oracle-db
+
+.tests_18.3_EE_CDB:
+  extends: .tests_18.3_EE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_18.3_EE_PDB:
+  extends: .tests_18.3_EE
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_18.3_EE_CDB
+
+18.3-ee_diagnostics_and_tuning_pack_CDB:
+  stage: test_18.3_EE_CDB
+  extends: .tests_18.3_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+# 18.3-ee_diagnostics_pack_CDB: only executed for PDB
+
+18.3-ee_panorama_sampler_CDB:
+  stage: test_18.3_EE_CDB
+  extends: .tests_18.3_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 18.3-ee_none_CDB: only executed for PDB
+
+################### test_18.3_EE_PDB
+
+18.3-ee_diagnostics_and_tuning_pack_PDB:
+  stage: test_18.3_EE_PDB
+  extends: .tests_18.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+
+18.3-ee_diagnostics_pack_PDB:
+  stage: test_18.3_EE_PDB
+  extends: .tests_18.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+# 18.3-ee_panorama_sampler_PDB:  only executed for CBD
+
+18.3-ee_none_PDB:
+  stage: test_18.3_EE_PDB
+  extends: .tests_18.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 18.4_XE
+.tests_18.4_XE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:18.4.0.0-xe
+      alias: oracle-db
+
+.tests_18.4_XE_CDB:
+  extends: .tests_18.4_XE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "XE"
+
+.tests_18.4_XE_PDB:
+  extends: .tests_18.4_XE
+  variables:
+    TEST_SERVICENAME: "XEPDB1"
+
+################### test_18.4_XE_CDB
+
+18.4-xe_panorama_sampler_CDB:
+  stage: test_18.4_XE
+  extends: .tests_18.4_XE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 18.4-xe_none_CDB: only executed for PDB
+
+################### test_18.4_XE_PDB
+
+18.4-xe_panorama_sampler_PDB:
+  stage: test_18.4_XE
+  extends: .tests_18.4_XE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+18.4-xe_none_PDB:
+  stage: test_18.4_XE
+  extends: .tests_18.4_XE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 19.3_EE
+.tests_19.3_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:19.3.0.0-ee
+      alias: oracle-db
+
+.tests_19.3_EE_CDB:
+  extends: .tests_19.3_EE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_19.3_EE_PDB:
+  extends: .tests_19.3_EE
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_19.3_EE_CDB
+
+19.3-ee_diagnostics_and_tuning_pack_CDB:
+  stage: test_19.3_EE_CDB
+  extends: .tests_19.3_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+# 19.3-ee_diagnostics_pack_CDB: only executed for PDB
+
+19.3-ee_panorama_sampler_CDB:
+  stage: test_19.3_EE_CDB
+  extends: .tests_19.3_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 19.3-ee_none_CDB: only executed for PDB
+
+################### test_19.3_EE_PDB
+
+19.3-ee_diagnostics_and_tuning_pack_PDB:
+  stage: test_19.3_EE_PDB
+  extends: .tests_19.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+19.3-ee_diagnostics_pack_PDB:
+  stage: test_19.3_EE_PDB
+  extends: .tests_19.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+# 19.3-ee_panorama_sampler_PDB:  only executed for CBD
+
+19.3-ee_none_PDB:
+  stage: test_19.3_EE_PDB
+  extends: .tests_19.3_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 19.10_EE
+.tests_19.10_EE:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:19.10.0.0-ee
+      alias: oracle-db
+
+.tests_19.10_EE_CDB:
+  extends: .tests_19.10_EE
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_19.10_EE_PDB:
+  extends: .tests_19.10_EE
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_19.10_EE_CDB
+
+19.10-ee_diagnostics_and_tuning_pack_CDB:
+  stage: test_19.10_EE_CDB
+  extends: .tests_19.10_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+# 19.10-ee_diagnostics_pack_CDB: only executed for PDB
+
+19.10-ee_panorama_sampler_CDB:
+  stage: test_19.10_EE_CDB
+  extends: .tests_19.10_EE_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 19.10-ee_none_CDB: only executed for PDB
+
+################### test_19.10_EE_PDB
+
+19.10-ee_diagnostics_and_tuning_pack_PDB:
+  stage: test_19.10_EE_PDB
+  extends: .tests_19.10_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_and_tuning_pack"
+
+19.10-ee_diagnostics_pack_PDB:
+  stage: test_19.10_EE_PDB
+  extends: .tests_19.10_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "diagnostics_pack"
+
+# 19.10-ee_panorama_sampler_PDB:  only executed for CBD
+
+19.10-ee_none_PDB:
+  stage: test_19.10_EE_PDB
+  extends: .tests_19.10_EE_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+################### test templates 19.10_SE2
+.tests_19.10_SE2:
+  extends: .tests
+  services:
+    - name: harbor.osp-dd.de/panorama/oracle/database_prebuilt_panorama_test:19.10.0.0-se2
+      alias: oracle-db
+
+.tests_19.10_SE2_CDB:
+  extends: .tests_19.10_SE2
+  variables:
+    TEST_USERNAME: "c##panorama_test"
+    TEST_SERVICENAME: "ORCLCDB"
+
+.tests_19.10_SE2_PDB:
+  extends: .tests_19.10_SE2
+  variables:
+    TEST_SERVICENAME: "ORCLPDB1"
+
+################### test_19.10_SE2_CDB
+
+19.10-se2_panorama_sampler_CDB:
+  stage: test_19.10_SE2
+  extends: .tests_19.10_SE2_CDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+# 19.10-se2_none_CDB: only executed for PDB
+
+################### test_19.10_SE2_PDB
+
+19.10-se2_panorama_sampler_PDB:
+  stage: test_19.10_SE2
+  extends: .tests_19.10_SE2_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "panorama_sampler"
+
+19.10-se2_none_PDB:
+  stage: test_19.10_SE2
+  extends: .tests_19.10_SE2_PDB
+  variables:
+    MANAGEMENT_PACK_LICENSE: "none"
+
+######
+
+build_Panorama:
+  stage: build
+  script:
+  - sh -c "echo Build"
+
+build_Panorama_Otto:
+  stage: build
+  script:
+    - sh -c "echo Build"

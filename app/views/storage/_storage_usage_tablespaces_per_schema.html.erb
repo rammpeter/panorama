@@ -1,0 +1,46 @@
+<%
+  if prepare_param(:update_area_for_target)
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+  else
+    @update_area = get_unique_area_id                                           # no target div given, create my own
+  end
+
+  link_mb_used = proc do |rec|
+    ajax_link(fn(rec.mbytes),
+              {:controller   => :dba_schema,
+               :action       => :list_objects,
+               :tablespace   => {:name => rec.tablespace_name},
+               :schema       => {:name => rec.owner},
+               :update_area  => @update_area,
+              },
+              :title=>'Show object details of this schema in tablespace'
+    )
+  end
+
+  show_quota = proc do |rec|
+    if rec.bytes_quota == -1
+      'UNLIMITED'
+    else
+      fn(rec.bytes_quota.to_f / (1024*1024)) if !rec.bytes_quota.nil?
+    end
+  end
+
+  show_charged = proc do |rec|
+    fn(rec.bytes_charged.to_f / (1024*1024)) if !rec.bytes_charged.nil?
+  end
+
+  column_options =
+    [
+      {:caption => "Schema",        :data => proc {|rec| rec.owner},                  :title => 'Name of schema'},
+      {:caption => "Tablespace",    :data => proc {|rec| rec.tablespace_name},        :title => t(:storage_tablespace_usage_tablespace_name_hint, :default => 'Name of tablespace')},
+      {:caption => "Used (MB)",     :data => link_mb_used,                            :title => "Used space in tablespace by this schema in MB from DBA_SEGMENTS", data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"}, :align => :right, show_pct_hint: true},
+      {:caption => "Quota (MB)",    :data => show_quota,                              :title => "Maximum quota in tablespace for this schema in MB", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes_quota.to_f / (1024*1024) rescue nil)) if rec.bytes_quota != -1 && !rec.bytes_quota.nil?}"}, :align => :right},
+      {:caption => "Charged (MB)",  :data => show_charged,                            :title => "MB charged for quota in tablespace for this schema from DBA_TS_QUOTAS", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes_charged.to_f / (1024*1024) rescue nil)) if !rec.bytes_charged.nil?}"}, :align => :right},
+    ]
+%>
+
+<%= gen_slickgrid(@tablespace_per_schema, column_options, {:caption => "Tablespace-usage per schema", :width => :auto, :max_height => 450, :no_wrap => true}) %>
+
+<% unless prepare_param(:update_area_for_target) %>
+  <div id="<%= @update_area %>"></div>
+<% end %>

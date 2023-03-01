@@ -1,0 +1,148 @@
+<%=
+
+  @update_area = get_unique_area_id
+
+  def link_ind_subpartitions(rec)
+    if rec.subpartition_count == 0
+      rec.subpartition_count
+    else
+      ajax_link(fn(rec.subpartition_count),
+                              {:action         => :list_index_subpartitions,
+                               :owner          => @owner,
+                               :index_name     => @index_name,
+                               :partition_name => rec.partition_name,
+                               :update_area    => @update_area,
+                              },
+                      :title=>"Show sub-partitions of index #{@owner}.#{@index_name}, partition #{rec.partition_name}"
+      )
+    end
+  end
+
+  list_states = proc do |rec|
+    result = ''
+    result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
+    result << "#{'<br/>' if result.length > 0}Key Compression =  #{rec.compression}"  if !(rec.compression == 'DISABLED')
+    result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')
+    result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1' && !(rec.cell_flash_cache.nil? || rec.cell_flash_cache == 'DEFAULT')
+    result.html_safe
+  end
+
+  title_states = "Special states of index (shown only if not default):
+- Status (if != 'VALID')
+- Index key compression with number of compressed columns
+- Smart flash cache
+- Cell flash cache
+"
+
+  list_rac_master = proc do |rec|
+    if rec.current_master
+      ajax_link(rec.current_master,
+               {controller:     :dba_waits,
+                action:         :list_drm_historic_single_records,
+                owner:          @owner,
+                object_name:    @index_name,
+                subobject_name: rec.partition_name,
+                update_area:    @update_area,
+               },
+               :title=>"List dynamic remastering events for this object"
+      )
+    else
+      'No info'
+    end
+  end
+
+  data_title_rac_master = proc do |rec|
+    title = "%t"
+    if rec.current_master
+      if rec.previous_master == 32768
+        title << "\nNo previous master instance because no remastering happened"
+      else
+        title << "\nPrevious master instance = #{rec.previous_master}"
+      end
+      title << "\nGC mastering policy = #{rec.gc_mastering_policy}"
+      title << "\nNumber of remastering events = #{rec.remaster_cnt}"
+    end
+    title
+  end
+
+  link_space_usage = proc do |rec, value|
+    if rec.subpartition_count && rec.subpartition_count > 0
+      value
+    else
+      ajax_link(value,
+                              {:action       => :list_space_usage,
+                               :owner        => @owner,
+                               :segment_name => @index_name,
+                               partition_name:  rec.partition_name,
+                               :update_area  => @update_area,
+                              },
+                      :title=>"Show space usage for #{@owner}.#{@index_name} from DBMS_SPACE.SPACE_USAGE"
+        )
+    end
+  end
+
+  link_last_analyzed = proc do |rec|
+    ajax_link(localeDateTime(rec.last_analyzed),
+              {:action      => :list_gather_index_historic,
+               :owner       => @owner,
+               :index_name  => @index_name,
+               partition_name: rec.partition_name,
+               :update_area => @update_area,
+              },
+              :title=>'Show historic gather_index_stats-operations for index-partition'
+    )
+  end
+
+  link_extents = proc do |rec|
+    ajax_link(fn(rec.extents),
+              {:controller    => :storage,
+               :action        => :list_object_extents,
+               :owner         => @owner,
+               :segment_name  => @index_name,
+               partition_name: rec.partition_name,
+               :update_area   => @update_area,
+              },
+              :title=>"List distribution of storage extents for index partition. Caution: Execution may last some time!"
+    )
+  end
+
+
+  blocks_data_title = proc do |rec|
+    "\n\nNumber of allocated blocks in segments = #{fn(rec.segment_blocks)} "
+  end
+
+  column_options =
+    [
+      {:caption=> 'Part. name',             :data=>proc{|rec| rec.partition_name},               :title=> 'Partition name'},
+      {:caption=> 'High value',             :data=>proc{|rec| rec.high_value},                   :title=> 'Partition bound value expression'},
+      {:caption=> 'Pos.',                   :data=>proc{|rec| fn rec.partition_position},        :title=> 'Position of the partition within the table', :align=>:right},
+      {:caption=> 'Tablespace',             :data=>proc{|rec| rec.tablespace_name},              :title=> 'Name of the tablespace containing the partition'},
+      {:caption=> 'Pct. free',              :data=>proc{|rec| rec.pct_free},                     :title=> 'Minimum percentage of free space in a block', :align=>:right},
+      {:caption=> 'Ini. trans',             :data=>proc{|rec| rec.ini_trans},                    :title=> 'Initial number of transactions', data_title: proc{|rec| "%t\nNumber of maximum transactions (MAX_TRANS) = #{rec.max_trans}"}, :align=>:right},
+      {:caption=> 'Ini. ext. (KB)',         :data=>proc{|rec| rec.initial_extent_kb},            :title=> 'Initial extent size in kByte', :align=>:right},
+      {:caption=> 'Logging',                :data=>proc{|rec| rec.logging},                      :title=> 'Logging attribute of the partition'},
+      {:caption=> 'Rows',                   :data=>proc{|rec| fn rec.num_rows},                  :title=> 'Number of rows in the partition', :align=>:right},
+      {:caption=> 'Size (MB)',              :data=>proc{|rec| link_space_usage.call(rec, fn(rec.size_mb,2))}, :title=> 'Current object size in megabytes', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}#{blocks_data_title.call(rec)}"}},
+      {:caption=> 'Ext.',                   data: link_extents,                                  :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"} },
+      {:caption=> 'BLevel',                 :data=>proc{|rec| fn rec.blevel},                    :title=> 'B*-Tree level: depth of the index from its root block to its leaf blocks. A depth of 0 indicates that the root block and leaf block are the same.', :align=>:right},
+      {:caption=> 'Leaf blocks',            :data=>proc{|rec| fn rec.leaf_blocks},               :title=> 'Number of leaf blocks in the index partition', :align=>:right},
+      {:caption=> 'Dist. keys',             :data=>proc{|rec| fn rec.distinct_keys},             :title=> 'Number of distinct keys in the index partition', :align=>:right, :data_title=>proc{|rec| "%t, #{fn((rec.num_rows/rec.distinct_keys rescue nil),1)} rows per key" }},
+      {:caption=> 'Avg. leaf blocks / key', :data=>proc{|rec| fn rec. avg_leaf_blocks_per_key},  :title=> 'Average number of leaf blocks in which each distinct value in the index appears, rounded to the nearest integer. For indexes that enforce UNIQUE and PRIMARY KEY constraints, this value is always 1.', :align=>:right},
+      {:caption=> 'Avg. data blocks / key', :data=>proc{|rec| fn rec. avg_data_blocks_per_key},  :title=> 'Average number of data blocks in the table that are pointed to by a distinct value in the index rounded to the nearest integer. This statistic is the average number of data blocks that contain rows that contain a given value for the indexed columns.', :align=>:right},
+      {:caption=> 'Cluster.',               :data=>proc{|rec| fn rec.clustering_factor},         :title=> 'Clustering factor: Indicates the amount of order of the rows in the table based on the values of the index.', :align=>:right},
+      {:caption=> 'Sub-part.',              :data=>proc{|rec| link_ind_subpartitions(rec)},      :title=> 'Number of sub-partitions', :align=>:right},
+      {:caption=> 'Created',                :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of partition creation'},
+      {:caption=> 'Last DDL',               :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on table partition'},
+      { caption: 'Spec. TS',                data: proc{|rec| localeDateTime(rec.spec_ts)},       title: "Timestamp for the last specification change of the index partition" },
+      {:caption=> 'Last analyzed',          :data=>link_last_analyzed,                           :title=> 'Date on which this partition was most recently analyzed'},
+    ]
+
+  column_options << {:caption=> 'Several States',   :data=>list_states,                                                    :title=> title_states}
+  column_options << {:caption=> 'RAC master inst.', :data=>list_rac_master,                             :title=> "Current master instance for cache block states in RAC", data_title: data_title_rac_master} if PanoramaConnection.rac?
+
+    gen_slickgrid(@partitions, column_options, {
+      :caption => "Partitions of index #{@owner}.#{@index_name} #{@partition_expression}",
+      :max_height => 450
+})
+%>
+<div id="<%= @update_area %>"></div>

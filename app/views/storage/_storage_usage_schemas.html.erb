@@ -1,0 +1,43 @@
+<%
+  if prepare_param(:update_area_for_target)
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+  else
+    @update_area = get_unique_area_id                                           # no target div given, create my own
+  end
+
+  def link_mb(rec)
+    ajax_link(fn(rec.total_mbytes),
+              {:controller   => :dba_schema,
+               :action       => :list_objects,
+               :schema       => {:name => rec.schema},
+               :update_area  => @update_area,
+              },
+              :title=>t(:storage_tablespace_usage_schemas_link_hint, :default=>'Show objects of schema')
+    )
+  end
+
+  column_options =
+    [
+      {:caption=>"Schema",  :data=>proc{|rec| rec.schema},                  :title=>"Schema / Owner"},
+    ]
+
+  type_data_title = proc do |type|
+    res = nil
+    res = "Tables including table partitions, LOB segments, cluster and nested tables" if type == 'Table'
+    res = "Indexes including index partitions and LOB indizes"                if type == 'Index'
+    res
+  end
+
+  @schema_segment_types.each do |type, dummy|
+    column_options <<  {:caption=>type,  :data=>proc{|rec| formattedNumber(rec[type])}, :title=>"#{t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type')}\n#{type_data_title.call(type)}", data_title: proc {|rec| "%t\n#{size_explain(rec[type])}"}, :align=>:right, show_pct_hint: true}
+  end
+  column_options <<  {:caption=>'Total MB',  :data=>proc{|rec| link_mb(rec)}, :title=>t(:storage_tablespace_usage_schemas_mb_hint, :default=>'Used space in MBytes for segment type'), data_title: proc{|rec| "%t\n#{size_explain(rec.total_mbytes)}"}, :align=>:right, show_pct_hint: true}
+
+
+%>
+
+<%= gen_slickgrid(@schemas, column_options, {:caption=> "Schema-Usage", :width=>:auto, :max_height=>450, :no_wrap=>true}) %>
+
+<% unless prepare_param(:update_area_for_target) %>
+  <div id="<%= @update_area %>"></div>
+<% end %>

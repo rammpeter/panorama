@@ -1,0 +1,17 @@
+<%
+  column_options =
+      [
+          {:caption=>"Child no.",     :data=>proc{|rec| formattedNumber(rec.child_number) },  :title=>"Child number this bind value was recorded for", :align=>"right"},
+          {:caption=>"Pos",           :data=>proc{|rec| formattedNumber(rec.position) },      :title=>t(:dba_sga_list_sql_detail_sql_id_position_hint, :default=>'Position of bind variable in statement'), :align=>"right"},
+          {:caption=>"Name",          :data=>proc{|rec| rec.name},                            :title=>t(:dba_sga_list_sql_detail_sql_id_name_hint, :default=>'Name of bind variable in statement')},
+          {:caption=>"Typ",           :data=>proc{|rec| rec.datatype_string},                 :title=>t(:dba_sga_list_sql_detail_sql_id_datatype_hint, :default=>'Data type of bind variable')},
+          {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)},   :title=>t(:dba_sga_list_sql_detail_sql_id_last_capture_hint, :default=>'Timestamp of last capture')},
+          {:caption=>"Value",         :data=>proc{|rec| rec.value_string},                    :title=>t(:dba_sga_list_sql_detail_sql_id_value_hint, :default=>'Value of bind variable in string representation')},
+          {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
+          {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
+          {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
+          {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
+      ]
+%>
+<%= gen_slickgrid(@binds, column_options, {:caption => "#{t(:dba_sga_list_sql_detail_sql_id_bind_caption, :default=>'Bind variables of last execution')}, Instance = #{@instance}, SQL-ID = '#{@sql_id}' ", :max_height => 450, :width=>:auto, show_pin_icon: 1}) %>
+

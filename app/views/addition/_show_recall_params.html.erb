@@ -1,0 +1,10 @@
+<%= render_page_caption(t(:addition_show_recall_params_caption, :default=>'Directly execute function with given parameters')) %>
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller => :addition, :action => :exec_recall_params, :update_area => @update_area) do %>
+    <%= text_area_tag(:parameter_info, nil, :rows=>6, :class=>:full_width_text_area, :title=>t(:addition_show_recall_params_parameter_info_hint, :default=>'Paste your parameter info for execution')) %>
+    <%= submit_tag('Execute', :title => t(:addition_show_recall_params_submit_hint, :default=>"Execute Panorama's function determined by 'controller' and 'action' using the given parameters")) %>
+
+
+<% end %>
+<div id="<%= @update_area %>"></div>

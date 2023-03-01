@@ -1,0 +1,44 @@
+<%
+   @update_area = get_unique_area_id
+
+   def link_column_sid(rec, value)
+      link_session_details(@update_area, @instance, rec.sid, rec.serial_no)
+   end
+
+
+    def link_column_module(rec, value)
+      update_area_module = get_unique_area_id
+      ajax_link(value, {
+                :action        => :show_application_info,
+                :update_area  => update_area_module,
+                :org_text     => rec.module
+              },
+       :title=>"Details of module name")+
+              "<div id=\"#{update_area_module}\"></div>".html_safe
+    end
+
+
+column_options =
+[
+  {:caption=>"Active",   :data=>proc{|rec| rec.stmt_active},      :title=>"Is statement just executed?"},
+  {:caption=>"SID/SN",   :data=>proc{|rec| link_column_sid(rec, "#{rec.inst_id}/#{rec.sid}/#{rec.serial_no}")},  :title=>"Inst./SID/Serial No."},
+  {:caption=>"User",     :data=>proc{|rec| rec.user_name},        :title=>"DB-Username"},
+  {:caption=>"OS-User",  :data=>proc{|rec| rec.osuser},           :title=>"User of client OS"},
+  {:caption=>"Process",  :data=>proc{|rec| rec.process},          :title=>"Process of client OS"},
+  {:caption=>"Machine",  :data=>proc{|rec| link_machine_ip_info(@update_area, rec.machine)}, :title=>"Client machine"},
+  {:caption=>"Program",  :data=>proc{|rec| rec.program},          :title=>"Program of client machine"},
+  {:caption=>"Module",   :data=>proc{|rec| link_column_module(rec, rec.module)},          :title=>"Program module of client machine"},
+]
+  column_options << {caption: 'Last active',    data: proc{|rec| localeDateTime(rec.last_sql_active_time)},     title: "Time when this cursor was last executed"} if get_db_version >= '11.1'
+  column_options << {caption: 'SQL exec ID',    data: proc{|rec| fn(rec.sql_exec_id)}, align: :right,           title: "If the open cursor is executing, then the SQL execution identifier for that execution"} if get_db_version >= '11.1'
+  column_options << {caption: 'Cursor_Type',    data: proc{|rec| rec.cursor_type},                              title: "Type of cursor:\nOPEN PL/SQL - Open PL/SQL cursors\nOPEN - Other open cursors\nSESSION CURSOR CACHED - Cursors cached in the generic session cursor cache\nOPEN RECURSIVE - Open recursive cursors\nDICTIONARY LOOKUP CURSOR CACHED - Cursors cached in the dictionary lookup cursor cache\nBUNDLE DICTIONARY LOOKUP CACHED - Cursors cached in the bundled dictionary lookup cursor cache\nJAVA NAME TRANSLATION CURSOR CACHED - Cursors cached in the Java name translation cursor cache\nREPLICATION TRIGGER CURSOR CACHED - Cursors cached in the replication trigger cursor cache\nCONSTRAINTS CURSOR CACHED - Cursors cached in the constraints cursor cache\nPL/SQL CURSOR CACHED - Cursors cached in the PL/SQL cursor cache"} if get_db_version >= '12.1'
+
+
+%>
+
+<%= gen_slickgrid(@open_cursors, column_options, {
+        :caption => "Open Cursor for Instance=#{@instance}, SQL-ID=#{@sql_id}",
+        :max_height=>450,
+        :width=>:auto, show_pin_icon: 1
+}) %>
+<div style="clear: both;" id="<%= @update_area %>"></div>

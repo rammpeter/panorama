@@ -1,0 +1,80 @@
+
+<%
+  @update_area = get_unique_area_id
+
+
+  link_single_results = proc do |rec|
+    ajax_link(fn(rec.result_count), {
+                            :controller    => :dba_sga,
+                            :action        => :list_result_cache_single_results,
+                            :instance      => rec.inst_id,
+                            :status        => rec.status,
+                            :name          => rec.result_name,
+                            :namespace     => rec.result_namespace,
+                            :update_area => @update_area
+                    },
+                    :title=> 'Show single results for name')
+  end
+
+
+  link_dependencies = proc do |rec|
+    ajax_link(fn(rec.depend_count), {
+                            :controller    => :dba_sga,
+                            :action        => :list_result_cache_dependencies_by_name,
+                            :instance      => rec.inst_id,
+                            :status        => rec.status,
+                            :name          => rec.result_name,
+                            :namespace     => rec.result_namespace,
+                            :update_area => @update_area
+                    },
+                    :title=> 'Show depencies for result')
+  end
+
+
+  column_options =
+      [
+          {caption: "I",               data: proc{|rec| rec.inst_id},                                     title: "Instance"},
+          {caption: 'Dep. status',     data: proc{|rec| rec.status},                                      title: "Status of dependency object:\n'New'=Result is still under construction\n'Published'=Result is available for use\n'Bypass'=Result will be bypassed from use\n'Expired'=Result has exceeded expiration time\n'Invalid'=Result is no longer available for use"},
+          {caption: 'Dep. name',       data: proc{|rec| rec.name},                                        title: "Name of dependency object"},
+          {caption: 'Dep. creation',   data: proc{|rec| localeDateTime(rec.creation_timestamp)},          title: "Creation-timestamp of dependency"},
+          {caption: 'Dep. creator',    data: proc{|rec| rec.username},                                    title: "Creator of dependency"},
+          {caption: 'Dep. count',      data: proc{|rec| fn rec.depend_count},                             title: "Number of dependents for dependency"},
+          {caption: 'Inv. SCN',        data: proc{|rec| fn rec.invalidation_scn},                         title: "SCN of invalidation"},
+          {caption: 'Invalidations',   data: proc{|rec| fn rec.invalidations},                            title: "Number of times the object has invalidated its dependents"},
+
+
+
+
+
+          {caption: 'Result status',     data: proc{|rec| rec.result_status},                                      title: "Status of result object:\n'New'=Result is still under construction\n'Published'=Result is available for use\n'Bypass'=Result will be bypassed from use\n'Expired'=Result has exceeded expiration time\n'Invalid'=Result is no longer available for use"},
+          {:caption=>"Name",            :data=>proc{|rec| rec.result_name},                                        :title=>"Name of object as recorded in GV$RESULT_CACHE_OBJECTS.Name"},
+          #  {:caption=>'Object type',     :data=>proc{|rec| rec.object_type},                                 :title=>"Object type from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
+          #  {:caption=>'Object name',     :data=>proc{|rec|  link_object_description(@update_area, rec.owner, rec.object_name)}, :title=>"Object owner and name from DBA_Objects via gv$Result_Cache_Objects.Object_no"},
+          {:caption=>"Namespace",       :data=>proc{|rec| rec.result_namespace},                                   :title=>"Namespace of object"},
+          {:caption=>"Results",         :data=>link_single_results,                        :title=>'Number of single results', :align=>"right"},
+          {:caption=>"Space total",     :data=>proc{|rec| fn(rec.space_overhead_kb+rec.space_unused_kb) rescue nil},   :title=>"Space total in kBytes (overhead+unused)", :align=>"right"},
+          {:caption=>"Space overhead",  :data=>proc{|rec| fn(rec.space_overhead_kb)},                       :title=>"Space overhead in kBytes", :align=>"right"},
+          {:caption=>"Space unused",    :data=>proc{|rec| fn(rec.space_unused_kb)},                         :title=>"Space unused in kBytes", :align=>"right"},
+          {:caption=>"Min. creation",   :data=>proc{|rec| localeDateTime(rec.min_creationts)},              :title=>"First creation-timestamp of object"},
+          {:caption=>"Max. creation",   :data=>proc{|rec| localeDateTime(rec.max_creationts)},              :title=>"Last creation-timestamp of object"},
+          {:caption=>'Creator',         :data=>proc{|rec| rec.creator},                                     :title=>"User creating result (or count if more than one)", :data_title=>proc{|rec| "%t: first creator='#{rec.min_creator}', last creator='#{rec.max_creator}'"}},
+          {:caption=>"Depend. count",   :data=>link_dependencies,                          :title=>"Number of dependencies", :align=>"right"},
+          {:caption=>'Block count',     :data=>proc{|rec| fn(rec.block_count)},                             :title=>'Total number of blocks in the cached object', :align=>"right"},
+          {:caption=>"Pin count",       :data=>proc{|rec| fn(rec.pin_count)},                               :title=>"Number of active scans on this result", :align=>"right"},
+          {:caption=>"Scan count",      :data=>proc{|rec| fn(rec.scan_count)},                              :title=>"Total number of scans initiated on the cached result", :align=>"right"},
+          {:caption=>"Max. row size",   :data=>proc{|rec| fn(rec.row_size_max)},                            :title=>"Size of the largest row (in bytes)", :align=>"right"},
+          {:caption=>"Min. row size",   :data=>proc{|rec| fn(rec.row_size_min)},                            :title=>"Size of the smallest row (in bytes)", :align=>"right"},
+          {:caption=>"Avg. row size",   :data=>proc{|rec| fn(rec.row_size_avg)},                            :title=>"Average size of a row (in bytes)", :align=>"right"},
+          {:caption=>'Build time',      :data=>proc{|rec| fn(rec.build_time.to_f/100, 3)},                  :title=>'Amount of time in seconds it took to build the cached result', :align=>"right"},
+      ]
+
+%>
+
+<%= gen_slickgrid(@dependencies, column_options, {
+    :caption => "Result cache invalidations from gv$Result_Cache_Objects and gv$Result_Cache_Dependencies",
+    :max_height => 450, show_pin_icon: 1
+})
+%>
+
+
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,43 @@
+<%
+@update_area = get_unique_area_id
+%>
+
+<%= render :partial=>"list_sql_sga_stat" %>
+
+<div style="padding: 5px"></div>
+
+<%
+   def link_session(instance, sid, serial_no)
+     link_session_details(@update_area, instance, sid, serial_no)
+   end
+%>
+
+<% if @workareas.length > 0 %>
+    <%
+    column_options =
+    [
+      {:caption=>"I",             :data=>proc{|rec| rec.inst_id },                          :title=>t(:dba_sga_list_sql_detail_sql_id_instance_hint, :default=>'RAC instance of work area'),   :align=>"right"},
+      {:caption=>"Op.-Type",      :data=>proc{|rec| rec.operation_type },                   :title=>t(:dba_sga_list_sql_detail_sql_id_optype_hint, :default=>'Operation type of work area')},
+      {:caption=>"Op.ID",         :data=>proc{|rec| rec.operation_id },                     :title=>t(:dba_sga_list_sql_detail_sql_id_operation_id_hint, :default=>'Operation-ID of work area, reference into execution plan') },
+      {:caption=>"Pol.",          :data=>proc{|rec| rec.policy },                           :title=>t(:dba_sga_list_sql_detail_sql_id_policy_hint, :default=>'Sizing policy of work area') },
+      {:caption=>"SID",           :data=>proc{|rec| link_session(rec.inst_id, rec.sid, rec.serial_no)  },   :title=>t(:dba_sga_list_sql_detail_sql_id_sid_hint, :default=>'SID / serial number of session of work area') },
+      {:caption=>"QI",            :data=>proc{|rec| rec.qcinst_id },                        :title=>t(:dba_sga_list_sql_detail_sql_id_qcinstance_hint, :default=>'RAC instance of query coordinator if executed with parallel query') },
+      {:caption=>"QSID",          :data=>proc{|rec| link_session(rec.qcinst_id, rec.qcsid, rec.qcserial_no)  },   :title=>t(:dba_sga_list_sql_detail_sql_id_qcsid_hint, :default=>'SID /serial number of session of query coordinator if executed with parallel query')},
+      {:caption=>"Act. Time",     :data=>proc{|rec| fn(rec.active_time/1000000.0)  },       :title=>"Average time this PGA work area is active in seconds", data_title:proc{|rec| "%t\n#{seconds_explain(rec.active_time/1000000.0)}"}, :align=>"right"},
+      {:caption=>"Work Area Size",:data=>proc{|rec| fn(rec.work_area_size/1048576.0, 3)  }, :title=>"Maximum size of the PGA work area as it is currently used by the operation in MB", data_title:proc{|rec| "%t\n#{size_explain(rec.work_area_size/1048576.0)}"}, :align=>"right"},
+      {:caption=>"Exp. Size",     :data=>proc{|rec| fn(rec.expected_size/1048576.0,3)   },  :title=>"Expected size of the PGA work area in MB", data_title:proc{|rec| "%t\n#{size_explain(rec.expected_size/1048576.0)}"}, :align=>"right"},
+      {:caption=>"Actual Size",   :data=>proc{|rec| fn(rec.actual_mem_used/1048576.0,3)  }, :title=>"Amount of PGA memory currently allocated in MB", data_title:proc{|rec| "%t\n#{size_explain(rec.actual_mem_used/1048576.0)}"}, :align=>"right"},
+      {:caption=>"Max. Size",     :data=>proc{|rec| fn(rec.max_mem_used/1048576.0,3)  },    :title=>"Maximum memory amount used by this PGA work area in MB", data_title:proc{|rec| "%t\n#{size_explain(rec.max_mem_used/1048576.0)}"},   :align=>"right"},
+      {:caption=>"P",             :data=>proc{|rec| fn(rec.number_passes)  },               :title=>"Number of passes corresponding to this PGA work area (0 if running in optimal mode)",   :align=>"right"},
+      {:caption=>"Temp",          :data=>proc{|rec| fn(rec.tempseg_size ? rec.tempseg_size/1048576.0 : nil, 3)  },   :title=>"Temporary segment on disk (swapped Temp-Tablespace) in MB",   :align=>"right"},
+      {:caption=>"Tablespace",    :data=>proc{|rec| rec.tablespace  },                      :title=>"Used temporary tablespace"},
+    ]
+    %>
+    <%= gen_slickgrid(@workareas, column_options, {:caption => t(:dba_sga_list_sql_detail_sql_id_workarea_caption, :default=>'PGA work areas of sessions active executing this SQL statement'), max_height: 450, width: :auto}) %>
+<% end %>
+
+<%= render :partial=>"list_sql_sga_stat_footer" %>
+
+<div id="<%= @update_area %>" style="clear: both;">
+</div>
+

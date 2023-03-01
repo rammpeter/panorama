@@ -1,0 +1,114 @@
+<%
+@update_area = get_unique_area_id
+
+@link_real_num_rows = proc do |rec|
+  update_area = "list_materialized_view_logs_#{(rec.owner+rec.mview_name).hash}"
+  ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
+                          :action          => :list_real_num_rows,
+                          :owner           => rec.owner,
+                          :name            => rec.mview_name,
+                          :update_area     => update_area
+                         },
+                  :title=>"Show current number of rows in MV. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+end
+
+@link_snapshot_logs = proc do |rec|
+  ajax_link(rec.snapshot_logs, {
+                          :action          => :list_snapshot_logs,
+                          :snapshot_id     => rec.mview_id,
+                          :update_area     => @update_area
+                         },
+                  :title=>"Show snapshot logs of materialized view")
+end
+
+@link_registered_mv = proc do |rec|
+  if rec.registered == 'N'
+    rec.registered
+  else
+      ajax_link(rec.registered, {
+                              :action          => :list_registered_materialized_views,
+                              :snapshot_id     => rec.mview_id,
+                              :update_area     => @update_area
+                      },
+                      :title=>"Show details of registered materialized view")
+  end
+end
+
+  link_master = proc do |rec|
+    if rec.master_link.nil?
+      link_object_description(@update_area, rec.master_owner, rec.master, rec.master, nil)
+    else
+      rec.master
+    end
+  end
+
+  link_refresh_group = proc do |rec|
+    ajax_link(rec.refresh_group, {
+                            :action          => :list_refresh_groups,
+                            :refgroup        => rec.refresh_group,
+                            :update_area     => @update_area
+                    },
+                    :title=>"Show details of refresh group of materialized view")
+  end
+
+
+column_options = []
+
+column_options << {:caption=>"Owner",                 :data=>proc{|rec| rec.owner.downcase},      :title=>"Owner and name of materialized view"} unless @called_from_object_description
+column_options << {:caption=>"Name", :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.mview_name, rec.mview_name) }, :title=>"Owner and name of materialized view", :data_title=>proc{|rec| "%t: Physical table name = #{rec.table_name}"}} unless @called_from_object_description
+column_options << {:caption=>"Num rows",              :data=>proc{|rec| @link_real_num_rows.call(rec)}, :title=>"Number of rows of this MView-log recorded at last analyze (for local MViews only)", :align=>:right} unless @called_from_object_description
+column_options << {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},       :title=>"Real current physical size of materialized view in MBytes", :align=>:right} unless @called_from_object_description
+
+column_options.concat [
+    {:caption=>"Master owner",          :data=>proc{|rec| rec.master_owner},        :title=>"Owner of the master table of MView"},
+    {:caption=>"Master table",          :data=>link_master,                         :title=>"Name of the master table of MView", :data_title=>proc{|rec| "%t: View used for refresh=#{rec.master_view}"}},
+    {:caption=>"Master link",           :data=>proc{|rec| rec.master_link},         :title=>"Database link for the master site or the master materialized view site"},
+    {:caption=>"Refresh mode",          :data=>proc{|rec| rec.refresh_mode},        :title=>"Refresh mode of the materialized view"},
+    {:caption=>"Refresh method",        :data=>proc{|rec| rec.refresh_method},      :title=>"Default method used to refresh the materialized view.\nCOMPLETE (C) - completely refreshed from the masters.\nFORCE (?) - fast refresh if possible, otherwise a complete refresh.\nFAST (F) - incremental refresh since the last refresh, NEVER (N) - should not refresh this materialized view"},
+    {:caption=>"Build mode",            :data=>proc{|rec| rec.build_mode},          :title=>"Indicates how the materialized view was populated during creation"},
+    {:caption=>"Fast refreshable",      :data=>proc{|rec| rec.fast_refreshable},    :title=>"Indicates whether the materialized view is eligible for incremental (fast) refresh.\nThe Oracle Database calculates this value statically, based on the materialized view definition query:\nNO - Materialized view is not fast refreshable, and hence is complex.\nDIRLOAD - Fast refresh is supported only for direct loads.\nDML - Fast refresh is supported only for DML operations.\nDIRLOAD_DML - Fast refresh is supported for both direct loads and DML operations.\nDIRLOAD_LIMITEDDML - Fast refresh is supported for direct loads and a subset of DML operations"},
+    {:caption=>"Fast refresh method",   :data=>proc{|rec| rec.fast_refresh_method}, :title=>"The values used to drive a fast refresh of the snapshot"},
+    {:caption=>"Refresh group",         :data=>link_refresh_group,       :title=>"All snapshots in a given refresh group get refreshed in the same transaction", align: :right},
+    {:caption=>"Last refresh type",     :data=>proc{|rec| rec.last_refresh_type},   :title=>"Method used for the most recent refresh:\nCOMPLETE - Most recent refresh was complete\nFAST - Most recent refresh was fast (incremental)\nNA - Materialized view has not yet been refreshed (for example, if it was created DEFERRED)"},
+    {:caption=>"Last refresh date",     :data=>proc{|rec| localeDateTime rec.last_refresh_date}, :title=>"Date on which the materialized view was most recently refreshed. Blank if not yet populated."},
+    {:caption=>"R.",                    :data=>proc{|rec| @link_registered_mv.call(rec) },:title=>"Is materialized view registered in DBA_Registered_MViews"},
+    {:caption=>"Logs",                  :data=>proc{|rec| @link_snapshot_logs.call(rec)}, :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
+    {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
+    {:caption=>"Fast refresh oper.",    :data=>proc{|rec| rec.fr_operations},       :title=>"If REGENERATE, then the fast refresh operations have not been generated"},
+    {:caption=>"Complete refresh oper.",:data=>proc{|rec| rec.cr_operations},       :title=>"If REGENERATE, then the complete refresh operations have not been generated"},
+    {:caption=>"Staleness",             :data=>proc{|rec| rec.staleness},           :title=>"Relationship between the contents of the materialized view and the contents of the materialized view's masters:\nFRESH - Materialized view is a read-consistent view of the current state of its masters.\nSTALE - Materialized view is out of date because one or more of its masters has changed. If the materialized view was FRESH before it became STALE, then it is a read-consistent view of a former state of its masters.\nUNUSABLE - Materialized view is not a read-consistent view of its masters from any point in time.\nUNKNOWN - Oracle Database does not know whether the materialized view is in a read-consistent view of its masters from any point in time (this is the case for materialized views created on prebuilt tables).\nUNDEFINED - Materialized view has remote masters. The concept of staleness is not defined for such materialized views."},
+    {:caption=>"Staleness after fast refresh", :data=>proc{|rec| rec.after_fast_refresh},          :title=>"Specifies the staleness value that will occur if a fast refresh is applied to this materialized view.\nIts values are the same as for the STALENESS column, plus the value NA, which is used when fast refresh is not applicable to this materialized view."},
+    {:caption=>"E.",                    :data=>proc{|rec| rec.error},               :title=>"The number of failed automatic refreshes since last successful refresh"},
+    {:caption=>"Comp. status",          :data=>proc{|rec| rec.compile_state},       :title=>"Validity of the materialized view with respect to the objects upon which it depends:\nVALID - Materialized view has been validated without error, and no object upon which it depends has changed since the last validation.\nNEEDS_COMPILE - Some object upon which the materialized view depends has changed. An ALTER MATERIALIZED VIEW...COMPILE statement is required to validate this materialized view.\nERROR - Materialized view has been validated with one or more errors"},
+    {:caption=>"Cont. status",          :data=>proc{|rec| rec.content_status},      :title=>"The status of the contents of the snapshot", data_style: proc{|rec| "background-color: coral;" if rec.content_status != 'VALID'}},
+    {:caption=>"Object status",         :data=>proc{|rec| rec.object_status},       :title=>"The status of the object from DBA_Objects", data_style: proc{|rec| "background-color: coral;" if rec.object_status != 'VALID'}},
+    {:caption=>"No ind.",               :data=>proc{|rec| rec.use_no_index},        :title=>"Indicates whether the materialized view was created using the USING NO INDEX clause (Y) or the materialized view was created with the default index (N).\nThe USING NO INDEX clause suppresses the creation of the default index."},
+    {:caption=>"Stale since",           :data=>proc{|rec| localeDateTime rec.stale_since}, :title=>"Time from when the materialized view became stale"},
+    { caption: 'Last DDL',              :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on materialized view'},
+    { caption: 'Spec. TS',              data: proc{|rec| localeDateTime(rec.last_spec_time)},         title: "Timestamp for the last specification change of materialized view" },
+
+  ]
+
+column_options << {:caption=>"Last analyze",          :data=>proc{|rec| localeDateTime rec.last_analyzed},                  :title=>"Last analyze date for underlying table of this MView"} unless @called_from_object_description
+
+column_options.concat [
+  {:caption=>"U.",                    :data=>proc{|rec| rec.updatable},           :title=>"Indicates whether the materialized view is updatable (Y) or not (N)", :data_title=>proc{|rec| "%t: Update log=#{rec.update_log}"}},
+  {:caption=>"P.",                    :data=>proc{|rec| rec.unknown_prebuilt},    :title=>"Indicates whether the materialized view is prebuilt (Y) or not (N)"},
+  {:caption=>"PL",                    :data=>proc{|rec| rec.unknown_plsql_func},  :title=>"Indicates whether the materialized view contains PL/SQL functions (Y) or not (N)"},
+  {:caption=>"Ex.",                   :data=>proc{|rec| rec.unknown_external_table},  :title=>"Indicates whether the materialized view contains external tables (Y) or not (N)"},
+  {:caption=>"F.",                    :data=>proc{|rec| rec.unknown_consider_fresh},  :title=>"Indicates whether the materialized view is considered fresh (Y) or not (N)"},
+  {:caption=>"I.",                    :data=>proc{|rec| rec.unknown_import},      :title=>"Indicates whether the materialized view is imported (Y) or not (N)"},
+  {:caption=>"T.",                    :data=>proc{|rec| rec.unknown_trusted_fd},  :title=>"Indicates whether the materialized view uses trusted constraints for refresh (Y) or not (N)"},
+  {:caption=>"Rw.",                   :data=>proc{|rec| rec.rewrite_enabled},     :title=>"Indicates whether rewrite is enabled (Y) or not (N)", :data_title=>proc{|rec| "%t, rewrite rule=#{rec.rewrite_capability}"}},
+]
+
+%>
+
+<%= gen_slickgrid(@mvs, column_options, {
+        :max_height => 450,
+        :caption => "Data from DBA_MViews#{" (without remote MViews via DB-link)" unless @called_from_object_description}#{" refresh group=#{@refresh_group}" if @refresh_group}",
+        show_pin_icon: 1,
+        update_area: @update_area
+}) %>
+
+

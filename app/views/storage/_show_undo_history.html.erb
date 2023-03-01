@@ -1,0 +1,16 @@
+<%= render_page_caption("UNDO usage history from #{PanoramaConnection.adjust_table_name('DBA_Hist_UndoStat')}") %>
+
+<% update_area = get_unique_area_id %>
+<%= ajax_form(:controller=>:storage, :action=>:list_undo_history, :update_area=>update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag %>
+    <div class="flex-row-element" >
+      <%= submit_tag('Show undo usage', :title => 'Show undo usage for given time period') %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= update_area %>" style="clear: both; width:100%;">
+</div>
+

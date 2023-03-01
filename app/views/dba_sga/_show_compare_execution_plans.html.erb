@@ -1,0 +1,37 @@
+<%= render_page_caption("Compare execution plans of two different cursor in SGA") %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(:controller => :dba_sga, :action => :list_compare_execution_plans, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      Inst. 1<br>
+      <%= text_field_tag(:instance_1, "1", :size=>5, :title=>"RAC-instance of first cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      SQL-ID 1<br>
+      <%= text_field_tag(:sql_id_1, "", :size=>20, :title=>"SQL-ID of first cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      Child-No. 1<br>
+      <%= text_field_tag(:child_number_1, "", :size=>7, :title=>"Child-number of first cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      Inst. 2<br>
+      <%= text_field_tag(:instance_2, "1", :size=>5, :title=>"RAC-instance of second cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      SQL-ID 2<br>
+      <%= text_field_tag(:sql_id_2, "", :size=>20, :title=>"SQL-ID of second cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      Child-No. 2<br>
+      <%= text_field_tag(:child_number_2, "", :size=>7, :title=>"Child-number of second cursor to compare") %>
+    </div>
+    <div class="flex-row-element">
+      <br>
+      <%= submit_tag("Compare SQLs", :title => "Compare executions plans of given SQLs") %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear: both;" ></div>

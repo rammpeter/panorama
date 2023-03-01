@@ -1,0 +1,53 @@
+
+<%
+  @update_area = get_unique_area_id
+
+  link_grantee = proc do |rec|
+    case rec.grantee_type
+    when 'USER' then
+      ajax_link(rec.grantee, {
+        action:       :list_db_users,
+        username:     rec.grantee,
+        update_area:  @update_area
+      }, title: "Show user details"
+      )
+    when 'ROLE' then
+      ajax_link(rec.grantee, {
+        action:       :list_roles,
+        role:         rec.grantee,
+        update_area:  @update_area
+      }, title: "Show role details"
+      )
+    else rec.grantee
+    end
+  end
+
+  column_options =
+      [
+          {:caption=> 'Grantor',      :data=>proc{|rec| rec.grantor},             :title=> 'Name of the user who performed the grant'},
+          {:caption=> 'Grantee',      data: link_grantee,                         :title=> 'Name of the user or role to whom access was granted'},
+          {:caption=> 'Grantee type', :data=>proc{|rec| rec.grantee_type},        :title=> 'Type to whom access was granted'},
+          {:caption=> 'Privilege',    :data=>proc{|rec| rec.privilege},           :title=> 'Privilege on the object'},
+          {:caption=> 'Grantable',    :data=>proc{|rec| rec.grantable},           :title=> 'Indicates whether the privilege was granted with the GRANT OPTION (YES) or not (NO)'},
+          {:caption=> 'Hierarchy',    :data=>proc{|rec| rec.hierarchy},           :title=> 'Indicates whether the privilege was granted with the HIERARCHY OPTION (YES) or not (NO)'},
+      ]
+  column_options << {:caption => 'Common', :data => proc{|rec| rec.common}, :title => "Indicates how the grant was made. Possible values:\nYES if the privilege was granted commonly (CONTAINER=ALL was used)\nNO if the privilege was granted locally (CONTAINER=ALL was not used)"} if get_db_version >= '12.1'
+  column_options << {:caption=> 'Type',    :data => proc{|rec| rec.type},   :title=> 'Type of object the grant is given for'} if get_db_version >= '12.1'
+%>
+
+<%=
+  gen_slickgrid(@grants, column_options, {
+      :caption => "Grants for #{@owner}.#{@object_name}",
+      :max_height => 450, :width=>:auto
+  })
+%>
+
+<%= ajax_submit('Show full grant tree',
+                {action:      :list_dependency_grants,
+                 owner:       @owner,
+                 object_name: @object_name,
+                 update_area: @update_area,
+                },
+                :title => "Show grants of full hierarchy tree of objects that are dependent from #{@owner}.#{@object_name}")
+%>
+<div id="<%= @update_area %>"></div>

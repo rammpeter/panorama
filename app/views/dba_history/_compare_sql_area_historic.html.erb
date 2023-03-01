@@ -1,0 +1,44 @@
+<%= render_page_caption(t(:dba_history_compare_sql_area_historic_caption, :default=>'Compare runtime of SQL for two days (by %{table_name})', table_name: PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'))) %>
+
+<%= ajax_form(:controller => :dba_history, :action => :list_compare_sql_area_historic, :update_area => :compare_sql_area_historic_area) do %>
+  <div class="flex-row-container">
+
+    <div class="flex-row-element" title="<%= t(:dba_history_compare_sql_area_historic_diff_hint, :default=>'Difference of runtime per execution is at least x %')%>">
+      <%= t(:dba_history_compare_sql_area_historic_diff_caption, :default=>'Runtime difference >') %>
+      <%= text_field_tag(:minProzDiff, "50", :size=>2) %>
+      %
+    </div>
+    <div class="flex-row-element" title="<%= t(:dba_history_compare_sql_area_historic_day1_hint, :default=>"First day to compary in format '%{mask}'", :mask=>human_datetime_day_mask) %>">
+      <%= t(:dba_history_compare_sql_area_historic_day1_caption, :default=>'Day 1') %>
+      <%= text_field_tag(:tag1, localeDateTime(Date.today, :days), :size=>12) %>
+    </div>
+    <div class="flex-row-element" title="<%= t(:dba_history_compare_sql_area_historic_day2_hint, :default=>"Second day to compary in format '%{mask}'", :mask=>human_datetime_day_mask) %>">
+      <%= t(:dba_history_compare_sql_area_historic_day2_caption, :default=>'Day 2') %>
+      <%= text_field_tag(:tag2, localeDateTime(Date.today, :days), :size=>12) %>
+    </div>
+    <div class="flex-row-element" title="<%= t(:dba_history_compare_sql_area_historic_filter_hint, :default=>'Considered SQL statement mut contain this filter string (optional)') %>">
+      Filter
+      <%= text_field_tag(:filter, "", :size=>20) %>
+    </div>
+    <%= instance_tag %>
+    <div class="flex-row-element" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL-ID (optional)') %>">
+      SQL-ID
+      <%= text_field_tag(:sql_id, "", :size=>12) %>
+    </div>
+    <div class="flex-row-element">
+    <%= submit_tag("Show SQL", :title => "Show SQL-statements") %>
+    </div>
+  </div>
+<% end %>
+
+<div id="compare_sql_area_historic_area" style="float:left; width:100%;">
+</div>
+
+<script type='text/javascript'>
+  $('#tag1').datepicker();
+  $('#tag2').datepicker();
+</script>
+
+
+
+

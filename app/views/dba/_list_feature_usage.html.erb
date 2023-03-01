@@ -1,0 +1,53 @@
+<%
+
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'DBID',                :data=>proc{|rec| fn rec.dbid },                        :title=>"Database identifier of the database being tracked"},
+          {:caption=>'Management pack name',:data=>proc{|rec| rec.pack },                          :title=>"Name of the management pack the feature belongs to (MOS-note 1317265.1)"},
+          {:caption=>'Detected usages',     :data=>proc{|rec| fn rec.detected_usages },             :title=>"Number of times the system has detected usage for the feature", :align=>:right},
+          {:caption=>'Currently used',      :data=>proc{|rec| rec.currently_used },                 :title=>"Indicates whether usage was detected the last time the system checked (TRUE) or not (FALSE)"},
+          {:caption=>'First usage date',    :data=>proc{|rec| localeDateTime rec.first_usage_date },:title=>"First sample time the system detected usage of the feature"},
+          {:caption=>'Last usage date',     :data=>proc{|rec| localeDateTime rec.last_usage_date }, :title=>"Last sample time the system detected usage of the feature"},
+      ]
+
+%>
+<div>
+  <%= gen_slickgrid(@pack_usage, column_options, {:caption => 'Management pack usage info from DBA_FEATURE_USAGE_STATISTICS. According to MOS-note 1317265.1',:max_height=>450, show_pin_icon: 2}) %>
+</div>
+
+
+
+<%
+  def link_info(rec)
+    unless rec.feature_info.nil?
+      "<a href='#' onclick=\"jQuery('##{@update_area}').text('#{my_html_escape(rec.feature_info)}'); return false;\">Show</a>".html_safe
+    end
+  end
+
+  column_options =
+      [
+          {:caption=>'DBID',                :data=>proc{|rec| fn rec.dbid },                        :title=>"Database identifier of the database being tracked"},
+          {:caption=>'Feature name',        :data=>proc{|rec| rec.name },                           :title=>"Name of the feature"},
+          {:caption=>'Management pack name',:data=>proc{|rec| pack_from_feature(rec.name) },        :title=>"Name of the management pack the feature belongs to (MOS-note 1317265.1)"},
+          {:caption=>'Version',             :data=>proc{|rec| rec.version },                        :title=>"Database version in which the feature was tracked"},
+          {:caption=>'Detected usages',     :data=>proc{|rec| fn rec.detected_usages },             :title=>"Number of times the system has detected usage for the feature", :align=>:right},
+          {:caption=>'Total sampled',       :data=>proc{|rec| fn rec.total_samples },               :title=>"Number of times the system has woken up and checked for feature usage", :align=>:right},
+          {:caption=>'Currently used',      :data=>proc{|rec| rec.currently_used },                 :title=>"Indicates whether usage was detected the last time the system checked (TRUE) or not (FALSE)"},
+          {:caption=>'First usage date',    :data=>proc{|rec| localeDateTime rec.first_usage_date },:title=>"First sample time the system detected usage of the feature"},
+          {:caption=>'Last usage date',     :data=>proc{|rec| localeDateTime rec.last_usage_date }, :title=>"Last sample time the system detected usage of the feature"},
+          {:caption=>'Aux. count',          :data=>proc{|rec| fn(rec.aux_count,2) },                :title=>"This column stores feature-specific usage data in number format", :align=>:right},
+          {:caption=>'Feature info',        :data=>proc{|rec| link_info(rec) },                     :title=>"This column stores feature-specific usage data in character format.", :max_wrap_width=>60},
+          {:caption=>'Last sample date',    :data=>proc{|rec| localeDateTime rec.last_sample_date },:title=>"The last time the system checked for usage"},
+          {:caption=>'Last sample period',  :data=>proc{|rec| fn rec.last_sample_period },          :title=>"Amount of time (in seconds) between the last two usage sample times", :align=>:right},
+          {:caption=>'Description',         :data=>proc{|rec| rec.description },                    :title=>"Description of the feature and usage detection logic"},
+      ]
+
+%>
+<div>
+  <%= gen_slickgrid(@feature_usage, column_options, {:caption => 'Feature and management pack usage info from DBA_FEATURE_USAGE_STATISTICS', :max_height=>450, show_pin_icon: 2}) %>
+</div>
+
+<div id="<%= @update_area %>" class="yellow-panel" style="margin-top:10px;">
+</div>

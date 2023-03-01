@@ -1,0 +1,222 @@
+<% @update_area = get_unique_area_id %>
+<%= 'No execution plan found' if @multiplans.count == 0 %>
+<% @multiplans.each do |mp|
+     @plans = mp[:plans]
+     @mp = mp
+     @toggle_id_prefix = get_unique_area_id
+     @grid_id          = get_unique_area_id                                     # DOM-ID des DIVs mit SlickGrid
+     @indent_vector    = []                                                     # Array mit Hashes für jede Einrückung: :parent_id, :last_exists_id
+%>
+
+
+<%
+
+   def avg_read_bytes(rec)
+     fn(rec.read_io_bytes/rec.read_io_requests) if rec.read_io_bytes && rec.read_io_requests && rec.read_io_requests > 0
+   end
+
+   def avg_write_bytes(rec)
+     fn(rec.write_io_bytes/rec.write_io_requests) if rec.write_io_bytes && rec.write_io_requests && rec.write_io_requests > 0
+   end
+
+   link_column_wait = proc do |rec, value|
+     groupfilter =  {
+             :DBID                   => get_dbid,
+             'SQL-ID'                => @sql_id,
+             :Plan_Hash_Value        => @mp.plan_hash_value,
+             :Plan_Line_ID           => rec.id,
+             :time_selection_start   => localeDateTime(@mp.first_occurrence, :minutes),
+             :time_selection_end     => localeDateTime(@mp.last_occurrence, :minutes),
+             :Min_Snap_ID            => @mp.min_snap_id,
+             :Max_Snap_ID            => @mp.max_snap_id,
+             :Idle_Wait1             => 'PX Deq Credit: send blkd'
+     }
+     groupfilter[:Instance] = @instance if @instance
+     ajax_link(value, {
+                             :controller     => :active_session_history,
+                             :action         => :list_session_statistic_historic_grouping,
+                             :groupfilter    => groupfilter,
+                             :groupby        => 'Wait Event',
+                             :update_area    => @update_area
+                     },
+                     :title => 'Show wait events for operation in Active Session History'
+     )
+   end
+
+   # Anzeige %-Wert wenn != 0
+   def nn_pct(single, sum)
+     retval = percentage(single, sum)
+     retval == 0 ? nil : retval
+   end
+
+   def get_formatted_other_xml(rec)
+     return nil if rec.other_xml.nil?
+      my_html_escape(rec.other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
+   end
+
+   def get_formatted_other_xml_title(rec)
+     return nil if rec.other_xml.nil?
+      my_html_escape(rec.other_xml).gsub(/&lt;info/, "\n&lt;info").gsub(/&lt;hint/, "\n&lt;hint")
+   end
+
+  def parallel_text(rec)
+    output = "#{parallel_short(rec)}"
+    output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0  if get_db_version >= "11.2"
+    output
+  end
+
+   def parallel_title(rec)
+     output = "%t:\n#{rec.other_tag}"
+     output << "\n\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if get_db_version >= "11.2"
+     output
+   end
+
+   def link_real_num_rows(rec)
+     object_type = rec.object_type
+     object_type = 'INDEX' if !rec.object_type.nil? && rec.object_type['INDEX']
+
+     if object_type == 'TABLE' || object_type == 'INDEX'
+       update_area = "#{@update_area}_#{rec.id}"
+       ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
+                               :controller      => :storage,
+                               :action          => :list_real_num_rows,
+                               :owner           => rec.object_owner,
+                               :name            => rec.object_name,
+                               :object_type     => object_type,
+                               :update_area     => update_area
+                              },
+                       :title=>"Count current number of rows in Table. CAUTION: May be long running!")+"&nbsp;<span id=\"#{update_area}\"></span>".html_safe
+     else
+       fn(rec.num_rows)
+     end
+   end
+
+   analyzed_spec_title = proc do |rec|
+     "\nLast_Analyzed = #{localeDateTime(rec.last_analyzed)}
+Created = #{localeDateTime(rec.created)}
+Last DDL = #{localeDateTime(rec.last_ddl_time)}
+Last specification change = #{localeDateTime(rec.last_spec_ts)}"
+   end
+
+   column_options = []
+   column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
+   column_options << {:caption=>'Operation',   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) },         :no_wrap=>true, :title=>t(:dba_history_list_sql_detail_execution_plan_operation_hint, :default=>'Kind of access'), :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
+   column_options << {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>t(:dba_history_list_sql_detail_execution_plan_id_hint, :default=>'ID of operation'),             :data_title=>proc{|rec| "%t:\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
+   column_options << {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>t(:dba_history_list_sql_detail_execution_plan_order_hint, :default=>'Execution order of operation'),    :data_title=>proc{|rec| "%t:\nID=#{rec.id}, Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
+   column_options << { :caption=>'Object-name', :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name) }, :title=>t(:dba_history_list_sql_detail_execution_plan_objectname_hint, :default=>'Name of object'), data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" } }
+   column_options << { :caption=>'Rows', :data=>proc{|rec| link_real_num_rows(rec) }, :title=>"Number of rows of object (from analyze info)", :align=>:right, data_title: proc { |rec| "%t\n#{analyzed_spec_title.call(rec)}" } }
+   column_options << {:caption=>'MB',          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right }
+   column_options << {:caption=>'Cost',        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+   column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+   column_options << {:caption=>'Parallel',    :data=>proc{|rec| parallel_text(rec)},                          :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| parallel_title(rec)} }
+   column_options << {:caption=>'A.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.access_predicates)}\nNumber of columns with matching predicates = #{rec.search_columns}"} }
+   column_options << {:caption=>'F.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.filter_predicates) }"} }
+   column_options << {:caption=>'P.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.projection)}"}}
+   column_options << {:caption=>'DB time',     :data=>proc{|rec| fn(nn_pct(rec.ash_time_seconds, @sum_ash_time_seconds), 1) }, :align=>:right, :data_title=>proc{|rec| "%t\nDB-time: #{fn(rec.ash_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
+   column_options << {:caption=>'CPU',         :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds), 1))  },        :align=>:right, :data_title=>proc{|rec| "%t\nCPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
+   column_options << {:caption=>'Waits',       :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds), 1))  },:align=>:right, :data_title=>proc{|rec| "%t\nWaiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
+   column_options << {:caption=>'Temp est.',   :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB estimated by optimizer during parse", :align=>:right }
+   column_options << {:caption=>'Temp max.',   :data=>proc{|rec| fn(rec.max_temp_ash_mb) },                      :title=>'Maximum amount of Temp-space in MB allocated by one session (incl. PQ-server) during execution of this plan line', :align=>:right }  if get_db_version >= '11.2'
+   column_options << {:caption=>'I/O',         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests), 1)},          :align=>:right, :data_title=>proc{|rec| "%t\nIO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes"}, :title=>"Percentage of  I/O-Requests in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
+   column_options << {:caption=>'IC',          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes), 1)}, :align=>:right, :data_title=>proc{|rec| "%t\nInterconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
+   column_options << {:caption=>'Dist',        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-distribution-strategy" }
+   column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line', :align=>:right }  if get_db_version >= '11.2'
+   column_options << {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :max_wrap_width=>80, :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
+
+   column_options.each do |c|
+     c[:data_style] = proc do|rec|
+        if rec.version_red_count < @multiplans.count
+          'background-color:coral;'
+        else
+          if rec.version_orange_count < @multiplans.count
+            'background-color:orange;'
+          end
+       end
+     end
+   end
+
+
+   if get_db_version >= '11.2'
+    @sum_io_requests = 0
+    @sum_interconnect_io_bytes = 0
+    @sum_cpu_seconds = 0                             # Anzahl der Samples
+    @sum_waiting_seconds = 0                         # Anzahl der Samples
+    @sum_ash_time_seconds = 0
+    @min_sample_time     = nil
+    @plans.each do |p|
+      @sum_io_requests           += p.io_requests             if p.io_requests
+      @sum_interconnect_io_bytes += p.interconnect_io_bytes   if p.interconnect_io_bytes
+      @sum_cpu_seconds           += p.cpu_seconds             if p.cpu_seconds
+      @sum_waiting_seconds       += p.waiting_seconds         if p.waiting_seconds
+      @sum_ash_time_seconds       += p.ash_time_seconds         if p.ash_time_seconds
+      @min_sample_time           =  p.min_sample_time         if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time  # Kleinste Aufzeichnung eines Samples
+    end
+  end
+
+  @caption =  "Explain Plan from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}: last parse time #{localeDateTime(mp[:timestamp])}, Plan_Hash_Value=#{@mp.plan_hash_value}, Optimizer-Mode=#{@plans[0] ? @plans[0].optimizer : "[Unknown]"}, Optimizer_Env_Hash_Value=#{@mp.optimizer_env_hash_value}"
+  if @multiplans.length > 1
+    @caption << "<br/>Valid from #{localeDateTime(@mp.first_occurrence)} bis #{localeDateTime(@mp.last_occurrence)}<br/>"
+    @caption << "#{@mp.executions} executions, #{formattedNumber(@mp.secs_per_execution,6)} seconds elapsed / execution"
+  end
+
+  @caption_title = ''
+   if get_db_version >= '11.2'
+     @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on Active Session History.\\n"
+     @caption_title << "First considered ASH sample is from #{localeDateTime(@min_sample_time)}\\n"
+     @caption_title << "Last considered ASH sample is from #{localeDateTime(@max_sample_time)}\\n"
+   end
+   if mp[:adaptive_plan]
+     @caption << " <span style=\"background-color: coral;\">ADAPTIVE</span>"
+     @caption_title << "\\nAdaptive plan has been created in additional pass. See hamburger menu link at the left border.\\n"
+   end
+
+   param_string = proc do |addition|
+     retval = '{ '
+     params.each do |key, value|
+       retval << "#{key}: '#{value}', "
+     end
+     retval << addition
+     retval << "}"
+     retval
+   end
+
+   command_menu_entries = []
+   if mp[:adaptive_plan]
+     command_menu_entries << {
+         name:                  :adaptive_plans,
+         caption:               'Show additional adaptive plan entries',
+         :hint                  => "Show complete plan incl. skipped records from adaptive plan",
+         :icon_class            => 'cui-reload',
+         :show_icon_in_caption  => false,
+         :action                => "ajax_html('#{params[:update_area]}', 'dba_history', 'list_sql_historic_execution_plan', #{param_string.call('show_adaptive_plans: 1')});"
+     }
+     command_menu_entries << {
+       name:                  :adaptive_plan_only,
+       caption:               'Show the rejected first plan only (experimental)',
+       :hint                  => "Show the first plan (which has been replaced by the adaptive plan) without the differences to the recently used plan",
+       :icon_class            => 'cui-reload',
+       :show_icon_in_caption  => false,
+       :action                => "ajax_html('#{params[:update_area]}', 'dba_history', 'list_sql_historic_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
+     }
+   end
+
+
+%>
+
+    <%= gen_slickgrid(@plans, column_options, {
+            :caption            => @caption.html_safe,
+            caption_title:      @caption_title,
+            :width              => :auto,
+            :line_height_single => true,
+            :data_filter        => 'explain_plan_filter_collapsed_item_rows',
+            :grid_id            => @grid_id,
+            :max_height         => "jQuery(window).height()*0.9",  # Max. 90 % of browsers client height
+            show_pin_icon:      1,
+            update_area:        @update_area,
+            command_menu_entries: command_menu_entries
+    }) %>
+
+
+<% end %>
+
+

@@ -1,0 +1,23 @@
+<%= render_page_caption("Set period to consider for evolution of object sizes for #{@owner}.#{@name}") %>
+
+<% @update_area = get_unique_area_id  %>
+
+<%= ajax_form(controller: :addition,
+              action:     :list_object_increase_object_timeline,
+              owner:      @owner,
+              name:       @name,
+              update_area: @update_area
+    ) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element">
+      <%= submit_tag("Show size evolution", :title => "Show object size evolution in period for #{@owner}.#{@name}") %>
+    </div>
+  </div>
+
+<% end %>
+
+
+<div id="<%= @update_area %>"></div>
+

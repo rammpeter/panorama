@@ -1,0 +1,73 @@
+<%
+  sum_data_blocks = proc do |rec|
+    rec.full_blocks + rec.fs1_blocks + rec.fs2_blocks + rec.fs3_blocks  + rec.fs4_blocks
+  end
+
+  pct_blocks_data_title = proc do |rec, value|
+    sum = sum_data_blocks.call(rec)
+    "%t\n\n= #{fn(value * 100.0 / sum, 2) rescue nil} % of number of total formatted data blocks (#{fn(sum)})"
+  end
+
+  sum_data_bytes = proc do |rec|
+    rec.full_bytes + rec.fs1_bytes + rec.fs2_bytes + rec.fs3_bytes  + rec.fs4_bytes
+  end
+
+  pct_mbytes_data_title = proc do |rec, value|
+    sum = sum_data_bytes.call(rec)
+    "%t\n\n= #{fn(value * 100.0 / sum, 2) rescue nil} % of MBytes of total formatted data blocks (#{fn(sum/(1024*1024), 2)})"
+  end
+
+  approx_free_mbytes = proc do |rec|
+    (rec.fs1_bytes * 0.125 + rec.fs2_bytes * 0.375 + rec.fs3_bytes * 0.625 + rec.fs4_bytes * 0.875).to_f / (1024*1024)
+  end
+
+  approx_free_mbytes_without_pctfree = proc do |rec|
+    approx_free_mbytes.call(rec) - sum_data_bytes.call(rec).to_f/(1024*1024) * (rec.pct_free.nil? ? 0 : rec.pct_free) / 100 rescue nil
+  end
+
+  show_approx_free_mbytes = proc do |rec|
+    fn(approx_free_mbytes.call(rec), 2)
+  end
+
+  show_approx_free_pct = proc do |rec|
+    fn((approx_free_mbytes.call(rec) * 100.0) / (sum_data_bytes.call(rec).to_f / (1024*1024)) , 2) rescue nil
+  end
+
+  approx_title_add = proc do |rec|
+    result = "\n\nCalculated using average values for the four segments (e.g. estimating 12,5 % free for the number of blocks with 0..25% free space)"
+    result << "\nIncludes also the free space in blocks according to PCT_FREE (for tables and indexes)"
+    result
+  end
+
+  approx_data_title = proc do |rec|
+    result = "%t"
+    result << "\n\nFreeable space for reorganization taking PCT_FREE into account is #{fn(approx_free_mbytes_without_pctfree.call(rec),2)} MB" if rec.pct_free
+    result
+  end
+
+  column_options = []
+  column_options << {caption: 'Partition',              data: proc{|rec| rec.partition_name},                                           title: 'Name of partition (if partitioned)'}
+  column_options << {caption: 'Unformatted Blocks',     data: proc{|rec| fn(rec.unformatted_blocks)},                   align: :right,  title: 'Total number of unformatted blocks under the HWM'}
+  column_options << {caption: 'Blocks full',            data: proc{|rec| fn(rec.full_blocks)},                          align: :right,  title: 'Number of full blocks',                                     data_title: proc{|rec| pct_blocks_data_title.call(rec, rec.full_blocks)}}
+  column_options << {caption: 'Blocks 0..25% free',     data: proc{|rec| fn(rec.fs1_blocks)},                           align: :right,  title: 'Number of blocks having at least 0 up to 25% free space',   data_title: proc{|rec| pct_blocks_data_title.call(rec, rec.fs1_blocks)}}
+  column_options << {caption: 'Blocks 25..50% free',    data: proc{|rec| fn(rec.fs2_blocks)},                           align: :right,  title: 'Number of blocks having at least 25 up to 50% free space',  data_title: proc{|rec| pct_blocks_data_title.call(rec, rec.fs2_blocks)}}
+  column_options << {caption: 'Blocks 50..75% free',    data: proc{|rec| fn(rec.fs3_blocks)},                           align: :right,  title: 'Number of blocks having at least 50 up to 75% free space',  data_title: proc{|rec| pct_blocks_data_title.call(rec, rec.fs3_blocks)}}
+  column_options << {caption: 'Blocks 75..100% free',   data: proc{|rec| fn(rec.fs4_blocks)},                           align: :right,  title: 'Number of blocks having at least 75 up to 100% free space', data_title: proc{|rec| pct_blocks_data_title.call(rec, rec.fs4_blocks)}}
+  column_options << {caption: 'Unformatted MBytes',     data: proc{|rec| fn(rec.unformatted_bytes/(1024*1024), 2)},     align: :right,  title: 'Total number of MBytes unformatted under the HWM'}
+  column_options << {caption: 'MBytes full',            data: proc{|rec| fn(rec.full_bytes/(1024*1024), 2)},            align: :right,  title: 'MBytes in full blocks',                                     data_title: proc{|rec| pct_mbytes_data_title.call(rec, rec.full_bytes)}}
+  column_options << {caption: 'MBytes 0..25% free',     data: proc{|rec| fn(rec.fs1_bytes/(1024*1024), 2)},             align: :right,  title: 'MBytes in blocks having at least 0 up to 25% free space',   data_title: proc{|rec| pct_mbytes_data_title.call(rec, rec.fs1_bytes)}}
+  column_options << {caption: 'MBytes 25..50% free',    data: proc{|rec| fn(rec.fs2_bytes/(1024*1024), 2)},             align: :right,  title: 'MBytes in blocks having at least 25 up to 50% free space',  data_title: proc{|rec| pct_mbytes_data_title.call(rec, rec.fs2_bytes)}}
+  column_options << {caption: 'MBytes 50..75% free',    data: proc{|rec| fn(rec.fs3_bytes/(1024*1024), 2)},             align: :right,  title: 'MBytes in blocks having at least 50 up to 75% free space',  data_title: proc{|rec| pct_mbytes_data_title.call(rec, rec.fs3_bytes)}}
+  column_options << {caption: 'MBytes 75..100% free',   data: proc{|rec| fn(rec.fs4_bytes/(1024*1024), 2)},             align: :right,  title: 'MBytes in blocks having at least 75 up to 100% free space', data_title: proc{|rec| pct_mbytes_data_title.call(rec, rec.fs4_bytes)}}
+  column_options << {caption: 'Approx. unused %',       data: show_approx_free_pct,                                     align: :right,  title: "Approx. unused % of data blocks#{approx_title_add.call}"}
+  column_options << {caption: 'Approx. unused MBytes',  data: show_approx_free_mbytes,                                  align: :right,  title: "Approx. unused MBytes in data blocks#{approx_title_add.call}",   data_title: approx_data_title  }
+  column_options << {caption: 'Freeable MBytes',        data: proc{|rec| fn(approx_free_mbytes_without_pctfree.call(rec),2)},  align: :right,  title: "Max. freeable space in MBytes for reorganization (index rebuild, table move) of segment (in consideration of PCT_FREE reallocation)\n\nNegative values means: object may become larger after reorganization due to reallocation of PCT_FREE", data_title: proc{|rec| "%t#{"\nPCTFREE = #{rec.pct_free} %" if rec.pct_free}"} }
+
+%>
+
+<%= gen_slickgrid(@result, column_options, {
+    :caption => "Space usage under the high water mark from DBMS_SPACE.SPACE_USAGE for #{@owner}.#{@segment_name}",
+    :max_height => 450, show_pin_icon: 1
+})
+%>
+

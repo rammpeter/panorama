@@ -1,0 +1,19 @@
+<%= render_page_caption("Show tables dependent from this table by foreign key constraints") %>
+
+<%= ajax_form(:controller=>:table_dependencies, :action=>:select_schema, :update_area => :table_selection) do %>
+    <div class="flex-row-container">
+      <div class="flex-row-element" title='Selection of schema for table whose dependent tables are searched'>     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+        <%= collection_select(:all_user, :username, @all_users, :username, :username, {}) %>
+      </div>
+      <div class="flex-row-element">
+        <%= submit_tag('Show tables', :title => 'Show tables of schema') %>
+      </div>
+    </div>
+<% end %>
+<div id="table_selection">
+</div>
+<div id="dependencies">
+</div>
+
+
+

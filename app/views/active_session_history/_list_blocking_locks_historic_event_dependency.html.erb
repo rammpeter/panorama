@@ -1,0 +1,156 @@
+<%
+  @update_area            = get_unique_area_id
+  @update_area_timechart  = get_unique_area_id
+
+  link_blocking_sessions = proc do |rec|
+    ajax_link("<&nbsp;#{fn(rec.blocking_sessions)}&nbsp;>".html_safe, {
+        action:               :blocking_locks_historic_event_detail,
+        role:                 :blocking,
+        dbid:                 @dbid,
+        blocking_event:       rec.blocking_event,
+        waiting_event:        rec.waiting_event,
+        time_selection_start: @time_selection_start,
+        time_selection_end:   @time_selection_end,
+        update_area:          @update_area
+    }.merge(@show_instances ? {blocking_instance: rec.blocking_instance.nil? ? 'NULL': rec.blocking_instance, waiting_instance: rec.waiting_instance} : {} ),
+              title: "Show blocking sessions for this combination of blocking and waiting event"
+    )
+  end
+
+  link_waiting_sessions = proc do |rec|
+    ajax_link("<&nbsp;#{fn(rec.waiting_sessions)}&nbsp;>".html_safe, {
+        action:               :blocking_locks_historic_event_detail,
+        role:                 :waiting,
+        dbid:                 @dbid,
+        blocking_event:       rec.blocking_event,
+        waiting_event:        rec.waiting_event,
+        time_selection_start: @time_selection_start,
+        time_selection_end:   @time_selection_end,
+        update_area:          @update_area
+    }.merge(@show_instances ? {blocking_instance: rec.blocking_instance.nil? ? 'NULL': rec.blocking_instance, waiting_instance: rec.waiting_instance} : {}),
+              title: "Show waiting sessions for this combination of blocking and waiting event"
+    )
+  end
+
+  link_column_samples = proc do |rec|
+    ajax_link(fn(rec.samples), {
+        :action           => :list_session_statistic_historic_single_record,
+        :update_area      => @update_area,
+        record_count:     rec.samples,
+        :groupfilter      => {
+            Blocking_Event:           rec.blocking_event,
+            'Wait Event':             rec.waiting_event,
+            DBID:                     @dbid,
+            time_selection_start:     @time_selection_start,
+            time_selection_end:       @time_selection_end,
+            Min_Snap_ID:               rec.min_snap_id,
+            Max_Snap_ID:               rec.max_snap_id,
+        }.merge(@show_instances ? {Blocking_Instance: rec.blocking_instance, Instance: rec.waiting_instance} : {})
+    }, title: "Show ASH records for this combination of blocking and waiting event"
+    )
+  end
+
+  unique_blocking_property = proc do |rec|
+    retval = ''
+    retval << "User:#{rec.blocking_user} "        if rec.blocking_user
+    retval << "Module:#{rec.blocking_module} "    if rec.blocking_module
+    retval << "Action:#{rec.blocking_action} "    if rec.blocking_action
+    retval << "Machine:#{rec.blocking_machine} "  if rec.blocking_machine
+    retval << "Program:#{rec.blocking_program} "  if rec.blocking_program
+    retval << "Service:#{rec.blocking_service} "  if rec.blocking_service
+    retval
+  end
+
+  unique_waiting_property = proc do |rec|
+    retval = ''
+    retval << "User:#{rec.waiting_user} "         if rec.waiting_user
+    retval << "Module:#{rec.waiting_module} "     if rec.waiting_module
+    retval << "Action:#{rec.waiting_action} "     if rec.waiting_action
+    retval << "Machine:#{rec.waiting_machine} "   if rec.waiting_machine
+    retval << "Program:#{rec.waiting_program} "   if rec.waiting_program
+    retval << "Service:#{rec.waiting_service} "   if rec.waiting_service
+    retval
+  end
+
+  column_options = []
+  column_options << {caption: 'Blocking instance',      data: proc{|rec| rec.blocking_instance },                 title: 'RAC instance of sessions with blocking event' } if @show_instances
+  column_options << {caption: 'Blocking event',         data: proc{|rec| rec.blocking_event },                    title: 'Event of sessions that are blocking other sessions', data_title: proc{|rec| "%t\n\n#{explain_wait_event(rec.blocking_event)}"} }
+  column_options << {caption: 'Blocking sessions',      data: link_blocking_sessions,                             title: 'Number of distinct sessions (Instance, SID, Serial#) that are blocking other sessions', align: :right }
+  column_options << {caption: 'Unique blocking properties',  data: unique_blocking_property,                      title: 'Session properties that are unique over all blocking sessions' }
+  column_options << {caption: 'Blocking active (sec.)', data: proc{|rec| fn(rec.blocking_active_seconds) },       title: 'Total number of seconds all blocking sessions have been active (or blocked themself)', data_title: proc{|rec| "%t\n#{seconds_explain(rec.blocking_active_seconds)}"}, align: :right }
+  column_options << {caption: 'Waiting instance',       data: proc{|rec| rec.waiting_instance },                  title: 'RAC instance of sessions with waiting event' } if @show_instances
+  column_options << {caption: 'Waiting event',          data: proc{|rec| rec.waiting_event },                     title: 'Event of sessions that are blocked by other sessions', data_title: proc{|rec| "%t\n\n#{explain_wait_event(rec.waiting_event)}"} }
+  column_options << {caption: 'Waiting sessions',       data: link_waiting_sessions,                              title: 'Number of distinct sessions (Instance, SID, Serial#) that are blocked by other sessions', align: :right }
+  column_options << {caption: 'Unique waiting properties',  data: unique_waiting_property,                        title: 'Session properties that are unique over all waiting sessions' }
+  column_options << {caption: 'Waiting active (sec.)',  data: proc{|rec| fn(rec.waiting_active_seconds) },        title: 'Total number of seconds all waiting sessions have been blocked by blocking sessions', data_title: proc{|rec| "%t\n#{seconds_explain(rec.waiting_active_seconds)}"}, align: :right, show_pct_hint: true, show_pct_background: true}
+  column_options << {caption: 'First ASH sample',       data: proc{|rec| localeDateTime(rec.first_occurrence) },  title: 'First occurrence of ASH sample for blocked waiting session'}
+  column_options << {caption: 'Last ASH sample',        data: proc{|rec| localeDateTime(rec.last_occurrence) },   title: 'Last occurrence of ASH sample for blocked waiting session'}
+  column_options << {caption: 'Samples',                data: link_column_samples,                                title: 'Number of ASH samples for waiting sessions between first and last occurrence of ASH sample', align: :right }
+  column_options << {caption: 'Avg. waiting sessions',  data: proc{|rec| fn(rec.avg_waiting_sessions, 1) },       title: 'Average number of waiting sessions between first and last occurrence of ASH sample', align: :right }
+  column_options << {caption: 'Avg. ms per wait',       data: proc{|rec| fn(rec.avg_seconds_in_wait*1000, 2) },   title: 'Average time in milliseconds the waiting sessions spent since start of last wait', align: :right }
+  column_options << {caption: 'Min. ms per wait',       data: proc{|rec| fn(rec.min_seconds_in_wait*1000, 2) },   title: 'Minimum time in milliseconds a waiting session spent since start of last wait', align: :right }
+  column_options << {caption: 'Max. ms per wait',       data: proc{|rec| fn(rec.max_seconds_in_wait*1000, 2) },   title: 'Maximum time in milliseconds a waiting session spent since start of last wait', align: :right }
+
+  caption = "Event combinations for waiting and blocking sessions between #{@time_selection_start} and #{@time_selection_end}"
+
+  @hidden_link_timeline_id = get_unique_area_id
+
+  context_menu_entries = []
+  command_menu_entries = [get_recall_params_info_for_render_page_caption]
+
+  def create_context_menu_entry(seconds, context_menu_entries, command_menu_entries, icon_class)
+    label   = "Show top event combinations in time chart, condensed by #{seconds} seconds"
+    hint    = "Show top event combinations ordered by total time waited in time chart, each point in graph for sum over #{seconds} seconds"
+    action  = "$('##{@hidden_link_timeline_id}_#{seconds}').click();"
+
+    context_menu_entries << {
+        :label   => label,
+        :hint    => hint,
+        :ui_icon => icon_class,
+        :action  => action
+    }
+
+    command_menu_entries << {
+        name:                 "command_menu_timeline_#{seconds}",
+        caption:              label,
+        hint:                 hint,
+        icon_class:           icon_class,
+        show_icon_in_caption: true,
+        action:               action
+    }
+  end
+
+  create_context_menu_entry(60, context_menu_entries, command_menu_entries, 'cuis-chart-area')
+  create_context_menu_entry(10, context_menu_entries, command_menu_entries, 'cui-chart-area')
+  create_context_menu_entry(1, context_menu_entries, command_menu_entries,  'cui-chart-line')
+
+  @link_timeline = proc do |group_seconds|
+    ajax_link("Hidden Auslöser für Timeline",
+              {action:                :blocking_locks_historic_event_dependency_timechart,
+               dbid:                  @dbid,
+               show_instances:        @show_instances,
+               time_selection_start:  @time_selection_start,
+               time_selection_end:    @time_selection_end,
+               group_seconds:         group_seconds,
+               update_area:           @update_area_timechart
+              },
+              :style=>"display:none",
+              :id=>"#{@hidden_link_timeline_id}_#{group_seconds}"
+    )
+  end
+
+%>
+
+<%= gen_slickgrid(@event_locks, column_options, {
+    caption:              caption,
+    max_height:           450,
+    context_menu_entries: context_menu_entries,
+    command_menu_entries: command_menu_entries,
+    show_pin_icon:        1,
+    direct_update_area:   @update_area_timechart,
+    update_area:          @update_area
+}) %>
+
+<%= @link_timeline.call(60) %>
+<%= @link_timeline.call(10) %>
+<%= @link_timeline.call( 1) %>

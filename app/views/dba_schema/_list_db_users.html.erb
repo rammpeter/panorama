@@ -1,0 +1,76 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_granted_roles = proc do |rec|
+    ajax_link(fn(rec.granted_roles),
+              {action:      :list_role_grants,
+               grantee:     rec.username,
+               update_area: @update_area,
+              },
+              title: "Show roles granted to user '#{rec.username}'"
+    )
+  end
+
+  link_obj_grants = proc do |rec|
+    ajax_link(fn(rec.obj_grants),
+              {action:      :list_obj_grants,
+               grantee:     rec.username,
+               update_area: @update_area,
+              },
+              title: "Show object privileges granted to user '#{rec.username}'"
+    )
+  end
+
+  link_privileges = proc do |rec|
+    ajax_link(fn(rec.privilege_cnt),
+              {action:      :list_granted_sys_privileges,
+               grantee:     rec.username,
+               update_area: @update_area,
+              },
+              title: "Show system privileges granted to user '#{rec.username}'"
+    )
+  end
+
+  link_granted_obj_privs = proc do |rec|
+    ajax_link(fn(rec.granted_obj_grants),
+              {action:      :list_obj_grants,
+               grantor:     rec.username,
+               update_area: @update_area,
+              },
+              title: "Show object privileges granted for others by user '#{rec.username}'"
+    )
+  end
+
+  column_options = []
+  column_options << {caption: 'User ID',      data: proc{|rec| fn(rec.user_id)},              title: 'ID of user', align: :right}
+  column_options << {caption: 'User name',    data: proc{|rec| rec.username},                 title: 'Name of user'}
+  column_options << {caption: 'Created',      data: proc{|rec| localeDateTime(rec.created)},  title: 'Creation timestamp of user'}
+  column_options << {caption: 'Account status', data: proc{|rec| rec.account_status},         title: 'Account status of the user'}
+  column_options << {caption: 'Lock date',    data: proc{|rec| localeDateTime(rec.lock_date)},title: 'Date the account was locked if account status was LOCKED'}
+  column_options << {caption: 'Expiry date',  data: proc{|rec| localeDateTime(rec.expiry_date)},title: 'Date of expiration of the account'}
+  column_options << {caption: 'Default TS',   data: proc{|rec| rec.default_tablespace},       title: 'Default tablespace for data'}
+  column_options << {caption: 'Temp. TS',     data: proc{|rec| rec.temporary_tablespace},     title: 'Name of the default tablespace for temporary tables or the name of a tablespace group'}
+  column_options << {caption: 'Profile',      data: proc{|rec| rec.profile},                  title: '	User resource profile name'}
+  column_options << {caption: 'Init. resrc. cons. group', data: proc{|rec| rec.initial_rsrc_consumer_group}, title: 'Initial resource consumer group for the user'}
+  column_options << {caption: 'Ext. name',    data: proc{|rec| rec.external_name},            title: 'User external name'}
+  column_options << {caption: 'Passw. versions', data: proc{|rec| rec.password_versions},     title: 'Database version in which the password was created or changed'}
+  column_options << {caption: 'Edi. enbl.',   data: proc{|rec| rec.editions_enabled},         title: 'Indicates whether editions have been enabled for the corresponding user (Y) or not (N)'}
+  column_options << {caption: 'Auth. type',   data: proc{|rec| rec.authentication_type},      title: 'Indicates the authentication mechanism for the user'}
+  column_options << {caption: 'Cm.',          data: proc{|rec| rec.common},                   title: 'Indicates whether a given user is common'} if get_db_version >= '12.1'
+  column_options << {caption: 'Orcl. maint.',data: proc{|rec| rec.oracle_maintained},        title: "Denotes whether the user was created, and is maintained, by Oracle-supplied scripts (such as catalog.sql or catproc.sql).\nA user for which this column has the value Y must not be changed in any way except by running an Oracle-supplied script."} if get_db_version >= '12.1'
+  column_options << {caption: 'Pr. o.',       data: proc{|rec| rec.proxy_only_connect},       title: 'Indicates whether a user can connect directly (N) or whether the account can only be proxied (Y) by users who have proxy privileges for this account (that is, by users who have been granted the "connect through" privilege for this account).'} if get_db_version >= '12.1'
+  column_options << {caption: 'Last login',   data: proc{|rec| localeDateTime(rec.last_login)},title: 'The time of the last user login.'} if get_db_version >= '12.1'
+  column_options << {caption: 'Inh.',         data: proc{|rec| rec.inherited},                title: "Indicates whether the user definition was inherited from another container (YES) or not (NO)"} if get_db_version >= '12.2'
+  column_options << {caption: 'Default collation', data: proc{|rec| rec.default_collation},   title: "Default collation for the user’s schema"} if get_db_version >= '12.2'
+  column_options << {caption: 'Impl.',        data: proc{|rec| rec.implicit},                 title: "Indicates whether this user is a common user created by an implicit application (YES) or not (NO)"} if get_db_version >= '12.2'
+  column_options << {caption: 'All shard',    data: proc{|rec| rec.all_shard},                title: "In a sharded database, the value in this column indicates whether the user was created with shard DDL enabled. T"} if get_db_version >= '12.2'
+  column_options << {caption: 'Passw. change date', data: proc{|rec| localeDateTime(rec.password_change_date)},title: "Date on which the user’s password was last set"} if get_db_version >= '19.0'
+  column_options << {caption: 'Roles',        data: link_granted_roles,                       title: 'Number of roles granted to this user', align: :right}
+  column_options << {caption: 'Object privs', data: link_obj_grants,                          title: 'Number of object privileges granted to this user', align: :right}
+  column_options << {caption: 'System privs', data: link_privileges,                          title: 'Number of system privileges granted this user', align: :right}
+  column_options << {caption: 'Granted object privs', data: link_granted_obj_privs,           title: 'Number of object privileges granted to others by this user', align: :right}
+%>
+
+<%= gen_slickgrid(@users, column_options, {caption: "Database users from DBA_Users#{" filtered for user='#{@username}'" if @username}", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

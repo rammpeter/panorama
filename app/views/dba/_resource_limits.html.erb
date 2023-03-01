@@ -1,0 +1,42 @@
+<%
+  @update_area = get_unique_area_id
+
+  render_action_buttons = proc do |rec|
+    ajax_submit('History', {
+      controller:     :dba_history,
+      action:         :list_resource_limits_historic,
+      instance:       rec.inst_id,
+      resource_name:  rec.resource_name,
+      update_area:@update_area
+    },
+              :title=> "Show recorded history for resource limits")
+  end
+
+  show_fn_value = proc do |val|
+    fn(val) == '0' ? val : fn(val)
+  end
+
+  show_pct = proc do |rec, val|
+    if rec.initial_allocation != 'UNLIMITED' && rec.initial_allocation != '0'
+      fn(val*100.0 / rec.initial_allocation.to_i, 1)
+    end
+  end
+
+  column_options = []
+  column_options << {caption: 'I',                  data: proc{|rec| rec.inst_id},                                title: "Instance-ID"} if PanoramaConnection.rac?
+  column_options << {caption: 'Resource name',      data: proc{|rec| rec.resource_name},                          title: "Resource name"}
+  column_options << {caption: 'Current util.',      data: proc{|rec| fn(rec.current_utilization)},                title: "Number of (resources, locks, or processes) currently being used", align: :right}
+  column_options << {caption: 'Current util. %',    data: proc{|rec| show_pct.call(rec, rec.current_utilization)},title: "Percentage of current utilization compared to initial allocation", align: :right}
+  column_options << {caption: 'Max. util.',         data: proc{|rec| fn(rec.max_utilization)},                    title: "Maximum consumption of this resource since the last instance start-up", align: :right}
+  column_options << {caption: 'Max. util. %',       data: proc{|rec| show_pct.call(rec, rec.max_utilization)},title: "Percentage of maximum utilization compared to initial allocation", align: :right}
+  column_options << {caption: 'Init. alloc.',       data: proc{|rec| show_fn_value.call(rec.initial_allocation)}, title: "Initial allocation.\nThis will be equal to the value specified for the resource in the initialization parameter file (UNLIMITED for infinite allocation).", align: :right}
+  column_options << {caption: 'Limit value',        data: proc{|rec| show_fn_value.call(rec.limit_value)},        title: "Unlimited for resources and locks. This can be greater than the initial allocation value (UNLIMITED for infinite limit).", align: :right}
+  column_options << {caption: 'Con-ID',             data: proc{|rec| fn(rec.con_id)},                             title: "PDB container ID", align: :right} if get_db_version >= '12.1'
+  column_options << {caption: 'Action',             data: render_action_buttons,                                  title: 'Call action for this resource name and instance'}
+%>
+
+<%=
+  gen_slickgrid(@resource_limits, column_options, {caption: "Resource limits from gv$Resource_Limit", max_height: 450, width: :auto, show_pin_icon: 1})
+%>
+
+<div id="<%= @update_area %>"></div>

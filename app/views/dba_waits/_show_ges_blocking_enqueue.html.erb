@@ -1,0 +1,33 @@
+<%
+  @update_area = get_unique_area_id
+column_options =
+  [
+    {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                      :title=>"RAC-instance"},
+    {:caption=>"Grant",            :data=>proc{|rec| rec.grant_level},                  :title=>"Grant-level of lock"},
+    {:caption=>"Request",          :data=>proc{|rec| rec.request_level},                :title=>"Request-level of Lock"},
+    {:caption=>"Resource-Name",    :data=>proc{|rec| rec.resource_name1},               :title=>"Unique identifier of object, links blocker and waiter"},
+    {:caption=>"LT",               :data=>proc{|rec| rec.locktype},                     :title=>"Lock-type", :data_title=>'#{lock_types(rec.locktype)}'},
+    {:caption=>"Blocked",          :data=>proc{|rec| rec.blocked},                      :title=>"Session is blocked"},
+    {:caption=>"Blocker",          :data=>proc{|rec| rec.blocker},                      :title=>"Session is blocker"},
+    {:caption=>"SID, Serial_No",    :data=>proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no) },  :title=>"Session-ID"},
+    {:caption=>"User",             :data=>proc{|rec| rec.username},                     :title=>"DB-Username"},
+    {:caption=>"Process",          :data=>proc{|rec| rec.process},                      :title=>"Client-Process"},
+    {:caption=>"Machine",          :data=>proc{|rec| rec.machine},                      :title=>"Client-Machine"},
+    {:caption=>"Terminal",         :data=>proc{|rec| rec.terminal},                     :title=>"Client-Terminal"},
+    {:caption=>"Program",          :data=>proc{|rec| rec.program},                      :title=>"Client-Programm"},
+    {:caption=>"SQL ID",           :data=>proc{|rec| rec.sql_id},                       :title=>"Currently executed SQL"},
+    {:caption=>"Child",            :data=>proc{|rec| rec.sql_child_number},             :title=>"Child-Number of currently executed SQL"},
+    {:caption=>"Module",           :data=>proc{|rec| rec.module},                       :title=>"Module-Info"},
+    {:caption=>"Action",           :data=>proc{|rec| rec.action},                       :title=>"Action-Info"},
+    {:caption=>"Client-Info",      :data=>proc{|rec| rec.client_info},                  :title=>"Client-Info"},
+    {:caption=>"Wait Event",       :data=>proc{|rec| rec.event},                        :title=>"Current wait event"},
+    {:caption=>"Status",           :data=>proc{|rec| rec.status},                       :title=>"Current session status"},
+  ]
+
+%>
+
+<%= gen_slickgrid(@locks, column_options, {
+        :caption=> "Blocking locks known by RAC-Lock-Manager from gv$GES_Blocking_Locks",
+        :max_height => 450, show_pin_icon: 1
+}) %>
+<div id="<%= @update_area %>"></div>

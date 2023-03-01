@@ -1,0 +1,16 @@
+<%= render_page_caption("Enter master password for access") %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(controller:         :admin,
+              action:             :admin_logon,
+              origin_controller:  @origin_controller,
+              origin_action:      @origin_action,
+              update_area:        :content_for_layout
+    ) do %>
+  <div style="text-align: center;">
+    <br/>
+    Master-password
+    <%= password_field_tag(:master_password, "", :size=>40, :title=>"Master password for Panorama.\nMust match the password given in environment variable PANORAMA_MASTER_PASSWORD at startup of Panorama-server") %>
+    <%= submit_tag('Login', :title =>"Authenticate for administrative tasks" ) %>
+  </div>
+<% end %>

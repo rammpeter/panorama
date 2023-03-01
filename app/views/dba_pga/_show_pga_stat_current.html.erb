@@ -1,0 +1,92 @@
+<%= render_page_caption("Current PGA statistics from several sources at #{localeDateTime(Time.now)}") %>
+<div class="flex-row-container">
+
+
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>"I",                                   :data=>proc{|rec| rec.inst_id},                   :title=>"RAC-Instance", :align=>:right},
+          {:caption=>"Sessions",                            :data=>proc{|rec| fn(rec.sessions)},              :title=>"Number of sessions", :align=>:right},
+          {:caption=>"Total PGA in use (MB)",               :data=>proc{|rec| fn(rec.sum_used_mem_mb)},       :title=>"Indicates how much PGA memory is currently consumed by work areas. This number can be used to determine how much memory is consumed by other consumers of the PGA memory (for example, PL/SQL or Java).", data_title: proc{|rec| "%t\n\n#{size_explain(rec.sum_used_mem_mb)}"}, :align=>:right},
+          {:caption=>"Avg. PGA in use per session (MB)",    :data=>proc{|rec| fn(rec.avg_used_mem_mb,2)},     :title=>"Indicates how much PGA memory is currently consumed by work areas per session. This number can be used to determine how much memory is consumed by other consumers of the PGA memory (for example, PL/SQL or Java).", data_title: proc{|rec| "%t\n\n#{size_explain(rec.avg_used_mem_mb)}"}, :align=>:right},
+          {:caption=>"Total PGA allocated (MB)",            :data=>proc{|rec| fn(rec.sum_alloc_mem_mb)},      :title=>"Current amount of PGA memory allocated by the instance. The Oracle Database attempts to keep this number below the value of the PGA_AGGREGATE_TARGET initialization parameter. However, it is possible for the PGA allocated to exceed that value by a small percentage and for a short period of time when the work area workload is increasing very rapidly or when PGA_AGGREGATE_TARGET is set to a small value.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.sum_alloc_mem_mb)}"}, :align=>:right},
+          {:caption=>"Avg. PGA allocated per session (MB)", :data=>proc{|rec| fn(rec.avg_alloc_mem_mb,2)},    :title=>"Current amount of PGA memory allocated by the instance per session. The Oracle Database attempts to keep this number below the value of the PGA_AGGREGATE_TARGET initialization parameter. However, it is possible for the PGA allocated to exceed that value by a small percentage and for a short period of time when the work area workload is increasing very rapidly or when PGA_AGGREGATE_TARGET is set to a small value.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.avg_alloc_mem_mb)}"}, :align=>:right},
+          {:caption=>"Freeable PGA (MB)",                   :data=>proc{|rec| fn(rec.sum_freeable_mem_mb)},   :title=>"Number of bytes of PGA memory in all processes that could be freed back to the operating system.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.sum_freeable_mem_mb)}"}, :align=>:right},
+          {:caption=>"Avg. freeable PGA per session (MB)",  :data=>proc{|rec| fn(rec.avg_freeable_mem_mb,2)}, :title=>"Number of bytes of PGA memory per session that could be freed back to the operating system.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.avg_freeable_mem_mb)}"}, :align=>:right},
+          {:caption=>"Max. PGA in use (MB)",                :data=>proc{|rec| fn(rec.sum_max_mem_mb)},        :title=>"Maximum amount of PGA memory consumed at one time by work areas since instance startup.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.sum_max_mem_mb)}"}, :align=>:right},
+          {:caption=>"Avg. max. PGA per session (MB)",      :data=>proc{|rec| fn(rec.avg_max_mem_mb,2)},      :title=>"Maximum amount of PGA memory per session consumed at one time by work areas since instance startup.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.avg_max_mem_mb)}"}, :align=>:right},
+      ]
+%>
+
+  <div class="flex-row-element">
+<%=
+  gen_slickgrid(@stats, column_options, {
+      :caption => "Current PGA values calculated as sums from gv$Session)",
+      :max_height => 450, width: :auto
+  })
+%>
+  </div>
+
+<%
+
+  link_sessions = proc do |rec, value, order_by|
+    ajax_link(value, {
+                           action:      :list_process_memory_sessions,
+                           instance:    rec.inst_id,
+                           category:    rec.category,
+                           order_by:    order_by,
+                           update_area: @update_area
+                          },
+                   title: 'Show current sessions for this category'
+     )
+  end
+
+  link_sessions_allocated     = proc {|rec| link_sessions.call(rec, fn(rec.allocated_mb, 2),      'allocated') }
+  link_sessions_used          = proc {|rec| link_sessions.call(rec, fn(rec.used_mb, 2),           'used') }
+  link_sessions_max_allocated = proc {|rec| link_sessions.call(rec, fn(rec.max_allocated_mb, 2),  'max_allocated') }
+
+  column_options =
+      [
+          {:caption=>"I",                                   :data=>proc{|rec| rec.inst_id},                   :title=>"RAC-Instance", :align=>:right},
+          {:caption=>"Category",                            :data=>proc{|rec| rec.category},                  :title=>"Category name. Categories include 'SQL', 'PL/SQL', 'OLAP' and 'JAVA'.\nSpecial categories are 'Freeable' and 'Other'.\nFreeable memory has been allocated to the process by the operating system, but has not been allocated to a category.\n'Other' memory has been allocated to a category, but not to one of the named categories."},
+          {:caption=>"Allocated PGA (MB)",                  :data=>link_sessions_allocated,                   :title=>"MBytes of PGA memory allocated by the process for the category.\nFor the 'Freeable' category, it is the amount of free PGA memory eligible to be released to the operating system.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.allocated_mb)}"}, :align=>:right},
+          {:caption=>"Used PGA (MB)",                       :data=>link_sessions_used,                        :title=>"MBytes of PGA memory used by the process for the category.\nFor 'Freeable', the value is zero.\nFor 'Other', the value is NULL for performance reasons.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.used_mb)}"}, :align=>:right},
+          {:caption=>"Max. allocated PGA (MB)",             :data=>link_sessions_max_allocated,               :title=>"Maximum MBytes of PGA memory ever allocated by the process for the category.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.max_allocated_mb)}"}, :align=>:right},
+      ]
+%>
+
+  <div class="flex-row-element">
+<%=
+  gen_slickgrid(@process_memory, column_options, {
+      :caption => "PGA memory in categories as sums from gv$Process_Memory",
+      :max_height => 450, width: :auto
+  })
+%>
+  </div>
+
+  <%
+    column_options =
+      [
+        {:caption=>"I",             :data=>proc{|rec| rec.inst_id},                   :title=>"RAC-Instance", :align=>:right},
+        {:caption=>"PGA stat name", :data=>proc{|rec| rec.caption},                   :title=>"Name of PGA area or statistic", data_title: proc{|rec| "%t\n\nOriginal name in gv$SQGStat = '#{rec.name}'"}},
+        {:caption=>"Value",         :data=>proc{|rec| rec.show_value},                :title=>"Value of PGA area or statistic", data_title: proc{|rec| "%t\n\n#{rec.value_title}"}, :align=>:right},
+      ]
+    column_options << {caption: "Con. ID", data: proc{|rec| rec.con_id},  title: "Container ID", :align=>:right} if get_db_version >= '12.1'
+
+  %>
+
+  <div class="flex-row-element">
+    <%=
+      gen_slickgrid(@pgastat, column_options, {
+        :caption => "PGA memory from gv$PGAStat",
+        :max_height => 450, width: :auto
+      })
+    %>
+  </div>
+
+</div>
+
+
+<div id="<%= @update_area %>"></div>

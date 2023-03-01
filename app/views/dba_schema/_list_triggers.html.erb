@@ -1,0 +1,50 @@
+<%
+    @update_area = get_unique_area_id
+
+    def show_source(rec)
+      ajax_link(rec.description.html_safe,
+                              {:action       => :list_trigger_body,
+                               :owner        => rec.owner,
+                               :trigger_name => rec.trigger_name,
+                               :update_area  => @update_area,
+                              },
+                      :title=>"Show body of trigger #{rec.owner}.#{rec.trigger_name}"
+      )
+    end
+
+    column_options =
+            [
+                    {:caption=> 'Owner',              :data=>proc{|rec| rec.owner},              :title=> 'Owner of trigger'},
+                    {:caption=> 'Name',               :data=>proc{|rec| rec.trigger_name},       :title=> 'Name of trigger'},
+                    {:caption=> 'Type',               :data=>proc{|rec| rec.trigger_type},       :title=> 'Type of trigger'},
+                    {:caption=> 'Event',              :data=>proc{|rec| rec.triggering_event},   :title=> 'Triggering event'},
+                    {:caption=> 'Column name',        :data=>proc{|rec| rec.column_name},        :title=> 'Name of the nested table column (if nested table trigger), else null'},
+                    {:caption=> 'Referencing names',  :data=>proc{|rec| rec.referencing_names},  :title=> 'Names used for referencing OLD and NEW column values from within the trigger'},
+                    {:caption=> 'Status',             :data=>proc{|rec| rec.status},             :title=> 'Status of trigger'},
+                    {:caption=> 'Description',        :data=>proc{|rec| show_source(rec)},       :title=> 'Description of trigger'},
+                    {:caption=> 'When clause',        :data=>proc{|rec| rec.when_clause},        :title=> 'When-clause of trigger'},
+                    {:caption=> 'Action type',        :data=>proc{|rec| rec.action_type},        :title=> 'Action type of trigger'},
+                    {:caption=> 'Created',            :data=>proc{|rec| localeDateTime(rec.created)},        :title=> 'Timestamp of trigger creation'},
+                    {:caption=> 'Last DDL',           :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},  :title=> 'Timestamp of last DDL operation on trigger'},
+                    { caption: 'Spec. TS',            data: proc{|rec| localeDateTime(rec.spec_ts)},         title: "Timestamp for the last specification change of the trigger" },
+            ]
+  column_options << {:caption=> 'Cross edition',        :data=>proc{|rec| rec.crossedition},        :title=> "Type of crossedition trigger:\nFORWARD\nREVERSE\nNO"}                             if get_db_version >= '11.2'
+  column_options << {:caption=> 'Before statement',     :data=>proc{|rec| rec.before_statement},    :title=> "Indicates whether the trigger has a BEFORE STATEMENT section (YES) or not (NO)"}  if get_db_version >= '11.2'
+  column_options << {:caption=> 'Before row',           :data=>proc{|rec| rec.before_row},          :title=> "Indicates whether the trigger has a BEFORE ROW section (YES) or not (NO)"}        if get_db_version >= '11.2'
+  column_options << {:caption=> 'After row',            :data=>proc{|rec| rec.after_row},           :title=> "Indicates whether the trigger has a AFTER ROW section (YES) or not (NO)"}         if get_db_version >= '11.2'
+  column_options << {:caption=> 'After statement',      :data=>proc{|rec| rec.after_statement},     :title=> "Indicates whether the trigger has a AFTER STATEMENT section (YES) or not (NO)"}   if get_db_version >= '11.2'
+  column_options << {:caption=> 'Instead of row',       :data=>proc{|rec| rec.instead_of_row},      :title=> "Indicates whether the trigger has an INSTEAD OF section (YES) or not (NO)"}       if get_db_version >= '11.2'
+  column_options << {:caption=> 'Fire once',            :data=>proc{|rec| rec.fire_once},           :title=> "Indicates whether the trigger will fire only in the context of user processes making changes (YES) or whether the trigger will also fire in the context of Streams Apply or SQL Apply processes (NO)"}       if get_db_version >= '11.2'
+  column_options << {:caption=> 'Apply server only',    :data=>proc{|rec| rec.apply_server_only},   :title=> "Indicates whether the trigger will only fire in the context of a Streams Apply or SQL Apply process (YES) or not (NO). If set to YES, then the setting of FIRE_ONCE does not matter."}       if get_db_version >= '11.2'
+
+%>
+
+<%=
+    gen_slickgrid(@triggers, column_options, {
+                                      :caption => "Triggers for  #{@table_type} #{@owner}.#{@table_name}",
+                                      :max_height => 450, show_pin_icon: 1
+                              })
+%>
+
+<div id="<%= @update_area %>"></div>
+

@@ -1,0 +1,63 @@
+<%= render_page_caption("Description of cluster #{@owner}.#{@cluster_name}") %>
+
+<% @update_area = get_unique_area_id %>
+
+<%
+  column_options =
+      [
+          {:caption=> 'TS',                 :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name'},
+          {:caption=> 'Pct Free',           :data=>proc{|rec| fn(rec.pct_free)},                     :title=> 'Percent free', :align=>:right},
+          {:caption=> 'Key size',           :data=>proc{|rec| fn(rec.key_size)},                     :title=> 'Estimated size of cluster key plus associated rows', :align=>:right},
+          {:caption=> 'Ini Trans',          :data=>proc{|rec| fn(rec.ini_trans)},                    :title=> 'Number of initial entries in transaction list of db block', :align=>:right},
+          {:caption=> 'Max Trans',          :data=>proc{|rec| fn(rec.max_trans)},                    :title=> 'Maximum number of transactions in transaction list of db block', :align=>:right},
+#          {:caption=> 'Size (MB) Table',  :data=>proc{|rec| fn(@size_mb_table, 2)},                :title=> 'Current table size in megabytes', :align=>:right},
+#          {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right},
+          {:caption=> 'Avg. blocks per key',:data=>proc{|rec| fn(rec.avg_blocks_per_key)},           :title=> 'Number of blocks in the table divided by number of cluster keys', :align=>:right},
+          {:caption=> 'Type',               :data=>proc{|rec| rec.cluster_type},                     :title=> 'Type of the cluster'},
+          {:caption=> 'Function',           :data=>proc{|rec| rec.function},                         :title=> 'If the cluster is a hash cluster, the hash function'},
+          {:caption=> 'Hash keys',          :data=>proc{|rec| fn(rec.hashkeys)},                     :title=> 'If the cluster is a hash cluster, the number of hash keys (hash buckets)', :align=>:right},
+          {:caption=> 'Dg.',                :data=>proc{|rec| fn(rec.degree)},                       :title=> 'Default parallel degree of table', :align=>:right},
+          {:caption=> 'Instances',          :data=>proc{|rec| fn(rec.instances)},                    :title=> 'Number of instances across which the cluster is to be scanned , or DEFAULT', :align=>:right},
+          {:caption=> 'Cache',              :data=>proc{|rec| rec.cache},                            :title=> 'Whether the table is to be cached in the buffer cache'},
+          {:caption=> 'Single table',       :data=>proc{|rec| rec.single_table},                     :title=> 'Indicates whether this is a single-table cluster (Y) or not (N)'},
+          {:caption=> 'Created',            :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation'},
+          {:caption=> 'Last DDL',           :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table'},
+          { caption: 'Spec. TS',            data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
+      ]
+  column_options << {:caption=> 'Flash cache',             :data=>proc{|rec| rec.flash_cache},                 :title=> 'Database Smart Flash Cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+  column_options << {:caption=> 'Cell flash cache',        :data=>proc{|rec| rec.flash_cache},                 :title=> 'Cell flash cache hint to be used for partition blocks'}  if get_db_version >= '11.2'
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {
+    :caption => "Attributes of cluster #{@owner}.#{@cluster_name}",
+    :height => :auto
+})
+%>
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@tables} Tables", {
+        :update_area => @update_area,
+        :action      => :list_cluster_tables,
+        :owner       => @owner,
+        :cluster_name  => @cluster_name
+    }, :title => "Show indexes for object #{@owner}.#{@cluster_name}")
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@indexes} Indexes", {
+        :update_area => @update_area,
+        :action      => :list_indexes,
+        :owner       => @owner,
+        :table_name  => @cluster_name
+    }, :title => "Show indexes for object #{@owner}.#{@cluster_name}")
+    %>
+  </div>
+
+</div>
+
+
+
+<div id="<%= @update_area %>"></div>

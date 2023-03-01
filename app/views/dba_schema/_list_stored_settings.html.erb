@@ -1,0 +1,15 @@
+<%
+  column_options =
+    [
+      {caption: 'Parameter name',              data: proc{|rec| rec.param_name},  title: 'The name of the parameter stored persistently with the PL/SQL unit'},
+      {caption: 'Parameter value',             data: proc{|rec| rec.param_value}, title: "The TO_CHAR() representation of the value of the persistently stored parameter.\nThe width of this column is operating system dependent;\nhowever, it is never less than 255."},
+    ]
+%>
+
+<%=
+  gen_slickgrid(@settings, column_options, {
+    :caption => "Object settings from DBA_Stored_Settings for #{@object_type} #{@owner}.#{@object_name}",
+    :max_height => 450, show_pin_icon: 1, width: :auto
+  })
+%>
+

@@ -1,0 +1,109 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  column_options =
+      [
+          {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
+          {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
+          { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
+          {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
+      ]
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto}) %>
+
+<%=  render_code_mirror(@source, cm_options: { lineNumbers: true}) %>
+
+<div class="flex-row-container">
+  <% if @object_type == 'PACKAGE' %>
+    <div class="flex-row-element">
+      <%= ajax_submit("Package Body", {
+          :update_area  => @update_area,
+          :action       => :list_plsql_description,
+          :owner        => @owner,
+          :object_name  => @object_name,
+          :object_type  => 'PACKAGE BODY'
+      }, :title => "Show description of package body for #{@owner}.#{@table_name}")
+      %>
+    </div>
+  <% end %>
+
+  <% if @object_type == 'PACKAGE BODY' %>
+    <div class="flex-row-element">
+      <%= ajax_submit("Package", {
+          :update_area  => @update_area,
+          :action       => :list_plsql_description,
+          :owner        => @owner,
+          :object_name  => @object_name,
+          :object_type  => 'PACKAGE'
+      }, :title => "Show description of package spec for #{@owner}.#{@table_name}")
+      %>
+    </div>
+  <% end %>
+
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@dependencies} Dependencies", {
+        :update_area  => @update_area,
+        :action       => :list_dependencies,
+        :owner        => @owner,
+        :object_name  => @object_name,
+        :object_type  => @object_type
+    }, :title => "Show object dependencies for #{@object_type} #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@grants} Grants", {
+        :update_area => @update_area,
+        :action      => :list_grants,
+        :owner       => @owner,
+        :object_name => @object_name
+    }, :title => "Show grants for #{@object_type} #{@owner}.#{@object_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("Settings", {
+      :update_area  => @update_area,
+      :action       => :list_stored_settings,
+      :owner        => @owner,
+      :object_name  => @object_name,
+      :object_type  => @object_type
+    }, :title => "Show stored settings for trigger #{@owner}.#{@object_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("Sessions accessing", {
+        :update_area   => @update_area,
+        :controller    => :dba,
+        :action        => :list_sessions,
+        :object_owner  => @owner,
+        :object_name   => @object_name,
+        :object_type   => @object_type
+    }, :title => "Sessions accessing #{@object_type} #{@owner}.#{@object_name} in library cache (from GV$Access)")
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_submit("Using/calling SQLs in SGA", {
+      :update_area   => @update_area,
+      :controller    => :dba_sga,
+      :action        => :show_sql_area_sql_id,
+      :filter        => "#{@owner}.#{@object_name}",
+    }, :title => "Look for SQL statements with '#{@owner}.#{@object_name}' in their SQL text in current SGA")
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_submit("Using/calling SQLs in AWR", {
+      :update_area   => @update_area,
+      :controller    => :dba_history,
+      :action        => :show_sql_area_historic,
+      :filter        => "#{@owner}.#{@object_name}",
+    }, :title => "Look for SQL statements with '#{@owner}.#{@object_name}' in their SQL text in AWR history")
+    %>
+  </div>
+
+</div>
+
+
+<div id="<%= @update_area %>"></div>

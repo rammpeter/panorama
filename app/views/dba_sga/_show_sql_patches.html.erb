@@ -1,0 +1,74 @@
+<%
+  if prepare_param(:update_area_for_target)
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+  else
+    @update_area = get_unique_area_id                                           # no target div given, create my own
+  end
+
+  link_sql_text = proc do |rec|
+    ajax_link(rec.sql_text[0,40],
+              {:controller   => :dba_sga,
+               :action       => :list_sql_patch_sql_text,
+               :category     => rec.category,
+               :signature    => rec.signature.to_s,   # Use string, because numeric values are rounded (long integer limit?)
+               :update_area  => @update_area,
+              },
+              :title=>"Show complete text of SQL statement"
+    )
+  end
+
+  show_comp_data = proc do |rec|
+    # input: XML-structure for outline_data
+    # return: Array of hint-texts
+    output = ''
+    Nokogiri::XML(rec.comp_data).xpath("//hint").each do |hint|
+      output << "#{my_html_escape(hint.text)}<br/>"
+    end
+    output
+  end
+
+  link_sql_id = proc do |rec|
+    link_sql_id(@update_area, rec.min_inst_id, rec.min_sql_id)
+  end
+
+  data_title_sql_id = proc do |rec|
+    "%t\
+    #{"\nSQL-Patch is used in #{rec.instance_count} instances" if rec.instance_count > 1} \
+    #{"\nSQL-Patch is used for instance #{rec.min_inst_id}" if rec.instance_count == 1} \
+    #{"\nSQL-Patch is used for #{rec.sql_id_count} multiple SQL-IDs " if rec.sql_id_count > 1}
+    "
+  end
+
+
+column_options = []
+column_options << {:caption=>'Name',                :data=>proc{|rec| rec.name},                              :title=>"Name of the SQL patch"}
+column_options << {:caption=>'Category',            :data=>proc{|rec| rec.category},                          :title=>"Category of the SQL patch"}
+column_options << {:caption=>'Signature',           :data=>proc{|rec| fn rec.signature},                      :title=>"Unique identifier generated from normalized SQL text", align: :right}
+column_options << {:caption=>'SQL text',            :data=>link_sql_text,                                     :title=>"Un-normalized SQL text (first 40 characters)"}
+column_options << {:caption=>'Optimizer hint',      :data=>show_comp_data,                                    :title=>"Optimizer hint text(s) extracted from outline_data XML structure", data_title: proc{|rec| "%t\n\nOriginal outline data:\n#{rec.comp_data}"}}
+column_options << {:caption=>'Created',             :data=>proc{|rec| localeDateTime rec.created},            :title=>"Timestamp when the SQL patch was created"}
+column_options << {:caption=>'Last modified',       :data=>proc{|rec| localeDateTime rec.last_modified},      :title=>"Timestamp when the SQL patch was last modified"}
+column_options << {:caption=>'Description',         :data=>proc{|rec| rec.description},                       :title=>"Text description provided for the SQL patch"}
+column_options << {:caption=>'Status',              :data=>proc{|rec| rec.status},                            :title=>"Status of the SQL patch"}
+column_options << {:caption=>'Force matching',      :data=>proc{|rec| rec.force_matching},                    :title=>"Indicates whether the signature is force matching (YES) or exact matching (NO)"}
+column_options << {:caption=>'Usage in SGA',        data: link_sql_id,                                        title: "Usage of this SQL-patch in current SGA", data_title: data_title_sql_id}
+column_options << {:caption=>'Task ID',             :data=>proc{|rec| fn rec.task_id},                        :title=>"Advisor task ID that generated the SQL patch", align: :right}
+column_options << {:caption=>'Task exec name',      :data=>proc{|rec| rec.task_exec_name},                    :title=>"Advisor execution name for the SQL patch"}
+column_options << {:caption=>'Task object ID',      :data=>proc{|rec| fn rec.task_obj_id},                    :title=>"Advisor object ID for the SQL patch", align: :right}
+column_options << {:caption=>'Task finding ID',     :data=>proc{|rec| fn rec.task_fnd_id},                    :title=>"Advisor finding ID for the SQL patch", align: :right}
+column_options << {:caption=>'Task rec. ID',        :data=>proc{|rec| fn rec.task_rec_id},                    :title=>"Advisor recommendation ID for the SQL patchh", align: :right}
+%>
+
+<%=
+  if @exact_signature && @force_signature
+    caption = "<div style=\"background-color: coral;\">SQL-Patch exists for SQL-text (from DBA_SQL_Patches)</div>".html_safe
+  else
+    caption = "SQL-Patches from DBA_SQL_Patches"
+  end
+
+  gen_slickgrid(@sql_patches, column_options, :caption => caption, :max_height=>450, show_pin_icon: 1) if (@exact_signature.nil? && @force_signature.nil?) || @sql_patches.count > 0
+%>
+
+<% unless prepare_param(:update_area_for_target) %>
+  <div id="<%= @update_area %>"></div>
+<% end %>

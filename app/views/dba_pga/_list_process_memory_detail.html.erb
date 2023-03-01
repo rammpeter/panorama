@@ -1,0 +1,43 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {caption: 'Serial no',              data: proc{|rec| fn(rec.serial_no)},               title: "Oracle process serial number", align: :right },
+          {caption: 'Category',               data: proc{|rec| rec.category},                   title: "Category name. Categories include:\nSQL\nPL/SQL\nOLAP\nJAVA\nFreeable\nOther" },
+          {caption: 'Name',                   data: proc{|rec| rec.name},                       title: "PGA memory allocation comment. Small allocations may be grouped together with NAME set to Miscellaneous for performance reasons." },
+          {caption: 'Heap name',              data: proc{|rec| rec.heap_name},                  title: "Name of heap or heaps (if same name) containing the allocations" },
+          {caption: 'Bytes',                  data: proc{|rec| fn(rec.bytes)},                  title: "Bytes of PGA memory allocated in the process from heaps with the given heap name and with the given allocation comment", align: :right },
+          {caption: 'Allocation count',       data: proc{|rec| fn(rec.allocation_count)},       title: "Number of allocations with the comment found in the process inside heaps with the given heap name", align: :right },
+          {caption: 'Heap descriptor',        data: proc{|rec| rec.hex_heap_descriptor},        title: "If all the allocations are from one heap, then this is the address of the heap descriptor for that heap. Otherwise, this column is NULL." },
+          {caption: 'Parent heap descriptor', data: proc{|rec| rec.hex_parent_heap_descriptor}, title: "If all the allocations are from one heap, then this is the address of the parent heap descriptor for that heap. Otherwise, this column is NULL. If the heap has no parent, the value is zero." },
+      ]
+  column_options << {caption: 'Con-ID',         data: proc{|rec| rec.con_id},            title: "The ID of the container to which the data pertains.", align: :right } if get_db_version >= '12.1'
+%>
+
+<%=
+    gen_slickgrid(@details, column_options, {
+       :caption => "PGA details from gv$Process_Memory_Details for instance = #{@instance}, PID = #{@pid}, category = '#{@category}'",
+       :max_height => 450
+  })
+%>
+
+<div class='yellow-panel'>
+  <b>This view is regularly empty. You can activate the population of this view by one of the following commands as privileged user.<br/>
+    For RAC: this commands must be executed at the same RAC-node as the target session resides on!
+  </b><br/>
+  <ul>
+    <li>ALTER SESSION SET EVENTS 'immediate trace name PGA_DETAIL_GET level <%= @pid %>'; or</li>
+    <li>SQL> ORADEBUG SETMYPID;<br>SQL> ORADEBUG DUMP PGA_DETAIL_GET <%= @pid %>;</li>
+  </ul>
+  where <%= @pid %> is the Oracle process identifier (V$Process.PID) of the target process.<br/><br/>
+  The next action of the target session will then populate this view.<br/><br/>
+
+  <b>To remove all rows in the view run one of the following commands:</b>
+  <ul>
+    <li>ALTER SESSION SET EVENTS 'immediate trace name PGA_DETAIL_CANCEL level <%= @pid %>'; or</li>
+    <li>SQL> ORADEBUG DUMP PGA_DETAIL_CANCEL <%= @pid %>;</li>
+  </ul>
+</div>
+
+<div id="<%= @update_area %>"></div>

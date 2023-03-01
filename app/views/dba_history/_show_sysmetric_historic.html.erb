@@ -1,0 +1,34 @@
+<%= render_page_caption("#{t(:dba_history_show_sysmetric_historic_header,
+                             :default=>"SysMetric-history from %{sysmetric_history_table}/GV$SysMetric_History or %{sysmetric_summary_table}/GV$SysMetric_Summary",
+                             sysmetric_history_table: PanoramaConnection.adjust_table_name('DBA_Hist_SysMetric_History'),
+                             sysmetric_summary_table: PanoramaConnection.adjust_table_name('DBA_Hist_SysMetric_Summary'),
+                             )}") %>
+
+<% @update_area = get_unique_area_id %>
+
+<%=
+    ajax_form(:controller  => :dba_history,
+                             :action      => :list_sysmetric_historic,
+                             :update_area => @update_area
+                     ) do%>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true)%>
+    <div class="flex-row-element">
+      <div title="<%= t(:dba_history_show_sysmetric_historic_grouping_hint, :default=>"Grouping of values by time slice")%>">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+        <%=  t(:grouping, :default=>"Grouping") %>
+        <%= select :grouping, :tag, [[t(:second, :default=>"second"), 'SS'], [t(:minute, :default=>"minute"), 'MI'], [t(:hour, :default=>"hour"), 'HH24'], [t(:day, :default=>"day"), 'DD'] ], {:selected=>'MI'} %>
+      </div>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_history_show_sysmetric_submit_detail_caption, :default=>"Show details"), :title => t(:dba_history_show_sysmetric_submit_detail_hint, :default=>"Show details of SysMetric-history"), :name=>"detail") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_history_show_sysmetric_submit_summary_caption, :default=>"Show summary"), :title => t(:dba_history_show_sysmetric_submit_summary_hint, :default=>"Show summary of SysMetric-summary (all metrics, more compressed, per AWR snapshot)"), :name=>"summary") %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area%>" style="clear:both">
+</div>
+

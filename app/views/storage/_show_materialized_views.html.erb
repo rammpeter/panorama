@@ -1,0 +1,27 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Information about materialized views") %>
+
+<%= ajax_form(:controller=>:storage, :action=>:list_materialized_view_action, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+
+    <div class="flex-row-element_left">
+      <%= submit_tag("Registered materialized views", :title => "Show details for registered materialized views (with mat. view logs and fast refresh)", :name => :registered_mviews) %>
+    </div>
+
+    <div class="flex-row-element_left">
+      <%= submit_tag("Materialized view logs", :title => "Show details for materialized view logs", :name => :mview_logs) %>
+    </div>
+
+    <div class="flex-row-element_left">
+      <%= submit_tag("All local materialized views", :title => "Show details for all local materialized views (without registered remote mviews)", :name => :all_mviews) %>
+    </div>
+
+    <div class="flex-row-element_left">
+      <%= submit_tag("Refresh groups", :title => "Show details for all local refresh groups", :name => :refresh_groups) %>
+    </div>
+
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

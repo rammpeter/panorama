@@ -1,0 +1,24 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption(t(:show_mutex_statistics_historic_caption, :default=>"Mutex-Statistics from GV$Mutex_Sleep_History (since instance-start)")) %>
+
+<%= ajax_form(:controller  => :dba_history,
+                             :action      => :list_mutex_statistics_historic,
+                             :update_area => @update_area
+                     ) do
+%>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= submit_tag("Blocker-Sessions", :title =>t(:show_mutex_statistics_historic_blocker_hint, :default=>"Mutex-Sleep-History grouped by blocker-sessions"), :name=>"Blocker") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Waiter-Sessions", :title =>t(:show_mutex_statistics_historic_waiter_hint, :default=>"Mutex-Sleep-History grouped by waiter-sessions"), :name=>"Waiter") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:show_mutex_statistics_historic_timeline_caption, :default=>"Historic timeline"), :title =>t(:show_mutex_statistics_historic_timeline_hint, :default=> "Mutex-Sleep-History grouped at timeline"), :name=>"Timeline") %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>

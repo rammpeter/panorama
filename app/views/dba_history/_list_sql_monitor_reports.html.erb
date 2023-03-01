@@ -1,0 +1,98 @@
+<%
+  @update_area = get_unique_area_id
+  @hidden_id = 0
+
+  link_action = proc do |rec|
+    @hidden_id += 1
+    form_tag(url_for(controller:            :dba_history,
+                action:                :list_awr_sql_monitor_report_html,
+                report_id:             rec.report_id,
+                instance:              rec.instance_number,
+                sid:                   rec.session_id,
+                serial_no:              rec.session_serial_no,
+                sql_id:                rec.sql_id,
+                sql_exec_id:           rec.sql_exec_id,
+                origin:                rec.origin,
+                browser_tab_id:        @browser_tab_id),
+                  {method: 'post', target: '_blank'}
+                  ) do                                     # internen Rails-Helper verwenden
+                    hidden_field_tag("download_oracle_com_reachable_#{@hidden_id}", 'false', name: 'download_oracle_com_reachable') + # Field is set at submit click with reachable state
+                    submit_tag('Show report',
+                               {title: "Show generated SQL-Monitor report in separate browser tab (requires internet connection).\n\nLoading the new page may last some seconds, don't worry.",
+                                onclick: "on_submit_click('download_oracle_com_reachable_#{@hidden_id}');"
+                               }
+                    )
+                  end
+
+  end
+
+  link_sql = proc do |rec|
+    link_historic_sql_id(rec.instance_number, rec.sql_id, localeDateTime(rec.period_start_time), localeDateTime(rec.period_end_time), @update_area, nil, rec.sql_id)
+  end
+
+  link_session = proc do |rec|
+    ajax_link("#{rec.session_id}, #{rec.session_serial_no}", {
+             controller:            :active_session_history,
+             action:                :show_prepared_active_session_history,
+             update_area:           @update_area,
+             instance:              rec.instance_number,
+             sid:                   rec.session_id,
+             serial_no:              rec.session_serial_no,
+  }.merge(@sql_id.nil? ? {} : {sql_id: @sql_id}), :title=> t(:dba_list_session_details_link_ash, :default=>'Show wait history of session from Active Session History')
+  )
+end
+
+column_options =
+    [
+        {:caption=>'Action',                      :data=>link_action,                                       :title=>'Call action by clicking button'},
+        {:caption=>'Report ID',                   :data=>proc{|rec| fn rec.report_id},                      :title=>'ID of the captured report', align: :right},
+        {:caption=>'Inst.',                       :data=>proc{|rec| rec.instance_number},                   :title=>'Instance number'},
+        {:caption=>'SQL-ID',                      :data=>link_sql,                                          :title=>'SQL-ID of executed SQL statement'},
+        {:caption=>'Sessio-ID / Serial_No.',       :data=>link_session,                                      :title=>'Session-ID and serial number of the session corresponding to the captured report (currently used only for SQL Monitor reports)'},
+        {:caption=>'Start time',                  :data=>proc{|rec| localeDateTime(rec.period_start_time)}, :title=>'Start of recorded activity'},
+        {:caption=>'End time',                    :data=>proc{|rec| localeDateTime(rec.period_end_time)},   :title=>"End of recorded activity.\nLasts until the last fetch call of this statement execution"},
+        {:caption=>'Duration (Sec.)',             :data=>proc{|rec| fn(rec.duration)},                      :title=>"Duration between start and end of recorded statement execution in seconds\nIncludes also fetch phase after execute", data_title: proc{|rec| "%t\n#{seconds_explain(rec.duration)}"}, align: :right},
+        {:caption=>'SQL exec ID',                 :data=>proc{|rec| fn(rec.sql_exec_id)},                   :title=>'SQL execution ID', align: :right},
+        {:caption=>'SQL exec start',              :data=>proc{|rec| localeDateTime(rec.sql_exec_start)},    :title=>'Start time of execution for this SQL execution ID'},
+        {:caption=>'Elapsed time (Sec.)',         :data=>proc{|rec| fn(rec.elapsed_time_secs, 1)},          :title=>"Elapsed execution time in seconds", align: :right},
+        {:caption=>'CPU time (Sec.)',             :data=>proc{|rec| fn(rec.cpu_time_secs, 1)},              :title=>"CPU time in seconds", align: :right},
+        {:caption=>'User I/O wait time (Sec.)',   :data=>proc{|rec| fn(rec.user_io_wait_time_secs, 1)},     :title=>"User I/O wait time in seconds", align: :right},
+        {:caption=>'Appl. wait time (Sec.)',      :data=>proc{|rec| fn(rec.application_wait_time_secs, 1)}, :title=>"Application wait time in seconds", align: :right},
+        {:caption=>'Cluster wait time (Sec.)',    :data=>proc{|rec| fn(rec.cluster_wait_time_secs, 1)},     :title=>"Cluster wait time in seconds", align: :right},
+        {:caption=>'Other wait time (Sec.)',      :data=>proc{|rec| fn(rec.other_wait_time_secs, 1)},       :title=>"Other wait time in seconds", align: :right},
+        {:caption=>'User',                        :data=>proc{|rec| rec.username},                          :title=>'DB-user executing this SQL'},
+        {:caption=>'Status',                      :data=>proc{|rec| rec.status},                            :title=>'Status of this SQL-execution'},
+        {:caption=>'Module',                      :data=>proc{|rec| rec.module},                            :title=>'Module of this SQL-execution'},
+        {:caption=>'Action',                      :data=>proc{|rec| rec.action},                            :title=>'Action of this SQL-execution'},
+        {:caption=>'Program',                     :data=>proc{|rec| rec.program},                           :title=>'Client program name of this SQL-execution'},
+        {:caption=>'Generation time',             :data=>proc{|rec| localeDateTime(rec.generation_time)},   :title=>'Time when this report was generated'},
+        {:caption=>'SQL text',                    :data=>proc{|rec| my_html_escape(rec.sql_text_substr)},   :title=>'First 60 characters of SQL text'},
+        {:caption=>'Origin',                      :data=>proc{|rec| rec.origin},                            :title=>'Origin of SQL-monitor data'},
+    ]
+
+%>
+
+<%=
+  gen_slickgrid(@sql_monitor_reports, column_options, {
+    caption:        "SQL executions recorded by SQL-Monitor for#{" Instance=#{@instance}" if @instance}#{" SQL-ID=#{@sql_id}" if @sql_id}#{" SID=#{@sid}" if @sid}#{" Serial#=#{@serial_no}" if @serial_no} from gv$SQL_Monitor and DBA_Hist_Reports",
+    max_height:     450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+
+<script text="javascript">
+  var download_oracle_com_reachable = false;
+  isSiteOnline("https://download.oracle.com",function(found){
+      download_oracle_com_reachable = found; // store state in all hidden inputs at submit click
+  });
+
+  function on_submit_click(hidden_field_id){
+      console.log(hidden_field_id);
+      jQuery('#'+hidden_field_id).val(download_oracle_com_reachable); // store state in all hidden inputs at submit click
+  }
+
+
+</script>
+
+

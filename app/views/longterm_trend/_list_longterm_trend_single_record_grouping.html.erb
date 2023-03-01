@@ -1,0 +1,81 @@
+<%= render :partial => 'list_groupfilter' %>
+
+<%
+  @update_area = get_unique_area_id
+
+  @total_time_waited_data_title = proc do |rec|
+    retval = '%t'
+    retval << "\n= #{fn(rec.seconds_active)} seconds"
+    retval << "\n= #{fn(rec.seconds_active.to_f/60, 1)} minutes" if rec.seconds_active > 60
+    retval << "\n= #{fn(rec.seconds_active.to_f/3600, 1)} hours" if rec.seconds_active > 3600
+    retval
+  end
+
+  avg_load = proc do |rec|
+    duration = rec.max_snapshot_timestamp - rec.min_snapshot_timestamp
+    if duration == 0
+      fn(rec.seconds_active.to_f/(rec.min_snapshot_cycle_hours * 3600), 2)
+    else
+      fn(rec.seconds_active.to_f/duration, 2) rescue nil
+    end
+
+  end
+
+  link_samples = proc do |rec|
+    ajax_link(fn(rec.samples), {
+                          action:           :list_longterm_trend_single_record,
+                          groupfilter:      @groupfilter.merge({
+                            time_selection_start: localeDateTime(rec.min_snapshot_timestamp),
+                            time_selection_end:   localeDateTime(rec.max_snapshot_timestamp),
+                          }),
+                          update_area:      @update_area
+                         },
+                  :title=>"List sample records for this period")
+
+  end
+
+  def show_alt(real_value, occurrences, format_number_decimals=nil)
+    return ''                      if occurrences == 0
+    return "<&nbsp;#{occurrences}&nbsp;>".html_safe    if occurrences > 1
+    if format_number_decimals
+       fn(real_value, format_number_decimals)
+    else
+       real_value
+    end
+  end
+
+  def data_title_alt(occurrences, single_data_title=nil, multi_data_title=nil)
+    multi_addition = 'Number of different values shown because different values exist in time slice of grouping'
+    if occurrences <= 1
+      single_data_title ? single_data_title : '%t'
+    else
+      multi_data_title ? "#{multi_data_title}. #{multi_addition}" : "%t. #{multi_addition}"
+    end
+  end
+
+
+  column_options = [
+      {caption: 'Snapshot timestamp',           data: proc{|rec| localeDateTime(rec.min_snapshot_timestamp) },    title: "Start timestamp of considered snapshot period (first sample record)", data_title: proc{|rec| "%t\nEnd of considered period (start time of last sample record) = #{localeDateTime(rec.max_snapshot_timestamp)}"}, plot_master_time: true},
+      {caption: 'Snapshot duration (hours)',    data: proc{|rec| fn(rec.min_snapshot_cycle_hours) },              align: :right, title: "Minimum duration of considered snapshot period in hours within grouping" },
+      {caption: 'Total time waited (minutes)',  data: proc{|rec| fn(rec.seconds_active.to_f/60, 1)},              align: :right, title: "Total time waited in minutes within period",  data_title: @total_time_waited_data_title },
+      {caption: 'Avg. Load',                    data: avg_load,                                                   align: :right, title: "Avg. number of waiting sessions averaged by time between first and last occurrence"},
+      {caption: 'Samples',                      data: link_samples,                                               align: :right, title: "Number of single sample records in period" },
+      {caption: 'Instance',                     data: proc{|rec| show_alt(rec.instance_number, rec.instance_number_cnt) },                           align: :right, title: "Instance number" },
+      {caption: 'Wait event',                   data: proc{|rec| show_alt(rec.wait_event,      rec.wait_event_cnt)      },                                title: "Wait event of sessions within this sampled active time" },
+      {caption: 'Wait class',                   data: proc{|rec| show_alt(rec.wait_class,      rec.wait_class_cnt)      },                                title: "Wait class of sessions within this sampled active time" },
+      {caption: 'User name',                    data: proc{|rec| show_alt(rec.user_name,       rec.user_name_cnt)       },                                 title: "Database user name of sessions within this sampled active time" },
+      {caption: 'TNS service',                  data: proc{|rec| show_alt(rec.service_name,    rec.service_name_cnt)    },                              title: "TNS service name of sessions within this sampled active time" },
+      {caption: 'Machine',                      data: proc{|rec| show_alt(rec.machine,         rec.machine_cnt)         },                                   title: "Client machine name of sessions within this sampled active time" },
+      {caption: 'Module',                       data: proc{|rec| show_alt(rec.module,          rec.module_cnt)          },                                    title: "Module name of sessions within this sampled active time" },
+      {caption: 'Action',                       data: proc{|rec| show_alt(rec.action,          rec.action_cnt)          },                                    title: "Action name of sessions within this sampled active time" },
+  ]
+
+%>
+
+<%= gen_slickgrid(@singles, column_options, {
+    :caption        => @caption,
+    :max_height     => 450,
+    show_pin_icon:  1
+}) %>
+
+<div id="<%= @update_area %>"></div>

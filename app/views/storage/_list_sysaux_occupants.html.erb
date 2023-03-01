@@ -1,0 +1,18 @@
+<%
+  column_options =
+  [
+    {:caption=>'Name',              :data=>proc{|rec| rec.occupant_name},                       :title=>'Occupant name'},
+    {:caption=>'Decription',        :data=>proc{|rec| rec.occupant_desc},                       :title=>'Occupant description'},
+    {:caption=>'Schema',            :data=>proc{|rec| rec.schema_name},                         :title=>'Schema name for the occupant'},
+    {:caption=>'Move procedure',    :data=>proc{|rec| rec.move_procedure},                      :title=>'Name of the move procedure; null if not applicable'},
+    {:caption=>'Move description',  :data=>proc{|rec| rec.move_procedure_desc},                 :title=>'Description of the move procedure'},
+    {:caption=>'Space usage (MB)',  :data=>proc{|rec| fn(rec.space_usage_kbytes.to_f/1024, 2)}, :title=>'Current space usage of the occupant (in MB)', align: :right},
+  ]
+  column_options <<  {:caption=>'Con-ID',  :data=>proc{|rec| rec.con_id}, :title=>'Container-ID for pluggable database', align: :right} if get_db_version >= '12.1'
+
+%>
+
+<%= gen_slickgrid(@occupants, column_options, {
+    :max_height       => 450,
+    :caption          => "SYSAUX storage usage from v$SYSAUX_Occupants",
+}) %>

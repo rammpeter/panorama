@@ -1,0 +1,38 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_tracefile = proc do |rec|
+    ajax_link(rec.trace_filename, {
+              action:           :list_trace_file_content,
+              instance:         rec.inst_id,
+              adr_home:         rec.adr_home,
+              trace_filename:   rec.trace_filename,
+              con_id:           rec.con_id,
+              dont_show_sys:    '0',
+              dont_show_stat:   '0',
+              update_area:      @update_area
+             },
+      :title => "List content of tracefile"
+    )
+  end
+
+
+  column_options = []
+  column_options << {caption: 'I',                data: proc{|rec| rec.inst_id},                        title: 'Instance number', align: :right} if PanoramaConnection.rac?
+  column_options << {caption: 'ADR home',         data: proc{|rec| rec.adr_home},                       title: 'Path to the current ADR home'}
+  column_options << {caption: 'Trace file name',  data: link_tracefile,                                 title: 'Name of the process trace file'}
+  column_options << {caption: 'Change time',      data: proc{|rec| localeDateTime(rec.change_time)},    title: 'Change time timestamp of the process trace file'}
+  column_options << {caption: 'Modify time',      data: proc{|rec| localeDateTime(rec.modify_time)},    title: 'Last modification timestamp of the process trace file'}
+  column_options << {caption: 'Con-ID',           data: proc{|rec| rec.con_id},                         title: 'The ID of the container to which the data pertains.', align: :right}
+
+%>
+<%= gen_slickgrid(@files, column_options, {
+    :caption => "Trace files from #{@time_selection_start} until #{@time_selection_end} (from GV$Diag_Trace_File)",
+    :max_height=>450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+
+
+

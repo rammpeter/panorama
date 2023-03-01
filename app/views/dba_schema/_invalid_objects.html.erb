@@ -1,0 +1,64 @@
+<%
+  @update_area = get_unique_area_id
+
+
+  column_options =
+      [
+          {caption: 'Object owner',       data: proc{|rec| rec.owner},                          title: 'Owner of object'},
+          {caption: 'Object name',        data: proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name, rec.object_name, rec.object_type)}, title: 'Name of object'},
+          {caption: 'Subobject name',     data: proc{|rec| rec.subobject_name},                 title: 'Name of the subobject (for example, partition)'},
+          {caption: 'Object ID',          data: proc{|rec| rec.object_id},                      title: 'Dictionary object number of the object', align: :right},
+          {caption: 'Data-object ID',     data: proc{|rec| rec.data_object_id},                 title: 'Dictionary object number of the segment that contains the object', align: :right},
+          {caption: 'Object type',        data: proc{|rec| rec.object_type},                    title: 'Type of the object (such as TABLE, INDEX)'},
+          {caption: 'Created',            data: proc{|rec| localeDateTime(rec.created)},        title: 'Timestamp for the creation of the object'},
+          {caption: 'Last DDL time',      data: proc{|rec| localeDateTime(rec.last_ddl_time)},  title: 'Timestamp for the last modification of the object resulting from a DDL statement (including grants and revokes)'},
+          {caption: 'Last spec. change',  data: proc{|rec| localeDateTime(rec.last_spec_time)}, title: 'Timestamp of last specification change'},
+          {caption: 'Status',             data: proc{|rec| rec.status},                         title: 'Status of the object'},
+          {caption: 'Temporary',          data: proc{|rec| rec.temporary},                      title: 'Indicates whether the object is temporary (the current session can see only data that it placed in this object itself) (Y) or not (N)'},
+          {caption: 'Generated',          data: proc{|rec| rec.generated},                      title: 'Indicates whether the name of this object was system-generated (Y) or not (N)'},
+          {caption: 'Secondary',          data: proc{|rec| rec.secondary},                      title: 'Indicates whether this is a secondary object created by the ODCIIndexCreate method of the Oracle Data Cartridge (Y) or not (N)'},
+      ]
+  column_options << {caption: 'Namespace',          data: proc{|rec| rec.namespace},                      title: 'Namespace for the object', align: :right} if get_db_version >= '11.1'
+  column_options << {caption: 'Edition name',       data: proc{|rec| rec.edition_name},                   title: 'Name of the edition in which the object is actual'} if get_db_version >= '11.1'
+  column_options << {caption: 'Sharing',            data: proc{|rec| rec.sharing},                        title: "METADATA LINK - If the object is metadata-linked or a metadata link to an object in the root\nOBJECT LINK - If the object is object-linked or an object link to an object in the root\nNONE - If none of the above applies"} if get_db_version >= '12.1'
+  column_options << {caption: 'Editionable',        data: proc{|rec| rec.editionable},                    title: "Y - For objects marked EDITIONABLE\nN - For objects marked NONEDITIONABLE\nNULL - For objects whose type is not editionable in the database"} if get_db_version >= '12.1'
+  column_options << {caption: 'Oracle maintained',  data: proc{|rec| rec.oracle_maintained},              title: "Denotes whether the object was created, and is maintained, by Oracle-supplied scripts\n(such as catalog.sql or catproc.sql).\nAn object for which this column has the value Y must not be changed in any way except by running an Oracle-supplied script."} if get_db_version >= '12.1'
+  column_options << {caption: 'Application',        data: proc{|rec| rec.application},                    title: "Indicates whether the object is an Application common object (Y) or not (N)"} if get_db_version >= '18.0'
+  column_options << {caption: 'Default collation',  data: proc{|rec| rec.default_collation},              title: "Default collation for the object"} if get_db_version >= '18.0'
+  column_options << {caption: 'Duplicated',         data: proc{|rec| rec.duplicated},                     title: "Indicates whether this object is duplicated on this shard (Y) or not (N)"} if get_db_version >= '18.0'
+  column_options << {caption: 'Sharded',            data: proc{|rec| rec.sharded},                        title: "Indicates whether this object is sharded (Y) or not (N)"} if get_db_version >= '18.0'
+
+%>
+
+<%= gen_slickgrid(@objects, column_options, {
+    caption:        "Invalid objects from DBA_Objects ",
+    max_height:     450,
+    show_pin_icon:  1,
+})
+%>
+
+<%
+  column_options =
+    [
+      {caption: 'Index name',         data: proc{|rec| link_object_description(@update_area, rec.owner, rec.index_name)}, title: 'Owner and name of index'},
+      {caption: 'Table name',         data: proc{|rec| link_object_description(@update_area, rec.table_owner, rec.table_name)}, title: 'Owner and name of table of index'},
+      {caption: 'Status',             data: proc{|rec| rec.status},                         title: 'Status of the index'},
+      {caption: 'Partition',          data: proc{|rec| rec.partition_name},                 title: 'Partition or subpartition name'},
+      {caption: 'Object ID',          data: proc{|rec| rec.object_id},                      title: 'Dictionary object number of the object', align: :right},
+      {caption: 'Data-object ID',     data: proc{|rec| rec.data_object_id},                 title: 'Dictionary object number of the segment that contains the object', align: :right},
+      {caption: 'Object type',        data: proc{|rec| rec.object_type},                    title: 'Type of unusable index object'},
+      {caption: 'Created',            data: proc{|rec| localeDateTime(rec.created)},        title: 'Timestamp for the creation of the object'},
+      {caption: 'Last DDL time',      data: proc{|rec| localeDateTime(rec.last_ddl_time)},  title: 'Timestamp for the last modification of the object resulting from a DDL statement (including grants and revokes)'},
+      {caption: 'Last spec. change',  data: proc{|rec| localeDateTime(rec.last_spec_time)}, title: 'Timestamp of last specification change'},
+    ]
+%>
+
+
+<%= gen_slickgrid(@indexes, column_options, {
+  caption:        "Unusable indexes from DBA_Indexes, DBA_Ind_Partitions and DBA_Ind_SubPartitions ",
+  max_height:     450,
+  show_pin_icon:  1,
+})
+%>
+
+<div id="<%= @update_area %>"></div>

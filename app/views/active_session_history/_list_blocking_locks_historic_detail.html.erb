@@ -1,0 +1,190 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_blocked_sessions_direct = proc do |rec|
+    if rec.blocked_sessions_direct != 0
+      ajax_link(rec.blocked_sessions_direct == 1 ? rec.max_blocked_session_direct : "< #{fn(rec.blocked_sessions_direct)} >", {
+                               :action               => :list_blocking_locks_historic_detail,
+                               :update_area          => @update_area,
+                               :sample_id            => @sample_id,
+                               :min_snap_id          => rec.min_snap_id,
+                               :max_snap_id          => rec.max_snap_id,
+                               :min_sample_time      => localeDateTime(rec.min_sample_time),
+                               :max_sample_time      => localeDateTime(rec.max_sample_time),
+                               :time_selection_start => @time_selection_start,
+                               :time_selection_end   => @time_selection_end,
+                               :blocking_instance    => rec.instance_number,
+                               :blocking_session     => rec.session_id,
+                               :blocking_session_serial_no => rec.session_serial_no
+                             },
+                      :title=>t(:active_session_history_list_blocking_locks_historic_detail_sessions_direct_hint, :default=>"Show sessions blocked by this blocking session")
+                      )
+    end
+  end
+
+  show_total_blocked = proc do |rec|
+    if rec.blocked_sessions_total != 0
+      rec.blocked_sessions_total == 1 ? rec.max_blocked_session_total : "< #{fn(rec.blocked_sessions_total)} >"
+    end
+  end
+
+  link_column_sql_id = proc do |rec|
+    if rec.sql_id && rec.sql_id['<']
+      ajax_link(rec.sql_id, {
+              :action     => :list_session_statistic_historic_grouping,
+              :groupfilter  => {
+                                :Instance                 => rec.instance_number,
+                                :Session_ID               => rec.session_id,
+                                :Serial_No                 => rec.session_serial_no,
+                                :Idle_Wait1               => "PX Deq Credit: send blkd",
+                                :DBID                     => get_dbid,
+                                :time_selection_start     => localeDateTime(rec.min_sample_time),
+                                :time_selection_end       => localeDateTime(rec.max_sample_time),
+                                :Min_Snap_ID              => rec.min_snap_id,
+                                :Max_Snap_ID              => rec.max_snap_id,
+                                :Blocking_Session_Status  => rec.root_blocking_session_status
+                        },
+              :groupby      => 'SQL-ID',
+              :update_area  => @update_area
+            },
+         :title=>t(:active_session_history_list_blocking_locks_historic_detail_link_sql_id_hint, :default=>"Show wait history of blocked session grouped by SQL-ID")
+      )
+    else
+      link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.username)
+    end
+  end
+
+  link_column_sid = proc do |rec|
+      ajax_link(rec.session_id, {
+              :action     => :list_session_statistic_historic_grouping,
+              :groupfilter  => {
+                                :Instance             => rec.instance_number,
+                                :Session_ID           => rec.session_id,
+                                :Serial_No             => rec.session_serial_no,
+                                :Idle_Wait1           => "PX Deq Credit: send blkd",
+                                :DBID                 => get_dbid,
+                                :time_selection_start => localeDateTime(rec.min_sample_time),
+                                :time_selection_end   => localeDateTime(rec.max_sample_time),
+                                :Min_Snap_ID          => rec.min_snap_id,
+                                :Max_Snap_ID          => rec.max_snap_id
+                        },
+              :groupby      => 'Session/Sn.',
+              :update_area  => @update_area
+            },
+         :title=>t(:active_session_history_list_blocking_locks_historic_detail_link_sid_hint, :default=>"Show wait history of blocked session")
+      )
+  end
+
+  link_column_sample_count_direct = proc do |rec|
+    ajax_link(fn(rec.sample_count_direct), {
+                              :action           => :list_session_statistic_historic_single_record,
+                              :update_area      => @update_area,
+                              :groupfilter      => {
+                                :Instance                 => rec.instance_number,
+                                :Session_ID               => rec.session_id,
+                                :Serial_No                 => rec.session_serial_no,
+                                :Blocking_Session         => @blocking_session,
+                                :Blocking_Session_Status  => rec.root_blocking_session_status,
+                                :Idle_Wait1               => "PX Deq Credit: send blkd",
+                                :DBID                     => get_dbid,
+                                :time_selection_start     => localeDateTime(rec.min_sample_time),
+                                :time_selection_end       => localeDateTime(rec.max_sample_time),
+                                :Min_Snap_ID              => rec.min_snap_id,
+                                :Max_Snap_ID              => rec.max_snap_id
+                              }
+                      },
+                      :title=>t(:dba_list_dml_locks_historic_detail_link_column_sample_count_hint, :default=>"Show records from active session history with blocking of this session")
+    )
+  end
+
+  link_blocked_sql_id = proc do |rec|
+    if rec.blocked_sql_id && rec.blocked_sql_id[0] != '<'
+      link_historic_sql_id(rec.blocked_instance, rec.blocked_sql_id, localeDateTime(rec.min_sample_time), localeDateTime(rec.max_sample_time), @update_area, rec.blocked_username)
+    else
+      rec.blocked_sql_id
+    end
+  end
+
+
+  link_blocking_object = proc do |rec|
+    result = ''
+    result << rec.root_blocking_object_type << ' ' if rec.root_blocking_object_type && rec.root_blocking_object_type != '< 0 >'
+    if rec.root_blocking_object_owner && rec.root_blocking_object && rec.root_blocking_object_owner[0] != '<' && rec.root_blocking_object[0] != '<'
+      result << link_object_description(@update_area, rec.root_blocking_object_owner, rec.root_blocking_object)
+      result << " (#{rec.root_blocking_subobject})"       if rec.root_blocking_subobject        && rec.root_blocking_subobject        != '< 0 >'
+      result << " (#{rec.root_blocking_object_addition})" if rec.root_blocking_object_addition  && rec.root_blocking_object_addition  != '< 0 >'
+    else
+      result << rec.root_blocking_object_owner << '.' if rec.root_blocking_object_owner && rec.root_blocking_object_owner != '< 0 >'
+      result << rec.root_blocking_object              if rec.root_blocking_object       && rec.root_blocking_object       != '< 0 >'
+    end
+
+    result << link_file_block_row(rec['blocking_file_no'], rec['blocking_block_no'], rec['blocking_row_no'], rec.blocking_data_object_id, "#{@update_area}_#{rec.hash.abs}", true)  # nach Oracle 11.2 und auch belegt (nur belegt wenn eindeutig)
+
+    result
+  end
+
+
+  link_blocked_object = proc do |rec|
+    result = ''
+    result << rec.blocked_object_type << ' ' if rec.blocked_object_type && rec.blocked_object_type != '< 0 >'
+    if rec.blocked_object_owner && rec.blocked_object && rec.blocked_object_owner[0] != '<' && rec.blocked_object[0] != '<'
+      result << link_object_description(@update_area, rec.blocked_object_owner, rec.blocked_object)
+      result << " (#{rec.blocked_subobject})"       if rec.blocked_subobject        && rec.blocked_subobject        != '< 0 >'
+      result << " (#{rec.blocked_object_addition})" if rec.blocked_object_addition  && rec.blocked_object_addition  != '< 0 >'
+    else
+      result << rec.blocked_object_owner << '.' if rec.blocked_object_owner && rec.blocked_object_owner != '< 0 >'
+      result << rec.blocked_object              if rec.blocked_object       && rec.blocked_object       != '< 0 >'
+    end
+
+    result << link_file_block_row(rec['blocked_file_no'], rec['blocked_block_no'], rec['blocked_row_no'], rec.blocked_data_object_id, "#{@update_area}_#{rec.hash.abs}", true)  # nach Oracle 11.2 und auch belegt (nur belegt wenn eindeutig)
+
+    result
+  end
+
+
+  column_options =
+    [
+      {:caption=>'First occ.',                :data=>proc{|rec| localeDateTime(rec.min_sample_time) },          :title=>t(:active_session_history_list_blocking_locks_historic_first_occur_hint, :default=>'First occurrence of lock (rounded to 1 or 10 seconds)') },
+      {:caption=>'Last occ.',                 :data=>proc{|rec| localeDateTime(rec.max_sample_time) },          :title=>t(:active_session_history_list_blocking_locks_historic_last_occur_hint, :default=>'Last occurrence of lock (rounded to 1 or 10 seconds)') },
+      {:caption=>'Dead lock',                 :data=>proc{|rec| rec.deadlock },                                 :title=>'Deadlock between this session and another preceding session?' },
+      {:caption=>'Samples direct',            :data=>link_column_sample_count_direct,                           :title=>t(:active_session_history_list_blocking_locks_historic_detail_samples_direct_hint, :default => 'Number of records in active session history with blocking of this session' ), :align=>"right"},
+      {:caption=>"Session wait (sec.)",       :data=>proc{|rec| fn(rec.max_seconds_in_wait_direct,1)},          :title=>t(:active_session_history_list_blocking_locks_historic_detail_session_waiting_hint, :default => "Number of seconds this session is waiting in blocked state for the blocking sessions.\nMaximum value at one time in considered period.\nFrom v$Session.Time_Waited\nMay contain cumulated wait time also from before start of considered time period" ), data_title: proc{|rec| "%t\nTime waited = #{fn(rec.max_seconds_in_wait_direct*1000, 2)} milliseconds"}, :align=>"right"},
+      {:caption=>"Waiting (sec.)",            :data=>proc{|rec| fn(rec.seconds_in_wait_sample_direct) },        :title=>t(:active_session_history_list_blocking_locks_historic_detail_session_wait_sample_hint, :default=>"Time in seconds this session is waiting in blocked state for blocking session within the considered time range.\nWeighted value calculated by the number of sample records in active session history.\nCounts waited time only for the duration of the considered period. Sessions may wait much longer if blocking wait started before the considered period.")  , :align=>"right"},
+      {:caption=>"I.",                        :data=>proc{|rec| rec.instance_number },                          :title=>t(:active_session_history_list_blocking_locks_historic_detail_instance_hint, :default=>"Instance of waiting blocked session")},
+      {:caption=>"SID",                       :data=>link_column_sid,                                           :title=>t(:active_session_history_list_blocking_locks_historic_detail_sid_hint, :default=>'SID of blocked session' ), :data_title=>proc{|rec| "%t\nSerial_No=#{rec.session_serial_no}"} },
+      {:caption=>"User",                      :data=>proc{|rec| rec.username },                                 :title=>t(:active_session_history_list_blocking_locks_historic_detail_user_hint, :default=>'User of blocked session') },
+      {:caption=>"SQL-ID",                    :data=>link_column_sql_id,                                        :title=>t(:active_session_history_list_blocking_locks_historic_detail_sql_id_hint, :default=>'Active SQL of blocked session (or number if multiple SQLs were active in period') },
+      {:caption=>"Event",                     :data=>proc{|rec| rec.event },                                    :title=>t(:active_session_history_list_blocking_locks_historic_detail_event_hint, :default=>"Wait event of blocked session (or number if multiple)"), :data_title=>proc{|rec| "%t\n#{explain_wait_event(rec.event)}"} },
+      {:caption=>"Module / Action / Program", :data=>proc{|rec| "#{rec.module} #{rec.action} #{rec.program}"},  :title=>'Module, action and program of blocked session (or number if multiple modules were active in period', data_title: proc{|rec| "#%t\nModule = #{rec.module}\nAction = #{rec.action}\nProgram = #{rec.program}"}},
+      {:caption=>"Blocking Object",           :data=>link_blocking_object,                                      :title=>t(:active_session_history_list_blocking_locks_historic_detail_blocking_object_hint, :default=>"Blocking object for this session (or number if multiple)") },
+      {:caption=>"Direct Blocked",            :data=>link_blocked_sessions_direct,                              :title=>t(:active_session_history_list_blocking_locks_historic_detail_direct_blocked_hint, :default=>"Number of sessions directly blocked by this session"), :align=>"right"},
+      {:caption=>"Total Blocked",             :data=>show_total_blocked,                                        :title=>t(:active_session_history_list_blocking_locks_historic_detail_total_blocked_hint, :default=>"Total number of sessions blocked by tis session directly or indirectly"), :align=>"right"},
+      {:caption=>'Max. depth',                :data=>proc{|rec| rec.maxlevel if rec.maxlevel > 0},              :title=>t(:active_session_history_list_blocking_locks_historic_sessions_maxlevel_hint, :default=>'Maximum depth of hierarchic blocking dependency'), :align=>"right"},
+      {:caption=>"Total blocked wait (sec.)", :data=>proc{|rec| fn(rec.max_sec_in_wait_blocked_total,1) if rec.blocked_sessions_total != 0},    :title=>t(:active_session_history_list_blocking_locks_historic_total_wait_caption, :default=>"Sum over seconds in wait for indirect and direct blocked sessions.\nMaximum value at one time in considered period.\nFrom v$Session.wait_Time + Time_Waited\nMay contain cumulated wait time also from before start of considered time period."), data_title: proc{|rec| "%t\nTime waited = #{fn(rec.max_sec_in_wait_blocked_total*1000, 2)} milliseconds"}, :align=>"right"},
+      {:caption=>"Blocked waiting (sec.)",    :data=>proc{|rec| fn(rec.seconds_in_wait_blocked_sample) if rec.blocked_sessions_total != 0},   :title=>t(:active_session_history_list_blocking_locks_historic_sample_wait_caption, :default=>"Time in seconds indirect and direct blocked sessions are waiting within the considered time range.\nWeighted value calculated by the number of sample records in active session history\nFor small wait times this value may be much larger than reality because each sample records counts for one respectively ten seconds")  , :align=>"right"},
+      {:caption=>"Blocked Object",            :data=>link_blocked_object,                                       :title=>t(:active_session_history_list_blocking_locks_historic_detail_blocking_object_hint, :default=>"Blocking object for this session (or number if multiple)") },
+      {:caption=>"W.I.",                      :data=>proc{|rec| rec.blocked_instance },                         :title=>t(:active_session_history_list_blocking_locks_historic_waiting_instance_hint, :default=>'Instance of of directly blocked sessions (or number if multiple)')},
+      {:caption=>"W.User",                    :data=>proc{|rec| rec.blocked_username },                         :title=>t(:active_session_history_list_blocking_locks_historic_waiting_user_hint, :default=>'User of directly blocked sessions (or number if multiple)')},
+      {:caption=>"W.SQL-ID",                  :data=>link_blocked_sql_id,                                       :title=>t(:active_session_history_list_blocking_locks_historic_waiting_sqlid_hint, :default=>'Executed SQL of directly blocked sessions (or number if multiple)')},
+      {:caption=>"W.Event",                   :data=>proc{|rec| rec.blocked_event } ,                           :title=>t(:active_session_history_list_blocking_locks_historic_waiting_event_hint, :default=>'Wait event of directly blocked sessions (or number if multiple)'), :data_title=>proc{|rec| "%t\n#{explain_wait_event(rec.blocked_event)}"} },
+      {:caption=>"Waiting Module / Action / Program", :data=>proc{|rec| "#{rec.blocked_module} #{rec.blocked_action} #{rec.blocked_program}"}, :title=>'Module, action and program of directly blocked sessions (or count if multiple modules)', data_title: proc{|rec| "#%t\nModule = #{rec.blocked_module}\nAction = #{rec.blocked_action}\nProgram = #{rec.blocked_program}"}},
+
+    ]
+
+  caption = 'Sessions locked by '
+  caption << "Instance=#{@blocking_instance}"             if @blocking_instance
+  caption << ", SID=#{@blocking_session}"                 if @blocking_session
+  caption << ", Serial_No=#{@blocking_session_serial_no}"   if @blocking_session_serial_no
+
+  caption << "GLOBAL (unknown sessions from other RAC-instances)" unless @blocking_session
+  %>
+
+
+
+<%= gen_slickgrid(@locks, column_options, {
+        :caption  => caption,
+        :max_height => 450,
+        show_pin_icon: 1,
+        update_area:   @update_area
+}) %>
+

@@ -1,0 +1,25 @@
+<%= render_page_caption("DB-cache usage historic") %>
+
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller=>:addition, :action=>:list_db_cache_historic, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      Max. result count
+      <%= text_field_tag(:maxResultCount, "100", :size=>5, :title => "Maximum number of rows in result list ordered by used blocks in cache") %>
+    </div>
+    <%= include_start_end_timepicker %>
+    <%= instance_tag %>
+    <div class="flex-row-element">
+      Partitions
+      <%= check_box_tag(:show_partitions, 1, false, :title=>"Show detailed partition info ?\nOr sum partition values per table/index otherwise") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show", :title => "Show historic DB-cache usage") %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%;">
+</div>
+
+

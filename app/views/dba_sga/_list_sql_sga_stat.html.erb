@@ -1,0 +1,229 @@
+<%= render_page_caption("#{t(:dba_sga_list_sql_sga_stat_caption, :default=>'Statement details of current SGA from')} #{@modus}: Instance = #{@sql.inst_id}, SQL-ID = '#{@sql.sql_id}'#{", Child-No. = #{@sql.child_number}" if @modus=='GV$SQL'} ", get_recall_params_info_for_render_page_caption) %>
+
+
+<%
+  @table_id_prefix = get_unique_area_id
+
+  if @modus == "GV$SQL"
+    @metrics_start_hint_suffix = t(:dba_sga_list_sql_sga_stat_metrics_sql_hint, default: "cumulated starting at %{last_load_time}", last_load_time: localeDateTime(@sql.last_load_time))
+  else # gv$SQLArea
+    @metrics_start_hint_suffix = t(:dba_sga_list_sql_sga_stat_metrics_sqlarea_hint, default: "cumulated as sum over all %{child_count} child cursors that started between %{min_last_load_time} and %{last_load_time}", child_count: @sql.child_count, min_last_load_time: localeDateTime(@sql.min_last_load_time),last_load_time: localeDateTime(@sql.last_load_time))
+  end
+  metrics_start_hint = "#{t(:dba_sga_list_sql_sga_stat_metrics_hint_prefix, default: 'Metrics are')} #{@metrics_start_hint_suffix}"
+
+
+# Anzeige sowohl des konkreten Wertes als auch je Execution in zwei TD-Abschnitten
+def show_both_values(name, param, decimals, title="", show_per_result_row=false, show_seconds_explain=false)
+  param     = param.to_f   # Sicherstellen Typ
+  execs     = @sql.executions.to_i     == 0 ? 1 : @sql.executions.to_i;         # Suppress division by 0
+
+  if show_per_result_row && @sql.rows_processed.to_i > 0                        # Suppress division by 0
+    per_res_row = "\n\n#{formattedNumber(param/@sql.rows_processed.to_i, decimals+2)} per result row"
+  else
+    per_res_row = ''
+  end
+
+  seconds_explain = proc{|value| show_seconds_explain ? "\n#{seconds_explain(value)}" : ''}
+
+  "<tr>
+     <td title='#{title}'>#{name}</td>
+     <td align='right' title='#{title}#{per_res_row}\n#{@metrics_start_hint_suffix}#{seconds_explain.call(param)}'>#{formattedNumber(param,decimals)}</td>
+     <td align='right' title='#{title}\n#{t(:per_execution, :default=>'Value per execution')}#{per_res_row}#{seconds_explain.call(param/execs)}'>#{formattedNumber( (param/execs),(decimals+2))}</td>
+   </tr>".html_safe
+end
+
+# Anzeige des konkreten Wertes ohne je Execution in zwei TD-Abschnitten
+def show_single_value(name, param, decimals, title="")
+  "<tr><td title='#{title}'>#{name}</td>
+     <td align='right' title='#{title}'>#{formattedNumber(param,decimals)}</td>
+     <td align='center'>-</td>
+   </tr>".html_safe
+end
+
+  parse_title_addition = proc do |sql|
+    title = "\
+#{fn(sql.loads)} hard parses (invalidations = #{fn(sql.invalidations)}, loads = #{fn(sql.loads)})
+#{fn(sql.locked_total-sql.loads)} soft parses, found in library cache of SGA (locked_total = #{fn(sql.locked_total)})
+"
+    if sql.parse_calls > sql.locked_total
+      title << "\nApprox. #{fn(sql.parse_calls-sql.locked_total)} times the cursor has been reused from session cached cursors of PGA"
+    end
+    title
+  end
+
+%>
+<table ID="<%= @table_id_prefix %>_main" class="shadow" style="width: 100%; border: 0;">
+  <tr>
+    <td style="vertical-align: top">
+      <%= text_area_tag("#{@table_id_prefix}_sql", format_sql(@sql_statement, params[:window_width])) %>
+    </td>
+    <td  style="vertical-align: top">
+      <div id="<%= "#{@table_id_prefix}_right_td" %>">
+        <table  style="font-size:small; width: 100%;">
+          <% add_title_info = "\n"
+             add_title_info << "\nObject status of SQL='#{@sql.object_status}'"
+             add_title_info << "\nChild address (identifies child record in gv$SQL) = '#{@sql.child_address}'" if @modus == "GV$SQL"
+             add_title_info << "\nModule='#{@sql.module}'\nAction='#{@sql.action}'"
+          %>
+          <tr title="Parsing schema name<%= add_title_info %>">            <td>Parsing schema name</td><td align="center"><%= @sql.parsing_schema_name %></td>        </tr>
+          <% if !@sql[:plan_hash_value_count].nil? && @sql[:plan_hash_value_count] > 1  %>
+            <tr title="Number of different plan hash values<%= add_title_info %>"><td>Plan-Hash-Values</td><td align="center" style="background-color: coral;"><%= "< #{@sql[:plan_hash_value_count]} >" %></td>        </tr>
+          <% else %>
+            <tr title="Plan hash value (identifies unique execution plan) /<%= "\n" %>Hash value over optimizer environment<%= add_title_info %>">
+              <td>Plan-Hash-Value / Opt.Env.</td><td align="center"><%= @sql.plan_hash_value %> / <%= @sql.optimizer_env_hash_value %></td>
+            </tr>
+          <% end %>
+          <tr title="Module and action of parsing session<%= add_title_info %>"><td>Parsing module / action</td><td align="center">
+            <%=
+              @update_area_module = get_unique_area_id
+              ajax_link(@sql.module, {
+                :action        => :show_application_info,
+                :update_area  => @update_area_module,
+                :org_text     => @sql.module
+              },
+                        :title=>t(:dba_sga_list_sql_sga_stat_module_link_hint, :default=>'Show further details for module name if available'))
+            %>
+            <%= '/' unless @sql.action.nil? %>
+            <%=
+              @update_area_action = get_unique_area_id
+              ajax_link(@sql.action, {
+                :action        => :show_application_info,
+                :update_area  => @update_area_module,
+                :org_text     => @sql.action
+              },
+                        :title=>t(:dba_sga_list_sql_sga_stat_action_link_hint, :default=>'Show further details for action name if available'))
+            %>
+            <div id='<%= @update_area_module %>'></div>
+          </td>        </tr>
+          <% if @sql.program_name %>
+            <tr title="<%= "#{t(:dba_sga_list_sql_sga_stat_plsql_hint, :default=>'Program name and line number if SQL is executed within PL/SQL')}\nType=#{@sql.program_type}\nLast DDL=#{localeDateTime(@sql.program_last_ddl_time)}" %>">
+              <td><%= t(:dba_sga_list_sql_sga_stat_plsql_caption, :default=>'PL/SQL program / line') %></td>
+              <td align="center"><%=
+                ajax_link("#{@sql.program_owner}.#{@sql.program_name} : #{fn(@sql.program_lineno)}", {
+                  :controller    => :dba_schema,
+                  :action        => :list_object_description,
+                  :owner         => @sql.program_owner,
+                  :segment_name  => @sql.program_name,
+                  :update_area  => @update_area
+                }, :title=>"Show PL/SQL details at lower bound of browser page")
+              %></td>
+            </tr>
+          <% end %>
+          <% if @modus == "GV$SQL" %>
+            <tr title="<%= t(:dba_sga_list_sql_sga_stat_first_load_sql_hint, :default=>"First load time of SQL child cursor in SGA (first hard parse)\n%{metrics_start_hint}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}\nUnder some circumstances metrics are aggregated starting with this timestamp and not with Last_Load_Time.", metrics_start_hint: metrics_start_hint, loads: fn(@sql.loads)) %>">
+              <td>First Load Time</td><td align="center"><%= localeDateTime(@sql.first_load_time) %></td>
+            </tr>
+            <tr title="<%= t(:dba_sga_list_sql_sga_stat_last_load_sql_hint, :default=>"Last Load time of execution plan in library cache of SGA (last hard parse)\n%{metrics_start_hint}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}", metrics_start_hint: metrics_start_hint, loads: fn(@sql.loads)) %>">
+              <td>Last Load Time</td><td align="center"><%= localeDateTime(@sql.last_load_time) %></td>
+            </tr>
+          <% else # gv$SQLArea %>
+            <tr title="<%= t(:dba_sga_list_sql_sga_stat_last_load_sqlarea_hint, :default=>"Last load time of one child cursor of this SQL in SGA\n%{metrics_start_hint}\nFirst occurrence of SQL in SGA = %{first_load_time}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}", metrics_start_hint: metrics_start_hint, first_load_time: localeDateTime(@sql.first_load_time), loads: fn(@sql.loads)) %>">
+              <td>Last Load Time</td><td align="center"><%= localeDateTime(@sql.last_load_time) %></td>
+            </tr>
+          <% end %>
+          <tr title="<%= t(:dba_sga_list_sql_sga_stat_last_active_hint, :default=>'End of last execution of SQL') %>">            <td>Last Active Time</td><td align="center"><%= localeDateTime(@sql.last_active_time) %></td>        </tr>
+          <tr title="<%= t(:dba_sga_list_sql_sga_stat_hit_ration_hint, :default=>"Ratio cache hits to buffer gets\n\nEmpty if not valid calculation possible.") %>">            <td>Buffer cache hit ratio</td><td align="center"><%= fn(@sql.hit_ratio, 2) %> %</td>        </tr>
+        </table>
+
+        <table style="font-size:small; width: 100%;">
+          <tr  title="<%= metrics_start_hint %>"><th>Metric-Name</th><th>Total</th><th>Per Exec.</th></tr>
+          <%= show_single_value("Executions", @sql.executions,0, "Number of executions") %>
+          <%= show_both_values("Parse calls", @sql.parse_calls,0, "#{strings(:parse_calls_title)}\n\n#{parse_title_addition.call(@sql)}", true) %>
+          <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
+          <%= show_both_values("Sorts", @sql.sorts,0, "Number of sort operations") %>
+          <%= show_both_values("Rows processed", @sql.rows_processed,0, "Number of rows processed") %>
+          <%= show_both_values("Buffer gets", @sql.buffer_gets,0, t(:dba_sga_list_sql_sga_stat_buffer_gets_hint, :default=>'Number of DB blocks read total'), true) %>
+          <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of db blocks read from disk\nAvg. time per db block read from disk = #{fn((@sql.disk_reads>0 ? @sql.user_io_wait_time_secs*1000.0/@sql.disk_reads : 0),2)} ms\nAvg. disk transfer speed = #{fn((@sql.user_io_wait_time_secs>0 ? @sql.disk_reads * PanoramaConnection.db_blocksize / (1024*1024) / @sql.user_io_wait_time_secs : 0),2)} MB/sec. (per single session if using PQ) ", true) %>
+          <%= show_both_values("Elapsed Time (sec), incl. parallel Query Slaves", @sql.elapsed_time_secs, 0, t(:dba_sga_list_sql_sga_stat_elapsed_hint, :default=>'Total elapsed time in seconds, sum over all PQ-slaves if executed in parallel'), true, true)%>
+          <%= show_both_values("CPU-Time (sec)", @sql.cpu_time_secs, 0, t(:dba_sga_list_sql_sga_stat_cpu_hint, :default=>'CPU time in seconds, sum over all PQ-slaves if executed in parallel'), true, true) %>
+          <%= show_both_values("Application Wait Time (sec)", @sql.application_wait_time_secs, 0, "Application wait time total, includes row lock waits", true, true) %>
+          <%= show_both_values("Concurrency Wait Time (sec)", @sql.concurrency_wait_time_secs, 0, "Concurrency wait time", true, true) %>
+          <%= show_both_values("Cluster Wait Time (sec)", @sql.cluster_wait_time_secs, 0, 'Wait time caused by RAC cluster issues', true, true) %>
+          <%= show_both_values("User-IO Wait Time (sec)", @sql.user_io_wait_time_secs, 0, 'Wait time caused by I/O operations', true, true) %>
+          <%= show_both_values("PL/SQL Exec Time (sec)", @sql.plsql_exec_time_secs, 0, t(:dba_sga_list_sql_sga_stat_plsql_time_hint, :default=>'PL/SQL execution time in seconds, part of CPU-time'), true, true) %>
+        </table>
+      </div>
+     </td>
+   </tr>
+</table>
+
+<script type="application/javascript">
+    // ensure no line break happens due to vertical scrollbar
+    // Respect 5+5 padding and 20 additional space for expansion before enlarge width to prevent main table wider than window_width
+    if ( jQuery("#<%= @table_id_prefix %>_main").width() < <%=params[:window_width] %> - 30){
+        jQuery("#<%= @table_id_prefix %>_sql").width(jQuery("#<%= @table_id_prefix %>_sql").width()+20);
+    }
+
+    (function() {
+        let text_area_id = "<%= "#{@table_id_prefix}_sql" %>";
+        let text_area = document.getElementById(text_area_id);
+        let cm = CodeMirror.fromTextArea(text_area, {
+                mode:  "sql",
+                readOnly: true,
+                lineWrapping: true
+        }
+        );
+        cm.setSize('100%', $("#<%= "#{@table_id_prefix}_right_td" %>").height()); // set height of sql (left column) to height of right column
+
+        // Remove property padding-bottom:50px from class CodeMirror-scroll because this overlaps the areas above in Chrome
+        if (window.chrome){
+            jQuery('#'+text_area_id).find('.CodeMirror-scroll').css('padding-bottom', '0')
+        }
+
+        jQuery("#<%= "#{@table_id_prefix}_main" %>").resize(function(){
+                cm.setSize('100%', $("#<%= "#{@table_id_prefix}_right_td" %>").height());
+            }
+        );
+
+    })()
+</script>
+
+<%=
+  render_async(:dba_sga, :show_stored_outlines, {
+      force_matching_signature: @sql.force_signature,
+      exact_matching_signature: @sql.exact_signature,
+  })
+%>
+
+<%=
+  render_async(:dba_sga, :show_profiles, {
+      force_matching_signature: @sql.force_signature,
+      exact_matching_signature: @sql.exact_signature,
+      sql_profile:              @sql.sql_profile,
+      update_area_for_target:   @update_area
+  })
+%>
+
+
+<% if get_db_version >= '11.1' %>
+  <%=
+    render_async(:dba_sga, :show_plan_baselines, {
+        force_matching_signature: @sql.force_signature,
+        exact_matching_signature: @sql.exact_signature,
+        update_area_for_target:   @update_area
+    })
+  %>
+<% end %>
+
+
+<% if get_db_version >= '12.1' %>
+  <%=
+    render_async(:dba_sga, :show_sql_translations, {
+        translated_sql_id:  @sql_id,
+        update_area_for_target:   @update_area
+    })
+  %>
+<% end %>
+
+<% if get_db_version >= '11.1' %>
+  <%=
+    render_async(:dba_sga, :show_sql_patches, {
+        exact_signature:    @sql.exact_signature,
+        force_signature:    @sql.force_signature,
+        update_area_for_target:   @update_area
+    })
+  %>
+<% end %>
+
+
+

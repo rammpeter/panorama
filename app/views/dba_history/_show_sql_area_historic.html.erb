@@ -1,0 +1,53 @@
+<%= render_page_caption("SQLs #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')}") %>
+
+
+<%= ajax_form(:controller=>:dba_history, :action=>:list_sql_area_historic, :update_area=>:list_sql_historic_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element" title="<%= t(:dba_history_show_sql_area_historic_max_result_count_hint, :default=>'Restrict result size to number of top records (after sort by choosen criteria)')%>">
+      <%= t(:dba_history_show_sql_area_historic_max_result_count_caption, :default=>'Hit limit') %>
+      <%= text_field_tag(:maxResultCount, "100", :size=>5) %>
+    </div>
+
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element" title="<%= t(:dba_history_show_sql_area_historic_filter_hint, :default=>'Filter string must be found in considered SQL statement. Wildcards (%,_) can be used in filter. (optional)') %>">
+      Filter
+      <%= text_field_tag(:filter, @filter, :size=>30) %>
+    </div>
+
+    <%= instance_tag(rac_only: true) %>
+
+    <div class="flex-row-element" title="<%= t(:dba_history_show_sql_area_historic_schema_hint, :default=>'Filter result on username at cursor creation (Parsing_Schema_Name)') %>">
+      User
+      <%= text_field_tag(:username, "", :size=>15) %>
+    </div>
+
+    <div class="flex-row-element" title="<%= t(:sqlid_optional_filter_hint, :default=>'Filter on specific SQL ID (optional, wildcards (%,_) can be used)') %>">
+      SQL ID
+      <%= text_field_tag(:sql_id, "", :size=>14) %>
+    </div>
+
+    <div class="flex-row-element" title="<%= t(:dba_history_show_sql_area_historic_sorted_by_hint, :default=>'Result sorted in ascending order by this criteria') %>">
+      <%= t(:sorted_by, :default=>'Sorted by') %>
+      <select name="topSort">
+        <% sql_area_sort_criteria_historic.each do |key, value| %>
+          <%= "<option value=\"#{key}\"#{" selected" if key == :ElapsedTimeTotal}>#{value[:title]}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="<%= t(:dba_history_show_sql_area_historic_include_plsql_hint, :default=>'Include also PL/SQL executions')%>">
+      PL/SQL
+      <%= check_box_tag(:include_plsql, 1, true) %>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_history_show_sql_area_historic_submit_caption, :default=>'Show SQL'), :title => t(:dba_history_show_sql_area_historic_submit_hint, :default=>'Show SQL statements according to filter conditions')) %>
+    </div>
+
+  </div>
+
+<% end %>
+<div id="list_sql_historic_area" style="float:left; width:100%;">
+
+</div>

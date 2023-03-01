@@ -1,0 +1,19 @@
+<%
+  column_options =
+      [
+          {caption: 'Status',     data: proc{|rec| rec.status}, title: "Status of the log member:\nINVALID - File is inaccessible\nSTALE - File's contents are incomplete\nDELETED - File is no longer used\nempty - File is in use"},
+          {caption: 'Type',       data: proc{|rec| rec.type},   title: "Type of the logfile: ONLINE or STANDBY"},
+          {caption: 'File name',  data: proc{|rec| rec.member}, title: "Redo log member name"},
+          {caption: 'Recovery',   data: proc{|rec| rec.is_recovery_dest_file}, title: "Indicates whether the file was created in the fast recovery area (YES) or not (NO"},
+      ]
+
+
+%>
+
+<%=
+  gen_slickgrid(@members, column_options, {
+      :caption => "Redo-Logfile members from GV$LogFile for instance = #{@instance} and group = #{@group}",
+      :width => :auto,
+      show_pin_icon: 1
+  })
+%>

@@ -1,0 +1,81 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_harddisks(rec, value)
+    ajax_link(value, {
+                        :action          => :list_exadata_cell_physical_disk,
+                        :cellname        => rec.cellname,
+                        :disktype        => 'HardDisk',
+                        :update_area     => @update_area
+                       },
+                :title=>"Show info for single hard disks of this cell server")
+  end
+
+  def link_flashdisks(rec, value)
+    ajax_link(value, {
+                        :action          => :list_exadata_cell_physical_disk,
+                        :cellname        => rec.cellname,
+                        :disktype        => 'FlashDisk',
+                        :update_area     => @update_area
+                       },
+                :title=>"Show info for single flash disks")
+  end
+
+  def link_cell_disk(rec, value)
+    ajax_link(value, {
+                        :action           => :list_exadata_cell_cell_disk,
+                        :cellname         => rec.cellname,
+                        :update_area      => @update_area
+                       },
+                :title=>"Show info for configured cell disks for this cell server")
+  end
+
+  def link_grid_disk(rec, value)
+    ajax_link(value, {
+                        :action           => :list_exadata_cell_grid_disk,
+                        :cellname         => rec.cellname,
+                        :update_area      => @update_area
+                       },
+                :title=>"Show info for configured grid disks for this cell server")
+  end
+
+  column_options =
+      [
+          {:caption=>'Cell name',             :data=>proc{|rec| rec.cellname},                                :title=>"IP-address / cell name"},
+          {:caption=>'Name',                  :data=>proc{|rec| rec.cell_name},                               :title=>"Name of cell server"},
+          {:caption=>'Cell version',          :data=>proc{|rec| rec.cell_version},                            :title=>"Version info of cell software"},
+          {:caption=>'CPU count',             :data=>proc{|rec| rec.cpu_count},                               :title=>"Number of CPU threads (incl. hyperthreading)", :align=>:right},
+          {:caption=>'Memory (GB)',           :data=>proc{|rec| rec.memorygb},                                :title=>"Memory in GB", :align=>:right},
+          {:caption=>'Hard disks',            :data=>proc{|rec| link_harddisks(rec, rec.num_harddisks)},      :title=>"Number of hard disks in storage cell", :align=>:right},
+          {:caption=>'Physical size hard disk (GB)', :data=>proc{|rec| fn rec.total_gb_harddisk},             :title=>"Total physical capacity of hard disks in GB", :align=>:right},
+          {:caption=>'Flash disks',            :data=>proc{|rec| link_flashdisks(rec, rec.num_flashdisks)},   :title=>"Number of hard disks in storage cell", :align=>:right},
+          {:caption=>'Physical size flash disk (GB)', :data=>proc{|rec| fn rec.total_gb_flashdisk},           :title=>"Total physical capacity of flash disks in GB", :align=>:right},
+          {:caption=>'Cell disk count',       :data=>proc{|rec| link_cell_disk(rec, fn(rec.cd_cell_disk_count))},     :title=>"Number of configured cell disks", :align=>:right},
+          {:caption=>'Cell disk size (GB)',   :data=>proc{|rec| fn(rec.cd_disk_size.to_i/(1024*1024*1024),1)},        :title=>"Summarized cell disk size in GB", :align=>:right},
+          {:caption=>'Cell disk free space (GB)',   :data=>proc{|rec| fn(rec.cd_freespace.to_i/(1024*1024*1024),1)},  :title=>"Summarized cell disk free space in GB", :align=>:right},
+          {:caption=>'Cell disk error count', :data=>proc{|rec| fn rec.cd_errorcount},                                :title=>"Sum over configured cell disks", :align=>:right},
+          {:caption=>'Grid disk count',       :data=>proc{|rec| link_grid_disk(rec, fn(rec.gd_grid_disk_count))},     :title=>"Number of configured grid disks", :align=>:right},
+          {:caption=>'Grid disk size (GB)',   :data=>proc{|rec| fn(rec.gd_disk_size.to_i/(1024*1024*1024),1)},        :title=>"Summarized grid disk size in GB", :align=>:right},
+          {:caption=>'Diag. history days',    :data=>proc{|rec| rec.diaghistorydays},                         :title=>"Retention period of diagnostic data in /var/log/oracle", :align=>:right},
+          {:caption=>'Flash cache mode',      :data=>proc{|rec| rec.flashcachemode},                          :title=>"Flash cache mode"},
+          {:caption=>'IC count',              :data=>proc{|rec| fn rec.interconnectcount},                    :title=>"Number of interconnects", :align=>:right},
+          {:caption=>'Kernel version',        :data=>proc{|rec| rec.kernelversion},                           :title=>"Kernel Version"},
+          {:caption=>'Model',                 :data=>proc{|rec| rec.makemodel},                               :title=>"Make model"},
+          {:caption=>'Notification Method',   :data=>proc{|rec| rec.notificationmethod},                      },
+          {:caption=>'Notification Policy',   :data=>proc{|rec| rec.notificationpolicy},                      },
+          {:caption=>'SNMP subscriber',       :data=>proc{|rec| rec.snmpsubscriber},                      },
+          {:caption=>'Status',                :data=>proc{|rec| rec.status},                      },
+          {:caption=>'Uptime',                :data=>proc{|rec| rec.uptime},                      },
+          {:caption=>'Temp.',                :data=>proc{|rec| rec.temperaturereading},                       :title=>"Temperatur"},
+      ]
+
+%>
+
+<%= gen_slickgrid(@cell_servers, column_options, {
+    :max_height => 450,
+    :caption => "EXADATA cell server configuration#{" for#{@filter}" if @filter.length > 0}"
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

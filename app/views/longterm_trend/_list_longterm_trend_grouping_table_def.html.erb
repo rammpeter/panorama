@@ -1,0 +1,213 @@
+<% @update_area = get_unique_area_id %>
+
+<script type="text/javascript">
+
+    function call_ajax_single_rows<%=@update_area%>(group_by_value, record_count){
+        var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>;
+        json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
+        json_data['record_count'] = record_count;
+        json_data['update_area'] = '<%= @update_area %>';
+
+        ajax_html('<%= @update_area %>', 'longterm_trend', 'list_longterm_trend_single_record', json_data);
+    }
+
+    function call_ajax_grouping<%=@update_area%>(group_by_value, next_group_by_name){
+        var json_data = <%= {:groupfilter => @groupfilter}.to_json.html_safe %>;
+
+        json_data['groupfilter']['<%= @groupby %>'] = group_by_value;
+        json_data['groupby'] = next_group_by_name;
+        json_data['update_area'] = '<%= @update_area %>';
+
+        ajax_html('<%= @update_area %>', 'longterm_trend', 'list_longterm_trend_grouping', json_data);
+    }
+
+
+</script>
+
+
+<%
+  @get_groupfilter = proc do |rec, groupby_column, groupby_value|
+    groupfilter = @groupfilter.clone                                            # Sicherstellen ,dass Nachfolger noch relevanten Filter bekommen
+    groupfilter.merge({ groupby_column => groupby_value})
+  end
+
+
+  # Alternativ-Variante für Aktualisierung des Links in Javascript
+  @decorator_single_rows = proc do
+    # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
+    "
+
+      var groupby_value = dataContext.col0.replace(new RegExp(\"&\", 'g'), \"\\\\&\");
+
+      return '<a href=\"#\" title=\"#{"Show single samples of group #{@groupby}"}\" '+
+        'onclick=\"call_ajax_single_rows#{@update_area}('+String.fromCharCode(39)+groupby_value+String.fromCharCode(39)+', '+slickGrid.parseFloatLocale(cell_value)+' ); return false;\"'+
+         '>'+cell_value+'</a>'
+    "
+  end
+
+  @show_groupkey_value = proc do |rec|
+    if rec.group_value.nil?
+      nil
+    else
+      # Zerlegen der ersten Spalten in Elemente für optionalen Link
+      case @groupby
+        when "DB Object"      then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
+        when "DB Subobject"  then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
+        when "Entry-PL/SQL"   then if rec.group_value['[Unknown]'].nil?
+                                     full_obj = rec.group_value.split(" ")[1]
+                                     link_object_description(@update_area, full_obj.split(".")[0], full_obj.split(".")[1], rec.group_value);
+                                   else
+                                     rec.group_value
+                                   end
+        when 'Machine'        then link_machine_ip_info(@update_area, rec.group_value)
+        when "SQL-ID"         then link_historic_sql_id(rec.instance_number_cnt == 1 ? rec.instance_number : nil,
+                                                        rec.sql_id,
+                                                        @groupfilter[:time_selection_start],
+                                                        @groupfilter[:time_selection_end],
+                                                        @update_area,
+                                                        rec.username_cnt == 1 ? rec.username : nil
+        )
+      else rec.group_value
+      end
+    end
+  end
+
+  # Alternativ-Variante für Aktualisierung des Links in Javascript
+  def decorator_grouping(next_groupby)
+    # Baue HREF in der Zelle mit Referenz auf Java-Funktion, die den Ajax-Aufruf enthält
+    # dataContext.col0: 1. Spalte des Results enthält den group-Value
+    "
+      var decorated_cell_value = '';
+
+      var cnt_column = slickGrid.all_columns[parseInt(columnDef.index) - 1]
+      var cnt_value = dataContext[cnt_column.id];
+
+      if (parseInt(cnt_value) > 1){
+        decorated_cell_value = '<&nbsp;'+cnt_value+'&nbsp;>';
+      } else {
+        decorated_cell_value = cell_value;
+
+        // Einsetzen von optionalen Umbruch-Stellen in Strings
+        // console.log(columnDef['name']+' '+columnDef['sort_type']);
+        if (columnDef['sort_type'] == 'string'){
+
+            decorated_cell_value = decorated_cell_value.replace('.', '.<wbr>');                       // Optionaler Wort-Umbruch
+        }
+      }
+
+      // escape ampersand and doublequote
+      var groupby_value = dataContext.col0.replace(new RegExp(\"&\", 'g'), \"\\\\&\").replace(new RegExp(String.fromCharCode(34), 'g'), \"'+String.fromCharCode(34)+'\");
+      //var groupby_value = jQuery(dataContext.col0).text();
+
+      return '<a href=\"#\" title=\"#{"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{next_groupby}s #{t(:of, :default=>"of")} #{@groupby}s"}\" '+
+        'onclick=\"call_ajax_grouping#{@update_area}('+String.fromCharCode(39)+groupby_value+String.fromCharCode(39)+', '+String.fromCharCode(39)+'#{next_groupby}'+String.fromCharCode(39)+'); return false;\"'+
+         '>'+decorated_cell_value+'</a>'
+    "
+  end
+
+  # Berechnung average load aus rec
+  @avg_load = proc do |rec|
+    rec.seconds_active.to_f/(rec.sample_duration_hours * 60 * 60) rescue nil
+  end
+
+  duration_data_title = proc do |rec|
+    "%t\n\nTime between first and last occurrence\n= #{fn(rec.sample_duration_hours, 1)} hours\n= #{fn(rec.sample_duration_hours.to_f/24, 1)} days"
+  end
+
+
+  @total_time_waited_data_title = proc do |rec|
+    retval = '%t'
+    retval << "\n= #{fn(rec.seconds_active)} seconds"
+    retval << "\n= #{fn(rec.seconds_active.to_f/60, 1)} minutes" if rec.seconds_active > 60
+    retval << "\n= #{fn(rec.seconds_active.to_f/3600, 1)} hours" if rec.seconds_active > 3600
+    retval
+  end
+
+  @column_options = []
+  @column_options << {:caption=>@groupby,         :data=>proc{|rec| @show_groupkey_value.call(rec)},                    :title=>longterm_trend_key_rule(@groupby)[:title], :data_title=>longterm_trend_key_rule(@groupby)[:data_title]}
+  @column_options << {:caption=>"Total Time waited",                                  :data=>proc{|rec| fn(rec.seconds_active.to_f/60) },     title: "Total time waited in minutes within considered time period", data_title: @total_time_waited_data_title, :align=>"right", :show_pct_hint=>true, :show_pct_background=>true}
+  @column_options << {:caption=>"Avg. Load",                                          :data=>proc{|rec| fn(@avg_load.call(rec),2) },            :title=>t(:active_session_history_load_hint, :default=>"Avg. number of waiting sessions averaged by time between first and last occurrence"), :align=>"right"}
+  @column_options << {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      title: "First occurrence of sample record in group\n(start time of period covered by sample record)", data_title: duration_data_title}
+  @column_options << {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       title: "Last occurrence of sample record in group\n(start time of period covered by sample record)", data_title: duration_data_title}
+  @column_options << {:caption=>"Samples",                                            :data=>proc{|rec| fn(rec.count_samples) },          :title=>t(:active_session_history_samples_hint, :default=>"Total number of sample records in group"), :align=>:right, :field_decorator_function=> @decorator_single_rows.call}
+
+  longterm_trend_key_rules.each do |key, value|
+    unless @groupby == key  || @groupfilter[key.to_sym]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+      @column_options << {:caption=>"#{value[:sql_alias]}_Cnt", :data=>proc{|rec| rec["#{value[:sql_alias].downcase}_cnt"]}, :hidden=>:true}
+      @column_options << {:caption=>key, :data=>proc{|rec| rec[value[:sql_alias].downcase] } , :title=>"#{value[:title]}\n#{t(:active_session_history_number_hint, :default=>"(< Number of occurrences> if there are multiple occurrences)")}", :data_title=>(value[:data_title] ? "#{value[:title]}:#{value[:data_title]}" : nil) , :field_decorator_function=>decorator_grouping(key)}
+    end
+  end
+
+%>
+
+<%=
+  @hidden_link_timeline_id = get_unique_area_id
+
+  context_menu_entries = []
+  command_menu_entries = [get_recall_params_info_for_render_page_caption]
+
+  def create_context_menu_entry(point_group, context_menu_entries, command_menu_entries, icon_class, addition = '')
+    label   = "Show Top 10 in time line diagram, one point per #{point_group}"
+    hint    = "Show Top 10 ordered by total time waited in time line diagram, each point in graph for one #{point_group}#{addition}"
+    action  = "$('##{@hidden_link_timeline_id}_#{point_group}').click();"
+
+    context_menu_entries << {
+                              :label   => label,
+                              :hint    => hint,
+                              :ui_icon => icon_class,
+                              :action  => action
+                            }
+
+    command_menu_entries << {
+                              name:                 "command_menu_timeline_#{point_group}",
+                              caption:              label,
+                              hint:                 hint,
+                              icon_class:           icon_class,
+                              show_icon_in_caption: true,
+                              action:               action
+                            }
+  end
+
+  create_context_menu_entry(:week, context_menu_entries, command_menu_entries, 'cuis-chart-area')
+  create_context_menu_entry(:day, context_menu_entries, command_menu_entries, 'cui-chart-area')
+  create_context_menu_entry(:hour, context_menu_entries, command_menu_entries,  'cui-chart-line', ". Useful only if your snapshot cycle for recording is less than one day")
+
+
+  gen_slickgrid(@sessions,
+                @column_options,
+                {
+                    :caption => @caption ? @caption : "",
+                    :max_height => 450,
+                    :context_menu_entries => context_menu_entries,
+                    :command_menu_entries => command_menu_entries,
+                    show_pin_icon: 1
+                }
+  )
+
+%>
+
+<%
+  @link_timeline = proc do |point_group|
+    ajax_link("Hidden Auslöser für Timeline",
+                            {:action        => "list_longterm_trend_historic_timeline",
+                             :groupfilter   => @groupfilter,
+                             :groupby       => @groupby,
+                             point_group:   point_group,
+                             :update_area   => "#{@update_area}_timeline"
+                            },
+                    :style=>"display:none",
+                    :id=>"#{@hidden_link_timeline_id}_#{point_group}"
+    )
+  end
+
+%>
+
+<%= @link_timeline.call(:week) %>
+<%= @link_timeline.call(:day) %>
+<%= @link_timeline.call(:hour) %>
+
+
+<div id="<%= @update_area %>_timeline" style="float:left; width:100%; "></div>
+<div id="<%= @update_area %>"          style="clear:both; width:100%; "></div>
+
+

@@ -1,0 +1,17 @@
+<%= render_page_caption("Historic TEMP usage #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_SysMetric_Summary')} #{t(:and, :default=>'and')} gv$SysMetric_History #{t(:and, :default=>'and')} #{PanoramaConnection.adjust_table_name('DBA_Hist_SysStat')}") %>
+
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller=>:storage, :action=>:list_temp_usage_sysmetric_historic, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element">
+      <%= submit_tag('Show', :title => 'Show historic TEMP usage') %>
+    </div>
+
+  </div>
+
+<% end %>
+<div id="<%= @update_area %>"></div>
+

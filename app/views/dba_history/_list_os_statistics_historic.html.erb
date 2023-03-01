@@ -1,0 +1,23 @@
+<%
+  column_options = []
+
+  column_options << {caption: 'Time',             data: proc{|rec| localeDateTime(rec.rounded_begin_interval_time) },     title: "Start time of AWR snapshot", data_title: proc{|rec| "%t\nSmallest begin time of AWR-snapshot = #{localeDateTime(rec.min_begin_interval_time)}\nLargest end time of AWR-snpshot = #{localeDateTime(rec.max_end_interval_time)}"}, plot_master_time: true}
+
+  @stat_names.each do |stat_name|
+    column_options << {caption: stat_name[:stat_name],        data: proc{|rec| fn(rec[stat_name[:stat_name]], stat_name[:scale])},    title: "Values for #{stat_name[:stat_name]}\n#{stat_name[:comments]}\n\n#{"Delta between AWR-snapshots extracted from cumulative values in history table" if stat_name[:cumulative] == 'YES'}\nCumulated over RAC-instances if there are multiple RAC-instances in selection", align: :right  }
+  end
+
+
+
+%>
+
+<%=
+  gen_slickgrid(@osstats, column_options, {
+      :caption      => "Historic operating system statistics from #{@time_selection_start} until #{@time_selection_end} #{"for instance = #{@instance}" if @instance}",
+      :max_height   => 450,
+      show_pin_icon: 1
+  }
+  )
+%>
+
+

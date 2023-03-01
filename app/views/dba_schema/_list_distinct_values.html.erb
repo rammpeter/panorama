@@ -1,0 +1,18 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+    [
+      {caption: 'Column value',         data: proc {|rec| rec.column_value},     title: 'Single distinct value'},
+      {caption: 'Records',              data: proc{|rec| rec.records},           title: 'Number of records in table with this column value'},
+    ]
+%>
+
+<%=
+  gen_slickgrid(@distinct_values, column_options, {
+    :caption => "Distinct values for column '#{@column_name}' of  #{@owner}.#{@table_name}",
+    :max_height => 450, :width=>:auto
+  })
+%>
+
+<div id="<%= @update_area %>"></div>

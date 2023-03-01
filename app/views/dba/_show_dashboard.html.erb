@@ -1,0 +1,140 @@
+<%
+  @update_area          = get_unique_area_id
+  @submit_id            = get_unique_area_id
+  @refresh_id           = get_unique_area_id
+  @form_id              = get_unique_area_id
+  @dbid_id              = get_unique_area_id
+  @rac_instanc_id       = get_unique_area_id
+  @hours_to_cover_id    = get_unique_area_id
+  @refresh_cycle_id     = get_unique_area_id
+  @wait_class_canvas_id = get_unique_area_id
+  @top_session_sql_id   = get_unique_area_id
+  @unique_id            = get_unique_area_id
+%>
+
+  <div style="display: flex; flex-direction: row; justify-content: space-between">
+    <div class="flex-row-element">
+      <b>Realtime Dashboard</b> from <%= PanoramaConnection.adjust_table_name('gv$Active_Session_History') %>
+      <%= submit_tag('', id: @submit_id, style: "visibility: hidden") %>
+    </div>
+
+    <%= dbid_selection(select_element_id: @dbid_id, onchange: "dbid_changed();") %>
+
+    <% if PanoramaConnection.rac? %>
+      <div class="flex-row-element" title="Filter dashboard info for a specific RAC instance">
+        RAC instance
+        <select name="instance" id="<%= @rac_instanc_id %>" onchange="instance_changed();">
+          <option value="0" selected>[All]</option>
+          <% PanoramaConnection.sql_select_all("SELECT Inst_ID, Instance_Name FROM gv$Instance ORDER BY Inst_ID").each do |i| %>
+            <option value="<%= i.inst_id %>"><%= "#{i.inst_id} #{i.instance_name}" %></option>
+          <% end %>
+        </select>
+      </div>
+    <% end %>
+
+    <div class="flex-row-element" title="Show data for the choosen time period up to now.
+
+First, retrospective data is displayed as long as it is present in the table gv$ActiveSessionHistory.
+Refreshed data is buffered in browser than and may last longer than data is present in table gv$ActiveSessionHistory.">
+      Time to cover
+      <select name="hours_to_cover" id="<%= @hours_to_cover_id %>" onchange="hours_to_cover_changed();">
+        <option value="0.083333" selected>5 minutes</option>
+        <option value="0.25">15 minutes</option>
+        <option value="0.5">30 minutes</option>
+        <option value="1">1 hour</option>
+        <option value="3">3 hours</option>
+        <option value="6">6 hours</option>
+        <option value="12">12 hours</option>
+        <option value="24">24 hours</option>
+        <option value="48">48 hours</option>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="Cycle of automatic refresh (adds delta only to already selected data)">
+      Refresh cycle
+      <select name="refresh_cycle_minutes" id="<%= @refresh_cycle_id %>" onchange="refresh_cycle_changed();">
+        <option value="0" selected>off</option>
+        <option value="0.25">15 seconds</option>
+        <option value="0.5">30 seconds</option>
+        <option value="1">1 minute</option>
+        <option value="5">5 minutes</option>
+        <option value="10">10 minutes</option>
+        <option value="15">15 minutes</option>
+      </select>
+      <%= submit_tag('Refresh', id: @refresh_id, title: 'Manually refresh dashboard content', onclick: "submit_refresh();") %>
+    </div>
+  </div>
+
+
+<div id="<%= @wait_class_canvas_id %>"></div>
+<div id="<%= @top_session_sql_id %>"></div>
+<div id="<%= @update_area %>"></div>
+
+<script type="application/javascript">
+
+
+    function refresh_cycle_selected(){
+        return $('#<%= @refresh_cycle_id %>').children("option:selected").val();
+    }
+
+    function dbid_changed(){
+        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
+        if (refresh_cycle_selected() != '0'){
+            submit_refresh();
+        }
+    }
+
+    function instance_changed(){
+        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
+        if (refresh_cycle_selected() != '0'){
+            submit_refresh();
+        }
+    }
+
+    function hours_to_cover_changed(){
+        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
+        if (refresh_cycle_selected() != '0'){
+            submit_refresh();
+        }
+    }
+
+    function refresh_cycle_changed(){
+        if (refresh_cycle_selected() == '0') {
+            $('#<%= @refresh_id %>').attr('type', 'submit');
+            if (dashboard_data !== undefined)
+                dashboard_data.cancel_timeout();
+        } else {
+            $('#<%= @refresh_id %>').attr('type', 'hidden');
+            submit_refresh();
+        }
+    }
+
+    function submit_refresh(){
+        var dbid                    = $('#<%= @dbid_id %>').children("option:selected").val();
+        var hours_to_cover          = $('#<%= @hours_to_cover_id %>').children("option:selected").val();
+        var refresh_cycle_minutes   = refresh_cycle_selected();
+        var rac_instance            = null;
+        if ($('#<%= @rac_instanc_id %>').length > 0){                           // Instance selectable
+            rac_instance = $('#<%= @rac_instanc_id %>').children("option:selected").val();
+            if (rac_instance == '0')
+                rac_instance = null;
+        }
+
+        refresh_dashboard(
+            '<%= @unique_id %>',
+            '<%= @wait_class_canvas_id %>',
+            '<%= @top_session_sql_id %>',
+            '<%= @update_area %>',
+            dbid,
+            rac_instance,
+            hours_to_cover,
+            refresh_cycle_minutes,
+            '<%= @refresh_cycle_id %>',
+            '<%= @refresh_id %>'
+        );
+        jQuery('#<%= @update_area %>').html('');
+        return false;
+    }
+
+    jQuery('#<%= @refresh_id %>').click();  // Execute dashboard at first load with default values
+</script>

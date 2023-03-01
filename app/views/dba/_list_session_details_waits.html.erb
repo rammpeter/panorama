@@ -1,0 +1,67 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_event = proc do |rec|
+    rec.state == 'WAITING' ? rec.event : 'ON CPU'
+  end
+
+  show_event_data_title = proc do |rec|
+    result = "%t\n"
+    result << "Sessions is currently working on CPU. Last wait event was:\n#{rec.event}\n\nExplanation of last wait event is:\n" if rec.state != 'WAITING'
+    result << explain_wait_event(rec.event)
+    result
+  end
+
+  show_class = proc do |rec|
+    rec.state == 'WAITING' ? rec.wait_class : 'ON CPU'
+  end
+
+  show_class_data_title = proc do |rec|
+    result = "%t\n"
+    result << "Sessions is currently working on CPU. Last wait class was:\n#{rec.wait_class}" if rec.state != 'WAITING'
+    result
+  end
+
+  param_title = "Parameter of wait event (for last event if currently ON CPU)"
+
+  column_options =
+  [
+    {:caption=>"Wait Event",       :data=>show_event,                                         :title=>"Wait event", :data_title=>show_event_data_title},
+    {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(@instance, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{@instance}_#{@sid}") }, :title=>param_title},
+    {:caption=>"Wait Class",       :data=>show_class,                                         :title=>"Wait class", data_title: show_class_data_title},
+    {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
+    {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
+    {caption: 'Blocking session',   data: proc{|rec| link_session_details(@update_area, rec.blocking_instance, rec.blocking_session, rec.blocking_serial_no)}, title: 'Session that is blocking this session', data_title: proc{|rec| "%t\n\nBlocking session status = #{rec.blocking_session_status}"}},
+    {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of depenency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
+  ]
+
+%>
+<div>
+  <%= gen_slickgrid(@waits, column_options, :caption => "Current wait status for instance=#{@instance}, SID=#{@sid}", :width=>:auto, show_pin_icon: 2) %>
+</div>
+
+
+<% if @pq_waits.length > 0 %>
+  <%
+    column_options =
+    [
+      {:caption=>"PQ-Slave",         :data=>proc{|rec| rec.program},                            :title=>"Program name of PQ-slave"},
+      {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                            :title=>"Instance of PQ-slave"},
+      {:caption=>"SID / Serial#",    :data=>proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)}, :title=>"Session-ID and serial number of PQ-slave session"},
+      {:caption=>"Req",              :data=>proc{|rec| rec.req_degree},                         :title=>"Requested PQ-degree", :align=>:right},
+      {:caption=>"Dgr",              :data=>proc{|rec| rec.degree},                             :title=>"Real PQ-degree", :align=>:right},
+      {:caption=>"Wait Event",       :data=>show_event,                                         :title=>"Wait event", :data_title=>show_event_data_title },
+      {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw,  rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.inst_id}_#{rec.sid}") }, :title=>param_title},
+      {:caption=>"Wait Class",       :data=>show_class,                                         :title=>"Wait class", data_title: show_class_data_title},
+      {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
+      {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
+      {caption: 'Blocking session',   data: proc{|rec| link_session_details(@update_area, rec.blocking_instance, rec.blocking_session, rec.blocking_serial_no)}, title: 'Session that is blocking this session', data_title: proc{|rec| "%t\n\nBlocking session status = #{rec.blocking_session_status}"}},
+      {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of depenency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
+    ]
+  %>
+  <div>
+    <%= gen_slickgrid(@pq_waits, column_options,{:caption=>"Parallel query slave processes", max_height: 450, :width=>:auto, show_pin_icon: 2}) %>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

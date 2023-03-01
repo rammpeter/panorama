@@ -1,0 +1,44 @@
+<%= render_page_caption("Describe database object") %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(:controller => :dba_schema, :action => :list_object_description, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element" title="Schema name of object (optional), wildcards allowed">
+      Object-Owner
+      <%= text_field_tag(:owner, "", :size=>40) %>
+    </div>
+
+    <div class="flex-row-element" title="Object name (table, index, materialized view), wildcards allowed">
+      Object-Name
+      <%= text_field_tag(:segment_name, "", :size=>40) %>
+    </div>
+
+    <div class="flex-row-element" title="Object type to look for">
+      Object-Type
+      <%= select_tag(:object_type, raw("<option value=''>[#{t(:all, default: 'All')}]</option>
+                                      <option>Function</option>
+                                      <option>Index</option>
+                                      <option>Materialized View</option>
+                                      <option>Package</option>
+                                      <option>Package Body</option>
+                                      <option>Procedure</option>
+                                      <option>Sequence</option>
+                                      <option>Synonym</option>
+                                      <option>Table</option>
+                                      <option>Trigger</option>
+                                      <option>Type</option>
+                                      <option>Type Body</option>
+                                      <option>View</option>
+                                     ")
+          )
+      %>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag('Describe', :title => 'Describe database object (table, index, materialized view)') %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>
+

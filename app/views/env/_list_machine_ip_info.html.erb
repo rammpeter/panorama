@@ -1,0 +1,30 @@
+<%= render_page_caption("Identifikation info for machine name \"#{@machine_name}\"") %>
+
+<%
+  column_options_dns =
+      [
+          {:caption=>"IP-Address",       :data=>proc{|rec| rec[:ip_address]},   :title=>"IP-address from DNS lookup"},
+          {:caption=>"Name",             :data=>proc{|rec| rec[:name]},         :title=>"Name from DNS lookup"},
+      ]
+
+  column_options_sessions =
+      [
+          {:caption => 'OS-User', :data => proc {|rec| rec.osuser}, :title => "Client OS user name"},
+          {:caption => "Program", :data => proc {|rec| rec.program}, :title => "Client program name"},
+          {:caption => "Sessions", :data => proc {|rec| fn(rec.sessions)}, :title => "Number of currently connected sessions from this machine for OS-user and program", align: :right},
+      ]
+%>
+
+<div class="flex-row-container">
+
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@dns_info, column_options_dns, {:caption => "DNS-info for machine name \"#{@machine_name}\"", :max_height => 300, :width => :auto}) %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@sessions, column_options_sessions, {:caption => "Currently connected sessions from machine name \"#{@machine_name}\"", :max_height => 300, :width => :auto}) %>
+  </div>
+
+</div>
+
+

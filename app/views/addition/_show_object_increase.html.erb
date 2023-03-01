@@ -1,0 +1,52 @@
+<%= render_page_caption("Evolution of object sizes in considered time period") %>
+
+<% @update_area = get_unique_area_id  %>
+
+<%= ajax_form(:controller=>:addition, :action=>:list_object_increase, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element">
+      Tablespace
+      <%= collection_select(:tablespace, :name, @tablespaces, :name, :name) %>
+    </div>
+
+    <div class="flex-row-element">
+      Schema
+      <%= collection_select(:schema, :name, @schemas, :name, :name) %>
+    </div>
+
+    <fieldset style="display: inline">
+      <div class="flex-row-container">
+        <div class="flex-row-element" title="List also if only row-count changes but size does not change">
+          Row-count
+          <%= check_box_tag(:row_count_changes, 1, false) %>
+        </div>
+
+        <div class="flex-row-element">
+          <%= submit_tag("Show detail changes", :title => "Show objects with changed sizes in period", :name=>"detail") %>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset style="display: inline">
+      <div class="flex-row-container">
+        <div class="flex-row-element">
+          <div title="Grouping criteria for values in time line">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+            Grouping
+            <%= select :gruppierung, :tag, [['Object-Type', 'Segment_Type'], ['Schema', 'Owner'], ['Tablespace', 'Tablespace_Name'] ], {:selected=>'Segment_Type'} %>
+          </div>
+        </div>
+        <div class="flex-row-element">
+          <%= submit_tag("Show time line", :title => "Show evolution of sizes over time per grouping value", :name=>"timeline") %>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+<% end %>
+
+
+<div id="<%= @update_area %>" style="clear: both; padding-top: 5px;">
+</div>
+

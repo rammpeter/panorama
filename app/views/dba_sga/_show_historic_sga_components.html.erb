@@ -1,0 +1,23 @@
+<%= render_page_caption("SGA components from #{PanoramaConnection.adjust_table_name('DBA_Hist_SGAStat')}") %>
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(controller: :dba_sga, action: :list_historic_sga_components, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element" title="Show SGA pool elements in detail?">
+      Details for pools
+      <%= check_box_tag(:pool_details, 1, false) %>
+    </div>
+    <% if PanoramaConnection.is_cdb? %>
+      <div class="flex-row-element" title="Optional filter on container ID of PDB">
+        Container ID
+        <%= text_field_tag(:con_id, "", size: 5) %>
+      </div>
+    <% end %>
+    <div class="flex-row-element">
+      <%= submit_tag('Show SGA components', title: 'Show historic SGA components for selection') %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>

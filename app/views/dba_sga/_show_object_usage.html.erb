@@ -1,0 +1,20 @@
+<%= render_page_caption(t(:dba_sga_show_object_usage_caption, :default=>'Search for SQL-statements referencing/using this object (from GV$SQL_Plan)')) %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(:controller => :dba_sga, :action => :show_using_sqls, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      Objekt-Owner
+      <%= text_field_tag(:ObjectOwner, "", :size=>40, :title=>t(:dba_sga_show_object_usage_object_owner_hint, :default=>'Schema name of object (optional)')) %>
+    </div>
+    <div class="flex-row-element">
+      Objekt-Name
+      <%= text_field_tag(:ObjectName, "", :size=>40, :title=>t(:dba_sga_show_object_usage_object_name_hint, :default=>'Name of object (use "%" as wildcard)')) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_sga_show_object_usage_submit_caption, :default=>'Search for SQLs'), :title => t(:dba_sga_show_object_usage_submit_hint, :default=>'Show objects using this SQL') ) %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

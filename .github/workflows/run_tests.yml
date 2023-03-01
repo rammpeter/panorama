@@ -1,0 +1,221 @@
+# GitHub reusable workflow for testing one DB release
+
+name: Run tests for a DB release
+
+on:
+  workflow_call:
+    inputs:
+      db_version:
+        required: true
+        type: string
+      container:
+        required: true
+        type: string
+      max_parallel:
+        required: true
+        type: number
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    strategy:
+      # run only one job for autonomous DB with restricted CPU capactity
+      max-parallel: ${{ inputs.max_parallel }}
+      fail-fast: true
+      matrix:
+        # Short values to let the job names visible
+        management_pack_license:
+          - dtp
+          - dp
+          - ps
+          - none
+    env:
+      DB_VERSION: ${{ inputs.db_version }}
+      # CONTAINER contains CDB or PDB
+      CONTAINER: ${{ inputs.container }}
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set MANAGEMENT_PACK_LICENSE according to matrix short value
+        run: |
+          if [[ "${{ matrix.management_pack_license }}" == "dtp" ]]; then             
+            echo "MANAGEMENT_PACK_LICENSE=diagnostics_and_tuning_pack" >> $GITHUB_ENV
+          elif [[ "${{ matrix.management_pack_license }}" == "dp" ]]; then    
+            echo "MANAGEMENT_PACK_LICENSE=diagnostics_pack" >> $GITHUB_ENV
+          elif [[ "${{ matrix.management_pack_license }}" == "ps" ]]; then    
+            echo "MANAGEMENT_PACK_LICENSE=panorama_sampler" >> $GITHUB_ENV
+          elif [[ "${{ matrix.management_pack_license }}" == "none" ]]; then    
+            echo "MANAGEMENT_PACK_LICENSE=none" >> $GITHUB_ENV
+          else
+            echo "Unknown matrix value ${{ matrix.management_pack_license }}"
+            return 1
+          fi
+
+      - name: Set environment for subsequent steps
+        run: |
+          if [[ "$DB_VERSION" == "autonomous" ]]; then
+            if [[ "$MANAGEMENT_PACK_LICENSE" == "diagnostics_and_tuning_pack" ]]; then
+              echo "TEST_USERNAME=panorama_test1" >> $GITHUB_ENV
+            elif [[ "$MANAGEMENT_PACK_LICENSE" == "diagnostics_pack" ]]; then
+              echo "TEST_USERNAME=panorama_test2" >> $GITHUB_ENV
+            elif [[ "$MANAGEMENT_PACK_LICENSE" == "panorama_sampler" ]]; then
+              echo "TEST_USERNAME=panorama_test3" >> $GITHUB_ENV
+            elif [[ "$MANAGEMENT_PACK_LICENSE" == "none" ]]; then
+              echo "TEST_USERNAME=panorama_test4" >> $GITHUB_ENV
+            fi
+            echo "TEST_PASSWORD=SimpePW9" >> $GITHUB_ENV
+            echo "TEST_TNS=PANORAMATEST_TPURGENT" >> $GITHUB_ENV
+            echo "TNS_ADMIN=$PWD/.github" >> $GITHUB_ENV
+          else
+            # Default username and password
+            echo "TEST_USERNAME=panorama_test" >> $GITHUB_ENV
+            echo "TEST_PASSWORD=panorama_test" >> $GITHUB_ENV
+            if [[ "$CONTAINER" == "CDB" ]]; then
+              echo "TEST_USERNAME=c##panorama_test" >> $GITHUB_ENV
+            fi
+            # set TEST_SERVICENAME 
+            TEST_SERVICENAME=ORCLPDB1
+            if [[ "$DB_VERSION" == "11.2.0.4-ee" ]]; then
+              TEST_SERVICENAME=ORCL
+            fi
+            if [[ "$CONTAINER" == "CDB" ]]; then
+              TEST_SERVICENAME=ORCLCDB
+            fi
+            if [[ "$DB_VERSION" == *"xe" ]] && [[ "$DB_VERSION" < "19" ]]; then
+              TEST_SERVICENAME=XEPDB1
+              if [[ "$CONTAINER" == "CDB" ]]; then
+                TEST_SERVICENAME=XE
+              fi
+            fi
+            echo "TEST_SERVICENAME=$TEST_SERVICENAME" >> $GITHUB_ENV
+          fi
+          # Ensure that each run uses it's own config without previous artifacts
+          panorama_var_home=$PWD/tmp/panorama_var_home_${MANAGEMENT_PACK_LICENSE}_${DB_VERSION}
+          mkdir -p $panorama_var_home
+          echo "PANORAMA_VAR_HOME=$panorama_var_home" >> $GITHUB_ENV
+          # Enable successful artifacts load even if dir is not created
+          mkdir -p test/dummy/tmp/screenshots
+          JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+          echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
+
+      - name: Check OS prerequisites
+        run: |
+          env
+          docker ps -a
+          docker images
+          java -version
+
+      - name: Set jRuby version in rvm
+        run: |
+          source "$HOME/.rvm/scripts/rvm"
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
+
+      - name: bundle install
+        run: |
+          source "$HOME/.rvm/scripts/rvm"
+          bundle --version
+          pwd
+          bundle config set deployment 'true'
+          bundle install
+
+      # create encypted wallet zip file to store in repository, add passphrase
+      # gpg --symmetric --cipher-algo AES256 Wallet_panoramatest.zip
+      - name: Decrypt Wallet for database access
+        if: ${{ env.DB_VERSION == 'autonomous' }}
+        env:
+          GPG_KEY_FOR_DB_WALLET_ENCRYPTION: ${{ secrets.GPG_KEY_FOR_DB_WALLET_ENCRYPTION }}
+        run: |
+          cd .github && ./decrypt_DB_wallet.sh && unzip Wallet_panoramatest.zip
+
+      - name: Ensure playwright installed
+        run: |
+          # uninstall needed only to ensure next version is completely installed
+          # npm uninstall playwright 
+          npm install playwright  
+          npx playwright install
+
+
+      - name: Start database
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 300
+          max_attempts: 3
+          command: |
+            if [[ "${{ env.DB_VERSION }}" != "autonomous" ]]; then
+              # get a free random port for the database, execute as late as possible
+              TEST_PORT=`comm -23 <(seq 1530 2000 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1`
+              echo "TEST_PORT=$TEST_PORT" | tee -a $GITHUB_ENV
+              DB_CONTAINER_NAME=DB$TEST_PORT
+              echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME" | tee -a $GITHUB_ENV
+              docker run -d --name $DB_CONTAINER_NAME  -p $TEST_PORT:1521 git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt_panorama_test:$DB_VERSION
+              if [[ $? -ne 0 ]]; then
+                echo "Error starting database"
+                exit 1
+              fi
+              # To prevent from Java::JavaSql::SQLRecoverableException: I/O-Fehler: Got minus one from a read call 
+              if [[ "$DB_VERSION" > "18" ]]; then
+                echo "Patching all found sqlnet.ora for 19.x and 21.x due to Bug ( Doc ID 2662778.1 )" 
+                docker exec $DB_CONTAINER_NAME bash -c "find / -name sqlnet.ora 2>/dev/null | sed 's/^/echo DISABLE_OOB=ON >> /' | bash"
+              fi
+            fi
+
+      - name: Wait for DB available
+        if: ${{ env.DB_VERSION != 'autonomous' }}
+        run: |
+          source "$HOME/.rvm/scripts/rvm"
+          (
+            bundle exec rake -f $GITHUB_WORKSPACE/lib/tasks/wait_for_db_available.rake ci_preparation:wait_for_db_available[10]
+            if [[ $? -ne 0 ]]; then
+              docker exec -ti $DB_CONTAINER_NAME lsntctl status
+              exit 1
+            fi
+          )
+
+      - name: run Test
+        run: |
+          source "$HOME/.rvm/scripts/rvm"
+          export TEST_PORT=${{ env.TEST_PORT }}
+          echo "TNS_ADMIN=$TNS_ADMIN"
+          if [[ -n "$TNS_ADMIN" ]]; then
+            echo "tnsnames.ora="
+            cat $TNS_ADMIN/tnsnames.ora
+          fi
+          if [[ "$DB_VERSION" = *"se"* ]] && [[ "$MANAGEMENT_PACK_LICENSE" = "diagnostic"* ]]; then
+            echo "Test skipped for $DB_VERSION because Management Pack license is $MANAGEMENT_PACK_LICENSE"
+            # Ensure next steps find a test.log
+            mkdir -p test/dummy/log
+            touch test/dummy/log/test.log
+          else
+            bundle exec rake test
+          fi
+
+      - name: copy test.log locally to allow access before completion of whole actions
+        if: always()
+        run: cp test/dummy/log/test.log /home/pramm/github_runner/log/${MANAGEMENT_PACK_LICENSE}_${DB_VERSION}_${CONTAINER}_test.log
+
+      - name: stop database
+        if: always()
+        run: |
+          if [[ "${{ env.DB_VERSION }}" != 'autonomous'  ]]; then
+            docker logs ${{ env.DB_CONTAINER_NAME }}
+            echo "### Get listener status from running database before stop:"
+            if [[ "$DB_VERSION" != "11.2.0.4-ee" ]]; then
+              docker exec $DB_CONTAINER_NAME bash -c 'lsnrctl status'
+            fi
+            docker rm -f ${{ env.DB_CONTAINER_NAME }}
+          fi
+
+      - name: Archive test log
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_test.log
+          path: test/dummy/log/test.log
+
+      - name: Archive test screenshots
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_tmp
+          path: test/dummy/tmp/screenshots

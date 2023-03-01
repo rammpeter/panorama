@@ -1,0 +1,41 @@
+<%
+   @update_area = get_unique_area_id
+
+   def to_kbytes_fn(bytes)
+     fn((bytes / 1024.0 rescue nil))
+   end
+
+   def to_mbytes(bytes)
+     bytes.to_f / (1024*1024) rescue nil
+   end
+
+   column_options =
+  [
+    {:caption=>"SQL-ID",              :data=>proc{|rec| link_sql_id(@update_area, @instance, rec.sql_id, childno: rec.child_number) },           :title=>"SQL-ID des Statements"},
+    {:caption=>"Child no.",           :data=>proc{|rec| rec.child_number },               :title=>"Child-Number des Statements"},
+    {:caption=>"Op-Type",             :data=>proc{|rec| rec.operation_type },             :title=>"Operation-Type"},
+    {:caption=>"Op-ID",               :data=>proc{|rec| rec.operation_id },               :title=>"Operation-ID des Workareas zur Referenz in Explain-Plan"},
+    {:caption=>"Pol.",                :data=>proc{|rec| rec.policy },                     :title=>"Sizing-Policy des Workareas"},
+    {:caption=>"Est. Opt. Size (kB)", :data=>proc{|rec| to_kbytes_fn(rec.estimated_optimal_size) }, :title=>"Estimated size in kBytes required by this work area to execute the operation completely in memory (optimal execution).\nDerived from either optimizer statistics or previous executions.", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(to_mbytes(rec.estimated_optimal_size))}"}},
+    {:caption=>"Est. Onep. Size (kB)",:data=>proc{|rec| to_kbytes_fn(rec.estimated_onepass_size) }, :title=>"Estimated size in kBytes required by this work area to execute the operation in a single pass. Derived from either optimizer statistics or previous executions.", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(to_mbytes(rec.estimated_onepass_size))}"}},
+    {:caption=>"Last Mem. Used (kB)", :data=>proc{|rec| to_kbytes_fn(rec.last_memory_used) },       :title=>"Memory in kBytes used by this work area during the last execution of the cursor", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(to_mbytes(rec.last_memory_used))}"}},
+    {:caption=>"Last Exec.",          :data=>proc{|rec| rec.last_execution },             :title=>"Indicates whether this work area runs using OPTIMAL, ONE PASS, or ONE PASS memory requirement (or MULTI-PASS), during the last execution of the cursor"},
+    {:caption=>"Last Degree",         :data=>proc{|rec| fn(rec.last_degree) },            :title=>"Degree of parallelism used during the last execution of this operation", :align=>:right},
+    {:caption=>"Total Execs",         :data=>proc{|rec| fn(rec.total_executions) },       :title=>"Number of times this work area was active", :align=>:right},
+    {:caption=>"Opt.Execs",           :data=>proc{|rec| fn(rec.optimal_executions) },     :title=>"Number of times this work area ran in optimal mode", :align=>:right},
+    {:caption=>"Onep.Execs",          :data=>proc{|rec| fn(rec.onepass_executions) },     :title=>"Number of times this work area ran in one-pass mode", :align=>:right},
+    {:caption=>"Multp.Execs",         :data=>proc{|rec| fn(rec.multipasses_executions) }, :title=>"Number of times this work area ran below the one-pass memory requirement", :align=>:right},
+    {:caption=>"Active Time (ms)",    :data=>proc{|rec| fn((rec.active_time/1000 rescue nil)) },    :title=>"Average time this work area is active (in milliseconds)", :align=>:right, data_title: proc{|rec| "%t\n#{seconds_explain((rec.active_time/1000000.0 rescue nil))}"}},
+    {:caption=>"Max. Temp (kB)",      :data=>proc{|rec| to_kbytes_fn(rec.max_tempseg_size) },       :title=>"Maximum temporary segment size (in kBytes) created by an instantiation of this work area. This column is null if this work area has never spilled to disk.", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(to_mbytes(rec.max_tempseg_size))}"}},
+    {:caption=>"Last Temp (kB)",      :data=>proc{|rec| to_kbytes_fn(rec.last_tempseg_size) },      :title=>"Temporary segment size (in kBytes) created in the last instantiation of this work area. This column is null if the last instantiation of this work area did not spill to disk.", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(to_mbytes(rec.last_tempseg_size))}"}},
+   ]
+
+%>
+<%= gen_slickgrid(@workareas, column_options, {
+    :caption => "PGA-Workarea aus GV$SQL_Workarea für Instance=#{@instance}, SQL-ID='#{@sql_id}' (#{@workareas.length} Records)",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+

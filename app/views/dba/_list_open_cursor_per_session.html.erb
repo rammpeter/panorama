@@ -1,0 +1,55 @@
+<%
+
+   @update_area = get_unique_area_id
+
+   def link_column_workarea(rec, value)
+       ajax_link(value, {
+                :controller        => "dba_sga",
+                :action            => "list_cursor_memory",
+                :update_area       => @update_area,
+                :instance          => @instance,
+                :sql_id            => rec.sql_id
+              },
+        :title => "Show details of PGA-Workarea"
+        )
+   end
+
+   def link_saddr_session(rec)
+     output = rec.own_saddr
+     if rec.own_saddr == 'NO'
+       output << ": "
+       output << ajax_link("NO: SID=#{rec.saddr_sid}, Serial#=#{rec.saddr_serial_no}", {
+                               :action => :show_session_detail,
+                               :instance => @instance,
+                               :sid      => rec.saddr_sid,
+                               :serial_no => rec.saddr_serial_no,
+                               :update_area => @update_area
+                              },
+                       :title => "Show details for session referenced by gv$Open_Cursor.SAddr"
+        )
+     end
+     output.html_safe
+   end
+
+   column_options = []
+   column_options << {:caption=>"SQL-ID",               :data=>proc{|rec| link_sql_id(@update_area, @instance, rec.sql_id, childno: (get_db_version >= '12.1' ? rec.child_number : nil) )}, :title=>"SQL-ID of statement"}
+   column_options << {:caption=>"Child no.",            :data=>proc{|rec| fn(rec.child_number)},                                                          :title=>"Child number of statement"} if get_db_version >= '12.1'
+   column_options << {:caption=>"Est. Opt. Size (kB)",  :data=>proc{|rec| link_column_workarea(rec, fn(rec.estimated_optimal_size_kb))}, :align=>"right", :title=>"Estimated size in kBytes required by this work area to execute the operation completely in memory (optimal execution).\nDerived from either optimizer statistics or previous executions in.", data_title: proc{|rec| "%t\n#{size_explain((rec.estimated_optimal_size_kb/1024.0 rescue nil))}"}}
+   column_options << {:caption=>"Est. Onep. Size (kB)", :data=>proc{|rec| link_column_workarea(rec, fn(rec.estimated_onepass_size_kb))}, :align=>"right", :title=>"Estimated size in kBytes required by this work area to execute the operation in a single pass.\nDerived from either optimizer statistics or previous executions in", data_title: proc{|rec| "%t\n#{size_explain((rec.estimated_onepass_size_kb/1024.0 rescue nil))}"}}
+   column_options << {:caption=>"Last Mem. Used (kB)",  :data=>proc{|rec| link_column_workarea(rec, fn(rec.last_memory_used_kb))},       :align=>"right", :title=>"Memory in kBytes used by this work area during the last execution of the cursor in", data_title: proc{|rec| "%t\n#{size_explain((rec.last_memory_used_kb/1024.0 rescue nil))}"}}
+   column_options << {:caption=>"Active Time (ms)",     :data=>proc{|rec| link_column_workarea(rec, fn(rec.active_time_ms))},            :align=>"right", :title=>"Average time this work area is active in milliseconds", data_title: proc{|rec| "%t\n#{seconds_explain((rec.active_time_ms/1000.0 rescue nil))}"}}
+   column_options << {:caption=>"Max. Temp (kB)",       :data=>proc{|rec| link_column_workarea(rec, fn(rec.max_tempseg_size_kb))}, :align=>"right",       :title=>"Maximum temporary segment size (in bytes) created by an instantiation of this work area. This column is null if this work area has never spilled to disk.", data_title: proc{|rec| "%t\n#{size_explain((rec.max_tempseg_size_kb/1024.0 rescue nil))}"}}
+   column_options << {:caption=>"Last Temp (kB)",       :data=>proc{|rec| link_column_workarea(rec, fn(rec.last_tempseg_size_kb))}, :align=>"right",      :title=>"Temporary segment size (in bytes) created in the last instantiation of this work area. This column is null if the last instantiation of this work area did not spill to disk.", data_title: proc{|rec| "%t\n#{size_explain((rec.last_tempseg_size_kb/1024.0 rescue nil))}"}}
+   column_options << {:caption=>"SQL-Text",      :data=>proc{|rec| my_html_escape(rec.sql_text)},                                                                            :title=>"First characters of SQL-text"}
+   column_options << {:caption=>"Own SAddr",     :data=>proc{|rec| link_saddr_session(rec)},                                                                 :title=>"Does gv$Open_Cursor.SAddr reference same session like gv$Open_Cursor.SID? If not, session referenced by SAddr is shown"}
+   column_options << {caption: 'Last active',    data: proc{|rec| localeDateTime(rec.last_sql_active_time)},     title: "Time when this cursor was last executed"} if get_db_version >= '11.1'
+   column_options << {caption: 'SQL exec ID',    data: proc{|rec| fn(rec.sql_exec_id)}, align: :right,           title: "If the open cursor is executing, then the SQL execution identifier for that execution"} if get_db_version >= '11.1'
+   column_options << {caption: 'Cursor_Type',    data: proc{|rec| rec.cursor_type},                              title: "Type of cursor:\nOPEN PL/SQL - Open PL/SQL cursors\nOPEN - Other open cursors\nSESSION CURSOR CACHED - Cursors cached in the generic session cursor cache\nOPEN RECURSIVE - Open recursive cursors\nDICTIONARY LOOKUP CURSOR CACHED - Cursors cached in the dictionary lookup cursor cache\nBUNDLE DICTIONARY LOOKUP CACHED - Cursors cached in the bundled dictionary lookup cursor cache\nJAVA NAME TRANSLATION CURSOR CACHED - Cursors cached in the Java name translation cursor cache\nREPLICATION TRIGGER CURSOR CACHED - Cursors cached in the replication trigger cursor cache\nCONSTRAINTS CURSOR CACHED - Cursors cached in the constraints cursor cache\nPL/SQL CURSOR CACHED - Cursors cached in the PL/SQL cursor cache"} if get_db_version >= '12.1'
+
+%>
+<%= gen_slickgrid(@opencursors, column_options, {
+        :caption    => "Open cursors for instance=#{@instance}, SID=#{@sid}",
+        :max_height => 450,
+        show_pin_icon: 1,
+        update_area: @update_area
+}) %>

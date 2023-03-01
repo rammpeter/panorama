@@ -1,0 +1,51 @@
+<%
+  @update_area = get_unique_area_id
+  link_sessions = proc do |rec|
+    ajax_link(fn(rec.sessions),
+              {controller: :dba,
+               action:      :list_sessions,
+               service_name:rec.name,
+               instance:    @instance,
+               pdb_name:    @pdb_name,
+               update_area: @update_area,
+              },
+              title: "Show currently connected sessions for service #{rec.name}"
+    )
+  end
+
+  column_options = []
+  column_options << {caption: 'ID',               data: proc{|rec| fn(rec.service_id)},                 title: "Unique ID for the service", align: :right}
+  column_options << {caption: 'Name',             data: proc{|rec| rec.name},                           title: "Name of the service"}
+  column_options << {caption: 'Network name',     data: proc{|rec| rec.network_name},                   title: "Network name used to connect to the service"}
+  column_options << {caption: 'Sessions',         data: link_sessions,                                  title: "Number of currently connected sessions", align: :right}
+  column_options << {caption: 'Creation',         data: proc{|rec| localeDateTime(rec.creation_date)},  title: "Date the service was created"}
+  column_options << {caption: 'Failover method',  data: proc{|rec| rec.failover_method},                title: "Failover method (BASIC or NONE) for the service"}
+  column_options << {caption: 'Failover type',    data: proc{|rec| rec.failover_type},                  title: "Failover type (SESSION or SELECT) for the service"}
+  column_options << {caption: 'Failover retries', data: proc{|rec| fn(rec.failover_retries)},           title: "Number of retries when failing over the service", align: :right}
+  column_options << {caption: 'Failover delay',   data: proc{|rec| fn(rec.failover_delay)},             title: "Delay between retries when failing over the service", align: :right}
+  column_options << {caption: 'Goal',             data: proc{|rec| rec.goal},                           title: "Service workload management goal"}
+  column_options << {caption: 'DTP',              data: proc{|rec| rec.dtp},                            title: "Indicates whether the service is for DTP or distributed transactions including XA transactions (Y) or (N)"}
+  column_options << {caption: 'AQ HA',            data: proc{|rec| rec.aq_ha_notifications},            title: "Indicates whether AQ notifications are sent for HA events (YES) or not (NO)"}
+  column_options << {caption: 'CLB goal',         data: proc{|rec| rec.clb_goal},                       title: "Connection load balancing goal. It is used with statistics that are sent to the listeners to determine how new connections are distributed. It may be either LONG or SHORT."}
+  column_options << {caption: 'Edition',          data: proc{|rec| rec.edition},                        title: "A non-NULL value specifies the initial session edition for subsequent database connections that use the service and do not specify an edition. A NULL value has no effect."}
+  column_options << {caption: 'Commit outcome',   data: proc{|rec| rec.commit_outcome},                 title: "This attribute is used for Transaction Guard. When COMMIT_OUTCOME is set to TRUE, Transaction Guard manages the commit status for all supported transaction types.\nThe attribute is on a per session basis and is set at connect time."} if get_db_version >= '12.1'
+  column_options << {caption: 'Retention timeout', data: proc{|rec| fn rec.retention_timeout},          title: "For Transaction Guard (COMMIT_OUTCOME set to TRUE), this parameter determines the amount of time (in seconds) that the commit outcome is retained in the database", align: :right} if get_db_version >= '12.1'
+  column_options << {caption: 'Replay init. timeout', data: proc{|rec| fn rec.replay_initiation_timeout},  title: "For Application Continuity, indicates a time period (in seconds) after which the request will not be replayed.\nThe time period starts at the first request submission.\nThe default value is 300 seconds, which is 5 minutes.", align: :right} if get_db_version >= '12.1'
+  column_options << {caption: 'Session state consitency', data: proc{|rec| rec.session_state_consistency}, title: "Describes how non-transactional is changed during a request. This parameter is considered only if failover_type is set to TRANSACTION for Application Continuity. Examples of session state are NLS settings, optimizer preferences, event settings, PL/SQL global variables, temporary tables, advanced queues, LOBs and result cache. If non-transactional values change after the request starts, the default value of DYNAMIC should be set. Almost all applications should use DYNAMIC mode. If you are unsure, use DYNAMIC mode."} if get_db_version >= '12.1'
+  column_options << {caption: 'Global service',   data: proc{|rec| rec.global_service},                 title: "Indicates whether the service is global. A global service is managed by Global Data Services (GDS) and can be provided by multiple databases that contain replicated data. "} if get_db_version >= '12.1'
+  column_options << {caption: 'PDB',              data: proc{|rec| rec.pdb},                            title: "Name of a PDB associated with a given service.\nWill contain NULL for a non-CDB or if the service is not associated with a PDB (that is, connecting to a CDB using this service will cause a user to connect to the root.)\nWhen managing services for a PDB, use SRVCTL for Oracle RAC and Oracle RAC One Node databases, or connect to that PDB if it is a single instance (not RAC).\nThe PDB attribute shows which PDB has the service.\nIt cannot be set or modified explicitly."} if get_db_version >= '12.1'
+  column_options << {caption: 'SQL transl. profile', data: proc{|rec| rec.sql_translation_profile},     title: "A non-NULL value specifies the initial SQL translation profile for subsequent database connections that use the service and do not specify a SQL translation profile. A NULL value has no effect."} if get_db_version >= '12.1'
+  column_options << {caption: 'Max. lag time',    data: proc{|rec| rec.max_lag_time},                   title: "The maximum replication lag (in seconds) that is acceptable for a data replica to be used for providing the database service. Can only be specified for global services using the Global Data Services (GDS) interfaces. It is not supported to change this value at local databases.", align: :right} if get_db_version >= '12.1'
+  column_options << {caption: 'GSM flags',        data: proc{|rec| rec.gsm_flags},                      title: "Flags specific to Global Data Services (GDS). Can only be specified for global services using the GDS interfaces. It is not supported to change these values at local databases."} if get_db_version >= '12.1'
+  column_options << {caption: 'PQ svc.',          data: proc{|rec| rec.pq_svc},                         title: "Name of the associated parallel query rim service"} if get_db_version >= '12.2'
+  column_options << {caption: 'Stop option',      data: proc{|rec| rec.stop_option},                    title: "Stop option for sessions of this service for planned maintenance"} if get_db_version >= '12.2'
+  column_options << {caption: 'Failover restore', data: proc{|rec| rec.failover_restore},               title: "Indicates whether sessions recover their commonly used session state (like NLS, schema) when they are failed over with TAF"} if get_db_version >= '12.2'
+  column_options << {caption: 'Drain timeout',    data: proc{|rec| fn rec.drain_timeout},               title: "Number of seconds to wait for sessions to be drained", align: :right} if get_db_version >= '12.2'
+  column_options << {caption: 'Table family ID',  data: proc{|rec| fn rec.table_family_id},             title: "Sharded table family ID associated with the service", align: :right} if get_db_version >= '19.0'
+  column_options << {caption: 'Placement policy', data: proc{|rec| fn rec.placement_policy},            title: "Placement policy for the service. Possible values:\n0: PDB-NONE\n1: PDB-SINGLETON\n2: PDB-UNIFORM", align: :right} if get_db_version >= '19.0'
+%>
+
+<%= gen_slickgrid(@services, column_options, {
+  caption: "TNS Services from DBA_Services#{" Instance=#{@instance}" if @instance}#{" PDB='#{@pdb_name}'" if @pdb_name}",
+  max_height: 450, show_pin_icon: 1, update_area:   @update_area })
+%>

@@ -1,0 +1,565 @@
+<%= render_page_caption("Description of #{@table_type} #{@owner}.#{@table_name}") %>
+
+<% @update_area = get_unique_area_id %>
+
+<div class="yellow-panel">
+    <%=  my_html_escape(@comment).html_safe %>
+</div>
+
+<%
+
+   def link_lob(rec)
+       ajax_link(rec.lob_segment, {
+                                  :update_area => @update_area,
+                                  :action      => :list_lobs,
+                                  :owner       => @owner,
+                                  :table_name  => @table_name,
+                                  :segment_name=> rec.lob_segment
+                          },
+                          :title => "Show LOB-segment for column")
+    end
+
+   def link_histogram(value, rec)
+     ajax_link(value, {
+                                :update_area => @update_area,
+                                :action      => :list_histogram,
+                                :owner       => @owner,
+                                :table_name  => @table_name,
+                                :data_type   => rec.data_type,
+                                :num_rows    => (@attribs[0].num_rows - rec.num_nulls rescue 0),
+                                :column_name => rec.column_name,
+                                histogram:      rec.histogram
+                        },
+                        :title => 'Show histogram data for column')
+   end
+
+   link_distinct = proc do |rec|
+     if rec.num_distinct&.< 100000
+       ajax_link(fn(rec.num_distinct), {
+         :update_area => @update_area,
+         :action      => :list_distinct_values,
+         :owner       => @owner,
+         :table_name  => @table_name,
+         :column_name => rec.column_name,
+         num_distinct: rec.num_distinct
+       }, :title => "Show distinct values and record counts for this column. Caution: May last some time related to size of table!")
+     else
+       fn(rec.num_distinct)
+     end
+   end
+
+column_options =
+[
+  {:caption=> 'Col.Name',          :data=>proc{|rec| rec.column_name},                         :title=> 'Column-Name'},
+  {:caption=> 'Type',              :data=>proc{|rec| rec.data_type},                           :title=> 'Data-Type'},
+  {:caption=> 'Prec.',             :data=>proc{|rec| rec.precision},                           :title=> 'Precision', :align=>:right},
+  {:caption=> 'Sc.',               :data=>proc{|rec| rec.data_scale},                          :title=> 'Scale', :align=>:right},
+  {:caption=> 'N.',                :data=>proc{|rec| rec.nullable},                            :title=> 'Nullable'},
+  {:caption=> 'Def.',              :data=>proc{|rec| rec.data_default},                        :title=> 'Default'},
+  {:caption=> 'Distinct',          :data=>link_distinct,                                       :title=> 'Number of distinct values in column', :data_title=>proc{|rec| "%t\n#{fn((@attribs[0].num_rows - rec.num_nulls).to_f  / rec.num_distinct, 1) rescue nil} rows per value" }, :align=>:right},
+  {:caption=> 'Nulls',             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=> 'Number of null values in column',     :align=>:right},
+  {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes', :data_title=>proc{|rec| "%t\nStorage allocation by column:\n#{size_explain((@attribs[0].num_rows * rec.avg_col_len rescue nil).to_f/(1024*1024))}"}, :align=>:right},
+  {:caption=> 'Density',           :data=>proc{|rec| fn(rec.density, 4)},                      :title=> 'If a histogram is available on COLUMN_NAME, then this column displays the selectivity of a value that spans fewer than 2 endpoints in the histogram. It does not represent the selectivity of values that span 2 or more endpoints. If a histogram is not available on COLUMN_NAME, then the value of this column is 1/NUM_DISTINCT.',     :align=>:right},
+  {:caption=> 'Buckets',           :data=>proc{|rec| link_histogram(fn(rec.num_buckets), rec)},:title=> 'Number of buckets in histogram for the column',     :align=>:right},
+  {:caption=> 'Histogram',         :data=>proc{|rec| link_histogram(rec.histogram, rec)},      :title=> 'Indicates existence/type of histogram'},
+  {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
+  {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segement for LOB columns'},
+]
+
+   column_options << {:caption=> 'EQ',                :data=>proc{|rec| fn(rec.equality_preds)},                  :title=> 'Number of usage as equality predicate, from sys.Col_Usage$',       :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+   column_options << {:caption=> 'EQJ',               :data=>proc{|rec| fn(rec.equijoin_preds)},                  :title=> 'Number of usage as equi join predicate, from sys.Col_Usage$',      :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+   column_options << {:caption=> 'NEQJ',              :data=>proc{|rec| fn(rec.nonequijoin_preds)},               :title=> 'Number of usage as nonequi join predicate, from sys.Col_Usage$',   :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+   column_options << {:caption=> 'Range',             :data=>proc{|rec| fn(rec.range_preds)},                     :title=> 'Number of usage as range predicate, from sys.Col_Usage$',          :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+   column_options << {:caption=> 'Like',              :data=>proc{|rec| fn(rec.like_preds)},                      :title=> 'Number of usage as like predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+   column_options << {:caption=> 'Null',              :data=>proc{|rec| fn(rec.null_preds)},                      :title=> 'Number of usage as null predicate, from sys.Col_Usage$',           :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
+%>
+
+<%= gen_slickgrid(@columns, column_options, {
+      :caption => "Columns of #{@table_type}  #{@owner}.#{@table_name}",
+      :max_height => 450, show_pin_icon: 1
+    })
+%>
+
+
+<%
+
+   def link_tab_partitions
+     if @partition_count == 0
+       @partition_count
+     else
+       ajax_link(fn(@partition_count),
+                               {:action       => :list_table_partitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               },
+                       :title=>"Show partitions of table #{@owner}.#{@table_name}"
+         )
+     end
+   end
+
+   def link_tab_subpartitions
+     if @subpartition_count == 0
+       @subpartition_count
+     else
+       ajax_link(fn(@subpartition_count),
+                               {:action       => :list_table_subpartitions,
+                                :owner        => @owner,
+                                :table_name   => @table_name,
+                                :update_area  => @update_area,
+                               },
+                       :title=>"Show sub-partitions of table #{@owner}.#{@table_name}"
+       )
+     end
+   end
+
+   def link_last_analyzed(rec)
+     ajax_link(localeDateTime(rec.last_analyzed),
+                {:action      => :list_gather_table_historic,
+                 :owner       => @owner,
+                 :table_name  => @table_name,
+                 :update_area => @update_area,
+                },
+                :title=>'Show preferences, extended statistics and historic gather_table_stats-operations for table'
+    )
+   end
+
+   link_real_num_rows = proc do |rec|
+     update_area = "#{@update_area}_num_rows"
+     ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
+                             :controller      => :storage,
+                             :action          => :list_real_num_rows,
+                             :owner           => @owner,
+                             :name            => @table_name,
+                             :update_area     => update_area
+                            },
+                     :title=>"Count current number of rows in Table. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+   end
+
+   link_extents = proc do |rec|
+     ajax_link(fn(rec.extents),
+                {:controller    => :storage,
+                 :action        => :list_object_extents,
+                 :owner         => @owner,
+                 :segment_name  => @table_name,
+                 :update_area   => @update_area,
+                },
+                :title=>"List distribution of storage extents for table. Caution: Execution may last some time!"
+    )
+   end
+
+   create_data_title = proc do |rec|
+     result = "%t"
+     result << "\nFirst creation of a partition = #{localeDateTime(@partition_attribs.min_created)}" if @attribs[0].partitioned == 'YES'
+     result << "\nLast creation of a partition = #{localeDateTime(@partition_attribs.max_created)}" if @attribs[0].partitioned == 'YES'
+    result
+   end
+
+   last_ddl_data_title = proc do |rec|
+     result = "%t"
+     result << "\nTimestamp of last DDL operation of a partition = #{localeDateTime(@partition_attribs.last_ddl_time)}" if @attribs[0].partitioned == 'YES'
+     result
+   end
+    spec_ts_data_title = proc do |rec|
+     result = "%t"
+     result << "\nTimestamp for the last specification change of a partition = #{localeDateTime(@partition_attribs.last_spec_ts)}" if @attribs[0].partitioned == 'YES'
+     result
+   end
+
+   blocks_data_title = proc do |rec|
+     "\n\nNumber of used blocks below high water mark = #{fn(rec.blocks)}\nNumber of allocated blocks in segments = #{fn(rec.segment_blocks)} "
+   end
+
+   list_states = proc do |rec|
+    result = ''
+    result << "#{'<br/>' if result.length > 0}IOT-Type = #{rec.iot_type}"                                                                 if rec.iot_type
+    result << "#{'<br/>' if result.length > 0}TEMPORARY (#{rec.duration.gsub(/SYS\$/, '')})"                                              if rec.temporary == 'Y'
+    result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree.to_i != 1
+    result << "#{'<br/>' if result.length > 0}Cached =  #{rec.cache}"                                                                     if rec.cache.strip != 'N'
+    result << "#{'<br/>' if result.length > 0}Compression = #{rec.compression} (#{rec.compress_for})"                                     if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A')
+    result << "#{'<br/>' if result.length > 0}Partition default for compression = #{rec.def_compression} (#{rec.def_compress_for})"       if !(rec.def_compression.nil? || rec.def_compression == 'DISABLED' || rec.def_compression == 'N/A')
+    result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1.0.2' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')
+    result << "#{'<br/>' if result.length > 0}Partition default for InMemory = #{rec.def_inmemory}"                                       if get_db_version >= '12.1.0.2' && !(rec.def_inmemory.nil? || rec.def_inmemory == 'DISABLED' || rec.def_inmemory == 'N/A' || rec.def_inmemory == 'NONE')
+    result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1.0.2' && rec.flash_cache != 'DEFAULT'
+    result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1.0.2' && rec.cell_flash_cache != 'DEFAULT'
+    result << "#{'<br/>' if result.length > 0}Clustering Type = #{rec.clustering_type}"                                                   if get_db_version >= '12.1.0.2' && !rec.clustering_type.nil?
+    result << "#{'<br/>' if result.length > 0}Clustering Keys = #{rec.clustering_keys}"                                                   if get_db_version >= '12.1.0.2' && !rec.clustering_keys.nil?
+    result << "#{'<br/>' if result.length > 0}Clustering On Load = #{rec.ct_on_load}"                                                     if get_db_version >= '12.1.0.2' && rec.ct_on_load == 'YES'
+    result << "#{'<br/>' if result.length > 0}Clustering On DataMovement = #{rec.ct_on_datamovement}"                                     if get_db_version >= '12.1.0.2' && rec.ct_on_datamovement == 'YES'
+    result << "#{'<br/>' if result.length > 0}Clustering With Zonemap = #{rec.ct_with_zonemap}"                                           if get_db_version >= '12.1.0.2' && rec.ct_with_zonemap == 'YES'
+    result << "#{'<br/>' if result.length > 0}Clustering Valid = #{rec.ct_valid}"                                                         if get_db_version >= '12.1.0.2' && !rec.ct_valid.nil? && rec.ct_valid != 'YES'
+    @stat_prefs.each {|p| result << "#{'<br/>' if result.length > 0}#{p}" }
+    result.html_safe
+  end
+
+  title_states = "Special states of table (shown only if not default):
+- Index-only table: IOT, IOT_OVERFLOW or IOT_MAPPING
+- Temporary table
+- Default parallel degree (if != 1)
+- Cached in buffer cache
+- Compression of table
+- InMemory
+- Smart flash cache
+- Cell flash cache
+- Clustering
+- Statistic preferences (dbms_stats.set_table_prefs)
+"
+
+   link_space_usage = proc do |rec, value|
+     ajax_link(value,
+                             {:action       => :list_space_usage,
+                              :owner        => @owner,
+                              :segment_name => @table_name,
+                              :update_area  => @update_area,
+                             },
+                     :title=>"Show space usage for #{@owner}.#{@table_name} from DBMS_SPACE.SPACE_USAGE"
+       )
+   end
+
+   list_rac_master = proc do |rec|
+     if @rac_attribs
+       if @rac_attribs.current_master_cnt > 1
+         value = "<&nbsp;#{@rac_attribs.current_master_cnt} different&nbsp;>".html_safe
+       else
+         value = @rac_attribs.current_master
+       end
+
+       ajax_link(value,
+                {controller:  :dba_waits,
+                 action:      :list_drm_historic_single_records,
+                 owner:       @owner,
+                 object_name: @table_name,
+                 update_area: @update_area,
+                },
+                :title=>"List dynamic remastering events for this object"
+    )
+
+     else
+       'No info'
+     end
+   end
+
+   data_title_rac_master = proc do |rec|
+     title = "%t"
+     if @rac_attribs
+       if @rac_attribs.previous_master_cnt == 1
+         if @rac_attribs.previous_master == 32768
+           title << "\nNo previous master instance because no remastering happened"
+         else
+           title << "\nPrevious master instance = #{@rac_attribs.previous_master}"
+         end
+       else
+         title << "\n#{@rac_attribs.previous_master_cnt} different previous master instances"
+       end
+
+       if @rac_attribs.gc_mastering_policy_cnt == 1
+         title << "\nGC mastering policy = #{@rac_attribs.gc_mastering_policy}"
+       else
+         title << "\n#{@rac_attribs.gc_mastering_policy_cnt} different mastering policies"
+       end
+       title << "\nNumber of remastering events = #{@rac_attribs.remaster_cnt}"
+     end
+     title
+   end
+
+   data_title_part_def = proc do |value, text=nil|
+     text.nil? ? "%t#{"\n\nPartition default = #{value}" if !value.nil? }" : "#{"\n#{text} = #{value}" if !value.nil?}"
+   end
+
+   data_title_ini_trans = proc do |rec|
+     "%t#{                                data_title_part_def.call(rec.def_ini_trans, 'Partition default for initial transactions')}
+Number of maximum transactions (MAX_TRANS) = #{rec.max_trans} #{data_title_part_def.call(rec.def_max_trans, 'Partition default for max. transactions')}"
+   end
+
+   data_title_initial_extent = proc do |rec|
+     "%t#{                                data_title_part_def.call(rec.def_initial_extent   == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_initial_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for initial extent')}
+Next extent = #{rec.next_extent} kBytes #{data_title_part_def.call(rec.def_next_extent      == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_next_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for next extent')}
+Min. extents = #{rec.min_extents}  #{     data_title_part_def.call(rec.def_min_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_min_extents), 'Partition default for min. extents')}
+Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_max_extents), 'Partition default for max. extents')}"
+   end
+
+   blocksize = PanoramaConnection.db_blocksize                                   # call only once
+
+   column_options = []
+   column_options << {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name', data_title: proc{|rec| data_title_part_def.call(rec.def_tablespace_name)} }
+   column_options << {:caption=> 'Pct Free',         :data=>proc{|rec| rec.pct_free},                         :title=> 'Percent free', data_title: proc{|rec| data_title_part_def.call(rec.def_pct_free)}, :align=>:right}
+   column_options << {:caption=> 'Init. Trans',      :data=>proc{|rec| rec.ini_trans},                        :title=> 'Number of initial entries in transaction list of db block', :align=>:right, data_title: data_title_ini_trans}
+   column_options << {:caption=> 'Initial extent (KB)',:data=>proc{|rec| rec.initial_extent},                 :title=> 'Size of initial extent allocated at object creation in kByte', :align=>:right, data_title: data_title_initial_extent}
+   column_options << {:caption=> 'Rows',             :data=>link_real_num_rows,                               :title=> 'Number of rows calculated by last analyze run', :align=>:right}
+   column_options << {:caption=> 'Size (MB) Table',  data: proc{|rec| link_space_usage.call(rec, fn(rec.size_mb_table, 2))}, :title=> 'Current table size in megabytes (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb_table)}#{blocks_data_title.call(rec)}"}}
+   column_options << {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(@size_mb_total)}"}}
+   column_options << {:caption=> 'Ext.',             :data=>link_extents,                                     :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"} }
+   column_options << {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table)))}, :title=> "Unused storage of table within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: proc{|rec| "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table), 3)}"}, :align=>:right}
+   column_options << {:caption=> 'Empty',            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=> "Number of empty (never used) blocks calculated by last analyze run\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}                                              if @attribs.count > 0 && @attribs[0].empty_blocks != 0
+   column_options << {:caption=> 'Avg. Spc.',        :data=>proc{|rec| fn(rec.avg_space)},                    :title=> "Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}   if @attribs.count > 0 && @attribs[0].avg_space != 0
+   column_options << {:caption=> 'Chn.',             :data=>proc{|rec| fn(rec.chain_cnt)},                    :title=> "Number of chained rows calculated by last analyze run.\nThis metric is not populated by calls of DBMS_STATS.Gather_xxx_Stats.\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}  if @attribs.count > 0 && @attribs[0].chain_cnt != 0
+   column_options << {:caption=> 'Row len.',         :data=>proc{|rec| fn(rec.avg_row_len)},                  :title=> 'Avg. row len in bytes calculated by last analyze run', :align=>:right}
+   column_options << {:caption=> 'Part.',            :data=>proc{|rec| link_tab_partitions},                  :title=> "Number of partitions for this table", data_title: proc{|rec| "%t\n\n#{@partition_expression}"}, :align=>:right}
+   column_options << {:caption=> 'Sub-Part.',        :data=>proc{|rec| link_tab_subpartitions},               :title=> "Number of subpartitions for this table", data_title: proc{|rec| "%t\n\n#{@partition_expression}"}, :align=>:right}
+   column_options << {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation', data_title: create_data_title}
+   column_options << {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table', data_title: last_ddl_data_title}
+   column_options << { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the table", data_title: spec_ts_data_title }
+   column_options << {:caption=> 'Last analyzed',    :data=>proc{|rec| link_last_analyzed(rec)},              :title=> "The date of the most recent time this table was analyzed, Prefs: #{@stat_prefs.join(' ')}" }
+   column_options << {:caption=> 'Log.',             :data=>proc{|rec| rec.logging},                          :title=> "Indicates whether or not changes to the table are logged in Redo-Log.\nNULL for partitioned tables" }
+   column_options << {:caption=> 'Mon.',             :data=>proc{|rec| rec.monitoring},                       :title=> "Indicates whether the table has the MONITORING attribute set (YES) or not (NO)" }
+   column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                       :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
+   column_options << {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                       :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
+   column_options << {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                       :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nValues are cumulated also if rows are removed by ALTER TABLE DROP PARTITION instead of DELETE.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
+   column_options << {:caption=> 'Trunc.',           :data=>proc{|rec| rec.truncated},                        :title=> "Has table been truncated since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}  if get_db_version >= '11.2'
+   column_options << {:caption=> 'Drop seg.',        :data=>proc{|rec| fn rec.drop_segments},                 :title=> "Number of partition and subpartition segments dropped since last table analysis if table has MONITORING-flag.\nALTER TABLE DROP PARTITION also increases the number of delete-operations even though no explicit delete operation happened.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
+   column_options << {:caption=> 'Last DML',         :data=>proc{|rec| localeDateTime(rec.last_dml)},         :title=> "Timestamp of last DML-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}
+   column_options << {:caption=> 'Several States',   :data=>list_states,                          :title=> title_states}
+   column_options << {:caption=> 'RAC master inst.', :data=>list_rac_master,                                  :title=> "Current master instance for cache block states in RAC (from V$GCSPFMASTER_INFO)", data_title: data_title_rac_master} if defined?(@rac_attribs) # PanoramaConnection.rac?
+
+
+%>
+
+<%= gen_slickgrid(@attribs, column_options, {
+      :caption => "Attributes of #{"the underlying table of " if @table_type == 'MATERIALIZED VIEW'}#{@table_type} #{@owner}.#{@table_name}",
+      :height => :auto, show_pin_icon: 1
+}) if @attribs.count > 0
+%>
+
+<%
+  column_options =
+      [
+          {:caption=> 'XML schema owner',  :data=>proc{|rec| rec.schema_owner},                     :title=> 'Owner of the XML Schema that is used for the table definition'},
+          {:caption=> 'XML schema name',   :data=>proc{|rec| rec.xmlschema},                        :title=> 'Name of the XML Schema that is used for the table definition'},
+          {:caption=> 'Storage type',      :data=>proc{|rec| rec.storage_type},                     :title=> 'Storage option for the XMLType data'},
+          {:caption=> 'Any schema',        :data=>proc{|rec| rec.anyschema},                        :title=> 'If storage is BINARY, indicates whether the column allows ANYSCHEMA (YES) or not (NO), else NULL'},
+          {:caption=> 'Non schema',        :data=>proc{|rec| rec.nonschema},                        :title=> 'If storage is BINARY, indicates whether the column allows NONSCHEMA (YES) or not (NO), else NULL'},
+      ]
+
+%>
+
+
+<%= gen_slickgrid(@xml_attribs, column_options, {
+    :caption => "Attributes of XML-table #{@owner}.#{@table_name}",
+    :height => :auto, show_pin_icon: 1
+}) if @xml_attribs.count > 0
+%>
+
+
+
+<% if @mv_attribs %>
+  <%=
+    @update_area_mv_attribs = get_unique_area_id
+    render_async(:storage, :list_materialized_view_action, {
+        all_mviews:  "All local materialized views",
+        owner:                          @owner,
+        name:                           @table_name,
+        called_from_object_description: true,
+        update_area:                    @update_area_mv_attribs
+    })
+  %>
+  <div id="<%= @update_area_mv_attribs %>"></div>
+
+  <h4>Viewtext of materialzed view <%= @owner %>.<%= @table_name %></h4>
+  <%=  render_code_mirror(@mv_attribs.query) %>
+<% end %>
+
+<% if @mv_log_count > 0 %>
+  <%=
+    @update_area_mv_logs = get_unique_area_id
+    render_async(:storage, :list_materialized_view_action, {
+        mview_logs:  'Materialized view logs',
+        log_owner:   @owner,
+        master:      @table_name,
+        update_area: @update_area_mv_logs
+    })
+  %>
+<% end %>
+<div id="<%= @update_area_mv_logs %>"></div>
+
+<% if @unique_constraints.count > 0 %>
+    <%=
+        column_options =
+                [
+                        {:caption=> 'Constraint name',       :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                        {:caption=> 'Column(s)',             :data=>proc{|rec| rec.columns},                     :title=> 'Columns for enforcement of uniqueness'},
+                        {:caption=> 'Status',                :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+                        {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+                        {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+                        {:caption=> 'Last change',           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
+                        {:caption=> 'Index',                 :data=>proc{|rec| rec.index_name},                  :title=> 'Name of index used for enforcement of unique constraint'},
+                ]
+
+        gen_slickgrid(@unique_constraints, column_options, {
+                :caption => "Unique constraints for  #{@table_type} #{@owner}.#{@table_name}",
+                :height => :auto
+        })
+    %>
+
+<% end %>
+
+<%=
+  @update_area_policies = get_unique_area_id
+  render_async(:dba_schema, :list_object_policies, {
+    owner:          @owner,
+    object_name:    @table_name,
+    update_area:    @update_area_policies
+  })
+%>
+<div id="<%= @update_area_policies %>"></div>
+
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@indexes} Indexes", {
+        :update_area => @update_area,
+        :action      => :list_indexes,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show indexes for object #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@pkeys} Primary Key", {
+        :update_area => @update_area,
+        :action      => :list_primary_key,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show primary key for object #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@check_constraints} Check Constraints", {
+        :update_area => @update_area,
+        :action      => :list_check_constraints,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show check constraints for object #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@references_from} References from", {
+        :update_area => @update_area,
+        :action      => :list_references_from,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show foreign key references from table #{@owner}.#{@table_name} to other tables")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@references_to} References to", {
+        :update_area => @update_area,
+        :action      => :list_references_to,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show foreign key references from other tables to table #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@triggers} Triggers", {
+        :update_area => @update_area,
+        :action      => :list_triggers,
+        :owner       => @owner,
+        :table_name  => @table_name
+    }, :title => "Show triggers for table #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@dependencies} Dependencies", {
+        :update_area => @update_area,
+        :action      => :list_dependencies,
+        :owner       => @owner,
+        :object_name  => @table_name,
+        :object_type  => @table_type
+    }, :title => "Show object dependencies for table #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <% if @lobs > 0 %>
+    <div class="flex-row-element">
+      <%= ajax_submit("#{@lobs} LOBs", {
+          :update_area => @update_area,
+          :action      => :list_lobs,
+          :owner       => @owner,
+          :table_name  => @table_name
+      }, :title => "Show LOB-segments for table #{@owner}.#{@table_name}")
+      %>
+    </div>
+  <% end %>
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@grants} Grants", {
+        :update_area => @update_area,
+        :action      => :list_grants,
+        :owner       => @owner,
+        :object_name => @table_name
+    }, :title => "Show grants for #{@object_type} #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('DBMS_METADATA', {
+        :update_area => @update_area,
+        :action      => :list_dbms_metadata_get_ddl,
+        :owner       => @owner,
+        :table_name  => @table_name,
+        :object_type => @table_type
+    }, :title => "Show DDL create statement for #{@owner}.#{@table_name} generated by DBMS_METADATA.GET_DDL")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('DB-Cache', {
+        :update_area => @update_area,
+        :action      => :list_db_cache_by_object,
+        :controller  => :dba_sga,
+        owner:       @owner,
+        object_name: @table_name
+    }, :title => "Usage of DB-cache for object #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("Sessions accessing", {
+        :update_area   => @update_area,
+        :controller    => :dba,
+        :action        => :list_sessions,
+        :object_owner  => @owner,
+        :object_name   => @table_name
+    }, :title => "Sessions accessing object #{@owner}.#{@table_name} in library cache (from GV$Access)")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('SQLs', {
+        :update_area => @update_area,
+        :controller  => :dba_sga,
+        :action      => :show_using_sqls,
+        :ObjectOwner => @owner,
+        :ObjectName  => @table_name
+    }, :title => "List SQLs in SGA (via gv$SQL_Plan) accessing #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('Active Session History', {
+        update_area: @update_area,
+        controller:  :active_session_history,
+        action:      :show_prepared_active_session_history,
+        db_object:    "#{@owner.downcase}.#{@table_name}",
+    }, :title => "Show sessions from active session history accessing #{@owner}.#{@table_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('Segment statistics', {
+        update_area:            @update_area,
+        controller:             :dba_history,
+        action:                 :list_segment_stat_hist_detail,
+        owner:                  @owner,
+        object_name:            @table_name,
+    }, :title => "Show segement statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{@table_name}")
+    %>
+  </div>
+
+  <% if get_cached_panorama_object_sizes_exists %>
+    <div class="flex-row-element">
+      <%= ajax_submit('Size evolution', {
+          update_area:            @update_area,
+          controller:             :addition,
+          action:                 :time_for_object_increase,
+          owner:                  @owner,
+          name:                   @table_name,
+      }, :title => "Show object size evolution for #{@owner}.#{@table_name}")
+      %>
+    </div>
+  <% end %>
+
+</div>
+<div id="<%= @update_area %>"></div>

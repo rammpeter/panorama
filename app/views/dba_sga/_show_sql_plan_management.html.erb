@@ -1,0 +1,67 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("SQL plan management directives") %>
+
+<div class="flex-row-container">
+  <% unless @profile_count.nil? %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit("SQL profiles (#{@profile_count})", {
+            :update_area => @update_area,
+            :action      => :show_profiles,
+        }, :title =>t(:menu_sga_pga_sql_profiles_hint, :default=> 'Show all stored SQL profiles for this database')
+        )
+      %>
+    </div>
+  <% end %>
+
+  <% unless @baseline_count.nil? %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit("SQL plan baselines (#{@baseline_count})", {
+            :update_area => @update_area,
+            :action      => :show_plan_baselines,
+        }, :title =>t(:menu_sga_pga_sql_plan_baselines_hint, :default=> 'Show all stored SQL plan baselines for this database')
+        )
+      %>
+    </div>
+  <% end %>
+
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("Stored outlines (#{@outline_count})", {
+          :update_area => @update_area,
+          :action      => :show_stored_outlines,
+      }, :title =>t(:menu_sga_pga_stored_outlines_hint, :default=> 'Show all stored outlines for this database')
+      )
+    %>
+  </div>
+
+  <% unless @translation_count.nil? %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit("SQL translations (#{@translation_count})", {
+            :update_area => @update_area,
+            :action      => :show_sql_translations,
+        }, :title =>t(:menu_sga_pga_sql_translations_hint, :default=> "Show all stored SQL-translations for this database\ncreated by SQL translation framework (DBMS_SQL_TRANSLATOR)")
+        )
+      %>
+    </div>
+  <% end %>
+
+  <% unless @patches_count.nil? %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit("SQL patches (#{@patches_count})", {
+            :update_area => @update_area,
+            :action      => :show_sql_patches,
+        }, :title =>t(:dba_sga_show_sql_plan_management_patches_hint, :default=> "Show all SQL-patches of database")
+        )
+      %>
+    </div>
+  <% end %>
+</div>
+
+<div id="<%= @update_area %>">
+  <%= @sql_management_config %>
+</div>

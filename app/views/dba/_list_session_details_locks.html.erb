@@ -1,0 +1,80 @@
+<%
+   @update_area = get_unique_area_id
+
+    link_blocking_sid = proc do |rec|
+        ajax_link(rec.blocking_instance_number ? "#{rec.blocking_instance_number}:#{rec.blocking_sid},#{rec.blocking_serial_no}" : "", {
+                 :action            => :show_session_detail,
+                 :instance          => rec.blocking_instance_number,
+                 :sid               => rec.blocking_sid,
+                 :serial_no          => rec.blocking_serial_no,
+                 :update_area       => @update_area
+                },
+         :title => "Show details for blocking session"
+       )
+    end
+
+    link_blocking_rowid = proc do |rec|
+        update_area = "rowid_detail_area_#{@instance}_#{@sid}_#{rec.rownum}"
+        ajax_link(rec.waitingforrowid, {
+                                    :action => :show_rowid_details,
+                                    :update_area      => update_area,
+                                    :data_object_id   => rec.waitingfordata_object_id,
+                                    :waitingforrowid  => rec.waitingforrowid
+                                   },
+                :title => "Show details for RowID"
+         )+"<div id=\"#{update_area}\"></div>".html_safe
+    end
+
+   link_blocked_sid = proc do |rec|
+     ajax_link(rec.blocked_instance_number ? "#{rec.blocked_instance_number}:#{rec.blocked_sid},#{rec.blocked_serial_no}" : "", {
+         :action            => :show_session_detail,
+         :instance          => rec.blocked_instance_number,
+         :sid               => rec.blocked_sid,
+         :serial_no          => rec.blocked_serial_no,
+         :update_area       => @update_area
+     },
+               :title => "Show details for blocked session"
+     )
+   end
+
+   link_blocked_rowid = proc do |rec|
+     update_area = "blocked_rowid_detail_area_#{@instance}_#{@sid}_#{rec.rownum}"
+     ajax_link(rec.blocked_rowid, {
+         :action => :show_rowid_details,
+         :update_area      => update_area,
+         :data_object_id   => rec.blocked_data_object_id,
+         :waitingforrowid  => rec.blocked_rowid
+     },
+               :title => "Show details for RowID"
+     )+"<div id=\"#{update_area}\"></div>".html_safe
+   end
+
+   column_options =
+    [
+      {:caption=>"Locked Object",  :data=>proc{|rec| rec.object },                                                      :title=>"Name of locked object"},
+      {:caption=>"LT",             :data=>proc{|rec| rec.locktype },    :data_title=>proc{|rec| "Locktype: #{lock_types(rec.locktype)}" },    :title=>"Lock-Type"},
+      {:caption=>"ID1",            :data=>proc{|rec| rec.id1 },                                                         :title=>"ID1 from gv$Lock"},
+      {:caption=>"ID2",            :data=>proc{|rec| rec.id2 },                                                         :title=>"ID2 from gv$Lock"},
+      {:caption=>"R",              :data=>proc{|rec| rec.request },     :data_title=>proc{|rec| "#{lock_modes(rec.request)}" },     :title=>"Requested lock mode"},
+      {:caption=>"L",              :data=>proc{|rec| rec.lockmode },    :data_title=>proc{|rec| "#{lock_modes(rec.lockmode)}" },    :title=>"Hold lock mode"},
+      {:caption=>"Lock Sec.",      :data=>proc{|rec| fn(rec.seconds_in_lock) },                                         :title=>"Seconds since lock was granted to this session", data_title: proc{|rec| "%t\n#{seconds_explain(rec.seconds_in_lock)}"}, :align=>:right},
+      {:caption=>"Blocking SID",   :data=>link_blocking_sid,                                                            :title=>"SID of session that is blocking this session"},
+      {:caption=>"Blocking Object",:data=>proc{|rec| link_object_description(@update_area, rec.blocking_owner, rec.blocking_object_name) }, :title=>"Blocking object this session is waiting for"},
+      {:caption=>"Blocking RowID", :data=>link_blocking_rowid,                                                          :title=>"RowID in blocking object this session is waiting for"},
+      {:caption=>"Blocked SID",    :data=>link_blocked_sid,                                                            :title=>"SID of session that is blocked by this session"},
+      {:caption=>"Blocked Object", :data=>proc{|rec| link_object_description(@update_area, rec.blocked_owner, rec.blocked_object_name)},  :title=>"Object that is blocked by this session for another session"},
+      {:caption=>"Blocked RowID",  :data=>link_blocked_rowid,                                                          :title=>"RowID in object that is blocked by this session for another session.\n\nUnfortunately only works for unpartitioned tables."},
+
+    ]
+
+%>
+<%= gen_slickgrid(@locks, column_options, {
+        :caption => "Current DB-locks for instance=#{@instance}, SID=#{@sid}",
+        :width=>:auto,
+        show_pin_icon: 1,
+        update_area: @update_area
+}) %>
+
+
+
+

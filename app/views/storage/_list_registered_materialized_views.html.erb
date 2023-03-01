@@ -1,0 +1,80 @@
+<%
+@update_area = get_unique_area_id
+
+
+@link_text = proc do |rec, value|
+  if rec.mbytes
+    link_object_description(@update_area, rec.owner, rec.name, rec.name)
+  else
+    ajax_link(value, {
+                            :action          => :list_registered_mview_query_text,
+                            :mview_id        => rec.mview_id,
+                            :update_area     => @update_area
+                           },
+                    :title=>"Show query text of materialized view")
+  end
+end
+
+@link_real_num_rows = proc do |rec|
+  update_area = "list_registered_materialized_view_logs_#{rec.hash.abs}"
+  ajax_link(rec.mbytes ? (rec.num_rows ? fn(rec.num_rows) : "[No analyze]") : nil, {
+                          :action          => :list_real_num_rows,
+                          :owner           => rec.owner,
+                          :name            => rec.name,
+                          :update_area     => update_area
+                         },
+                  :title=>"Show current number of rows in MV. CAUTION: May be long running!")+"<br><div id=\"#{update_area}\"></div>".html_safe
+end
+
+@link_mview_site = proc do |rec|
+  if rec.mbytes
+    ajax_link(rec.mview_site, {
+                            :action          => :list_all_materialized_views,
+                            :owner           => rec.owner,
+                            :name            => rec.name,
+                            :update_area     => @update_area
+                           },
+                    :title=>"Show details for local materialized view")
+  else
+    rec.mview_site
+  end
+end
+
+@link_snapshot_logs = proc do |rec|
+  ajax_link(rec.snapshot_logs, {
+                          :action          => :list_snapshot_logs,
+                          :snapshot_id     => rec.mview_id,
+                          :update_area     => @update_area
+                         },
+                  :title=>"Show details for registered materialized view logs")
+end
+
+
+column_options =
+  [
+    {:caption=>"Owner",                 :data=>proc{|rec| rec.owner.downcase},                                :title=>"Owner of materialized view"},
+    {:caption=>"Name",                  :data=>proc{|rec| @link_text.call(rec, rec.name)},                    :title=>"Name of materialized view"},
+    {:caption=>"Num rows",              :data=>proc{|rec| @link_real_num_rows.call(rec)},                     :title=>"Number of rows of this MView-log recorded at last analyze (for local MViews only)", :align=>:right},
+    {:caption=>"Size (MB)",             :data=>proc{|rec| fn(rec.mbytes, 1)},                                 :title=>"Real current physical size of materialized view in MBytes (for local MViews only)", :align=>:right},
+    {:caption=>"MView site",            :data=>proc{|rec| @link_mview_site.call(rec)},                        :title=>"Global name of the materialized view site"},
+    {:caption=>"Master link",           :data=>proc{|rec| rec.master_link},                                   :title=>"Database link for the master site or the master materialized view site (if MV is local on this database)"},
+    {:caption=>"Can use log",           :data=>proc{|rec| rec.can_use_log},                                   :title=>"YES if the materialized view can use a materialized view log, NO if the materialized view is too complex to use a log."},
+    {:caption=>"Updatable",             :data=>proc{|rec| rec.updatable},                                     :title=>"(YES/NO) Indicates whether the materialized view is updatable. If set to NO, then the materialized view is read only."},
+    {:caption=>"Fast refresh method",   :data=>proc{|rec| rec.refresh_method},                                :title=>"Whether the materialized view uses primary key, rowids, or object identifiers for fast refresh"},
+    {:caption=>"ID",                    :data=>proc{|rec| rec.mview_id},                                      :title=>"Identifier for the materialized view used by the masters for fast refresh", :align=>:right},
+    {:caption=>"Version",               :data=>proc{|rec| rec.version},                                       :title=>"Oracle version of the materialized view"},
+    {:caption=>"Logs",                  :data=>proc{|rec| @link_snapshot_logs.call(rec)},                     :title=>"Number of registered snapshot logs for this materialized view, if master site is this database"},
+    {:caption=>"Oldest refresh date",   :data=>proc{|rec| localeDateTime rec.oldest_refresh_date},            :title=>"Last refresh date of snapshot for this MV"},
+    {:caption=>"Last analyze",          :data=>proc{|rec| localeDateTime rec.last_analyzed},                  :title=>"Last analyze date for underlying table of this MView"},
+  ]
+
+%>
+
+<%= gen_slickgrid(@mvs, column_options, {
+        :max_height => 450,
+        :caption => "Data from sys.DBA_Registered_MViews",
+        show_pin_icon: 1
+
+}) %>
+
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,33 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Overview over objects in tablespaces") %>
+
+<%= ajax_form(:controller => :dba_schema, :action => :list_objects, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      Tablespaces<br/>
+      <%= collection_select(:tablespace, :name, @tablespaces, :name, :name) %>
+    </div>
+    <div class="flex-row-element">
+      Schemata<br/>
+      <%= collection_select(:schema, :name, @schemas, :name, :name) %>
+    </div>
+    <div class="flex-row-element" title="<%= t(:dba_schema_show_object_partition_hint, :default=>'Show single partitions?') %>">
+      Part.<br/>
+      <%= check_box_tag(:showPartitions, 1, false) %>
+    </div>
+    <div class="flex-row-element" title="<%= t(:dba_schema_show_object_filter_hint, :default=>'Optional filter for object name (wildcards allowed)') %>">
+      Filter<br>
+      <%= text_field_tag(:filter, "", :size=>20) %>
+    </div>
+    <div class="flex-row-element">
+      <br/>
+      <%= submit_tag(t(:dba_schema_show_object_submit_caption, :default=>'Show objects and sizes'), :title => t(:dba_schema_show_object_submit_hint, :default=>'Show objects with sizes and parameters')) %>
+    </div>
+
+  </div>
+<% end # form %>
+
+
+<div id="<%= @update_area %>"></div>
+

@@ -1,0 +1,63 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_grantees = proc do |rec|
+    ajax_link(fn(rec.grantees),
+              {action:      :list_role_grants,
+               role:        rec.role,
+               update_area: @update_area,
+              },
+              title: "Show grantees for role '#{rec.role}'"
+    )
+  end
+
+  link_granted_roles = proc do |rec|
+    ajax_link(fn(rec.roles_granted),
+              {action:      :list_role_grants,
+               grantee:     rec.role,
+               update_area: @update_area,
+              },
+              title: "Show roles granted to this role '#{rec.role}'"
+    )
+  end
+
+  link_obj_grants = proc do |rec|
+    ajax_link(fn(rec.obj_grants),
+              {action:      :list_obj_grants,
+               grantee:     rec.role,
+               update_area: @update_area,
+              },
+              title: "Show object privileges granted to role '#{rec.role}'"
+    )
+  end
+
+  link_sys_privileges = proc do |rec|
+    ajax_link(fn(rec.privilege_cnt),
+              {action:      :list_granted_sys_privileges,
+               grantee:     rec.role,
+               update_area: @update_area,
+              },
+              title: "Show system privileges granted to role '#{rec.role}'"
+    )
+  end
+
+  column_options = []
+  column_options << {caption: 'Role',         data: proc{|rec| rec.role},                     title: 'Name of the role'}
+  column_options << {caption: 'Role ID',      data: proc{|rec| fn(rec.role_id)},              title: 'ID number of the role', align: :right} if get_db_version >= '12.2'
+  column_options << {caption: 'PW req.',      data: proc{|rec| rec.password_required},        title: 'This column is deprecated in favor of the AUTHENTICATION_TYPE column'}
+  column_options << {caption: 'Auth. type',   data: proc{|rec| rec.authentication_type},      title: "Indicates the authentication mechanism for the role:\nNONE - CREATE ROLE role1;\nEXTERNAL - CREATE ROLE role2 IDENTIFIED EXTERNALLY;\nGLOBAL - CREATE ROLE role3 IDENTIFIED GLOBALLY;\nAPPLICATION - CREATE ROLE role4 IDENTIFIED USING schema.package;\nPASSWORD - CREATE ROLE role5 IDENTIFIED BY role5;"}
+  column_options << {caption: 'Common',       data: proc{|rec| rec.common},                   title: "Indicates whether a given role is common. Possible values:\nYES if the role is common\nNO if the role is local (not common)"} if get_db_version >= '12.1'
+  column_options << {caption: 'Oracle maintained',  data: proc{|rec| rec.oracle_maintained},  title: 'Denotes whether the role was created, and is maintained, by Oracle-supplied scripts (such as catalog.sql or catproc.sql). A role for which this column has the value Y must not be changed in any way except by running an Oracle-supplied script.'} if get_db_version >= '12.1'
+  column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
+  column_options << {caption: 'Implicit',     data: proc{|rec| rec.implicit},                 title: 'Indicates whether the role is a common role created by an implicit application (YES) or not (NO)'} if get_db_version >= '18.1'
+  column_options << {caption: 'External name',data: proc{|rec| rec.external_name},            title: 'For a global role, the external name refers to the DN of a group from a directory service that is mapped to the global role. This is not applicable to a local role.'} if get_db_version >= '18.1'
+  column_options << {caption: 'Grantees',     data: link_grantees,                            title: 'Number of grantees the role is granted to', align: :right}
+  column_options << {caption: 'Granteed roles', data: link_granted_roles,                     title: 'Number of roles granted to this role', align: :right}
+  column_options << {caption: 'Object privs', data: link_obj_grants,                          title: 'Number of object privileges granted to this role', align: :right}
+  column_options << {caption: 'System privs', data: link_sys_privileges,                      title: 'Number of system privileges granted to this role', align: :right}
+
+%>
+
+<%= gen_slickgrid(@roles, column_options, {caption: "Database roles from DBA_Roles#{" filtered for role='#{@role}'" if @role}", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

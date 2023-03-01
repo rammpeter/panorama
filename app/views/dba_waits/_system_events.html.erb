@@ -1,0 +1,29 @@
+<%= render_page_caption(t(:dba_waits_system_events_caption, :default=>'Evaluation of current system events from V$System_Event')) %>
+
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller=>:dba_waits, :action=>:show_system_events, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      <%= t(:dba_waits_system_events_sample_length_caption, :default=>'Sample length (sec)') %>
+      <%= text_field_tag("sample_length", "1", :maxlength=>10, :size => 5, :title=>t(:dba_waits_system_events_sample_length_hint, :default=>'Duration of sample snapshot in seconds')) %>
+    </div>
+    <div class="flex-row-element">
+      Filter
+      <%= text_field_tag("filter", "", :maxlength=>100, :size => 20, :title=>t(:dba_waits_system_events_filter_hint, :default=>'Filter on event name as wildcard')) %>
+    </div>
+    <div class="flex-row-element">
+      <%= t(:dba_waits_system_events_suppress_idle_waits_caption, :default=>'Suppress idle waits') %>
+      <%= check_box_tag(:suppress_idle_waits, 1, true, :title=>t(:dba_waits_system_events_suppress_idle_waits_hint, :default=>'Suppress events of wait class Idle')) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_waits_system_events_submit_caption, :default=>'Show events'), :title =>t(:dba_waits_system_events_submit_hint, :default=>'Show system events')) %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" >
+</div>
+
+
+

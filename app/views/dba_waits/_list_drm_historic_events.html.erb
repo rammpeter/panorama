@@ -1,0 +1,34 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_records_total = proc do |rec, value, target_instance|
+    ajax_link(fn(value), {
+                        action:               :list_drm_historic_single_records,
+                        time_selection_start: localeDateTime(rec.min_event_date),
+                        time_selection_end:   localeDateTime(rec.max_event_date),
+                        target_instance:      target_instance,
+                        policy_event:         (@policy_event == '[All]' ? nil : @policy_event),
+                        update_area:          @update_area
+                },
+                :title=>'Show single records for period' )
+  end
+
+
+
+  column_options =
+      [
+          {caption: "Begin of period",  data: proc{|rec| localeDateTime(rec.begin_period)},                 :title=>"Start timt of period", plot_master_time: true},
+          {caption: "Records total",    data: proc{|rec| link_records_total.call(rec, rec.total_records, nil)},  :title=>"Total number of records in period", align: :right},
+      ]
+  @instances.sort.to_h.each do |instance, value|
+    column_options << {caption: "Records instance #{instance}",    data: proc{|rec| link_records_total.call(rec, rec["records_instance_#{instance}"], instance)},  :title=>"Total number of records in period where master role has moved to instance", align: :right}
+  end
+
+%>
+<%= gen_slickgrid(@history, column_options, {
+    :caption => "Dynamic remastering events from gv$Policy_History (Policy event = '#{@policy_event}') from #{@time_selection_start} until #{@time_selection_end}",
+    :max_height => 450, show_pin_icon: 1
+})
+%>
+
+<div id="<%= @update_area %>"></div>

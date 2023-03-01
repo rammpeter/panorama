@@ -1,0 +1,21 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_privileges = proc do |rec|
+    ajax_link(fn(rec.granted_privs),
+              {action:      :list_obj_grants,
+               privilege:     rec.privilege,
+               update_area: @update_area,
+              },
+              title: "Show grants for this object privilege '#{rec.privilege}'"
+    )
+  end
+
+  column_options = []
+  column_options << {caption: 'Privilege',          data: proc{|rec| rec.privilege},      title: "Object privilege"}
+  column_options << {caption: 'Granted privileges', data: link_privileges,                title: 'Number of grants for this object privilege', align: :right}
+%>
+
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

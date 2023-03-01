@@ -1,0 +1,59 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Show content of server logs (selects data only for your login instance = #{@instance})") %>
+
+
+<%= ajax_form(:controller => :dba, :action => :list_server_logs, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker(id_suffix: 'default', additional_title: "Caution: For client and database in different timezones:\nThis value is sometimes interpreted as local client time, not database time like shown in result column 'Time'") %>
+    <!--
+    Nicht sinnvoll so lange Daten nur von aktueller Instance gezogen werden
+    <%= instance_tag %>
+    -->
+
+    <div class="flex-row-element" title="Select type of log to consider">
+      Type
+      <select name="log_type">
+        <option value='all'><%= t(:all, :default=>'All') %></option>
+        <option value='rdbms' selected='selected'>Alert-Log</option>
+        <option value='tnslsnr'>Listener-log</option>
+        <option value='asm'>ASM-Log</option>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="Show only records with matching hits at message text.
+    Delimit several OR-combined inclusion expressions by '|'.">
+      Incl. Filter
+      <%= text_field_tag(:incl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Show only records without matching hits at message text.
+    Delimit several OR-combined exclusion expressions by '|'.">
+      Excl. Filter
+      <%= text_field_tag(:excl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Suppress info about successful log switch messages">
+      Suppress default messages
+      <%= check_box_tag(:suppress_defaults, 1, false) %>
+    </div>
+
+    <div class="flex-row-container" style="border:1px solid gray; padding-left: 5px;">
+      <div class="flex-row-element">
+        <%= submit_tag("Show single records", :title => 'Show single detail records of server-side log in period', name: :detail) %>
+      </div>
+    </div>
+    <div class="flex-row-container" style="border:1px solid gray; padding-left: 5px;">
+      <div class="flex-row-element" title="Group values by time period">
+        Grouping
+        <%= select :verdichtung, :tag, [[t(:second, :default=>'Second'), 'SS'], ['Minute', 'MI'], [t(:hour, :default=>'Hour'), 'HH24'], [t(:day, :default=>'Day'), 'DD'] ], {:selected=>'MI'} %>
+      </div>
+      <div class="flex-row-element">
+        <%= submit_tag("Show count per period", :title => "Show number of records per period", name: :group) %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear:both;">
+</div>

@@ -1,0 +1,17 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  column_options =
+      [
+          {:caption=> 'Table',              :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.table_name) },                  :title=> 'Owner and name of table'},
+      ]
+
+%>
+
+<%= gen_slickgrid(@tables, column_options, {
+    :caption => "Tables of cluster #{@owner}.#{@cluster_name}",
+    :height => :auto,
+    update_area: @update_area
+})
+%>
+

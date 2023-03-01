@@ -1,0 +1,14 @@
+<%= render_page_caption("Enqueue-Statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Enqueue_Stat')}") %>
+
+<%= ajax_form(:controller => :dba_history, :action => :list_enqueue_statistics_historic, :update_area => :list_enqueue_statistics_historic_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= submit_tag("Show Enqueue-Info", :title => "Show Enqueue-Info") %>
+    </div>
+  </div>
+<% end %>
+<div id="list_enqueue_statistics_historic_area" style="float:left; width:100%; ">
+</div>
+

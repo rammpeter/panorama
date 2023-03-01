@@ -1,0 +1,55 @@
+
+<%
+
+  def link_column(rec, value, groupkey)
+    ajax_link(value, {
+      :controller  => :admin,                        # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+      :action      => :usage_detail_sum,
+      :groupkey    => groupkey,
+      :filter      => { :Month => rec.Month },
+      :update_area => "usage_info_detail_area"
+    },
+              :title=>"List details per #{groupkey}")
+  end
+
+  def link_column_database(rec)
+    link_column(rec, formattedNumber(rec.Databases), "Database")
+  end
+
+  def link_column_client(rec)
+    link_column(rec, formattedNumber(rec.Clients), "IP_Address")
+  end
+
+  def link_column_controller(rec)
+    link_column(rec, formattedNumber(rec.Controllers), "Controller")
+  end
+
+  def link_column_action(rec)
+    link_column(rec, formattedNumber(rec.Actions), "Action")
+  end
+
+  def link_column_single_record(rec, value)
+    ajax_link(value, {
+      :controller  => :admin,                        # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+      :action      => :usage_single_record,
+      :filter      => { :Month => rec.Month },
+      :update_area => "usage_info_detail_area"
+    },
+              :title=>"Show single records per request execution")
+  end
+
+
+  column_options =
+    [
+      {:caption=>"Month",            :data=>proc{|rec| rec.Month},                                :title=>"Interval of grouping"},
+      {:caption=>"Requests",         :data=>proc{|rec| link_column_single_record(rec, fn(rec.Requests))},   :title=>"Number of requests in period", :align=>"right"},
+      {:caption=>"Databases",        :data=>proc{|rec| link_column_database(rec)},                :title=>"Number of databases requests are executed on in time period", :align=>"right"},
+      {:caption=>"Clients",          :data=>proc{|rec| link_column_client(rec)},                  :title=>"Number of clients requests are executed from in period", :align=>"right"},
+      {:caption=>"Controllers",      :data=>proc{|rec| link_column_controller(rec)},              :title=>"Number of controllers executing requests in period", :align=>"right"},
+      {:caption=>"Actions",          :data=>proc{|rec| link_column_action(rec)},                  :title=>"Number of actions executing requests in period", :align=>"right"},
+    ]
+%>
+<%= gen_slickgrid(@usage, column_options, {:caption=>"Usage overview per month", :max_height=>450, :width=>:auto}) %>
+
+<div id="usage_info_detail_area">
+</div>

@@ -1,0 +1,22 @@
+<%= render_page_caption(t(:dba_segment_stat_caption, :default=>'Object-specific statistics from V$Segment_Statistics')) %>
+
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller=>:dba, :action=>:show_segment_statistics, :update_area=>@update_area) do%>
+  <%= collection_select(:statistic_name, :statistic_name, @stats, :statistic_name, :statistic_name) %>        
+
+  Sample (sec)
+  <%= text_field_tag("sample_length", "5", :maxlength=>10, :size => 10, :title=>t(:dba_segment_stat_sample_length_hint, :default=>'Distance between two sample snapshots in seconds')) %>
+
+  <%= t(:dba_segment_stat_only_sample_change_caption, :default=>'Only changes between samples') %>
+  <%= check_box_tag(:only_sample_change, 1, true, :title=>t(:dba_segment_stat_only_sample_change_hint, :default=>'Show only objects with changing values between samples'))%>
+
+  <%= t(:dba_segment_stat_partition_caption, :default=>'Show partition info') %>
+  <%= check_box_tag(:show_partition_info, 1, false, :title=>t(:dba_segment_stat_partition_hint, :default=>'Show object info at partition level')) %>
+
+  <%= submit_tag t(:dba_segment_stat_show_caption, :default=>'Show statistics'), :title => t(:dba_segment_stat_show_hint, :default=>'Show statistics for objects') %>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear:both;">
+</div>
+

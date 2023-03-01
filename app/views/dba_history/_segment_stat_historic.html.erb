@@ -1,0 +1,24 @@
+<%= render_page_caption("#{t(:dba_history_segment_stat_historic_caption, :default=>'Historic segment statistics from ')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')}") %>
+
+
+<%= ajax_form(:controller => :dba_history, :action => :list_segment_stat_historic_sum, :update_area => :list_segment_stat_hist_sum_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      Part.
+      <%= check_box_tag(:show_partitions, 1, false, :title=>t(:dba_history_segment_stat_historic_show_partition_hint, :default=>'Show partition details?')) %>
+    </div>
+    <%= dbid_selection %>
+    <div class="flex-row-element">
+      Objekt-Name
+      <%= text_field_tag(:ObjectName, "", :size=>30, :title=>t(:dba_history_segment_stat_historic_filter_hint, :default=>'Optional filter on object name (LIKE-comparison)')) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag 'Show', :title =>t(:dba_history_segment_stat_historic_submit_hint, :default=>'Show segment statistics') %>
+    </div>
+  </div>
+<% end %>
+<div id="list_segment_stat_hist_sum_area" style="float:left; width:100%; ">
+</div>

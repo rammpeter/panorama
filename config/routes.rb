@@ -1,41 +1,20 @@
-
-
-# Fix ActionController::RoutingError (uninitialized constant Panorama::EnvController) in Linux systems
-
-#$LOAD_PATH.each do |p|
-#  if p.match(/Panorama_Gem.*\/lib/)
-#    puts "####################### match #{p}"
-#    $LOAD_PATH << p.gsub('/lib', '/app/controllers')
-#    $LOAD_PATH << p.gsub('/lib', '/app/helpers')
-#    $LOAD_PATH << p.gsub('/lib', '/app/models')
-#  end
-#end
-
-#Rails.logger.info "################ $LOAD_PATH is :"
-#$LOAD_PATH.each do |p|
-#  Rails.logger.info p
-#end
-#Rails.logger.info "################ end of $LOAD_PATH"
-
-# Require controller only after addition of LOAD_PATH
-#require 'env_controller'
-
-# require all other controllers and helpers based on env_controller
-#EnvController.require_all_controller_and_helpers_and_models
-
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
-  #mount Panorama::Engine => "/"
-
-  # set routing info for engine
- # EnvController.routing_actions.each do |r|
- #   # puts "set route for #{r[:controller]}/#{r[:action]}"
- #   get  "#{r[:controller]}/#{r[:action]}"
- #   post  "#{r[:controller]}/#{r[:action]}"
- # end
-
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
   root  'env#index'
+
+  # define routes as controller/action
+  # Rails.logger.info "Panorama_Gem/config/routes.rb: Setting routes for every controller action"
+  sleep_count = 0
+  while EnvController.routing_actions("#{__dir__}/../app/controllers").count == 0 && sleep_count < 10 do
+    puts "Rails.application.routes.draw: EnvController.routing_actions is still empty! Retrying..."
+    sleep 1
+    sleep_count +=1
+  end
+  EnvController.routing_actions("#{__dir__}/../app/controllers").each do |r|
+    # puts "set route for #{r[:controller]}/#{r[:action]}"
+    get  "#{r[:controller]}/#{r[:action]}"
+    post  "#{r[:controller]}/#{r[:action]}"
+  end
 
   # Ensure that URLs like http://localhost/Panorama also direct to root
   get '/Panorama', to: redirect('/')

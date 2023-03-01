@@ -1,0 +1,28 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_username(rec)
+    ajax_link(rec.username,
+                            {:controller  => :dba_sga,
+                             :action      => :generate_sql_translation,
+                             :update_area => @update_area,
+                             :sql_id      => @sql_id,
+                             :user_name   => rec.username,
+                             :fixed_user  => true
+                            },
+                    :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate script to create profile for SQL-translation-framework for this SQL.")
+    )
+  end
+
+
+  column_options = [
+      {:caption=>'User name',                 :data=>proc{|rec| link_username(rec)},                             :title=>"Name of a user that was executing this SQL in the past"},
+  ]
+
+%>
+
+<%=
+  gen_slickgrid(@user_data, column_options, :caption => "Multiple users did run this SQL!\nChoose executing user of SQL-ID='#{@sql_id}' for generating SQL-translation", :max_height=>450)
+%>
+
+<div id="<%= @update_area %>"></div>

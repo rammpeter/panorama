@@ -1,0 +1,49 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Session-Statistics #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')} #{t(:and, :default=>'and')} #{PanoramaConnection.adjust_table_name('gv$Active_Session_History')}") %>
+
+<%= ajax_form(:controller=>:active_session_history, :action=>:list_session_statistic_historic, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element" title="<%= t(:active_session_history_show_session_statistics_historic_idle_hint, :default=>'Should idle-waits (e.g. PX Deq Credit: send blkd) be considered?')%>">
+      Idle-Waits
+      <%= check_box_tag(:idle_waits, 1, false) %>
+    </div>
+
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping')%>
+      <select name="groupby">
+        <% session_statistics_key_rules.keys.sort.each do |key| %>
+          value = session_statistics_key_rules[key]
+          <%=  "<option value='#{key}' #{"selected='selected'" if key=='Wait Event'}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <%= dbid_selection %>
+
+    <div class="flex-row-element" title="optional additional Filter on all of the following columns:
+- Action
+- Client-ID
+- DB-object
+- Machine
+- Module
+- Plan hash value
+- Program
+- Session-ID
+- SQL-ID
+- Username
+LIKE-comparison with wildcards (%, ?) and case ignored">
+      Filter
+      <%= text_field_tag(:filter, "", :size=>20) %>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag( t(:active_session_history_show_session_statistics_historic_submit_caption, :default=>'Show waits'), :title => t(:active_session_history_show_session_statistics_historic_submit_hint, :default=>'Show condensed session-waits')) %>
+    </div>
+
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,25 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'Window name',                     :data=>proc{|rec| rec.window_name},                         :title=>'Name of Automated Maintenance Tasks Client'},
+          {:caption=>'Window start time',               :data=>proc{|rec| localeDateTime(rec.window_start_time)},   :title=>'Start time of the maintenance window'},
+          {:caption=>'Window duration',                 :data=>proc{|rec| fn(rec.window_duration_secs)},            :title=>'Duration of the maintenance window (seconds)', :align=>:right},
+          {:caption=>'Job name',                        :data=>proc{|rec| rec.job_name},                            :title=>'Name of the maintenance job'},
+          {:caption=>'Job status',                      :data=>proc{|rec| rec.job_status},                          :title=>'Status of the maintenance job'},
+          {:caption=>'Job start time',                  :data=>proc{|rec| localeDateTime(rec.job_start_time)},      :title=>'Start time of the maintenance job'},
+          {:caption=>'Job duration',                    :data=>proc{|rec| fn(rec.job_duration_secs)},               :title=>'Duration of the maintenance job (seconds)', :align=>:right},
+          {:caption=>'Job error',                       :data=>proc{|rec| rec.job_error},                           :title=>'Error code for the job (if any)'},
+          {:caption=>'Job info',                        :data=>proc{|rec| rec.job_info},                            :title=>'Additional information about the job'},
+      ]
+
+%>
+<%= gen_slickgrid(@job_runs, column_options, {:caption=>"Automated Maintenance Tasks job runs for client name = '#{@client_name}' from DBA_Autotask_Job_History",
+                                              max_height: 450,
+                                              :width=>:auto,
+                                              show_pin_icon: 1,
+                                              update_area:   @update_area
+}) %>
+
+

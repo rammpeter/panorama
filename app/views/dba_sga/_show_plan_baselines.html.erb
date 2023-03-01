@@ -1,0 +1,93 @@
+<%
+  if prepare_param(:update_area_for_target)
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+  else
+    @update_area = get_unique_area_id                                           # no target div given, create my own
+  end
+
+   link_sql_text = proc do |rec|
+     ajax_link(rec.sql_text[0, 30], {
+                       :controller    => :dba_sga,
+                       :action        => :list_sql_plan_baseline_sqltext,
+                       :plan_name     => rec.plan_name,
+                       :update_area   => @update_area,
+                       },
+                       :title         => 'Show full SQL text'
+     )
+   end
+
+  link_sql_id = proc do |rec|
+    "#{fn(rec.sga_usages)}\n#{link_sql_id(@update_area, rec.inst_id, rec.sql_id)}"
+  end
+
+  link_comp_data = proc do |rec|
+    data = "<&nbsp;#{rec.comp_data_count}&nbsp;>".html_safe
+    if !rec.comp_data_count.nil? && rec.comp_data_count > 0
+      ajax_link(data, {
+                         :controller    => :dba_sga,
+                         :action        => :list_plan_baseline_hints,
+                         :plan_name     => rec.plan_name,
+                         :signature     => rec.signature.to_s,
+                         :update_area   => @update_area,
+                         },
+                         :title         => 'Show optimizer hints of SQL plan baseline'
+       )
+    else
+      data
+    end
+  end
+
+  link_plan_name = proc do |rec|
+    ajax_link("#{rec.sql_handle}\n#{rec.plan_name}", {
+                       :controller    => :dba_sga,
+                       :action        => :list_plan_baseline_dbms_xplan,
+                       :plan_name     => rec.plan_name,
+                       :sql_handle    => rec.sql_handle,
+                       :update_area   => @update_area,
+                       },
+                       :title         => "Show SQL plan baseline info from DBMS_XPLAN.Display_SQL_Plan_Baseline. This output shows the plan hash value and resulting execution plan of the baseline"
+     )
+  end
+
+   column_options = [
+    {:caption=>'SQL handle / plan name', :data=>link_plan_name, :title=>"Name of the SQL handle: Uniquely identifies the SQL. Use this for dropping all plan baselines of a SQL\nName of baseline plan: Identifies a unique execution plan within a SQL handle.", data_title: proc{|rec| "%t\nSQL handle = #{rec.sql_handle}\nPlan name = #{rec.plan_name}\nSignature = #{rec.signature.to_s}"}},
+    {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"},
+    {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" },
+    {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" },
+    {:caption=>"Description",   :data=>proc{|rec| rec.description},                     :title=>"Description of purpose" },
+    {:caption=>"Version",       :data=>proc{|rec| rec.version},                         :title=>"database version at time of plan baseline creation" },
+    {:caption=>"Created",       :data=>proc{|rec| localeDateTime(rec.created)},         :title=>"Timestamp of creation" },
+    {:caption=>"Last modified", :data=>proc{|rec| localeDateTime(rec.last_modified)},   :title=>"Timestamp of last modification" },
+    {:caption=>"Last executed", :data=>proc{|rec| localeDateTime(rec.last_executed)},   :title=>"Timestamp of last execution" },
+    {:caption=>"Last verified", :data=>proc{|rec| localeDateTime(rec.last_verified)},   :title=>"Timestamp of last verification" },
+    {:caption=>'Enbl.',         :data=>proc{|rec| rec.enabled},                         :title=>"enabled status of plan baseline" },
+    {:caption=>"Acc.",          :data=>proc{|rec| rec.accepted},                        :title=>"accepted status of plan baseline" },
+    {:caption=>"Fixed",         :data=>proc{|rec| rec.fixed},                           :title=>"fixed status of plan baseline" },
+    {:caption=>"Repr.",         :data=>proc{|rec| rec.reproduced},                      :title=>"reproduced status of plan baseline" },
+    {:caption=>"Auto purge",    :data=>proc{|rec| rec.autopurge},                       :title=>"autopurge status of plan baseline" },
+    {:caption=>'Optim. costs',  :data=>proc{|rec| fn(rec.optimizer_cost)},              :title=>"Optimizer cost at the time the plan baseline was created", :align=>:right },
+    {:caption=>'Usages in SGA', :data=>link_sql_id,                                     :title=>"Number of current usage of this baseline in SGA (by gv$SQLArea.SQL_Plan_Baseline)\nand SQL-ID of one usage", :align=>:right },
+    {:caption=>"SQL",           :data=>link_sql_text,                                   :title=>"Un-normalized SQL text (first 30 characters)" },
+    {:caption=>"Hints",         :data=>link_comp_data,                                  :title=>"Number of optimizer-hints of plan baseline\n\nRequires access on sys.SQLObj$Data which is not possible in autonomous DB" },
+    {:caption=>'Module',        :data=>proc{|rec| rec.module},                          :title=>"Module at plan create" },
+    {:caption=>'Action',        :data=>proc{|rec| rec.action},                          :title=>"Action at plan create" },
+    {:caption=>"Executions",    :data=>proc{|rec| fn(rec.executions)},                  :title=>"Number of executions at the time the plan baseline was created", :align=>:right },
+    {:caption=>"Buffer gets",   :data=>proc{|rec| fn(rec.buffer_gets)},                 :title=>"Total buffer gets at the time the plan baseline was created",        :align=>:right },
+    {:caption=>"Rows processed",:data=>proc{|rec| fn(rec.rows_processed)},              :title=>"Total rows processed at the time the plan baseline was created", :align=>:right },
+  ]
+
+%>
+
+<%=
+  if @force_matching_signature
+    caption = "<div style=\"background-color: coral;\">SQL plan baseline exists for SQL (from DBA_SQL_Plan_Baselines)</div>".html_safe
+  else
+    caption = "SQL plan baselines from DBA_SQL_Plan_Baselines"
+  end
+
+  gen_slickgrid(@baselines, column_options, :caption => caption, :max_height=>450, show_pin_icon: 1) if @force_matching_signature.nil? || @baselines.count > 0
+%>
+
+<% unless prepare_param(:update_area_for_target) %>
+<div id="<%= @update_area %>"></div>
+<% end %>

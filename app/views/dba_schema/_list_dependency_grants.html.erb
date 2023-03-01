@@ -1,0 +1,52 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_grantee = proc do |rec|
+    case rec.grantee_type
+    when 'USER' then
+      ajax_link(rec.grantee, {
+        action:       :list_db_users,
+        username:     rec.grantee,
+        update_area:  @update_area
+      }, title: "Show user details"
+      )
+    when 'ROLE' then
+      ajax_link(rec.grantee, {
+        action:       :list_roles,
+        role:         rec.grantee,
+        update_area:  @update_area
+      }, title: "Show role details"
+      )
+    else rec.grantee
+    end
+  end
+
+  column_options =
+      [
+          {caption: 'Level',                data: proc {|rec| rec.d_level},               title: 'Hierarchy-level (depth of dependency)', align: :right},
+          {caption: 'Cycle',                data: proc {|rec| rec.connect_by_iscycle},    title: 'Cyclic dependency broken at this relation?'},
+          {caption: 'Depending object',     data: proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},           title: 'Object that is depending from'},
+          {caption: 'Depending type',       data: proc {|rec| rec.type},                  title: 'Type of object that is depending from'},
+          {caption: 'Dependency type',      data: proc{|rec| rec.dependency_type},        title: 'Whether the dependency is a REF dependency (REF) or not (HARD)'},
+          {caption: 'Depends on object',    data: proc {|rec| link_object_description(@update_area, rec.referenced_owner, rec.referenced_name, nil, rec.type)}, title: 'Object that it depends on'},
+          {caption: 'Link',                 data: proc {|rec| rec.referenced_link_name},  title: 'Name of the link to the parent object (if remote)'},
+          {caption: 'Depends on type',      data: proc {|rec| rec.referenced_type},       title: 'Type of object that it depends on'},
+
+          {:caption=> 'Grantor',      :data=>proc{|rec| rec.grantor},             :title=> 'Name of the user who performed the grant'},
+          {:caption=> 'Grantee',      data: link_grantee,                         :title=> 'Name of the user to whom access was granted'},
+          {:caption=> 'Grantee type', :data=>proc{|rec| rec.grantee_type},        :title=> 'Type to whom access was granted'},
+          {:caption=> 'Privilege',    :data=>proc{|rec| rec.privilege},           :title=> 'Privilege on the object'},
+          {:caption=> 'Grantable',    :data=>proc{|rec| rec.grantable},           :title=> 'Indicates whether the privilege was granted with the GRANT OPTION (YES) or not (NO)'},
+          {:caption=> 'Hierarchy',    :data=>proc{|rec| rec.hierarchy},           :title=> 'Indicates whether the privilege was granted with the HIERARCHY OPTION (YES) or not (NO)'},
+      ]
+  column_options << {:caption => 'Common', :data => proc {|rec| rec.common}, :title => "Indicates how the grant was made. Possible values:\nYES if the privilege was granted commonly (CONTAINER=ALL was used)\nNO if the privilege was granted locally (CONTAINER=ALL was not used)"} if get_db_version >= '12.1'
+%>
+
+<%=
+  gen_slickgrid(@grants, column_options, {
+      :caption => "Grants for objects that are dependent from #{@owner}.#{@object_name}",
+      :max_height => 450, :width=>:auto
+  })
+%>
+
+<div id="<%= @update_area %>"></div>

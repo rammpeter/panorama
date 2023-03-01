@@ -1,0 +1,37 @@
+<%
+
+  @update_area = get_unique_area_id
+
+  link_sqls = proc do |rec|
+    ajax_link('Show SQLs', {
+            :controller             => :dba_history,
+            :action                 => :show_using_sqls_historic,
+            :time_selection_start   => @snapshot_timestamp[0,16],   # Sekunden des Zeitstempels abschneiden
+            :time_selection_end     => @snapshot_timestamp[0,16],   # Sekunden des Zeitstempels abschneiden
+            :ObjectOwner            => rec.owner,
+            :ObjectName             => rec.name,
+            :update_area            => @update_area
+          }, :title=>"Show SQLs using this object in choosen time period")
+  end
+
+  show_name = proc do |rec|
+    "#{rec.owner.downcase}.#{rec.name}#{" (#{rec.partition_name})" if @show_partitions == '1' && rec.partition_name}"
+  end
+
+column_options =
+ [
+   {:caption=>"Name",   :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.name, show_name.call(rec)) },  :title=>"Object-Name"},
+   {:caption=>"Blocks", :data=>proc{|rec| formattedNumber(rec.blocks_total)},       :title=>"Number of DB-blocks in cache used by object",        :align=>:right},
+   {:caption=>'%',      :data=>proc{|rec| fn((rec.blocks_total*100.0/rec.sum_total_per_snapshot rescue nil), 2)},     :title=>"Percent of total cached blocks for this object", data_title: proc{|rec| "%t\nTotal number of cached blocks = #{fn(rec.sum_total_per_snapshot)}"}, :align=>"right"},
+   {:caption=>"Dirty",  :data=>proc{|rec| formattedNumber(rec.blocks_dirty)},       :title=>"Number of dirty DB-blocks in cache used by object",  :align=>:right},
+   {:caption=>'SQLs',   :data=>link_sqls,                                                                :title=>"Show SQLs using this object in choosen time period"},
+ ]
+%>
+
+<%= gen_slickgrid(@entries, column_options,  {
+        :max_height => 450,
+        :caption    => "DB-cache usage at #{@snapshot_timestamp} Instance=#{@instance}",
+        show_pin_icon: 1,
+        update_area:   @update_area
+}) %>
+

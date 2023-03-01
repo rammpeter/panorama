@@ -1,0 +1,21 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_owner(value, rec)
+    link_object_description(@update_area, rec.owner, rec.object_name, value, object_type=rec.type)
+  end
+
+  column_options =
+      [
+          {:caption => 'Object type', :data => proc {|rec| rec.type}, :title => 'Object_Type of object'},
+          {:caption => 'Owner', :data => proc {|rec| rec.owner}, :title => 'Owner of object'},
+          {:caption => 'Object name', :data => proc {|rec| link_owner(rec.object_name, rec)}, :title => 'Name of object'},
+      ]
+%>
+
+<%= gen_slickgrid(@objects, column_options, {
+    :caption => "Object #{@object_name} exists in multiple schemas in recycle bin, please select",
+    :max_height => 450, :width => :auto
+})
+%>
+<div style="padding-top: 10px;" id="<%= @update_area %>"></div>

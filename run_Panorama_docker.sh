@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Docker-executable
 # Peter Ramm, 28.12.2016
 
@@ -28,7 +27,6 @@ then
   MAX_JAVA_HEAP_SPACE_MB=1024
 fi
 echo "max. Java heap space set to $MAX_JAVA_HEAP_SPACE_MB megabytes"
-
 export RAILS_LOG_TO_STDOUT_AND_FILE=true
 export RAILS_SERVE_STATIC_FILES=true
 export RAILS_MIN_THREADS=10
@@ -43,6 +41,15 @@ export RAILS_MIN_THREADS=10
 # -Djruby.compile.threadless=true               (EXPERIMENTAL) Turn on compilation without polling for "unsafe" thread events.
 # -Xcompile.invokedynamic=true                  Use invokedynamic for optimizing Ruby code., erroneous with Panorama
 # -Dwarbler.port=<port>                         Set http-port to use
+
+# If you run Panorama on virtualized headless Linux server (e.g. in cloud environment) and your browser hangs after first request:
+# Reason: Your server does not generate enough entropy values in /dev/random, so read on /dev/random blocks during encryption operation
+# Solution: Start Panorama with non-blocking entropy generator by option java.security.egd=file:/dev/urandom
+# -Djava.security.egd=file:/dev/urandom
+# On Read Hat Linux and clones (Oracle Linux etc.) you can install rng-tools instead of using /dev/urandom like described here:
+#  yum install -y rng-tools
+#  systemctl enable rngd.service
+#  systemctl start rngd.service
 
 export JAVA_OPTS="-Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
                   -XX:ReservedCodeCacheSize=80M \

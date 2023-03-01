@@ -1,0 +1,171 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_payload = proc do |rec|
+    payload = rec.payload.gsub("\n", ' ') if !rec.payload.nil?
+
+    if !rec.payload.nil? && (payload['PARSE #'] || payload['EXEC #'] || payload['FETCH #'] || payload['WAIT #'] || payload['BIND #']  || payload['STAT #'] || payload['CLOSE #'] || payload['ERROR #'])
+
+      hash_index = payload.index('#')
+      result = payload[0, hash_index]                                           # line Content before cursor ID
+
+      after_cursor_pos = rec.payload[hash_index, rec.payload.length].index(':')
+      after_cursor_pos = rec.payload[hash_index, rec.payload.length].index(' ') if after_cursor_pos.nil?    # check for blank if no colon after cursor ID
+
+      if after_cursor_pos.nil?                                                  # unknown character after cursor ID
+        payload
+      else
+        cursor = payload[hash_index, after_cursor_pos]
+
+        result << ajax_link(cursor, {
+            controller:     :dba,
+            action:         :list_trace_file_cursor_sql_text,
+            instance:       @instance,
+            adr_home:       @adr_home,
+            trace_filename: @trace_filename,
+            con_id:         @con_id,
+            parse_line_no:  rec.parse_line_no,
+            line_number:    rec.line_number,
+            sql_id:         rec.sql_id,
+            cursor_id:      cursor[1, cursor.length].to_i,
+            update_area:    @update_area
+        }, title: "Show SQL of cursor #{cursor}. Requires additional read of trace file.")
+
+        result << payload[hash_index + after_cursor_pos, payload.length]
+        result
+      end
+    else
+      payload
+    end
+  end
+
+  link_session = proc do |rec|
+    if rec.session_id == 0
+      "#{rec.session_id},#{rec.serial_no}"
+    else
+        ajax_link("#{rec.session_id},#{rec.serial_no}", {
+                   controller:            :active_session_history,
+                   action:                :show_prepared_active_session_history,
+                   instance:              rec.inst_id,
+                   sid:                   rec.session_id,
+                   serial_no:              rec.serial_no,
+                   time_selection_start:  localeDateTime(rec.timestamp),
+                   time_selection_end:    localeDateTime(rec.timestamp),
+                   update_area:           @update_area,
+        }, title: 'Show wait history of session from Active Session History'
+        )
+    end
+  end
+
+  payload_title = 'Trace record payload (contents)
+
+Used abbreviations:
+PARSING IN CURSOR:
+dep = recursive depth of cursor(0-parent,>0-child)
+uid = user id
+oct = oracle command type no OCI
+lid = user id owning the statement e.g. package(libary user id)
+tim = the time the parse began
+hv = hash value
+ad = sql address of cursor
+sqlid = sql id of cursor
+
+PARSE, EXEC, FETCH, CLOSE etc.:
+c = cpu time
+e = elapsed time,
+p = number of database blocks read
+cr = number of consistent mode blocks read
+cu = number of current mode blocks read
+mis = number of library cache misses
+r = number of rows
+dep = recursive depth of cursor (0 = user SQL, >0 = recursive SQL)
+og = optimizer goal (1=all_rows, 2=first_rows, 3=rule and 4=choose)
+plh = plan hash value
+
+Times are in microseconds
+'
+
+  link_sql_id = proc do |rec|
+    link_historic_sql_id(@instance, rec.sql_id, localeDateTime(rec.timestamp), localeDateTime(rec.timestamp), @update_area)
+  end
+
+  column_options =
+      [
+          {caption: 'Line',             data: proc{|rec| rec.line_number},                    title: 'Line number in the code file which produced this trace record', align: :right},
+          {caption: 'Timestamp',        data: proc{|rec| localeDateTime(rec.timestamp, :fractions3)}, title: 'Timestamp when the trace record was produced in client time zone'},
+          {caption: 'Payload',          data: show_payload,                                   title: payload_title, max_wrap_width: 400 },
+          {caption: 'Elapsed (ms)',     data: proc{|rec| fn(rec.elapsed_ms, 3)},              title: "Elapsed time in milliseconds according to \"e=x\"", align: :right},
+          {caption: 'Delay (ms)',       data: proc{|rec| fn(rec.delay_ms, 3)},                title: "Time in milliseconds between end of last operation and end of current operation.\nDifference between previous record and this record if \"tim=x\" provided", align: :right},
+          {caption: 'SQL ID',           data: link_sql_id,                                    title: 'SQL ID from corresponding PARSING IN CURSOR record'},
+          {caption: 'Session',          data: link_session,                                   title: 'User session ID and serial number which generated the trace record'},
+          {caption: 'L.',               data: proc{|rec| rec.record_level},                   title: 'Level of the trace record', align: :right},
+          {caption: 'P.',               data: proc{|rec| rec.parent_level},                   title: 'Top parent level of trace record', align: :right},
+          {caption: 'T.',               data: proc{|rec| rec.record_type},                    title: "Type of the trace record. Possible values include:\n1: Regular trace record\n2: Freeform trace record\n3: Begin Section trace record\n4: Begin Dump trace record\n5: Bucket Dump Begin trace record\n6: Section End trace record\n7: Dump End trace record\n8: Bucket Dump End trace record", align: :right},
+          {caption: 'S',                data: proc{|rec| rec.section_id},                     title: 'Section ID / dump ID of the trace record', data_title: proc{|rec| "%t\n#{rec.section_name}"}, align: :right},
+          {caption: 'Component',        data: proc{|rec| rec.component_name},                 title: 'Component name which produced the trace record'},
+          {caption: 'Operation',        data: proc{|rec| rec.operation_name},                 title: 'Operation name which produced the trace record'},
+          {caption: 'File',             data: proc{|rec| rec.file_name},                      title: 'Name of the code file where this trace record is produced'},
+          {caption: 'Function',         data: proc{|rec| rec.function_name},                  title: 'Function which produced the trace record'},
+          {caption: 'Thread',           data: proc{|rec| rec.thread_id},                      title: 'Operating system thread ID of the process which produced the trace record'},
+      ]
+
+%>
+<%=
+  caption = "Trace file content for #{@adr_home}/trace/#{@trace_filename}, Con-ID = #{@con_id} (from GV$Diag_Trace_File_Contents)\n"
+  caption << "<div style=\"font-weight: normal;\" class=\"flex-row-container\">"
+
+  caption << "  <div class=\"flex-row-element\" title=\"Exclude recursive SQLs that are executed as user SYS\">"
+  caption << "    Exclude SYS SQLs "
+  caption <<      check_box_tag(:dont_show_sys, 1, @dont_show_sys=='1')
+  caption << "  </div>"
+
+  caption << "  <div class=\"flex-row-element\" title=\"Exclude STAT lines with execution plan content\">"
+  caption << "    Exclude STAT lines "
+  caption <<      check_box_tag(:dont_show_stat, 1, @dont_show_stat=='1')
+  caption << "  </div>"
+
+  caption << "  <div class=\"flex-row-element\" title=\"Maximum number of trace file lines to show in list. The file contains #{@trace_file_line_count} lines in total.\" style=\"#{"visibility: hidden;display: none;" if @trace_file_line_count <= @max_trace_file_lines_to_show}\">"
+  caption << "    Max. lines "
+  caption <<      text_field_tag(:max_trace_file_lines_to_show, @max_trace_file_lines_to_show, size: 5)
+  caption << "  </div>"
+  if @trace_file_line_count > @max_trace_file_lines_to_show
+
+    caption << "  <div class=\"flex-row-element\" title=\"Choose wether the first n lines or the last n lines of the file are shown.\">"
+    caption << "    First lines "
+    caption <<      radio_button_tag(:first_or_last_lines, :first, @first_or_last_lines == 'first')
+    caption << "    Last lines "
+    caption <<      radio_button_tag(:first_or_last_lines, :last, @first_or_last_lines == 'last')
+    caption << "  </div>"
+
+  end
+
+  caption << "  <div class=\"flex-row-element\" title=\"Refresh the trace file content with the given filter\">"
+  caption <<      submit_tag('Refresh', onclick: "recall_list();")
+  caption << "  </div>"
+
+  caption << "</div>"
+
+  gen_slickgrid(@content, column_options, {
+    :caption => caption,
+    :max_height=>450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+
+<script type=application/javascript>
+  function recall_list(){
+      ajax_html('<%= @org_update_area %>', 'dba', 'list_trace_file_content', {
+          'update_area':                  '<%= @org_update_area %>',
+          'instance':                     '<%= @instance %>',
+          'adr_home':                     '<%= @adr_home %>',
+          'trace_filename':               '<%= @trace_filename %>',
+          'con_id':                       '<%= @con_id%>',
+          'dont_show_sys':                jQuery('#dont_show_sys').prop("checked") ? 1 : 0,
+          'dont_show_stat':               jQuery('#dont_show_stat').prop("checked") ? 1 : 0,
+          'max_trace_file_lines_to_show': jQuery('#max_trace_file_lines_to_show').val(),
+          'first_or_last_lines':          jQuery('input[name="first_or_last_lines"]:checked').val(),
+  });
+  }
+</script>
+

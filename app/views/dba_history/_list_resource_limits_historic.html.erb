@@ -1,0 +1,31 @@
+<%
+   @update_area = get_unique_area_id
+
+   check_ul = proc do |value|
+     value < 0 ? 'UNLIMITED' : fn(value)
+   end
+
+   column_options =
+           [
+                   {:caption=>'Snapshot time',              :data=>proc{|rec| localeDateTime(rec.end_interval)},      :title=>'Time of snapshot (rounded to minute)', :plot_master_time=>true},
+                   {:caption=>'Current utilization',        :data=>proc{|rec| fn(rec.current_utilization)},           :title=>'Number of (resources, locks, or processes) currently being used', :align=>"right"},
+                   {:caption=>'Max. utilization',           :data=>proc{|rec| fn(rec.max_utilization)},               :title=>'Maximum consumption of the resource since the last instance start up', :align=>"right"},
+                   {:caption=>'Initial allocation',         :data=>proc{|rec| check_ul.call(rec.initial_allocation)}, :title=>'Initial allocation. This will be equal to the value specified for the resource in the initialization parameter file (UNLIMITED for infinite allocation).', :align=>"right"},
+                   {:caption=>'System limit',               :data=>proc{|rec| check_ul.call(rec.limit_value)},        :title=>'System limits. Unlimited for resources and locks. This can be greater than the initial allocation value (UNLIMITED for infinite limit).', :align=>"right"},
+
+
+           ]
+
+%>
+
+<%= gen_slickgrid(@limits, column_options, {
+                                :caption        =>"Resource limits for '#{@resource_name}'#{@instance ? " Instance=#{@instance}" : ''} from #{PanoramaConnection.adjust_table_name('DBA_Hist_Resource_Limit')}",
+                                :max_height     => 450,
+                                :width          => :auto,
+                                show_pin_icon: 1,
+                                update_area: @update_area
+                        })
+%>
+
+
+

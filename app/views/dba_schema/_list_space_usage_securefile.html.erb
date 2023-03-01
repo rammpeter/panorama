@@ -1,0 +1,20 @@
+<%
+  column_options = []
+  column_options << {caption: 'Partition',              data: proc{|rec| rec.partition_name},                           title: 'Name of partition (if partitioned)'}
+  column_options << {caption: 'Segment Size Blocks',    data: proc{|rec| fn(rec.segment_size_blocks)},                  align: :right,  title: 'Number of blocks allocated to the segment'}
+  column_options << {caption: 'Used Blocks',            data: proc{|rec| fn(rec.used_blocks)},                          align: :right,  title: 'Number blocks allocated to the LOB that contains active data'}
+  column_options << {caption: 'Expired Blocks',         data: proc{|rec| fn(rec.expired_blocks)},                       align: :right,  title: 'Number of expired blocks used by the LOB to keep version data'}
+  column_options << {caption: 'Unexpired Blocks',       data: proc{|rec| fn(rec.unexpired_blocks)},                     align: :right,  title: 'Number of unexpired blocks used by the LOB to keep version data'}
+  column_options << {caption: 'Segment Size MB',        data: proc{|rec| fn(rec.segment_size_bytes/(1024*1024), 2)},    align: :right,  title: 'Number of MBytes allocated to the segment'}
+  column_options << {caption: 'Used MBytes',            data: proc{|rec| fn(rec.used_bytes/(1024*1024), 2)},            align: :right,  title: 'Number MBytes allocated to the LOB that contains active data'}
+  column_options << {caption: 'Expired MBytes',         data: proc{|rec| fn(rec.expired_bytes/(1024*1024), 2)},         align: :right,  title: 'Number of expired MBytes used by the LOB to keep version data'}
+  column_options << {caption: 'Unexpired MBytes',       data: proc{|rec| fn(rec.unexpired_bytes/(1024*1024), 2)},       align: :right,  title: 'Number of unexpired MBytes used by the LOB to keep version data'}
+
+%>
+
+<%= gen_slickgrid(@result, column_options, {
+    :caption => "Securefile space usage under the high water mark from DBMS_SPACE.SPACE_USAGE for #{@owner}.#{@segment_name}",
+    :max_height => 450
+})
+%>
+

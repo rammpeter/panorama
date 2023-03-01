@@ -1,0 +1,36 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_object = proc do |rec|
+    if rec.owner && rec.object_name
+      link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner}. #{rec.object_name}#{" (#{rec.subobject_name})" if rec.subobject_name}")
+    else
+      "No longer existing object with Data_Object_ID = #{rec.data_object_id}"
+    end
+  end
+
+  column_options = []
+  column_options << {caption: "Event date",       data: proc{|rec| localeDateTime(rec.conv_event_date)},      title: "Timestamp of event", plot_master_time: true}
+  column_options << {caption: "Policy event",     data: proc{|rec| rec.policy_event},                         title: "Name of policy event", data_title: proc{|rec| "%t\n#{policy_event_explanation(rec.policy_event)}"}}
+  column_options << {caption: "Inst.",            data: proc{|rec| rec.inst_id},                              title: "RAC-instance recording this event", align: :right}
+  column_options << {caption: "Tablespace",       data: proc{|rec| rec.tablespace_name},                      title: "Name of tablespace"} if get_db_version >= '12.1'
+  column_options << {caption: "Object",           data: link_object,                                          title: "Object master role has changed for"}
+  column_options << {caption: "Target inst.",     data: proc{|rec| rec.target_instance_number},               title: "New master instance for this object", align: :right}
+  column_options << {caption: "Con-ID",     data: proc{|rec| rec.con_id},                          title: "Container-ID", align: :right} if get_db_version >= '12.1'
+
+
+  caption = "Dynamic remastering events from gv$Policy_History"
+  caption << " from #{@time_selection_start} until #{@time_selection_end}"  if @time_selection_start && @time_selection_end
+  caption << ", target instance = #{@target_instance}"                      if @target_instance
+  caption << ", Data-Object-ID = #{@data_object_id}"                        if @data_object_id
+  caption << ", Owner = #{@owner}"                                          if @owner
+  caption << ", Objectname = #{@object_name}"                               if @object_name
+  caption << ", Event = '#{@policy_event}'"                                 if @policy_event
+%>
+<%= gen_slickgrid(@records, column_options, {
+    :caption => caption,
+    :max_height => 450, show_pin_icon: 1
+})
+%>
+
+<div id="<%= @update_area %>"></div>

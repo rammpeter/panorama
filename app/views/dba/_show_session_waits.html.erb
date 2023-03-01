@@ -1,0 +1,58 @@
+<%
+   @update_area = get_unique_area_id
+
+   link_column = proc do |rec, value|
+     ajax_link(value, {
+                     :action      => :list_waits_per_event,
+                     :instance    => rec.inst_id,
+                     :event       => rec.event,
+                     :update_area => @update_area
+                    },
+             :title=> "Show active sessions with this wait event")
+   end
+
+   show_username = proc do |rec|
+     rec.username_count > 1 ? "<&nbsp;#{rec.username_count}&nbsp;>" : rec.username
+   end
+
+   show_module = proc do |rec|
+    rec.module_count > 1 ? "<&nbsp;#{rec.module_count}&nbsp;>" : rec.module
+  end
+
+  show_action = proc do |rec|
+    rec.action_count > 1 ? "<&nbsp;#{rec.action_count}&nbsp;>" : rec.action
+  end
+
+  column_options = []
+  column_options << {:caption=>t(:dba_show_session_waits_count_caption, :default=>'Session count'),       :data=>proc{|rec| link_column.call(rec, formattedNumber(rec.anzahl)) },      :title=>t(:dba_show_session_waits_count_hint, :default=>'Number of active sessions in this event'), :align=>"right"}
+  column_options << {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                        :title=>"RAC-Instance"} if PanoramaConnection.rac?
+  column_options << {:caption=>"Wait Event",       :data=>proc{|rec| rec.event},                          :title=>"Wait Event", :data_title=>proc{|rec| "%t: #{explain_wait_event(rec.event)}"} }
+  column_options << {:caption=>"Wait Class",       :data=>proc{|rec| rec.wait_class},                     :title=>"Wait Class"}
+  column_options << {:caption=>"State",            :data=>proc{|rec| rec.state},                          :title=>"State: All values exept \"WAITING\" mean \"ON CPU\". Event is the last event in this case", :data_title=>proc{|rec| explain_wait_state(rec.state)} }
+  column_options << {:caption=>"Sum. Seconds",     :data=>proc{|rec| fn(rec.sum_wait_time_seconds, 3)},   :title=>"Seconds in Wait (Sum)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.sum_wait_time_seconds)}"}, :align=>"right"}
+  column_options << {:caption=>"Max. Seconds",     :data=>proc{|rec| fn(rec.max_wait_time_seconds, 3)},   :title=>"Seconds in Wait (Maximum of one session)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.max_wait_time_seconds)}"}, :align=>"right"}
+  column_options << {:caption=>"User",             :data=>show_username,                                  :title=>'Number of different usernames in gv$Session (or name if only on username)'}
+  column_options << {:caption=>"Module",           :data=>show_module,                                    :title=>t(:dba_show_session_waits_modules_hint, :default=>'Number of different modules in gv$Session (or name if only on module)')}
+  column_options << {:caption=>'Action',           :data=>show_action,                                    :title=>"Number of different actions in gv$Session (or name if only on module)"}
+
+%>
+
+<%= gen_slickgrid(@wait_sums, column_options, {
+    :width=>:auto,
+    :caption=>"Session-Waits (Summary) at #{localeDateTime(Time.now)}",
+    :max_height => 450
+}) %>
+
+<%=
+  render_async(:dba, :show_blocking_sessions)
+%>
+
+<div id="<%= @update_area %>"></div>
+
+
+
+
+
+
+
+

@@ -1,0 +1,31 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = [
+      {caption: 'Total access count',             data: proc{|rec| fn(rec.total_access_count)},             align: :right, title: 'Total number of times the index has been accessed', data_title: proc{|rec| "%t\n\nRows per access = #{fn((rec.total_rows_returned/rec.total_access_count rescue nil), 1)}"}},
+      {caption: 'Total exec count',               data: proc{|rec| fn(rec.total_exec_count)},               align: :right, title: 'Total executions the index has participated in',    data_title: proc{|rec| "%t\n\nRows per exec = #{fn((rec.total_rows_returned/rec.total_exec_count rescue nil), 1)}"}},
+      {caption: 'Total rows returned',            data: proc{|rec| fn(rec.total_rows_returned)},            align: :right, title: "Total rows returned by the index.\nIndex usage is categorized into buckets of different ranges.\n\nEach bucket has a range of values for access count and rows returned.\nAn entry is placed into a bucket if the rows returned or access counts falls within the range of that bucket."},
+      {caption: 'Bucket 0 access count',          data: proc{|rec| fn(rec.bucket_0_access_count)},          align: :right, title: "The index has not been accessed"},
+      {caption: 'Bucket 1 access count',          data: proc{|rec| fn(rec.bucket_1_access_count)},          align: :right, title: "The index has been accessed once"},
+      {caption: 'Bucket 2-10 access count',       data: proc{|rec| fn(rec.bucket_2_10_access_count)},       align: :right, title: "The index has been accessed between 2 and 10 times"},
+      {caption: 'Bucket 2-10 rows returned',      data: proc{|rec| fn(rec.bucket_2_10_rows_returned)},      align: :right, title: "The index has returned between 2 and 10 rows"},
+      {caption: 'Bucket 11-100 access count',     data: proc{|rec| fn(rec.bucket_11_100_access_count)},     align: :right, title: "The index has been accessed between 11 and 100 times"},
+      {caption: 'Bucket 11-100 rows returned',    data: proc{|rec| fn(rec.bucket_11_100_rows_returned)},    align: :right, title: "The index has returned between 11 and 100 rows"},
+      {caption: 'Bucket 101-1000 access count',   data: proc{|rec| fn(rec.bucket_101_1000_access_count)},   align: :right, title: "The index has been accessed between 101 and 1000 times"},
+      {caption: 'Bucket 101-1000 rows returned',  data: proc{|rec| fn(rec.bucket_101_1000_rows_returned)},  align: :right, title: "The index has returned between 101 and 1000 rows"},
+      {caption: 'Bucket 1000+ access count',      data: proc{|rec| fn(rec.bucket_1000_plus_access_count)},  align: :right, title: "The index has been accessed more than 1000 times"},
+      {caption: 'Bucket 1000+ rows returned',     data: proc{|rec| fn(rec.bucket_1000_plus_rows_returned)}, align: :right, title: "The index has returned more than 1000 rows"},
+      {caption: 'Last used time',                 data: proc{|rec| localeDateTime(rec.last_used)},                         title: "Time that the index was last used"},
+  ]
+
+%>
+
+
+
+<%= gen_slickgrid(@usage, column_options, {
+    :caption => "Index usage from DBA_Index_Usage for #{@owner}.#{@index_name}",
+    :max_height => 450
+})
+%>
+
+<div id="<%= @update_area %>"></div>

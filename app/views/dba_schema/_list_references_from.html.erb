@@ -1,0 +1,59 @@
+<%=
+    @update_area = get_unique_area_id
+
+    link_index = proc do |rec|
+      ajax_link(rec.min_index_name,
+           {controller:     :dba_schema,
+            action:         :list_indexes,
+            owner:          rec.min_index_owner,
+            table_name:     @table_name,
+            index_name:     rec.min_index_name,
+            update_area:    @update_area,
+           },
+           :title=>"List distribution of storage extents for index. Caution: Execution may last some time!"
+      )
+    end
+
+    protecting_title = "Name of index for protection of foreign key constraint.
+    Checked for all columns of constraint (if constraint has multiple columns).
+    "
+
+    protecting_data_title = proc do |rec|
+      "%t\n
+      If no index exists for constraints column(s) than each DELETE on #{rec.r_table_name} fires a full table scan on #{@table_name}.
+      This and some lock issues are only a problem if #{rec.r_table_name} is a larger table with frequent DML-operations.
+      Working without an index here may be useful if #{rec.r_table_name} has only few records and there is less or no DML on #{rec.r_table_name}.
+      #{"\nThere are #{rec.index_number} indexes on #{@table_name} starting with the same column!" if !rec.index_number.nil? && rec.index_number > 1}
+
+      To catch lock propagation with index instead of table for foreign key constraints: All columns of FK-constraint must exist in protecting index!
+      "
+    end
+
+    column_options =
+            [
+                    {:caption=> 'Constraint name',             :data=>proc{|rec| rec.constraint_name},             :title=> 'Constraint name'},
+                    {:caption=> 'Last change',                 :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change of constraint'},
+                    {:caption=> 'Referencing columns',         :data=>proc{|rec| rec.columns},                     :title=> 'Referencing column names'},
+                    {:caption=> 'Referenced table owner',      :data=>proc{|rec| rec.r_owner},                     :title=> 'Owner of referenced table'},
+                    {:caption=> 'Referenced table name', :data=>proc{|rec| link_object_description(@update_area, rec.r_owner, rec.r_table_name, rec.r_table_name) }, :title=> 'Name of referenced table'},
+                    {:caption=> 'Referenced constraint name',  :data=>proc{|rec| rec.r_constraint_name},           :title=> 'Referenced constraint name'},
+                    {:caption=> 'Referenced columns',          :data=>proc{|rec| rec.r_columns},                   :title=> 'Column names of referenced table'},
+                    {:caption=> 'Delete rule',                 :data=>proc{|rec| rec.delete_rule},                 :title=> 'Delete rule'},
+                    {:caption=> 'Status',                      :data=>proc{|rec| rec.status},                      :title=> 'Status'},
+                    {:caption=> 'Deferred',                    :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
+                    {:caption=> 'Validated',                   :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
+                    {:caption=> 'Num. rows',                   :data=>proc{|rec| fn(rec.r_num_rows)},              :title=> 'Number of rows of referenced table', :align=>:right},
+                    {:caption=> 'Last analyzed',               :data=>proc{|rec| localeDateTime(rec.last_analyzed)},:title=> 'Timestamp of last analyze of referenced table', :align=>:right},
+                    {:caption=> 'Ins.',                        :data=>proc{|rec| fn(rec.inserts)},                 :title=> 'Number of insert operations on referenced table since last analyze', :align=>:right},
+                    {:caption=> 'Upd.',                        :data=>proc{|rec| fn(rec.updates)},                 :title=> 'Number of update operations on referenced table since last analyze', :align=>:right},
+                    {:caption=> 'Del.',                        :data=>proc{|rec| fn(rec.deletes)},                 :title=> 'Number of delete operations on referenced table since last analyze', :align=>:right},
+                    {:caption=> 'Protecting index name',       :data=>link_index,                                  :title=> protecting_title, data_title: protecting_data_title },
+            ]
+
+    gen_slickgrid(@references, column_options, {
+                                     :caption => "Foreign key references from #{@owner}.#{@table_name}#{" (limited to constraints protected by index #{@index_name})" if @index_name}",
+                                     :max_height => 450, show_pin_icon: 1
+                             })
+%>
+
+<div id="<%= @update_area %>"></div>

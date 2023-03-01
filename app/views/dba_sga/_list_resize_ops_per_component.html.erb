@@ -1,0 +1,24 @@
+<% @update_area = get_unique_area_id %>
+<%
+
+  column_options =
+      [
+          {:caption=>'Start time',          :data=>proc{|rec| localeDateTime(rec.start_time)},                      :title=>"Start time of the operation", plot_master_time: true},
+          {:caption=>'End time',            :data=>proc{|rec| localeDateTime(rec.end_time)},                        :title=>"End time of the operation"},
+          {:caption=>'Component',           :data=>proc{|rec| rec.component},                                       :title=>"Component name"},
+          {:caption=>'Oper. type',          :data=>proc{|rec| rec.oper_type},                                       :title=>"Operation type"},
+          {:caption=>'Oper. mode',          :data=>proc{|rec| rec.oper_mode},                                       :title=>"Operation mode"},
+          {:caption=>'Parameter',           :data=>proc{|rec| rec.parameter},                                       :title=>"Name of the parameter for the resize operation"},
+          {:caption=>'Initial size',        :data=>proc{|rec| fn(rec.initial_size)},                                :title=>"Parameter value at the start of the operation", align: :right},
+          {:caption=>'Target size',         :data=>proc{|rec| fn(rec.target_size)},                                 :title=>"Requested value of the parameter after the resize", align: :right},
+          {:caption=>'Final size',          :data=>proc{|rec| fn(rec.final_size)},                                  :title=>"Real value of the parameter after the resize", align: :right},
+          {:caption=>'Status',              :data=>proc{|rec| rec.status},                                          :title=>"Completion status of the operation"},
+      ]
+
+%>
+<%= gen_slickgrid(@ops, column_options, {
+    :caption => "Dynamic component resize operations from gv$SGA_Resize_Ops for instance = #{@instance} and component = #{@pool}",
+    :max_height => 450, show_pin_icon: 1
+}) %>
+
+

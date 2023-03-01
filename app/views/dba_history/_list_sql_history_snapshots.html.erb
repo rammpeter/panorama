@@ -1,0 +1,130 @@
+<%
+@update_area = get_unique_area_id
+
+def link_column_detail(rec, value)
+  ajax_link(value, {
+            :action     => :list_sql_detail_historic,
+            :dbid       => get_dbid,
+            :instance   => @instance,
+            :sql_id     => @sql_id,
+            :parsing_schema_name =>@parsing_schema_name,
+            :min_snap_id=> rec.min_snap_id,
+            :max_snap_id=> rec.max_snap_id,
+            :time_selection_start => localeDateTime(rec.begin_interval_time, :minutes),
+            :time_selection_end   => localeDateTime(rec.end_interval_time, :minutes),  # 1 Tag weiter
+            :update_area=> @update_area
+          },
+   :title=>t(:dba_history_list_sql_history_snapshots_link_sql_detail_hint, :default=>'Show details of SQL for this period from %{table_name}', table_name: PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'))
+  )
+end
+
+
+
+
+column_options =
+  [
+          {:caption=>"Start",          :data=>proc{|rec| link_column_detail(rec, localeDateTime(rec.begin_interval_time)) }, :title=>t(:dba_history_list_sql_history_snapshots_start_hint, :default=>'Begin of considered interval'), :data_title=>proc{|rec| t(:dba_history_list_sql_history_snapshots_start_data_hint, :default=>'Begin of considered interval, end = %{end_interval}', :end_interval=>localeDateTime(rec.end_interval_time) )},  :plot_master_time=>true },
+          {:caption=>t(:dba_history_list_sql_history_snapshots_first_occurrence_caption, :default=>'First occurrence'),     :data=>proc{|rec| localeDateTime(rec.first_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_first_occurrence_hint, :default=>'First occurrence of SQL in interval')},
+          {:caption=>t(:dba_history_list_sql_history_snapshots_last_occurrence_caption, :default=>'Last occurrence'), :data=>proc{|rec| localeDateTime(rec.last_occurrence) },             :title=>t(:dba_history_list_sql_history_snapshots_last_occurrence_hint, :default=>'Last occurrence of SQL in interval')},
+          {:caption=>"Plans",          :data=>proc{|rec| formattedNumber(rec.execution_plans) },               :title=>"Number of different execution plans in time period.\n\nCalculated by number of different values in DBA_Hist.SQLStat.Plan_Hash_Value.\nNot every plan counted here is also recorded in detail in DBA_Hist_SQL_Plan.", :align=>"right", :data_style=>proc{|rec| "background-color:orange;" if rec.execution_plans > 1}  },
+          {:caption=>"Plan hash value",:data=>proc{|rec| rec.first_plan_hash_value },                          :title=>"Plan hash value of first sample in time period"},
+          {:caption=>"Envs.",          :data=>proc{|rec| formattedNumber(rec.optimizer_envs) },                :title=>"Number of different optimizer environments in time period", :align=>"right", :data_style=>proc{|rec| "background-color:orange;" if rec.optimizer_envs > 1}  },
+          {:caption=>"Opt. env hash value",:data=>proc{|rec| rec.first_opt_env_hash_value },                   :title=>"Optimizer env hash value of first sample in time period" },
+          {:caption=>"Execs",          :data=>proc{|rec| formattedNumber(rec.executions) },                    :title=>t(:dba_history_list_sql_history_snapshots_execs_hint, :default=>'Number of executions of SQL in interval'), :align=>"right" },
+          {:caption=>"Elapsed",        :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs) },             :title=>"Total elapsed time in Sec.",                                  data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs)}" }, :align=>"right" },
+          {:caption=>"Ela. / Ex.",     :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute, 4) },  :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs_per_execute)}" }, :align=>"right" },
+          {:caption=>"Ela. / Row",     :data=>proc{|rec| fn((rec.elapsed_time_secs * 1000 / rec.rows_processed rescue nil)) },  :title=>"Elapsed time per result row in milliseconds (incl. parallel Query Slaves)", data_title: proc{|rec| "%t\n#{seconds_explain((rec.elapsed_time_secs / rec.rows_processed rescue nil))}" }, :align=>"right" },
+          {:caption=>"CPU",            :data=>proc{|rec| formattedNumber(rec.cpu_time_secs) },                 :title=>"CPU-time total in seconds, sum over all PQ-Processes",        data_title: proc{|rec| "%t\n#{seconds_explain(rec.cpu_time_secs)}" }, :align=>"right" },
+          {:caption=>"App.",           :data=>proc{|rec| formattedNumber(rec.application_wait_time_secs) },    :title=>"Application wait time in seconds, incl. row lock waits",      data_title: proc{|rec| "%t\n#{seconds_explain(rec.application_wait_time_secs)}" }, :align=>"right" },
+          {:caption=>"Con.",           :data=>proc{|rec| formattedNumber(rec.concurrency_wait_time_secs) },    :title=>"Concurrency Wait Time (sec)",                                 data_title: proc{|rec| "%t\n#{seconds_explain(rec.concurrency_wait_time_secs)}" }, :align=>"right" },
+          {:caption=>"Clu.",           :data=>proc{|rec| formattedNumber(rec.cluster_wait_time_secs) },        :title=>"Cluster-Wait-Time im RAC in Sekunden, Summe über alle PQ-Prozesse", data_title: proc{|rec| "%t\n#{seconds_explain(rec.cluster_wait_time_secs)}" }, :align=>"right" },
+          {:caption=>"I/O",            :data=>proc{|rec| formattedNumber(rec.user_io_wait_time_secs) },        :title=>"User-IO Wait Time (sec)",                                     data_title: proc{|rec| "%t\n#{seconds_explain(rec.user_io_wait_time_secs)}" }, :align=>"right" },
+          {:caption=>"PL/ SQL",        :data=>proc{|rec| formattedNumber(rec.plsql_exec_time_secs) },          :title=>"PL/SQL Exec Time (sec)",                                      data_title: proc{|rec| "%t\n#{seconds_explain(rec.plsql_exec_time_secs)}" }, :align=>"right" },
+          {:caption=>"Disk Reads",     :data=>proc{|rec| formattedNumber(rec.disk_reads) },                    :title=>"Number of DB-blocks read from disk", :align=>"right" },
+          {:caption=>"Disk / Ex.",     :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute, 3) },     :title=>"Number of DB-blocks read from disk per execute", :align=>"right" },
+          {:caption=>"ms / Disk Read", :data=>proc{|rec| formattedNumber((rec.disk_reads>0 ? rec.user_io_wait_time_secs*1000/rec.disk_reads : 0 rescue 0),2)},   :title=>"Disk read time per DB-block im milliseconds",  :align=>"right"},
+          {:caption=>"Hit Ratio",      :data=>proc{|rec| formattedNumber(rec.hit_ratio,2) },                   :title=>"Buffer cache hit ratio %\n\nEmpty if no valid calculation is possible.",  :align=>"right"},
+          {:caption=>"Buffer Gets",    :data=>proc{|rec| formattedNumber(rec.buffer_gets) },                   :title=>"Total number of buffer gets", :align=>"right" },
+          {:caption=>"Buffer / Ex.",   :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec, 2) },       :title=>"Buffer gets per execute", :align=>"right" },
+          {:caption=>"Buffer / Row",   :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_row,2) },         :title=>"Buffer gets per result-row",  :align=>"right"},
+          {:caption=>"Rows proc.",     :data=>proc{|rec| formattedNumber(rec.rows_processed) },                :title=>"Number of rows processed", :align=>"right" },
+          {:caption=>"Rows / Ex.",     :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2) }, :title=>"Number if rows processed per execute", :align=>"right" },
+          {:caption=>"Parses",         :data=>proc{|rec| formattedNumber(rec.parse_calls) },                   :title=>"Number of parse calls", :data_title=>proc{|rec| "%t\n#{fn(rec.executions.to_f/rec.parse_calls,2) if rec.parse_calls && rec.parse_calls > 0} executions per parse call"},  :align=>"right"},
+  ]
+
+%>
+<%=
+caption = t(:dba_history_list_sql_history_snapshots_caption, :default=>"Historic snapshots from %{table_name} for SQL-ID = '%{sql_id}'", :sql_id=>@sql_id, table_name: PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'))
+
+@time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
+@time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
+
+grouping_options = {
+        :snap   => "[AWR-cycle]",
+        :hour   => t(:hour, :default => 'Hour'),
+        :day    => t(:day,  :default => 'Day'),
+        :week   => t(:week, :default => 'Week'),
+        :month  => t(:month,:default => 'Month'),
+}
+
+caption << (ajax_form(:controller => :dba_history, :action        => :list_sql_history_snapshots,
+                                      :sql_id         => @sql_id,
+                                      :update_area   => @prev_update_area,                   # Update_area des letzten Aufrufes wiederverwenden
+                              ) do
+  form_output = ''
+  form_output << "<div class=\"flex-row-container\" style=\"font-weight: normal;\">"
+  form_output << "  <div class=\"flex-row-element\" title=\"RAC-Instance. You can change this filter value or empty this field to disable the filter\">"
+  form_output << "    Instance"
+  form_output <<      text_field_tag(:instance, @instance, :size=>4)
+  form_output << "  </div>"
+
+  form_output << "  <div class=\"flex-row-element\" title=\"Parsing schema name. You can change this filter value or empty this field to disable the filter\">"
+  form_output << "    Schema"
+  form_output <<      text_field_tag(:parsing_schema_name, @parsing_schema_name, :size=>20)
+  form_output << "  </div>"
+
+  form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'\">"
+  form_output <<      t(:time_selection_start_caption, :default => 'Start')
+  form_output <<      text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>@time_selection_start_id)
+  form_output << "  </div>"
+
+  form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'\">"
+  form_output <<      t(:time_selection_end_caption, :default => 'End')
+  form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id)
+  form_output << "  </div>"
+
+  form_output << dbid_selection.gsub(/\n/, '\\n')                               # suppress real line feed in javascript strings, esacped with \n
+
+  form_output << "&nbsp;"
+  form_output << "  <div class=\"flex-row-element\" title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"
+  form_output <<      t(:grouping, :default=>'Grouping')
+  form_output << "    <select name=\"groupby\">"
+  grouping_options.each do |key, value|
+    form_output << "<option value=\"#{key}\" #{"selected='selected'" if key.to_s==@groupby}>#{value}</option>"
+  end
+  form_output << "    </select>"
+  form_output << "  </div>"
+
+  form_output << "  <div class=\"flex-row-element\">"
+  form_output <<      submit_tag("Refresh", :title => t(:active_session_history_list_groupfilter_refresh_hint, :default=>"Refresh content with changed parameters"))
+  form_output << "  </div>"
+
+  form_output << "</div>"
+  form_output.html_safe
+end)
+
+gen_slickgrid(@hist, column_options, {  :caption     => caption.html_safe,
+                                        :max_height  => 450, show_pin_icon: 1,
+                                        update_area: @update_area
+                                     })
+%>
+
+<script type="text/javascript">
+  // let create slickgrid with header at first, wenn refine elements in header
+  setTimeout(
+      () => {
+          $("#<%= @time_selection_start_id %>").datetimepicker();
+          $("#<%= @time_selection_end_id   %>").datetimepicker();
+      }, 0
+  )
+</script>

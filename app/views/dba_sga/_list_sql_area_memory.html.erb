@@ -1,0 +1,30 @@
+<%
+  @update_area = get_unique_area_id if !defined?(@update_area) || @update_area  # Kann auch durch Aufrufer vorbelegt sein
+
+  def link_column(rec)
+    if rec.record_count == 1
+      link_sql_id(@update_area, @instance, rec.sql_id, parsing_schema_name: rec.parsing_schema_name)
+    else
+      "Sum of #{fn rec.record_count} other SQL-IDs after the first top #{@max_rows_in_result} records"
+    end
+   end
+
+   column_options = []
+   column_options << {:caption=>"SQL-ID",                 :data=>proc{|rec| link_column(rec)},                                     :title=>"SQL-ID"}
+   column_options << {:caption=>"SQL-Text",               :data=>proc{|rec| my_html_escape rec.sql_text},                          :title=>"SQL-Text"}
+   column_options << {:caption=>"Parse",                  :data=>proc{|rec| rec.parsing_schema_name},                              :title=>"Parsing schema name that was used to originally build this child cursor" }
+   column_options << {:caption=>"Sharable memory (KB)",   :data=>proc{|rec| fn(rec.sharable_mem_kb)},                              :title=>'Amount of shared memory used by a cursor. If multiple child cursors exist, then the sum of all shared memory used by all child cursors.', :align=>:right}
+   column_options << {:caption=>"Persistent memory (KB)", :data=>proc{|rec| fn(rec.persistent_mem_kb)},                            :title=>'Fixed amount of memory used for the lifetime of an open cursor. If multiple child cursors exist, then the fixed sum of memory used for the lifetime of all the child cursors.', :align=>:right}
+   column_options << {:caption=>"Runtime memory (KB)",    :data=>proc{|rec| fn(rec.runtime_mem_kb)},                               :title=>'Fixed amount of memory required during execution of a cursor. If multiple child cursors exist, then the fixed sum of all memory required during execution of all the child cursors.', :align=>:right}
+
+%>
+
+
+
+<%= gen_slickgrid(@sga_mems, column_options, {
+    :caption => "Usage of SQL-Area memory from GV$SQLArea for instance=#{@instance}",
+    :max_height => 450, show_pin_icon: 1,
+    update_area: @update_area
+}) %>
+
+

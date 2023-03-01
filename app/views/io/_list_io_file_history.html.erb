@@ -1,0 +1,97 @@
+<%
+    # Eindeutige DIV-ID bei mehrfacher rekursiver Nutzung des Screeens
+    @update_area = get_unique_area_id
+
+   def link_samples(rec)
+     ajax_link(
+       fn(rec.samples), {
+         :action       => :list_io_file_history_samples,
+         :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
+         :update_area  => @update_area,
+       },
+       :title=>t(:list_io_file_history_samples_hint, :default=>"Show timeline of sample records")
+     )
+   end
+
+    def link_column_grouping(rec, value, add_url)
+        if value.to_s.match("<.*>")
+            if value == "< 0 >"
+                ""
+            else
+                ajax_link(value,
+                    {:action       => :list_io_file_history_grouping,
+                        :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
+                        :groupby      => add_url[:groupby],
+                        :update_area  => @update_area,
+                    },
+                    :title=>"#{t(:active_session_history_list_session_statistic_historic_grouping_link_hint, :default=>"Show different")} #{add_url[:groupby]}s #{t(:of, :default=>"of")} #{@groupby}s")
+            end
+        else
+           value           # Nur wert anzeigen ohen Link wenn keine sinnvolle Funktion mehr dahinter
+         end
+    end
+
+
+    @column_options = [
+        {:caption=>io_file_key_rule(@groupby)[:Name],   :data=>proc{|rec| rec.group_value },      :title=>io_file_key_rule(@groupby)[:Title], :data_title=>io_file_key_rule(@groupby)[:Data_Title]},
+        {:caption=>t(:active_session_history_first_occurrence_caption, :default=>"First occurrence"), :data=>proc{|rec| localeDateTime(rec.first_occurrence) },      :title=>t(:active_session_history_first_occurrence_hint, :default=>"First occurrence of sample record in group")},
+        {:caption=>t(:active_session_history_last_occurrence_caption,  :default=>"Last occurrence"),  :data=>proc{|rec| localeDateTime(rec.last_occurrence) },       :title=>t(:active_session_history_last_occurrence_hint,  :default=>"Last occurrence of sample record in group")},
+        {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs) },    :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time slice"), :align=>"right"},
+    ]
+    io_file_key_rules.each do |key, value|
+      unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+        @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(Number if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
+      end
+    end
+    @column_options.concat [
+        {:caption=>"Samples",               :data=>proc{|rec| link_samples(rec)},                       :title=>"Number of timestamps in AWR-table for this selection", :align=>"right"},
+    ]
+   @column_options.concat io_file_values_column_options         # Feldliste der numerischen Werte zur Mehrfachverwendung in diversen Views
+
+
+%>
+
+<% # Parameter für nachfolgendes Partial list_groupfilter
+   @header = "#{t :active_session_history_list_session_statistic_historic_grouping_header, :default=>"Grouped by"} #{@groupby}. Filter: "
+   @repeat_action = :list_io_file_history_grouping
+   @key_rule_proc = proc{|key| io_file_key_rule(key)}
+%>
+<%= render :partial => 'list_groupfilter' %>
+
+<%=
+    @hidden_link_data_column_id = get_unique_area_id
+    @hidden_link_timeline_id    = get_unique_area_id
+
+    gen_slickgrid(@ios,
+                 @column_options,
+                 {
+                     :caption              => @caption ? @caption : "",
+                     :max_height           => 450,
+                     show_pin_icon: 1,
+                     :context_menu_entries => [
+                             {
+                                     :label   => t(:list_io_file_history_timeline ,     :default=>"Show values in time line diagram (Top 20)"),
+                                     :hint    => t(:list_io_file_history_timeline_hint, :default=>"Show values time line, each point in graph for one snapshot sample"),
+                                     :ui_icon => "cui-chart-line",
+                                     # Setze den Spaltenheader der angeklickten Spalte in text_field eines Formulares und sende dieses
+                                     :action  => "$('##{@hidden_link_data_column_id}').val($(t).data('slickgridextended').last_slickgrid_contexmenu_col_header.text()); $('##{@hidden_link_timeline_id}').click();"
+                           }]
+                 }
+                )
+%>
+
+<%= ajax_form(:action            => :list_io_file_history_timeline,
+                             :groupfilter       => @groupfilter,
+                             :groupby           => @groupby,
+                             :update_area       => "#{@update_area}_timeline"
+                     ) do %>
+    <%= text_field_tag(:data_column_name, "", :id=>"#{@hidden_link_data_column_id}", :style=>"display:none" ) %>
+    <%= submit_tag("", :id=>"#{@hidden_link_timeline_id}", :style=>"display:none") %>
+
+<%  end %>
+
+
+<div id="<%= @update_area %>_timeline" style="clear: both; width:100%; "></div>
+<div id="<%= @update_area %>"          style="clear: both; width:100%; "></div>
+
+

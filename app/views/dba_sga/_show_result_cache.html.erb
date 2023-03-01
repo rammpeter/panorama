@@ -1,0 +1,16 @@
+<%= render_page_caption("Result cache info from gv$Result_Cache_Objects") %>
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(:controller=>:dba_sga, :action=>:list_result_cache, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= submit_tag("Show content", :title => "Show usage / contents of result cache") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show invalidations", :title => "Show invalidations of result cache due to DML/change on dependencies") %>
+    </div>
+  </div>
+
+<% end %>
+<div id="<%= @update_area %>"></div>

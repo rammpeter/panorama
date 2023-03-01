@@ -1,0 +1,47 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Historic PGA usage #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')} #{t(:and, :default=>'and')} #{PanoramaConnection.adjust_table_name('gv$Active_Session_History')} (Show PGA-usage by active sessions only)") %>
+
+
+<%= ajax_form(:controller=>:active_session_history, :action=>:first_list_pga_usage_historic, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+
+    <div class="flex-row-element" title="Number of seconds for fuzzy determination of max. values per session and timestamp.
+    Maximum values per session plus/minus x seconds are considered to bypass the inaccuracy due to resource claiming by inactive sessions
+    (that are not recorded by active session history).
+
+    Reduce value to reduce runtime of selection (therefore default is 0).
+    Enlarge value to enlarge accuracy in also considering sessions that are inactive at sample time (until values are not growing no more).
+    Common values are 20 .. 80 seconds.">
+      Fuzzy seconds
+      <%= text_field_tag(:fuzzy_seconds, '0', :size=>3, :style=>'text-align: right') %>
+    </div>
+
+
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping')%>
+      <select name="time_groupby">
+        <% temp_historic_grouping_options.each do |key, value| %>
+          <%=  "<option value='#{key}' #{"selected='selected'" if key==:hour}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+
+    <div class="flex-row-element">
+      <%= submit_tag('Show', :title => 'Show historic PGA usage') %>
+    </div>
+
+  </div>
+
+<% end %>
+<div id="<%= @update_area %>">
+  <%= my_html_escape(t(:active_session_history_show_pga_usage_historic_caution, :default=>"
+
+Caution: This function shows used PGA-memory only for sessions that were active (recorded by ASH)!
+By enlargement of consideration window (input field \"fuzzy seconds\") it is possible for one sample timestamp to consider also TEMP-usage of sessions,
+that were active in the time period +/- x seconds.")).html_safe %>
+</div>
+

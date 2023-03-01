@@ -1,0 +1,27 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("#{t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')} #{get_current_database[:sid]} #{localeDateTime(Time.now, :minutes)}")%>
+
+<div class="flex-row-container">
+  <!-- div flex-row-element rendered in partoal because totals and FRA are two elements -->
+  <div class="flex-row-element">
+    <%=  render_async(:storage, :storage_usage_totals, { update_area_for_target: @update_area }) %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=  render_async(:storage, :storage_usage_segments, { update_area_for_target: @update_area }) %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=  render_async(:storage, :storage_usage_schemas, { update_area_for_target: @update_area }) %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=  render_async(:storage, :storage_usage_tablespaces_per_schema, { update_area_for_target: @update_area }) %>
+  </div>
+</div>
+
+<%=  render_async(:storage, :storage_usage_tablespaces, { update_area_for_target: @update_area }) %>
+
+<div id="<%= @update_area %>"></div>
+

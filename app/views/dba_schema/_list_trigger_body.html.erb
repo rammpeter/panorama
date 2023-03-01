@@ -1,0 +1,28 @@
+<% @update_area = get_unique_area_id %>
+
+<%=  render_code_mirror(@body, cm_options: { lineNumbers: true}) %>
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit("#{@dependencies} Dependencies", {
+        :update_area  => @update_area,
+        :action       => :list_dependencies,
+        :owner        => @owner,
+        :object_name  => @trigger_name,
+        :object_type  => 'TRIGGER'
+    }, :title => "Show object dependencies for trigger #{@owner}.#{@trigger_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("Settings", {
+      :update_area  => @update_area,
+      :action       => :list_stored_settings,
+      :owner        => @owner,
+      :object_name  => @trigger_name,
+      :object_type  => 'TRIGGER'
+    }, :title => "Show stored settings for trigger #{@owner}.#{@trigger_name}")
+    %>
+  </div>
+</div>
+
+<div id="<%= @update_area %>"></div>

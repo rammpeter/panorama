@@ -1,0 +1,26 @@
+<%=
+  show_col = proc do |rec|
+    my_html_escape(
+      rec.comp_data
+        .gsub(/<hint>/, "\n  <hint>")
+        .gsub(/<\/outline_data>/, "\n</outline_data>")
+    )
+  end
+
+  show_extracted_col = proc do |rec|
+    # input: XML-structure for outline_data
+    # return: Array of hint-texts
+    output = ''
+    Nokogiri::XML(rec.comp_data).xpath("//hint").each do |hint|
+      output << "#{my_html_escape(hint.text)}<br/>"
+    end
+    output
+  end
+
+  column_options = [
+      {:caption=>"Optimizer hints",   :data=>show_extracted_col,    :title=>'Extracted optimizer hints from sys.SQLObj$Data.Comp_Data'},
+      {:caption=>"Full outline data", :data=>show_col,              :title=>'Original optimizer hints from sys.SQLObj$Data.Comp_Data'},
+  ]
+
+  gen_slickgrid(@baseline_hints, column_options, :caption => "Details from sys.SQLObj$Data for SQL plan baseline '#{@plan_name}'", show_pin_icon: 1)
+%>

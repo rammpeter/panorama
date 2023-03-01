@@ -1,0 +1,56 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption(t(:dba_show_locks_caption, :default=>'List current locks of different types')) %>
+
+<div class="flex-row-container">
+  <%= ajax_form(:controller => :dba, :action=>"list_dml_locks", :update_area => @update_area) do %>
+    <div class="flex-row-container">
+      <div class="flex-row-element" title="<%= t(:dba_show_locks_all_locks_hint, :default=>"Show all locks? Otherwise AE- and PS-Locks are suppressed") %>">
+        <%= t :dba_show_locks_all_locks_caption, :default=>"All Locks?" %> <%= check_box_tag(:show_all_locks, 1, false) %>
+      </div>
+
+      <div class="flex-row-element" title="<%= t(:dba_show_locks_max_result_size_hint, :default=>"Limit max. no. of rows for result") %>">
+        <%= t :dba_show_locks_max_result_size_caption, :default=>"max. to show" %>
+        <%= text_field_tag(:max_result_size, "1000", :size=>8) %>
+      </div>
+
+      <div class="flex-row-element">
+        <%= submit_tag("#{fn(@dml_count.dml_count)} #{t(:dba_show_locks_submit_dml_caption, :default=>'DML-locks (all)')}", :title =>t(:dba_show_locks_submit_dml_hint, :default=>"show all DML-locks (Data Manipulation Locks)"), :id=>:button_dml_locks ) %>
+      </div>
+    </div>
+  <% end  %>
+
+  <div class="flex-row-element">
+    <%= ajax_form(:controller => :dba, :action=>"list_blocking_dml_locks", :update_area => @update_area) do %>
+      <%= submit_tag "#{fn(@dml_count.blocking_dml_count)} Blocking DML-Locks", :title =>t(:dba_show_locks_submit_blocking_hint, :default=>"show blocking DML-locks (data manipulation locks)"), :id=>:button_blocking_dml_locks  %>
+    <% end %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_form(:controller => :dba, :action=>"list_ddl_locks", :update_area => @update_area) do %>
+      <%= submit_tag "#{fn(@ddl_count)} Blocking DDL-Locks", :title =>t(:dba_show_locks_submit_ddl_hint, :default=>"show blocking DDL-locks (data definition locks)"), :id=>:button_blocking_ddl_locks  %>
+    <% end %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_form(controller: :dba, action: :show_blocking_sessions, :update_area => @update_area) do %>
+      <%= submit_tag "#{fn(@blocking_session_count)} Blocking Sessions", title: 'Blocking sessions from gv$Session', :id=>:button_blocking_sessions %>
+    <% end %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_form(:controller => :dba, :action=>:list_pending_two_phase_commits, :update_area => @update_area) do %>
+        <%= submit_tag "#{fn(@pending_2pc_count)} Pending two-phase commits", :title =>t(:dba_show_locks_submit_pending_2phase_hint, :default=>"Show pending two-phase commits (from DBA_2PC_Pending)"), :id=>:button_2pc  %>
+    <% end %>
+  </div>
+
+  <div class="flex-row-element">
+    <%= ajax_form(:controller => :dba, :action=>:hang_analyze, :update_area => @update_area) do %>
+      <%= submit_tag "Hang analyze", title: "Get a script with the steps for executing hang analysis", :id=>:hang_analyze  %>
+    <% end %>
+  </div>
+
+</div>
+
+<div id="<%= @update_area %>" style="float:left; width:100%;">
+</div>

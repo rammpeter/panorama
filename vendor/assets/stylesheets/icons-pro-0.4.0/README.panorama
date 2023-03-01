@@ -1,0 +1,8 @@
+Embed coreui-fonts:
+
+- update config/engine_config.rb to include app/assets/fonts to asset-path:
+    config.assets.paths << Rails.root.join("app", "assets", "fonts")
+- move fonts from subdir to app/assets/fonts
+- move css-files to root of vendor/stylesheets including map-files and min-files
+- update config/initializers/assets.rb to include fonts in asset pipeline
+    Rails.application.config.assets.precompile << /\.(?:svg|eot|woff|ttf)\z/

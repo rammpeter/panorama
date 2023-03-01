@@ -1,0 +1,14 @@
+<%
+  column_options =
+      [
+          {:caption=>'Time',            :data=>proc{|rec| localeDateTime(rec.originating_timestamp) },  :title=>'Originating timestamp from file'},
+          {:caption=>'Type',            :data=>proc{|rec| rec.component_id },                           :title=>'Type of log file'},
+          {:caption=>'Msg.-type',       :data=>proc{|rec| rec.message_type},                            :title=>'Message type'},
+          {:caption=>'Msg.-Level',      :data=>proc{|rec| rec.message_level },                          :title=>'Message level'},
+          {:caption=>'Proc.',           :data=>proc{|rec| rec.process_id },                             :title=>'ID of shadow process'},
+          {:caption=>'Messsage',        :data=>proc{|rec| rec.message_text },                           :title=>'Message text'},
+          {:caption=>'File',            :data=>proc{|rec| rec.filename },                               :title=>'Name of log file'},
+      ]
+
+%>
+<%= gen_slickgrid(@result, column_options, :caption => "Server log from #{@time_selection_start} until #{@time_selection_end}", :max_height=>450, show_pin_icon: 1) %>

@@ -1,0 +1,20 @@
+<%
+    @update_area = get_unique_area_id
+
+    column_options =
+    [
+      {:caption=>"Name",   :data=>proc{|rec| rec.name}, :title=>"Name of statistic"          },
+      {:caption=>"Value",  :data=>proc{|rec| formattedNumber(rec.value) }, :align=>"right", :title=>"Statistic value cumulated since logon of session"        },
+    ]
+
+%>
+<%= gen_slickgrid(@stats, column_options,
+                  {:caption=>"Session-statistics from gv$SessStat for Instance=#{@instance} , SID=#{@sid},<br/> 0-values are suppressed in listing",
+                   max_height: 450,
+                   :width=>:auto,
+                   show_pin_icon: 1,
+                   update_area: @update_area
+                  }
+)%>
+
+

@@ -1,0 +1,15 @@
+# systemd service config file for Github runner
+# edit only at https://git.osp-dd.de/pramm/panorama_gem_ci/-/tree/master/ansible
+# File will be overwritten by ansible-playbook if modified locally!
+
+[Unit]
+Description=Github runners
+After=local-fs.target network-online.target
+
+[Service]
+User=pramm
+ExecStart=/bin/bash -c "cd /home/pramm/github_runner && ./start_runners.sh"
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

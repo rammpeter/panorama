@@ -1,0 +1,181 @@
+<%
+  if prepare_param(:update_area_for_target)
+    @update_area = prepare_param(:update_area_for_target)                       # target DIV already exists, don't create an own div
+  else
+    @update_area = get_unique_area_id                                           # no target div given, create my own
+  end
+
+  link_mb_used = proc do |rec|
+    if rec.contents == 'PERMANENT'
+      ajax_link(fn(rec.mbused),
+                {:controller   => :dba_schema,
+                 :action       => :list_objects,
+                 :tablespace   => {:name => rec.tablespace_name},
+                 :update_area  => @update_area,
+                },
+                :title=>t(:storage_tablespace_usage_tablespaces_link_hint, :default=>'Show objects of this tablespace with their sizes')
+      )
+    else
+      fn rec.mbused
+    end
+  end
+
+  link_mb_free = proc do |rec|
+    if ['PERMANENT', 'UNDO'].include? rec.contents
+      ajax_link(fn(rec.mbfree),
+                {:controller   => :storage,
+                 :action       => :list_free_extents,
+                 :tablespace   => rec.tablespace_name,
+                 :update_area  => @update_area,
+                },
+                :title=>t(:storage_tablespace_usage_tablespaces_mbfree_hint, :default=>"Show free extents of tablespace and their size distribution. Allows you to evaluate fragmentation of free extents of this tablespace.")
+      )
+    else
+      fn rec.mbfree
+    end
+  end
+
+  link_ts_details = proc do |rec|
+    details = ''
+    case rec.tablespace_name
+    when 'SYSAUX' then
+      details << ajax_link('v$SYSAUX_Occupants',
+                           {:controller   => :storage,
+                            :action       => :list_sysaux_occupants,
+                            :update_area  => @update_area,
+                            con_id: rec['con_id']
+                           },
+                           :title=>"Show detailed usage of SYSAUX storage from v$SYSAUX_Occupants"
+      )
+    end
+
+    if rec.retention && rec.retention != 'NOT APPLY'
+      details << "<br/>" if details.length > 0
+      details << "Retention=#{rec.retention}"
+    end
+
+    details
+  end
+
+  show_pct_used = proc do |rec|
+    if !rec.pctused.nil? && rec.contents == 'PERMANENT' && rec.pctused > 90 && rec.autoextensible == 'NO'
+      "<div style=\"background-color: orange;\">#{fn(rec.pctused, 1)}</div>".html_safe
+    else
+      fn(rec.pctused, 1)
+    end
+  end
+
+  show_max_size = proc do |rec|
+    unless rec.autoextensible == 'YES'
+      nil
+    else
+      fn(rec.max_size_mb)
+    end
+  end
+
+  data_title_max_size = proc do |rec|
+    unless rec.autoextensible == 'YES'
+      "%t"
+    else
+      "%t\n#{size_explain(rec.max_size_mb) if rec.autoextensible == 'YES'}\n\nFree space incl. possible autoextend = #{fn(rec.max_size_mb - rec.mbused) rescue nil} MB"
+    end
+  end
+
+  show_pct_used_max = proc do |rec|
+    if rec.max_size_mb.nil? || rec.autoextensible == 'NO'
+      nil
+    else
+      calc_mb = rec.max_size_mb
+      calc_mb = rec.mbtotal if rec.mbtotal > rec.max_size_mb                  # There are cases where max_size is smaller than current size for autoextent datafiles? Don't know how this works?
+
+      max_pct_used = rec.mbused * 100.0 / calc_mb
+
+      if !max_pct_used.nil? && rec.contents == 'PERMANENT' && max_pct_used > 90
+        "<div style=\"background-color: orange;\">#{fn(max_pct_used, 1)}</div>".html_safe
+      else
+        fn(max_pct_used, 1)
+      end
+    end
+  end
+
+  link_file_count = proc do |rec|
+    if rec.contents['Redo-Logs']
+      ajax_link(fn(rec.file_count),
+                {:controller   => :dba,
+                 :action       => :show_redologs,
+                 instance:     rec.inst_id,
+                 :update_area  => @update_area,
+                },
+                :title=>'Show redo log details')
+    else
+      ajax_link(fn(rec.file_count),
+                {:controller       => :storage,
+                 :action           => :datafile_usage,
+                 :tablespace_name  => rec.tablespace_name,
+                 :update_area      => @update_area,
+                },
+                :title=>'Show datafile details')
+    end
+  end
+
+  init_ext_data_title = proc do |rec|
+    result = "%t\n"
+    result << "Next extent = #{fn(rec.next_extent&./1024)}#{" KB" if rec.next_extent}\n"
+    result << "Min extents = #{fn(rec.min_extents)}\n"
+    result << "Max extents = #{fn(rec.max_extents)}\n"
+    result << "Default maximum size of segments = #{fn(rec.max_size&./(1024*1024)&.*rec.blocksize)}#{" MB" if rec.max_size}\n"
+    result << "Pct. increase = #{fn(rec.pct_increase)}#{" %" if rec.pct_increase}\n"
+    result << "Minimum extent size = #{fn(rec.min_extlen&./1024)}#{" KB" if rec.min_extlen}\n"
+    result
+  end
+
+  data_default_compression = proc do |rec|
+    result = '';
+    result = "Tables:'#{rec['compress_for']}' "               if rec['compress_for']
+    result = "Indexes:'#{rec['index_compress_for']}' "        if rec['index_compress_for']
+    result = "InMemory:'#{rec['def_inmemory_compression']}' " if rec['def_inmemory_compression']
+    result
+  end
+
+
+  column_options =
+    [
+      {:caption=>"Tablespace",          :data=>proc{|rec| rec.tablespace_name},             :title=>t(:storage_tablespace_usage_tablespace_name_hint, :default=>'Name of tablespace')},
+    ]
+  column_options << {:caption=>"Con-ID",  :data=>proc{|rec| rec.con_id},           :title=>"Container-ID", align: :right} if PanoramaConnection.is_cdb?
+
+  column_options.concat [
+                          {:caption=>"Contents",            :data=>proc{|rec| rec.contents},                    :title=>t(:storage_tablespace_usage_tablespace_content_hint, :default=>'Type/content of tablespace'), data_title: proc{|rec| "%t: #{rec.content_hint}"} },
+                          {:caption=>"Block size",          :data=>proc{|rec| formattedNumber(rec.blocksize)},  :title=>t(:storage_tablespace_usage_tablespace_blocksize_hint, :default=>'Blocksize of tablespace in Bytes'),        :align=>:right},
+                          {:caption=>"Init. ext.",          :data=>proc{|rec| formattedNumber(rec.initial_extent&./1024)},  :title=>'Initial extent size in KB', data_title: init_ext_data_title, :align=>:right},
+                          {:caption=>"MB Total",            :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>"Total current size of tablespace in MB\n(without possible autoextend-expansion)",  data_title: proc{|rec| "%t\n#{size_explain(rec.mbtotal)}"}, :align=>:right, show_pct_hint: true},
+                          {:caption=>"MB Used",             :data=>link_mb_used,                                :title=>"Used space in tablespace in MB",                                                   data_title: proc{|rec| "%t\n#{size_explain(rec.mbused)}"},  :align=>:right, show_pct_hint: true},
+                          {:caption=>"MB Free",             :data=>link_mb_free,                                :title=>"Free space in tablespace in MB\n(without possible autoextend-expansion)",          data_title: proc{|rec| "%t\n#{size_explain(rec.mbfree)}"},  :align=>:right, show_pct_hint: true},
+                          {:caption=>"% used",              :data=>show_pct_used,                               :title=>"Usage in percent\n(without possible autoextend-expansion)",                         :align=>:right},
+                          {:caption=>"Auto ext.",           :data=>proc{|rec| rec.autoextensible},              :title=>"Auto-Extensible ?"},
+                          {:caption=>"MB max.",             :data=>show_max_size,                               :title=>"Maximum size of tablespace in MB including autoextend.\nFilled only if autoextend is used for at least one datafile.", align: :right, data_title: data_title_max_size, data_style: proc{|rec| "background-color: orange;" if rec.max_size_mb && rec.max_size_mb < rec.mbtotal}},
+                          {:caption=>"% used max.",         :data=>show_pct_used_max,                           :title=>"Usage in percent of maximum size of tablespace including autoextend.\nFilled only if autoextend is used for at least one datafile.", data_title: data_title_max_size, align: :right},
+                          {:caption=>"Files",               :data=>link_file_count,                             :title=>"Number of data files, temp files or redo log groups", align: :right},
+                          {:caption=>"Status",              :data=>proc{|rec| rec.status}},
+                          {:caption=>"Logging",             :data=>proc{|rec| rec.logging}},
+                          {:caption=>"Force log.",          :data=>proc{|rec| rec.force_logging}},
+                          {:caption=>"Extent mgmt.",        :data=>proc{|rec| rec.extent_management},           :title=>'Extent management'},
+                          {:caption=>"Allocation Type",     :data=>proc{|rec| rec.allocation_type}},
+                          {:caption=>"Pl. in",              :data=>proc{|rec| rec.plugged_in},                  :title=>'Indicates whether the tablespace is plugged in '},
+                          {:caption=>"Segment Space Mgmt.", :data=>proc{|rec| rec.segment_space_management},    :title=>'Indicates whether the free and used segment space in the tablespace is managed using free lists (MANUAL) or bitmaps (AUTO)'}
+                        ]
+  column_options << {:caption=>'Default compr.',      :data=>data_default_compression,                    :title=>'Default compression for tables, indexes or inmemory'}
+  column_options << {:caption=>'Big file',            :data=>proc{|rec| rec.bigfile},                     :title=>'Indicates whether the tablespace is a bigfile tablespace (YES) or a smallfile tablespace (NO)'}
+  column_options << {:caption=>'Encrypt.',            :data=>proc{|rec| rec.encrypted},                   :title=>"Indicates whether the tablespace is encrypted"} if get_db_version >= '11.2'
+  column_options << {:caption=>'Def. in memory',      :data=>proc{|rec| rec.def_inmemory},                :title=>"Indicates whether the In-Memory Column Store (IM column store) is by default enabled (ENABLED) or disabled (DISABLED) for tables in this tablespace"} if get_db_version >= '12.1.0.2' && PanoramaConnection.edition == :enterprise
+  column_options << {:caption=>'Details',             :data=>link_ts_details,                             :title=>"Tablespace-specific details"}
+
+
+
+%>
+
+<%= gen_slickgrid(@tablespaces, column_options, {:caption => "Tablespace-usage total from #{dba_or_cdb('DBA_Tablespaces')} + Redo Logs", :max_height=>450, :no_wrap=>true}) %>
+
+<% unless prepare_param(:update_area_for_target) %>
+  <div id="<%= @update_area %>"></div>
+<% end %>

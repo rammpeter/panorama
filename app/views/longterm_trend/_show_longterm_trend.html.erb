@@ -1,0 +1,39 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Long-term trend from #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase}.LongTerm_Trend") %>
+
+<%= ajax_form(controller: :longterm_trend, action: :list_longterm_trend, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping')%>
+      <select name="groupby">
+        <% longterm_trend_key_rules.keys.sort.each do |key| %>
+          value = session_statistics_key_rules[key]
+          <%=  "<option value='#{key}' #{"selected='selected'" if key=="Wait Event"}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="optional additional Filter on all of the following columns:
+- Wait Event
+- Wait Class
+- Username
+- Servicename
+- Machine
+- Module
+- Action
+LIKE-comparison with wildcards (%, ?) and case ignored">
+      Filter
+      <%= text_field_tag(:filter, "", :size=>20) %>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag('Show', title: 'Show long-term trend') %>
+    </div>
+
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>

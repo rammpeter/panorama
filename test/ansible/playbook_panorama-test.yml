@@ -1,0 +1,159 @@
+# Setup VM for panorama-test
+# Run: > ansible-playbook playbook_panorama-test.yml
+- hosts: panorama-test
+  tasks:
+    - name: set timezone to Europe/Berlin
+      become: true
+      timezone:
+        name: Europe/Berlin
+
+    - name: Update system
+      become: true
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Enable repo ol8_developer_EPEL for chromium
+      become: true
+      shell: dnf config-manager --set-enabled ol8_developer_EPEL
+
+    - name: Install additional tools
+      become: true
+      yum:
+        name:
+          - traceroute
+          - dnf-automatic
+          - rng-tools
+          - gcc-c++
+          - nodejs
+          - npm
+          - chromium
+        state: latest
+
+    - name: Apply updates by dnf-automatic
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: '^apply_updates'
+        line: apply_updates = yes
+
+    - name: mail to by dnf-automatic
+      become: true
+      ansible.builtin.replace:
+        path: /etc/dnf/automatic.conf
+        regexp: '^email_to.*$'
+        replace: email_to = Peter.Ramm@ottogroup.com
+
+    - name: mail host for dnf-automatic
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/dnf/automatic.conf
+        regexp: '^email_host'
+        line: email_host = mail.osp-dd.de
+
+    - name: Enable and start dnf-automatic.timer service
+      become: true
+      service:
+        name: dnf-automatic.timer
+        enabled: yes
+        state: started
+
+    - name: Add repository for Docker
+      become: true
+      shell: dnf config-manager --add-repo  https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install docker
+      become: true
+      yum:
+        name: docker-ce
+        state: latest
+
+    - name: Enable and start docker service
+      become: true
+      service:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Ensure kernel setting fs.aio-max-nr
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        search_string: 'fs.aio-max-nr'
+        line: fs.aio-max-nr= 3145728
+
+    - name: Activate kernel settings from /etc/sysctl.conf
+      become: true
+      shell: sysctl -p /etc/sysctl.conf
+
+    - name: Add the user 'pramm'
+      become: true
+      ansible.builtin.user:
+        name: pramm
+        comment: Peter Ramm
+        groups: users, docker, adm
+
+    - name: Set authorized key taken from file
+      become: true
+      ansible.posix.authorized_key:
+        user: pramm
+        state: present
+        key: "{{ lookup('file', '/Users/pramm/.ssh/id_rsa.pub') }}"
+
+    - name: Create /home/pramm/github_runner
+      become: true
+      ansible.builtin.file:
+        path: /home/pramm/github_runner
+        state: directory
+        owner: pramm
+        mode: '0755'
+
+    - name: Copy shell scripts
+      become: true
+      copy:
+        src: '{{item}}'
+        dest: '/home/pramm/github_runner'
+        owner: pramm
+        mode: 0755
+      loop:
+        - start_runners.sh
+        - create_runner.sh
+
+    - name: Copy systemd service file github_runners.service to server
+      become: 'true'
+      copy:
+        src: github_runners.service
+        dest: /etc/systemd/system
+        owner: root
+        group: root
+
+    - name: Start service github_runners.service
+      become: 'true'
+      systemd:
+        name: github_runners.service
+        state: restarted
+        enabled: yes
+#    config gitlab runner
+#>  docker run -d --name OCI_runner1 --restart always -v /srv/gitlab-runner/config1:/etc/gitlab-runner -v /var/run/docker.sock:/var/run/docker.sock gitlab/gitlab-runner:latest
+
+#  Setup ausführen innerhalb des Docker-Containers: > gitlab-runner register
+#  Executor: docker
+#  Image: ruby:2.4
+#  Runner-Config anpassen:
+#  /etc/gitlab-runner/config.toml erweitern in Section "[runners.docker]"
+#  > wait_for_services_timeout=120
+
+##### config self hosted GitHub runner
+#  Follow instructions at github.com
+#  create /etc/system/system/gitlab_runner.service
+  #  [Unit]
+  #  Description=Github runner
+  #  After=local-fs.target network-online.target
+
+  #  [Service]
+  #  User=pramm
+  #  ExecStart=/bin/bash -c "cd /home/pramm/actions-runner && /home/pramm/actions-runner/run.sh"
+
+  #    [Install]
+  #  WantedBy=multi-user.target
+# systemctl enable gitlab_runner

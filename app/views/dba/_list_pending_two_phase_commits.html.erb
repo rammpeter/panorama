@@ -1,0 +1,48 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_local_tran = proc do |rec|
+    ajax_link(rec.local_tran_id, {
+               action:        :list_2pc_neighbors,
+               local_tran_id: rec.local_tran_id,
+               update_area:   @update_area
+              },
+       title: 'List affected neighbors of this local transaction'
+     )
+  end
+
+  fix_data_title = proc do |rec|
+    result = "%t\n"
+    result << "To fix this pending transaction execute as SYSDBA\n"
+    result << "COMMIT FORCE '#{rec.global_tran_id}';                           -- if Status != 'committed'\n"
+    result << "EXEC DBMS_TRANSACTION.PURGE_LOST_DB_ENTRY('#{rec.local_tran_id}');  -- if Status == 'committed'\n"
+    result
+  end
+
+  column_options =
+      [
+          {:caption=>"Local Transaction",  :data=>link_local_tran,                                       :title=>"Local Transaction-ID",  data_title: fix_data_title},
+          {:caption=>"Global Transaction", :data=>proc{|rec| rec.global_tran_id },                       :title=>"Global Transaction-ID", data_title: fix_data_title},
+          {:caption=>"State",              :data=>proc{|rec| rec.state },                                :title=>"Status"},
+          {:caption=>"Mixed",              :data=>proc{|rec| rec.mixed },                                :title=>""},
+          {:caption=>"Advice",             :data=>proc{|rec| rec.advice },                               :title=>""},
+          {:caption=>"Comment",            :data=>proc{|rec| rec.tran_comment },                         :title=>""},
+          {:caption=>"Fail-Time",          :data=>proc{|rec| localeDateTime(rec.fail_time) },            :title=>""},
+          {:caption=>"Force-Time",         :data=>proc{|rec| localeDateTime(rec.force_time) },           :title=>""},
+          {:caption=>"Retry-Time",         :data=>proc{|rec| localeDateTime(rec.retry_time) },           :title=>""},
+          {:caption=>"OS-User",            :data=>proc{|rec| rec.os_user },                              :title=>""},
+          {:caption=>"OS-Terminal",        :data=>proc{|rec| rec.os_terminal },                          :title=>""},
+          {:caption=>"Host",               :data=>proc{|rec| rec.host },                                 :title=>""},
+          {:caption=>"DB-User",            :data=>proc{|rec| rec.db_user },                              :title=>""},
+          {:caption=>"Commit-No",          :data=>proc{|rec| rec.commit_no },                            :title=>""},
+      ]
+
+%>
+<%= gen_slickgrid(@dist_locks, column_options, {
+    :caption =>  "Pending two-phase commits (DBA_2PC_Pending), see mouseover hint for columns local and global transaction",
+    :max_height=>450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+

@@ -1,0 +1,25 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {caption: 'In / Out',         data: proc{|rec| rec.in_out},                                         :title=>"IN for incoming connections, OUT for outgoing"},
+          {caption: 'Database',         data: proc{|rec| rec.database},                                       :title=>"IN for client database name, OUT for outgoing database link"},
+          {caption: 'DB user / owner',  data: proc{|rec| rec.dbuser_owner},                                   :title=>"IN for name of local user, OUT for owner of database link"},
+          {caption: 'Interface',        data: proc{|rec| rec.interface},                                      :title=>"C for request commit, otherwise N for prepare or request readonly commit"},
+          {caption: 'DBID',             data: proc{|rec| rec.dbid},                                           :title=>"Database ID at the other end of the connection"},
+          {caption: 'Session',          data: proc{|rec| rec['sess#']},                                       :title=>"Session number of the connection at this database"},
+          {caption: 'Branch',           data: proc{|rec| rec.branch},                                         :title=>"Transaction branch ID of the connection at this database"},
+      ]
+
+%>
+<%= gen_slickgrid(@neighbors, column_options, {
+    :caption =>  "Pending two-phase commit neighbors (DBA_2PC_Neighbors) for local transaction id = '#{@local_tran_id}'",
+    :max_height=>450,
+    width: :auto,
+    show_pin_icon: 1,
+    update_area:   @update_area
+
+})
+%>
+

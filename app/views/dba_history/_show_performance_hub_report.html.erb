@@ -1,0 +1,42 @@
+<%= render_page_caption("Generate genuine Oracle performance hub report") %>
+
+
+<%= form_tag(url_for(:controller=>:dba_history, :action=>:list_performance_hub_report, :browser_tab_id=>@browser_tab_id), {:method => 'post', :target=>'_blank'}) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element" title="Show realtime statistics (until now)
+    End date is ignored in this case.
+    If start date is set too low realtime report may end in ORA-31011">
+      Realtime?
+      <%= check_box_tag(:realtime, 1, false) %>
+    </div>
+
+    <div class="flex-row-element" title="Number of elements in Top N list for SQLs and sessions">
+      Top N
+      <%= text_field_tag(:top_n, 10, size: 3, style: "text-align:right;") %>
+    </div>
+    <div class="flex-row-element">
+      <%= hidden_field_tag('download_oracle_com_reachable', 'false') %>
+      <%= submit_tag('Generate performance hub report',
+                     title: "Generate performance hub report by executing DBMS_PERF.REPORT_PERFHUB\nRequires the role DBA or EM_EXPRESS_BASIC for the connected user.\n\nLoading the new page may last some seconds, don't worry.",
+                     onclick: "on_submit_click();")
+      %>
+    </div>
+  </div>
+<% end %>
+
+<script text="javascript">
+    var download_oracle_com_reachable = false;
+
+    isSiteOnline("https://download.oracle.com",function(found){
+        download_oracle_com_reachable = found; // store state in all hidden inputs at submit click
+    });
+
+    function on_submit_click(){
+        jQuery('#download_oracle_com_reachable').val(download_oracle_com_reachable); // store state in all hidden inputs at submit click
+    }
+
+</script>
+
+

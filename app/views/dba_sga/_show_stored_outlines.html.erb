@@ -1,0 +1,19 @@
+<%
+   column_options = [
+       {:caption=>"Name",          :data=>proc{|rec| rec.name},                            :title=>"Name of the outline"},
+       {:caption=>"Owner",         :data=>proc{|rec| rec.owner},                           :title=>"User who created the outline"},
+       {:caption=>"Category",      :data=>proc{|rec| rec.category},                        :title=>"Category to which the outline belongs" },
+       {:caption=>"Used",          :data=>proc{|rec| rec.used},                            :title=>"Flag indicating whether the outline has ever been used" },
+       {:caption=>"Timestamp",     :data=>proc{|rec| localeDateTime(rec.timestamp)},       :title=>"Timestamp at which the outline was created" },
+       {:caption=>"Version",       :data=>proc{|rec| rec.version},                         :title=>"Oracle Version that created the outline" },
+       {:caption=>"Compatible",    :data=>proc{|rec| rec.compatible},                      :title=>"Flag indicating whether the outline hints were compatible across migration" },
+       {:caption=>"Enabled",       :data=>proc{|rec| rec.enabled},                         :title=>"Flag indicating whether the outline is enabled" },
+       {:caption=>"Format",        :data=>proc{|rec| rec.format},                          :title=>"Flag indicating what hint format is used" },
+       {:caption=>"Migrated",      :data=>proc{|rec| rec.migrated},                        :title=>"Flag indicating whether the outline has been migrated to SQL plan baseline" },
+   ]
+
+%>
+
+<%=
+    gen_slickgrid(@outlines, column_options, :caption => @caption, :max_height=>450, show_pin_icon: 1) if !@single_sql || @outlines.count > 0
+%>

@@ -1,0 +1,17 @@
+<%= render_page_caption(t(:dba_sga_show_sga_components_caption, :default=>'Show memory consumption in SGA')) %>
+
+<% if PanoramaConnection.rac? %>
+  <%= ajax_form(:controller=>:dba_sga, :action=>"list_sga_components", :update_area=>"show_sga_components_area") do %>
+    <div class="flex-row-container">
+      <%= instance_tag %>
+      <div class="flex-row-element">
+        <%= submit_tag(t(:dba_sga_show_sga_components_submit_caption, :default=>'Show memory components'), :title => t(:dba_sga_show_sga_components_submit_hint, :default=>'Show memory components of SGA')) %>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <%=
+    render_async(:dba_sga, :list_sga_components, { update_area_for_target: 'show_sga_components_area' })
+  %>
+<% end %>
+<div id="show_sga_components_area"></div>

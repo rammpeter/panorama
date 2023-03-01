@@ -1,0 +1,50 @@
+
+
+
+<%
+  @update_area = get_unique_area_id
+
+  def link_plan(rec)
+    ajax_link(rec.plan_hash_value, {
+      :controller                 => :dba_history,
+      :action                     => :generate_baseline_creation,
+      :update_area                => @update_area,
+      :sql_id                     => @sql_id,
+      :plan_hash_value            => rec.plan_hash_value,
+      :min_snap_id                => @min_snap_id,
+      :max_snap_id                => @max_snap_id,
+      :force_matching_signature   => @force_matching_signature.to_s,
+      :exact_matching_signature   => @exact_matching_signature.to_s
+    }, :title=> t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
+    )
+  end
+
+  def elapsed_per_exec(rec)
+    fn(rec.elapsed_secs.to_f / (rec.executions > 0 ? rec.executions : 1), 4)
+  end
+
+  def rows_per_exec(rec)
+    fn(rec.rows_processed.to_f / (rec.executions > 0 ? rec.executions : 1), 1)
+  end
+
+  column_options =
+  [
+    {:caption=>'Plan hash value',           :data=>proc{|rec| link_plan(rec)},                        :title=>"Plan hash value"},
+    {:caption=>'First occurrence',          :data=>proc{|rec| localeDateTime(rec.first_occurrence)},  :title=>"First occurrence of this plan in history"},
+    {:caption=>'Last occurrence',           :data=>proc{|rec| localeDateTime(rec.last_occurrence)},   :title=>"Last occurrence of this plan in history"},
+    {:caption=>'Executions',                :data=>proc{|rec| fn(rec.executions)},                    :title=>"Number of executions of this plan in history", align: :right},
+    {:caption=>'Elapsed (Sec.)',            :data=>proc{|rec| fn(rec.elapsed_secs,2 )},               :title=>"Elapsed time in seconds of this plan in history", align: :right},
+    {:caption=>'Elapsed per exec. (Sec.)',  :data=>proc{|rec| elapsed_per_exec(rec)},                 :title=>"Elapsed time per execution in seconds of this plan in history", align: :right},
+    {:caption=>'Rows processed',            :data=>proc{|rec| fn(rec.rows_processed)},                :title=>"Number of rows processed of this plan in history", align: :right},
+    {:caption=>'Rows processed per exec.',  :data=>proc{|rec| rows_per_exec(rec)},                    :title=>"Number of rows processed per execution of this plan in history", align: :right},
+  ]
+
+%>
+
+<%= gen_slickgrid(@plans, column_options, {
+    :caption => "Multiple plans exists for SQL-ID='#{@sql_id}' in this period! Please select.",
+    :max_height => 450
+    })
+%>
+
+<div id="<%= @update_area %>"></div>

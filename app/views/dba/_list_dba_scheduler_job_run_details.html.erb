@@ -1,0 +1,39 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  shown = proc do |owner, name|
+    # TODO: <wbr> im Text wirkt sich nicht auf Spaltenbreite aus
+    "#{owner}#{'. ' if owner}#{name}".html_safe
+  end
+
+
+  column_options =
+    [
+      {caption: 'Log ID',                 data: proc{|rec| fn rec.log_id},                    title: "Unique identifier of the log entry (foreign key of the *_SCHEDULER_JOB_LOG views)", align: :right},
+      {caption: 'Log date',               data: proc{|rec| localeDateTime(rec.log_date)},     title: "Date of the log entry", plot_master_time: true},
+      {caption: 'Status',                 data: proc{|rec| rec.status},                       title: "Status of the job run"},
+      {caption: 'Error #',                data: proc{|rec| fn rec.error_no},                  title: "Error number in the case of an error", align: :right},
+      {caption: 'Req. start date',        data: proc{|rec| localeDateTime(rec.req_start_date)}, title: "Requested start date of the job run"},
+      {caption: 'Actual start date',      data: proc{|rec| localeDateTime(rec.actual_start_date)}, title: "Actual date on which the job was run"},
+      {caption: 'Run duration',           data: proc{|rec| fn(rec.run_duration_seconds,3)},   title: "Duration of the job run in seconds", align: :right},
+      {caption: 'Inst.',                  data: proc{|rec| fn(rec.instance_id)},              title: "Identifier of the instance on which the job was run", align: :right},
+      {caption: 'Session ID',             data: proc{|rec| rec.session_id},                   title: "Session identifier of the job run"},
+      {caption: 'Slave PID',              data: proc{|rec| rec.slave_pid},                    title: "Process identifier of the slave on which the job was run"},
+      {caption: 'CPU used',               data: proc{|rec| fn(rec.cpu_used_seconds, 3)},      title: "Amount of CPU in seconds used for the job run", align: :right},
+      {caption: 'Dest.',                  data: proc{|rec| shown.call(rec.destination_owner, rec.destination)}, title: "Owner and destination that this job will run on"},
+      {caption: 'Cred.',                  data: proc{|rec| shown.call(rec.credential_owner, rec.credential_name)}, title: "Owner and name of the credential to be used for an external job"},
+      {caption: 'Add. info',              data: proc{|rec| rec.additional_info},              title: "Additional information on the job run, if applicable"},
+    ]
+
+%>
+
+<%= gen_slickgrid(@job_runs, column_options, { caption: "Job runs from DBA_Scheduler_Job_run_details for #{@owner}.#{@job_name} #{@job_subname}", max_height: 450, show_pin_icon: 1 }) %>
+
+<div id="<%= @update_area %>"></div>
+
+
+
+
+
+
+

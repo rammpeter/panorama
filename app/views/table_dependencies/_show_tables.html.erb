@@ -1,0 +1,16 @@
+<%= ajax_form(:action => "find_dependencies", :update_area => :dependencies, :username => @username) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      <%=@username%>.
+    </div>
+    <div class="flex-row-element" title='Selection of the table whose dependent tables are searched'>     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+      <%= collection_select(:all_table, :table_name, @all_tables, :table_name, :table_name, {}) %>
+    </div>
+    <div class="flex-row-element" title='Restrict the result search to the following scheme'>     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+      <%= collection_select(:filter_user, :username, @filter_users, :username, :username, {}) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show dependencies", :title => "Show dependent tables") %>
+    </div>
+  </div>
+<% end %>

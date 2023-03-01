@@ -1,0 +1,15 @@
+<%= render_page_caption("Generate genuine Oracle AWR global report for RAC") %>
+
+
+<%= form_tag(url_for(:controller=>:dba_history, :action=>:list_awr_global_report_html, browser_tab_id: @browser_tab_id), {:method => 'post', :target=>'_blank'}) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag %>
+    <div class="flex-row-element">
+      <%= submit_tag('Generate AWR report',
+                     title: "Generate AWR-report by executing DBMS_WORKLOAD_REPOSITORY.AWR_GLOBAL_REPORT_HTML\nRequires the role DBA or OEM_MONITOR for the connected user.\n\nLoading the new page may last some seconds, don't worry.")
+      %>
+    </div>
+  </div>
+<% end %>
+

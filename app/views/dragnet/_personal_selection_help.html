@@ -1,0 +1,131 @@
+<h2>Methods for adding additional personal selections to Panorama's dragnet selection hierarchy</h2>
+
+<h3>Add one selection for personal use (in current browser)</h3>
+Fill in your selection in JSON-notation.<br/>
+If your SQL uses bind variables ( '?' ) then you describe these binds in 'parameter'-list.<br/>
+If you don't use bind variables in your SQL you can skip the whole 'parameter'-list.<br/>
+<br/>
+Syntax:
+<pre>
+{
+  "name": "Name of selection in list",
+  "desc": "Explanation of selection in right dialog",
+  "sql":  "Your SQL-Statement without trailing ';'. Example: SELECT * FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?",
+  "parameter": [
+    {
+      "name":     "Name of parameter for \"owner\" in dialog",
+      "title":    "Description of parameter \"owner\" for mouseover hint",
+      "size":     "Size of input field for parameter \"owner\" in characters",
+      "default":  "Default value for parameter \"owner\" in input field"
+    },
+    {
+      "name":     "Name of parameter for \"table_name\" in dialog",
+      "title":    "Description of parameter \"table_name\" for mouseover hint",
+      "size":     "Size of input field for parameter \"table_name\" in characters",
+      "default":  "Default value for parameter \"table_name\" in input field"
+    }
+  ]
+}
+</pre>
+<br/>
+
+<h3>Add list of selections for personal use (in current browser)</h3>
+You can define a list (array) of selections instead of single one.<br/>
+Example:<br/>
+<pre>
+[
+  {
+   "name": "Name of selection 1",
+   "desc": "Explanation of selection 1 in right dialog",
+   "sql":  "SELECT * FROM ALL_Users"
+  },
+  {
+   "name": "Name of selection 2",
+   "descv: "Explanation of selection 2 in right dialog",
+   "sql":  "SELECT * FROM ALL_Tables"
+  }
+]
+</pre>
+
+<h3>Create submenu structure for selections</h3>
+You can organize your selections in hierarchical submenu structure using \”entries\”-list.<br>
+Example:
+<pre>
+{
+  "name":    "My Submenu",
+  "entries": [
+             {
+               "name": "Name of selection 1",
+               "desc": "Explanation of selection 1 in right dialog",
+               "sql":  "SELECT * FROM ALL_Users"
+             },
+             {
+                "name":    "My Sub-Submenu",
+                "entries": [
+                          {
+                            "name": "Name of selection 2",
+                            "desc": "Explanation of selection 2 in right dialog",
+                            "sql":  "SELECT * FROM ALL_Tables"
+                          },
+                          {
+                            "name": "Name of selection 3",
+                            "desc": "Explanation of selection 3 in right dialog",
+                            "sql":  "SELECT * FROM ALL_Views"
+                          }
+                         ]
+             }
+           ]
+}
+</pre>
+
+
+<h3>Provide selections by file for all user</h3>
+Your personal selections are stored in local file system at Panorama's server machine (location controlled by PANORAMA_VAR_HOME environment variable).
+<br/>
+They are available only for your browser instance (similar to your stored connection info).<br/>
+If you want to provide these selections to all users of your Panorama instance, you can store them as JSON-array in a file 'predefined_dragnet_selections.json' stored at PANORAMA_VAR_HOME
+<br/>
+<br/>
+Example for predefined_dragnet_selections.json:<br/>
+<pre>
+[
+  {
+    "name": "Name of selection in list 1",
+    "desc": "Explanation of selection 1 in right dialog",
+    "sql":  "Your SQL-Statement without trailing ';'. Example: SELECT * FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?",
+    "parameter": [
+      {
+        "name":     "Name of parameter for \"owner\" in dialog",
+        "title":    "Description of parameter \"owner\" for mouseover hint",
+        "size":     "Size of input field for parameter \"owner\" in characters",
+        "default":  "Default value for parameter \"owner\" in input field"
+      },
+      {
+        "name":     "Name of parameter for \"table_name\" in dialog",
+        "title":    "Description of parameter \"table_name\" for mouseover hint",
+        "size":     "Size of input field for parameter \"table_name\" in characters",
+        "default":  "Default value for parameter \"table_name\" in input field"
+      }
+    ]
+  },
+  {
+    "name": "Name of selection in list 2",
+    "desc": "Explanation of selection 2 in right dialog",
+    "sql":  "Your SQL-Statement without trailing ';'. Example: SELECT * FROM ALL_Users"
+  }
+]
+</pre>
+<br/>
+Please remind that JSON requires strings in single line with line feeds escaped as "\n".<br/>
+A more comfortable way to describe the SQLs with native line feed is to define the structure as Ruby object in file 'predefined_dragnet_selections.rb' instead of JSON and convert this to JSON with this little Ruby snippet:
+<br/><br/>
+<pre>
+echo "
+require 'json'
+File.open('predefined_dragnet_selections.rb', 'r') do |file|
+  File.open('predefined_dragnet_selections.json', 'w') do |wfile|
+    wfile.write(JSON.pretty_generate(eval(file.read)))
+  end
+end
+" | grep ruby
+</pre>

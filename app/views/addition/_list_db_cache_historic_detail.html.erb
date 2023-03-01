@@ -1,0 +1,31 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_snapshot = proc do |rec|
+    ajax_link(localeDateTime(rec.snapshot_timestamp), {
+                 :action              => :list_db_cache_historic_snap,
+                 :instance            => @instance,
+                 :snapshot_timestamp  => localeDateTime(rec.snapshot_timestamp),
+                 :show_partitions     => @show_partitions,
+                 :update_area         => @update_area
+               },
+        :title=>"Show complete cache usage for snapshot timestamp")
+  end
+
+column_options =
+ [
+   {:caption=>"Timestamp",    :data=>link_snapshot ,                               :title=>"Timestamp of snapshot",                        :plot_master_time=>true},
+   {:caption=>"Blocks",       :data=>proc{|rec| fn(rec.blocks_total) },            :title=>"Number of DB-blocks in cache used by object",        :align=>:right},
+   {:caption=>'%',            :data=>proc{|rec| fn((rec.blocks_total*100.0/rec.sum_total_per_snapshot rescue nil), 2)},     :title=>"Percent of total cached blocks for this object", data_title: proc{|rec| "%t\nTotal number of cached blocks = #{fn(rec.sum_total_per_snapshot)}"}, :align=>"right"},
+   {:caption=>"Dirty",        :data=>proc{|rec| fn(rec.blocks_dirty) },            :title=>"Number of dirty DB-blocks in cache used by object",  :align=>:right},
+ ]
+%>
+
+<%= gen_slickgrid(@entries, column_options, {
+        :max_height=>200,
+        :caption => "DB-cache usage #{@owner}.#{@name} #{"(#{@partitionname})" if @partitionname} between #{@time_selection_start} and #{@time_selection_end} Instance=#{@instance}",
+        show_pin_icon: 1,
+        update_area:   @update_area
+}) %>
+
+

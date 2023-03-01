@@ -1,0 +1,28 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Historic SGA resize operations from #{PanoramaConnection.adjust_table_name('DBA_Hist_Memory_Resize_Ops')}") %>
+
+
+<%= ajax_form(controller: :dba_sga, action: :list_resize_operations_historic, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping')%>
+      <select name="time_groupby">
+        <% historic_resize_grouping_options.each do |key, value| %>
+          <%=  "<option value='#{key}' #{"selected='selected'" if key==:hour}>#{value}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+
+    <div class="flex-row-element">
+      <%= submit_tag('Show', :title => 'Show historic SGA resize operations') %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>">
+</div>
+

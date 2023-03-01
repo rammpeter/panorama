@@ -1,0 +1,336 @@
+.caption {
+  background-image: url(../../../../../new/Panorama/app/assets/images/bg_green.gif);
+
+  border-style: solid;
+  border-width: 1px;
+  border-color: silver;
+
+  font-size: 12px;
+  font-family: sans-serif;
+  font-weight: bold;
+
+  padding: 2px;
+
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+body {
+  /*background-color: #ccccff;*/
+  background-color: #CED8F6;
+  color: #333;
+  margin: 0;
+  padding: 5px;
+  font-family: sans-serif;
+  font-size: small;
+}
+
+/* Fester Block im Body, auf dem Menu dargestellt wird */
+.head_block {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 42px;
+  background-image: url(liquid.jpg);
+  border-bottom-style: solid;
+  border-bottom-color: black;
+  border-bottom-width: 1px;
+  z-index:99;
+}
+
+/* Head für usage/info und help */
+.usage_help_head_block {
+  width: 100%;
+  height: 50px;
+  background-image: url(liquid.jpg);
+  border-bottom-style: solid;
+  border-bottom-color: black;
+  border-bottom-width: 1px;
+}
+
+.status_bar {
+  position: fixed;
+  z-index: 100;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background:url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+  border-top-style: solid;
+  border-top-color: black;
+  border-top-width: 1px;
+}
+
+
+.page_caption {
+  text-align: center;
+  background:url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+  width:100%;
+  margin-top: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 5px 5px 5px #888;
+  -moz-box-shadow: 5px 5px 5px #888;
+
+}
+
+
+h1 {
+  font-family: sans-serif;
+  color: #0068B8;
+  text-shadow: 2px 2px 2px gray;
+}
+
+h2 {
+  text-shadow: 1px 1px 1px gray;
+}
+
+/* Override default of 1em */
+pre {
+  margin-top:     0;
+  margin-bottom:  0;
+  font-family: 'Lucida Console', monospace;
+  font-size: 11px;
+}
+
+.monospace {
+  font-family: 'Lucida Console', monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.menu {
+  width: 15em;
+  position: absolute;
+  margin-left: 0.5em;
+  font-family: serif;
+}
+
+.menu_section {
+
+  border-width: 1px;
+  border-color: black;
+  border-style: solid;
+
+  margin: 0.7em 0.2em 0.2em 0.2em;
+}
+
+.menu_section_head {
+  border-bottom-width: 1px;
+  border-bottom-color: black;
+  border-bottom-style: solid;
+
+  padding: 2px;
+
+  background-color: silver;
+
+  background: url(../../../../../new/Panorama/app/assets/images/cellpic1.gif);
+}
+
+.menu_section_body {
+  padding: 2px 2px 2px 20px;
+
+  background: url(../../../../../new/Panorama/app/assets/images/menu-bg.gif) -7em 0px;
+
+}
+
+input[type=text], [type=password], [type=number] {
+  font-size: 12px;
+  font-family: sans-serif;
+  padding: 2px;
+  border-width: 1px;
+}
+
+input[type=submit], [type=button] {
+  font-size: 12px;
+  font-family: sans-serif;
+  padding: 2px;
+  //border-width: 2px;
+}
+
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: silver;
+}
+
+/* Horizontal angeordnete DIVs, alte Variante*/
+div.float_left {
+  float:left;
+  padding-top:5px;
+  padding-bottom:5px;
+  padding-right:10px;
+}
+
+.flex-row-container {
+  display:flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-row-element {
+  padding-top:5px;
+  padding-bottom:5px;
+  padding-right:10px;
+}
+
+
+
+table,th,td{
+  border:1px solid #666;
+  border-collapse:collapse;
+}
+
+table{
+  border:none;
+  border-top:1px solid #000;
+}
+thead th{
+  background:url(greychrome.gif) top left repeat-x #fff;
+  padding:4px 8px;
+  /* font-size:100%; */
+  /* text-transform:uppercase; */
+  color:#333;
+
+}
+
+tbody td,tbody th{
+  font-size: small;
+  padding: 4px;
+  background:#eee;
+  word-wrap: break-word;      /* Wer braucht das ??? */
+}
+
+tbody th{
+  background: url(../../../../../new/Panorama/app/assets/images/bluechrome.gif)  top left repeat-x #fff;
+  color:#333;
+}
+
+tfoot td,tfoot th{
+  border:none;
+  padding-top:10px;
+}
+caption{
+  font-family:Tahoma;
+  text-align:left;
+  text-transform:uppercase;
+  font-size:130%;
+  padding:10px;
+  color:#036;
+}
+table a:visited{
+  color:#036;
+}
+table a:hover{
+  color:#000;
+  text-decoration:none;
+}
+table a:active{
+  color:#000;
+}
+
+/* Suppress close button on UI-Dialog */
+.no-close .ui-dialog-titlebar-close {
+  display: none;
+}
+
+/* treeview for explain plan */
+.toggle {
+  height: 12px;
+  width: 12px;
+  display: inline-block;
+  text-align: center;
+}
+.toggle.expand {
+  background: url(../../../../../new/Panorama/app/assets/images/expand.gif) no-repeat center center;
+  cursor: pointer;
+}
+.toggle.collapse {
+  background: url(../../../../../new/Panorama/app/assets/images/collapse.gif) no-repeat center center;
+  cursor: pointer;
+}
+.toggle.vertical-line {
+  background: url(../../../../../new/Panorama/app/assets/images/vertical-line.png) no-repeat center center;
+}
+.toggle.corner-line {
+  background: url(../../../../../new/Panorama/app/assets/images/corner-line.png) no-repeat center center;
+}
+.toggle.vertical-corner-line {
+  background: url(../../../../../new/Panorama/app/assets/images/vertical-corner-line.png) no-repeat center center;
+}
+
+.shadow {
+  box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 5px 5px 5px #888;
+  -moz-box-shadow: 5px 5px 5px #888;
+}
+
+.yellow-panel {
+  background-color: lightyellow;
+  margin-top: 5px;
+  padding: 5px;
+  box-shadow: 5px 5px 5px #888;
+  -webkit-box-shadow: 5px 5px 5px #888;
+  -moz-box-shadow: 5px 5px 5px #888;
+}
+
+.full_width_text_area {
+  width:100%;
+  box-sizing: border-box;         /* For IE and modern versions of Chrome */
+  -moz-box-sizing: border-box;    /* For Firefox                          */
+  -webkit-box-sizing: border-box; /* For Safari                           */
+}
+
+.fieldset_input {
+    display: inline-block;
+}
+
+.fieldset_input_outer {
+  display: inline-block;
+  background: url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+  padding: 4px;
+  margin-bottom: 5px;
+}
+
+.login_dialog_head {
+  border-style: solid;
+  border-width: 1px;
+  border-color: gray;
+  padding: 5px;
+  text-align: center;
+  background: url(greychrome.gif) repeat-x scroll left top #FFFFFF;
+}
+
+.login_dialog_block {
+  border-style: solid;
+  border-width: 1px;
+  border-color: gray;
+  padding: 5px;
+  text-align: center;
+  background: none repeat scroll 0 0 #EEEEEE;
+}
+
+.login_dialog_lhead {
+  text-align: center;
+  background-image: -webkit-linear-gradient(left, #CCCCCC 0%, #EEEEEE 100%);
+  background-image: -moz-linear-gradient(left, gray 0%, lightgray 100%);
+  background-image: linear-gradient(left, gray 0%, #EEEEEE 100%);
+}
+
+.CodeMirror {
+  height: auto;
+  background-color: lightyellow;
+}

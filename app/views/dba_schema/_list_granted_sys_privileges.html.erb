@@ -1,0 +1,37 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_grantee = proc do |rec|
+    case rec.grantee_type
+    when 'USER' then
+      ajax_link(rec.grantee,
+                {action:      :list_db_users,
+                 username:    rec.grantee,
+                 update_area: @update_area,
+                },
+                title: "Show details for user '#{rec.grantee}'"
+      )
+    when 'ROLE' then
+      ajax_link(rec.grantee,
+                {action:      :list_roles,
+                 role:        rec.grantee,
+                 update_area: @update_area,
+                },
+                title: "Show details for role '#{rec.grantee}'"
+      )
+    else rec.grantee
+    end
+  end
+
+  column_options = []
+  column_options << {caption: 'Grantee',      data: link_grantee,                             title: 'Name of the user or role receiving the grant'}
+  column_options << {caption: 'Grantee type', data: proc{|rec| rec.grantee_type},             title: 'Type of grantee'}
+  column_options << {caption: 'Privilege',    data: proc{|rec| rec.privilege},                title: "Granted system privilege"}
+  column_options << {caption: 'Admin option', data: proc{|rec| rec.admin_option},             title: "Indicates whether the grant was with the ADMIN OPTION (YES) or not (NO)"}
+  column_options << {caption: 'Common',       data: proc{|rec| rec.common},                   title: "Indicates whether a given role is common. Possible values:\nYES if the role is common\nNO if the role is local (not common)"} if get_db_version >= '12.1'
+  column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
+%>
+
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted system privileges from DBA_Sys_Privs for #{"Privilege='#{@privilege}'" if @privilege}#{"Grantee='#{@grantee}'" if @grantee}", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

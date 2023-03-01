@@ -1,0 +1,53 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_grantee = proc do |rec|
+    case rec.grantee_type
+    when 'USER' then
+      ajax_link(rec.grantee,
+                {action:      :list_db_users,
+                 username:    rec.grantee,
+                 update_area: @update_area,
+                },
+                title: "Show details for user '#{rec.grantee}'"
+      )
+    when 'ROLE' then
+      ajax_link(rec.grantee,
+                {action:      :list_roles,
+                 role:        rec.grantee,
+                 update_area: @update_area,
+                },
+                title: "Show details for role '#{rec.grantee}'"
+      )
+    else rec.grantee
+    end
+  end
+
+  link_grantor = proc do |rec|
+    ajax_link(rec.grantor,
+              {action:      :list_db_users,
+               username:    rec.grantor,
+               update_area: @update_area,
+              },
+              title: "Show details for user '#{rec.grantor}'"
+    )
+  end
+
+
+  column_options = []
+  column_options << {caption: 'Grantee',      data: link_grantee,                             title: 'Name of the user or role receiving the grant'}
+  column_options << {caption: 'Grantee type', data: proc{|rec| rec.grantee_type},             title: 'Type of grantee'}
+  column_options << {caption: 'Owner',        data: proc{|rec| rec.owner},                    title: 'Owner of the object'}
+  column_options << {caption: 'Object name',  data: proc{|rec| rec.table_name},               title: 'Name of the object. The object can be any object, including tables, packages, indexes, sequences, and so on.'}
+  column_options << {caption: 'Object type',  data: proc{|rec| rec.type},                     title: 'Type of the object'} if get_db_version >= '12.1'
+  column_options << {caption: 'Grantor',      data: link_grantor,                             title: 'Name of the user who performed the grant'}
+  column_options << {caption: 'Privilege',    data: proc{|rec| rec.privilege},                title: "Granted object privilege"}
+  column_options << {caption: 'Grantable',    data: proc{|rec| rec.grantable},                title: "Indicates whether the privilege was granted with the GRANT OPTION (YES) or not (NO)"}
+  column_options << {caption: 'Hierarchy',    data: proc{|rec| rec.hierarchy},                title: "Indicates whether the privilege was granted with the HIERARCHY OPTION (YES) or not (NO)"}
+  column_options << {caption: 'Common',       data: proc{|rec| rec.common},                   title: "Indicates whether a given role is common. Possible values:\nYES if the role is common\nNO if the role is local (not common)"} if get_db_version >= '12.1'
+  column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
+%>
+
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs for #{"Privilege='#{@privilege}'" if @privilege}#{"Grantee='#{@grantee}'" if @grantee}", max_height: 450, show_pin_icon: 1}) %>
+
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,25 @@
+<%= render_page_caption("#{t(:dba_sga_list_sql_shared_cursor_caption, :default=>'Obstacles for usage of shared cursor for')} Instance=#{@instance}, SQL-ID=#{@sql_id}, Child-Number=#{@child_number}") %>
+
+<%
+  @doku = 'https://docs.oracle.com/cd/E11882_01/server.112/e40402/dynviews_3059.htm#REFRN30254'
+  @doku = 'http://docs.oracle.com/database/121/REFRN/GUID-4993A6DE-5658-4745-B43E-F5AD9DB8DCCC.htm#REFRN30254' if get_db_version >= '12.1'
+%>
+
+<%= t(:dba_sga_list_sql_shared_cursor_hint, :default=>'For detailled info please lookup this decription') %>: <a href="<%= @doku %>" target="_blank">v$SQL_SHARED_CURSOR</a><br/>
+For deeper analysis see <a href="https://support.oracle.com/epmos/faces/DocContentDisplay?id=296377.1" target="_blank">Metalink note 296377.1</a> how to use <pre style="display: inline">TABLE(version_rpt(:sql_id)</pre> to select detailled reasons
+<%
+
+   @update_area = get_unique_area_id
+column_options =
+[
+  {:caption=>"I",               :data=>proc{|rec| rec.inst_id},      :title=>"RAC-Instance"},
+  {:caption=>"SQL-ID",          :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.child_number)},      :title=>"SQL-ID"},
+  {:caption=>"C",               :data=>proc{|rec| rec.child_number},     :title=>"Child-Number"},
+
+]
+column_options << {:caption=>"Reason",  :data=>proc{|rec| j rec.reasons},       :title=>t(:dba_sga_list_sql_shared_cursor_reason_hint, :default=>'One ore more obstacles for not using shared cursor')} if get_db_version > "11"
+
+%>
+<%= gen_slickgrid(@reasons, column_options, :max_height => 450) %>
+
+<div id="<%= @update_area %>"></div>

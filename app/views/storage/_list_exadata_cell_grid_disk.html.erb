@@ -1,0 +1,99 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_cell_server(rec, value)
+    ajax_link(value, {
+                        :action           => :list_exadata_cell_server,
+                        :cellname         => rec.cellname,
+                        :update_area      => @update_area
+                       },
+                :title=>"Show info for cell server")
+  end
+
+  def link_physical_disk(rec, value)
+    ajax_link(value, {
+                        :action           => :list_exadata_cell_physical_disk,
+                        :cellname         => rec.cellname,
+                        :physical_disk_id => rec.id,
+                        :update_area      => @update_area
+                       },
+                :title=>"Show info for physical disk of this grid disk")
+  end
+
+  def link_cell_disk(rec, value)
+    ajax_link(value, {
+                        :action           => :list_exadata_cell_cell_disk,
+                        :cellname         => rec.cellname,
+                        :cell_disk_name   => rec.cd_name,
+                        :update_area      => @update_area
+                       },
+                :title=>"Show info for cell disk of this grid disk")
+  end
+
+
+  def calc_status(rec)
+    case
+      when rec.status     != 'normal' then rec.status
+      when rec.cd_status  != 'normal' then rec.cd_status
+      when rec.gd_status  != 'active' then rec.gd_status
+      else 'normal / active'
+    end
+  end
+
+  def calc_phys_detailled_status(rec)
+    case
+      when rec.predfailstatus     != 'FALSE' then rec.predfailstatus
+      when rec.poorperfstatus     != 'FALSE' then rec.poorperfstatus
+      when rec.wtcachingstatus    != 'FALSE' then rec.wtcachingstatus
+      when rec.peerfailstatus     != 'FALSE' then rec.peerfailstatus
+      when rec.criticalstatus     != 'FALSE' then rec.criticalstatus
+      else 'FALSE'
+    end
+  end
+
+  column_options =
+      [
+          {:caption=>'Cell name',                    :data=>proc{|rec| link_cell_server(rec, rec.cellname)},  :title=>"IP-address / cell name"},
+          {:caption=>'Grid ASM disk name',           :data=>proc{|rec| rec.gd_asmdiskname},                   :title=>"Grid ASM disk name", :data_title=>proc{|rec| "%t:\nGrid disk name = '#{rec.gd_name}'\nASM fail group name = '#{rec.gd_asmfailgroupname}'"}},
+          {:caption=>'Grid ASM disk group',          :data=>proc{|rec| rec.asm_disk_group_name},              :title=>"ASM disk group name"},
+          {:caption=>'Grid disk caching policy',     :data=>proc{|rec| rec.gd_cachingpolicy},                 :title=>"Grid disk caching policy"},
+          {:caption=>'Cell disk name',        :data=>proc{|rec| link_cell_disk(rec, rec.cd_name)},            :title=>"Cell disk name"},
+          {:caption=>'Cell disk comment',     :data=>proc{|rec| rec.cd_disk_comment},                                  },
+          {:caption=>'Cell disk device partition',  :data=>proc{|rec| rec.cd_devicepartition},                :title=>"Cell disk device partition", :data_title=>proc{|rec| "%t:\nCell disk device name = #{rec.cd_devicename}"}                  },
+          {:caption=>'Cell disk error count',       :data=>proc{|rec| fn rec.cd_errorcount},                  :align=>:right},
+          {:caption=>'Grid disk error count',       :data=>proc{|rec| fn rec.gd_errorcount},                  :align=>:right},
+          {:caption=>'Cell disk interl.',           :data=>proc{|rec| rec.cd_interleaving},                   :title=>"Cell disk interleaving"},
+          {:caption=>'Phys. disk name',       :data=>proc{|rec| rec.diskname},                                :title=>"Physical disk name"},
+          {:caption=>'Disk type',             :data=>proc{|rec| rec.disktype},                                :title=>"Type of disk"},
+          {:caption=>'LUNs',                  :data=>proc{|rec| rec.luns},                                    },
+          {:caption=>'Model',                 :data=>proc{|rec| rec.makemodel},                               },
+          {:caption=>'Firmware',              :data=>proc{|rec| rec.physicalfirmware},                        },
+          {:caption=>'Grid disk creation time',:data=>proc{|rec| rec.gd_creationtime},                      :title=>"Physical disk insert time", :data_title=>proc{|rec| "Insert / creation times:\nPhysical disk insert time = '#{rec.physicalinserttime}'\nCell disk creation time = '#{rec.cd_creationtime}'\nGrid disk creation time = '#{rec.gd_creationtime}'"}},
+          {:caption=>'Serial no.',            :data=>proc{|rec| rec.physicalserial},                          },
+          {:caption=>'Phys. disk size (GB)',  :data=>proc{|rec| fn(rec.physicalsize.to_i/(1024*1024*1024),1)},           :title=>"Physical size in GB", :align=>:right},
+          {:caption=>'Cell disk size (GB)',   :data=>proc{|rec| fn(rec.cd_disk_size.to_i/(1024*1024*1024),1)},           :title=>"Cell size in GB", :align=>:right},
+          {:caption=>'Grid disk size (GB)',   :data=>proc{|rec| fn(rec.gd_disk_size.to_i/(1024*1024*1024),1)},           :title=>"Cell size in GB", :data_title=>proc{|rec| "%t:\nGrid disk offset = #{rec.gd_offset}"}, :align=>:right},
+          {:caption=>'Slot',                  :data=>proc{|rec| rec.slotnumber},                              :title=>"Slot number"},
+          {:caption=>'Disk Status',           :data=>proc{|rec| calc_status(rec)},                           :title=>"Disk status", :data_title=>proc{|rec| "%t:\nPhysical disk status = '#{rec.status}'\nCell disk status = '#{rec.cd_status}'\nGrid disk status = '#{rec.gd_status}'"}},
+          {:caption=>'Phys. disk ID',         :data=>proc{|rec| link_physical_disk(rec, rec.id)},            :title=>"ID of physical disk"},
+          {:caption=>'Key 500',               :data=>proc{|rec| rec.key_500},                                 },
+          {:caption=>'Phys. detailled status',:data=>proc{|rec| calc_phys_detailled_status(rec)},             :title=>"Phys. detailled status", :data_title=>proc{|rec| "%t:\nPred. fail status = '#{rec.predfailstatus}'\nPoor perf. status = '#{rec.poorperfstatus}'\nWT caching status = '#{rec.wtcachingstatus}'\nPeer fail status = '#{rec.peerfailstatus}'\nCritical status = '#{rec.criticalstatus}'"}             },
+          {:caption=>'Err. cmd. timeout count', :data=>proc{|rec| fn rec.errcmdtimeoutcount},                 :align=>:right},
+          {:caption=>'Err. hard read count',  :data=>proc{|rec| fn rec.errhardreadcount},                     :align=>:right},
+          {:caption=>'Err. hard write count', :data=>proc{|rec| fn rec.errhardwritecount},                    :align=>:right},
+          {:caption=>'Err. media count',      :data=>proc{|rec| fn rec.errmediacount},                        :align=>:right},
+          {:caption=>'Err. other count',      :data=>proc{|rec| fn rec.errothercount},                        :align=>:right},
+          {:caption=>'Err. seek count',       :data=>proc{|rec| fn rec.errseekcount},                         :align=>:right},
+          {:caption=>'Sector remap count',    :data=>proc{|rec| fn rec.sectorremapcount},                     :align=>:right},
+      ]
+
+%>
+
+<%= gen_slickgrid(@disks, column_options, {
+    :max_height => 450,
+    :caption => "EXADATA grid disks#{" for#{@filter}" if @filter.length > 0}"
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

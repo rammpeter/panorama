@@ -1,0 +1,54 @@
+<%
+  @update_area = get_unique_area_id
+  grouping_options = {
+      :second    => { :name => t(:second, :default => 'Second'), :seconds => 1 },
+      :minute    => { :name => 'Minute', :seconds => 60 },
+      :hour      => { :name => t(:hour, :default => 'Hour'), :seconds => 3600 },
+      :day       => { :name => t(:day,  :default => 'Day'), :seconds => 86400 },
+      :week      => { :name => t(:week, :default => 'Week'), :seconds => 604800 },
+  }
+%>
+
+<%= render_page_caption("History of dynamic remastering (DRM) events from gv$Policy_History") %>
+
+<%= ajax_form(controller: :dba_waits, action: :list_drm_historic, update_area:  @update_area)  do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element" title="Filter on policy event">
+      Policy-event
+      <select name="policy_event">
+        <option value="[All]">[All]</option>
+        <% @policy_events.each do |p| %>
+          <option value="<%= p.policy_event  %>"><%=p.policy_event %></option>
+        <% end %>
+      </select>
+    </div>
+
+
+    <div class="flex-row-container" style="border:1px solid gray; padding-left: 5px;">
+      <div class="flex-row-element">
+        Grouping
+        <select name="time_groupby">'
+          <% grouping_options.each do |key, value| %>
+            <option value="<%= key %>" <%= "selected='selected'" if key == :minute %>"><%= value[:name] %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="flex-row-element">
+        <%= submit_tag("Show event history", :title => "Show history of dynamic remastering events") %>
+      </div>
+    </div>
+    &nbsp;
+    <div class="flex-row-container" style="border:1px solid gray; padding-left: 5px;">
+      <div class="flex-row-element">
+        <%= submit_tag("Show objects with events", :title => "Show dynamic remastering events grouped by objects") %>
+      </div>
+    </div>
+
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>
+

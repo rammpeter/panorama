@@ -1,0 +1,93 @@
+<%
+  @update_area = get_unique_area_id
+  @update_area_timeline = get_unique_area_id
+
+  link_samples = proc do |rec|
+      ajax_link(fn(rec.samples), {
+              :action                 => :list_db_cache_historic_detail,
+              :instance               => rec.instance_number,
+              :owner                  => rec.owner,
+              :name                   => rec.name,
+              :show_partitions        => @show_partitions,
+              :partitionname          => rec.partition_name,
+              :time_selection_start   => @time_selection_start,
+              :time_selection_end     => @time_selection_end,
+              :update_area            => @update_area
+            },
+      :title=>"Show detailed sample records of object over time")
+  end
+
+  link_sqls = proc do |rec|
+      ajax_link('Show SQLs', {
+              :controller             => :dba_history,
+              :action                 => :show_using_sqls_historic,
+              :time_selection_start   => @time_selection_start,
+              :time_selection_end     => @time_selection_end,
+              :instance               => rec.instance_number,
+              :ObjectOwner            => rec.owner,
+              :ObjectName             => rec.name,
+              :update_area            => @update_area
+            },
+     :title=>"Show SQLs using this object in choosen time period")
+  end
+
+  show_name = proc do |rec|
+    "#{rec.owner.downcase}.#{rec.name}#{" (#{rec.partition_name})" if @show_partitions == '1' && rec.partition_name}"
+  end
+
+  column_options =
+  [
+    {:caption=>"I",                :data=>proc{|rec| rec.instance_number},                                          :title=>"Instance-ID"},
+    {:caption=>"Name",             :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.name, show_name.call(rec)) },  :title=>"Object-Name"},
+    {:caption=>"Weighted index",   :data=>proc{|rec| fn(rec.sumblockstotal)},                                       :title=>"Usage-index (Sum of all DB-blocks of object over all considered snapshots in period)", align: :right},
+    {:caption=>'Avg. %',           :data=>proc{|rec| fn((rec.avgblockstotal*100.0/rec.sum_total_per_snapshot rescue nil), 2)},     :title=>"Average percent of total cached blocks for this object", data_title: proc{|rec| "%t\nTotal number of cached blocks = #{fn(rec.sum_total_per_snapshot)}"}, :align=>"right"},
+    {:caption=>"Avg. Blocks",      :data=>proc{|rec| fn(rec.avgblockstotal)},                                       :title=>"Average number of DB-blocks in cache used by this object", :align=>"right"},
+    {:caption=>"Min. Blocks",      :data=>proc{|rec| fn(rec.minblockstotal)},                                       :title=>"Minimum number of DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
+    {:caption=>"Max. Blocks",      :data=>proc{|rec| fn(rec.maxblockstotal)},                                       :title=>"Minimum number of DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
+    {:caption=>"Avg. Dirty",       :data=>proc{|rec| fn(rec.avgblocksdirty)},                                       :title=>"Average number of dirty DB-blocks in cache used by this object", :align=>"right"},
+    {:caption=>"Min. Dirty",       :data=>proc{|rec| fn(rec.minblocksdirty)},                                       :title=>"Minimum number of dirty DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
+    {:caption=>"Max. Dirty",       :data=>proc{|rec| fn(rec.maxblocksdirty)},                                       :title=>"Maximum number of dirty DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
+    {:caption=>"Samples",          :data=>link_samples,                                                             :title=>"Number of snaphsot samples for this object in period", :align=>:right},
+    {:caption=>'SQLs',             :data=>link_sqls,                                                                :title=>"Show SQLs using this object in choosen time period"},
+  ]
+%>
+
+<!-- <div style="float:left; width:100%; max-height:450px; overflow:scroll; "> -->
+  <%= gen_slickgrid(@entries, column_options,
+                     {
+                             :max_height => 450, show_pin_icon: 1,
+                             update_area:   @update_area,
+                             :caption=> "DB-cache usage between #{@time_selection_start} and #{@time_selection_end} #{"Instance=#{@instance}" if @instance }",
+                             :context_menu_entries=>{:label=>"Show Top 10 on time line",
+                                                     :action=>"$('#list_db_cache_historic_hidden_link_timeline').click();",
+                                                     ui_icon: 'cui-chart-line'
+                             },
+                             command_menu_entries: {
+                                 name:      'top_10_on_time_line',
+                                 caption:   'Show top 10 on time line',
+                                 hint:      'Show diagram with top 10 on time line',
+                                 icon_class:           'cui-chart-line',
+                                 show_icon_in_caption: 'only',
+                                 action:               "$('#list_db_cache_historic_hidden_link_timeline').click();"
+                             }
+                     }
+      ) %>
+<!-- </div> -->
+
+
+
+<%= ajax_link("Hidden Auslöser für Timeline",
+                            {:action                => :list_db_cache_historic_timeline,
+                             :instance              => @instance,
+                             :time_selection_start  => @time_selection_start,
+                             :time_selection_end    => @time_selection_end,
+                             :show_partitions       => @show_partitions,
+                             :update_area           => @update_area_timeline
+                            },
+                    :style=>"display:none",
+                    :id=>"list_db_cache_historic_hidden_link_timeline"
+    )
+%>
+<div id="<%= @update_area_timeline %>" style="float:left; width:100%;">
+</div>
+

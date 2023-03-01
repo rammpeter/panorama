@@ -1,0 +1,78 @@
+<%
+  column_options =
+      [
+          {:caption=>'Action time',   :data=>proc{|rec| localeDateTime(rec.action_time) }, :title=>"The time the upgrade, downgrade, or patch action was completed"},
+          {:caption=>'Action',        :data=>proc{|rec| rec.action },                      :title=>"The specific action (for example, UPGRADE or DOWNGRADE)"},
+          {:caption=>'Namespace',     :data=>proc{|rec| rec.namespace },                   :title=>"The namespace of the components affected (for example, SERVER)"},
+          {:caption=>'Version',       :data=>proc{|rec| rec.version },                     :title=>"The version number of the server (for example, 10.2.0.1.0)"},
+          {:caption=>'ID',            :data=>proc{|rec|rec.id },                           :title=>"The identification number of the Critical Patch Update"},
+          {:caption=>'Comments',      :data=>proc{|rec|rec.comments },                     :title=>"Additional comments about the action taken"},
+          {:caption=>'Bundle series', :data=>proc{|rec|rec.bundle_series },                :title=>"Bundle series"},
+      ]
+
+
+%>
+<%= gen_slickgrid(@patches, column_options, {
+    :caption =>  "Upgrades / Downgrades / Patches from sys.Registry$History",
+    :max_height=>200,
+    show_pin_icon: 1
+})
+%>
+
+<%
+  column_options =
+      [
+          {:caption=>'Comp.-ID',        :data=>proc{|rec| rec.comp_id },                    :title=>"Component identifier"},
+          {:caption=>'Component name',  :data=>proc{|rec| rec.comp_name },                  :title=>"Component name"},
+          {:caption=>'Version',         :data=>proc{|rec| rec.version },                    :title=>"Component version loaded"},
+          {:caption=>'Status',          :data=>proc{|rec| rec.status },                     :title=>"Component status"},
+          {:caption=>'Modification',    :data=>proc{|rec| localeDateTime(rec.date_modified) },   :title=>"Time when the component was last modified"},
+          {:caption=>'Namespace',       :data=>proc{|rec| rec.namespace },                  :title=>"The namespace of the components affected (for example, SERVER)"},
+          {:caption=>'Control',         :data=>proc{|rec| rec.control },                    :title=>"User that created the component entry"},
+          {:caption=>'Schema',          :data=>proc{|rec|rec.schema },                      :title=>"User that contains the objects for the component"},
+          {:caption=>'Procedure',       :data=>proc{|rec|rec.procedure },                   :title=>"Validation procedure"},
+      ]
+
+
+%>
+<%= gen_slickgrid(@registry, column_options, {
+    :caption =>  "Registry info from DBA_Registry",
+    :max_height=>200,
+    show_pin_icon: 1
+})
+%>
+
+<% if get_db_version >= '12.1' %>
+  <%
+    column_options = []
+    column_options << {:caption=>'Patch ID',        :data=>proc{|rec| fn(rec.patch_id) },               :title=>"ID associated with the patch", align: :right}
+    column_options << {:caption=>'Patch UID',       :data=>proc{|rec| fn(rec.patch_uid) },              :title=>"UPI (Universal Patch ID) associated with the patch", align: :right}
+    column_options << {:caption=>'Patch type',      :data=>proc{|rec| rec.patch_type },                 :title=>"Type of the patch. Possible values:\nINTERIM: Interim patch\nRU: Release Update\nRUI: Release Update Increment\nRUR: Release Update Revision\nCU: Cumulative Update"} if get_db_version >= '18'
+    column_options << {:caption=>'Version',         :data=>proc{|rec| rec.version },                    :title=>"4 digit version on which the patch was installed (for example, 12.1.0.2)"} if get_db_version < '18'
+    column_options << {:caption=>'Source version',      :data=>proc{|rec|rec.source_version },                        :title=>"5 digit version (for example, 18.3.2.0.0) for the version on which the patch was applied"} if get_db_version >= '18'
+    column_options << {:caption=>'Source build desc.',  :data=>proc{|rec|rec.source_build_description },              :title=>"Build description (for example, Release_Update or Release_Update_Revision) for the version on which the patch was applied"} if get_db_version >= '18'
+    column_options << {:caption=>'Source build TS',     :data=>proc{|rec|localeDateTime(rec.source_build_timestamp) },:title=>"Build timestamp for the version on which the patch was applied"} if get_db_version >= '18'
+    column_options << {:caption=>'Target version',      :data=>proc{|rec|rec.target_version },                        :title=>"5 digit version (for example, 18.4.0.0.0) for the version to be installed"} if get_db_version >= '18'
+    column_options << {:caption=>'Target build desc.',  :data=>proc{|rec|rec.target_build_description },              :title=>"Build description (for example, Release_Update or Release_Update_Revision) for the version to be installed"} if get_db_version >= '18'
+    column_options << {:caption=>'Target build TS',     :data=>proc{|rec|localeDateTime(rec.target_build_timestamp) },:title=>"Build timestamp for the version to be installed"} if get_db_version >= '18'
+    column_options << {:caption=>'Flags',           :data=>proc{|rec| rec.flags },                      :title=>"One or more of the following:\nU: Patch requires upgrade mode\nJ: Patch is a JVM patch\nF: Patch was installed using -force\nB: Patch is a bundle patch"}
+    column_options << {:caption=>'Action',          :data=>proc{|rec| rec.action },                     :title=>"APPLY or ROLLBACK"}
+    column_options << {:caption=>'Status',          :data=>proc{|rec| rec.status },                     :title=>"Possible values:\nSUCCESS: Patch application has completed with no errors\nWITH ERRORS: Patch application finished with errors"}
+    column_options << {:caption=>'Action time',     :data=>proc{|rec| localeDateTime(rec.action_time) }, :title=>"Timestamp when the install was performed"}
+    column_options << {:caption=>'Description',     :data=>proc{|rec| rec.description },                :title=>"Description of this patch from OPatch metadata"}
+    column_options << {:caption=>'Bundle series',   :data=>proc{|rec|rec.bundle_series },               :title=>"If a bundle patch, the series (for example, PSU or DBBP)"}         if get_db_version < '18'
+    column_options << {:caption=>'Bundle ID',       :data=>proc{|rec|fn(rec.bundle_id) },               :title=>"If a bundle patch, ID in the series", align: :right}               if get_db_version < '18'
+    column_options << {:caption=>'Bundle data',     :data=>proc{|rec|rec.bundle_data },                 :title=>"If a bundle patch, the bundledata.xml associated with the patch"}  if get_db_version < '18'
+    column_options << {:caption=>'Logfile',         :data=>proc{|rec|rec.logfile },                     :title=>"Location of the logfile for this apply or rollback attempt"}
+    column_options << {:caption=>'RU Logfile',      :data=>proc{|rec|rec.ru_logfile },                  :title=>"Logfile location for RU specific commands"}                        if get_db_version >= '18'
+    column_options << {:caption=>'Patch descriptor',:data=>proc{|rec|rec.patch_descriptor },            :title=>"Contents of the XML descriptor for the patch"}                     if get_db_version >= '18'
+
+
+  %>
+  <%= gen_slickgrid(@sql_patches, column_options, {
+      :caption =>  "SQL patches from DBA_Registry_SQLPatch",
+      :max_height=>200,
+      show_pin_icon: 1
+  })
+  %>
+<% end %>

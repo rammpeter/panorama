@@ -1,0 +1,25 @@
+<%
+column_options =
+  [
+    {:caption=>"Intervall",         :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},   :title=>"Start of intervall", :plot_master_time=>true},
+    {:caption=>"Waits",             :data=>proc{|rec| fn(rec.waits)},                             :title=>"Number of wait events", :align=>"right"},
+    {:caption=>"Timeouts",          :data=>proc{|rec| fn(rec.timeouts)},                          :title=>"Number of timeouts", :align=>"right"},
+    {:caption=>"Time waited (sec)", :data=>proc{|rec| fn(rec.time_waited_secs, 2)},               :title=>"Time waited in seconds", data_title: proc{|rec| "%t\n#{seconds_explain(rec.time_waited_secs)}"}, :align=>"right"},
+    {:caption=>"Avg. Wait (ms)",    :data=>proc{|rec| rec.waits > 0 ? fn(rec.time_waited_secs*1000/rec.waits.to_f, 2) : ''},  :title=>"Average wait time im milliseconds", data_title: proc{|rec| "%t\n#{seconds_explain(rec.waits > 0 ? rec.time_waited_secs/rec.waits.to_f : '')}"}, :align=>"right"},
+  ]
+  column_options << {:caption=>"Waits FG",             :data=>proc{|rec| fn(rec.waits_fg)},               :title=>"Total number of wait events for foreground sessions", :align=>"right"}
+  column_options << {:caption=>"Timeouts FG",          :data=>proc{|rec| fn(rec.timeouts_fg)},            :title=>"Total number of timeouts for foreground sessions", :align=>"right"} if get_db_version >= "11.1"
+  column_options << {:caption=>"Time waited FG (sec)", :data=>proc{|rec| fn(rec.time_waited_secs_fg, 2)}, :title=>"Total time waited in seconds for foreground sessions", data_title: proc{|rec| "%t\n#{seconds_explain(rec.time_waited_secs_fg)}"}, :align=>"right"} if get_db_version >= "11.1"
+  column_options << {:caption=>"Avg. Wait FG (ms)",    :data=>proc{|rec| rec.waits_fg > 0 ? fn(rec.time_waited_secs_fg*1000/rec.waits_fg.to_f, 2) : ''},  :title=>"Average wait time in milliseconds for foreground sessions", data_title: proc{|rec| "%t\n#{seconds_explain(rec.waits_fg > 0 ? rec.time_waited_secs_fg/rec.waits_fg.to_f : '')}"}, :align=>"right"} if get_db_version >= "11.1"
+%>
+
+<%= gen_slickgrid(@snaps, column_options, {
+        :caption        =>"System-Event '#{@event_name}' Instance '#{@instance}' from #{@time_selection_start} until #{@time_selection_end}",
+        :max_height     => 450
+})
+%>
+
+
+
+
+

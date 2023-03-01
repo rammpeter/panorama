@@ -1,0 +1,145 @@
+<%
+  @update_area = get_unique_area_id
+  refresh_off = "dashboard_data.set_refresh_cycle_off();"
+
+  link_session_or_history = proc do |inst_id, session_id, serial_no, first_occurrence, last_occurrence, sql_id, session_alive|
+    if session_alive
+      link_session_details(@update_area, inst_id, session_id, serial_no, additional_onclick_js: refresh_off)
+    else
+      ajax_link("#{session_id}, #{serial_no}", {
+        controller:     :active_session_history,
+        action:         :list_session_statistic_historic_grouping,
+        update_area:    @update_area,
+        groupby:        'Session/Sn.',
+        groupfilter:    {
+          Instance:               inst_id,
+          'Session/Sn.'.to_sym => "#{session_id}, #{serial_no}",
+          DBID:                 @dbid,
+          time_selection_start: localeDateTime(first_occurrence),
+          time_selection_end:   localeDateTime(last_occurrence+1)
+        }.merge(sql_id ? {'SQL-ID' => sql_id} : {})
+      },
+      { title: "Show ASH history for this already terminated session" },
+      refresh_off
+      )
+    end
+  end
+
+  link_wait_time_session = proc do |rec|
+    ajax_link(fn(rec.wait_time_secs), {
+      controller:     :active_session_history,
+      action:         :list_session_statistic_historic_grouping,
+      update_area:    @update_area,
+      groupby:        'Session/Sn.',
+      groupfilter:    {
+        Instance:             rec.qinst_id,
+        'Session/Sn.'.to_sym => "#{rec.qsession_id}, #{rec.qsession_serial_no}",
+        DBID:                 @dbid,
+        time_selection_start: localeDateTime(rec.first_occurrence),
+        time_selection_end:   localeDateTime(rec.last_occurrence+1)
+      }
+    },
+              { title: "Show ASH history for this session in considered period" },
+              refresh_off
+    )
+  end
+
+
+  link_session = proc do |rec|
+    link_session_or_history.call(rec.qinst_id, rec.qsession_id, rec.qsession_serial_no, rec.first_occurrence, rec.last_occurrence, nil, rec.osuser != nil)
+  end
+
+  link_session_sql = proc do |rec|
+    link_sql_id(@update_area, rec.qinst_id, rec.max_sql_id, childno: rec.max_sql_child_number,
+                additional_onclick_js: refresh_off,
+                time_selection_start: localeDateTime(rec.first_occurrence),
+                time_selection_end:   localeDateTime(rec.last_occurrence)
+    )
+  end
+
+  column_options_sessions = []
+  column_options_sessions << {caption: 'I',                data: proc{|rec| rec.qinst_id},              title: "Instance-ID\n(of query coordinator session for parallel query)"} if PanoramaConnection.rac?
+  column_options_sessions << {caption: 'SID / SN',         data: link_session,                          title: 'SID, Serial_No\n(of query coordinator session for parallel query)', data_title: proc{|rec| "%t\n#{rec.qsession_id},#{rec.qsession_serial_no}"}}
+  column_options_sessions << {caption: 'Wait time (sec.)', data: link_wait_time_session,                title: "Wait time of session in seconds in considered time period", align: :right, show_pct_background: true, data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_secs)}\nBetween #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}\nAverage load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}"}}
+  column_options_sessions << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0},       title: "Number of different parallel query server sessions involved in SQL execution of this session in considered time period", align: :right}
+  column_options_sessions << {caption: 'User',             data: proc{|rec| rec.username},              title: "Name of DB-User"}
+  column_options_sessions << {caption: 'Machine',          data: proc{|rec| rec.machine},               title: "Client machine"}
+  column_options_sessions << {caption: 'OS user',          data: proc{|rec| rec.osuser},                title: "Client machine user (available only if session is still connected)"}
+  column_options_sessions << {caption: 'Top SQL ID',       data: link_session_sql,                      title: "SQL-ID of most intensive SQL of session in considered time period", data_title: proc{|rec| "%t\nChild-number = #{rec.max_sql_child_number}"}}
+  column_options_sessions << {caption: 'Module',           data: proc{|rec| rec.max_module},            title: "Module identifier with highest wait time in considered time period", data_title: proc{|rec| "%t\n\n#{rec.max_module}"}}
+  column_options_sessions << {caption: 'Action',           data: proc{|rec| rec.max_action},            title: "Action identifier with highest wait time in considered time period", data_title: proc{|rec| "%t\n\n#{rec.max_action}"}}
+  column_options_sessions << {caption: 'C',                data: proc{|rec| rec.con_id},                title: "Container ID of PDB"} if get_db_version >= '12.1'
+
+  link_sql_sql = proc do |rec|
+    link_sql_id(@update_area, rec.inst_id, rec.sql_id,
+                additional_onclick_js: refresh_off,
+                time_selection_start: localeDateTime(rec.first_occurrence),
+                time_selection_end:   localeDateTime(rec.last_occurrence)
+    )
+  end
+
+  link_sql_session = proc do |rec|
+    if rec.sessions > 1
+      "<&nbsp;#{fn(rec.sessions)}&nbsp;>"
+    else
+      link_session_or_history.call(rec.min_qinst_id, rec.min_qsession_id, rec.min_qsession_serial_no, rec.first_occurrence, rec.last_occurrence, rec.sql_id, rec.osuser != nil)
+    end
+  end
+
+  link_wait_time_sql = proc do |rec|
+    ajax_link(fn(rec.wait_time_secs), {
+      controller:     :active_session_history,
+      action:         :list_session_statistic_historic_grouping,
+      update_area:    @update_area,
+      groupby:        'SQL-ID',
+      groupfilter:    {
+        'SQL-ID'.to_sym =>    rec.sql_id,
+        DBID:                 @dbid,
+        time_selection_start: localeDateTime(rec.first_occurrence),
+        time_selection_end:   localeDateTime(rec.last_occurrence+1)
+      }.merge(@instance ? {Instance: @instance} : {})
+    },
+              { title: "Show ASH history for this SQL ID in considered period" },
+              refresh_off
+    )
+  end
+
+  show_username = proc do |rec|
+    if rec.user_ids > 1
+      "<&nbsp;#{fn(rec.user_ids)}&nbsp;>"
+    else
+      rec.username
+    end
+  end
+
+  column_options_sqls = []
+  column_options_sqls << {caption: 'I',                data: proc{|rec| rec.inst_id},                     title: "Instance-ID"} if PanoramaConnection.rac?
+  column_options_sqls << {caption: 'SQL ID',           data: link_sql_sql,                                title: "Current SQL-ID of session", data_title: proc{|rec| "%t\nNumber of children = #{rec.sql_child_count}"}}
+  column_options_sqls << {caption: 'Wait time (sec.)', data: link_wait_time_sql,                          title: "Wait time of SQL in seconds in considered time period", align: :right, show_pct_background: true, data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_secs)}\nBetween #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}\nAverage load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}"}}
+  column_options_sqls << {caption: 'Sess.',            data: link_sql_session,                            title: "Session ID/serial# if only one session was executing this SQL in in considered time period\nor number of different sessions have been executing this SQL in considered time period", align: :right}
+  column_options_sqls << {caption: 'User',             data: show_username,                               title: "DB-Username if only one user was executing this SQL in in considered time period\nor number of different users have been executing this SQL in considered time period", align: :right}
+  column_options_sqls << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0}, title: "Number of different parallel query server sessions involved in execution of this SQL in considered time period", align: :right}
+  column_options_sqls << {caption: 'SQL text',         data: proc{|rec| my_html_escape(rec.sql_subtext)}, title: "Start of SQL text"}
+  column_options_sqls << {caption: 'C',                data: proc{|rec| rec.con_id},                      title: "Container ID of PDB"} if get_db_version >= '12.1'
+
+%>
+
+
+
+<table width="100%" style="border: 0; background: initial;">
+  <tr><td colspan="2" style="background: initial; border: none;"><%= render_page_caption("Top sessions and SQLs between #{localeDateTime(@first_session_time)} and #{localeDateTime(@last_session_time)}") %></td></tr>
+  <tr>
+    <td width="50%" style="padding-top: 0; background: initial; border: none;">
+      <%= gen_slickgrid(@top_sessions, column_options_sessions, {width: '100%', line_height_single: true}) %>
+    </td>
+    <td width="50%" style="padding-top: 0; background: initial; border: none;">
+      <%= gen_slickgrid(@top_sqls, column_options_sqls, {width: '100%', line_height_single: true}) %>
+    </td>
+  </tr>
+</table>
+
+<script type="application/javascript">
+  dashboard_data.selection_refresh_pending = false;                             // next request may start, suppress multiple events for same selection
+</script>
+
+<div id="<%= @update_area %>"></div>

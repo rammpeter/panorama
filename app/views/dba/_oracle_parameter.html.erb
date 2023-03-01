@@ -1,0 +1,47 @@
+<%= @hint %>
+
+<%
+
+  list_type = proc do |rec|
+    case rec.paramtype
+      when 1 then 'Boolean'
+      when 2 then 'String'
+      when 3 then 'Integer'
+      when 4 then 'Parameter file'
+      when 5 then 'Reserved'
+      when 6 then 'Big integer'
+      else "Unknown type (#{rec.param_type})"
+    end
+  end
+
+column_options = []
+
+  column_options << {:caption=>"I",                 :data=>proc{|rec| rec.instance},                       :title=>"Instance-ID"} if PanoramaConnection.rac?
+  column_options << {:caption=>"ID",                :data=>proc{|rec| formattedNumber(rec.id)},            :title=>"Parameter-ID", :align=>"right"}  unless @reduced_columns
+  column_options << {:caption=>"Type",              data: list_type,                                       :title=>"Parameter type"}  unless @reduced_columns
+  column_options << {:caption=>"Name",              :data=>proc{|rec| rec.name},                           :title=>"Parameter name"}
+  column_options << {:caption=>"Description",       :data=>proc{|rec| rec.description},                    :title=>"Description of parameter"}
+  column_options << {:caption=>"Value",             :data=>proc{|rec| rec.value},                          :title=>"Parameter-value"}
+  column_options << {:caption=>"Display-Value",     :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-value human readable"}
+  column_options << {:caption=>"Update comment",    :data=>proc{|rec| rec.update_comment},                 :title=>"Comments associated with the most recent update"}
+  column_options << {:caption=>"Default",           :data=>proc{|rec| rec.isdefault},                      :title=>t(:dba_oracle_parameter_is_default_hint, :default=>'Is parameter value still default')}
+  column_options << {caption: 'Session modifiable', data: proc{|rec| rec.isses_modifiable},                title: "Indicates whether the parameter can be changed with ALTER SESSION (TRUE) or not (FALSE)"} unless @reduced_columns
+  column_options << {caption: 'System modifiable',  data: proc{|rec| rec.issys_modifiable},                title: "Indicates whether the parameter can be changed with ALTER SYSTEM and when the change takes effect:
+IMMEDIATE - Parameter can be changed with ALTER SYSTEM regardless of the type of parameter file used to start the instance. The change takes effect immediately.
+DEFERRED - Parameter can be changed with ALTER SYSTEM regardless of the type of parameter file used to start the instance. The change takes effect in subsequent sessions.
+FALSE - Parameter cannot be changed with ALTER SYSTEM unless a server parameter file was used to start the instance. The change takes effect in subsequent instances."} unless @reduced_columns
+  column_options << {caption: 'Instance modifiable', data: proc{|rec| rec.isinstance_modifiable},          title: "For parameters that can be changed with ALTER SYSTEM,\nindicates whether the value of the parameter can be different for every instance (TRUE) or whether the parameter must have the same value for all Real Application Clusters instances (FALSE).\nIf the ISSYS_MODIFIABLE column is FALSE, then this column is always FALSE."}  unless @reduced_columns
+  column_options << {caption: 'Is modified',         data: proc{|rec| rec.ismodified},                     title: "Indicates whether the parameter has been modified after instance startup:\nMODIFIED - Parameter has been modified with ALTER SESSION\nSYSTEM_MOD - Parameter has been modified with ALTER SYSTEM (which causes all the currently logged in sessions' values to be modified)\nFALSE - Parameter has not been modified after instance startup"} unless @reduced_columns
+  column_options << {caption: 'Is adjusted',         data: proc{|rec| rec.isadjusted},                     title: "Indicates whether Oracle adjusted the input value to a more suitable value (for example, the parameter value should be prime, but the user input a non-prime number, so Oracle adjusted the value to the next prime number)"} unless @reduced_columns
+  column_options << {caption: 'Is deprecated',       data: proc{|rec| rec.isdeprecated},                   title: "Indicates whether the parameter has been deprecated (TRUE) or not (FALSE)"} unless @reduced_columns
+  column_options << {caption: 'Is basic',            data: proc{|rec| rec.isbasic},                       :title=>"Indicates whether the parameter is a basic parameter (TRUE) or not (FALSE)"} if get_db_version >= '11.1' &&  !@reduced_columns
+  column_options << {caption: 'Container ID',        data: proc{|rec| rec.con_id},                        :title=>"The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data"} if get_db_version >= '12.1'
+
+%>
+
+<%=
+    caption = @caption
+    gen_slickgrid(@parameters, column_options, {caption: caption, max_height: 600, width: :auto, show_pin_icon: 1})
+%>
+
+

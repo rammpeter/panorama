@@ -1,0 +1,31 @@
+<h1>Panorama</h1>
+<h3>Analyse-Werkzeug für Oracle-Datenbanken mit Fokus auf DBA und Software-Entwickler</h3>
+<B>
+  Bietet Unterstützung für:
+  <ul>
+    <li>Performance-Optimierung von Applikationen</li>
+    <li>Analyse von Laufzeiten und Wartezust&auml;nden</li>
+    <li>Aufbereitung der internen Informationen von Oracle-DB</li>
+    <li>Getestet für Oracle-Versionen 11.2 bis 21c</li>
+  </ul>
+</B>
+<BR>
+
+<h3><%= t :env_licensing_header, :default=>"Licensing" %></h3>
+<% @show_management_pack_choice = false %>
+<%= render :partial => 'licensing' %>
+<br/>
+<span style="color:red;">
+  Teile der Anwendung benötigen die Lizensierung von entweder Oracle's 'Diagnostics Pack' und 'Tuning Pack' oder 'Panorama-Sampler' um zu funktionieren!<br>
+  Nach dem Login kann gewählt werden ob Management-Packs für diese Datenbank lizensiert sind.
+</span><BR><BR>
+
+Der zur Anmeldung genutzte Datenbank-User benötigt mindestens das Recht "SELECT ANY DICTIONARY".
+<BR><BR>
+Für mehr Information bitte hier nachsehen: <a href="https://rammpeter.github.io/panorama.html">https://rammpeter.github.io/panorama.html</a>.
+<BR><BR>
+Für Bug-Reports, Hinweise und Erweiterungswünsche bitte ein Issue erzeugen bei:<BR>
+<a href="https://github.com/rammpeter/Panorama_Gem/issues">https://github.com/rammpeter/Panorama_Gem/issues</a>
+<BR><BR>
+<%= "#{PanoramaGem::RELEASE_DAY}.#{PanoramaGem::RELEASE_MONTH}.#{PanoramaGem::RELEASE_YEAR}" %> Version <%= PanoramaGem::VERSION %><BR>
+Peter Ramm<BR>

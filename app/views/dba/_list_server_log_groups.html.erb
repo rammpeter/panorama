@@ -1,0 +1,33 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_count = proc do |rec|
+    ajax_link(fn(rec.records),
+                {action: :list_server_logs,
+                 detail:                'Hugo',                                 # marks Detailt view to call
+                 time_selection_start:  localeDateTime(rec.originating_timestamp),
+                 time_selection_end:    localeDateTime(rec.max_ts_add_1_sec),
+                 log_type:              @log_type,
+                 incl_filter:           @incl_filter,
+                 excl_filter:           @excl_filter,
+                 update_area:           @update_area,
+                },
+                :title=>"Show single records within time period")
+  end
+
+  column_options =
+      [
+          {:caption=>"Begin of period",           :data=>proc{|rec| localeDateTime(rec.originating_timestamp)},   :title=>"Beginn des SnapShot", :plot_master_time=>true },
+          {:caption=>"Number of records",         :data=>link_count,                             :title=>"Number of record in period",       :align=>'right'},
+      ]
+
+%>
+
+<%=
+  gen_slickgrid(@result, column_options, { :caption        => "Server log from #{@time_selection_start} until #{@time_selection_end}",
+                                                    :max_height     => 450, show_pin_icon: 1,
+                                           update_area: @update_area
+  }
+  )
+%>
+

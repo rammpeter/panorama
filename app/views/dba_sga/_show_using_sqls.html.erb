@@ -1,0 +1,68 @@
+<%
+   @update_area = get_unique_area_id
+
+
+  def link_sql(rec)
+    link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.child_number, parsing_schema_name: rec.parsing_schema_name)
+  end
+
+   # build data title for columns cost and cardinality
+   cost_card_data_title = proc do |rec|
+     "%t\n#{"
+ CPU cost = #{fn rec.cpu_cost}"              if rec.cpu_cost}#{"
+ IO cost = #{fn rec.io_cost}"                if rec.io_cost}#{"
+ estimated bytes = #{fn rec.bytes}"          if rec.bytes}#{"
+ estimated time (secs.) = #{fn rec.time}"    if rec.time}#{"
+ partition start = #{rec.partition_start}"   if rec.partition_start}#{"
+ partition stop = #{rec.partition_stop}"     if rec.partition_stop}#{"
+ partition ID = #{rec.partition_id}"         if rec.partition_id}
+     "
+   end
+
+column_options =
+[
+  {:caption=>"I",           :data=>proc{|rec| formattedNumber(rec.inst_id)},               :title=>"Instance-ID"},
+  {:caption=>"User",        :data=>proc{|rec| rec.parsing_schema_name},                    :title=>"User-name during parse"},
+  {:caption=>"Operation",   :data=>proc{|rec| "#{rec.operation} #{rec.options}"},          :title=>"Operation in explain plan", data_title: cost_card_data_title },
+  {:caption=>"Access",      :data=>proc{|rec| my_html_escape(rec.access_predicates)},      :title=>"Access criteria", :data_title=>proc{|rec| "%t:\n#{rec.access_predicates}"},  :max_wrap_width=>300},
+  {:caption=>"Search columns", :data=>proc{|rec| fn rec.search_columns},                   :title=>'Number of columns with matching predicates for index scans', :align=>:right},
+  {:caption=>'Filter',      :data=>proc{|rec| my_html_escape(rec.filter_predicates)},      :title=>'Filter criteria', :data_title=>proc{|rec| "%t:\n#{rec.filter_predicates}"},  :max_wrap_width=>300},
+  {:caption=>"SQL-ID",      :data=>proc{|rec| link_sql(rec)},                              :title=>"SQL-ID"},
+  {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape(rec.sql_text)},               :title=>"SQL-Text"},
+  {:caption=>'Last active', :data=>proc{|rec| localeDateTime(rec.last_active_time)},       :title=>'Timestamp of last activity of query plan', data_title: proc{|rec| "%t\nFirst load time = #{localeDateTime(rec.first_load_time)}\nLast load time = #{localeDateTime(rec.last_load_time)}"}},
+  {:caption=>"Execs",       :data=>proc{|rec| formattedNumber(rec.executions)},            :title=>"Number of executions", :align=>"right"},
+  {:caption=>"Elapsed",     :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs)},     :title=>"Total elapsed time in Sec.", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs)}" }, :align=>"right"},
+  {:caption=>"Ela./Ex.",    :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute,4)}, :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs_per_execute)}" }, :align=>"right"},
+  {:caption=>"CPU",         :data=>proc{|rec| formattedNumber(rec.cpu_time_secs)},         :title=>"CPU-Time in Seconds", :align=>"right"},
+  {:caption=>"Disk Reads",  :data=>proc{|rec| formattedNumber(rec.disk_reads)},            :title=>"Total Disk Reads", :align=>"right"},
+  {:caption=>"Disk/Ex.",    :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute, 3)},:title=>"Disk Reads per Execute", :align=>"right"},
+  {:caption=>"Buffer Gets", :data=>proc{|rec| formattedNumber(rec.buffer_gets)},           :title=>"Total Buffer Gets", :align=>"right"},
+  {:caption=>"Buffer/Ex.",  :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec, 2)},  :title=>"Buffer Gets per execute", :align=>"right"},
+  {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},        :title=>"Number of rows processed", :align=>"right"},
+  {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2)},    :title=>"Number of rows processed per execute", :align=>"right"},
+]
+%>
+
+<%= gen_slickgrid(@sqls, column_options, {:caption=>"SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)", :max_height=>450, show_pin_icon: 1}) %>
+
+<%=
+    ajax_form(:controller    =>:dba_history,
+              :action        => :show_using_sqls_historic,
+              :ObjectOwner   =>  @object_owner,
+              :ObjectName    => @object_name,
+              :update_area   => @update_area
+             ) do
+%>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker(id_suffix: 'show_using_sqls') %>
+
+    <div class="flex-row-element">
+      <%= submit_tag('Show historic SQLs', :title => "Search AWR history between timestamps for SQLs accessing #{@object_owner}.#{@object_name} (by #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')})") %>
+    </div>
+  </div>
+<% end %>
+
+
+<div id="<%= @update_area %>" style="clear:both; width:100%;">
+</div>
+

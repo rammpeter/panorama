@@ -1,0 +1,29 @@
+<%
+  @update_area = get_unique_area_id
+  column_options =
+      [
+          {:caption=> 'Original name',              :data=>proc{|rec| rec.original_name},                 :title=> 'Original name before drop'},
+          {:caption=> 'Size (MB)',                  :data=>proc{|rec| fn rec.size_mb, 2},                    :title=> 'Size of object in MB from DBA_Segments'},
+          {:caption=> 'Operation',                  :data=>proc{|rec| rec.operation},                     :title=> 'Operation carried out on the object'},
+          {:caption=> 'Tablespace',                 :data=>proc{|rec| rec.ts_name},                       :title=> 'Tablespace name'},
+          {:caption=> 'Creation time',              :data=>proc{|rec| localeDateTime(rec.create_ts)},     :title=> 'Timestamp for the creation of the object'},
+          {:caption=> 'Drop time',                  :data=>proc{|rec| localeDateTime(rec.drop_ts)},       :title=> 'Timestamp for the dropping of the object'},
+          {:caption=> 'Drop SCN',                   :data=>proc{|rec| fn(rec.dropscn)},                   :title=> 'System change number (SCN) of the transaction which moved the object to the recycle bin', align: :right},
+          {:caption=> 'Partition',                  :data=>proc{|rec| rec.partition_name},                :title=> 'Name of the partition which was dropped'},
+          {:caption=> 'Can undrop',                 :data=>proc{|rec| rec.can_undrop},                    :title=> 'Indicates whether the object can be undropped (YES) or not (NO)'},
+          {:caption=> 'Can purge',                  :data=>proc{|rec| rec.can_purge},                     :title=> 'Indicates whether the object can be purged (YES) or not (NO)'},
+          {:caption=> 'Related',                    :data=>proc{|rec| fn(rec.related)},                   :title=> 'Object number of the parent object', align: :right},
+          {:caption=> 'Base object',                :data=>proc{|rec| fn(rec.base_object)},               :title=> 'Object number of the base object', align: :right},
+          {:caption=> 'Purge object',               :data=>proc{|rec| fn(rec.purge_object)},              :title=> 'Object number for the object which gets purged', align: :right},
+          {:caption=> 'Space (blocks)',             :data=>proc{|rec| fn(rec.space)},                     :title=> 'Number of blocks used by the object', align: :right},
+      ]
+%>
+
+<%=
+  gen_slickgrid(@recyclebins, column_options, {
+      :caption => "Dropped object #{@type} #{@owner}.#{@object_name} (from DBA_RECYCLEBIN)",
+      :max_height => 450, show_pin_icon: 1
+  })
+%>
+
+<div id="<%= @update_area %>"></div>

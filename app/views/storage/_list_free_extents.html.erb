@@ -1,0 +1,23 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'Max. extent size',                                        :data=>proc{|rec| rec.categ},                         :title=>"Maximum size of an extent creatable in free chunks of this group"},
+          {:caption=>'Number of free chunks in size group',                     :data=>proc{|rec| fn(rec.chunk_num)},                 :title=>"Number of contiguous free space chunks within this size group", :align=>:right},
+          {:caption=>'Available free space in chunk size group(MB)',            :data=>proc{|rec| fn(rec.size_kb.to_f/1024, 2)},      :title=>"Available free space in MB for extent creation within this size group", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_kb.to_f/1024)}"}},
+          {:caption=>'Possible number of extents to allocate over all groups',  :data=>proc{|rec| fn(rec.number_fits)},               :title=>"Number of extents with this size that are possible to create in total free space (that may fit in free chunks)", :data_title=>proc{|rec| "Number of extents with size=#{rec.categ} that are possible to create in total free space\nThat means, they may fit in free chunks of this group or free chunks of larger groups"}, :align=>:right},
+          {:caption=>'MB available to create extents for this group',           :data=>proc{|rec| fn(rec.mb_available_to_create)},    :title=>"Free space im MB available to create extents with this size in total free space (that may fit in free chunks)", :data_title=>proc{|rec| "Free space im MB available to create extents with size=#{rec.categ} in total free space (that may fit in free chunks)\nThat means, they may fit in free chunks of this group or free chunks of larger groups\n#{size_explain(rec.mb_available_to_create)}"}, :align=>:right},
+
+      ]
+
+%>
+
+<%= gen_slickgrid(@free_exts, column_options, {
+    :max_height => 450, :width=>:auto,
+    :caption => "Free extents from DBA_Free_Space#{" for#{@filter}" if @filter.length > 0}"
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

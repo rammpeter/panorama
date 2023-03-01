@@ -1,0 +1,49 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Show trace files (selects data only for your login instance = #{@instance})") %>
+
+
+<%= ajax_form(:controller => :dba, :action => :list_trace_files, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker(id_suffix: 'default', additional_title: "Caution: For client and database in different timezones:\nThis value is interpreted in local client time zone") %>
+    <!--
+    Nicht sinnvoll so lange Daten nur von aktueller Instance gezogen werden
+    <%= instance_tag %>
+    -->
+
+    <div class="flex-row-element" title="Show only trace files where filename is matching the expression.
+    Delimit several OR-combined inclusion expressions by '|'.">
+      Filename incl. Filter
+      <%= text_field_tag(:filename_incl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Show only trace files where filename does not contain the expression.
+    Delimit several OR-combined exclusion expressions by '|'.">
+      Filename excl. Filter
+      <%= text_field_tag(:filename_excl_filter, "", :size=>30) %>
+    </div>
+
+    <!--
+
+    <div class="flex-row-element" title="Show only trace files with matching hits in trace file content.
+    Delimit several OR-combined inclusion expressions by '|'.
+    Caution: Search may run longer times.">
+      Content incl. Filter
+      <%= text_field_tag(:content_incl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Show only trace files without matching hits in trace file content.
+    Delimit several OR-combined exclusion expressions by '|'.
+    Caution: Search may run longer times.">
+      Content excl. Filter
+      <%= text_field_tag(:content_excl_filter, "", :size=>30) %>
+    </div>
+    -->
+
+    <%= submit_tag("Show trace files", :title => 'Show server-side trace files in period for this database instance') %>
+
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" style="clear:both;">
+</div>

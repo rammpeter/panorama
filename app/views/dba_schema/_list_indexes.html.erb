@@ -1,0 +1,320 @@
+<%
+   @update_area = get_unique_area_id
+
+   def link_ind_partitions(rec)
+     if rec.partition_number == 0
+       rec.partition_number
+     else
+       ajax_link(fn(rec.partition_number),
+                               {:action       => :list_index_partitions,
+                                :owner        => rec.owner,
+                                :index_name   => rec.index_name,
+                                :update_area  => @update_area,
+                               },
+                       :title=>"Show partitions of index #{rec.index_name}"
+       )
+     end
+   end
+
+   def link_ind_subpartitions(rec)
+     if rec.subpartition_number == 0
+       rec.subpartition_number
+     else
+       ajax_link(fn(rec.subpartition_number),
+                               {:action       => :list_index_subpartitions,
+                                :owner        => rec.owner,
+                                :index_name   => rec.index_name,
+                                :update_area  => @update_area,
+                               },
+                       :title=>"Show sub-partitions of index #{rec.index_name}"
+       )
+     end
+   end
+
+   link_space_usage = proc do |rec, value|
+     ajax_link(value,
+                             {:action       => :list_space_usage,
+                              :owner        => rec.owner,
+                              :segment_name => rec.index_name,
+                              :update_area  => @update_area,
+                             },
+                     :title=>"Show space usage for #{rec.owner}.#{rec.index_name} from DBMS_SPACE.SPACE_USAGE"
+       )
+   end
+
+   link_last_analyzed = proc do |rec|
+     ajax_link(localeDateTime(rec.last_analyzed),
+               {:action      => :list_gather_index_historic,
+                :owner       => rec.owner,
+                :index_name  => rec.index_name,
+                :update_area => @update_area,
+               },
+               :title=>'Show historic gather_index_stats-operations for index'
+     )
+   end
+
+
+   list_states = proc do |rec|
+     result = ''
+     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree.to_i != 1
+     result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
+     result << "#{'<br/>' if result.length > 0}Func.idx-Status =  #{rec.funcidx_status}"                                                   if !(rec.funcidx_status.nil? || rec.funcidx_status == 'ENABLED')
+     result << "#{'<br/>' if result.length > 0}Key Compression =  #{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"  if !(rec.compression == 'DISABLED')
+     result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')
+     result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1' && !(rec.cell_flash_cache.nil? || rec.cell_flash_cache == 'DEFAULT')
+     result << "#{'<br/>' if result.length > 0}Visibility = #{rec.visibility}"                                                             if !(rec.visibility.nil? || rec.visibility == 'VISIBLE')
+     result.html_safe
+   end
+
+   title_states = "Special states of index (shown only if not default):
+- Default parallel degree (if != 1)
+- Status (if != 'VALID')
+- Function Index Status (if set and != 'ENABLED')
+- Index key compression with number of compressed columns
+- Visibility
+- Smart flash cache
+- Cell flash cache
+"
+
+
+  render_action_buttons = proc do |rec|
+     retval =
+     "<div style=\"float:left\">#{
+     ajax_submit('SQLs', {
+          controller:   :dba_sga,
+          action:       :show_using_sqls,
+          ObjectOwner:  rec.owner,
+          ObjectName:   rec.index_name,
+          update_area: @update_area,
+     }, :title => 'Show SQLs in SGA (gv$SQL_Plan) using this index'
+     )}</div><div style=\"float:left\">#{
+     ajax_submit('ASH', {
+          controller:   :active_session_history,
+          action:       :show_prepared_active_session_history,
+          db_object:    "#{@owner.downcase}.#{rec.index_name}",
+          update_area:  @update_area,
+     }, :title => 'Show sessions from active session history accessing this index'
+     )}</div><div style=\"float:left\">#{
+     ajax_submit('Segm. stats', {
+          controller:   :dba_history,
+          action:       :list_segment_stat_hist_detail,
+          owner:        @owner,
+          object_name:  rec.index_name,
+          update_area:  @update_area,
+     }, :title => "Show segement statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{rec.index_name}"
+     )}</div>"
+
+    if get_cached_panorama_object_sizes_exists
+      retval <<
+        "<div style=\"float:left\">#{
+       ajax_submit('Size evolution', {
+          controller:   :addition,
+          action:       :time_for_object_increase,
+          owner:        @owner,
+          name:         rec.index_name,
+          update_area:  @update_area,
+       }, :title => "Show object size evolution for #{@owner}.#{rec.index_name}"
+       )}</div>
+      "
+     end
+
+     retval
+   end
+
+  def link_current_index_stats(rec, value)
+     ajax_link(value,
+                             {:controller   => :dba_schema,
+                              :action       => :list_current_index_stats,
+                              :table_owner  => @owner,
+                              :table_name   => @table_name,
+                              :index_owner  => rec.owner,
+                              :index_name   => rec.index_name,
+                              :leaf_blocks  => rec.leaf_blocks,
+                              :update_area  => @update_area,
+                             },
+                     :title=>'Calculate current index block usage statistics (executes select with index fast full scan on this index)'
+     )
+  end
+
+   link_extents = proc do |rec|
+     ajax_link(fn(rec.extents),
+                {:controller    => :storage,
+                 :action        => :list_object_extents,
+                 :owner         => rec.owner,
+                 :segment_name  => rec.index_name,
+                 :update_area   => @update_area,
+                },
+                :title=>"List distribution of storage extents for index. Caution: Execution may last some time!"
+    )
+   end
+
+  link_fk = proc do |rec|
+    ajax_link(rec.used_for_fk,
+               {:controller    => :dba_schema,
+                :action        => :list_references_from,
+                :owner         => @owner,
+                :table_name    => @table_name,
+                index_owner:  rec.owner,
+                index_name:   rec.index_name,
+                :update_area   => @update_area,
+               },
+               :title=>"Show details of foreign key constraints that may be protected by this index"
+   )
+  end
+
+   list_rac_master = proc do |rec|
+     if rec.current_master_cnt
+       if rec.current_master_cnt == 1
+         value = rec.current_master
+       else
+         value = "<&nbsp;#{rec.current_master_cnt} different&nbsp;>".html_safe
+       end
+
+       ajax_link(value,
+                {controller:  :dba_waits,
+                 action:      :list_drm_historic_single_records,
+                 owner:       rec.owner,
+                 object_name: rec.index_name,
+                 update_area: @update_area,
+                },
+                :title=>"List dynamic remastering events for this object"
+    )
+
+     else
+       'No info'
+     end
+   end
+
+   data_title_rac_master = proc do |rec|
+     title = "%t"
+     if rec.current_master_cnt
+       if rec.previous_master_cnt == 1
+         if rec.previous_master == 32768
+           title << "\nNo previous master instance because no remastering happened"
+         else
+           title << "\nPrevious master instance = #{rec.previous_master}"
+         end
+       else
+         title << "\n#{rec.previous_master_cnt} different previous master instances"
+       end
+
+       if rec.gc_mastering_policy_cnt == 1
+         title << "\nGC mastering policy = #{rec.gc_mastering_policy}"
+       else
+         title << "\n#{rec.gc_mastering_policy_cnt} different mastering policies"
+       end
+       title << "\nNumber of remastering events = #{rec.remaster_cnt}"
+     end
+     title
+   end
+
+  data_title_use = proc do |rec|
+    "%t:\nmonitoring index = #{rec.monitoring}\nstart monitoring = #{localeDateTime(rec.start_monitoring)}\nend monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((Time.now - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
+  end
+
+   blocksize = PanoramaConnection.db_blocksize                                   # call only once
+
+  data_title_unused = proc do |rec|
+    "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb, rec.leaf_blocks), 3)}\nCalculated based on avg. row len in index = #{fn(rec.avg_row_len)}"
+  end
+
+   blocks_data_title = proc do |rec|
+     "\n\nNumber of allocated blocks in segments = #{fn(rec.segment_blocks)} "
+   end
+
+   link_used = proc do |rec|
+    if get_db_version >= '12.2'
+      ajax_link(rec.used,
+                 {controller:   :dba_schema,
+                  action:       :list_index_usage,
+                  owner:        rec.owner,
+                  index_name:   rec.index_name,
+                  update_area:  @update_area,
+                 },
+                 title: 'Show usage info from DBA_INDEX_USAGE'
+      )
+    else
+      rec.used
+    end
+  end
+
+   cluster_title = "Clustering factor:
+A measurement of the amount of (dis)order of the table this index is for.
+
+If the value is near the number of blocks,
+then the table is very well ordered.
+In this case, the index entries in a single leaf block tend to point to rows in the same data blocks.
+
+If the value is near the number of rows,
+then the table is very randomly ordered.
+In this case, it is unlikely that index entries in the same leaf block point to rows in the same data blocks.
+
+Starting with 12.1 the table preference (dbms_stats.set_table_prefs) 'TABLE_CACHED_BLOCKS' defines the number of blocks that are treated as one at analysis.
+See also: https://richardfoote.wordpress.com/2020/06/30/oracle-19c-automatic-indexing-common-index-creation-trap-rat-trap/
+"
+
+   data_title_part_def = proc do |value, text=nil|
+     text.nil? ? "%t#{"\n\nPartition default = #{value}" if !value.nil? }" : "#{"\n#{text} = #{value}" if !value.nil?}"
+   end
+
+   data_title_ini_trans = proc do |rec|
+     "%t#{                                data_title_part_def.call(rec.def_ini_trans, 'Partition default for initial transactions')}
+Number of maximum transactions (MAX_TRANS) = #{rec.max_trans} #{data_title_part_def.call(rec.def_max_trans, 'Partition default for max. transactions')}"
+   end
+
+   data_title_initial_extent = proc do |rec|
+     "%t#{                                data_title_part_def.call(rec.def_initial_extent   == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_initial_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for initial extent')}
+Next extent = #{rec.next_extent} kBytes #{data_title_part_def.call(rec.def_next_extent      == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_next_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for next extent')}
+Min. extents = #{rec.min_extents}  #{     data_title_part_def.call(rec.def_min_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_min_extents), 'Partition default for min. extents')}
+Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_max_extents), 'Partition default for max. extents')}"
+   end
+
+   data_title_distinct_keys = proc do |rec|
+     "%t, #{fn(rec.num_rows.to_f/rec.distinct_keys, 1) rescue nil} rows per key"
+   end
+
+   column_options =
+           [
+                   {:caption=> 'Name',             :data=>proc{|rec| rec.index_name},                                     :title=> 'Name of index'},
+                   {:caption=> 'Columns',          :data=>proc{|rec| rec.column_names},                                   :title=> 'Indexes columns / expressions'},
+                   {:caption=> 'Type',             :data=>proc{|rec| rec.index_type},                                     :title=> 'Type of index'},
+                   {:caption=> 'Unique',           :data=>proc{|rec| rec.uniqueness},                                     :title=> 'Uniqueness status of the index: UNIQUE,  NONUNIQUE or BITMAP'},
+                   {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                                :title=> 'Tablespace name', data_title: proc{|rec| data_title_part_def.call(rec.def_tablespace_name)}},
+                   {:caption=> 'Pct Free',         :data=>proc{|rec| rec.pct_free},                                       :title=> 'Percent free', data_title: proc{|rec| data_title_part_def.call(rec.def_pct_free)}, :align=>:right},
+                   {:caption=> 'Ini Trans',        :data=>proc{|rec| rec.ini_trans},                                      :title=> 'Number of initial entries in transaction list of db block', data_title: data_title_ini_trans, :align=>:right},
+                   {:caption=> 'Ini. ext. (KB)',   :data=>proc{|rec| rec.initial_extent},                                 :title=> 'Initial extent size in kByte', data_title: data_title_initial_extent, :align=>:right},
+                   {:caption=> 'Rows',             :data=>proc{|rec| link_current_index_stats(rec, fn(rec.num_rows))},    :title=> 'Number of rows calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Size (MB)',        :data=>proc{|rec| link_space_usage.call(rec, fn(rec.size_mb, 2))},     :title=> 'Current object size in megabytes', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}#{blocks_data_title.call(rec)}"}},
+                   {:caption=> 'Ext.',             :data=>link_extents,                                                   :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"}},
+                   {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb, rec.leaf_blocks)))}, :title=> "Unused storage of index within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_unused, :align=>:right},
+                   {:caption=> 'B',                :data=>proc{|rec| fn(rec.blevel)},                                     :title=> "B*-Tree level (depth of the index from its root block to its leaf blocks).\nA depth of 0 indicates that the root block and leaf block are the same.", :align=>:right},
+                   {:caption=> 'Leaf blocks',      :data=>proc{|rec| link_current_index_stats(rec, fn(rec.leaf_blocks))}, :title=> 'Number of leaf blocks in the index calculated by last analyze run', :align=>:right},
+                   {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},                              :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, data_title: data_title_distinct_keys },
+                   {:caption=> 'Avg. leaf blocks / key', :data=>proc{|rec| fn(rec.avg_leaf_blocks_per_key)},              :title=> "Average number of leaf blocks (calculated by last analyze run) in which each distinct value in the index appears,\nrounded to the nearest integer.\nFor indexes that enforce UNIQUE and PRIMARY KEY constraints, this value is always 1.", :align=>:right},
+                   {:caption=> 'Avg. data blocks / key', :data=>proc{|rec| fn(rec.avg_data_blocks_per_key)},              :title=> "Average number of data blocks in the table (calculated by last analyze run) that are pointed to by a distinct value in the index rounded to the nearest integer.\nThis statistic is the average number of data blocks that contain rows that contain a given value for the indexed columns.", :align=>:right},
+                   {:caption=> 'Cluster.',         :data=>proc{|rec| fn(rec.clustering_factor)},                          :title=> cluster_title, :align=>:right},
+                   {:caption=> 'Part.',            :data=>proc{|rec| link_ind_partitions(rec)},                           :title=> 'Number of index partitions ', :align=>:right, data_title: proc{|rec| "%t\n\n#{rec.partition_expression}"}},
+                   {:caption=> 'Sub-<wbr>Part.',        :data=>proc{|rec| link_ind_subpartitions(rec)},                   :title=> 'Number of index sub-partitions ', :align=>:right},
+                   {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},                        :title=> 'Timestamp of index creation'},
+                   {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},                  :title=> 'Timestamp of last DDL operation on index'},
+                   { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},                         title: "Timestamp for the last specification change of the index" },
+                   {:caption=> 'Last analyzed',    data: link_last_analyzed,                                              :title=> 'The date of the most recent time this table was analyzed'},
+                   {:caption=> 'FK',               data: link_fk,                                                         title: 'Is index used for protection of foreign key constraints?' },
+                   {:caption=> 'Use',              data: link_used,                                                       :title=> 'Usage of index detected? From sys.Object_Usage', data_title: data_title_use, data_style: proc{|rec| 'background-color:coral;' if rec.used=='NO'} },
+                   {:caption=> 'Several States',   :data=>list_states,                                                    :title=> title_states},
+                   {:caption=> 'Action',           :data=>render_action_buttons,                                          :title=> 'Call action for this index'},
+           ]
+   column_options << {:caption=> 'RAC master inst.', :data=>list_rac_master,                                  :title=> "Current master instance for cache block states in RAC", data_title: data_title_rac_master} if PanoramaConnection.rac?
+
+%>
+
+<%=
+  caption = "Indexes of #{link_object_description(@update_area, @owner, @table_name)}#{" (limited to index #{@index_name})" if @index_name}"
+
+  gen_slickgrid(@indexes, column_options, {
+                                  :caption => caption,
+                                  :max_height => 450, show_pin_icon: 1
+                          })
+%>
+
+<div id="<%= @update_area %>"></div>

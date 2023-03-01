@@ -1,0 +1,43 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_snapshots = proc do |rec|
+    ajax_link(rec.snapshots, {
+                              controller:     :storage,
+                              action:         :list_all_materialized_views,
+                              refresh_group:  rec.refgroup,
+                              update_area:    @update_area
+                    },
+                    :title=>"Show materialized view(s) of refresh group")
+
+  end
+
+  column_options = []
+
+  column_options << {caption: 'Owner',                 data: proc{|rec| rec.rowner},                      title: "Name of the owner of the refresh group"}
+  column_options << {caption: 'Name',                  data: proc{|rec| rec.rname},                       title: "Name of the refresh group"}
+  column_options << {caption: 'ID',                    data: proc{|rec| rec.refgroup},                    title: "Internal identifier of refresh group", align: :right}
+  column_options << {caption: 'Snapshots / MVs',       data: link_snapshots,                              title: "Number of materialized views / snapshots from DBA_Snapshots", align: :right}
+  column_options << {caption: 'Impl. destroy',         data: proc{|rec| rec.implicit_destroy},            title: "Implicit destroy (Y |N)\nIf Y, then destroy the refresh group when its last item is subtracted"}
+  column_options << {caption: 'Push deferred RPC',     data: proc{|rec| rec.push_deferred_rpc},           title: "Push deferred RPC (Y |N)\nIf Y then push changes from snapshot to master before refresh"}
+  column_options << {caption: 'Refresh after errors',  data: proc{|rec| rec.refresh_after_errors},        title: "Refresh after errors?\nIf Y, proceed with refresh despite error when pushing deferred RPCs"}
+  column_options << {caption: 'Rollback segment',      data: proc{|rec| rec.rollback_seg},                title: "Name of the rollback segment to use while refreshing"}
+  column_options << {caption: 'Job number',            data: proc{|rec| rec.job},                         title: "Identifier of job used to refresh the group automatically", align: :right}
+  column_options << {caption: 'Job name',              data: proc{|rec| rec.job_name},                    title: "Name of job used to refresh the group automatically"} if get_db_version >= '18.1'
+  column_options << {caption: 'Next date',             data: proc{|rec| localeDateTime(rec.next_date)},   title: "Date that this job will next be refreshed automatically, if not broken"}
+  column_options << {caption: 'Interval',              data: proc{|rec| rec.interval},                    title: "A date function used to compute the next NEXT_DATE"}
+  column_options << {caption: 'Broken',                data: proc{|rec| rec.broken},                      title: "(Y |N) Y means the job is broken and will never be run"}
+  column_options << {caption: 'Purge option',          data: proc{|rec| rec.purge_option},                title: "The method for purging the transaction queue after each push.\n1 indicates quick purge option\n2 indicates precise purge option"}
+  column_options << {caption: 'Parallel',              data: proc{|rec| rec.parallelism},                 title: "The level of parallelism for transaction propagation"}
+  column_options << {caption: 'Heap size',             data: proc{|rec| rec.heap_size},                   title: "The size of the heap"}
+
+
+%>
+
+<%= gen_slickgrid(@groups, column_options, {
+    :max_height => 450,
+    :caption => "Materialized view refresh groups from DBA_Refresh#{" RefGroup=#{@refgroup}" if @refgroup}",
+    show_pin_icon: 1
+}) %>
+
+<div id="<%= @update_area %>"></div>

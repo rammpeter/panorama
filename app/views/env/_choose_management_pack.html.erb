@@ -1,0 +1,23 @@
+<% if @show_management_pack_choice %>
+
+  <%= render_page_caption("#{t(:env_choose_management_pack_caption, :default=>"You are connected to database '%{database_name}', please choose your management pack license", :database_name => PanoramaConnection.database_name)}") %>
+
+  <%= ajax_form(:controller => :env, :action => :choose_managent_pack_license, :update_area=>:content_for_layout) do  %>
+      <% @update_area_management_pack_license = get_unique_area_id %>
+      <script type="text/javascript">
+          ajax_html('<%= @update_area_management_pack_license %>', 'env', 'list_management_pack_license', {update_area: "<%= @update_area_management_pack_license %>"});
+      </script>
+      <div id="<%= @update_area_management_pack_license %>"></div>
+      <br/>
+      <%= submit_tag(t(:env_choose_managent_pack_license_submit_caption, :default=>"Acknowledge and proceed"),
+                     disabled: get_current_database[:management_pack_license].nil?,
+                     id: :choose_managent_pack_submit,          # Used to enable at radi button click
+                     :title => t(:env_choose_managent_pack_license_submit_hint, :default=>"Acknowledge your choosen management pack license for this database and proceed")
+          ) %>
+  <% end %>
+<% else %>
+  <script type="text/javascript">
+    ajax_html('content_for_layout', 'env', 'start_page', {update_area: "content_for_layout"}, { retain_status_message: true});
+  </script>
+<% end %>
+

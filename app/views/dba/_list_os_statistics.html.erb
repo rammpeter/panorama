@@ -1,0 +1,23 @@
+<%
+  column_options = []
+  column_options << {caption: 'I',                data: proc{|rec| rec.inst_id },                                 title: "RAC-instance"} if PanoramaConnection.rac?
+  column_options << {caption: 'Name',             data: proc{|rec| rec.stat_name },                               title: "Name of the statistic"}
+  column_options << {caption: 'Value',            data: proc{|rec| fn(rec.value) },                               title: "Value of the statistic",  align: :right}
+  column_options << {caption: 'Comments',         data: proc{|rec| rec.comments },                                title: "Any additional OS-specific clarifications for the statistic"} if get_db_version >= "11.2"
+  column_options << {caption: 'Cumulative',       data: proc{|rec| rec.cumulative },                              title: "Indicates whether the statistic is cumulative (that is, accumulates over time) (YES) or not (NO)"} if get_db_version >= "11.2"
+  column_options << {caption: 'Con-ID',           data: proc{|rec| rec.con_id },                                  title: "The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data",  align: :right} if get_db_version >= "12.1"
+
+
+%>
+
+<%=
+  gen_slickgrid(@osstats, column_options, {
+      :caption      => "Operating system statistics from gv$OSStat",
+      :max_height   => 450,
+      :width        => :auto,
+      show_pin_icon: 1
+  }
+  )
+%>
+
+

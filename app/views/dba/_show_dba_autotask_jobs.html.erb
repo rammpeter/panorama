@@ -1,0 +1,68 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {:caption=>'Window name',                   :data=>proc{|rec| rec.window_name},                           :title=>'Name of Automated Maintenance Tasks Client'}
+  column_options << {:caption=>'Window next time',              :data=>proc{|rec| localeDateTime(rec.window_next_time)},      :title=>'Next scheduled window open time unless the window is disabled'}
+  column_options << {:caption=>'Active',                        :data=>proc{|rec| rec.window_active},                         :title=>'Indicates whether the window is currently active (open) (TRUE) or not (FALSE)'}
+  column_options << {:caption=>'Autotask status',               :data=>proc{|rec| rec.autotask_status},                       :title=>'Status of the automated maintenance task subsystem'}
+  column_options << {:caption=>'Optimizer statistics',          :data=>proc{|rec| rec.optimizer_stats},                       :title=>'Status of optimizer statistics gathering'}
+  column_options << {:caption=>'Segment advisor',               :data=>proc{|rec| rec.segment_advisor},                       :title=>'Status of Segment Advisor'}
+  column_options << {:caption=>'SQL tuning advisor',            :data=>proc{|rec| rec.sql_tune_advisor},                      :title=>'Status of SQL Tuning Advisor'}
+  column_options << {:caption=>'Health monitor',                :data=>proc{|rec| rec.health_monitor},                        :title=>'Status of Health Monitor'} if get_db_version < '19'
+  column_options << {:caption=>'Resource plan',                 :data=>proc{|rec| rec.resource_plan},                         :title=>'Resource plan associated with the window'}
+  column_options << {:caption=>'Schedule type',                 :data=>proc{|rec| rec.schedule_type},                         :title=>'Type of the schedule of the window'}
+  column_options << {:caption=>'Repeat interval',               :data=>proc{|rec| rec.repeat_interval},                       :title=>'Calendar string for the window (for an inline schedule)'}
+  column_options << {:caption=>'Window priority',               :data=>proc{|rec| rec.window_priority},                       :title=>'Priority of the job relative to other windows'}
+  column_options << {:caption=>'Comment',                       :data=>proc{|rec| rec.comments},                              :title=>'Comments on the window'}
+
+%>
+<div>
+<%= gen_slickgrid(@windows, column_options, {:caption=>'Maintenance windows from DBA_Autotask_Window_Clients' , :width=>:auto, show_pin_icon: 2}) %>
+</div>
+
+
+<%
+  def link_job_runs(rec)
+    ajax_link(fn(rec.job_runs), {
+               :controller   => :dba,
+               :action       => :list_dba_autotask_job_runs,
+               :client_name  => rec.client_name,
+               :update_area  => @update_area
+               },
+       {:title => "Show recorded job runs for this client"}
+     )
+  end
+
+   column_options =
+           [
+                   {:caption=>'Client name',                    :data=>proc{|rec| rec.client_name},                         :title=>'Name of Automated Maintenance Tasks Client'},
+                   {:caption=>'Job runs',                       :data=>proc{|rec| link_job_runs(rec)},                      :title=>'Number of recorded job runs for this client', :align=>:right},
+                   {:caption=>'Status',                         :data=>proc{|rec| rec.status},                              :title=>'Current status of the Client'},
+                   {:caption=>'Consumer group',                 :data=>proc{|rec| rec.consumer_group},                      :title=>'Resource Consumer Group normaly used to execute jobs'},
+                   {:caption=>'Client tag',                     :data=>proc{|rec| rec.client_tag},                          :title=>'Tag used in forming job names'},
+                   {:caption=>'Priority override',              :data=>proc{|rec| rec.priority_override},                   :title=>'Priority override for jobs'},
+                   {:caption=>'Attributes',                     :data=>proc{|rec| rec.attributes},                          :title=>'Client attributes'},
+                   {:caption=>'Window group',                   :data=>proc{|rec| rec.window_group},                        :title=>'Window group used to schedule jobs'},
+                   {:caption=>'Service name',                   :data=>proc{|rec| rec.service_name},                        :title=>'Service on which jobs will execute'},
+                   {:caption=>'Resource percentage',            :data=>proc{|rec| fn(rec.resource_percentage)},             :title=>'Percentage of maintenance resources for high priority maintenance tasks for this client', :align=>:right},
+                   {:caption=>'Use resource estimates',         :data=>proc{|rec| rec.use_resource_estimates},              :title=>'Indicates whether resource estimates are used for this client'},
+                   {:caption=>'Mean job duration',              :data=>proc{|rec| fn(rec.mean_job_duration_secs,2 )},       :title=>'Average elapsed time for a job for this client (in seconds)', :align=>:right},
+                   {:caption=>'Mean job CPU',                   :data=>proc{|rec| fn(rec.mean_job_cpu_secs,2 )},            :title=>'Average CPU time for a job submitted by this client (in seconds)', :align=>:right},
+                   {:caption=>'Mean job attempts',              :data=>proc{|rec| fn(rec.mean_job_attempts )},              :title=>'Average number of attempts it takes to complete a task', :align=>:right},
+                   {:caption=>'Mean incoming tasks 7 days',     :data=>proc{|rec| fn(rec.mean_incoming_tasks_7_days, 1)},   :title=>'Average number of incoming tasks at the Maintenance Window Start over the last 7 days', :align=>:right},
+                   {:caption=>'Mean incoming tasks 30 days',    :data=>proc{|rec| fn(rec.mean_incoming_tasks_30_days, 1)},  :title=>'Average number of incoming tasks at the Maintenance Window Start over the last 30 days', :align=>:right},
+                   {:caption=>'Total CPU last 7 days',          :data=>proc{|rec| fn(rec.total_cpu_last_7_days_secs)},      :title=>'Cumulative CPU time used by the jobs for this client over the last 7 days (in seconds)', :align=>:right},
+                   {:caption=>'Total CPU last 30 days',         :data=>proc{|rec| fn(rec.total_cpu_last_30_days_secs )},    :title=>'Cumulative CPU time used by the jobs for this client over the last 30 days (in seconds)', :align=>:right},
+                   {:caption=>'Max. duration last 7 days',      :data=>proc{|rec| fn(rec.max_duration_last_7_days_secs)},   :title=>'Maximum elapsed time for a job over the last 7 days (in seconds)', :align=>:right},
+                   {:caption=>'Max. duration last 30 days',     :data=>proc{|rec| fn(rec.max_duration_last_30_days_secs )}, :title=>'Maximum elapsed time for a job over the last 30 days (in seconds)', :align=>:right},
+                   {:caption=>'Window duration last 7 days',    :data=>proc{|rec| fn(rec.window_duration_7_days_secs)},     :title=>'Total time during which the client was active during the last 7 days', :align=>:right},
+                   {:caption=>'Window duration last 30 days',   :data=>proc{|rec| fn(rec.window_duration_30_days_secs )},   :title=>'Total time during which the client was active during the last 30 days', :align=>:right},
+]
+
+%>
+<div>
+  <%= gen_slickgrid(@tasks, column_options, {:caption=>'Automated Maintenance Tasks Clients from DBA_Autotask_Client' , :width=>:auto, show_pin_icon: 2}) %>
+</div>
+
+<div id="<%= @update_area %>"></div>

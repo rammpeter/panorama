@@ -1,0 +1,68 @@
+<%
+  @update_area = get_unique_area_id
+   def link_column_detail(rec, value)
+     ajax_link(value, {
+              :action               => :list_object_increase_object_timeline,
+              :owner                => rec.owner,
+              :name                 => rec.segment_name,
+              :time_selection_start => @time_selection_start,
+              :time_selection_end   => @time_selection_end,
+              :update_area          => @update_area
+            },
+     :title=>"Show detailed size evolution of object")
+
+   end
+
+  def render_action_buttons(rec)
+    ajax_link('Detailed snapshots', {
+              :action               => :list_object_increase_object_timeline,
+              :owner                => rec.owner,
+              :name                 => rec.segment_name,
+              :time_selection_start => @time_selection_start,
+              :time_selection_end   => @time_selection_end,
+              :update_area          => @update_area
+            },
+     :title=>"Show single snapshots of object in period")
+  end
+
+  show_name = proc do |rec|
+    result = link_object_description(@update_area, rec.owner, rec.segment_name, rec.segment_name)
+    if rec.name_addition
+      result << " ( #{rec.name_addition} )"
+    end
+    result
+  end
+
+  def show_ts(rec)
+    if rec.tablespaces == 1
+      rec.last_ts
+    else
+      "<&nbsp;#{rec.tablespaces}&nbsp;different&nbsp;>"
+    end
+  end
+
+column_options =
+  [
+    {:caption=>"Owner",           :data=>proc{|rec| rec.owner},                       :title=>"Object-owner"},
+    {:caption=>"Name",            :data=>show_name,                                   :title=>"Segment-name"},
+    {:caption=>"Type",            :data=>proc{|rec| rec.segment_type},                :title=>"Segment-type"},
+    {:caption=>"Tablespace",      :data=>proc{|rec| show_ts(rec)},                    :title=>"Tablespace of object at the end of considered period"},
+    {:caption=>'First sample',    :data=>proc{|rec| localeDateTime(rec.min_gather_date)},     :title=>"Timestamp of first sample of object in considered period"},
+    {:caption=>'Last sample',     :data=>proc{|rec| localeDateTime(rec.max_gather_date)},     :title=>"Timestamp of last sample of object in considered period"},
+    {:caption=>"MB start",        :data=>proc{|rec| fn(rec.start_mbytes, 2)},         :title=>"Size of object in MB at start of considered period",              :align=>:right},
+    {:caption=>"MB end",          :data=>proc{|rec| fn(rec.end_mbytes, 2)},           :title=>"Size of object in MB at end of considered period",                 :align=>:right},
+    {:caption=>"MB change",       :data=>proc{|rec| fn(rec.aenderung_abs, 2)},        :title=>"Change of object size in MB within considered period",  :align=>:right},
+    {:caption=>"% Change",        :data=>proc{|rec| fn(rec.aenderung_pct,2)},         :title=>"Change of object size in % within considered period", :align=>:right},
+#    {:caption=>"Anstieg je Tag in MB", :data=>proc{|rec| formattedNumber(rec.anstieg,2)},    :title=>'Anstieg je Tag in MB lt. linearer Regression "REGR_SLOPE(MBytes, Gather_Date-TO_DATE(\'1900\', \'YYYY\'))"' , :align=>:right},
+    {:caption=>"Num. rows start", :data=>proc{|rec| fn(rec.start_num_rows)},          :title=>"Number of rows of object at start of considered period (from last preceding analyze run)",              :align=>:right},
+    {:caption=>"Num. rows end",   :data=>proc{|rec| fn(rec.end_num_rows)},            :title=>"Number of rows of object at end of considered period (from last preceding analyze run)",                 :align=>:right},
+    {:caption=>'Action',          :data=>proc{|rec| render_action_buttons(rec)},      :title=>"Execute action for selected row" },
+  ]
+%>
+
+<%= gen_slickgrid(@incs, column_options, {
+    :caption=>"Object size evolution #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Object_Sizes#{", Tablespace='#{@tablespace_name}'" if defined?(@tablespace_name) && !@tablespace_name.nil?}#{", Schema='#{@schema_name}'" if defined?(@schema_name) && !@schema_name.nil?} between #{@time_selection_start} and #{@time_selection_end}",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+}) %>

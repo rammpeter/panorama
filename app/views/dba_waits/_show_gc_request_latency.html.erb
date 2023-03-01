@@ -1,0 +1,22 @@
+<% @update_area=get_unique_area_id %>
+
+<%=
+  result = 'Global cache request latency from GV$SysStat: '
+  @totals.each do |t|
+    result << "Instance #{t.inst_id}: #{formattedNumber(t.avg_receive_time_ms,2)} ms  "
+  end
+
+  render_page_caption(result)
+%>
+
+<%= ajax_form(:controller => :dba_waits, :action=>:list_gc_request_latency_history, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag %>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:show, :default=>'Show'), :title => t(:dba_waits_show_gc_request_latency_show_hint, :default=>'Show request latency of single AWR-snapshots')) %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>

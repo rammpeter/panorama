@@ -1,0 +1,84 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  link_column_run_count = proc do |rec|
+    ajax_link(fn(rec.run_count), {
+      action:       :list_dba_scheduler_job_run_details,
+      owner:        rec.owner,
+      job_name:     rec.job_name,
+      job_subname:  rec.job_subname,
+      update_area:  @update_area
+    }, title: "Show run details for this job"
+    )
+  end
+
+  shown = proc do |owner, name|
+    # TODO: <wbr> im Text wirkt sich nicht auf Spaltenbreite aus
+    "#{owner}#{'. ' if owner}#{name}".html_safe
+  end
+
+  event_data_title = proc do |rec|
+    "%t\n\nAgent = #{rec.event_queue_agent}\nCondition:\n#{rec.event_condition}\nRule = #{rec.event_rule}"
+  end
+
+  column_options =
+    [
+      {caption: 'Job owner / name',      data: proc{|rec| shown.call(rec.owner, "#{rec.job_name}#{" ( #{rec.job_subname} )" if rec.job_subname}")}, title: "Owner and name of the Scheduler job and subname of the Scheduler job (for a job running a chain step)"},
+      {caption: 'Style',                 data: proc{|rec| rec.job_style},                       title: "Job style: REGULAR or LIGHTWEIGHT"},
+      {caption: 'Creator',               data: proc{|rec| rec.job_creator},                     title: "Original creator of the job"},
+      {caption: 'C. ID',                 data: proc{|rec| rec.client_id},                       title: "Client identifier of the user creating the job"},
+      {caption: 'Gl. UID',               data: proc{|rec| rec.global_uid},                      title: "Global user identifier of the user creating the job"},
+      {caption: 'Program owner / name',  data: proc{|rec| shown.call(rec.program_owner, rec.program_name)}, title: "Owner and name of the program associated with the job"},
+      {caption: 'Job type',              data: proc{|rec| rec.job_or_program_type},             title: "Inline job action type\nFrom DBA_Scheduler_Programs if program used"},
+      {caption: 'Action',                data: proc{|rec| rec.job_or_program_action},           title: "Inline job action\nFrom DBA_Scheduler_Programs if program used" },
+      {caption: 'Arg. #',                data: proc{|rec| rec.number_of_arguments},             title: "Inline number of job arguments", align: :right},
+      {caption: 'Schedule owner / name', data: proc{|rec| shown.call(rec.schedule_owner, rec.schedule_name)},                        title: "Owner of the schedule that the job uses (can be a window or a window group)"},
+      {caption: 'Schedule type',         data: proc{|rec| rec.schedule_type},                   title: "Type of the schedule that the job uses"},
+      {caption: 'Start date',            data: proc{|rec| localeDateTime(rec.start_date)},      title: "Original scheduled start date of the job (for an inline schedule)"},
+      {caption: 'Repeat interval',       data: proc{|rec| rec.repeat_interval&.gsub(';', '; ')}, title: "Inline schedule PL/SQL expression or calendar string"},
+      {caption: 'Event queue owner / name', data: proc{|rec| shown.call(rec.event_queue_owner, rec.event_queue_name)}, title: "Owner and name of the source queue into which the event will be raised", data_title: event_data_title},
+      {caption: 'File watcher owner / name', data: proc{|rec| shown.call(rec.file_watcher_owner, rec.file_watcher_name)}, title: "Owner of the file watcher on which this job is based"},
+      {caption: 'End date',              data: proc{|rec| localeDateTime(rec.end_date)},        title: "Date after which the job will no longer run (for an inline schedule)"},
+      {caption: 'Job class',             data: proc{|rec| rec.job_class},                       title: "Name of the job class associated with the job"},
+      {caption: 'Enabled',               data: proc{|rec| rec.enabled},                         title: "Indicates whether the job is enabled (TRUE) or disabled (FALSE)"},
+      {caption: 'Auto drop',             data: proc{|rec| rec.auto_drop},                       title: "Indicates whether the job will be dropped when it has completed (TRUE) or not (FALSE)"},
+      {caption: 'Restart',               data: proc{|rec| rec.restartable},                     title: "Indicates whether the job can be restarted (TRUE) or not (FALSE)"},
+      {caption: 'Job state',             data: proc{|rec| rec.state},                           title: "Current state of the job"},
+      {caption: 'Job prio',              data: proc{|rec| rec.job_priority},                    title: "Priority of the job relative to other jobs in the same class", align: :right},
+      {caption: 'Run cnt.',              data: link_column_run_count,                           title: "Number of times the job has run", data_title: proc{|rec| "%t\n\nMax. number of runs = #{fn(rec.max_runs)}"}, align: :right},
+      {caption: 'Fail. cnt.',            data: proc{|rec| fn(rec.failure_count)},               title: "Number of times the job has failed to run", data_title: proc{|rec| "%t\n\nMax. number of failures = #{fn(rec.max_failures)}"}, align: :right},
+      {caption: 'Retry cnt.',            data: proc{|rec| fn(rec.retry_count)},                 title: "Number of times the job has retried, if it is retrying", align: :right},
+      {caption: 'Last start date',       data: proc{|rec| localeDateTime(rec.last_start_date)}, title: "	Last date on which the job started running"},
+      {caption: 'Last run duration',     data: proc{|rec| fn(rec.last_run_duration_seconds,3)}, title: "Amount of time in seconds the job took to complete during the last run", align: :right},
+      {caption: 'Next run date',         data: proc{|rec| localeDateTime(rec.next_run_date)},   title: "Next date on which the job is scheduled to run"},
+      {caption: 'Schedule limit',        data: proc{|rec| fn(rec.schedule_limit_seconds)},      title: "Time in seconds after which a job which has not run yet will be rescheduled", align: :right},
+      {caption: 'Max. run duration',     data: proc{|rec| fn(rec.max_run_duration_seconds)},    title: "Maximum amount of time in seconds for which the job will be allowed to run", align: :right},
+      {caption: 'Logging level',         data: proc{|rec| rec.logging_level},                   title: "Amount of logging that will be done pertaining to the job:"},
+      {caption: 'Stop on window close',  data: proc{|rec| rec.stop_on_window_close},            title: "Indicates whether the job will stop if a window associated with the job closes (TRUE) or not (FALSE)"},
+      {caption: 'Inst. sticky',          data: proc{|rec| rec.instance_stickiness},             title: "Indicates whether the job is sticky to instance (TRUE) or not (FALSE)"},
+      {caption: 'Raise events',          data: proc{|rec| rec.raise_events},                    title: "List of job events to raise for the job"},
+      {caption: 'System',                data: proc{|rec| rec.system},                          title: "Indicates whether the job is a system job (TRUE) or not (FALSE)"},
+      {caption: 'Weight',                data: proc{|rec| fn rec.job_weight},                   title: "Weight of the job", align: :right},
+      {caption: 'NLS env.',              data: proc{|rec| rec.nls_env},                         title: "NLS environment of the job"},
+      {caption: 'Source',                data: proc{|rec| rec.source},                          title: "Source global database identifier"},
+      {caption: 'Dest. #',               data: proc{|rec| rec.number_of_destinations},          title: "Number of destinations associated with this job", align: :right},
+      {caption: 'Dest.',                 data: proc{|rec| shown.call(rec.destination_owner, rec.destination)}, title: "Owner and destination that this job will run on"},
+      {caption: 'Cred.',                 data: proc{|rec| shown.call(rec.credential_owner, rec.credential_name)}, title: "Owner and name of the credential to be used for an external job"},
+      {caption: 'Inst.',                 data: proc{|rec| fn rec.instance_id},                  title: "Instance on which the user requests the job to run", align: :right},
+      {caption: 'Def. drop',             data: proc{|rec| rec.deferred_drop},                   title: "Indicates whether the job will be dropped when completed due to user request (TRUE) or not (FALSE)"},
+      {caption: 'Restr.',                data: proc{|rec| rec.allow_runs_in_restricted_mode},   title: "Indicates whether the job is allowed to run in restricted session mode (TRUE) or not (FALSE)"},
+      {caption: 'Comment',               data: proc{|rec| rec.comments},                        title: "Comments on the job"},
+    ]
+
+%>
+
+<%= gen_slickgrid(@jobs, column_options, { caption: "Jobs from DBA_Scheduler_Jobs", max_height: 450, show_pin_icon: 1 }) %>
+
+<div id="<%= @update_area %>"></div>
+
+
+
+
+
+
+

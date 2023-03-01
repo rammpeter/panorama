@@ -15,57 +15,34 @@
 #       username: sysp
 #       password: noa
 
-
-development:
+default: &default
   adapter: nulldb
 
+development:
+  <<: *default
 #  adapter:  oracle_enhanced
-#  url:      jdbc:oracle:thin:@linux-ramm-macpro:1521:RAMMMAC
-#  #url:      jdbc:oracle:thin:@pepsi01.puc.ov.otto.de:1521:NOADB2
-#  url:      jdbc:oracle:thin:@ramm.osp-dd.de:1521:RAMM
+#  url:      jdbc:oracle:thin:@localhost:1521/ORCLPDB1
 #  driver:   oracle.jdbc.driver.OracleDriver
-#  username: noa
-#  password: noa
+#  username: system
+#  password: oracle
 
-
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+# Set DB by env DB_VERSION, e.g. DB_VERSION=10.2 for test_10.2
 # Konkrete Oracle-Test-DB wird erst in test_helper.rb  set_session_test_db_context geswitcht, Parameter werden schon hier gesetzt
 test:
   adapter: nulldb
-
-  #adapter:  oracle_enhanced
-  #database: LAPRAMM
-# url:      jdbc:oracle:thin:@linux-ramm-macpro:1521:RAMMMAC
-  #url:      jdbc:oracle:thin:@pepsi01.puc.ov.otto.de:1521:NOADB2
-  test_url:      jdbc:oracle:thin:@ramm-1.osp-dd.de:1521:RAMM
-  #driver:   oracle.jdbc.driver.OracleDriver
-  test_username: noatest
-  test_password: noa
-
-
-test_10.2:
-  adapter: nulldb
-
-  test_url:      jdbc:oracle:thin:@nora.osp-dd.de:1521:NOADD
-  test_username: noatest
-  test_password: noa
-
-test_11.1:
-  adapter: nulldb
-
   test_url:      jdbc:oracle:thin:@ramm-1.osp-dd.de:1521:RAMM
   test_username: noatest
   test_password: noa
 
-test_11.2:
-  adapter: nulldb
 
-  test_url:      jdbc:oracle:thin:@ramm.osp-dd.de:1521:RAMM
-  test_username: noatest
-  test_password: noa
-
-
-# Prod. mit NULLDB betreiben, damit erst mal erfolgreiches Connect zu einer immer vorhandenen DB moeglich ist
-# bevor konkrete Oracle-Db ausgewählt wird
 production:
-  adapter: nulldb
+  <<: *default
+
+
+
+
+
 

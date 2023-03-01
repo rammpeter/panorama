@@ -1,0 +1,18 @@
+<%= render_page_caption("History of System-Events from #{PanoramaConnection.adjust_table_name('DBA_Hist_System_Event')} <a target=\"_blank\" href=\"https://docs.oracle.com/cloud/latest/db121/REFRN/waitevents003.htm\">(Oracle-Doku)</a>".html_safe) %>
+
+<%= ajax_form(:controller => :dba_history, :action => :list_system_events_historic, :update_area => :list_system_events_historic_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element">
+      Suppress Idle-Waits
+      <%= check_box_tag(:suppress_idle_waits, 1, true, :title=>"Suppress wait-class 'Idle' in result") %>
+    </div>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= submit_tag("Show System-Events", :title => "Show System-Events") %>
+    </div>
+  </div>
+<% end %>
+<div id="list_system_events_historic_area" style="float:left; width:100%;">
+</div>

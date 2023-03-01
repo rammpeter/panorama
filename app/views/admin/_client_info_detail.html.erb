@@ -1,0 +1,39 @@
+<%
+  @update_area = get_unique_area_id
+
+
+  link_column = proc do |rec|
+    param_locate_array = @locate_array.clone
+    param_locate_array << {key_name: rec.key_name, class_name: rec.key_name.class.name }
+
+    if rec.elements > 0
+      ajax_link(fn(rec.elements), {
+                :controller  => :admin,                        # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+                :action      => :client_info_detail,
+                locate_array: param_locate_array,
+                :update_area =>  @update_area
+              },
+       :title=>"List details for #{rec.key_name}")
+    end
+  end
+
+
+  column_options =
+      [
+          {:caption=>'Key',                     :data=>proc{|rec| rec.key_name},                   :title=>"Key in hash"},
+          {:caption=>'Class',                   :data=>proc{|rec| rec.class_name},                 :title=>"Class of hash entry"},
+          {:caption=>'Elements',                :data=>link_column,                                :title=>"Number of elements", align: :right},
+          {:caption=>'Total Elements',          :data=>proc{|rec| fn(rec.total_elements) if rec.total_elements > 0},         :title=>"Total number of elements including subelements", align: :right},
+      ]
+
+  caption = "Client info store '"
+  @locate_array.each do |l|
+    caption << "#{l[:key_name]} / "
+  end
+  caption << "'"
+
+%>
+<%= gen_slickgrid(@result, column_options, {:caption=>caption, :max_height=>450}) %>
+
+<div id="<%=  @update_area %>"></div>
+

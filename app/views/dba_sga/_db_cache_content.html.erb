@@ -1,0 +1,19 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption(t(:dba_sga_db_cache_content_caption, :default=>'DB-cache usage')) %>
+
+<%= ajax_form(:controller=>:dba_sga, :action=>:list_db_cache_content, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <%= instance_tag(required: true) %>
+    <div class="flex-row-element">
+      Part.
+      <%= check_box_tag(:show_partitions, 1, false, :title=>t(:dba_sga_db_cache_content_partition_hint, :default=>'Show partition details?') ) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_sga_db_cache_content_submit_caption, :default=>'Show cache content'), :title =>t(:dba_sga_db_cache_content_submit_hint, :default=>'List objects and sizes in DB-cache') ) %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+
+</div>

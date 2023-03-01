@@ -1,0 +1,39 @@
+<%
+  @update_area = get_unique_area_id
+
+  grouping_options = {
+      :single    => t(:active_session_history_list_session_statistic_historic_single_record_group_no_hint, :default=>'No (single records)'),
+      :second    => t(:second, :default => 'Second'),
+      :second_10 => t(:active_session_history_list_session_statistic_historic_single_record_group_second10_hint, :default => '10 seconds'),
+      :minute    => 'Minute',
+      :minute_10 =>  t(:active_session_history_list_session_statistic_historic_single_record_group_minute10_hint, :default => '10 minutes'),
+      :hour      => t(:hour, :default => 'Hour'),
+      :day       => t(:day,  :default => 'Day'),
+      :week      => t(:week, :default => 'Week'),
+  }
+
+%>
+
+<%= render_page_caption("Historic redo log info from gv$Log_History") %>
+
+
+<%= ajax_form(:controller => :dba, :action => :list_redologs_log_history, :update_area => @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      Grouping
+      <select name="time_groupby">
+      <% grouping_options.each do |key, value| %>
+        <option value="<%=key %>" <%= "selected='selected'" if key.to_sym==:minute %> ><%= value %></option>
+      <% end %>
+      </select>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show redo log info", :title => "Show historic redo log info from gv$Log_History") %>
+    </div>
+
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

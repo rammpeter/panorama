@@ -1,0 +1,108 @@
+<%
+   @update_area = get_unique_area_id
+
+
+ link_QC_session = proc do |rec|
+    ajax_link(rec.qcinst_id ? "#{rec.qcinst_id}:#{rec.qcsid},#{rec.qcserial_no}" : "", {
+              :action => :show_session_detail,
+              :instance => rec.qcinst_id,
+              :sid      => rec.qcsid,
+              :serial_no => rec.qcserial_no,
+              :update_area => @update_area
+             },
+      :title=> "Show details for query coordinator session")
+  end
+
+   link_transaction = proc do |rec|
+     ajax_link(rec.xid, {
+         controller:   :storage,
+         action:       :list_transaction_history,
+         xid:          rec.xid,
+         update_area:  @update_area
+     },
+               title: 'Show history of transaction from Flashback_Transaction_Query'
+     )
+   end
+
+   wait_event_data_title = proc do |rec|
+     output = explain_wait_event(rec.wait_event).clone(freeze: false)
+     if rec.blocking_session
+       output << "\n\nSession is blocked by: #{"Instance = #{rec.blocking_instance}, " if PanoramaConnection.rac?}SID = #{rec.blocking_session}, Status = #{rec.blocking_session_status}"
+       output << "\n\nFinal blocking session is: #{"Instance = #{rec.final_blocking_instance}, " if PanoramaConnection.rac?}SID = #{rec.final_blocking_session}, Status = #{rec.final_blocking_session_status}" if get_db_version >= '12.1'
+     end
+     output
+   end
+
+   wait_event_data_style = proc do |rec|
+     "background-color: coral;" if rec.blocking_session && rec.wait_class != 'Idle'
+   end
+
+  column_options = []
+
+  column_options << {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>'RAC instance ID'} if PanoramaConnection.rac?
+  column_options << {:caption=>'Con. ID',           :data=>proc{|rec| fn(rec.con_id)},                 :title=>"Container-ID for pluggable database", :data_title=>proc{|rec| "%t\nContainer name = '#{rec.container_name}'"}} if get_current_database[:cdb]
+
+  column_options.concat(
+  [
+    {:caption=>"SID/SN",           :data=>proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)},              :title=>'SID, Serial_No'},
+    {:caption=>"Status",           :data=>proc{|rec| rec.status},                     :title=>"Session-Status"},
+    {:caption=>"SQL ID",           :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.sql_child_number)},                     :title=>"Current SQL-ID of session", data_title: proc{|rec| "%t\nChild-number = #{rec.sql_child_number}"}},
+    {:caption=>"Wait event",       :data=>proc{|rec| rec.wait_event},                 :title=>'Wait event', data_title: wait_event_data_title, data_style: wait_event_data_style},
+    {:caption=>"Wait time",        :data=>proc{|rec| fn(rec.seconds_waiting, 1)},     :title=>'Wait time in current event in seconds', data_title: proc{|rec| "%t\nWait_time = #{fn((rec.seconds_waiting*1000 rescue 0), 3)} ms"}, :align=>:right},
+    {:caption=>"User",             :data=>proc{|rec| rec.username},                   :title=>"Oracle-Username"},
+    {:caption=>"Proc",             :data=>proc{|rec| rec.spid},                       :title=>t(:dba_list_sessions_proc_hint, :default=>'Process-ID of Oracle shadow process on DB-server (gv$Process.SPID)'), data_title: proc{|rec| "%t\nOracle process identifier (gv$Process.PID) = #{rec.pid} "}},
+    {:caption=>"Machine",          :data=>proc{|rec| link_machine_ip_info(@update_area, rec.machine)}, :title=>t(:dba_list_sessions_machine_hint, :default=>'Name of client machine')},
+    {:caption=>"C-User",           :data=>proc{|rec| rec.osuser},                     :title=>t(:dba_list_sessions_client_user_hint, :default=>'OS-user on client machine') },
+    {:caption=>"C-Proc",           :data=>proc{|rec| rec.process},                    :title=>t(:dba_list_sessions_process_hint, :default=>'Process-ID of client process on client machine (1234 is dummy-process-ID of JDBC-driver, CONNECTION_PROPERTY_THIN_VSESSION_PROCESS_DEFAULT=1234)') },
+    {:caption=>"Program",          :data=>proc{|rec| rec.program},                    :title=>t(:dba_list_sessions_program_hint, :default=>'Executed program of client process on client machine') },
+    {:caption=>"Client-Info",      :data=>proc{|rec| rec.client_info},                :title=>"Client-Info"},
+    {:caption=>"Client ID",        :data=>proc{|rec| rec.client_identifier},          :title=>"Client-identifier"},
+    {:caption=>"Module",           :data=>proc{|rec| rec.module},                     :title=>"Module-Info"},
+    {:caption=>"Action",           :data=>proc{|rec| rec.action},                     :title=>"Action-Info"},
+    {:caption=>"Service",          :data=>proc{|rec| rec.service_name},               :title=>t(:dba_list_sessions_service_hint, :default=>'Name of TNS-service session uses for connection') },
+    {:caption=>"Logon Time",       :data=>proc{|rec| localeDateTime(rec.logon_time)}, :title=>'Logon time of session'},
+    {:caption=>"Enc.",             :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner"},
+    {:caption=>"Last Active Start",:data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>t(:dba_list_sessions_last_active_start_hint, :default=>'Start of last active phase of session')},
+    {:caption=>"I/O-Index",        :data=>proc{|rec| fn(rec.ioindex)},                :title=>t(:dba_list_sessions_io_hint, :default=>'Weighted value of logical and physical I/O of session'), :align=>"right"},
+    {:caption=>"Tx.",              :data=>link_transaction,                           :title=>'Active transaction of session', max_wrap_width: 15},
+    {:caption=>"Temp",             :data=>proc{|rec| fn(rec.temp_mb,3)},              :data_title=>proc{|rec| "Temp (MB), #{rec.temp_extents} Extents, #{rec.temp_blocks} Blocks"}, :title=>t(:dba_list_sessions_temp_hint, :default=>'Used TEMP-tablespace in MBytes'), :align=>"right"},
+    {:caption=>"Long SQL",         :data=>proc{|rec| rec.longsql},                    :title=>t(:dba_list_sessions_long_hint, :default=>'long running SQL statement')},
+    {:caption=>"Open Cursor",      :data=>proc{|rec| fn(rec.open_cursor)},            :title=>t(:dba_list_sessions_open_cursor_hint, :default=>'Number of open cursor for session'), :align=>"right"},
+    {:caption=>"OC SQL",           :data=>proc{|rec| fn(rec.open_cursor_sql)},        :title=>t(:dba_list_sessions_open_cursor_sql_hint, :default=>'Number of different SQL-IDs for open cursor of session'), :align=>"right"},
+    {:caption=>"P Q",              :data=>proc{|rec| fn(rec.pqcount)},                :title=>t(:dba_list_sessions_pq_hint, :default=>'Number of parallel uqery slave processes'), :align=>"right"},
+    {:caption=>"Q C",              :data=>link_QC_session,                            :title=>"Parallel query coordinator session (Instance:SID,Serial_No)"},
+    {:caption=>"PGA Used",         :data=>proc{|rec| fn((rec.pga_used_mem/1048576.0 rescue 0), 3)},   :title=>t(:dba_list_sessions_pga_used_hint, :default=>'Currently used PGA-memory in MBytes'), :align=>"right"},
+    {:caption=>"PGA Alloc.",       :data=>proc{|rec| fn((rec.pga_alloc_mem/1048576.0 rescue 0), 3)},   :title=>"PGA memory currently allocated by the process (including free PGA memory not yet released to the operating system by the server process) in MB", :align=>"right"},
+    {:caption=>"PGA Freea.",       :data=>proc{|rec| fn((rec.pga_freeable_mem/1048576.0 rescue 0), 3)},:title=>t(:dba_list_sessions_pga_free_hint, :default=>'Currently allocated PGA-memory of process which is freeable in MBytes'), :align=>"right"},
+    {:caption=>"PGA Max",          :data=>proc{|rec| fn((rec.pga_max_mem/1048576.0 rescue 0), 3)},     :title=>"Maximum PGA memory ever allocated by the process in MB", :align=>"right"},
+    {:caption=>"Op-Type",          :data=>proc{|rec| rec.operation_type},             :title=>"Type of operation using the PGA work area"},
+    {:caption=>"Pol.",             :data=>proc{|rec| rec.policy},                     :title=>"Sizing policy for PGA work area"},
+    {:caption=>"Act. Time",        :data=>proc{|rec| fn(rec.active_time_secs)},       :title=>"Average time this PGA work area is active in seconds", :align=>"right"},
+    {:caption=>"Work Area Size",   :data=>proc{|rec| fn(rec.work_area_size_mb, 3)},   :title=>"Maximum size of the PGA work area as it is currently used by the operation in MB", :align=>"right"},
+    {:caption=>"Exp. Size",        :data=>proc{|rec| fn(rec.expected_size_mb, 3)},    :title=>"Expected size of the PGA work area in MB", :align=>"right"},
+    {:caption=>"Actual Size",      :data=>proc{|rec| fn(rec.actual_mem_used_mb, 3)},  :title=>"Amount of PGA memory currently allocated in MB", :align=>"right"},
+    {:caption=>"Max. Size",        :data=>proc{|rec| fn(rec.max_mem_used_mb, 3)},     :title=>"Maximum memory amount used by this PGA work area in MB", :align=>"right"},
+    {:caption=>"P",                :data=>proc{|rec| fn(rec.number_passes)},          :title=>"Number of passes corresponding to this PGA work area (0 if running in optimal mode)", :align=>"right"},
+    {:caption=>"WA Temp",          :data=>proc{|rec| fn(rec.wa_tempseg_size_mb, 3)},  :title=>"Temporary segment des PGA work area on disk (relocated in Temp-tablespace) in MB (incl. amont of parallel query slave processes)", :align=>"right"},
+  ])
+
+%>
+
+<%=
+  caption = "Sessions from gv$Session"
+  caption << ", instance = #{@instance}"          if @instance
+  caption << ", service = #{@service_name}"       if @service_name
+  caption << ", PDB = #{@pdb_name}"               if @pdb_name
+  caption << ", type = 'USER'"                    if @show_only_user
+  caption << ", without PQ slaves"                unless @show_pq_server
+  caption << ", status = 'ACTIVE'"                if @only_avtive
+  caption << ", only DB-Link"                     if @show_only_dblink
+  caption << ", without sleeping by timer"        unless @show_timer
+  caption << ", owner = '#{@object_owner}'"       if @object_owner
+  caption << ", object name = '#{@object_name}'"  if @object_name
+  caption << ", object type = '#{@object_type}'"  if @object_type
+  caption << ", filter = '#{@filter}'"            if @filter
+  gen_slickgrid(@sessions, column_options, {:caption=> caption, :max_height=>450, show_pin_icon: 1,
+                                              update_area: @update_area})
+%>
+

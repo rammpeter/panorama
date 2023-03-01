@@ -1,0 +1,42 @@
+<%
+
+  @update_area = get_unique_area_id
+
+  link_column_members = proc do |rec|
+    ajax_link(fn(rec.members), {
+             controller:    :dba,
+             action:        :list_redolog_members,
+             instance:      rec.inst_id,
+             group:         rec.groupno,
+             update_area:   @update_area,
+           },
+     :title => "Show members for redo log group"
+     )
+  end
+
+column_options =
+[
+  {:caption=>"Instance",            :data=>proc{|rec| fn(rec.inst_id)},                    :title=>"RAC Instance-Number", :align=>"right"},
+  {:caption=>"Group",               :data=>proc{|rec| fn(rec.groupno)},                    :title=>"Redo-Log-Group", :align=>"right"},
+  {:caption=>"Size (MB)",           :data=>proc{|rec| formattedNumber(rec.mbyte, 2)},         :title=>"Size of one logfile in Megabyte", :align=>"right"},
+  {:caption=>"Status",              :data=>proc{|rec| rec.status},                         :title=>"Status of logfile"},
+  {:caption=>"Start timestamp",     :data=>proc{|rec| localeDateTime(rec.first_time)},     :title=>"Timestamp for start of recording in logfile"},
+  {:caption=>"Members",             :data=>link_column_members,                            :title=>"Number of members", :align=>"right"},
+  {:caption=>"Archived",            :data=>proc{|rec| rec.archived},                       :title=>"Archived"},
+]
+
+column_options << {:caption=>'Log switch interval', :data=>proc{|rec| fn(rec.log_switch_interval_secs)}, :title=>"Interval in seconds this file has been written by log writer in current mode", data_title: proc{|rec| "%t\n#{seconds_explain(rec.log_switch_interval_secs)}" }, :align=>:right} if get_db_version >= '11.1'
+
+
+%>
+
+<%=
+    gen_slickgrid(@redologs, column_options, {
+            :caption => "Redo-Logfiles from GV$LOG at #{localeDateTime(Time.now)}",
+            max_height: 450,
+            :width=>:auto,
+            show_pin_icon: 1
+    })
+%>
+
+<div id="<%= @update_area %>"></div>

@@ -1,0 +1,75 @@
+<%
+   @update_area = "usage_info_detail_area_#{@filter.hash.abs}"
+
+   def link_column(rec, value, groupkey)
+       ajax_link(value, {
+                 :controller  => :admin,                                    # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+                 :action      => :usage_detail_sum,
+                 :groupkey    => groupkey,
+                 :filter      => @filter.merge({"#{@groupkey}" =>  rec.Groupkey}),
+                 :update_area => @update_area
+               },
+        :title=>"List details per #{groupkey}")
+   end
+
+   def link_column_database(rec)
+       link_column(rec, formattedNumber(rec.Databases), "Database")
+   end
+
+   def link_column_client(rec)
+       link_column(rec, formattedNumber(rec.Clients), "IP_Address")
+   end
+
+   def link_column_controller(rec)
+       link_column(rec, formattedNumber(rec.Controllers), "Controller")
+   end
+
+   def link_column_action(rec)
+       link_column(rec, formattedNumber(rec.Actions), "Action")
+   end
+
+   def link_column_single_record(rec, value)
+       ajax_link(value, {
+                 :controller  => :admin,                                    # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+                 :action      => :usage_single_record,
+                 :filter      => @filter.merge({"#{@groupkey}" =>  rec.Groupkey}),
+                 :update_area => @update_area
+               },
+        :title=>"Show single records per request execution")
+   end
+
+   def show_groupkey(rec)
+     if @groupkey == "IP_Address"
+       ajax_link(rec.Groupkey, {
+                 :controller  => :admin,                                    # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
+                 :action      => :ip_info,
+                 :ip_address  => rec.Groupkey,
+                 :update_area => @update_area
+               },
+        :title=>"Details for IP-Address")
+     else
+       rec.Groupkey
+     end
+   end
+
+column_options =
+[
+  {:caption=>@groupkey,          :data=>proc{|rec| show_groupkey(rec) },                             :title=>"Grouping"},
+  {:caption=>"Requests",         :data=>proc{|rec| link_column_single_record(rec, formattedNumber(rec.Requests)) },            :title=>"Number of requests in period", :align=>"right"},
+]
+column_options << {:caption=>"Databases",   :data=>"link_column_database(rec)",   :title=>"Number of databases requests are executed on in time period", :align=>"right"}         unless @filter[:Database]   || @groupkey=="Database"
+column_options << {:caption=>"Clients",     :data=>"link_column_client(rec)",     :title=>"Number of clients requests are executed from in period", :align=>"right"}    unless @filter[:IP_Address] || @groupkey=="IP_Address"
+column_options << {:caption=>"Controllers", :data=>"link_column_controller(rec)", :title=>"Number of controllers executing requests in period", :align=>"right"} unless @filter[:Controller] || @groupkey=="Controller"
+column_options << {:caption=>"Actions",     :data=>"link_column_action(rec)",     :title=>"Number of actions executing requests in period", :align=>"right"}    unless @filter[:Action]     || @groupkey=="Action"
+
+   caption = "Details per #{@groupkey}, filter: "
+    @filter.each do |key, value|
+        caption << "#{key}=#{value}, "
+    end
+%>
+
+  <%= gen_slickgrid(@usage, column_options, {:caption=>caption, :max_height=>450, :width=>"auto"}) %>
+
+<div id="<%= @update_area %>" style="float:left; width:100%; ">
+</div>
+

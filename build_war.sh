@@ -1,7 +1,7 @@
 if [ "$1" != "without_clean_cache" ]
 then
   echo "Clean Cache"
-  rm -r tmp/cache/assets/*
+  rm -r tmp/*
 fi
 
 echo "Entfernen der assets unter public"
@@ -25,6 +25,10 @@ fi
 echo "Create Panorama.war"
 # fix unavailable repo repo2.maven.org/
 export MAVEN_REPO=https://repo1.maven.org/maven2
+
+# Jetty version to use for warbler
+# remove ~/.m2 if caching issues / file not found
+export WEBSERVER_VERSION=9.4.49.v20220914
 warble
 if [ $? -ne 0 ]
 then

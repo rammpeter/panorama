@@ -1,0 +1,94 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_notes = proc do |rec|
+    output = ''
+    Nokogiri::XML(rec.notes).xpath("//params//param").each do |p|
+      output << "#{p.attribute('name')} = #{p.attribute('val')}<br/>" if p.attribute('val').to_s.length > 0
+    end
+    output
+  end
+
+  column_options =
+       [
+           {:caption=> 'Operation',        :data=>proc{|rec| rec.operation},                   :title=> 'Operation name'},
+           {:caption=> 'Target',           :data=>proc{|rec| rec.target},                      :title=> 'Target on which the operation was performed'},
+           {:caption=> 'Start time',       :data=>proc{|rec| localeDateTime(rec.start_time) }, :title=> 'Start time of analyze operation'},
+           {:caption=> 'End time',         :data=>proc{|rec| localeDateTime(rec.end_time) },   :title=> 'End time of analyze operation'},
+           {:caption=> 'Duration (Sec.)',  :data=>proc{|rec| fn(rec.duration,2)},              :title=> 'Duration of operation in seconds', :align=>:right},
+           {:caption=> 'Job name',         :data=>proc{|rec| rec['job_name']},                 :title=> 'Job name'},
+           {:caption=> 'Status',           :data=>proc{|rec| rec['status']},                   :title=> 'Job status'},
+           {:caption=> 'Session-ID',       :data=>proc{|rec| rec['session_id']},               :title=> 'Session-ID'},
+           {:caption=> 'Notes',            :data=>show_notes,                                  :title=> 'Additional notes'},
+       ]
+
+%>
+
+<%= gen_slickgrid(@operations, column_options, {
+    :caption => "GATHER_TABLE_STATS-operations for #{@owner}.#{@table_name}#{" (#{@partition_name})" if @partition_name} from sys.WRI$_OPTSTAT_OPR",
+    :max_height => 250, show_pin_icon: 3
+})
+%>
+
+<%
+   column_options = []
+   column_options << {:caption=> 'Sub-object name',     :data=>proc{|rec| rec.subobject_name},               :title=> 'Name of subobject if partitioned'} if @partition_name
+   column_options << {:caption=> 'Analyze time',        :data=>proc{|rec| localeDateTime(rec.savtime) },     :title=> 'Time of analyze operation'}
+   column_options << {:caption=> 'Row count',           :data=>proc{|rec| fn(rec.rowcnt)},                   :title=> 'Number of rows at analyze time', :align=>:right}
+   column_options << {:caption=> 'Block count',         :data=>proc{|rec| fn(rec.blkcnt)},                   :title=> 'Number of blocks at analyze time', :align=>:right}
+   column_options << {:caption=> 'Avg. row len',        :data=>proc{|rec| fn(rec.avgrln)},                   :title=> 'Average row len at analyze time', :align=>:right}
+   column_options << {:caption=> 'Prev. Analyze time',  :data=>proc{|rec| localeDateTime(rec.analyzetime) }, :title=> 'Time of previous analyze operation'}
+
+%>
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@tab_history, column_options, {
+      :caption => "GATHER_TABLE_STATS-operations for #{@owner}.#{@table_name}#{" (#{@partition_name})" if @partition_name} from sys.WRI$_OPTSTAT_TAB_HISTORY",
+      :max_height => 250, width: :auto, show_pin_icon: 3
+    })
+    %>
+  </div>
+
+
+  <% if get_db_version >= '11.1' %>
+    <%
+      column_options =
+        [
+            {:caption=> 'Extension name',       :data=>proc{|rec| rec.extension_name},              :title=> 'Name of the statistics extension'},
+            {:caption=> 'Extension',            :data=>proc{|rec| rec.extension },                  :title=> 'Extension (the expression or column group)'},
+            {:caption=> 'Creator',              :data=>proc{|rec| rec.creator},                     :title=> 'Creator of the extension'},
+            {:caption=> 'Droppable',            :data=>proc{|rec| rec.droppable},                   :title=> 'Indicates whether the extension is droppable using DBMS_STATS.DROP_EXTENDED_STATS (YES) or not (NO)'},
+        ]
+    %>
+
+    <div class="flex-row-element">
+      <%= gen_slickgrid(@extensions, column_options, {
+          :caption => "Extended statisticts for #{@owner}.#{@table_name} from DBA_Stat_Extensions",
+          :max_height => 250, width: :auto, show_pin_icon: 3
+      })
+      %>
+    </div>
+
+    <%
+      column_options =
+        [
+          {:caption=> 'Preference name',       :data=>proc{|rec| rec.name},              :title=> 'Name of the preference'},
+          {:caption=> 'Preference value',      :data=>proc{|rec| rec.value},             :title=> 'Value of the preference'},
+          {:caption=> 'Global',                :data=>proc{|rec| rec.global},            :title=> "Is preference global (Y) or local (N)\n\nGlobal preferences can be found in SYS.OPTSTAT_HIST_CONTROL$\nLocal prefences can be found in DBA_TAB_STAT_PREFS"},
+        ]
+    %>
+
+    <div class="flex-row-element">
+      <%= gen_slickgrid(@prefs, column_options, {
+        :caption => "Preferences != Default for #{@owner}.#{@table_name} from DBMS_STATS.Get_Prefs",
+        :max_height => 250, width: :auto, show_pin_icon: 3
+      })
+      %>
+    </div>
+
+<% end %>
+
+</div>
+
+<div id="<%= @update_area %>"></div>

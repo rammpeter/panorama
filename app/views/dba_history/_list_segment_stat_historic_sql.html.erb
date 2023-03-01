@@ -1,0 +1,33 @@
+<%
+  @update_area = get_unique_area_id
+
+   link_column_sql = proc do |rec|
+     link_historic_sql_id(rec.instance_number, rec.sql_id, @time_selection_start, @time_selection_end, @update_area, rec.parsing_schema_name)
+   end
+
+column_options =
+  [
+    {:caption=>"I",             :data=>proc{|rec| rec.instance_number },          :title=>"RAC-Instance"},
+    {:caption=>"SQL-ID",        :data=>link_column_sql,                           :title=>"SQL-ID"},
+    {:caption=>"SQL Text",      :data=>proc{|rec| my_html_escape(rec.sql_text) }, :title=>"First 100 characters of SQL-Text"},
+    {:caption=>"User",          :data=>proc{|rec| rec.parsing_schema_name },      :title=>"Parsing Schema Name"},
+    {:caption=>"Execs",         :data=>proc{|rec| fn(rec.executions) },           :title=>"Number of Executions", :align=>:right},
+    {:caption=>"Elapsed",       :data=>proc{|rec| fn(rec.elapsed_time_secs, 3) }, :title=>"Elapsed Time in seconds cumulated over all parallel query server", :align=>:right},
+    {:caption=>"Ela./Ex.",      :data=>proc{|rec| fn(rec.elapsed_time_secs_per_execute, 3) },       :title=>"Elapsed Time per Execute in seconds umulated over all parallel query server", :align=>:right},
+    {:caption=>"CPU",           :data=>proc{|rec| fn(rec.cpu_time_secs, 3) },     :title=>"CPU-Time in seconds cumulated over all parallel query server", :align=>:right},
+    {:caption=>"Disk Reads",    :data=>proc{|rec| fn(rec.disk_reads) },           :title=>"Disk Reads", :align=>:right},
+    {:caption=>"Buffer Gets",   :data=>proc{|rec| fn(rec.buffer_gets) },          :title=>"Buffer Gets", :align=>:right},
+    {:caption=>"Rows",          :data=>proc{|rec| fn(rec.rows_processed) },       :title=>"Rows Processed", :align=>:right},
+ ]
+
+%>
+<%= gen_slickgrid(@sqls, column_options, {
+    :caption => "SQL-Statements from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLPlan')} with access on '#{@owner}.#{@object_name}', Inst_ID=#{@instance}, from #{@time_selection_start} until #{@time_selection_end}",
+    :max_height=>450,
+    show_pin_icon: 1,
+    update_area: @update_area
+})
+%>
+
+
+

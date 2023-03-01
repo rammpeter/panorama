@@ -1,0 +1,46 @@
+<%
+  @update_area = get_unique_area_id
+
+   def link_column(result, value)
+     ajax_link(value, {
+               :action     => :list_system_events_historic_detail,
+               :instance   => result.instance_number,
+               :event_id   => result.event_id,
+               :event_name => result.event_name,
+               :time_selection_start => @time_selection_start,
+               :time_selection_end   => @time_selection_end,
+               :min_snap_id=> result.min_snap_id,
+               :max_snap_id=> result.max_snap_id,
+               :update_area=> @update_area
+             },
+      :title=>"Show single snapshots of event in considered period")
+   end
+
+
+  column_options =
+  [
+    {:caption=>"I",                 :data=>proc{|rec| rec.instance_number},         :title=>"RAC-Instance"},
+    {:caption=>"Name",              :data=>proc{|rec| rec.event_name},              :title=>"Name of wait-event", :data_title=>'#{explain_wait_event(rec.event_name)}' },
+    {:caption=>"Klasse",            :data=>proc{|rec| rec.wait_class},              :title=>"Wait class of event"},
+    {:caption=>'Samples',           :data=>proc{|rec| link_column(rec, fn(rec.snapshots))},           :title=>"Number of AWR-snapshots in considered period", :align=>"right"},
+    {:caption=>"Waits",             :data=>proc{|rec| fn(rec.waits)},               :title=>"Total number of wait events", :align=>"right"},
+    {:caption=>"Timeouts",          :data=>proc{|rec| fn(rec.timeouts)},            :title=>"Total number of timeouts", :align=>"right"},
+    {:caption=>"Time waited (sec)", :data=>proc{|rec| fn(rec.time_waited_secs, 2)}, :title=>"Total time waited in seconds", data_title: proc{|rec| "%t\n#{seconds_explain(rec.time_waited_secs)}"}, :align=>"right"},
+    {:caption=>"Avg. Wait (ms)",    :data=>proc{|rec| rec.waits > 0 ? fn(rec.time_waited_secs*1000/rec.waits.to_f, 2) : ''},  :title=>"Average wait time in milliseconds", data_title: proc{|rec| "%t\n#{seconds_explain(rec.waits > 0 ? rec.time_waited_secs/rec.waits.to_f : '')}"}, :align=>"right"},
+  ]
+   column_options << {:caption=>"Waits FG",             :data=>proc{|rec| fn(rec.waits_fg)},               :title=>"Total number of wait events for foreground sessions", :align=>"right"}
+   column_options << {:caption=>"Timeouts FG",          :data=>proc{|rec| fn(rec.timeouts_fg)},            :title=>"Total number of timeouts for foreground sessions", :align=>"right"} if get_db_version >= "11.1"
+   column_options << {:caption=>"Time waited FG (sec)", :data=>proc{|rec| fn(rec.time_waited_secs_fg, 2)}, :title=>"Total time waited in seconds for foreground sessions", data_title: proc{|rec| "%t\n#{seconds_explain(rec.time_waited_secs_fg)}"}, :align=>"right"} if get_db_version >= "11.1"
+   column_options << {:caption=>"Avg. Wait FG (ms)",    :data=>proc{|rec| rec.waits_fg > 0 ? fn(rec.time_waited_secs_fg*1000/rec.waits_fg.to_f, 2) : ''},  :title=>"Average wait time in milliseconds for foreground sessions", data_title: proc{|rec| "%t\n#{seconds_explain(rec.waits_fg > 0 ? rec.time_waited_secs_fg/rec.waits_fg.to_f : '')}"}, :align=>"right"} if get_db_version >= "11.1"
+
+%>
+
+<%= gen_slickgrid(@events, column_options, {
+        :caption => "System-Events from #{@time_selection_start} until #{@time_selection_end}#{" for instance #{@instance}" if @instance}",
+        :max_height => 450,
+        show_pin_icon: 1,
+        update_area: @update_area
+})
+%>
+
+

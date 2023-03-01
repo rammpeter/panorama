@@ -1,0 +1,23 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_column_object = proc do |rec|
+    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.row_num}")
+  end
+
+
+column_options =
+  [
+    {:caption=>"I",                 :data=>proc{|rec| rec.inst_id },               :title=>"RAC-Instance"},
+    {:caption=>"SID / serial_no",    :data=>proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)},                   :title=>"Session-Identifier"},
+    {:caption=>"Wait time (ms)",    :data=>proc{|rec| fn(rec.wait_time_ms, 2) },   :title=>'Wait time in current event im ms', data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
+    {:caption=>"State",             :data=>proc{|rec| rec.state },                 :title=>"Status"},
+    {:caption=>'Parameter',         :data=>link_column_object,                      :title=>'Parameter for current wait event'},
+  ]
+
+%>
+
+<%= gen_slickgrid(@session_waits, column_options, {:caption=>"Sessions currently waiting for event '#{@event}' at instance=#{@inst_id} (from GV$Session_Wait)"}) %>
+
+<div id="<%= @update_area %>">
+</div>

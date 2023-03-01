@@ -1,0 +1,16 @@
+<%
+column_options =
+[
+  {:caption=>"Interval",         :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Beginn des Intervalls der Aufzeichnung", plot_master: true},
+  {:caption=>"Total",            :data=>proc{|rec| formattedNumber(rec.total_req)},           :title=>"Total number of enqueue requests or enqueue conversions for the type of enqueue"},
+  {:caption=>"Waits",            :data=>proc{|rec| formattedNumber(rec.total_wait)},          :title=>"Total number of times an enqueue request or conversion resulted in a wait"},
+  {:caption=>"Success",          :data=>proc{|rec| formattedNumber(rec.succ_req)},            :title=>"Number of times an enqueue request or conversion was granted"},
+  {:caption=>"Failed",           :data=>proc{|rec| formattedNumber(rec.failed_req)},          :title=>"Number of times an enqueue request or conversion failed"},
+  {:caption=>"Wait-Time",        :data=>proc{|rec| formattedNumber(rec.cum_wait_time/1000.0, 2)}, :title=>"Total amount of time (in seconds) spent waiting for the enqueue or enqueue conversion", data_title: proc{|rec| "%t\n#{seconds_explain(rec.cum_wait_time/1000.0)}"}},
+]
+%>
+
+<%= gen_slickgrid(@enqueues, column_options, {
+        :caption => "Einzel-Samples für Enqueue Event-No=#{@eventno}, Instance=#{@instance} / #{@reason} / #{@description}",
+        :max_height => 450
+}) %>

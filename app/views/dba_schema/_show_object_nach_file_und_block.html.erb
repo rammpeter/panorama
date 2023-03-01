@@ -1,0 +1,21 @@
+<%= render_page_caption(t(:dba_schema_show_object_nach_file_caption, :default=>'Find object name for single block')) %>
+
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(:controller=>:dba_schema, :action=>:list_object_nach_file_und_block, :update_area=>@update_area) do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element">
+      File-Number
+      <%= text_field_tag(:fileno, "", :size=>40) %>
+    </div>
+    <div class="flex-row-element">
+      Block-Number
+      <%= text_field_tag(:blockno, "", :size=>40) %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag(t(:dba_schema_show_object_nach_file_submit_caption, :default=>'Find name of object'), :title => t(:dba_schema_show_object_nach_file_submit_hint, :default=>'Find name of object by block in DB-cache or by DBA_Extents')) %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>" >
+</div>

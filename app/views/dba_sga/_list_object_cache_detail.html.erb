@@ -1,0 +1,28 @@
+<%
+   @update_area = get_unique_area_id if !defined?(@update_area) || @update_area.nil?  # Kann auch durch Aufrufer vorbelegt sein
+
+   def show_name(rec)
+     my_html_escape(rec.name)
+   end
+
+   column_options = []
+   column_options << {:caption=>'Owner',        :data=>proc{|rec| rec.owner},                             :title=>'Owner'}
+   column_options << {:caption=>'Name',         :data=>proc{|rec| show_name(rec)},                        :title=>'Name', :max_wrap_width=>300}
+   column_options << {:caption=>"Sharable memory (KB)", :data=>proc{|rec| fn(rec.sharable_mem/1024)},     :title=>"Sharable memory allocated by this object", :align=>:right}
+   column_options << {:caption=>'Count',        :data=>proc{|rec| fn(rec.record_count)},                  :title=>'Number of records in gv$DB_Object_Cache for this selection', :align=>"right"}
+   column_options << {:caption=>'Child latches',:data=>proc{|rec| fn(rec.child_latches)},                 :title=>'Number of distinct values in gv$DB_Object_Cache.Child_Latch for this selection', :align=>"right"}
+   column_options << {:caption=>'Loads',        :data=>proc{|rec| fn(rec.loads)},                         :title=>'Number of times the objects has been loaded. This count also increases when an object has been invalidated.', :align=>"right"}
+   column_options << {:caption=>'Locks',        :data=>proc{|rec| fn(rec.locks)},                         :title=>'Number of users currently locking this objects', :align=>"right"}
+   column_options << {:caption=>'Pins',         :data=>proc{|rec| fn(rec.pins)},                          :title=>'Number of users currently pinning this objects', :align=>"right"}
+   column_options << {:caption=>'Invalidations',:data=>proc{|rec| fn(rec.invalidations)},                 :title=>'Total number of times objects in the namespace were marked invalid because a dependent object was modified', :align=>"right"}
+
+%>
+
+
+
+<%= gen_slickgrid(@object_caches, column_options, {
+    :caption => "Records from GV$Object_Cache grouped by owner, name for instance=#{@instance}, type='#{@type}', namespace='#{@namespace}', #{"DB-link='#{@db_link}', " if @db_link}kept='#{@kept}', top #{@max_rows_in_result} records order by '#{@order_by}'",
+    :max_height => 450, show_pin_icon: 1
+}) %>
+
+<div id="<%= @update_area %>"></div>

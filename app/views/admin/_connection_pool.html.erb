@@ -1,0 +1,62 @@
+<%
+
+  def link_sql_text(rec)
+    if rec.sql_stmt_in_execution
+      # Da der Inhalt nachträeglich erst per JSaufgerufen wird, müssen ' doppelt escaped werden
+      "<a title=\"Show complete SQL-Statement (below)\" onclick=\"list_sql_text('#{j(my_html_escape rec.sql_stmt_in_execution.gsub(/'/, "\\\\'") ) }');\">#{rec.sql_stmt_in_execution[0,60]}</a>".html_safe
+    end
+  end
+
+  column_options =
+      [
+
+          {:caption=>'Used in thread',          :data=>proc{|rec| rec.used_in_thread ? 'Y' : ''},               :title=>"Is connection currently used in active thread / active request processing at Panorama server"},
+          {:caption=>'URL',                     :data=>proc{|rec| rec.get_config_from_jdbc_connection[:url]},   :title=>"Connection URL"},
+          {:caption=>'Username',                :data=>proc{|rec| rec.get_config_from_jdbc_connection[:username]}, :title=>"Username of connection"},
+          {:caption=>'SID',                     :data=>proc{|rec| rec.sid},                                     :title=>"Session-ID on DB", align: :right},
+          {:caption=>'DB name',                 :data=>proc{|rec| rec.database_name},                           :title=>"Internal DB name"},
+          {:caption=>'DB version',              :data=>proc{|rec| rec.db_version},                              :title=>"DB version"},
+          {:caption=>'Instance',                :data=>proc{|rec| rec.instance_number},                         :title=>"Number of connected instance", align: :right},
+          {:caption=>'Edition',                 :data=>proc{|rec| rec.edition},                                 :title=>"DB edition"},
+          {:caption=>'DBID',                    :data=>proc{|rec| fn rec.dbid},                                 :title=>"DB ID", align: :right},
+          {:caption=>'Last used action',        :data=>proc{|rec| rec.last_used_action_name},                   :title=>"Last used action info (Module is always 'Panorama')"},
+          {:caption=>'Logon time',              :data=>proc{|rec| localeDateTime(rec.logon_time)},              :title=>"Timestamp of session logon on database"},
+          {:caption=>'Last used time',          :data=>proc{|rec| localeDateTime(rec.last_used_time)},          :title=>"Timestamp of last retrieval of connection from pool"},
+          {:caption=>'Last used query timout',  :data=>proc{|rec| fn(rec.last_used_query_timeout)},             :title=>"Query timeout used for last SQL execution in seconds", align: :right},
+          {:caption=>'Executed SQL',            :data=>proc{|rec| link_sql_text(rec)},                          :title=>"SQL currently executed by connection"},
+      ]
+%>
+<%= gen_slickgrid(PanoramaConnection.get_connection_pool, column_options, {:caption=>"Current connections in connection pool of Panorama server (#{fn(PanoramaConnection.get_connection_pool.count)})", :max_height=>450}) %>
+
+<div id="connection_pool_detail_area"></div>
+
+<script type="text/javascript">
+    function list_sql_text(sql_text){
+        jQuery('#connection_pool_detail_area').html('<pre class="yellow-panel">' + sql_text + '</pre>');
+    }
+</script>
+
+<%
+
+
+  column_options =
+      [
+          {caption: 'Object-ID',      data: proc{|rec| fn(rec.object_id)},                              title: "Object-ID of thread", align: :right},
+          {caption: 'Name',           data: proc{|rec| rec.name},                                       title: "Name of thread"},
+          {caption: 'Status',         data: proc{|rec| rec.status.dup},                                 title: "Status of thread"},
+          {caption: 'SID',            data: proc{|rec| rec[:panorama_connection_connection_object].sid if rec[:panorama_connection_connection_object]}, title: "Oracle session ID", align: :right},
+          {caption: 'Last used time', data: proc{|rec| localeDateTime(rec[:panorama_connection_connection_object].last_used_time) if rec[:panorama_connection_connection_object]}, title: "Last used Time for Oracle DB connection.\nActs as indicator for thread creation time"},
+
+
+
+      ]
+%>
+<%=
+  gen_slickgrid(Thread.list, column_options, {
+      :caption=>"Current server threads ( #{fn(Thread.list.count)} )",
+      :max_height=>450
+  }
+  )
+
+%>
+

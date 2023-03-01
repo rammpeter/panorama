@@ -4,6 +4,7 @@
 # Valid options are :json, :marshal, and :hybrid.
 Rails.application.config.action_dispatch.cookies_serializer = :json
 
+
 # Specify cookies SameSite protection level: either :none, :lax, or :strict.
 #
 # This change is not backwards compatible with earlier Rails versions.

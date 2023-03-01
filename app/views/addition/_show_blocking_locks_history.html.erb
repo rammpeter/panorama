@@ -1,0 +1,33 @@
+<%= render_page_caption("Extended blocking locks history from #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks") %>
+
+<%= ajax_form(:controller=>:addition, :action=>:list_blocking_locks_history, :update_area=>:list_blocking_locks_history_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+
+    <div class="flex-row-element" title="Minimum wait time in milliseconds per time slice or blocking session to be listed in selection">
+      Min. wait time (ms)
+      <%= text_field_tag(:min_wait_ms, "100", :size=>5) %>
+    </div>
+
+    <div class="flex-row-container" style="border:1px solid gray; margin: 2px; padding: 2px; ; height: 40px;">
+      <div class="flex-row-element" title="Grouping by time period of x minutes per result row">
+        Time slice (minutes)
+        <%= text_field_tag(:timeslice, "10", :size=>5) %>
+      </div>
+
+      <div class="flex-row-element" title="Show also non-blocking but longer lasting locks?">
+        Show larger non-blocking locks also?
+        <%= check_box_tag(:show_non_blocking, 1, true) %>
+      </div>
+      <div class="flex-row-element">
+        <%= submit_tag("Tabular", :name => "commit_table", :title => "Show tabular list of blocking locks grouped by time period") %>
+      </div>
+    </div>
+    <div class="flex-row-container" style="border:1px solid gray; margin: 2px; padding: 2px; height: 40px;">
+      <div class="flex-row-element">
+        <%= submit_tag("Hierarchy of blockers", :name => "commit_hierarchy", :title => "Show hierarchy of blocker/waiter starting with root blocking sessions for each snapshot") %>
+      </div>
+    </div>
+  </div>
+<% end %>
+<div id="list_blocking_locks_history_area"></div>

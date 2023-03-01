@@ -1,0 +1,30 @@
+<%= render_page_caption("I/O History from #{PanoramaConnection.adjust_table_name('DBA_Hist_IOStat_Detail')}") %>
+
+<%= ajax_form(:controller=> :io, :action => :list_iostat_detail_history, :update_area => :list_iostat_detail_history_area) do %>
+  <div class="flex-row-container">
+
+    <%= include_start_end_timepicker %>
+    <%= instance_tag(rac_only: true) %>
+    <div class="flex-row-element">
+      <%= t(:grouping, :default=>"Grouped by") %>
+    </div>
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group result by attribute') %>">
+      <select name="groupby">
+        <% iostat_detail_key_rules.each do |key, value| %>
+          <%=  "<option value='#{key}' #{"selected='selected'" if key=="Instance"}>#{key}</option>".html_safe if key != 'Instance' || PanoramaConnection.rac? %>
+        <% end %>
+      </select>
+    </div>
+
+    <%= dbid_selection %>
+
+    <div class="flex-row-element">
+      <%= submit_tag("Show I/O history", :title => "Show I/O history") %>
+    </div>
+
+  </div>
+<% end %>
+
+<div id="list_iostat_detail_history_area" style="float:left; width:100%; ">
+</div>
+

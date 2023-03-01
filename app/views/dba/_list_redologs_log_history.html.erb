@@ -1,0 +1,62 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_switches = proc do |rec|
+    ajax_link(fn(rec.log_switches), {
+             controller:            :dba,
+             action:                :list_redologs_log_history,
+             update_area:           @update_area,
+             instance:              @instance,
+             time_selection_start:  localeDateTime(rec.min_first_time),
+             time_selection_end:    (rec.next_time.nil? ? @time_selection_end : localeDateTime(rec.next_time)),   # use real ent time for last record because of mssing successor
+             time_groupby:          :single
+           },
+     :title => "Show single records for period"
+     )
+  end
+
+
+  if @time_groupby == :single
+    column_options = []
+    column_options << {caption: 'First Time',             data: proc{|rec| localeDateTime(rec.first_time) },     title: "Time of the lowest system change number (SCN) in this logfile", :plot_master_time=>true }
+    column_options << {caption: 'I',                      data: proc{|rec| rec.inst_id },                        title: "RAC-instance"} if PanoramaConnection.rac?
+    column_options << {caption: 'Current duration (Sec.)',data: proc{|rec| fn(rec.current_duration_secs) },      title: "Duration of current state for this sequence",        align: :right}
+    column_options << {caption: 'Thread-No.',             data: proc{|rec| fn(rec['thread#']) },                 title: "Thread number of the archived log",                  align: :right}
+    column_options << {caption: 'Sequence-No.',           data: proc{|rec| fn(rec['sequence#']) },               title: "Sequence number of the archived log",                align: :right}
+    column_options << {caption: 'First change SCN',       data: proc{|rec| fn(rec['first_change#']) },           title: "Lowest system change number (SCN) in the log",       align: :right}
+    column_options << {caption: 'Next change SCN',        data: proc{|rec| fn(rec['next_change#']) },            title: "Starting system change number (SCN) of the next log",align: :right}
+    column_options << {caption: 'SCN increments',         data: proc{|rec| fn(rec['next_change#'] - rec['first_change#']) }, title: "Number of SCN increments (commits, checkpoints etc.) for this log",align: :right}
+    column_options << {caption: 'Reset logs change SCN',  data: proc{|rec| fn(rec['resetlogs_change#']) },       title: "Resetlogs change number (SCN) of the database when the log was written",align: :right}
+    column_options << {caption: 'Reset logs time',        data: proc{|rec| localeDateTime(rec.resetlogs_time) }, title: "Resetlogs time of the database when the log was written" }
+    column_options << {caption: 'Record-ID',              data: proc{|rec| fn(rec.recid) },                      title: "Control file record ID",                             align: :right}
+    column_options << {caption: 'Stamp',                  data: proc{|rec| fn(rec.stamp) },                      title: "Control file record stamp",                          align: :right}
+    column_options << {caption: 'Con-ID',data: proc{|rec| fn(rec.con_id) },      title: "The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data",        align: :right} if get_db_version >= '12.1'
+  else
+    column_options =
+        [
+            {caption: 'First Time',             data: proc{|rec| localeDateTime(rec.min_first_time) }, title: "Time of the lowest system change number (SCN) in considered period", :plot_master_time=>true },
+            {caption: 'Instances',              data: proc{|rec| fn(rec.instances)},                   title: "Number of different RAC-instances in period",        align: :right},
+            {caption: 'Log switches',           data: link_switches,                                   title: "Number of log switches in this period",              align: :right},
+            {caption: 'Avg. duration (Sec.)',   data: proc{|rec| fn(rec.avg_current_duration_secs) },  title: "Average duration of current state for a log sequence in this period", data_title: proc{|rec| "%t\n#{seconds_explain(rec.avg_current_duration_secs)}" },        align: :right},
+            {caption: 'Min. duration (Sec.)',   data: proc{|rec| fn(rec.min_current_duration_secs) },  title: "Minimum duration of current state for a log sequence in this period", data_title: proc{|rec| "%t\n#{seconds_explain(rec.min_current_duration_secs)}" },        align: :right},
+            {caption: 'Max. duration (Sec.)',   data: proc{|rec| fn(rec.max_current_duration_secs) },  title: "Maximum duration of current state for a log sequence in this period", data_title: proc{|rec| "%t\n#{seconds_explain(rec.max_current_duration_secs)}" },        align: :right},
+            {caption: 'SCN increments',         data: proc{|rec| fn(rec.scn_increments) },             title: "Number of SCN increments (commits, checkpoints etc.) in this period",        align: :right},
+        ]
+  end
+
+
+
+%>
+
+<%=
+  gen_slickgrid(@switches, column_options, {
+      :caption      => "Redologs historic from gv$Log_History from #{@time_selection_start} until #{@time_selection_end}#{" grouped by #{@time_groupby}" if @time_groupby != :single}",
+      :max_height   => 450,
+      :width        => :auto,
+      show_pin_icon: 1,
+      update_area: @update_area
+  }
+  )
+%>
+
+

@@ -1,0 +1,79 @@
+# Create Docker image for self hosted actions runner
+# Peter Ramm, 2022-07-14
+# podman settings according to: https://www.redhat.com/sysadmin/podman-inside-container
+
+# Image stored at docker.io
+# Build image:      docker build -f Dockerfile_github_runner --progress=plain --build-arg JRUBY_VERSION=`cat ../.ruby-version | cut -c 7-13` -t docker.io/rammpeter/panorama_gem_github_runner .
+# Run container:    docker run --privileged --restart always --name github-runner1 -e RUNNER_VERSION=2.295.0 -e RUNNER_SUFFIX=1 -e TOKEN=ABXCX docker.io/rammpeter/panorama_gem_github_runner
+# Adjust the run command by:
+# - set the RUNNER_SUFFIX to the number of the runner
+# - Get the needed TOKEN from github project: Settings/Actions/Runners in the "Configure" section
+
+# STAGE 1: JRE build
+FROM openjdk:18 as openjdk
+
+# Build small JRE image
+RUN $JAVA_HOME/bin/jlink \
+         --verbose \
+         --add-modules ALL-MODULE-PATH \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /customjre
+
+# STAGE 2: App build
+FROM oraclelinux:8-slim
+
+# set the github runner version
+ARG RUNNER_VERSION="2.295.0"
+ARG JRUBY_VERSION
+ENV RUNNER_VERSION=$RUNNER_VERSION
+ENV JAVA_HOME=/opt/jre
+ENV JRUBY_VERSION=$JRUBY_VERSION
+ENV PATH "${JAVA_HOME}/bin:/usr/local/rvm/bin:$PATH"
+
+COPY --from=openjdk /customjre $JAVA_HOME
+
+# Package iproute for command ss
+RUN microdnf install yum tar gzip vim podman podman-docker git make fuse-overlayfs crun libicu iproute \
+             util-linux unzip wget which findutils procps && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.* && \
+    echo 'Europe/Berlin' > /etc/timezone && rm -f /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
+RUN echo "### install jruby" && \
+    curl -sSL https://get.rvm.io | bash && \
+    source /etc/profile.d/rvm.sh && \
+    rvm install jruby 9.3.2.0 && \
+    rvm install jruby $JRUBY_VERSION && \
+    rvm use --default jruby-$JRUBY_VERSION && \
+    rvm cleanup all
+
+RUN echo "### install nodejs and playwright with browser runtimes" && \
+    dnf install -y @nodejs:16 && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+RUN useradd panorama
+
+#echo podman:10000:5000 > /etc/subuid; \
+#echo podman:10000:5000 > /etc/subgid;
+
+#VOLUME /var/lib/containers
+#VOLUME /home/podman/.local/share/containers
+
+#ADD https://raw.githubusercontent.com/containers/libpod/master/contrib/podmanimage/stable/containers.conf /etc/containers/containers.conf
+#ADD https://raw.githubusercontent.com/containers/libpod/master/contrib/podmanimage/stable/podman-containers.conf /home/podman/.config/containers/containers.conf
+
+# chmod containers.conf and adjust storage.conf to enable Fuse storage.
+#    RUN chmod 644 /etc/containers/containers.conf; sed -i -e 's|^#mount_program|mount_program|g' -e '/additionalimage.*/a "/var/lib/shared",' -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' /etc/containers/storage.conf
+#RUN mkdir -p /var/lib/shared/overlay-images /var/lib/shared/overlay-layers /var/lib/shared/vfs-images /var/lib/shared/vfs-layers; touch /var/lib/shared/overlay-images/images.lock; touch /var/lib/shared/overlay-layers/layers.lock; touch /var/lib/shared/vfs-images/images.lock; touch /var/lib/shared/vfs-layers/layers.lock
+
+#ENV _CONTAINERS_USERNS_CONFIGURED=""
+
+WORKDIR /app
+#RUN chown -R podman /home/podman
+COPY run_github_runner.sh .
+RUN chmod +x run_github_runner.sh
+USER panorama
+# set the entrypoint to the start.sh script
+CMD ["./run_github_runner.sh"]

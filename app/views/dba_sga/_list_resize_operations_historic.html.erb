@@ -1,0 +1,26 @@
+
+<%
+
+  column_options = [
+      {:caption=>'Min. start time',         :data=>proc{|rec| localeDateTime(rec.min_start_time)},    title: "Lowest start time of resize operation within considered period", plot_master_time: true},
+      {:caption=>'Max. end time',           :data=>proc{|rec| localeDateTime(rec.max_end_time)},      title: "Highest end time of resize operation within considered period"},
+      {:caption=>'Duration (secs)',         :data=>proc{|rec| fn(rec.duration_secs)},                 title: "Duration of resize operations in period in seconds", align: :right},
+      {:caption=>'Operation count',         :data=>proc{|rec| historic_resize_link_ops(@update_area, rec, fn(rec.operations_count), rec.operations_count, nil, nil)},   title: "Number of resize operations in period in seconds", align: :right},
+  ]
+
+  @pivot_columns.each do |p|
+    column_options << p
+  end
+
+%>
+
+<%= gen_slickgrid(@result, column_options, {
+    :caption => "Memory resize operations from #{PanoramaConnection.adjust_table_name('DBA_Hist_Memory_Resize_Ops')} from #{@time_selection_start} until #{@time_selection_end}#{" for instance = #{@instance}" if @instance}",
+    :max_height => 450, show_pin_icon: 1
+}) %>
+
+
+
+
+
+<div id="<%= @update_area %>"></div>

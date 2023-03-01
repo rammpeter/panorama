@@ -1,0 +1,14 @@
+<%
+  column_options =
+    [
+      {:caption=>"Segment-Type",   :data=>proc{|rec| rec.segment_type},                   :title=>"Segment type of sum\nTABLE PARTITION, TABLE SUBPARTITION, NESTED TABLE and IOT PK-indexes are subsumed under TABLE\nINDEX PARTITION, INDEX SUBPARTITION are subsumed under INDEX\nLOB PARTITION, LOB_SUBPARTITION are subsumed under LOBSEGMENT"},
+      {:caption=>"MBytes",       :data=>proc{|rec| formattedNumber(rec.mbytes)},          :title=>t(:storage_tablespace_usage_segment_mbytes_hint, :default=>'Size of segment type (used space net) in MBytes'), data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"},        :align=>:right, show_pct_hint: true},
+    ]
+
+%>
+<%= gen_slickgrid(@segments, column_options, {:caption =>t(:storage_tablespace_usage_segment_caption, :default=>'Net sums in TS by segment types'),
+                                              :width=>:auto,
+                                              :max_height=>450,
+                                              :no_wrap=>true,
+                                              caption_title: "Based on DBA_Segments"
+  }) %>

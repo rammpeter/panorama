@@ -1,0 +1,37 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_level = proc do |rec|
+    out = ''
+    rec.level.downto 1 do
+      out << '&nbsp;&nbsp;&nbsp;'
+    end
+    out << "#{rec.level}"
+    out
+  end
+
+  column_options =
+      [
+          {:caption=> 'Level',                  :data=>show_level,                                                                           :title=> 'Hierarchy-level (depth of dependency)'},
+          {:caption=> 'Cycle',                  :data=>proc{|rec| rec.connect_by_iscycle},                                                              :title=> 'Cyclic dependency broken at this relation?'},
+          {:caption=> 'Depending object',       :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},           :title=> 'Object that is depending from'},
+          {:caption=> 'Type',                   :data=>proc{|rec| rec.type},                                                                            :title=> 'Type of object that is depending from'},
+          {:caption=> 'Link',                   :data=>proc{|rec| rec.referenced_link_name},                                                            :title=> 'Name of the link to the parent object (if remote)'},
+          {:caption=> 'Dependency type',        :data=>proc{|rec| rec.dependency_type},                                                                 :title=> 'Whether the dependency is a REF dependency (REF) or not (HARD)'},
+          {:caption=> 'Depends on object',      :data=>proc{|rec| link_object_description(@update_area, rec.referenced_owner, rec.referenced_name, nil, rec.referenced_type)},  :title=> 'Object that it depends on'},
+          {:caption=> 'Depends on type',        :data=>proc{|rec| rec.referenced_type},                                                                 :title=> 'Type of object that it depends on'},
+          { caption: 'Created',                 data: proc{|rec| localeDateTime(rec.created)},                                            title: "Creation timestamp of object", data_title: proc{|rec| "%t #{rec.referenced_owner}.#{rec.referenced_name}"}},
+          { caption: 'Last DDL',                data: proc{|rec| localeDateTime(rec.last_ddl_time)},                                      title: "Timestamp for the last modification of the object resulting from a DDL statement (including grants and revokes)", data_title: proc{|rec| "%t\nfor #{rec.referenced_owner}.#{rec.referenced_name}"}},
+          { caption: 'Spec. TS',                data: proc{|rec| localeDateTime(rec.spec_ts)},                                            title: "Timestamp for the last specification change of the object", data_title: proc{|rec| "%t #{rec.referenced_owner}.#{rec.referenced_name}"}},
+      ]
+
+%>
+
+<%=
+  gen_slickgrid(@dependencies_im_from, column_options, {
+      :caption => "Full tree of objects that #{@object_type} #{@owner}.#{@object_name} depends on",
+      :max_height => 450, :width=>:auto
+  })
+%>
+
+<div id="<%= @update_area %>"></div>

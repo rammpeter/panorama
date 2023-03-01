@@ -1,0 +1,180 @@
+<%
+  @update_area = get_unique_area_id
+
+  @render_action_buttons = proc do |rec|
+    retval =
+    "<div style=\"float:left\">#{
+    ajax_submit('Edit', {
+        :update_area => @update_area,
+        :action      => :show_edit_config_form,
+        :id          => rec[:id]
+    }, :title => 'Add new database config'
+    )}</div><div style=\"float:left\">#{
+    ajax_submit('Delete', {
+        :update_area => :content_for_layout,
+        :action      => :delete_config,
+        :id          => rec[:id]
+    }, :title => 'Delete configuration record',
+        :onclick=>"return confirm('Delete config entry with ID = #{rec[:id]} ?');return false;"
+    )}</div>"
+
+    if rec[:last_error_message] || rec[:last_error_time]
+      retval << "
+    <div style=\"float:left\">#{
+    ajax_submit('Clear error', {
+        :update_area => :content_for_layout,
+        :action      => :clear_config_error,
+        :id          => rec[:id]
+    }, :title => 'Delete error message for this config entry'
+    )}</div>"
+    end
+    retval
+  end
+
+  @error_style = proc do |rec|
+    "background-color:coral;" if PanoramaSamplerConfig.new(rec).current_error_exists?
+  end
+
+  snapshot_duration = proc do |start_ts, end_ts|
+    if end_ts && start_ts
+      if end_ts > start_ts
+        fn(end_ts - start_ts, 2)
+      else
+        'Snapshot not successful finished'
+      end
+    else
+      'Unknown'
+    end
+  end
+
+  @awr_snapshot_duration            = proc{|rec| snapshot_duration.call(rec[:last_awr_ash_snapshot_start],        rec[:last_awr_snapshot_end]) }
+  @object_size_snapshot_duration    = proc{|rec| snapshot_duration.call(rec[:last_object_size_snapshot_start],    rec[:last_object_size_snapshot_end]) }
+  @cache_objects_snapshot_duration  = proc{|rec| snapshot_duration.call(rec[:last_cache_objects_snapshot_start],  rec[:last_cache_objects_snapshot_end]) }
+  @blocking_locks_snapshot_duration = proc{|rec| snapshot_duration.call(rec[:last_blocking_locks_snapshot_start], rec[:last_blocking_locks_snapshot_end]) }
+  @longterm_trend_snapshot_duration = proc{|rec| snapshot_duration.call(rec[:last_longterm_trend_snapshot_start], rec[:last_longterm_trend_snapshot_end]) }
+
+  @awr_ash_style = proc do |rec|
+    "background-color:darkgray;" if !rec[:awr_ash_active]
+  end
+
+  title_awr_ash_sampling = proc do |rec|
+    "Details for AWR/ASH-sampling:
+Last snapshot ended at #{localeDateTime(rec[:last_awr_snapshot_end])}
+Last snapshot was executed at instance #{rec[:last_awr_snapshot_instance]}
+
+AWR/ASH-sampling = #{rec[:awr_ash_active] ? 'Active' : 'Inactive'}
+Delay between snapshots = #{fn(rec[:awr_ash_snapshot_cycle])} minutes
+Retention time for snapshot data before deletion = #{fn(rec[:awr_ash_snapshot_retention])} days
+Minimum number of SQL executions in snapshot cycle to be recorded by Panorama-Sampler = #{fn(rec[:sql_min_no_of_execs])}
+Minimum number of SQL runtime in snapshot cycle to be recorded by Panorama-Sampler = #{fn(rec[:sql_min_runtime_millisecs])} milliseconds
+"
+  end
+
+  @object_size_style = proc do |rec|
+    "background-color:darkgray;" if !rec[:object_size_active]
+  end
+
+  @title_object_size_sampling = proc do |rec|
+    "Details for object size sampling:
+Last snapshot ended at #{localeDateTime(rec[:last_object_size_snapshot_end])}
+Last snapshot was executed at instance #{rec[:last_object_size_snapshot_instance]}
+
+Object size sampling = #{rec[:object_size_active] ? 'Active' : 'Inactive'}
+Delay between snapshots = #{fn(rec[:object_size_snapshot_cycle])} hours
+Retention time for snapshot data before deletion = #{fn(rec[:object_size_snapshot_retention])} days"
+  end
+
+  @cache_objects_style = proc do |rec|
+    "background-color:darkgray;" if !rec[:cache_objects_active]
+  end
+
+
+  @title_cache_objects_sampling = proc do |rec|
+    "Details for DB-cache objects sampling:
+Last snapshot ended at #{localeDateTime(rec[:last_cache_objects_snapshot_end])}
+Last snapshot was executed at instance #{rec[:last_cache_objects_snapshot_instance]}
+
+DB-cache objects sampling = #{rec[:cache_objects_active] ? 'Active' : 'Inactive'}
+Delay between snapshots = #{fn(rec[:cache_objects_snapshot_cycle])} minutes
+Retention time for snapshot data before deletion = #{fn(rec[:cache_objects_snapshot_retention])} days"
+  end
+
+  @blocking_locks_style = proc do |rec|
+    "background-color:darkgray;" if !rec[:blocking_locks_active]
+  end
+
+  @title_blocking_locks_sampling = proc do |rec|
+    "Details for blocking locks sampling:
+Last snapshot ended at #{localeDateTime(rec[:last_blocking_locks_snapshot_end])}
+Last snapshot was executed at instance #{rec[:last_blocking_locks_snapshot_instance]}
+
+Blocking locks sampling = #{rec[:blocking_locks_active] ? 'Active' : 'Inactive'}
+Delay between snapshots = #{fn(rec[:blocking_locks_snapshot_cycle])} minutes
+Retention time for snapshot data before deletion = #{fn(rec[:blocking_locks_snapshot_retention])} days
+Limit for long lasting DB-locks = #{fn(rec[:blocking_locks_long_locks_limit])} seconds"
+  end
+
+  @longterm_trend_style = proc do |rec|
+    "background-color:darkgray;" if !rec[:longterm_trend_active]
+  end
+
+  @title_longterm_trend_sampling = proc do |rec|
+    "Details for long-term trend sampling:
+Last snapshot ended at #{localeDateTime(rec[:last_longterm_trend_snapshot_end])}
+Last snapshot was executed at instance #{rec[:last_longterm_trend_snapshot_instance]}
+
+Long-term trend sampling = #{rec[:longterm_trend_active] ? 'Active' : 'Inactive'}
+Delay between snapshots = #{fn(rec[:longterm_trend_snapshot_cycle])} hours
+Retention time for snapshot data before deletion = #{fn(rec[:longterm_trend_snapshot_retention])} days
+"
+  end
+
+  column_options =
+  [
+    {:caption=>'ID',                            :data=>proc{|rec| rec[:id]},                                              :title=>"Unique identifier for config entry", :align=>:right },
+    {:caption=>'Config. name',                  :data=>proc{|rec| rec[:name]},                                            :title=>"Name / description for configuration" },
+    {:caption=>'TNS config',                    :data=>proc{|rec| rec[:tns]},                                             :title=>"TNS-alias or connect string" },
+    {:caption=>'Username',                      :data=>proc{|rec| rec[:user]},                                            :title=>"Name of user to connect to database for workload recording" },
+    {:caption=>'Schema owner',                  :data=>proc{|rec| rec[:owner]},                                           :title=>"Name of user/schema to store Panoramas tables for workload recording"},
+    {:caption=>'DBID',                          :data=>proc{|rec| rec[:dbid]},                                            :title=>"Unique database identifier (v$Database.DBID)" },
+    {:caption=>'Last AWR/ASH snapshot time',    :data=>proc{|rec| localeDateTime(rec[:last_awr_ash_snapshot_start])},     :title=>"Timestamp of last AWR/ASH snapshot start",                     :data_style=>@awr_ash_style, data_title: title_awr_ash_sampling},
+    {:caption=>'Last AWR snapshot duration',    :data=>proc{|rec| @awr_snapshot_duration.call(rec)},                      :title=>"Duration in seconds of last AWR snapshot creation",            :align=>:right, :data_style=>@awr_ash_style},
+    {:caption=>'Last object size snapshot time',:data=>proc{|rec| localeDateTime(rec[:last_object_size_snapshot_start])}, :title=>"Timestamp of last object size snapshot start",                 :data_style=>@object_size_style, data_title: @title_object_size_sampling},
+    {:caption=>'Last object size snapshot duration',      data: @object_size_snapshot_duration,          :title=>"Duration in seconds of last object size snapshot creation",    :align=>:right, :data_style=>@object_size_style},
+    {:caption=>'Last DB-cache objects snapshot time',     :data=>proc{|rec| localeDateTime(rec[:last_cache_objects_snapshot_start])}, :title=>"Timestamp of last DB-cache objects snapshot start",     :data_style=>@cache_objects_style, data_title: @title_cache_objects_sampling},
+    {:caption=>'Last DB-cache snapshot duration',         data: @cache_objects_snapshot_duration,          :title=>"Duration in seconds of last DB-cache snapshot creation",        :align=>:right, :data_style=>@cache_objects_style},
+    {:caption=>'Last blocking locks snapshot time',       :data=>proc{|rec| localeDateTime(rec[:last_blocking_locks_snapshot_start])}, :title=>"Timestamp of last blocking locks snapshot start",        :data_style=>@blocking_locks_style, data_title: @title_blocking_locks_sampling},
+    {:caption=>'Last blocking locks snapshot duration',   data: @blocking_locks_snapshot_duration,    :title=>"Duration in seconds of last blocking locks snapshot creation", :align=>:right, :data_style=>@blocking_locks_style},
+    {:caption=>'Last long-term trend snapshot time',      :data=>proc{|rec| localeDateTime(rec[:last_longterm_trend_snapshot_start])}, :title=>"Timestamp of last long-term trend snapshot start",        :data_style=>@longterm_trend_style, data_title: @title_longterm_trend_sampling},
+    {:caption=>'Last long-term trend snapshot duration',  data: @longterm_trend_snapshot_duration,    :title=>"Duration in seconds of last long-term trend snapshot creation", :align=>:right, :data_style=>@longterm_trend_style},
+    {:caption=>'Last connect time',                       :data=>proc{|rec| localeDateTime(rec[:last_successful_connect])},         :title=>"Timestamp of last successful connect to this database"},
+    {:caption=>'Last error time',                         :data=>proc{|rec| localeDateTime(rec[:last_error_time])},                 :title=>"Timestamp of last connect- or execution-error", :data_style=>@error_style },
+    {:caption=>'Last error message',                      :data=>proc{|rec| my_html_escape(rec[:last_error_message])},                              :title=>"Last message of connect- or execution-error", :data_title=>proc{|rec| "%t\n#{rec[:last_error_message]}"}, :data_style=>@error_style, :max_wrap_width=>60},
+    { caption: 'Action',                                  data: proc { |rec| @render_action_buttons.call(rec) },                    title: "Execute action for this record" },
+  ]
+
+%>
+
+<%= gen_slickgrid(@sampler_config, column_options, {
+    :caption => "Panorama-Sampler configuration (stored in local file system at Panorama server)",
+    :max_height=>450, show_pin_icon: 1,
+    :command_menu_entries => [   {
+                                     :name                  => :refresh_list,
+                                     :caption               => 'Refresh list',
+                                     :hint                  => "Refresh content of list from config stored at server",
+                                     :icon_class            => 'cui-reload',
+                                     :show_icon_in_caption  => :only,
+                                     :action                => "ajax_html('#{params[:update_area]}', 'panorama_sampler', 'list_config', { update_area: '#{params[:update_area]}'});"
+                                 },
+    ]
+}) %>
+
+<%=
+  ajax_submit("Add new target database for sampling", {
+      :update_area => @update_area,
+      :action      => :show_new_config_form,
+  }, :title => 'Add new config for target database'
+  )
+%>
+
+<div id="<%= @update_area %>"></div>

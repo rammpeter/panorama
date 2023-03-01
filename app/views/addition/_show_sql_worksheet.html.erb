@@ -1,0 +1,56 @@
+<%=
+  render_page_caption('SQL worksheet',
+    [
+      {
+          name:                 :execute,
+          caption:              'Execute',
+          hint:                 'Execute SQL statement at cursor position (Ctrl+Enter)',
+          icon_class:           'cui-play-circle',
+          icon_style:           'font-size: larger;',
+          action:               'sql_worksheet.exec_worksheet_sql();',
+          show_icon_in_caption: true
+      },
+      {
+          name:                 :explain,
+          caption:              'Explain plan',
+          hint:                 'Explain SQL statement at cursor position by EXPLAIN PLAN FOR ... (Ctrl+E)',
+          icon_class:           'cui-magnifying-glass',
+          icon_style:           'font-size: larger;',
+          action:               'sql_worksheet.explain_worksheet_sql();',
+          show_icon_in_caption: true
+      },
+      {
+          name:                 :sql_in_sga,
+          caption:              'SQL in SGA',
+          hint:                 'Show details of executed SQL in current SGA-memory (Alt+Enter)',
+          icon_class:           'cui-settings',
+          icon_style:           'font-size: larger;',
+          action:               'sql_worksheet.sql_in_sga();',
+          show_icon_in_caption: true
+      },
+    ]
+  )
+%>
+
+<div id="sql_text_div" style="padding-bottom: 3px;">
+</div>
+
+
+<div id="sql_worksheet_tab_container" style="width: 100%; display: inline-block;" class="tab-container">
+  <ul class="etabs">
+    <li class="tab"><a id="result_area_sql_worksheet_id"  href="#result_area_sql_worksheet"     >Result data</a></li>
+    <li class="tab"><a id="explain_area_sql_worksheet_id" href="#explain_area_sql_worksheet"    >Execution plan</a></li>
+    <li class="tab"><a id="sga_area_sql_worksheet_id"     href="#sga_area_sql_worksheet"        >SQL in SGA</a></li>
+  </ul>
+  <div class="panel-container">
+    <div class="tab-inner-frame">
+      <div id="result_area_sql_worksheet"   ></div>
+      <div id="explain_area_sql_worksheet"  ></div>
+      <div id="sga_area_sql_worksheet"      ></div>
+    </div>
+  </div>
+</div>
+
+<script type="application/javascript">
+    var sql_worksheet = new SQL_Worksheet('sql_text_div');
+</script>

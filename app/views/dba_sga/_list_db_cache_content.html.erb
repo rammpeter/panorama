@@ -1,0 +1,78 @@
+<%= render_page_caption("#{t(:dba_sga_list_db_cache_content_caption, :default=>'DB-cache usage')}: Instance=#{@instance}, #{localeDateTime(@sysdate)}" ) %>
+
+<!-- Hints -->
+<% stati = {
+     "free" => "This is an “available” RAM block.  It might contain data, but it is not currently in-use by Oracle.",
+     "xcur" => "This is a RAM block that has been acquired in exclusive current mode. According the  Oracle documentation, if a buffer state is exclusive current (XCUR), an instance owns the resource in exclusive mode.",
+     "scur" => "a current mode block, shared with other instances",
+     "cr" =>   "This mode indicates a 'cloned' RAM block (a 'stale' block), that was once in xcur mode. The instance has shared access to the block and can only perform reads.  The cr state means the owning instance can perform a consistent read of the block, if the instance holds an older version of the data.",
+     "read" => "The buffer is reserved for a block that is currently being read from disk.",
+     "mrec" => "in media recovery mode",
+     "irec" => "in instance (crahs) recovery mode",
+     "pi"   => "Buffer state ‘PI’ indicates that block access mode is NULL. It means that the instance has made changes to the block but retains copies of past images."
+   } %>
+
+<!-- Tabelle mit Summen -->
+<%
+column_options =
+[
+  {:caption=>"Status",        :data=>proc{|rec| rec.status },               :title=>'Status', :data_title=>proc{|rec| stati[rec.status]}},
+  {:caption=>"Size (MB)",     :data=>proc{|rec| fn(rec.mb_total, 3)},       :title=>'Size in MBytes',       :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.mb_total)}"}},
+  {:caption=>"Blocks",        :data=>proc{|rec| fn(rec.blocks)},            :title=>'Number of DB blocks',  :align=>:right},
+  {:caption=>"%",             :data=>proc{|rec| fn(rec.blocks*100.0/@total_status_blocks,2)},:title=>"Percentage of total cache", :align=>:right },
+]
+%>
+<%= gen_slickgrid(@db_cache_global_sums, column_options, {:caption =>t(:dba_sga_list_db_cache_summary_caption, :default=>'Summary'), :max_height=>450, :width=>:auto}) %>
+
+
+<!-- Tabelle mit Objekten -->
+
+<%
+   @update_area = get_unique_area_id
+
+   link_column_sql = proc do |rec|
+     ajax_link(fn(rec.sql_id_count), {
+                             :controller   => :dba_sga,
+                             :action       => :show_using_sqls,
+                             :ObjectOwner  => rec.owner,
+                             :ObjectName   => rec.object_name,
+                             :instance     => @instance,
+                             :update_area  => @update_area
+                     },
+                     :title => "Show SQL from SGA accessing this object"
+     )
+   end
+
+  link_object_name = proc do |rec|
+    link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner} . #{rec.object_name}#{rec.subobject_name ? " ("+rec.subobject_name+")": ""}")
+  end
+
+column_options =
+[
+  {:caption=>"Name",        :data=>link_object_name,                                        :title=>"Object-Name"},
+  {:caption=>"Type",        :data=>proc{|rec| rec.object_type},                             :title=>"Object-Type"},
+  {:caption=>"Tablename",   :data=>proc{|rec| rec.table_name},                              :title=>"Tablename for indexes"},
+  {:caption=>'SQLs',        :data=>link_column_sql,                                         :title=>'Number of different SQL-IDs in SGA for this object', align: :right},
+  {:caption=>"Size (MB)",   :data=>proc{|rec| formattedNumber(rec.size_mb, 3)},             :title=>"Size of object in cache in MBytes", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}"} },
+  {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks)},                 :title=>"Number of DB-blocks", :align=>:right },
+  {:caption=>"%",           :data=>proc{|rec| formattedNumber(rec.blocks*100.0/@total_blocks,2)},:title=>"Percentage of total cache", :align=>:right, :show_pct_background=>true },
+  {:caption=>"Dirty",       :data=>proc{|rec| formattedNumber(rec.dirtyblocks)},            :title=>"Number of dirty blocks", :align=>:right },
+  {:caption=>"cr",          :data=>proc{|rec| formattedNumber(rec.status_cr)},              :title=>"Number of blocks in state 'cr', for info see hint in summary", :align=>:right },
+  {:caption=>"pi",          :data=>proc{|rec| formattedNumber(rec.status_pi)},              :title=>"Number of blocks in state 'pi', for info see hint in summary", :align=>:right },
+  {:caption=>"read",        :data=>proc{|rec| formattedNumber(rec.status_read)},            :title=>"Number of blocks in state 'read', for info see hint in summary", :align=>:right },
+  {:caption=>"scur",        :data=>proc{|rec| formattedNumber(rec.status_scur)},            :title=>"Number of blocks in state 'scur', for info see hint in summary", :align=>:right },
+  {:caption=>"xcur",        :data=>proc{|rec| formattedNumber(rec.status_xcur)},            :title=>"Number of blocks in state 'xcur', for info see hint in summary", :align=>:right },
+  {:caption=>"F. Read",     :data=>proc{|rec| formattedNumber(rec.forced_reads)},           :title=>"Number of times the block had to be reread from the cache because another instance has forced it out of this instance's cache by requesting the lock on the block in exclusive mode", :align=>:right },
+  {:caption=>"F. Write",    :data=>proc{|rec| formattedNumber(rec.forced_writes)},          :title=>"Number of times GCS had to write this block to cache because this instance had used the block and another instance had requested the lock on the block in a conflicting mode", :align=>:right },
+  {:caption=>"Temp",        :data=>proc{|rec| formattedNumber(rec.tempblocks)},             :title=>"Number of TEMP-blocks", :align=>:right },
+  {:caption=>"Pinged",      :data=>proc{|rec| formattedNumber(rec.ping)},                   :title=>"Number of pinged blocks", :align=>:right },
+  {:caption=>"Stale",       :data=>proc{|rec| formattedNumber(rec.stale)},                  :title=>"Number of stale blocks", :align=>:right },
+  {:caption=>"Direct",      :data=>proc{|rec| formattedNumber(rec.direct)},                 :title=>"Number of direct blocks", :align=>:right },
+]
+
+%>
+
+<%= gen_slickgrid(@objects, column_options, {:caption => "Details", :max_height=>450, show_pin_icon: 1,
+                                             update_area: @update_area}) %>
+
+

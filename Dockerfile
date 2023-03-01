@@ -27,60 +27,68 @@ FROM oraclelinux:8-slim as build_stage
 ENV BACKEND_SRC_PATH=.
 ARG JRUBY_VERSION
 ENV JAVA_HOME=/opt/jre
-ENV PATH "${JAVA_HOME}/bin:/opt/jruby-$JRUBY_VERSION/bin:$PATH"
+ENV JRUBY_HOME=/opt/jruby-$JRUBY_VERSION
+ENV PATH "${JAVA_HOME}/bin:$JRUBY_HOME/bin:$PATH"
+ENV RAILS_ENV=production
 
 WORKDIR /opt/panorama
 
 COPY --from=openjdk /customjre $JAVA_HOME
 COPY ${BACKEND_SRC_PATH} .
 
-RUN  echo "### microdnf update" && \
-     microdnf update && \
-     echo "### add missing tools" && \
-     microdnf install wget tar gzip curl bash tar wget procps findutils vim tzdata git && \
-     echo "### install jruby" && \
+RUN  microdnf update
+RUN  microdnf install wget tar gzip curl bash tzdata make clang
+RUN  echo "### install jruby" && \
      (cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
      (cd /opt && tar -xvf jruby-dist-$JRUBY_VERSION-bin.tar.gz && rm jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
      ln -s /opt/jruby-$JRUBY_VERSION/bin/jruby /opt/jruby-$JRUBY_VERSION/bin/ruby && \
-     ruby -v && \
-     echo "### show  timezone" && \
-     date && \
-     echo '### due to error building digest-crc:6.0.3 sh: line 0: exec: jrake: not found' && \
-     ln -s /opt/jruby-$JRUBY_VERSION/bin/rake /opt/jruby-$JRUBY_VERSION/bin/jrake && \
-     echo "### update installed system gems" && \
-     gem update --system --no-doc && \
-     echo "### install bundler gems" && \
-     gem install --no-document bundler && \
-     echo "### set .gemrc" && \
-     echo "gem: --no-rdoc --no-ri" > ~/.gemrc && \
-     echo "### bundle config set deployment 'true'" && \
-     bundle config set deployment 'true' && \
-     echo "### remove old vendor gems" && \
-     rm -rf vendor/bundle && \
-     echo "### bundle install" && \
-     bundle install --jobs 4 && \
-     echo "### bundle exec rake assets:precompile" && \
-     bundle exec rake assets:precompile && \
-     echo "### reduce storage / remove unnecessary packages" && \
-     gem cleanup && gem list && \
-     microdnf clean all && \
-     rm -rf $HOME/.bundle/cache && \
-     rm -f *.war                                      && \
-     rm -f Panorama.log                                      && \
-     rm -f Usage.log                                         && \
-     rm -rf tmp/cache/*                                      && \
-     rm -rf log/*
+     ruby -v
+RUN  date # show  timezone
+RUN  echo '### due to error building digest-crc:6.0.3 sh: line 0: exec: jrake: not found' && \
+     ln -s /opt/jruby-$JRUBY_VERSION/bin/rake /opt/jruby-$JRUBY_VERSION/bin/jrake
 
-FROM scratch
+RUN  echo "### update installed system gems" && \
+     gem update --system --no-doc
+
+RUN  gem install --no-document bundler
+RUN  echo "gem: --no-rdoc --no-ri" > ~/.gemrc
+RUN  bundle config set deployment 'true'
+RUN  bundle config set --local without 'development test'
+RUN  rm -rf vendor/bundle # remove old vendor gems
+RUN  bundle install --jobs 4
+RUN  bundle exec rake assets:precompile
+# RUN  echo "### reduce storage / remove unnecessary packages" && gem cleanup && gem list && \
+#RUN  microdnf remove libmetalink expat wget tar gzip make gcc binutils glibc-devel libxcrypt-devel glibc-headers kernel-headers \
+#     libgomp pkgconf-pkg-config pkgconf libpkgconf pkgconf-m4 isl cpp libmpc
+
+RUN  microdnf clean all
+RUN  rm -rf $HOME/.bundle/cache && \
+     rm -f *.war                && \
+     rm -f Panorama.log         && \
+     rm -f Usage.log            && \
+     rm -rf tmp/*               && \
+     rm -rf log/*               && \
+     rm -rf test/*
+
+# FROM scratch
+FROM oraclelinux:8-slim
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
 ARG JRUBY_VERSION
-ENV JAVA_HOME=/opt/jre
-ENV PATH "${JAVA_HOME}/bin:/opt/jruby-$JRUBY_VERSION/bin:$PATH"
+ENV JAVA_HOME=/opt/jre \
+    JRUBY_HOME=/opt/jruby-$JRUBY_VERSION \
+    WORKDIR=/opt/panorama
+ENV PATH $JAVA_HOME/bin:$JRUBY_HOME/bin:$PATH
 
-WORKDIR /opt/panorama
+# RUN  microdnf update && microdnf clean all
 
-COPY --from=build_stage / /
+WORKDIR $WORKDIR
+
+COPY --from=build_stage $JAVA_HOME  $JAVA_HOME
+COPY --from=build_stage $JRUBY_HOME $JRUBY_HOME
+COPY --from=build_stage $WORKDIR    $WORKDIR
+
+# COPY --from=build_stage / /
 
 EXPOSE 8080/tcp
 

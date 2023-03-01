@@ -1,0 +1,48 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_column_session = proc do |instance, sid, serial_no|
+    ajax_link("#{instance}:#{sid},#{serial_no}", {
+              :action            => "show_session_detail",
+              :instance          => instance,
+              :sid               => sid,
+              :serial_no          => serial_no,
+              :update_area       => @update_area
+             },
+      :title => "Show session details"
+    )
+  end
+
+    column_options =
+      [
+        {:caption=>"Blocking session",  :data=>proc{|rec| link_column_session.call(rec.b_inst_id, rec.b_sid, rec.b_serial_no)},  :title=>"Instance : SID, Serial_No of blocking session"},
+        {:caption=>"Blocking status",   :data=>proc{|rec| rec.b_status},                                                   :title=>"Status of blocking session"},
+        {:caption=>"Blocking PID",      :data=>proc{|rec| rec.b_pid},                                                      :title=>"Process-ID on DB server of blocking session"},
+        {:caption=>"Blocking user",     :data=>proc{|rec| rec.b_user},                                                     :title=>"DB-user of blocking session"},
+        {:caption=>"Blocking machine",  :data=>proc{|rec| rec.b_machine},                                                  :title=>"client machine of blocking session"},
+        {:caption=>"Blocking OS user",  :data=>proc{|rec| rec.b_osuser},                                                   :title=>"OS user on client machine of blocking session"},
+        {:caption=>"Blocking process",  :data=>proc{|rec| rec.b_process},                                                  :title=>"process ID on client machine of blocking session"},
+        {:caption=>"Blocking program",  :data=>proc{|rec| rec.b_program},                                                  :title=>"program on client machine of blocking session"},
+        {:caption=>"Waiting session",   :data=>proc{|rec| link_column_session.call(rec.w_inst_id, rec.w_sid, rec.w_serial_no)},  :title=>"Instance : SID, Serial_No of waiting session"},
+        {:caption=>"Waiting PID",       :data=>proc{|rec| rec.w_pid},                                                      :title=>"Process-ID on DB server of waiting session"},
+        {:caption=>"Waiting user",      :data=>proc{|rec| rec.w_user},                                                     :title=>"DB-user of waiting session"},
+        {:caption=>"Waiting machine",   :data=>proc{|rec| rec.w_machine},                                                  :title=>"client machine of waiting session"},
+        {:caption=>"Waiting OS user",   :data=>proc{|rec| rec.w_osuser},                                                   :title=>"OS user on client machine of waiting session"},
+        {:caption=>"Waiting process",   :data=>proc{|rec| rec.w_process},                                                  :title=>"process ID on client machine of waiting session"},
+        {:caption=>"Waiting program",   :data=>proc{|rec| rec.w_program},                                                  :title=>"program on client machine of waiting session"},
+        {:caption=>"LockType",          :data=>proc{|rec| rec.locktype},                                                   :title=>"Lock-Type"},
+        {:caption=>"Object name",       :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name) }, :title=>"Object owner and name"},
+        {:caption=>"mode held",         :data=>proc{|rec| rec.mode_held},                                                  :title=>"Mode held"},
+        {:caption=>"mode requested",    :data=>proc{|rec| rec.mode_requested},                                             :title=>"Mode requested"},
+     ]
+
+  %>
+<%= gen_slickgrid(@ddl_locks, column_options, {
+        :caption => "Blocking DDL-Locks in Library Cache (from DBA_KGLLock)",
+        :max_height=>450,
+        show_pin_icon: 1,
+        update_area:   @update_area
+})
+%>
+
+

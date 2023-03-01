@@ -1,0 +1,22 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'Extent size (KB)',                       :data=>proc{|rec| fn(rec.extent_size_kb)},                         :title=>"Extent size in KB as grouping criteria", :align=>:right},
+          {:caption=>'Extent size (MB)',                       :data=>proc{|rec| fn(rec.extent_size_kb.to_f/1024, 2)},            :title=>"Extent size in MB as grouping criteria", :align=>:right},
+          {:caption=>'Number of extents',                      :data=>proc{|rec| fn(rec.extent_count)},                           :title=>"Number of extents in this size group", :align=>:right},
+          {:caption=>'Total size of extents (MB)' ,            :data=>proc{|rec| fn(rec.total_size_kb.to_f/1024) },                :title=>"Total size of extents in MB in this size group", :align=>:right},
+
+      ]
+
+%>
+
+<%= gen_slickgrid(@extents, column_options, {
+    :max_height => 450, :width=>:auto,
+    :caption => "Allocated extents from DBA_Extents grouped by extent size for #{@owner}.#{@segment_name}#{" (#{@partition_name})" if @partition_name}"
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

@@ -1,0 +1,31 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+      [
+          {:caption=>'Owner',                       :data=>proc{|rec| rec.owner},                         :title=>"Name of the original owner of the object"},
+          {:caption=>'Object name',                 :data=>proc{|rec| rec.object_name},                   :title=>"New name of the object"},
+          {:caption=>'Original name',               :data=>proc{|rec| rec.original_name},                 :title=>"Original name of the object"},
+          {:caption=>'Oper.' ,                      :data=>proc{|rec| rec.operation },                    :title=>"Operation carried out on the object"},
+          {:caption=>'Type' ,                       :data=>proc{|rec| rec.type },                         :title=>"Type of the object"},
+          {:caption=>'Tablespace' ,                 :data=>proc{|rec| rec.ts_name },                      :title=>"Name of the tablespace to which the object belongs"},
+          {:caption=>'Blocks',                      :data=>proc{|rec| fn(rec.space) },                    :title=>"Number of blocks used by the object", align: :right},
+          {:caption=>'Size (MB)',                   :data=>proc{|rec| fn(rec.size_mb, 2) },               :title=>"Size of object in tablespace in Megabytes", align: :right},
+          {:caption=>'Create time' ,                :data=>proc{|rec| localeDateTime(rec.createtime_dt) },:title=>"Timestamp for the creation of the object"},
+          {:caption=>'Drop time' ,                  :data=>proc{|rec| localeDateTime(rec.droptime_dt) },  :title=>"Timestamp for the dropping of the object"},
+          {:caption=>'Drop SCN' ,                   :data=>proc{|rec| fn(rec.dropscn) },                  :title=>"System change number (SCN) of the transaction which moved the object to the recycle bin", align: :right},
+          {:caption=>'Partition name',              :data=>proc{|rec| rec.partition_name },               :title=>"Name of the partition which was dropped"},
+          {:caption=>'Can undrop',                  :data=>proc{|rec| rec.can_undrop },                   :title=>"Indicates whether the object can be undropped"},
+          {:caption=>'Can purge',                   :data=>proc{|rec| rec.can_purge },                    :title=>"Indicates whether the object can be purged"},
+      ]
+
+%>
+
+<%= gen_slickgrid(@recycle_bin, column_options, {
+    :max_height => 450,
+    :caption => "Content of recycle bin from DBA_RecycleBin"
+
+}) %>
+
+<div id="<%= @update_area %>">
+</div>

@@ -1,0 +1,55 @@
+<%
+  dialog_id = "#{@update_area}_#{@requested_action}_bind_dialog"
+%>
+
+<div>
+<div id="<%= dialog_id %>">
+  <%= ajax_form({
+                  controller:     :addition,
+                  action:         @requested_action,
+                  update_area:  @update_area
+                }, { onsubmit: "jQuery(\"##{dialog_id}\").dialog(\"destroy\").hide();"}
+      ) do %>
+    <%= hidden_field_tag('sql_statement', @sql_statement) %>
+    <table style="width: 100%">
+      <tr>
+        <th>Alias</th>
+        <th>Value</th>
+        <th>Type</th>
+      </tr>
+      <%
+        # Remove duplicate aliases from expected binds
+        bind_data = {}
+        @expected_binds.each do |expb|
+          bind_data[expb[:alias]] = expb
+        end
+
+      %>
+      <% bind_data.each do |key, value| %>
+        <tr>
+          <td>:<%= key %></td>
+          <td><%= text_field_tag("alias_#{key}",value[:value]) %></td>
+          <td>
+            <%= select_tag "type_#{key}", options_for_select(worksheet_bind_types.map{|key, _value| key}, value[:type]) %>
+          </td>
+        </tr>
+      <% end %>
+      <tr>
+        <td colspan="3" style="text-align: center;">
+          <%= submit_tag("#{@modus_name} with given bind values") %>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+</div>
+</div>
+<script>
+    jQuery("#<%= dialog_id %>")
+        .dialog({
+//            autoOpen:true,
+            modal:true,
+            width:'auto',
+            draggable:true,
+            title:'Set values for bind variables'
+        })
+</script>
