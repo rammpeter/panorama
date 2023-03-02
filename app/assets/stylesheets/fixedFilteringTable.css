@@ -135,17 +135,17 @@ html>body tbody.scrollContent td + td + td + td {
 
 /* add pretty arrows to the headers */
 table thead.fixedHeader td, table thead.fixedHeader th {
-			background-image:url(../../../../../new/Panorama/app/assets/images/ft-head.gif);
+			background-image:url(ft-head.gif);
 			background-repeat:no-repeat;
 			background-position:top right;
 			border-bottom:1px solid #333; 
 }
 		
 table thead td.selectedUp, table thead th.selectedUp {
-			background-image:url(../../../../../new/Panorama/app/assets/images/ft-headup.gif);
+			background-image:url(ft-headup.gif);
 }
 table thead.fixedHeader td.selectedDown, table thead.fixedHeader th.selectedDown {
-			background-image:url(../../../../../new/Panorama/app/assets/images/ft-headdown.gif);
+			background-image:url(ft-headdown.gif);
 }
 /* table tbody tr.alternateRow td{
 	background: #e3edfa;

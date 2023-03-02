@@ -1,5 +1,5 @@
 .caption {
-  background-image: url(../../../../../new/Panorama/app/assets/images/bg_green.gif);
+  background-image: url(bg_green.gif);
 
   border-style: solid;
   border-width: 1px;
@@ -131,13 +131,13 @@ pre {
 
   background-color: silver;
 
-  background: url(../../../../../new/Panorama/app/assets/images/cellpic1.gif);
+  background: url(cellpic1.gif);
 }
 
 .menu_section_body {
   padding: 2px 2px 2px 20px;
 
-  background: url(../../../../../new/Panorama/app/assets/images/menu-bg.gif) -7em 0px;
+  background: url(menu-bg.gif) -7em 0px;
 
 }
 
@@ -215,7 +215,7 @@ tbody td,tbody th{
 }
 
 tbody th{
-  background: url(../../../../../new/Panorama/app/assets/images/bluechrome.gif)  top left repeat-x #fff;
+  background: url(bluechrome.gif)  top left repeat-x #fff;
   color:#333;
 }
 
@@ -255,21 +255,21 @@ table a:active{
   text-align: center;
 }
 .toggle.expand {
-  background: url(../../../../../new/Panorama/app/assets/images/expand.gif) no-repeat center center;
+  background: url(expand.gif) no-repeat center center;
   cursor: pointer;
 }
 .toggle.collapse {
-  background: url(../../../../../new/Panorama/app/assets/images/collapse.gif) no-repeat center center;
+  background: url(collapse.gif) no-repeat center center;
   cursor: pointer;
 }
 .toggle.vertical-line {
-  background: url(../../../../../new/Panorama/app/assets/images/vertical-line.png) no-repeat center center;
+  background: url(vertical-line.png) no-repeat center center;
 }
 .toggle.corner-line {
-  background: url(../../../../../new/Panorama/app/assets/images/corner-line.png) no-repeat center center;
+  background: url(corner-line.png) no-repeat center center;
 }
 .toggle.vertical-corner-line {
-  background: url(../../../../../new/Panorama/app/assets/images/vertical-corner-line.png) no-repeat center center;
+  background: url(vertical-corner-line.png) no-repeat center center;
 }
 
 .shadow {

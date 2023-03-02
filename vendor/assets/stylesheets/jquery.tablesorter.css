@@ -29,12 +29,12 @@ table.tablesorter tbody tr.odd td {
 }*/
 table.tablesorter thead tr .headerSortUp {
         /* Reihenfolge der Images ist wichtig für Darstellung*/
-	background-image: url(../../../../../new/Panorama/app/assets/images/asc.gif), url(greychrome.gif);
+	background-image: url(asc.gif), url(greychrome.gif);
         background-repeat: no-repeat, repeat-x;
 	background-position:  center right, top left;
 }
 table.tablesorter thead tr .headerSortDown {
-	background-image: url(../../../../../new/Panorama/app/assets/images/desc.gif), url(greychrome.gif);
+	background-image: url(desc.gif), url(greychrome.gif);
         background-repeat: no-repeat, repeat-x;
 	background-position:  center right, top left;
 }
