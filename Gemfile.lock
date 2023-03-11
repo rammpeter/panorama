@@ -67,7 +67,7 @@ GEM
       zeitwerk (~> 2.3)
     bindex (0.8.1)
     builder (3.2.4)
-    concurrent-ruby (1.2.0)
+    concurrent-ruby (1.2.2)
     crass (1.0.6)
     date (3.3.3-java)
     erubi (1.12.0)
@@ -97,7 +97,7 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2023.0218.1)
     mini_mime (1.1.2)
-    minitest (5.17.0)
+    minitest (5.18.0)
     net-imap (0.3.4)
       date
       net-protocol
@@ -110,13 +110,13 @@ GEM
     nio4r (2.5.8-java)
     nokogiri (1.14.2-java)
       racc (~> 1.4)
-    playwright-ruby-client (1.30.0)
+    playwright-ruby-client (1.31.1)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
     puma (5.6.5-java)
       nio4r (~> 2.0)
     racc (1.6.2-java)
-    rack (2.2.6.2)
+    rack (2.2.6.3)
     rack-mini-profiler (2.3.4)
       rack (>= 1.2.0)
     rack-test (2.0.2)
@@ -187,6 +187,7 @@ GEM
     zeitwerk (2.6.7)
 
 PLATFORMS
+  universal-java-17
   universal-java-19
 
 DEPENDENCIES
@@ -213,7 +214,7 @@ DEPENDENCIES
   web-console (>= 4.1.0)
 
 RUBY VERSION
-   ruby 3.1.0p0 (jruby 9.4.1.0)
+   ruby 3.1.0p0 (jruby 9.4.2.0)
 
 BUNDLED WITH
-   2.4.7
+   2.4.8

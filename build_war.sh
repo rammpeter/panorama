@@ -24,7 +24,9 @@ fi
 
 echo "Create Panorama.war"
 # fix unavailable repo repo2.maven.org/
-export MAVEN_REPO=https://repo1.maven.org/maven2
+# export MAVEN_REPO=https://repo1.maven.org/maven2
+
+# for debugging warbler use: java -Dwarbler.debug=true -jar Panorama.war
 
 # Jetty version to use for warbler
 # remove ~/.m2 if caching issues / file not found
