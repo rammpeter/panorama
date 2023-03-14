@@ -1066,6 +1066,7 @@ oradebug setorapname diag
   def render_session_detail_tracefile_button
     @instance     = prepare_param_instance
     @pid          = prepare_param :pid
+    @sid          = prepare_param :sid
     @update_area  = prepare_param :update_area
     result = sql_select_first_row ["SELECT f.Inst_ID, f.Adr_Home, f.Trace_FileName, f.Con_ID
                                     FROM   gv$Process p
@@ -1073,13 +1074,16 @@ oradebug setorapname diag
                                     WHERE  p.Inst_ID = ?
                                     AND    p.PID = ?", @instance, @pid]
     if result
+      times= sql_select_first_row ["SELECT Logon_Time start_time, SYSDATE End_Time FROM gv$Session WHERE Inst_ID = ? AND SID = ?", @instance, @sid]
       render_button("Show trace file", {
-          action:           :list_trace_file_content,
-          instance:         @instance,
-          adr_home:         result.adr_home,
-          trace_filename:   result.trace_filename,
-          con_id:           result.con_id,
-          update_area:      @update_area
+          action:               :list_trace_file_content,
+          instance:             @instance,
+          adr_home:             result.adr_home,
+          trace_filename:       result.trace_filename,
+          con_id:               result.con_id,
+          time_selection_start: localeDateTime(times.start_time),
+          time_selection_end:   localeDateTime(times.end_time),
+          update_area:          @update_area
       }, title: 'Show content of existing trace file for this session'
       )
     else
@@ -1776,11 +1780,12 @@ oradebug setorapname diag
     where_string = ''
     where_values = []
 
+
     if @filename_incl_filter
       where_string << " AND ("
       incl_filters = @filename_incl_filter.split('|')
       incl_filters.each_index do |i|
-        where_string << " f.Trace_Filename LIKE '%'||?||'%'"
+        where_string << " Trace_Filename LIKE '%'||?||'%'"
         where_string << " OR " if i < incl_filters.count-1
         where_values << incl_filters[i]
       end
@@ -1789,28 +1794,27 @@ oradebug setorapname diag
 
     if @filename_excl_filter
       @filename_excl_filter.split('|').each do |f|
-        where_string << " AND f.Trace_Filename NOT LIKE '%'||?||'%'"
+        where_string << " AND Trace_Filename NOT LIKE '%'||?||'%'"
         where_values << f
       end
     end
 
+    @files = sql_select_iterator ["\
+      SELECT Inst_ID, ADR_Home, Trace_Filename, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp, Con_ID,
+             COUNT(*) Num_Rows_In_Period
+      FROM   GV$Diag_Trace_File_Contents
+      WHERE   Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND     Timestamp <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+      #{where_string}
+      GROUP BY Inst_ID, ADR_Home, Trace_Filename, CON_ID
+      ORDER BY Max(Timestamp)
+    ", @time_selection_start, @time_selection_end].concat(where_values)
 
-
-
-    @files = sql_select_iterator ["SELECT f.*
-                                   FROM   gv$Diag_Trace_File f
-                                   WHERE  f.Change_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                                   AND    f.Change_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
-                                   #{where_string}
-                                   ORDER BY f.Change_Time
-                                  ", @time_selection_start, @time_selection_end].concat(where_values)
-
-    # GV_$DIAG_TRACE_FILE
-    # GV_$DIAG_TRACE_FILE_CONTENTS
     render_partial
   end
 
   def list_trace_file_content
+    save_session_time_selection
     @instance                     = prepare_param_instance
     @adr_home                     = prepare_param(:adr_home)
     @trace_filename               = prepare_param(:trace_filename)
@@ -1821,24 +1825,31 @@ oradebug setorapname diag
     @max_trace_file_lines_to_show = prepare_param_int(:max_trace_file_lines_to_show, default: 10000)
     @first_or_last_lines          = prepare_param(:first_or_last_lines, default: 'first')
 
-    counts = sql_select_first_row ["SELECT COUNT(*) lines, MAX(Line_Number) Max_Line_Number
+    @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp,
+                                           SUM(CASE WHEN Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                                                    AND  Timestamp <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                                               THEN 1 ELSE 0 END
+                                              ) Lines_in_Period
                                     FROM   gv$Diag_Trace_File_Contents c
                                     WHERE  c.Inst_ID        = ?
                                     AND    c.ADR_Home       = ?
                                     AND    c.Trace_FileName = ?
                                     AND    c.Con_ID         = ?
-                                    ORDER BY c.Line_Number
-                                   ", @instance, @adr_home, @trace_filename, @con_id]
-    @trace_file_line_count = counts.lines
-    if @trace_file_line_count > @max_trace_file_lines_to_show
-      add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@trace_file_line_count)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
+                                   ",  @time_selection_start, @time_selection_end, @instance, @adr_home, @trace_filename, @con_id]
+    if @counts.lines_in_period > @max_trace_file_lines_to_show
+      add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@counts.lines_in_period)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
     end
+
+    puts @counts.min_timestamp
+    puts DateTime.parse(@time_selection_start)
+    puts @counts.max_timestamp
+    puts DateTime.parse(@time_selection_end)
 
     rownum_condition, row_num_value = lambda{
       if @first_or_last_lines == 'first'
         return "Row_Num < ?", @max_trace_file_lines_to_show + 1
       else
-        return "Row_Num > ?", @trace_file_line_count - @max_trace_file_lines_to_show
+        return "Row_Num > ?", @counts.lines_in_period - @max_trace_file_lines_to_show
       end
     }.call
 
@@ -1849,10 +1860,12 @@ oradebug setorapname diag
                                                  AND    c.ADR_Home       = ?
                                                  AND    c.Trace_FileName = ?
                                                  AND    c.Con_ID         = ?
+                                                 AND    Timestamp        >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                                                 AND     Timestamp       <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
                                                  ORDER BY c.Line_Number
                                                 ) x
                                          WHERE  #{rownum_condition}
-                                      ", @instance, @adr_home, @trace_filename, @con_id, row_num_value]
+                                      ", @instance, @adr_home, @trace_filename, @con_id, @time_selection_start, @time_selection_end, row_num_value]
 
     @content = []
     all_cursors = {}
@@ -2250,6 +2263,30 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
                                       AND    Job_Name = ?
                                       #{where_string}
                                      ", @owner, @job_name].concat(where_values)
+    render_partial
+  end
+
+  def optimizer_hints
+    @hints = sql_select_all "\
+      WITH feature_hierarchy AS (
+        SELECT f.sql_feature,
+               SYS_CONNECT_BY_PATH(REPLACE(f.sql_feature, 'QKSFM_', ''), ' -> ') path
+        FROM   v$sql_feature f
+        JOIN    v$sql_feature_hierarchy fh ON  f.sql_feature = fh.sql_feature
+        CONNECT BY fh.parent_id = PRIOR f.sql_Feature
+        START WITH fh.sql_feature = 'QKSFM_ALL'
+      )
+      SELECT hi.name,
+             REGEXP_REPLACE(fh.path, '^ -> ', '') hinth_path,
+             hi.Class Class_Name,
+             hi.Inverse,
+             hi.Target_Level,
+             hi.version,
+             hi.version_outline
+      FROM   v$sql_hint hi
+      JOIN   feature_hierarchy fh ON hi.sql_feature = fh.sql_feature
+      ORDER BY path
+    "
     render_partial
   end
 end # Class

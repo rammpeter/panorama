@@ -22,7 +22,6 @@ Panorama_jetty.log
 start_Panorama.bat
 
 client_info.store/*
-/.bundle
 /vendor/bundle
 node_modules
 

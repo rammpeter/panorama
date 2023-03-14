@@ -29,6 +29,7 @@ module MenuHelper
             {:class => 'menu', :caption => 'Database configuration', :content => [
               {:class => 'item', :caption => 'Init-Parameter', :controller => :dba, :action => :oracle_parameter, :hint => t(:menu_dba_parameter_hint, :default => 'Show init-parameters of instance(s)')},
               {:class => 'item', :caption => 'Resource limits', :controller => :dba, :action => :resource_limits, :hint => t(:menu_dba_resource_limit_hint, :default => 'Show resource limits from gv$Resource_Limit')},
+              {:class => 'item', :caption => 'Optimizer hints', :controller => :dba, :action => :optimizer_hints, :hint => t(:menu_dba_optimizer_hints_hint, :default => 'Show supported optimizer hints for this database')},
             ]
             },
             {:class => 'menu', :caption => 'User management', :content => [

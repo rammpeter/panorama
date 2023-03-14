@@ -112,6 +112,13 @@ Times are in microseconds
 %>
 <%=
   caption = "Trace file content for #{@adr_home}/trace/#{@trace_filename}, Con-ID = #{@con_id} (from GV$Diag_Trace_File_Contents)\n"
+
+  if @counts.min_timestamp < DateTime.parse(@time_selection_start) || @counts.max_timestamp > DateTime.parse(@time_selection_end)
+    caption << "<div style=\"font-weight: normal; text-align: center;\">"
+    caption << "This trace file contails #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
+    caption << "  </div>"
+  end
+
   caption << "<div style=\"font-weight: normal;\" class=\"flex-row-container\">"
 
   caption << "  <div class=\"flex-row-element\" title=\"Exclude recursive SQLs that are executed as user SYS\">"
@@ -124,11 +131,11 @@ Times are in microseconds
   caption <<      check_box_tag(:dont_show_stat, 1, @dont_show_stat=='1')
   caption << "  </div>"
 
-  caption << "  <div class=\"flex-row-element\" title=\"Maximum number of trace file lines to show in list. The file contains #{@trace_file_line_count} lines in total.\" style=\"#{"visibility: hidden;display: none;" if @trace_file_line_count <= @max_trace_file_lines_to_show}\">"
+  caption << "  <div class=\"flex-row-element\" title=\"Maximum number of trace file lines to show in list. The file contains #{@counts.lines_in_period} lines within considered period and #{@counts.lines_total} in total.\" style=\"#{"visibility: hidden;display: none;" if @counts.lines_in_period <= @max_trace_file_lines_to_show}\">"
   caption << "    Max. lines "
   caption <<      text_field_tag(:max_trace_file_lines_to_show, @max_trace_file_lines_to_show, size: 5)
   caption << "  </div>"
-  if @trace_file_line_count > @max_trace_file_lines_to_show
+  if @counts.lines_in_period > @max_trace_file_lines_to_show
 
     caption << "  <div class=\"flex-row-element\" title=\"Choose wether the first n lines or the last n lines of the file are shown.\">"
     caption << "    First lines "
@@ -160,6 +167,8 @@ Times are in microseconds
           'instance':                     '<%= @instance %>',
           'adr_home':                     '<%= @adr_home %>',
           'trace_filename':               '<%= @trace_filename %>',
+          'time_selection_start':         '<%= @time_selection_start %>',
+          'time_selection_end':           '<%= @time_selection_end %>',
           'con_id':                       '<%= @con_id%>',
           'dont_show_sys':                jQuery('#dont_show_sys').prop("checked") ? 1 : 0,
           'dont_show_stat':               jQuery('#dont_show_stat').prop("checked") ? 1 : 0,

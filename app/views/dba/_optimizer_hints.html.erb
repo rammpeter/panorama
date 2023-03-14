@@ -1,0 +1,43 @@
+<%
+  @update_area = get_unique_area_id
+
+  target_level = proc do |rec|
+    result = ''
+    result << 'Statement' if rec.target_level.to_i & 1 > 0
+    if rec.target_level.to_i & 2 > 0
+      result << ", " if result != ''
+      result << "Query block"
+    end
+    if rec.target_level.to_i & 4 > 0
+      result << ", " if result != ''
+      result << "Object"
+    end
+    if rec.target_level.to_i & 8 > 0
+      result << ", " if result != ''
+      result << "Join"
+    end
+    result
+  end
+
+  column_options = []
+  column_options << {caption: 'Hint name',      data: proc{|rec| rec.name},       title: "Name of optimizer hint"}
+  column_options << {caption: 'Feature',        data: proc{|rec| rec.hinth_path}, title: "Feature hierarchy this hint is for"}
+  column_options << {caption: 'Class',          data: proc{|rec| rec.class_name}, title: "Hint class"}
+  column_options << {caption: 'Inverse',        data: proc{|rec| rec.inverse},    title: "Hint name for inversion / opposite function"}
+  column_options << {caption: 'Target level',   data: target_level,               title: "One or multiple targets of this hint"}
+  column_options << {caption: 'Version',        data: proc{|rec| rec.version},    title: "DB version which introduced the hint"}
+  column_options << {caption: 'Version outline',data: proc{|rec| rec.version_outline},    title: "Starting DB version where hint could appear in the outline information of a query?"}
+
+  caption = "Optimizer hints from V$SQL_Feature, v$SQL_Feature_Hierarchy, V$SQL_Hint"
+  caption << "<div style=\"font-weight: normal; text-align: center;\">"
+  caption << "Look <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Comments.html#GUID-D316D545-89E2-4D54-977F-FC97815CD62E\" target=\"_blank\">here for documentation of hints (21c)</a>"
+  caption << "</div>"
+%>
+
+<%=
+  gen_slickgrid(@hints, column_options, {caption:       caption,
+                                         max_height:    450,
+                                         show_pin_icon: 1,
+                                         update_area:   @update_area
+  })
+%>

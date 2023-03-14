@@ -1,20 +1,6 @@
 # Disable Rake-environment-task framework detection by uncommenting/setting to false
 # Warbler.framework_detection = false
 
-# Workaround to fix: NoMethodError: undefined method `new_ostruct_member' for No value for 'public' found
-# https://github.com/jruby/warbler/issues/508
-# TODO: Remove after new_ostruct_member problem ist fixed in warbler
-#
-# Workaround works for warbler but not for Panorama.war
-# Alternative: build war file on Linux with jRuby 9.2.2.0
-=begin
-class Warbler::Traits::War::WebxmlOpenStruct
-  def new_ostruct_member(name)
-    send(:new_ostruct_member!, name)
-  end
-end
-=end
-
 # Warbler web application assembly configuration file
 Warbler::Config.new do |config|
   # Features: additional options controlling how the jar is built.
@@ -26,7 +12,7 @@ Warbler::Config.new do |config|
   config.features = %w(executable)
 
   # Application directories to be included in the webapp.
-  config.dirs = %w(app config lib log tmp)
+  # config.dirs = %w(app config db lib log script vendor tmp)
 
   # Additional files/directories to include, above those in config.dirs
   # config.includes = FileList["db"]
@@ -93,7 +79,7 @@ Warbler::Config.new do |config|
 
   # Name of the archive (without the extension). Defaults to the basename
   # of the project directory.
-  config.jar_name = "Panorama"
+  # config.jar_name = "mywar"
 
   # File extension for the archive. Defaults to either 'jar' or 'war'.
   # config.jar_extension = "jar"
@@ -122,7 +108,13 @@ Warbler::Config.new do |config|
   # GEM_HOME if it is set.
   # config.override_gem_home = true
 
-  # Allows for specifing custom executables
+  # Specify executable
+  # Default: First item from alphabetized Gemspec executables array
+  # Takes either of two forms:
+  #  o String: Relative path to the executable from your project root
+  #  o Two-element Array:
+  #     [0] Name of the gem that contains the executable
+  #     [1] Relative path to the executable from the gem root
   # config.executable = ["rake", "bin/rake"]
 
   # Sets default (prefixed) parameters for the executables
@@ -141,26 +133,18 @@ Warbler::Config.new do |config|
   # Embedded webserver to use with the 'executable' feature. Currently supported
   # webservers are:
   # - *jetty* - Embedded Jetty from Eclipse
-  config.webserver = 'jetty'
+  # config.webserver = 'jetty'
 
   # Path to the pre-bundled gem directory inside the war file. Default
   # is 'WEB-INF/gems'. Specify path if gems are already bundled
   # before running Warbler. This also sets 'gem.path' inside web.xml.
-  #  config.gem_path = "WEB-INF/gems"
+  # config.gem_path = "WEB-INF/vendor/bundler_gems"
 
   # Files for WEB-INF directory (next to web.xml). This contains
   # web.xml by default. If there is an .erb-File it will be processed
   # with webxml-config. You may want to exclude this file via
   # config.excludes.
   # config.webinf_files += FileList["jboss-web.xml"]
-  # Ramm, 22.09.13 Konfiguration contextPath und weitere für Jetty
-  config.webinf_files += FileList['jetty-web.xml', 
-                                  'lib/jee_xsd/web-app_3_1.xsd',
-                                  'lib/jee_xsd/web-common_3_1.xsd',
-                                  'lib/jee_xsd/javaee_7.xsd',
-                                  'lib/jee_xsd/javaee_web_services_client_1_4.xsd',
-                                  'lib/jee_xsd/jsp_2_3.xsd']
-
 
   # Files to be included in the root of the webapp.  Note that files in public
   # will have the leading 'public/' part of the path stripped during staging.
@@ -196,8 +180,8 @@ Warbler::Config.new do |config|
   # that you fix these values when running a production server!
   # If you're using threadsafe! mode, you probably don't want to set these values,
   # since 1 runtime(default for threadsafe mode) will be enough.
-  config.webxml.jruby.min.runtimes = 1
-  config.webxml.jruby.max.runtimes = 1
+  # config.webxml.jruby.min.runtimes = 2
+  # config.webxml.jruby.max.runtimes = 4
 
   # JNDI data source name
   # config.webxml.jndi = 'jdbc/rails'

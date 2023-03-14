@@ -92,7 +92,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
 
     # Access on gv$Diag_Trace_File in autonomous DB leads cancels the connection
     if get_db_version >= '12.2' && !@autonomous
-      post  '/dba/render_session_detail_tracefile_button', :params => {:format=>:html, :instance=>instance, :pid=>pid, :update_area=>:hugo }
+      post  '/dba/render_session_detail_tracefile_button', :params => {:format=>:html, :instance=>instance, pid: pid, sid: sid, :update_area=>:hugo }
       assert_response :success
     end
 
@@ -214,6 +214,8 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
             [0,1].each do |dont_show_stat|
               post '/dba/list_trace_file_content', params: {format: :html, instance: trace_file.inst_id, adr_home: trace_file.adr_home,
                                                             trace_filename: trace_file.trace_filename, con_id: trace_file.con_id,
+                                                            time_selection_start: @time_selection_start,
+                                                            time_selection_end:   @time_selection_end,
                                                             dont_show_sys: dont_show_sys, dont_show_stat: dont_show_stat,
                                                             max_trace_file_lines_to_show: 100,
                                                             first_or_last_lines: dont_show_sys==0 ? 'first' : 'last',
@@ -223,7 +225,10 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
           end
         end
 
-        post '/dba/list_trace_file_content', params: {format: :html, instance: instance, adr_home: 'hugo', trace_filename: 'hugo', con_id: 1, update_area: :hugo }
+        post '/dba/list_trace_file_content', params: {format: :html, instance: instance, adr_home: 'hugo', trace_filename: 'hugo',
+                                                      time_selection_start: @time_selection_start,
+                                                      time_selection_end:   @time_selection_end,
+                                                      con_id: 1, update_area: :hugo }
         assert_response :success
       end
     end

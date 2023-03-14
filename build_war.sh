@@ -1,7 +1,7 @@
 if [ "$1" != "without_clean_cache" ]
 then
   echo "Clean Cache"
-  rm -r tmp/*
+  rm -rf tmp/*
 fi
 
 echo "Entfernen der assets unter public"
@@ -38,6 +38,12 @@ then
   exit 1
 fi
 
+# Patch GEM_PATH for created war file
+rm -rf META-INF
+unzip Panorama.war META-INF/init.rb
+echo "ENV['GEM_PATH']=File.expand_path(File.join('..', '..', '/WEB-INF/gems'), __FILE__)" >> META-INF/init.rb
+zip Panorama.war META-INF/init.rb
+rm -rf META-INF
 
 echo "Entfernen der assets unter public"
 rm -r public/assets/*

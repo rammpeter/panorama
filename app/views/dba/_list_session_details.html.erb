@@ -286,6 +286,7 @@
         render_async(:dba, :render_session_detail_tracefile_button, {
             instance:             @instance,
             pid:                  @dbsessions[0].pid,
+            sid:                  @sid,
             update_area:          @update_area
         })
       %>

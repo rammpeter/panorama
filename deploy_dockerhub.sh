@@ -3,7 +3,7 @@
 
 VERSION_FILE="`bundle info panorama_gem --path`/lib/panorama_gem/version.rb"
 echo VERSION_FILE=$VERSION_FILE
-PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+PANORAMA_VERSION=`cat $VERSION_FILE
 echo PANORAMA_VERSION=$PANORAMA_VERSION
 
 ./create_docker_image.sh 

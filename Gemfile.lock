@@ -47,7 +47,7 @@ GEM
     activerecord (6.1.7.2)
       activemodel (= 6.1.7.2)
       activesupport (= 6.1.7.2)
-    activerecord-nulldb-adapter (0.8.0)
+    activerecord-nulldb-adapter (0.9.0)
       activerecord (>= 5.2.0, < 7.1)
     activerecord-oracle_enhanced-adapter (6.1.6)
       activerecord (~> 6.1.0)
@@ -79,6 +79,8 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    jruby-jars (9.4.2.0)
+    jruby-rack (1.1.22)
     jwt (2.7.0)
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -187,7 +189,6 @@ GEM
     zeitwerk (2.6.7)
 
 PLATFORMS
-  universal-java-17
   universal-java-19
 
 DEPENDENCIES
@@ -202,6 +203,8 @@ DEPENDENCIES
   activesupport (= 6.1.7.2)
   i18n
   jbuilder (~> 2.7)
+  jruby-jars
+  jruby-rack
   jwt
   listen (~> 3.3)
   playwright-ruby-client
