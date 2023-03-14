@@ -113,11 +113,9 @@ Times are in microseconds
 <%=
   caption = "Trace file content for #{@adr_home}/trace/#{@trace_filename}, Con-ID = #{@con_id} (from GV$Diag_Trace_File_Contents)\n"
 
-  if @counts.min_timestamp < DateTime.parse(@time_selection_start) || @counts.max_timestamp > DateTime.parse(@time_selection_end)
-    caption << "<div style=\"font-weight: normal; text-align: center;\">"
-    caption << "This trace file contails #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
-    caption << "  </div>"
-  end
+  caption << "<div style=\"font-weight: normal; text-align: center;\">"
+  caption << "This trace file contails #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
+  caption << "  </div>"
 
   caption << "<div style=\"font-weight: normal;\" class=\"flex-row-container\">"
 

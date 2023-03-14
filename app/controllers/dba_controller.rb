@@ -1775,7 +1775,6 @@ oradebug setorapname diag
     @filename_incl_filter         = prepare_param(:filename_incl_filter)
     @filename_excl_filter         = prepare_param(:filename_excl_filter)
     @content_incl_filter          = prepare_param(:content_incl_filter)
-    @content_excl_filter          = prepare_param(:content_excl_filter)
 
     where_string = ''
     where_values = []
@@ -1797,6 +1796,17 @@ oradebug setorapname diag
         where_string << " AND Trace_Filename NOT LIKE '%'||?||'%'"
         where_values << f
       end
+    end
+
+    if @content_incl_filter
+      where_string << " AND ("
+      incl_filters = @content_incl_filter.split('|')
+      incl_filters.each_index do |i|
+        where_string << " Payload LIKE '%'||?||'%'"
+        where_string << " OR " if i < incl_filters.count-1
+        where_values << incl_filters[i]
+      end
+      where_string << " )"
     end
 
     @files = sql_select_iterator ["\

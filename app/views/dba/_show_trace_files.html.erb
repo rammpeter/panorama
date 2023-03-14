@@ -23,22 +23,11 @@
       <%= text_field_tag(:filename_excl_filter, "", :size=>30) %>
     </div>
 
-    <!--
-
-    <div class="flex-row-element" title="Show only trace files with matching hits in trace file content.
-    Delimit several OR-combined inclusion expressions by '|'.
-    Caution: Search may run longer times.">
+    <div class="flex-row-element" title="Show only trace files where content/payload of at least one event is matching the expression.
+    Delimit several OR-combined inclusion expressions by '|'.">
       Content incl. Filter
       <%= text_field_tag(:content_incl_filter, "", :size=>30) %>
     </div>
-
-    <div class="flex-row-element" title="Show only trace files without matching hits in trace file content.
-    Delimit several OR-combined exclusion expressions by '|'.
-    Caution: Search may run longer times.">
-      Content excl. Filter
-      <%= text_field_tag(:content_excl_filter, "", :size=>30) %>
-    </div>
-    -->
 
     <%= submit_tag("Show trace files", :title => 'Show server-side trace files with recorded events in considered period') %>
 
