@@ -1089,6 +1089,13 @@ oradebug setorapname diag
     else
       render html: ''
     end
+  rescue Exception => e
+    if e.message['ORA-00942']
+      msg = "Access on gv$Diag_Trace_File not possible to check for trace file. You need SELECT_CATALOG_ROLE for access!"
+      render html: "<script type='text/javascript'>show_status_bar_message('#{my_html_escape(msg)}');</script>".html_safe
+    else
+      raise
+    end
   end
 
   def render_session_detail_sql_monitor
@@ -1809,7 +1816,7 @@ oradebug setorapname diag
       where_string << " )"
     end
 
-    @files = sql_select_iterator ["\
+    @files = sql_select_all ["\
       SELECT Inst_ID, ADR_Home, Trace_Filename, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp, Con_ID,
              COUNT(*) Num_Rows_In_Period
       FROM   GV$Diag_Trace_File_Contents
@@ -1821,6 +1828,12 @@ oradebug setorapname diag
     ", @time_selection_start, @time_selection_end].concat(where_values)
 
     render_partial
+  rescue Exception => e
+    if e.message['ORA-00942']
+      show_popup_message("Access on view 'gv$Diag_Trace_File_Contents' not possible. You need SELECT_CATALOG_ROLE for access!")
+    else
+      raise
+    end
   end
 
   def list_trace_file_content
