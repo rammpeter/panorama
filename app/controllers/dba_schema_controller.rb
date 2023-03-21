@@ -1215,7 +1215,7 @@ class DbaSchemaController < ApplicationController
       SELECT s.Owner, s.Segment_Name, SUM(s.Bytes)/(1024*1024) Size_MB, SUM(s.Extents) Extents, SUM(s.Blocks) segment_Blocks
       FROM   DBA_Indexes ii
       JOIN   DBA_Segments s ON s.Owner = ii.Owner AND s.Segment_Name = ii.Index_Name
-      WHERE  s.Segment_Type LIKE 'INDEX%'
+      WHERE  s.Segment_Type LIKE '%INDEX%'
       AND    ii.Table_Owner = ?
       AND    ii.Table_Name = ?
       GROUP BY s.Owner, s.Segment_Name

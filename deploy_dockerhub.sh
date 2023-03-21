@@ -1,9 +1,9 @@
 # Deploy Panorama to Dockerhub.com and Dockerhub.osp-dd.de
 # Peter Ramm, 29.01.2017
 
-VERSION_FILE="`bundle info panorama_gem --path`/lib/panorama_gem/version.rb"
+VERSION_FILE="lib/panorama/version.rb"
 echo VERSION_FILE=$VERSION_FILE
-PANORAMA_VERSION=`cat $VERSION_FILE
+PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
 echo PANORAMA_VERSION=$PANORAMA_VERSION
 
 ./create_docker_image.sh 
