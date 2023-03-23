@@ -106,11 +106,6 @@ jobs:
           docker images
           java -version
 
-      - name: Set jRuby version in rvm
-        run: |
-          source "$HOME/.rvm/scripts/rvm"
-          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
-
       - name: bundle install
         run: |
           source "$HOME/.rvm/scripts/rvm"
@@ -118,7 +113,9 @@ jobs:
           which bundle
           bundle --version
           pwd
-          bundle config set deployment 'true'
+          bundle config deployment 'true'
+          # All runners should use the same path
+          bundle config path '/tmp'
           bundle install
 
       # create encypted wallet zip file to store in repository, add passphrase

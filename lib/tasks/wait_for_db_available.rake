@@ -1,4 +1,4 @@
-require 'test_helpers/panorama_test_config'
+require_relative '../test_helpers/panorama_test_config'
 require 'active_record/connection_adapters/oracle_enhanced/connection'
 require 'active_record/connection_adapters/oracle_enhanced/jdbc_connection'
 
