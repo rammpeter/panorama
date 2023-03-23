@@ -18,8 +18,9 @@ module Panorama
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-
-    logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
+    if defined? Panorama
+      logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
+    end
 
     # Remove ojdbc11.jar if Panorama is running with Java < 11.x
     # otherwise errors are causewd while loading JDBC driver like
