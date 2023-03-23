@@ -114,6 +114,7 @@ jobs:
       - name: bundle install
         run: |
           source "$HOME/.rvm/scripts/rvm"
+          which bundle
           bundle --version
           pwd
           bundle config set deployment 'true'
