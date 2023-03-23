@@ -11,7 +11,7 @@ pipeline {
         sh 'rm -f Usage.log'
         sh 'rvm list'
         sh 'bundle install'
-        sh 'rm -f test/dummy/log/test.log'
+        sh 'rm -f log/test.log'
       }
     }
 

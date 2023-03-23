@@ -95,7 +95,7 @@ jobs:
           mkdir -p $panorama_var_home
           echo "PANORAMA_VAR_HOME=$panorama_var_home" >> $GITHUB_ENV
           # Enable successful artifacts load even if dir is not created
-          mkdir -p test/dummy/tmp/screenshots
+          mkdir -p tmp/screenshots
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
 
@@ -185,15 +185,15 @@ jobs:
           if [[ "$DB_VERSION" = *"se"* ]] && [[ "$MANAGEMENT_PACK_LICENSE" = "diagnostic"* ]]; then
             echo "Test skipped for $DB_VERSION because Management Pack license is $MANAGEMENT_PACK_LICENSE"
             # Ensure next steps find a test.log
-            mkdir -p test/dummy/log
-            touch test/dummy/log/test.log
+            mkdir -p log
+            touch log/test.log
           else
             bundle exec rake test
           fi
 
       - name: copy test.log locally to allow access before completion of whole actions
         if: always()
-        run: cp test/dummy/log/test.log /home/pramm/github_runner/log/${MANAGEMENT_PACK_LICENSE}_${DB_VERSION}_${CONTAINER}_test.log
+        run: cp log/test.log /home/pramm/github_runner/log/${MANAGEMENT_PACK_LICENSE}_${DB_VERSION}_${CONTAINER}_test.log
 
       - name: stop database
         if: always()
@@ -212,11 +212,11 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_test.log
-          path: test/dummy/log/test.log
+          path: log/test.log
 
       - name: Archive test screenshots
         if: always()
         uses: actions/upload-artifact@v1
         with:
           name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_tmp
-          path: test/dummy/tmp/screenshots
+          path: tmp/screenshots

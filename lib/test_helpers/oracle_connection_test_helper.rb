@@ -1,4 +1,3 @@
-# requires config/environment.rb loaded a'la: require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
 require 'encryption'
 
 class ActiveSupport::TestCase

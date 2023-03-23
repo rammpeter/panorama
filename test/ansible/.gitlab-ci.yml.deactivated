@@ -37,7 +37,7 @@ stages:
 #  - sh -c "cd Panorama && bundle install"
 
 #after_script:
-#  - cp Panorama/test/dummy/log/test.log last_test.log
+#  - cp Panorama/log/test.log last_test.log
 
 brakeman_analysis:
   stage: code_analysis
@@ -66,8 +66,8 @@ brakeman_analysis:
     when: always
     paths:
 #     - last_test.log
-      - Panorama/test/dummy/log/
-      - Panorama/test/dummy/tmp/screenshots/
+      - Panorama/log/
+      - Panorama/tmp/screenshots/
     expire_in: 1 month
 
 ################### test_18.4_autonomous_cloud
