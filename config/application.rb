@@ -19,9 +19,7 @@ module Panorama
     # -- all .rb files in that directory are automatically loaded.
 
 
-    if defined?(PanoramaGem) && defined?(PanoramaGem::VERSION)                                                      # May not yet been defined in tests of application including this engine
-      logger.info "Panorama for Oracle: Release #{PanoramaGem::VERSION} ( #{PanoramaGem::RELEASE_YEAR}/#{PanoramaGem::RELEASE_MONTH}/#{PanoramaGem::RELEASE_DAY} )"
-    end
+    logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
 
     # Remove ojdbc11.jar if Panorama is running with Java < 11.x
     # otherwise errors are causewd while loading JDBC driver like

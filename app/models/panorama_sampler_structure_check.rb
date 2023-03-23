@@ -1734,7 +1734,7 @@ ORDER BY Column_ID
 #    translated_source_buffer = source_buffer.gsub(/PANORAMA\./i, "#{config.get_owner.upcase}.")    # replace PANORAMA. with the real owner
     translated_source_buffer = source_buffer.gsub(/PANORAMA_OWNER/i, "#{config.get_owner.upcase}")    # replace PANORAMA_OWNER with the real owner
     translated_source_buffer.gsub!(/COMPILE_TIME_BY_PANORAMA_ENSURES_CHANGE_OF_LAST_DDL_TIME/, Time.now.to_s) # change source to provocate change of LAST_DDL_TIME even content is still the same
-    translated_source_buffer.gsub!(/PANORAMA_VERSION/, PanoramaGem::VERSION) # stamp version to file
+    translated_source_buffer.gsub!(/PANORAMA_VERSION/, Panorama::VERSION) # stamp version to file
     translated_source_buffer.gsub!(/DBMS_LOCK.SLEEP/i, 'DBMS_SESSION.SLEEP') if PanoramaConnection.db_version >= '18.0'
     # Expand macro to exception handler
     translated_source_buffer.gsub!(/CATCH_START/, "BEGIN\n     ")
@@ -1781,7 +1781,7 @@ ORDER BY Column_ID
     if package_obj.nil? ||
         package_obj.last_ddl_time < File.ctime(file_for_time_check) ||
         package_obj.status != 'VALID' ||
-        package_version != PanoramaGem::VERSION
+        package_version != Panorama::VERSION
       # Compile package
       Rails.logger.info('PanoramaSamplerStructureCheck.create_or_check_package') { "Package #{'body ' if type==:body}#{@sampler_config.get_owner.upcase}.#{package_name} needs #{package_obj.nil? ? 'creation' : 'recompile'}" }
 

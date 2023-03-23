@@ -1,5 +1,5 @@
 # encoding: utf-8
-# Wird von application_helper der PanoramaGem-Engine inkludiert, dient zum überschreibrn / erweitertern durch Duplikat des Files in Nutzern der Engine
+# Wird von application_helper inkludiert, dient zum überschreibrn / erweitertern durch Duplikat des Files in Nutzern der Engine
 
 module ExplainApplicationInfoHelper
   protected
