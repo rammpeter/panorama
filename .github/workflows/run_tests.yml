@@ -113,7 +113,9 @@ jobs:
 
       - name: bundle install
         run: |
+          echo $PATH
           source "$HOME/.rvm/scripts/rvm"
+          echo $PATH
           which bundle
           bundle --version
           pwd

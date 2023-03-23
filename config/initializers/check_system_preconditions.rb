@@ -6,7 +6,7 @@ require 'java'
 #
 # current longest file path with 91 chars is ./views/active_session_history/_list_session_statistic_historic_grouping_table_def.html.erb
 #
-# 124 chars is length of dir prefix in temp: example: jetty-0.0.0.0-8080-Panorama.war-_-any-513147796374658368.dir/webapp/WEB-INF/gems/bundler/gems/Panorama_Gem-815e84c2f86f/app
+# 124 chars is length of dir prefix in temp: example: jetty-0.0.0.0-8080-Panorama.war-_-any-513147796374658368.dir/webapp/WEB-INF/gems/bundler/gems/Panorama-815e84c2f86f/app
 max_file_path_length = 124 + 91 + java.lang.System.get_property('java.io.tmpdir').length
 
 max_possible_filepath_length = 4096                                             # Linux-limit if no other limits
