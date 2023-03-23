@@ -1849,17 +1849,17 @@ oradebug setorapname diag
     @first_or_last_lines          = prepare_param(:first_or_last_lines, default: 'first')
 
     @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp,
-                                           SUM(CASE WHEN Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                                           NVL(SUM(CASE WHEN Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
                                                     AND  Timestamp <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
                                                THEN 1 ELSE 0 END
-                                              ) Lines_in_Period
+                                              ), 0) Lines_in_Period
                                     FROM   gv$Diag_Trace_File_Contents c
                                     WHERE  c.Inst_ID        = ?
                                     AND    c.ADR_Home       = ?
                                     AND    c.Trace_FileName = ?
                                     AND    c.Con_ID         = ?
                                    ",  @time_selection_start, @time_selection_end, @instance, @adr_home, @trace_filename, @con_id]
-    if @counts.lines_in_period&.> @max_trace_file_lines_to_show
+    if @counts.lines_in_period > @max_trace_file_lines_to_show
       add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@counts.lines_in_period)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
     end
 

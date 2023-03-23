@@ -129,7 +129,7 @@ Times are in microseconds
   caption <<      check_box_tag(:dont_show_stat, 1, @dont_show_stat=='1')
   caption << "  </div>"
 
-  caption << "  <div class=\"flex-row-element\" title=\"Maximum number of trace file lines to show in list. The file contains #{@counts.lines_in_period} lines within considered period and #{@counts.lines_total} in total.\" style=\"#{"visibility: hidden;display: none;" if @counts.lines_in_period&.<= @max_trace_file_lines_to_show}\">"
+  caption << "  <div class=\"flex-row-element\" title=\"Maximum number of trace file lines to show in list. The file contains #{@counts.lines_in_period} lines within considered period and #{@counts.lines_total} in total.\" style=\"#{"visibility: hidden;display: none;" if @counts.lines_in_period <= @max_trace_file_lines_to_show}\">"
   caption << "    Max. lines "
   caption <<      text_field_tag(:max_trace_file_lines_to_show, @max_trace_file_lines_to_show, size: 5)
   caption << "  </div>"
