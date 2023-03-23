@@ -137,6 +137,7 @@ But the drawback is that index maintenence is more costly and index access costs
 Therefore COMPRESS ADVANCED HIGH is especially suggested for less frequently used indexes on tables with less DML.
 This selection considers indexes with < x seconds in wait at SQLs accessing this index worth for possible COMPRESS ADVANCED HIGH.
 "),
+          min_db_version: '12.2',
           :sql=> "\
 WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
                   FROM   DBA_Segments

@@ -1863,11 +1863,6 @@ oradebug setorapname diag
       add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@counts.lines_in_period)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
     end
 
-    puts @counts.min_timestamp
-    puts DateTime.parse(@time_selection_start)
-    puts @counts.max_timestamp
-    puts DateTime.parse(@time_selection_end)
-
     rownum_condition, row_num_value = lambda{
       if @first_or_last_lines == 'first'
         return "Row_Num < ?", @max_trace_file_lines_to_show + 1
