@@ -113,9 +113,8 @@ jobs:
 
       - name: bundle install
         run: |
-          echo $PATH
           source "$HOME/.rvm/scripts/rvm"
-          echo $PATH
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
           which bundle
           bundle --version
           pwd
@@ -167,6 +166,7 @@ jobs:
         if: ${{ env.DB_VERSION != 'autonomous' }}
         run: |
           source "$HOME/.rvm/scripts/rvm"
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
           (
             bundle exec rake -f $GITHUB_WORKSPACE/lib/tasks/wait_for_db_available.rake ci_preparation:wait_for_db_available[10]
             if [[ $? -ne 0 ]]; then
@@ -178,6 +178,7 @@ jobs:
       - name: run Test
         run: |
           source "$HOME/.rvm/scripts/rvm"
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
           export TEST_PORT=${{ env.TEST_PORT }}
           echo "TNS_ADMIN=$TNS_ADMIN"
           if [[ -n "$TNS_ADMIN" ]]; then
