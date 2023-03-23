@@ -3,8 +3,8 @@
 # podman settings according to: https://www.redhat.com/sysadmin/podman-inside-container
 
 # Image stored at docker.io
-# Build image:      docker build -f Dockerfile_github_runner --progress=plain --build-arg JRUBY_VERSION=`cat ../.ruby-version | cut -c 7-13` -t docker.io/rammpeter/panorama_gem_github_runner .
-# Run container:    docker run --privileged --restart always --name github-runner1 -e RUNNER_VERSION=2.295.0 -e RUNNER_SUFFIX=1 -e TOKEN=ABXCX docker.io/rammpeter/panorama_gem_github_runner
+# Build image:      docker build -f Dockerfile_github_runner --progress=plain --build-arg JRUBY_VERSION=`cat ../.ruby-version | cut -c 7-13` -t docker.io/rammpeter/panorama_github_runner .
+# Run container:    docker run --privileged --restart always --name github-runner1 -e RUNNER_VERSION=2.295.0 -e RUNNER_SUFFIX=1 -e TOKEN=ABXCX docker.io/rammpeter/panorama_github_runner
 # Adjust the run command by:
 # - set the RUNNER_SUFFIX to the number of the runner
 # - Get the needed TOKEN from github project: Settings/Actions/Runners in the "Configure" section

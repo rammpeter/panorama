@@ -1,5 +1,5 @@
 # systemd service config file for Github runner
-# edit only at https://git.osp-dd.de/pramm/panorama_gem_ci/-/tree/master/ansible
+# edit only at test/ansible
 # File will be overwritten by ansible-playbook if modified locally!
 
 [Unit]

@@ -1,6 +1,6 @@
 require 'date' 
 
-module PanoramaGem
+module Panorama
   # VERSION and REL EASE_DATE should have fix syntax and positions because they are parsed from other sites
   VERSION = '2.17.01'
   RELEASE_DATE = Date.parse('2023-03-14')

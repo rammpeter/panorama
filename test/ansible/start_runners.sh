@@ -1,5 +1,5 @@
 # Start available runners from systemctl start github_runners.service
-# edit only at https://git.osp-dd.de/pramm/panorama_gem_ci/-/tree/master/ansible
+# edit only at test/ansible
 # File will be overwritten by ansible-playbook if modified locally!
 
 for file in `ls -d runner*`; do

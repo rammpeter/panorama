@@ -1,7 +1,7 @@
-# Test Panorama from https://github.com/rammpeter/Panorama_Gem
+# Test Panorama from https://github.com/rammpeter/Panorama
 # Requires:
 #  - prebuilt database image with test users
-# 2022-09-01 Pipeline deactivated, running now at GitHub https://github.com/rammpeter/panorama_gem
+# 2022-09-01 Pipeline deactivated, running now at GitHub https://github.com/rammpeter/panorama
 
 image: rammpeter/jruby_with_chrome:9.3.4.0
 
@@ -33,41 +33,41 @@ stages:
   - deploy
 
 #before_script:
-#  - git clone https://github.com/rammpeter/Panorama_Gem
-#  - sh -c "cd Panorama_Gem && bundle install"
+#  - git clone https://github.com/rammpeter/Panorama
+#  - sh -c "cd Panorama && bundle install"
 
 #after_script:
-#  - cp Panorama_Gem/test/dummy/log/test.log last_test.log
+#  - cp Panorama/test/dummy/log/test.log last_test.log
 
 brakeman_analysis:
   stage: code_analysis
   script:
-    - sh -c "git clone https://github.com/rammpeter/Panorama_Gem"
-    - sh -c "cd Panorama_Gem && bundle install --jobs 8"
+    - sh -c "git clone https://github.com/rammpeter/Panorama"
+    - sh -c "cd Panorama && bundle install --jobs 8"
     - gem install --no-doc brakeman
-    - sh -c "cd Panorama_Gem && brakeman -A"
+    - sh -c "cd Panorama && brakeman -A"
 
 .tests:
   script:
     - echo "running as `id`"
     - date
-    - rm -rf Panorama_Gem                                                       # Remove Artifacts of previous stage
-    - sh -c "git clone https://github.com/rammpeter/Panorama_Gem"
-    - sh -c "cd Panorama_Gem && bundle config set deployment 'true'"
-    - sh -c "cd Panorama_Gem && bundle install --jobs 8"
+    - rm -rf Panorama                                                       # Remove Artifacts of previous stage
+    - sh -c "git clone https://github.com/rammpeter/Panorama"
+    - sh -c "cd Panorama && bundle config set deployment 'true'"
+    - sh -c "cd Panorama && bundle install --jobs 8"
     # TODO: playwright here only as test
     - sh -c "npm install playwright"
-    - sh -c "cd Panorama_Gem && bundle exec rake -f lib/tasks/wait_for_db_available.rake 'ci_preparation:wait_for_db_available[10]'"
-    #- docker exec jruby sh -c "cd Panorama_Gem && export CHROME_BIN=/usr/bin/chromium-browser && export CHROME_PATH=/usr/lib/chromium/ && export DB_VERSION='11.2' && rake test"
-    #- docker exec jruby sh -c "cd Panorama_Gem && export DB_VERSION='11.2' && rake test TEST=test/system/dba_general_test.rb"
-    - sh -c "cd Panorama_Gem && bundle exec rake test"
-    #- sh -c "cd Panorama_Gem && rake test TEST=test/system/spec_additions_test.rb"
+    - sh -c "cd Panorama && bundle exec rake -f lib/tasks/wait_for_db_available.rake 'ci_preparation:wait_for_db_available[10]'"
+    #- docker exec jruby sh -c "cd Panorama && export CHROME_BIN=/usr/bin/chromium-browser && export CHROME_PATH=/usr/lib/chromium/ && export DB_VERSION='11.2' && rake test"
+    #- docker exec jruby sh -c "cd Panorama && export DB_VERSION='11.2' && rake test TEST=test/system/dba_general_test.rb"
+    - sh -c "cd Panorama && bundle exec rake test"
+    #- sh -c "cd Panorama && rake test TEST=test/system/spec_additions_test.rb"
   artifacts:
     when: always
     paths:
 #     - last_test.log
-      - Panorama_Gem/test/dummy/log/
-      - Panorama_Gem/test/dummy/tmp/screenshots/
+      - Panorama/test/dummy/log/
+      - Panorama/test/dummy/tmp/screenshots/
     expire_in: 1 month
 
 ################### test_18.4_autonomous_cloud

@@ -23,7 +23,7 @@ tar xzf actions-runner.tar.gz
 
 export RUNNER_ALLOW_RUNASROOT="1"
 if [[ ! -f configured ]]; then
-  ./config.sh --url https://github.com/rammpeter/Panorama_Gem --token $TOKEN --name panorama_gem_docker_runner_${RUNNER_SUFFIX} --unattended
+  ./config.sh --url https://github.com/rammpeter/Panorama --token $TOKEN --name panorama_docker_runner_${RUNNER_SUFFIX} --unattended
 fi
 touch configured
 ./run.sh

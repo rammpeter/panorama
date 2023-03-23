@@ -4,10 +4,10 @@
 
 # Usage:
 # increasing memory available for docker to 3GB via Docker > Preferences... > Advanced > Ram. It defaults to only 2 GB (on mac).
-# Build image:                    > docker build --no-cache -t git.osp-dd.de:5005/pramm/panorama_gem_ci/database_prebuilt_panorama_test:11.2.0.4-ee -m 3g .
-# Create container from image:    > docker run --name oracle_db_prebuilt_panorama_test_11.2.0.4-ee -p1521:1521 -d git.osp-dd.de:5005/pramm/panorama_gem_ci/database_prebuilt_panorama_test:11.2.0.4-ee
+# Build image:                    > docker build --no-cache -t git.osp-dd.de:5005/pramm/panorama_ci/database_prebuilt_panorama_test:11.2.0.4-ee -m 3g .
+# Create container from image:    > docker run --name oracle_db_prebuilt_panorama_test_11.2.0.4-ee -p1521:1521 -d git.osp-dd.de:5005/pramm/panorama_ci/database_prebuilt_panorama_test:11.2.0.4-ee
 
-FROM git.osp-dd.de:5005/pramm/panorama_gem_ci/database_prebuilt:11.2.0.4-ee
+FROM git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt:11.2.0.4-ee
 MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
 
 # Files are executed at instance startup

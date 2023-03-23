@@ -19,7 +19,7 @@ echo "Update Github command line tool"
 brew upgrade gh
 
 # Panorama-Version
-PANORAMA_VERSION=`grep "panorama_gem (" Gemfile.lock | sed 's/    panorama_gem (//' | sed 's/)//'`
+PANORAMA_VERSION=`cat lib/panorama/version.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
 echo "Panorama version = $PANORAMA_VERSION"
 
 echo "Create release"
