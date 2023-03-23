@@ -1,3 +1,4 @@
+require 'date'
 require_relative "boot"
 
 require "rails/all"
@@ -7,6 +8,14 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 module Panorama
+  # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
+  VERSION = '2.17.01'
+  RELEASE_DATE = Date.parse('2023-03-14')
+
+  RELEASE_DAY   = "%02d" % RELEASE_DATE.day
+  RELEASE_MONTH = "%02d" % RELEASE_DATE.month
+  RELEASE_YEAR  = "%04d" % RELEASE_DATE.year
+
   class Application < Rails::Application
 
     # Initialize configuration defaults for originally generated Rails version.
@@ -18,9 +27,7 @@ module Panorama
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    if defined? Panorama
-      logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
-    end
+    logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
 
     # Remove ojdbc11.jar if Panorama is running with Java < 11.x
     # otherwise errors are causewd while loading JDBC driver like

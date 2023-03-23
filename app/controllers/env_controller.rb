@@ -5,9 +5,6 @@ require 'menu_helper'
 require 'licensing_helper'
 require 'java'
 
-# version.rb not include wile using gem from http://github.com
-require "panorama/version"
-
 class EnvController < ApplicationController
    layout 'default'                                                             # layout name "application" had some drawbacks with automatic usage
 
