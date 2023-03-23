@@ -1859,7 +1859,7 @@ oradebug setorapname diag
                                     AND    c.Trace_FileName = ?
                                     AND    c.Con_ID         = ?
                                    ",  @time_selection_start, @time_selection_end, @instance, @adr_home, @trace_filename, @con_id]
-    if @counts.lines_in_period > @max_trace_file_lines_to_show
+    if @counts.lines_in_period&.> @max_trace_file_lines_to_show
       add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@counts.lines_in_period)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
     end
 
