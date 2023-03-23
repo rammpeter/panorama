@@ -25,6 +25,7 @@ FROM   (
         FROM   DBA_Hist_Active_Sess_History
         WHERE  Sample_Time > SYSDATE - ?
         AND    SQL_Exec_ID IS NOT NULL
+        AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
         GROUP BY User_ID,
                  NVL(QC_Instance_ID,     Instance_Number),
                  NVL(QC_Session_ID,      Session_ID),

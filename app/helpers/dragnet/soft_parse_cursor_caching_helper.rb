@@ -100,6 +100,7 @@ FROM   (SELECT s.DBID, s.Instance_Number, s.SQL_ID, h.Samples, h.Max_ASH_User_ID
                         WHERE  SQL_ID IS NOT NULL
                         AND    ss.Begin_Interval_Time > SYSDATE - ?
                         AND    Program = 'JDBC Thin Client'
+                        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                         GROUP BY h.DBID, h.Instance_Number, SQL_ID, User_ID, Module, Action, Machine, Service_Hash
                        )
                 GROUP BY DBID, Instance_Number, SQL_ID

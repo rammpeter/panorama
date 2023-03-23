@@ -391,6 +391,7 @@ Usable with Oracle 11g and above only.'),
                                     FROM   DBA_Hist_Active_Sess_History h
                                     WHERE  SQL_Plan_Line_ID IS NOT NULL
                                     AND    Sample_Time > SYSDATE - ?
+                                    AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                     GROUP BY DBID, Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                    ) h ON h.DBID = p.DBID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
                             LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name

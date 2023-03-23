@@ -21,6 +21,7 @@ Units for time consideration are defined by date format picture of TRUNC-functio
                WHERE  Sample_Time > SYSDATE-?
                AND    Instance_Number = ?
                AND    NVL(Event, 'Hugo') NOT IN ('PX Deq Credit: send blkd')
+               AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                GROUP BY TRUNC(Sample_Time, picture), Module
               )
            SELECT Module,
@@ -215,6 +216,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                               FROM   DBA_Hist_Active_Sess_History s
                               WHERE  XID IS NOT NULL
                               AND    Sample_Time > SYSDATE-?
+                              AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                               GROUP BY XID, NVL(Event, Session_State)
                              )
                       GROUP BY XID

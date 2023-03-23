@@ -169,9 +169,9 @@ WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(
                               FROM gv$Active_Session_History
                               GROUP BY Inst_ID
                              ) mh ON mh.Inst_ID = h.Instance_Number
-                      WHERE  h.SQL_Plan_Operation = 'INDEX'
-                      AND    h.Sample_Time > SYSDATE -?
+                      WHERE  h.Sample_Time > SYSDATE -?
                       AND    h.Sample_Time < mh.Min_Sample_Time
+                      AND    h.DBID = #{get_dbid}
                       GROUP BY Current_Obj#
                       UNION ALL
                       SELECT /*+ NO_MERGE */ Current_Obj#, COUNT(*) Seconds_In_Wait

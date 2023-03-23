@@ -32,6 +32,7 @@ Using force-matching-signature instead of plan-hash-value for detection is risky
                                       FROM   DBA_Hist_Active_Sess_History
                                       CROSS JOIN Ret
                                       WHERE  Sample_Time > SYSDATE-Ret.Days
+                                      AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                      ) h
                               LEFT OUTER JOIN (SELECT Inst_ID Instance_Number, SQL_Plan_Hash_Value, MIN(Sample_Time) Min_Sample_Time   /* limit Values in AWR-table from SGA*/
                                                FROM   gv$Active_Session_History

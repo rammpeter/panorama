@@ -50,6 +50,7 @@ FROM   (SELECT Start_Sample, MIN(Min_Sessions) Min_active_PQ_Sessions, MAX(Max_S
                                 WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                                 AND    DBID = (SELECT DBID FROM v$Database) /* Suppress multiple occurrence of records in PDB environment */
                                 AND    QC_SESSION_ID IS NOT NULL
+                                AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                 UNION ALL
                                 SELECT Inst_ID Instance_Number, Sample_Time, SQL_ID, User_ID
                                 FROM gv$Active_Session_History

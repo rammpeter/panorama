@@ -277,6 +277,7 @@ Overallocation of PQ servers may result in serial processing og other SQLs estim
                               FROM dba_hist_active_sess_history
                               WHERE  QC_Session_ID IS NOT NULL
                               AND    Sample_Time > SYSDATE - ?
+                              AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                               GROUP BY Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#, Sample_ID, SQL_ID
                               HAVING count(*) > ?
                              ) g
@@ -370,6 +371,7 @@ FROM   (
         AND    SQL_Plan_Options = 'BUFFERED'
         AND    h.Sample_ID < m.Min_Sample_ID
         AND    h.Sample_Time > SYSDATE - ?
+        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
         GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
         UNION ALL
         SELECT h.Inst_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID,

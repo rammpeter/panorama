@@ -107,7 +107,7 @@ Solution for such situations is global (not) partitioning of index.'),
                                     WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                                     AND    s.Sample_Time > (SELECT Limit FROM Days_Back)
                                     AND    s.Snap_ID > (SELECT Min_Snap_ID FROM Min_Snap)
-                                    AND    s.DBID = (SELECT DBID FROM v$Database)
+                                    AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                     UNION ALL
                                     SELECT 1 Sample_Cycle, Inst_ID Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                     FROM   gv$Active_Session_History
@@ -195,7 +195,7 @@ FROM   (
                        10 Wait_Time_Sec, Sample_Time, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, SQL_Child_Number, SQL_Plan_Operation, SQL_Plan_Options, User_ID, Current_Obj#
                 FROM   DBA_Hist_Active_Sess_History s
                 WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
-                AND    DBID = (SELECT DBID FROM v$Database) /* Suppress multiple occurrence of records in PDB environment */
+                AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                 UNION ALL
                 SELECT 1 Wait_Time_Sec,  Sample_Time, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, SQL_Child_Number, SQL_Plan_Operation, SQL_Plan_Options, User_ID, Current_Obj#
                 FROM gv$Active_Session_History
@@ -264,6 +264,7 @@ FROM   (
                 FROM   DBA_Hist_Active_Sess_History
                 WHERE  Sample_Time > SYSDATE - ?
                 AND    SQL_Plan_Line_ID IS NOT NULL
+                AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                 GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                 HAVING COUNT(*) * 10 > ?  /* * 10 seconds */
                ) h ON h.SQL_ID = p.SQL_ID AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID = p.ID

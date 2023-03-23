@@ -204,6 +204,7 @@ JOIN   (SELECT h.*, SUM(Seconds) OVER (PARTITION BY SQL_ID, UserName, SQL_Plan_H
                 JOIN   All_Users u ON u.User_ID = h.User_ID
                 WHERE  ss.Begin_Interval_Time > SYSDATE - ?
                 AND    u.UserName NOT IN (#{system_schema_subselect})
+                AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                 GROUP BY h.SQL_ID, u.UserName, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
                ) h
         WHERE  h.Seconds > ?
@@ -301,6 +302,7 @@ Results are from DBA_Hist_SQL_Plan'),
                                        CROSS JOIN min_Time
                                        WHERE  ss.Begin_Interval_Time > min_time.min_time
                                        AND    u.UserName NOT IN (#{system_schema_subselect})
+                                       AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                        GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
                                      ) h ON h.Instance_Number = ps.Instance_Number AND h.SQL_ID = ps.SQL_ID AND h.SQL_Plan_Hash_Value = ps.Plan_Hash_Value AND h.SQL_Plan_Line_ID = ps.Cartesian_Line_ID
 

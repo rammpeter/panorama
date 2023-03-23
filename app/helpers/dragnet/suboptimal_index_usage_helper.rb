@@ -86,6 +86,7 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
                               FROM   DBA_Hist_Active_Sess_History
                               WHERE  Sample_Time > SYSDATE - ?
                               AND    SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID'
+                              AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                               GROUP BY DBID, Instance_Number, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                               HAVING COUNT(*) > ?
                              ) ash ON ash.DBID=ta.DBID AND ash.SQL_ID=ta.SQL_ID AND ash.SQL_Plan_Hash_Value=ta.Plan_Hash_Value AND ash.SQL_Plan_Line_ID=ta.ID

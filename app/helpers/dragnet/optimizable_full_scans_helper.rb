@@ -98,6 +98,7 @@ FROM   (
                                   AND    h.SQL_Plan_Options LIKE '%FULL'  /* also include Exadata variants */
                                   AND    h.User_ID NOT IN (#{system_userid_subselect})
                                   AND    h.Current_Obj# != -1
+                                  AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                   GROUP BY h.DBID, h.SQL_ID, h.Current_Obj#
                                  ) h
                           JOIN   DBA_Objects o ON o.Object_ID = h.Current_Obj#
@@ -135,6 +136,7 @@ FROM   (SELECT /*+ NO_MERGE */ ss.DBID, ss.Instance_Number, h.User_ID, h.SQL_ID,
         AND    h.SQL_Plan_Operation = 'TABLE ACCESS'
         AND    h.SQL_Plan_Options LIKE '%FULL'  /* also include Exadata variants */
         AND    h.User_ID NOT IN (#{system_userid_subselect})
+        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
         GROUP BY ss.DBID, ss.Instance_Number, h.User_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
        ) h
 JOIN   DBA_Hist_SQL_Plan p ON p.DBID = h.DBID AND p.SQL_ID = h.SQL_ID AND p.Plan_Hash_Value = h.SQL_Plan_Hash_Value AND p.ID = h.SQL_Plan_Line_ID
