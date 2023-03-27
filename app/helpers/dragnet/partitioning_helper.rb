@@ -107,7 +107,7 @@ Solution for such situations is global (not) partitioning of index.'),
                                     WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                                     AND    s.Sample_Time > (SELECT Limit FROM Days_Back)
                                     AND    s.Snap_ID > (SELECT Min_Snap_ID FROM Min_Snap)
-                                    AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                                    AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                     UNION ALL
                                     SELECT 1 Sample_Cycle, Inst_ID Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                     FROM   gv$Active_Session_History
