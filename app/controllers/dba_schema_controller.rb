@@ -1097,6 +1097,10 @@ class DbaSchemaController < ApplicationController
                                      WHERE  Owner = ? AND Table_Name = ?
                                      AND    Constraint_Type = 'R'
                                     ),
+                 Ref_Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Constraint_Name, cc.Column_Name, cc.Position
+                                      FROM   Cons_Columns cc
+                                      JOIN   Ref_Constraints c ON c.Constraint_Name = cc.Constraint_Name
+                                     ),
                  ObjectUsage AS (#{if get_db_version >= '12.1'
                                       "SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Start_Monitoring, End_Monitoring, Monitoring, Used
                                        FROM   DBA_Object_Usage
@@ -1120,7 +1124,7 @@ class DbaSchemaController < ApplicationController
                         TO_DATE(ou.start_monitoring, 'MM/DD/YYYY HH24:MI:SS') Start_Monitoring,
                         TO_DATE(ou.end_monitoring,   'MM/DD/YYYY HH24:MI:SS') End_Monitoring,
                         do.Created, do.Last_DDL_Time, TO_DATE(do.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS,
-                        CASE WHEN c.Constraint_Exists IS NOT NULL THEN 'Y' END Used_For_FK,
+                        c.Ref_Constraints_Cnt,
                         CASE WHEN i.Index_Type = 'IOT - TOP' THEN
                           (SELECT SUM(Avg_Col_Len) FROM Tab_Columns)
                         ELSE
@@ -1156,12 +1160,16 @@ class DbaSchemaController < ApplicationController
                                   JOIN Tab_Columns tc ON tc.Column_Name = ic.Column_Name
                                   GROUP BY Index_Owner, Index_Name
                                  ) col_len ON col_len.Index_Owner = i.Owner AND col_len.Index_Name = i.Index_Name
-                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ii.Index_Name, MIN(c.Constraint_Name) Constraint_Exists
-                                  FROM   Indexes ii
-                                  LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = ii.Owner AND ic.Index_Name = ii.Index_Name AND ic.Column_Position = 1 /* Columns for test of FK */
-                                  LEFT OUTER JOIN Cons_Columns cc ON cc.Column_Name = ic.Column_Name AND cc.Position = 1 /* First columns of constraint */
-                                  LEFT OUTER JOIN Ref_Constraints c ON c.Constraint_Name = cc.Constraint_Name
-                                  GROUP BY ii.Index_Name
+                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Index_Name, COUNT(*) Ref_Constraints_Cnt
+                                  FROM   (SELECT ii.Index_Name, cc.Constraint_Name
+                                          FROM   Indexes ii
+                                          CROSS JOIN Ref_Cons_Columns cc /* Check colums of ref. constraints for each index */
+                                          LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = ii.Owner AND ic.Index_Name = ii.Index_Name AND ic.Column_Name = cc.Column_Name /* Column position does not matter for FK-constraints */
+                                          GROUP BY ii.Index_Name, cc.Constraint_Name
+                                          HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* Columns of an index starting left are matching all columns of an constraint */
+                                          AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                         )
+                                  GROUP BY Index_Name
                                  ) c ON c.Index_Name = i.Index_Name
                  LEFT OUTER JOIN ObjectUsage ou ON ou.Owner = i.Owner AND ou.Index_Name = i.Index_Name
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ii.Index_Name, COUNT(*) Partition_Number,
@@ -1391,18 +1399,21 @@ class DbaSchemaController < ApplicationController
 
     if @index_owner && @index_name
       where_string << "AND c.Constraint_Name IN (SELECT cc.Constraint_Name
-                                                 FROM   DBA_Ind_Columns ic
-                                                 JOIN   DBA_Cons_Columns cc ON cc.Owner = ic.Table_Owner AND cc.Table_Name = ic.Table_Name AND cc.Column_Name = ic.Column_Name AND cc.Position = 1 AND ic.Column_Position = 1
-                                                 WHERE  ic.Index_Owner = ?
-                                                 AND    ic.Index_Name  = ?
+                                                 FROM   Cons_Columns cc /*+ Constraint_Type 'R' is filtered by outer SQL on c.Constraint_Name */
+                                                 LEFT OUTER JOIN Ind_Columns ic ON ic.Column_Name = cc.Column_Name AND ic.Index_Owner = ? AND ic.Index_Name  = ?
+                                                 GROUP BY cc.Constraint_Name
+                                                 HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
+                                                 AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                                 )"
       where_values << @index_owner
       where_values << @index_name
+      where_values << @owner
+      where_values << @table_name
     end
 
     @references = sql_select_all ["\
       WITH Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, Column_Name, Position FROM DBA_Cons_Columns WHERE Owner = ? AND Table_Name = ?),
-           Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Table_Owner, Table_Name, Column_Name FROM DBA_Ind_Columns WHERE Table_Owner = ? AND Table_Name = ?)
+           Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Table_Owner, Table_Name, Column_Name, Column_Position FROM DBA_Ind_Columns WHERE Table_Owner = ? AND Table_Name = ?)
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows, pi.Min_Index_Owner, pi.Min_Index_Name, pi.Index_Number, rt.Last_Analyzed, m.Inserts, m.Updates, m.Deletes,
              #{get_db_version >= "11.2" ?
                                       "(SELECT LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns,

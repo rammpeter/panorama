@@ -149,17 +149,19 @@
    end
 
   link_fk = proc do |rec|
-    ajax_link(rec.used_for_fk,
-               {:controller    => :dba_schema,
-                :action        => :list_references_from,
-                :owner         => @owner,
-                :table_name    => @table_name,
-                index_owner:  rec.owner,
-                index_name:   rec.index_name,
-                :update_area   => @update_area,
-               },
-               :title=>"Show details of foreign key constraints that may be protected by this index"
-   )
+    if rec.ref_constraints_cnt&.> 0
+      ajax_link(fn(rec.ref_constraints_cnt),
+                {:controller    => :dba_schema,
+                 :action        => :list_references_from,
+                 :owner         => @owner,
+                 :table_name    => @table_name,
+                 index_owner:  rec.owner,
+                 index_name:   rec.index_name,
+                 :update_area   => @update_area,
+                },
+                :title=>"Show details of foreign key constraints that are protected by this index"
+      )
+    end
   end
 
    list_rac_master = proc do |rec|
@@ -299,7 +301,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
                    {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},                  :title=> 'Timestamp of last DDL operation on index'},
                    { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},                         title: "Timestamp for the last specification change of the index" },
                    {:caption=> 'Last analyzed',    data: link_last_analyzed,                                              :title=> 'The date of the most recent time this table was analyzed'},
-                   {:caption=> 'FK',               data: link_fk,                                                         title: 'Is index used for protection of foreign key constraints?' },
+                   {:caption=> 'FK',               data: link_fk,                                                         title: 'Number of protected foreign key constraints if this index is used for protection of foreign key constraints?', align: :right },
                    {:caption=> 'Use',              data: link_used,                                                       :title=> 'Usage of index detected? From sys.Object_Usage', data_title: data_title_use, data_style: proc{|rec| 'background-color:coral;' if rec.used=='NO'} },
                    {:caption=> 'Several States',   :data=>list_states,                                                    :title=> title_states},
                    {:caption=> 'Action',           :data=>render_action_buttons,                                          :title=> 'Call action for this index'},
