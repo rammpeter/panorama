@@ -270,8 +270,23 @@ If none of the four reasons really requires the existence, the index can be remo
                             AND    decode(bitand(i.flags, 65536), 0, 'NO', 'YES') = 'YES'
     "
               end
-}                           )
-                    SELECT /*+ NOPARALLEL USE_HASH(u i t ic icg cc uc c seg pec) OPT_PARAM('_bloom_filter_enabled' 'false') */ u.Owner, u.Table_Name, u.Index_Name,
+}                           ),
+                    Protected_FKs AS (SELECT /*+ NO_MERGE MATERIALIZE LEADING(fk c rc rt m) USE_HASH(fk c rc rt m) */ fk.Index_Owner, fk.Index_Name, fk.Constraint_Owner, fk.Constraint_Name,
+                                             rc.Owner r_Owner, rt.Table_Name r_Table_Name, rt.Num_rows r_Num_rows, rt.Last_Analyzed r_Last_analyzed, m.Inserts, m.Updates, m.Deletes
+                                      FROM   (SELECT /*+ NO_MERGE */ i.Owner Index_Owner, i.Index_Name, cc.Owner Constraint_Owner, cc.Constraint_Name
+                                              FROM   Indexes i
+                                              JOIN   Cons_Columns cc ON cc.Owner = i.Table_Owner AND cc.Table_Name = i.Table_Name
+                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name AND ic.Column_Name = cc.Column_Name
+                                              GROUP BY i.Owner, i.Index_Name, cc.Owner, cc.Constraint_Name
+                                              HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
+                                              AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                             ) fk
+                                      JOIN   Constraints c     ON c.Owner = fk.Constraint_Owner AND c.Constraint_Name = fk.Constraint_Name AND c.Constraint_Type = 'R'
+                                      JOIN   Constraints rc    ON rc.Owner = c.R_Owner AND rc.Constraint_Name = c.R_Constraint_Name
+                                      JOIN   Tables rt         ON rt.Owner = rc.Owner AND rt.Table_Name = rc.Table_Name
+                                      LEFT OUTER JOIN Tab_Modifications m ON m.Table_Owner = rc.Owner AND m.Table_Name = rc.Table_Name
+                                     )
+                    SELECT /*+ NOPARALLEL USE_HASH(u i t ic icg fk uc c seg pec) OPT_PARAM('_bloom_filter_enabled' 'false') */ u.Owner, u.Table_Name, u.Index_Name,
                            icg.Columns                                                                \"Index Columns\",
                            u.\"Start monitoring\",
                            ROUND(NVL(u.\"End monitoring\", SYSDATE)-u.\"Start monitoring\", 1) \"Days without usage\",
@@ -280,13 +295,13 @@ If none of the four reasons really requires the existence, the index can be remo
                            i.Compression||CASE WHEN i.Compression = 'ENABLED' THEN ' ('||i.Prefix_Length||')' END Compression,
                            seg.MBytes,
                            i.Uniqueness||CASE WHEN i.Uniqueness != 'UNIQUE' AND uc.Constraint_Name IS NOT NULL THEN ' enforcing '||uc.Constraint_Name END Uniqueness,
-                           cc.Constraint_Name                                                         \"Foreign key protection\",
-                           CASE WHEN cc.r_Table_Name IS NOT NULL THEN LOWER(cc.r_Owner)||'. '||cc.r_Table_Name END  \"Referenced table\",
-                           cc.r_Num_Rows                                                              \"Num rows of referenced table\",
-                           cc.r_Last_analyzed                                                         \"Last analyze referenced table\",
-                           cc.Inserts                                                                 \"Inserts on ref. since anal.\",
-                           cc.Updates                                                                 \"Updates on ref. since anal.\",
-                           cc.Deletes                                                                 \"Deletes on ref. since anal.\",
+                           fk.Constraint_Name                                                         \"Foreign key protection\",
+                           CASE WHEN fk.r_Table_Name IS NOT NULL THEN LOWER(fk.r_Owner)||'. '||fk.r_Table_Name END  \"Referenced table\",
+                           fk.r_Num_Rows                                                              \"Num rows of referenced table\",
+                           fk.r_Last_analyzed                                                         \"Last analyze referenced table\",
+                           fk.Inserts                                                                 \"Inserts on ref. since anal.\",
+                           fk.Updates                                                                 \"Updates on ref. since anal.\",
+                           fk.Deletes                                                                 \"Deletes on ref. since anal.\",
                            CASE WHEN pec.Table_Name IS NOT NULL THEN 'Y' END                          \"Partition exchange possible\",
                            seg.Tablespace_Name                                                        \"Tablespace\",
                            u.\"End monitoring\",
@@ -295,17 +310,9 @@ If none of the four reasons really requires the existence, the index can be remo
                     FROM   I_Object_Usage u
                     JOIN Indexes i                        ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
                     JOIN Tables t                         ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
-                    LEFT OUTER JOIN Ind_Columns ic        ON ic.Index_Owner = u.Owner AND ic.Index_Name = u.Index_Name AND ic.Column_Position = 1
                     LEFT OUTER JOIN Ind_Columns_Group icg ON icg.Index_Owner = u.Owner AND icg.Index_Name = u.Index_Name
                     /* Indexes used for protection of FOREIGN KEY constraints */
-                    LEFT OUTER JOIN (SELECT /*+ NO_MERGE ORDERED USE_HASH(cc c rc rt m) */ cc.Owner, cc.Table_Name, cc.Column_name, c.Constraint_Name, rc.Owner r_Owner, rt.Table_Name r_Table_Name, rt.Num_rows r_Num_rows, rt.Last_Analyzed r_Last_analyzed, m.Inserts, m.Updates, m.Deletes
-                                     FROM   Cons_Columns cc
-                                     JOIN   Constraints c     ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Constraint_Type = 'R'
-                                     JOIN   Constraints rc    ON rc.Owner = c.R_Owner AND rc.Constraint_Name = c.R_Constraint_Name
-                                     JOIN   Tables rt     ON rt.Owner = rc.Owner AND rt.Table_Name = rc.Table_Name
-                                     LEFT OUTER JOIN Tab_Modifications m ON m.Table_Owner = rc.Owner AND m.Table_Name = rc.Table_Name
-                                     WHERE  cc.Position = 1
-                                    ) cc ON cc.Owner = ic.Table_Owner AND cc.Table_Name = ic.Table_Name AND cc.Column_Name = ic.Column_Name
+                    LEFT OUTER JOIN Protected_FKs fk      ON fk.Index_Owner = i.Owner AND fk.Index_Name = i.Index_Name
                     /* Indexes used for enforcement of UNIQUE or PRIMARY KEY constraints */
                     LEFT OUTER JOIN (SELECT /*+ NO_MERGE USE_HASH(cc c ic) */ ic.Index_Owner, ic.Index_Name, c.Constraint_Name
                                      FROM   Cons_Columns cc
@@ -323,9 +330,9 @@ If none of the four reasons really requires the existence, the index can be remo
                          ) seg ON seg.Owner = u.Owner AND seg.Segment_Name = u.Index_Name
                     LEFT OUTER JOIN PE_Candidates pec ON pec.Owner = i.Table_Owner AND pec.Table_Name = i.Table_Name
                     CROSS JOIN (SELECT ? value FROM DUAL) Max_DML
-                    WHERE (cc.r_Num_Rows IS NULL OR cc.r_Num_Rows < ?)
+                    WHERE (fk.r_Num_Rows IS NULL OR fk.r_Num_Rows < ?)
                     AND   (? = 'YES' OR i.Uniqueness != 'UNIQUE')
-                    AND   (Max_DML.Value IS NULL OR NVL(cc.Inserts + cc.Updates + cc.Deletes, 0) < Max_DML.Value)
+                    AND   (Max_DML.Value IS NULL OR NVL(fk.Inserts + fk.Updates + fk.Deletes, 0) < Max_DML.Value)
                     ORDER BY seg.MBytes DESC NULLS LAST
                    ",
           :parameter=>[{:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_9_param_3_hint, :default=>'List only indexes for this schema (optional)')},

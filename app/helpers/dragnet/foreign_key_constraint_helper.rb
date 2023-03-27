@@ -18,23 +18,22 @@ module Dragnet::ForeignKeyConstraintHelper
                                          FROM   DBA_Cons_Columns
                                          WHERE  Owner NOT IN (#{system_schema_subselect})
                                         ),
-                         Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Index_Owner, Index_Name, Column_Name
+                         Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name
+                                     FROM   DBA_Indexes
+                                     WHERE  Owner NOT IN (#{system_schema_subselect})
+                                    ),
+                         Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Index_Owner, Index_Name, Column_Name, Column_Position
                                          FROM   DBA_Ind_Columns
                                          WHERE  Index_Owner NOT IN (#{system_schema_subselect})
                                         ),
-                         Protected_Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name
-                                                   FROM   (
-                                                           SELECT Owner, Constraint_Name, Index_Owner, Index_Name
-                                                           FROM   (SELECT cc.Owner, cc.Table_Name, cc.Constraint_Name, ic.Index_Owner, ic.Index_Name, ic.Column_Name Index_Column_Name,
-                                                                          COUNT(DISTINCT cc.Column_Name) OVER (PARTITION BY cc.Owner, cc.Table_Name, cc.Constraint_Name) Cons_Column_Count
-                                                                   FROM   Cons_Columns cc
-                                                                   LEFT OUTER JOIN Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_name = cc.Column_Name
-                                                                   )
-                                                           GROUP BY Owner, Constraint_Name, Index_Owner, Index_Name
-                                                           HAVING MIN(Cons_Column_Count) = COUNT(DISTINCT Index_Column_Name) /* All FK columns must exist in protecting index, no matter in which order */
-                                                          )
-                                                   GROUP BY Owner, Constraint_Name
-                                                  )
+                         Protected_Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Owner, cc.Constraint_Name
+                                              FROM   Indexes i
+                                              JOIN   Cons_Columns cc ON cc.Owner = i.Table_Owner AND cc.Table_Name = i.Table_Name
+                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name AND ic.Column_Name = cc.Column_Name
+                                              GROUP BY i.Owner, i.Index_Name, cc.Owner, cc.Constraint_Name
+                                              HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
+                                              AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                             )
                     SELECT /* DB-Tools Ramm  Index fehlt fuer Foreign Key*/
                            LOWER(Ref.Owner)||'.'||Ref.Table_Name Table_name,
                            reft.Num_Rows,
