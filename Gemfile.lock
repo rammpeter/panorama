@@ -85,7 +85,7 @@ GEM
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.19.1)
+    loofah (2.20.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.8.1)
@@ -109,7 +109,7 @@ GEM
       timeout
     net-smtp (0.3.3)
       net-protocol
-    nio4r (2.5.8-java)
+    nio4r (2.5.9-java)
     nokogiri (1.14.2-java)
       racc (~> 1.4)
     playwright-ruby-client (1.31.1)
@@ -176,7 +176,7 @@ GEM
     timeout (0.3.2)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    tzinfo-data (1.2022.7)
+    tzinfo-data (1.2023.3)
       tzinfo (>= 1.0.0)
     web-console (4.2.0)
       actionview (>= 6.0.0)
@@ -220,4 +220,4 @@ RUBY VERSION
    ruby 3.1.0p0 (jruby 9.4.2.0)
 
 BUNDLED WITH
-   2.4.9
+   2.4.10
