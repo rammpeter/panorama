@@ -21,10 +21,12 @@ gem 'activejob', rails_version
 gem 'activesupport', rails_version
 gem 'railties', rails_version
 
+# to avoid "no such file to load -- sprockets/railtie" or "NoMethodError: undefined method `assets' for #<Rails::Application::Configuration"
+# if sass-rails is moved to group :development
+gem 'sprockets-rails'
+
 # Use Puma as the app server
 gem 'puma', '~> 5.0'
-# Use SCSS for stylesheets
-gem 'sass-rails', '>= 6'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.7'
 # Use Active Model has_secure_password
@@ -61,6 +63,8 @@ group :development do
   # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
   gem 'rack-mini-profiler', '~> 2.0'
   gem 'listen', '~> 3.3'
+  # Use SCSS for stylesheets
+  gem 'sass-rails', '>= 6'
 
   # Needed to build warfile
   gem 'jruby-jars'

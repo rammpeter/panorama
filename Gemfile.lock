@@ -110,9 +110,9 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.9-java)
-    nokogiri (1.14.2-java)
+    nokogiri (1.14.3-java)
       racc (~> 1.4)
-    playwright-ruby-client (1.31.1)
+    playwright-ruby-client (1.32.0)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
     puma (5.6.5-java)
@@ -213,6 +213,7 @@ DEPENDENCIES
   rails (= 6.1.7.3)
   railties (= 6.1.7.3)
   sass-rails (>= 6)
+  sprockets-rails
   tzinfo-data
   web-console (>= 4.1.0)
 
@@ -220,4 +221,4 @@ RUBY VERSION
    ruby 3.1.0p0 (jruby 9.4.2.0)
 
 BUNDLED WITH
-   2.4.10
+   2.4.12

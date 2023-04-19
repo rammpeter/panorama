@@ -549,11 +549,11 @@ module ApplicationHelper
 
 
   # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht
-  # options support:
+  # @param [Symbol] partial_name Name of partial file (beginning with _)
+  # @param [Hash] options
   #    :additional_javascript_string  = js-text
   #    :hide_status_bar               = true
   #    :controller                    = controller for partial
-
   def render_partial(partial_name = nil, options = {})
     raise "render_partial: options should of class Hash, not #{options.class}" unless options.class == Hash
 
