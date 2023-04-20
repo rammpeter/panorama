@@ -15,9 +15,6 @@ Jarbler::Config.new do |config|
   # vendor/assets is not needed because duplicate in public
   config.excludes << 'vendor'
 
-  # The network port used by the application
-  config.port = 8080
-
   # jRuby version to use if not the latest or the version from .ruby-version is used
   # config.jruby_version = '9.2.3.0'
   # config.jruby_version = ''
