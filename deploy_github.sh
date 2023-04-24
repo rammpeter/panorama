@@ -23,7 +23,7 @@ PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 
 echo "Panorama version = $PANORAMA_VERSION"
 
 echo "Create release"
-gh release create v$PANORAMA_VERSION './Panorama.war#Panorama.war: Download and start with "java -jar Panorama.war"' --notes "Continuous development" --title "Release $PANORAMA_VERSION"
+gh release create v$PANORAMA_VERSION './Panorama.jar#Panorama.jar: Download and start with "java -jar Panorama.jar"' --notes "Continuous development" --title "Release $PANORAMA_VERSION"
 if [ $? -eq 0 ]; then
   echo "Release created"
 else

@@ -1,3 +1,4 @@
+# Deprecated in favor of build_jar.sh
 if [ "$1" != "without_clean_cache" ]
 then
   echo "Clean Cache"
