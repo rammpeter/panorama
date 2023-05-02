@@ -76,6 +76,7 @@ GEM
       activesupport (>= 5.0)
     i18n (1.13.0)
       concurrent-ruby (~> 1.0)
+    jarbler (0.1.4)
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
@@ -201,6 +202,7 @@ DEPENDENCIES
   activerecord-oracle_enhanced-adapter
   activesupport (= 6.1.7.3)
   i18n
+  jarbler
   jbuilder (~> 2.7)
   jwt
   listen (~> 3.3)

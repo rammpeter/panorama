@@ -69,6 +69,9 @@ group :development do
   # Use SCSS for stylesheets
   gem 'sass-rails', '>= 6'
 
+  gem 'jarbler'
+  gem 'brakeman'
+
   # Needed to build warfile
   # gem 'jruby-jars'
   # gem 'jruby-rack'
