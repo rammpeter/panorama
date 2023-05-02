@@ -56,6 +56,9 @@ gem 'i18n'
 # Use Json Web Token (JWT) for token based authentication
 gem 'jwt'
 
+# Used for XMl processing in bequeathed packages
+gem 'rexml'
+
 group :development do
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
   gem 'web-console', '>= 4.1.0'
@@ -67,8 +70,8 @@ group :development do
   gem 'sass-rails', '>= 6'
 
   # Needed to build warfile
-  gem 'jruby-jars'
-  gem 'jruby-rack'
+  # gem 'jruby-jars'
+  # gem 'jruby-rack'
 end
 
 group :test do

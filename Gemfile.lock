@@ -74,13 +74,11 @@ GEM
     ffi (1.15.5-java)
     globalid (1.1.0)
       activesupport (>= 5.0)
-    i18n (1.12.0)
+    i18n (1.13.0)
       concurrent-ruby (~> 1.0)
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    jruby-jars (9.4.2.0)
-    jruby-rack (1.1.22)
     jwt (2.7.0)
     listen (3.8.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -112,13 +110,13 @@ GEM
     nio4r (2.5.9-java)
     nokogiri (1.14.3-java)
       racc (~> 1.4)
-    playwright-ruby-client (1.32.0)
+    playwright-ruby-client (1.33.0)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
     puma (5.6.5-java)
       nio4r (~> 2.0)
     racc (1.6.2-java)
-    rack (2.2.6.4)
+    rack (2.2.7)
     rack-mini-profiler (2.3.4)
       rack (>= 1.2.0)
     rack-test (2.1.0)
@@ -153,6 +151,7 @@ GEM
     rb-fsevent (0.11.2)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
+    rexml (3.2.5)
     ruby-plsql (0.8.0)
     sass-rails (6.0.0)
       sassc-rails (~> 2.1, >= 2.1.1)
@@ -186,7 +185,7 @@ GEM
     websocket-driver (0.7.5-java)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    zeitwerk (2.6.7)
+    zeitwerk (2.6.8)
 
 PLATFORMS
   universal-java-19
@@ -203,8 +202,6 @@ DEPENDENCIES
   activesupport (= 6.1.7.3)
   i18n
   jbuilder (~> 2.7)
-  jruby-jars
-  jruby-rack
   jwt
   listen (~> 3.3)
   playwright-ruby-client
@@ -212,6 +209,7 @@ DEPENDENCIES
   rack-mini-profiler (~> 2.0)
   rails (= 6.1.7.3)
   railties (= 6.1.7.3)
+  rexml
   sass-rails (>= 6)
   sprockets-rails
   tzinfo-data
