@@ -1,6 +1,29 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "0ebd803acaa87d4613b1a3ead7c20393fad539f8ec39e45ea8dda2f20c9b908c",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/jdbc_connection.rb",
+      "line": 180,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"alter session set current_schema = #{(config[:schema] and config[:schema].to_s)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection",
+        "method": "new_connection"
+      },
+      "user_input": "config[:schema] and config[:schema].to_s",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
       "fingerprint": "20d35bc0e03a59a9b21d4f5181db4e54cd35f1619b6de472880dc3aba187fbbd",
@@ -18,7 +41,263 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
       "note": "Uses params for redirect only"
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "25a57a93cc20bb5afb510f96e88c9a2333fe4979c4373645bd4e081bde169191",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/digest_md5.rb",
+      "line": 59,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest(((\"AUTHENTICATE:\" + (\"imap/\" + sparams[\"realm\"])) << \":00000000000000000000000000000000\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::DigestMD5Authenticator",
+        "method": "process"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2c2a167de8dc97bd555407a92171b32d5574fff6d8ea7848969572dad726b86a",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-6.1.7.3/lib/active_record/delegated_type.rb",
+      "line": 193,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{role}_type\" => type)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::DelegatedType",
+        "method": "define_delegated_type_methods"
+      },
+      "user_input": "role",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "2c4cbbed1b88cc69315375775cf4ec7662743aadd07240de6faa6e15baa1526a",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/ruby-plsql-0.8.0/lib/plsql/connection.rb",
+      "line": 216,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"TRUNCATE TABLE #{row[0]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PLSQL::Connection",
+        "method": "drop_all_ruby_temporary_tables"
+      },
+      "user_input": "row[0]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "2c8020645bbc94f088b78a2e8c7a60f57861aff0f2e34f4e35b97ab98c820538",
+      "check_name": "MassAssignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
+      "file": "app/controllers/dba_sga_controller.rb",
+      "line": 605,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DbaSgaController",
+        "method": "list_sql_detail_sql_id_or_history"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2d6787621cb429d8951fe3e49c4a9dc1ec50a8c1e6ba2f0dd7bf7e2249e994b8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/nokogiri-1.14.3-java/lib/nokogiri/xml/pp/node.rb",
+      "line": 24,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "pp.group(2, \"#(#{self.class.name.split(\"::\").last}:#{format(\"0x%x\", object_id)} {\", \"})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Nokogiri::XML::PP::Node",
+        "method": "pretty_print"
+      },
+      "user_input": "self.class.name.split(\"::\").last",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "2f1473a18b2237adee44ab7dc1ee2803eef4d7492f2063860e44ee69f90e312c",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/jdbc_connection.rb",
+      "line": 159,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"alter session set cursor_sharing = #{(config[:cursor_sharing] or \"force\")}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection",
+        "method": "new_connection"
+      },
+      "user_input": "config[:cursor_sharing]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "318a53740331a77994206cfefd7c5c8a88fc4d95949044c392e3ae14b3edce06",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/mail-2.8.1/lib/mail/network/delivery_methods/sendmail.rb",
+      "line": 106,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "popen(\"#{settings[:location]} #{\"#{settings[:arguments]} #{\"-f #{shellquote(envelope.from)}\"} --\"} #{destinations_for(envelope).map do\n shellquote(to)\n end.join(\" \")}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Mail::Sendmail",
+        "method": "old_deliver"
+      },
+      "user_input": "settings[:location]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "349a58cae5240fd70ddbf038325bca83eecf099ce91251960b3c32d29511b563",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/ruby-plsql-0.8.0/lib/plsql/connection.rb",
+      "line": 226,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"DROP TABLE #{row[0]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PLSQL::Connection",
+        "method": "drop_session_ruby_temporary_tables"
+      },
+      "user_input": "row[0]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "380bcd60e06f283007375617cdf70d6abb8e822660e226bd7edad54efd933caf",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/railties-6.1.7.3/lib/rails/commands/encrypted/encrypted_command.rb",
+      "line": 59,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{ENV[\"EDITOR\"]} #{tmp_path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Rails::Command::EncryptedCommand",
+        "method": "change_encrypted_file_in_system_editor"
+      },
+      "user_input": "ENV[\"EDITOR\"]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "3ee3fb97a398975132b903b3bcbd0ef57b1fb56843ca9d2300c12745c704088b",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/database_tasks.rb",
+      "line": 22,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"CREATE USER #{config[:username]} IDENTIFIED BY #{config[:password]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter::DatabaseTasks",
+        "method": "create"
+      },
+      "user_input": "config[:username]",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "40d0853a8644b739e8cd0a402cf5721f70bd6a5275dba4d3f0a15c654046a407",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/cram_md5.rb",
+      "line": 35,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.digest(key)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::CramMD5Authenticator",
+        "method": "hmac_md5"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -27,7 +306,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/helpers/exception_helper.rb",
-      "line": 48,
+      "line": 60,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "` #{\"cat /proc/meminfo 2>/dev/null | grep #{key_linux}\"} `",
       "render_path": null,
@@ -38,6 +317,254 @@
       },
       "user_input": "key_linux",
       "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "471e0e03d45ad6b4a60fb8b688412d3d510b09ad1cb416a9e8bf101cb6d0d570",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/digest_md5.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.digest(\"#{[@user, sparams[\"realm\"]]}:#{@password}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::DigestMD5Authenticator",
+        "method": "process"
+      },
+      "user_input": "@password",
+      "confidence": "High",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "4ada8523f9db2fd648f343512b6e05eb79660201164b5266124ed3760641d366",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: SHA1",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-6.1.7.3/lib/active_record/tasks/database_tasks.rb",
+      "line": 529,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::SHA1.hexdigest(File.read(file))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::Tasks::DatabaseTasks",
+        "method": "schema_sha1"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "5e67be5cfbd73e300657c7b7e96bb67e9522bd0319442ceaf39de47f45c443aa",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/railties-6.1.7.3/lib/rails/commands/secrets/secrets_command.rb",
+      "line": 36,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{ENV[\"EDITOR\"]} #{tmp_path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Rails::Command::SecretsCommand",
+        "method": "edit"
+      },
+      "user_input": "ENV[\"EDITOR\"]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "611da3bf19877a2ce19da2e1c67eb21c94170123e4cd3819ece1c559ad1ac8c0",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/ruby-plsql-0.8.0/lib/plsql/connection.rb",
+      "line": 217,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"DROP TABLE #{row[0]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PLSQL::Connection",
+        "method": "drop_all_ruby_temporary_tables"
+      },
+      "user_input": "row[0]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "616261dbbae208ec7b0fc53784b9a0354309b4a19fad03968ed8a1ef34474630",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/digest_md5.rb",
+      "line": 57,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest((\"#{Digest::MD5.digest(\"#{[@user, sparams[\"realm\"]]}:#{@password}\")}:#{[sparams[\"nonce\"], Digest::MD5.hexdigest((\"%.15f:%.15f:%d\" % [Time.now.to_f, rand, Process.pid.to_s]))]}\" << (\":\" + @authname)))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::DigestMD5Authenticator",
+        "method": "process"
+      },
+      "user_input": "@password",
+      "confidence": "High",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Missing Encryption",
+      "warning_code": 109,
+      "fingerprint": "6a26086cd2400fbbfb831b2f8d7291e320bcc2b36984d2abc359e41b3b63212b",
+      "check_name": "ForceSSL",
+      "message": "The application does not force use of HTTPS: `config.force_ssl` is not enabled",
+      "file": "config/environments/production.rb",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/missing_encryption/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        311
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "748177cbbbd9e8bf5a225d37e657d34d20a5d3530b4d025c1a0a3991fa48129e",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/railties-6.1.7.3/lib/rails/commands/credentials/credentials_command.rb",
+      "line": 91,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{ENV[\"EDITOR\"]} #{Shellwords.escape(tmp_path)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Rails::Command::CredentialsCommand",
+        "method": "change_credentials_in_system_editor"
+      },
+      "user_input": "ENV[\"EDITOR\"]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "78580e70977fa60a998e946d345c6884c924cf6517cc3cd0991d7e92b5c80ef6",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: SHA1",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/schema_statements.rb",
+      "line": 356,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::SHA1.hexdigest(super(table_name, options).to_s)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::OracleEnhanced::SchemaStatements",
+        "method": "index_name"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "7c704ebd9228bad8fc4ecc2e00de18d24c86f47436e17ee3da78bf2acfa2cefe",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-pop-0.1.2/lib/net/pop.rb",
+      "line": 920,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest((check_response(critical do\n recv_response\n end).slice(/<[!-~]+@[!-~]+>/) + password))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::POP3Command",
+        "method": "apop"
+      },
+      "user_input": "password",
+      "confidence": "High",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Authentication",
+      "warning_code": 101,
+      "fingerprint": "7e488eedca4890fe4a715cd0184b6045499facff4f37fb9e8b6da5d4cb67143f",
+      "check_name": "Secrets",
+      "message": "Hardcoded value for `SECRET_KEY_BASE` in source code",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/actionpack-6.1.7.3/lib/action_dispatch/middleware/cookies.rb",
+      "line": 185,
+      "link": "https://brakemanscanner.org/docs/warning_types/authentication/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        798
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "7f64e38b1b45c9a7949130f0736eb1b3f97e05a06ba013bd0e0ffc2280fb3f9a",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/jdbc_connection.rb",
+      "line": 165,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"alter session set #{key} = '#{(config[key] or (ENV[key.to_s.upcase] or default_value))}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection",
+        "method": "new_connection"
+      },
+      "user_input": "key",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
       "note": ""
     },
     {
@@ -58,6 +585,9 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
       "note": "Uses params for redirect only"
     },
     {
@@ -67,7 +597,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/active_session_history_controller.rb",
-      "line": 498,
+      "line": 438,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -78,6 +608,9 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
       "note": "Uses params for redirect only"
     },
     {
@@ -87,7 +620,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/dba_sga_controller.rb",
-      "line": 673,
+      "line": 678,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -98,6 +631,193 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "9808d4f7139b9111a6e36a730430f6abc063d599ed2717d004a1028280176bbf",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/thor-1.2.1/lib/thor/shell/basic.rb",
+      "line": 406,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{(ENV[\"THOR_DIFF\"] or (ENV[\"RAILS_DIFF\"] or \"diff -u\"))} \\\"#{destination}\\\" \\\"#{Tempfile.new.path}\\\"\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Thor::Shell::Thor::Basic",
+        "method": "show_diff"
+      },
+      "user_input": "ENV[\"THOR_DIFF\"]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "a23eca4371a2bd6f4f18a1ba0955919125a42e86666085051d756e2594e11d6c",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/digest_md5.rb",
+      "line": 57,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest(\"#{Digest::MD5.hexdigest((\"#{Digest::MD5.digest(\"#{[@user, sparams[\"realm\"]]}:#{@password}\")}:#{[sparams[\"nonce\"], Digest::MD5.hexdigest((\"%.15f:%.15f:%d\" % [Time.now.to_f, rand, Process.pid.to_s]))]}\" << (\":\" + @authname)))}:#{[sparams[\"nonce\"], (\"%08d\" % nc(sparams[\"nonce\"])), Digest::MD5.hexdigest((\"%.15f:%.15f:%d\" % [Time.now.to_f, rand, Process.pid.to_s])), \"auth\"]}:#{Digest::MD5.hexdigest(((\"AUTHENTICATE:\" + (\"imap/\" + sparams[\"realm\"])) << \":00000000000000000000000000000000\"))}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::DigestMD5Authenticator",
+        "method": "process"
+      },
+      "user_input": "@password",
+      "confidence": "High",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "a50397107085931da5bcb2a3d587b0cc5f914c748b911b5336f6610bf0c53028",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/cram_md5.rb",
+      "line": 45,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.digest(((Digest::MD5.digest(key) + (\"\\x00\" * (64 - Digest::MD5.digest(key).length))) + text))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::CramMD5Authenticator",
+        "method": "hmac_md5"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "aeab979901d3f28ba6222bd72ddce7cd8edbd70194945c3f361a7ccbc6c42e4f",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/digest_md5.rb",
+      "line": 36,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest((\"%.15f:%.15f:%d\" % [Time.now.to_f, rand, Process.pid.to_s]))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::DigestMD5Authenticator",
+        "method": "process"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "b107c64364907a4dc4bbae18ff8107a4722580ff940404743743288c17bc78ca",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/database_tasks.rb",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"ALTER USER #{config[:username]} IDENTIFIED BY #{config[:password]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter::DatabaseTasks",
+        "method": "create"
+      },
+      "user_input": "config[:username]",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "b6c4ed86903946bee9c2e6193c126c183011489b155243e9ce3c3eca5093132b",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/thor-1.2.1/lib/thor/shell/basic.rb",
+      "line": 499,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{merge_tool} \\\"#{Tempfile.new.path}\\\" \\\"#{destination}\\\"\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Thor::Shell::Thor::Basic",
+        "method": "merge"
+      },
+      "user_input": "merge_tool",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "c1002797081ab22d7ef3ff5e2379309115a311fbeb262207dd1858865baa69ef",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-6.1.7.3/lib/active_record/tasks/sqlite_database_tasks.rb",
+      "line": 62,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`sqlite3 #{extra_flags.join(\" \")} #{db_config.database} < \"#{filename}\"`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::Tasks::SQLiteDatabaseTasks",
+        "method": "structure_load"
+      },
+      "user_input": "extra_flags.join(\" \")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "c2682ff0b1b35ead3a905284753eab37c74eebdaa12a32de9f734e55e485b75d",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/thor-1.2.1/lib/thor/runner.rb",
+      "line": 94,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest((name + ((options[\"as\"] or begin\n  first_line = (open(File.join(name, \"main.thor\"), &:read) or open(name, &:read)).split(\"\\n\")[0]\n  if match = (open(File.join(name, \"main.thor\"), &:read) or open(name, &:read)).split(\"\\n\")[0].match(/\\s*#\\s*module:\\s*([^\\n]*)/) then\n    (open(File.join(name, \"main.thor\"), &:read) or open(name, &:read)).split(\"\\n\")[0].match(/\\s*#\\s*module:\\s*([^\\n]*)/)[1].strip\n  else\n    nil\n  end\nend) or (ask(\"Please specify a name for #{name} in the system repository [#{File.basename(name)}]:\") or File.basename(name)))))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Thor::Runner",
+        "method": "install"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
       "note": ""
     },
     {
@@ -107,7 +827,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/helpers/exception_helper.rb",
-      "line": 52,
+      "line": 64,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "` #{\"sysctl -a | grep '#{key_darwin}'\"} `",
       "render_path": null,
@@ -118,6 +838,32 @@
       },
       "user_input": "key_darwin",
       "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "c69456bb0d0eceb0b3e9ed39e573fd6ab8d7b1840060d1f0740771af6391da73",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/net-imap-0.3.4/lib/net/imap/authenticators/cram_md5.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "Digest::MD5.hexdigest(((Digest::MD5.digest(key) + (\"\\x00\" * (64 - Digest::MD5.digest(key).length))) + Digest::MD5.digest(((Digest::MD5.digest(key) + (\"\\x00\" * (64 - Digest::MD5.digest(key).length))) + text))))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Net::IMAP::CramMD5Authenticator",
+        "method": "hmac_md5"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
       "note": ""
     },
     {
@@ -127,7 +873,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/dba_sga_controller.rb",
-      "line": 649,
+      "line": 653,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -138,29 +884,150 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
       "note": ""
     },
     {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "e84d729a42e6fcfec8c79ebecc034f0499c12453596fb9721c370d10033f327d",
-      "check_name": "MassAssignment",
-      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
-      "file": "app/controllers/dba_sga_controller.rb",
-      "line": 601,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "e077418b55b24846ba64418f352483f7e7ddeccf9ff99dbd26d3fcbbd4aa386f",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/thor-1.2.1/lib/thor/actions.rb",
+      "line": 267,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "Open3.capture2e(*[config[:env]], \"#{config[:with]} #{command}\".to_s)",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "DbaSgaController",
-        "method": "list_sql_detail_sql_id_or_history"
+        "class": "Thor",
+        "method": "run"
       },
-      "user_input": null,
+      "user_input": "config[:with]",
       "confidence": "Medium",
-      "note": "Uses params for redirect only"
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "e22d68dc232b83abd352f0fcc4ff8e7d7ba832650e80f5eb0bbaad543b673401",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/jdbc_connection.rb",
+      "line": 170,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"alter session set #{key} = '#{value}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection",
+        "method": "new_connection"
+      },
+      "user_input": "key",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "e244c0369e82815455e2497aa9468d83190e0482bfcdb1362e3aaf63f8a424de",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/nokogiri-1.14.3-java/lib/nokogiri/xml/pp/character_data.rb",
+      "line": 10,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "pp.group(2, \"#(#{self.class.name.split(\"::\").last} \", \")\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Nokogiri::XML::PP::CharacterData",
+        "method": "pretty_print"
+      },
+      "user_input": "self.class.name.split(\"::\").last",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "eaf20eb5e4efe02e82f831bde05fae0b9b0163d5515d53f6e66324e060b35215",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/activerecord-oracle_enhanced-adapter-6.1.6/lib/active_record/connection_adapters/oracle_enhanced/database_tasks.rb",
+      "line": 32,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"GRANT #{permission} TO #{config[:username]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ActiveRecord::ConnectionAdapters::ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter::DatabaseTasks",
+        "method": "create"
+      },
+      "user_input": "permission",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "eb5d3a22a297e540a9bc42ede2cb67a0314cc2059de68df99f0a2e3891936cfc",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/ruby-plsql-0.8.0/lib/plsql/connection.rb",
+      "line": 225,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"TRUNCATE TABLE #{row[0]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PLSQL::Connection",
+        "method": "drop_session_ruby_temporary_tables"
+      },
+      "user_input": "row[0]",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "fc99a2e8a3db31afaa655f71df5d83d462aea7e4b3c984a756f6b425e0435cc4",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "path/to/destination/directory/gems/jruby/3.1.0/gems/ruby-plsql-0.8.0/lib/plsql/connection.rb",
+      "line": 202,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "exec(\"alter session set time_zone = '#{time_zone}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PLSQL::Connection",
+        "method": "set_time_zone"
+      },
+      "user_input": "time_zone",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
     }
   ],
-  "updated": "2021-12-17 10:34:39 +0100",
-  "brakeman_version": "5.2.0"
+  "updated": "2023-05-02 16:17:05 +0200",
+  "brakeman_version": "5.4.1"
 }

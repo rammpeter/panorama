@@ -66,6 +66,7 @@ GEM
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     bindex (0.8.1)
+    brakeman (5.4.1)
     builder (3.2.4)
     concurrent-ruby (1.2.2)
     crass (1.0.6)
@@ -201,6 +202,7 @@ DEPENDENCIES
   activerecord-nulldb-adapter
   activerecord-oracle_enhanced-adapter
   activesupport (= 6.1.7.3)
+  brakeman
   i18n
   jarbler
   jbuilder (~> 2.7)
