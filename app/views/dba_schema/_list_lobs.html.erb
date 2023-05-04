@@ -79,7 +79,7 @@
    column_options << {:caption=> 'Table',               :data=>proc{|rec| rec.table_name},              :title=> 'Table LOB belongs to'}
    column_options << {:caption=> 'Column',              :data=>proc{|rec| rec.column_name},             :title=> 'Column LOB belongs to'}
    column_options << {:caption=> 'Segment name',        :data=>proc{|rec| rec.segment_name},            :title=> 'Name of the LOB segment'}
-   column_options << {:caption=> 'Size (MB)',           :data=>link_size,                               :title=> 'Size of LOB segment in MB', :align=>:right}
+   column_options << {:caption=> 'Size (MB)',           :data=>link_size,                               :title=> 'Size of LOB segment in MB', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}"}}
    column_options << {:caption=> 'Blocks',              :data=>proc{|rec| fn(rec.blocks)},              :title=> 'Number of blocks of LOB segment', :align=>:right}
    column_options << {:caption=> 'Tablespace',          :data=>proc{|rec| rec.tablespace_name},         :title=> 'Name of the tablespace containing the LOB segment'}
    column_options << {:caption=> 'Index name',          :data=>proc{|rec| rec.index_name},              :title=> 'Name of the LOB index'}
