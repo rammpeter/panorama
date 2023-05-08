@@ -16,6 +16,17 @@ class DbaHistoryController < ApplicationController
     save_session_time_selection  # werte in session puffern
 
     @segment_sums = sql_select_iterator ["
+      WITH Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Object_ID, Owner, Object_Name, SubObject_Name, Object_Type
+                       FROM DBA_Objects
+                      ),
+           Hist_SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ Object_Owner, Object_Name, COUNT(DISTINCT SQL_ID) SQL_IDs
+                             FROM   DBA_Hist_SQL_Plan po
+                             GROUP BY Object_Owner, Object_Name
+                            ),
+           Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partition_Name, SUM(Bytes)/(1024*1024) MBytes
+                        FROM   DBA_Segments
+                        GROUP BY Owner, Segment_Name, Partition_Name
+                       )
       SELECT /* Panorama-Tool Ramm */ s.Instance_Number,
              NVL(o.Owner, '[Unknown]') Owner,
              NVL(o.Object_Name, '[Object-ID = '||MIN(s.Obj#)||']') Object_Name,
@@ -125,7 +136,7 @@ class DbaHistoryController < ApplicationController
               #{ @instance ? " AND s.Instance_Number =#{@instance}" : ""}
               GROUP BY s.Obj#, s.Instance_Number
              ) s
-      LEFT OUTER JOIN   DBA_Objects o ON o.Object_ID = s.Obj#
+      LEFT OUTER JOIN   Objects o ON o.Object_ID = s.Obj#
       LEFT OUTER JOIN   (SELECT /*+ NO_MERGE*/ Instance_Number, Current_Obj#,
                                 Count(*)*10 Time_Waited_Secs,
                                 AVG(Wait_Time+Time_Waited)/1000 Time_Waited_Avg_ms
@@ -136,14 +147,8 @@ class DbaHistoryController < ApplicationController
                          AND    NVL(s.Event, s.Session_State) != 'PX Deq Credit: send blkd' -- dieser Event wird als Idle-Event gewertet
                          GROUP BY Instance_Number, Current_Obj#
                         ) w ON w.Instance_Number = s.Instance_Number AND w.Current_Obj# = s.Obj#
-      LEFT OUTER JOIN   (SELECT /*+ NO_MERGE PARALLEL(po,2) */ Object_Owner, Object_Name, COUNT(DISTINCT SQL_ID) SQL_IDs
-                         FROM   DBA_Hist_SQL_Plan po
-                         GROUP BY Object_Owner, Object_Name
-                        ) po ON po.Object_Owner = o.Owner AND po.Object_Name = o.Object_Name
-      LEFT OUTER JOIN   ( SELECT /*+ NO_MERGE */ Owner, Segment_Name, Partition_Name, SUM(Bytes)/(1024*1024) MBytes
-                          FROM   DBA_Segments
-                          GROUP BY Owner, Segment_Name, Partition_Name
-                        ) segs ON segs.Owner = o.Owner AND segs.Segment_Name = o.Object_Name AND NVL(segs.Partition_Name, '1') = NVL(o.SubObject_Name, '1')
+      LEFT OUTER JOIN   Hist_SQL_Plan po ON po.Object_Owner = o.Owner AND po.Object_Name = o.Object_Name
+      LEFT OUTER JOIN   Segments segs    ON segs.Owner = o.Owner AND segs.Segment_Name = o.Object_Name AND NVL(segs.Partition_Name, '1') = NVL(o.SubObject_Name, '1')
       #{@object_name ? " WHERE o.Object_Name LIKE UPPER('%#{@object_name}%') " : "" }
       -- Gruppierung ueber Partitionen hinweg
       GROUP BY s.Instance_Number, o.Object_Type, o.Owner, o.Object_Name#{@show_partitions=="1" ? ", o.subObject_Name" : ""},
