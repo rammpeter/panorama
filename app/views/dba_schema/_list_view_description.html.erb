@@ -15,7 +15,6 @@
       {:caption=> 'Text length',      :data=>proc{|rec| fn(rec.text_length)},                 :title=> 'Length of the view text', align: :right},
       {:caption=> 'Type text',        :data=>proc{|rec| rec.type_text},                       :title=> 'Type clause of the typed view'},
       {:caption=> 'OID text',         :data=>proc{|rec| rec.oid_text},                        :title=> 'WITH OID clause of the typed view'},
-      {:caption=> 'OID text',         :data=>proc{|rec| rec.oid_text},                        :title=> 'WITH OID clause of the typed view'},
       {:caption=> 'View type owner',  :data=>proc{|rec| rec.view_type_owner},                 :title=> 'Owner of the type of the view if the view is a typed view'},
       {:caption=> 'View type',        :data=>proc{|rec| rec.view_type},                       :title=> 'Type of the view if the view is a typed view'},
       {:caption=> 'Super view name',  :data=>proc{|rec| rec.superview_name},                  :title=> 'Name of the superview'},
