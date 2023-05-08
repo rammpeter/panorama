@@ -313,6 +313,13 @@ module AjaxHelper
 
   end
 
+  # create a link to show the object description
+  # @param [String] update_area the div id to update the content after clcking the link
+  # @param [String] owner the owner of the object
+  # @param [String] segment_name the name of the object
+  # @param [String] print_value the text to print in the link
+  # @param [String] object_type the type of the object
+  # @return [String] the link
   def link_object_description(update_area, owner, segment_name, print_value=nil, object_type=nil)
     owner         = owner.upcase        if owner
     segment_name  = segment_name.upcase if segment_name

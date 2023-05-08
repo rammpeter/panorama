@@ -1,20 +1,50 @@
-<% @update_area = get_unique_area_id %>
+<% @update_area = get_unique_area_id
 
-<%
-column_options =
-  [
-    {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
-    {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
-    { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
-    {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
-]
+  column_options =
+    [
+      {:caption=> 'Column name',       :data=>proc{|rec| rec.column_name},                         :title=> 'Column-Name'},
+      {:caption=> 'Type',              :data=>proc{|rec| rec.data_type},                           :title=> 'Data-Type'},
+      {:caption=> 'Precision',         :data=>proc{|rec| rec.precision},                           :title=> 'Precision', :align=>:right},
+      {:caption=> 'Scale',             :data=>proc{|rec| rec.data_scale},                          :title=> 'Scale', :align=>:right},
+      {:caption=> 'Nullable',          :data=>proc{|rec| rec.nullable},                            :title=> 'Nullable'},
+      {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
+    ]
+
+  view_options =
+    [
+      {:caption=> 'Text length',      :data=>proc{|rec| fn(rec.text_length)},                 :title=> 'Length of the view text', align: :right},
+      {:caption=> 'Type text',        :data=>proc{|rec| rec.type_text},                       :title=> 'Type clause of the typed view'},
+      {:caption=> 'OID text',         :data=>proc{|rec| rec.oid_text},                        :title=> 'WITH OID clause of the typed view'},
+      {:caption=> 'OID text',         :data=>proc{|rec| rec.oid_text},                        :title=> 'WITH OID clause of the typed view'},
+      {:caption=> 'View type owner',  :data=>proc{|rec| rec.view_type_owner},                 :title=> 'Owner of the type of the view if the view is a typed view'},
+      {:caption=> 'View type',        :data=>proc{|rec| rec.view_type},                       :title=> 'Type of the view if the view is a typed view'},
+      {:caption=> 'Super view name',  :data=>proc{|rec| rec.superview_name},                  :title=> 'Name of the superview'},
+      {:caption=> 'Read only',        :data=>proc{|rec| rec.read_only},                       :title=> 'Indicates whether the view is read-only (Y) or not (N)'},
+      {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},         :title=> 'Timestamp of object creation'},
+      {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},   :title=> 'Timestamp of last DDL operation on object'},
+      { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},          title: "Timestamp for the last specification change of the object" },
+      {:caption=> 'Status',           :data=>proc{|rec| rec.status},                          :title=> 'Status of object in DBA_Objects'},
+    ]
+
+   view_options << {caption: 'Cont. data',        data: proc{|rec| rec.container_data},     title: "Indicates whether the view contains container-specific data. Possible values:\nY if the view was created with the CONTAINER_DATA clause\nN otherwise"} if get_db_version >= "12.1"
+   view_options << {caption: 'Bequeath',          data: proc{|rec| rec.bequeath},           title: "Possible values:\nCURRENT_USER: When the view is a BEQUEATH CURRENT_USER view\nDEFINER: When the view is a BEQUEATH DEFINER view"} if get_db_version >= "12.1"
+   view_options << {caption: 'Origin Con-ID',     data: proc{|rec| rec.origin_con_id},      title: "The ID of the container where the data originates. Possible values include:\n0: This value is used for rows in non-CDBs. This value is not used for CDBs.\nn: This value is used for rows containing data that originate in the container with container ID n (n = 1 if the row originates in root)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Default collation', data: proc{|rec| rec.default_collation},  title: "Default collation for the view"} if get_db_version >= "12.1"
+   view_options << {caption: 'Cont. default',     data: proc{|rec| rec.containers_default}, title: "Indicates whether the view is enabled for CONTAINERS() by default (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Cont. map',         data: proc{|rec| rec.container_map}, title: "Indicates whether the view is enabled for use with the container_map database property (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Ext. data link',    data: proc{|rec| rec.extended_data_link}, title: "IIndicates whether the view is enabled for fetching an extended data link from the root (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Sens. col.',        data: proc{|rec| rec.has_sensitive_column}, title: "Indicates whether the view has one or more sensitive columns (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Admit null',        data: proc{|rec| rec.admit_null},         title: "Indicates whether the view admits null CON_ID data (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Duality view',      data: proc{|rec| rec.duality_view},       title: "Indicates whether the view is a JSON-relational duality view (YES) or not (NO)"} if get_db_version >= "23.1"
 
 %>
 
-<%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto, show_pin_icon: 1}) %>
+<%= gen_slickgrid(@columns, column_options, {:caption => "Columns of #{@object_type} #{@owner}.#{@object_name}", :height => :auto, show_pin_icon: 1}) %>
+
+<%= gen_slickgrid(@attribs, view_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto, show_pin_icon: 1}) %>
 
 
-<%=  render_code_mirror(@view.text, cm_options: { lineNumbers: true}) %>
+<%=  render_code_mirror(@attribs[0]&.text, cm_options: { lineNumbers: true}) %>
 
 <div class="flex-row-container">
   <div class="flex-row-element">

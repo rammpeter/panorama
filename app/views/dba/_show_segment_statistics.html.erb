@@ -1,0 +1,15 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {:caption=>"Inst",        :data=>"rec.inst_id",             :title=>"RAC-Instance"}
+  column_options << {:caption=>"Type",        :data=>"rec.object_type",         :title=>"Object-Type"}
+  column_options << {:caption=>"Owner.Name",  :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name)},  :title=>"Owner and name of object"}
+  column_options << {:caption=>"Sub-Name",    :data=>"rec.subobject_name",      :title=>"Sub-Object-Name"} if @show_partitions
+  column_options << {:caption=>"Sample",      :data=>proc{|rec| formattedNumber(rec.sample)}, :title=>t(:dba_show_segment_statistics_sample_hint, :default=>'Statistics-value within the sample time'),    :align=>"right"}
+  column_options << {:caption=>"Total",       :data=>proc{|rec| formattedNumber(rec.total)},  :title=>t(:dba_show_segment_statistics_total_hint, :default=>'Statistics-value cumulated since instance startup'),     :align=>"right"}
+
+%>
+
+<%= gen_slickgrid(@data, column_options, {:caption=>@header, :width=>"auto",  :max_height=>450}) %>
+<div id="<%= @update_area %>"></div>

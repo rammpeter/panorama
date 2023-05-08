@@ -1699,12 +1699,30 @@ class DbaSchemaController < ApplicationController
     @object_name   = params[:object_name]
     @object_type   = params[:object_type]
 
+    @columns = sql_select_all ["\
+      SELECT /*+ Panorama Ramm */
+             c.*, co.Comments,
+             CASE WHEN Data_Type LIKE '%CHAR%' THEN
+               c.Char_Length ||CASE WHEN c.Char_Used='B' THEN ' Bytes' WHEN c.Char_Used='C' THEN ' Chars' ELSE '' END
+             ELSE
+               TO_CHAR(c.Data_Precision)
+             END Precision
+      FROM   DBA_Tab_Columns c
+      LEFT OUTER JOIN DBA_Col_Comments co       ON co.Owner = c.Owner AND co.Table_Name = c.Table_Name AND co.Column_Name = c.Column_Name
+      WHERE  c.Owner = ? AND c.Table_Name = ?
+      ORDER BY c.Column_ID
+    ", @owner, @object_name]
+
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
-    @attribs = sql_select_all ["SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status FROM DBA_Objects o WHERE o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?", @owner, @object_name, @object_type]
-
-    @view = sql_select_first_row ["SELECT * FROM DBA_Views WHERE Owner = ? AND View_Name = ?", @owner, @object_name]
+    @attribs = sql_select_all ["\
+      SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status,
+              v.*
+      FROM   DBA_Views v
+      JOIN   DBA_Objects o ON o.Owner = v.Owner AND o.Object_Name = v.View_Name AND o.Object_Type = ?
+      WHERE  v.Owner = ? AND v.View_Name = ?
+    ", @object_type, @owner, @object_name]
 
     render_partial :list_view_description
   end

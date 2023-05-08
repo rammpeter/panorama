@@ -1380,15 +1380,6 @@ oradebug setorapname diag
 
     @header = params[:statistic_name][:statistic_name]
 
-    @column_options = []
-    @column_options << {:caption=>"Inst",        :data=>"rec.inst_id",             :title=>"RAC-Instance"}
-    @column_options << {:caption=>"Type",        :data=>"rec.object_type",         :title=>"Object-Type"}
-    @column_options << {:caption=>"Owner",       :data=>"rec.owner",               :title=>"Object-Owner"}
-    @column_options << {:caption=>"Name",        :data=>"rec.object_name",         :title=>"Object-Name"}
-    @column_options << {:caption=>"Sub-Name",    :data=>"rec.subobject_name",      :title=>"Sub-Object-Name"} if @show_partitions
-    @column_options << {:caption=>"Sample",      :data=>proc{|rec| formattedNumber(rec.sample)}, :title=>t(:dba_show_segment_statistics_sample_hint, :default=>'Statistics-value within the sample time'),    :align=>"right"}
-    @column_options << {:caption=>"Total",       :data=>proc{|rec| formattedNumber(rec.total)},  :title=>t(:dba_show_segment_statistics_total_hint, :default=>'Statistics-value cumulated since instance startup'),     :align=>"right"}
-
     data1 = get_values    # Snapshot vor SampleTime
     sampletime = params[:sample_length].to_i
     if sampletime == 0    # Kein Sample gewünscht
@@ -1433,11 +1424,7 @@ oradebug setorapname diag
 
     @data = @data.sort {|x,y| y.sample <=> x.sample }
 
-    output = gen_slickgrid(@data, @column_options, {:caption=>@header, :width=>"auto",  :max_height=>450})
-
-    respond_to do |format|
-      format.html {render :html => output}
-    end
+    render_partial
   end
 
   def show_session_waits
