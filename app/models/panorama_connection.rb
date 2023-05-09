@@ -60,7 +60,6 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
       cursor.bind_params(type_casted_binds) if !binds.empty?
 
       cursor.get_raw_statement.setQueryTimeout(query_timeout.to_i) if query_timeout          # Erweiterunge gegenüber exec_query
-
       cursor.exec
 
       columns = cursor.get_col_names.map do |col_name|
@@ -69,7 +68,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         #col_name =~ /[a-z]/ ? col_name : col_name.downcase!
         col_name.downcase!.freeze
       end
-      fetch_options = {:get_lob_value => (name != 'Writable Large Object')}
+      fetch_options = {get_lob_value: true} # convert LOB columns to String
       # noinspection RubyAssignmentExpressionInConditionalInspection
       row_count = 0
       while row = cursor.fetch(fetch_options)

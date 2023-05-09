@@ -944,14 +944,19 @@ class DbaSchemaController < ApplicationController
     @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @partitions = sql_select_all ["\
-      WITH Storage AS (SELECT /*+ NO_MERGE MATERIALIZE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB,
+      WITH Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Data_Object_ID, SubObject_Name, Created, Last_DDL_Time, Timestamp
+                       FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE PARTITION'
+                      ),
+           Storage AS (SELECT /*+ NO_MERGE MATERIALIZE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB,
                               SUM(s.Blocks) Blocks, SUM(s.Extents) Extents
                       FROM DBA_Segments s
                       LEFT OUTER JOIN DBA_Tab_SubPartitions sp ON sp.Table_Owner = s.Owner AND sp.Table_Name = s.Segment_Name AND sp.SubPartition_Name = s.Partition_Name
                       WHERE s.Owner = ? AND s.Segment_Name = ?
                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
                       )
-      SELECT  st.MB Size_MB, p.*,
+      SELECT  st.MB Size_MB, p.Partition_Name, p.Partition_Position, p.Tablespace_Name, p.Pct_Free, p.Ini_Trans, p.Max_Trans, p.Num_rows,
+              p.Blocks, p.Compression, p.Compress_For, p.Avg_Row_Len, p.Last_Analyzed, p.Logging, p.Interval,
+              #{"p.InMemory, p.Flash_Cache, p.Cell_Flash_Cache, " if get_db_version >= '12.1'}
               m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
               o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS,
               st.Blocks segment_blocks, st.Extents,
@@ -967,7 +972,7 @@ class DbaSchemaController < ApplicationController
               SP_InMemory_Count,        SP_InMemory" if get_db_version >= '12.1'}
          #{", mi.GC_Mastering_Policy,  mi.Current_Master + 1  Current_Master,  mi.Previous_Master + 1  Previous_Master, mi.Remaster_Cnt" if PanoramaConnection.rac?}
       FROM DBA_Tab_Partitions p
-      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Table_Owner AND o.Object_Name = p.Table_Name AND o.SubObject_Name = p.Partition_Name AND o.Object_Type = 'TABLE PARTITION'
+      LEFT OUTER JOIN Objects o ON o.SubObject_Name = p.Partition_Name
       LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
       LEFT OUTER JOIN DBA_Tab_Modifications m ON  m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name IS NULL
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Partition_Name, COUNT(*) SubPartition_Count,
@@ -984,7 +989,27 @@ class DbaSchemaController < ApplicationController
                       ) sp ON sp.Partition_Name = p.Partition_Name
       #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
       WHERE p.Table_Owner = ? AND p.Table_Name = ?
-      ", @owner, @table_name, @owner, @table_name, @owner, @table_name]
+      ", @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name]
+
+    # avoid single row fetches due to LONG data type in main select
+    high_values = sql_select_all  "\
+      SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, High_Value
+      FROM xmltable(
+              '/ROWSET/ROW'
+              PASSING (SELECT dbms_xmlgen.getxmltype('SELECT partition_name, high_value from dba_tab_partitions
+                                                      WHERE Table_Owner = ''#{@owner}'' AND Table_name = ''#{@table_name}''')
+                       FROM DUAL)
+              COLUMNS partition_name varchar2(128) path 'PARTITION_NAME',
+                      high_value varchar2(4000) path 'HIGH_VALUE')
+    "
+    high_values_hash = {}
+    high_values.each do |h|
+      high_values_hash[h.partition_name] = h.high_value
+    end
+    @partitions.each do |p|
+          p['high_value'] = high_values_hash[p.partition_name]
+    end
+
     @partitions.sort! {|a, b| b.high_value <=> a.high_value }
 
     @partitions.each do |p|
@@ -1012,19 +1037,54 @@ class DbaSchemaController < ApplicationController
     @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @subpartitions = sql_select_all ["\
-      SELECT sp.*, s.Bytes/(1024*1024) Size_MB, s.Blocks segment_blocks, s.extents,
-             m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
-             o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, p.High_Value Partition_High_Value
+      WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, Bytes/(1024*1024) Size_MB, Blocks, Extents
+                        FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?
+                       ),
+           Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, SubPartition_Name, Inserts, Updates, Deletes, Timestamp, Truncated, Drop_Segments
+                                 FROM   DBA_Tab_Modifications WHERE Table_Owner = ? AND Table_Name = ?
+                                ),
+           Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ SubObject_Name, Object_ID, Data_Object_ID, Created, Last_DDL_Time, Timestamp
+                        FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE SUBPARTITION'
+                      )
+      SELECT sp.Partition_Name, sp.Subpartition_Name, sp.Subpartition_Position, sp.Compression, sp.Compress_For, sp.Last_Analyzed,
+             sp.Tablespace_Name, sp.Pct_Free, sp.Ini_Trans, sp.Max_Trans, sp.Num_Rows, sp.Blocks, sp.Empty_Blocks, sp.Avg_Row_Len,
+             sp.Logging, #{"sp.InMemory, sp.Flash_Cache, sp.Cell_Flash_Cache, " if get_db_version >= '12.1'}
+             s.Size_MB, s.Blocks segment_blocks, s.extents,
+             m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, m.Truncated, m.Drop_Segments,
+             o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS
          #{", mi.GC_Mastering_Policy,  mi.Current_Master + 1  Current_Master,  mi.Previous_Master + 1  Previous_Master, mi.Remaster_Cnt" if PanoramaConnection.rac?}
       FROM DBA_Tab_SubPartitions sp
-      JOIN DBA_Tab_Partitions p ON p.Table_Owner = sp.Table_Owner AND p.Table_Name = sp.Table_Name AND p.Partition_Name = sp.Partition_Name
-      LEFT OUTER JOIN DBA_Segments s ON s.Owner = sp.Table_Owner AND s.Segment_Name = sp.Table_Name AND s.Partition_Name = sp.SubPartition_Name
-      LEFT OUTER JOIN DBA_Objects o ON o.Owner = sp.Table_Owner AND o.Object_Name = sp.Table_Name AND o.SubObject_Name = sp.SubPartition_Name AND o.Object_Type = 'TABLE SUBPARTITION'
-      LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = sp.Table_Owner AND m.Table_Name = sp.Table_Name AND m.Partition_Name = sp.Partition_Name AND m.SubPartition_Name = sp.SubPartition_Name
+      --JOIN DBA_Tab_Partitions p ON p.Table_Owner = sp.Table_Owner AND p.Table_Name = sp.Table_Name AND p.Partition_Name = sp.Partition_Name
+      LEFT OUTER JOIN Segments s ON s.Partition_Name = sp.SubPartition_Name
+      LEFT OUTER JOIN Objects o ON o.SubObject_Name = sp.SubPartition_Name
+      LEFT OUTER JOIN Tab_Modifications m ON m.Partition_Name = sp.Partition_Name AND m.SubPartition_Name = sp.SubPartition_Name
       #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
       WHERE sp.Table_Owner = ? AND sp.Table_Name = ?
       #{" AND sp.Partition_Name = ?" if @partition_name}
-      ", @owner, @table_name, @partition_name]
+      ", @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name, @partition_name]
+
+    high_values = sql_select_all  "\
+      SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, SubPartition_Name, High_Value, Partition_High_Value
+      FROM xmltable(
+              '/ROWSET/ROW'
+              PASSING (SELECT dbms_xmlgen.getxmltype('SELECT sp.Partition_name, sp.SubPartition_Name, sp.high_value, p.High_Value Partition_High_Value
+                                                      FROM   DBA_Tab_SubPartitions sp
+                                                      JOIN DBA_Tab_Partitions p ON p.Table_Owner = sp.Table_Owner AND p.Table_Name = sp.Table_Name AND p.Partition_Name = sp.Partition_Name
+                                                      WHERE sp.Table_Owner = ''#{@owner}'' AND sp.Table_name = ''#{@table_name}'' #{"AND sp.Partition_Name = ''#{@partition_name}''" if @partition_name}')
+                       FROM DUAL)
+              COLUMNS partition_name varchar2(128) path 'PARTITION_NAME',
+                      subpartition_name varchar2(128) path 'SUBPARTITION_NAME',
+                      high_value varchar2(4000) path 'HIGH_VALUE',
+                      partition_high_value varchar2(4000) path 'PARTITION_HIGH_VALUE')
+    "
+    high_values_hash = {}
+    high_values.each do |h|
+      high_values_hash["#{h.partition_name}:#{h.subpartition_name}"] = { high_value: h.high_value, partition_high_value: h.partition_high_value }
+    end
+    @subpartitions.each do |p|
+      p['high_value']           = high_values_hash["#{p.partition_name}:#{p.subpartition_name}"][:high_value]
+      p['partition_high_value'] = high_values_hash["#{p.partition_name}:#{p.subpartition_name}"][:partition_high_value]
+    end
 
     @subpartitions.sort! {|a, b| b.high_value <=> a.high_value }
     render_partial
@@ -1755,7 +1815,11 @@ class DbaSchemaController < ApplicationController
                       WHERE s.Owner = ? AND s.Segment_Name = ?
                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
                       )
-      SELECT p.*, st.MB Size_MB, st.Segment_Blocks, st.Extents,
+      SELECT p.Partition_Name, p.Partition_Position, p.Tablespace_Name, p.Pct_Free, p.Ini_Trans, p.Max_Trans, p.Num_rows,
+              p.Compression, p.Last_Analyzed, p.Logging, p.Interval, p.BLevel, p.Leaf_blocks, p.Distinct_Keys, p.Avg_Leaf_Blocks_Per_Key, p.Avg_Data_Blocks_Per_Key,
+              p.Clustering_Factor, p.Status,
+              #{"p.Flash_Cache, p.Cell_Flash_Cache, " if get_db_version >= '12.1'}
+             st.MB Size_MB, st.Segment_Blocks, st.Extents,
              o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS,
               sp.SubPartition_Count,
               SP_Status_Count,       SP_Status,
@@ -1784,6 +1848,26 @@ class DbaSchemaController < ApplicationController
    #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
       WHERE p.Index_Owner = ? AND p.Index_Name = ?
       ", @owner, @index_name, @owner, @index_name, @owner, @index_name]
+
+    # avoid single row fetches due to LONG data type in main select
+    high_values = sql_select_all  "\
+      SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, High_Value
+      FROM xmltable(
+              '/ROWSET/ROW'
+              PASSING (SELECT dbms_xmlgen.getxmltype('SELECT partition_name, high_value from DBA_Ind_Partitions
+                                                      WHERE Index_Owner = ''#{@owner}'' AND Index_name = ''#{@index_name}''')
+                       FROM DUAL)
+              COLUMNS partition_name varchar2(128) path 'PARTITION_NAME',
+                      high_value varchar2(4000) path 'HIGH_VALUE')
+    "
+    high_values_hash = {}
+    high_values.each do |h|
+      high_values_hash[h.partition_name] = h.high_value
+    end
+    @partitions.each do |p|
+      p['high_value'] = high_values_hash[p.partition_name]
+    end
+
     @partitions.sort! {|a, b| b.high_value <=> a.high_value }
 
     @partitions.each do |p|
@@ -1810,17 +1894,50 @@ class DbaSchemaController < ApplicationController
     @partition_expression = get_index_partition_expression(@owner, @index_name)
 
     @subpartitions = sql_select_all ["\
-      SELECT sp.*, s.Bytes/(1024*1024) Size_MB, s.Blocks Segment_Blocks, s.Extents,
-             o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, p.High_Value Partition_High_Value
+      WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, Bytes/(1024*1024) Size_MB, Blocks, Extents
+                        FROM DBA_Segments WHERE Owner = ? AND Segment_Name = ?
+                       ),
+           Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ SubObject_Name, Object_ID, Data_Object_ID, Created, Last_DDL_Time, Timestamp
+                        FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'INDEX SUBPARTITION'
+                      )
+      SELECT  sp.Partition_Name, sp.SubPartition_Name, sp.SubPartition_Position, sp.Tablespace_Name, sp.Pct_Free, sp.Ini_Trans, sp.Max_Trans, sp.Num_rows,
+              sp.Compression, sp.Last_Analyzed, sp.Logging, sp.Interval, sp.BLevel, sp.Leaf_blocks, sp.Distinct_Keys, sp.Avg_Leaf_Blocks_Per_Key, sp.Avg_Data_Blocks_Per_Key,
+              sp.Clustering_Factor, sp.Status,
+              #{"sp.Flash_Cache, sp.Cell_Flash_Cache, " if get_db_version >= '12.1'}
+             s.Size_MB, s.Blocks Segment_Blocks, s.Extents,
+             o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS
               #{", mi.GC_Mastering_Policy,  mi.Current_Master + 1  Current_Master,  mi.Previous_Master + 1  Previous_Master, mi.Remaster_Cnt" if PanoramaConnection.rac?}
       FROM DBA_Ind_SubPartitions sp
-      JOIN DBA_Ind_Partitions p ON p.Index_Owner = sp.Index_Owner AND p.Index_Name = sp.Index_Name AND p.Partition_Name = sp.Partition_Name
-      LEFT OUTER JOIN DBA_Segments s ON s.Owner = sp.Index_Owner AND s.Segment_Name = sp.Index_Name AND s.Partition_Name = sp.SubPartition_Name
-      LEFT OUTER JOIN DBA_Objects o ON o.Owner = sp.Index_Owner AND o.Object_Name = sp.Index_Name AND o.SubObject_Name = sp.SubPartition_Name AND o.Object_Type = 'INDEX SUBPARTITION'
+      LEFT OUTER JOIN Segments s ON s.Partition_Name = sp.SubPartition_Name
+      LEFT OUTER JOIN Objects o ON o.SubObject_Name = sp.SubPartition_Name
    #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
       WHERE sp.Index_Owner = ? AND sp.Index_Name = ?
       #{" AND sp.Partition_Name = ?" if @partition_name}
-      ", @owner, @index_name, @partition_name]
+      ", @owner, @index_name, @owner, @index_name, @owner, @index_name, @partition_name]
+
+    high_values = sql_select_all  "\
+      SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, SubPartition_Name, High_Value, Partition_High_Value
+      FROM xmltable(
+              '/ROWSET/ROW'
+              PASSING (SELECT dbms_xmlgen.getxmltype('SELECT sp.Partition_name, sp.SubPartition_Name, sp.high_value, p.High_Value Partition_High_Value
+                                                      FROM   DBA_Ind_SubPartitions sp
+                                                      JOIN DBA_Ind_Partitions p ON p.Index_Owner = sp.Index_Owner AND p.Index_Name = sp.Index_Name AND p.Partition_Name = sp.Partition_Name
+                                                      WHERE sp.Index_Owner = ''#{@owner}'' AND sp.Index_name = ''#{@index_name}'' #{"AND sp.Partition_Name = ''#{@partition_name}''" if @partition_name}')
+                       FROM DUAL)
+              COLUMNS partition_name varchar2(128) path 'PARTITION_NAME',
+                      subpartition_name varchar2(128) path 'SUBPARTITION_NAME',
+                      high_value varchar2(4000) path 'HIGH_VALUE',
+                      partition_high_value varchar2(4000) path 'PARTITION_HIGH_VALUE')
+    "
+    high_values_hash = {}
+    high_values.each do |h|
+      high_values_hash["#{h.partition_name}:#{h.subpartition_name}"] = { high_value: h.high_value, partition_high_value: h.partition_high_value }
+    end
+    @subpartitions.each do |p|
+      p['high_value']           = high_values_hash["#{p.partition_name}:#{p.subpartition_name}"][:high_value]
+      p['partition_high_value'] = high_values_hash["#{p.partition_name}:#{p.subpartition_name}"][:partition_high_value]
+    end
+
     @subpartitions.sort! {|a, b| b.high_value <=> a.high_value }
 
     render_partial
