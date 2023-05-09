@@ -49,8 +49,6 @@
 %>
 <%= gen_slickgrid(@results, column_options, {
                                 :caption => "Single results for instance=#{@instance}, status='#{@status}', name='#{@name}', namespace='#{@namespace}'",
-                                :max_height => 450, show_pin_icon: 1,
+                                :max_height => 450, show_pin_icon: 1, update_area: @update_area
                         }) %>
 
-
-<div id="<%= @update_area %>"></div>

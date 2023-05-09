@@ -73,9 +73,7 @@
 
 <%= gen_slickgrid(@cell_servers, column_options, {
     :max_height => 450,
-    :caption => "EXADATA cell server configuration#{" for#{@filter}" if @filter.length > 0}"
+    :caption => "EXADATA cell server configuration#{" for#{@filter}" if @filter.length > 0}",
+    update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>">
-</div>

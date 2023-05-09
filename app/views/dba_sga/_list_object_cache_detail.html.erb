@@ -22,7 +22,6 @@
 
 <%= gen_slickgrid(@object_caches, column_options, {
     :caption => "Records from GV$Object_Cache grouped by owner, name for instance=#{@instance}, type='#{@type}', namespace='#{@namespace}', #{"DB-link='#{@db_link}', " if @db_link}kept='#{@kept}', top #{@max_rows_in_result} records order by '#{@order_by}'",
-    :max_height => 450, show_pin_icon: 1
+    :max_height => 450, show_pin_icon: 1, update_area: @update_area
 }) %>
 
-<div id="<%= @update_area %>"></div>

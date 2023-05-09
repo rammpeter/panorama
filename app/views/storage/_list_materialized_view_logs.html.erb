@@ -54,7 +54,6 @@ column_options << {:caption=>"Last analyze",            :data=>proc{|rec| locale
 <%= gen_slickgrid(@logs, column_options, {
         :max_height => 450,
         :caption => "Materialized view logs from sys.DBA_MView_Logs#{", log owner=#{@log_owner}" if @log_owner}#{", log name=#{@log_name}" if @log_name}#{", master=#{@master}" if @master}",
-        show_pin_icon: 1
+        show_pin_icon: 1,
+        update_area:   @update_area
 }) %>
-
-<div id="<%= @update_area %>"></div>

@@ -22,7 +22,5 @@
 %>
 
 <%=
-  gen_slickgrid(@user_data, column_options, :caption => "Multiple users did run this SQL!\nChoose executing user of SQL-ID='#{@sql_id}' for generating SQL-translation", :max_height=>450)
+  gen_slickgrid(@user_data, column_options, :caption => "Multiple users did run this SQL!\nChoose executing user of SQL-ID='#{@sql_id}' for generating SQL-translation", :max_height=>450, update_area: @update_area)
 %>
-
-<div id="<%= @update_area %>"></div>

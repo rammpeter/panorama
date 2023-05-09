@@ -82,7 +82,7 @@
     gen_slickgrid(@audits, column_options, {
         :caption => caption,
         :max_height => 450,
-        show_pin_icon: 1
+        show_pin_icon: 1,
+        update_area: @update_area
 })
 %>
-<div id="<%= @update_area %>"></div>

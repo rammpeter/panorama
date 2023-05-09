@@ -1,9 +1,9 @@
-<% @update_area = get_unique_area_id %>
 
 <% @multiplans.each do |mp| %>
 
 
   <%
+     @update_area = get_unique_area_id                                          # DOM-ID des DIVs mit dem Update-Link, own for each plan
      @toggle_id_prefix = get_unique_area_id
      @grid_id          = get_unique_area_id                                     # DOM-ID des DIVs mit SlickGrid
      @indent_vector    = []                                                     # Array mit Hashes für jede Einrückung: :parent_id, :last_exists_id
@@ -182,13 +182,6 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
        end
      end
 
-     add_column_options = [
-         {:caption=>'Type',        :data=>proc{|rec| rec.record_type },  :title=>'Type of record in Other_XML'},
-         {:caption=>'Attribute',   :data=>proc{|rec| rec.attribute },    :title=>'Name of record in Other_XML'},
-         {:caption=>'Value',       :data=>proc{|rec| rec.value },        :title=>'Value of record in Other_XML'},
-     ]
-
-
      @caption = "Explain Plan from gV$SQL_Plan_Statistics_All:"
      if mp[:plans].length > 0
         if mp.child_count == 1
@@ -219,7 +212,15 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
       retval
     end
 
-    command_menu_entries = []
+    command_menu_entries = [
+      {
+        name:                  :additional_info,
+        caption:               'Show additional info',
+        :hint                  => "Show additional info for explain plan from gv$SQL_PLan.Other_XML",
+        :icon_class            => 'cui-map',
+        :show_icon_in_caption  => true,
+        :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan_additional_info', #{param_string.call("plan_hash_value: #{mp.plan_hash_value}")});"
+      }]
     if mp[:adaptive_plan]
       command_menu_entries << {
           name:                  :adaptive_plans,
@@ -241,33 +242,20 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
 
   %>
 
-  <div>
-    <%= gen_slickgrid(mp[:plans], column_options,
-                      {
-                          :caption            => @caption,
-                          caption_title:      @caption_title,
-                          :line_height_single => true,
-                          :data_filter        => 'explain_plan_filter_collapsed_item_rows',
-                          :grid_id            => @grid_id,
-                          :max_height         => "jQuery(window).height()*0.9",  # Max. 90 % of browsers client height
-                          show_pin_icon:      2,
-                          command_menu_entries: command_menu_entries
-                      }) %>
-  </div>
+  <%= gen_slickgrid(mp[:plans], column_options,
+                    {
+                        :caption            => @caption,
+                        caption_title:      @caption_title,
+                        :line_height_single => true,
+                        :data_filter        => 'explain_plan_filter_collapsed_item_rows',
+                        :grid_id            => @grid_id,
+                        :max_height         => "jQuery(window).height()*0.9",  # Max. 90 % of browsers client height
+                        show_pin_icon:      1,
+                        command_menu_entries: command_menu_entries,
+                        update_area: @update_area # local update area per plan
+                    }) %>
 
-  <div>
-    <%= gen_slickgrid(mp[:plan_additions], add_column_options, {
-        :caption => 'Additional info for explain plan from gv$SQL_PLan.Other_XML',
-        :width=>:auto,
-        :max_height => 120,
-        show_pin_icon:      2
-    }) %>
-  </div>
 <% end %>
-
-
-<div id="<%= @update_area %>"></div>
-
 
 
 

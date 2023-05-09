@@ -23,12 +23,9 @@
   if @policies.count > 0
     gen_slickgrid(@policies, column_options, {
       :caption => "FGA policies from DBA_Audit_Policies for #{@owner}.#{@object_name}",
-      :max_height => 450, show_pin_icon: 1
+      :max_height => 450, show_pin_icon: 1, update_area: @update_area
     })
   else
     ''
   end
 %>
-
-
-<div id="<%= @update_area %>"></div>

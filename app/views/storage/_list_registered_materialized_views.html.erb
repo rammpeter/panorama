@@ -73,8 +73,7 @@ column_options =
 <%= gen_slickgrid(@mvs, column_options, {
         :max_height => 450,
         :caption => "Data from sys.DBA_Registered_MViews",
-        show_pin_icon: 1
+        show_pin_icon: 1,
+        update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>"></div>

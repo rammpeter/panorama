@@ -14,9 +14,7 @@
 
 <%= gen_slickgrid(@extents, column_options, {
     :max_height => 450, :width=>:auto,
-    :caption => "Allocated extents from DBA_Extents grouped by extent size for #{@owner}.#{@segment_name}#{" (#{@partition_name})" if @partition_name}"
+    :caption => "Allocated extents from DBA_Extents grouped by extent size for #{@owner}.#{@segment_name}#{" (#{@partition_name})" if @partition_name}",
+    update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>">
-</div>

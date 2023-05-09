@@ -36,7 +36,5 @@
 %>
 
 <%=
-  gen_slickgrid(@resource_limits, column_options, {caption: "Resource limits from gv$Resource_Limit", max_height: 450, width: :auto, show_pin_icon: 1})
+  gen_slickgrid(@resource_limits, column_options, {caption: "Resource limits from gv$Resource_Limit", max_height: 450, width: :auto, show_pin_icon: 1, update_area: @update_area})
 %>
-
-<div id="<%= @update_area %>"></div>

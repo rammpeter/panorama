@@ -43,9 +43,7 @@ column_options =
 
 <%= gen_slickgrid(@snaps, column_options, {
         :max_height => 450,
-        :caption => "Data from sys.DBA_Snapshot_Logs for#{@grid_caption}"
+        :caption => "Data from sys.DBA_Snapshot_Logs for#{@grid_caption}",
+        update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>" style="clear: both;">
-</div>

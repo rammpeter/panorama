@@ -19,9 +19,6 @@
 
     gen_slickgrid(@referencing, column_options, {
                                       :caption => "Foreign keys referencing to  #{@table_type} #{@owner}.#{@table_name}",
-                                      :max_height => 450, show_pin_icon: 1
+                                      :max_height => 450, show_pin_icon: 1, update_area: @update_area
                               })
 %>
-
-
-<div id="<%= @update_area %>"></div>

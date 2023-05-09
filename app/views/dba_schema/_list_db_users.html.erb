@@ -71,6 +71,4 @@
   column_options << {caption: 'Granted object privs', data: link_granted_obj_privs,           title: 'Number of object privileges granted to others by this user', align: :right}
 %>
 
-<%= gen_slickgrid(@users, column_options, {caption: "Database users from DBA_Users#{" filtered for user='#{@username}'" if @username}", max_height: 450, show_pin_icon: 1}) %>
-
-<div id="<%= @update_area %>"></div>
+<%= gen_slickgrid(@users, column_options, {caption: "Database users from DBA_Users#{" filtered for user='#{@username}'" if @username}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>

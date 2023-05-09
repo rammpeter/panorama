@@ -23,9 +23,7 @@
 
 <%= gen_slickgrid(@recycle_bin, column_options, {
     :max_height => 450,
-    :caption => "Content of recycle bin from DBA_RecycleBin"
+    :caption => "Content of recycle bin from DBA_RecycleBin",
+    update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>">
-</div>

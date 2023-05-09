@@ -14,6 +14,5 @@
 <%= gen_slickgrid(@sga_stats, column_options, {
   caption: "Historic SGA components from #{@time_selection_start} until #{@time_selection_end}#{", instance = #{@instance}" if @instance}#{", Con-ID = #{@con_id}" if @con_id}",
   max_height: 450,
-  width: :auto, show_pin_icon: 1
+  width: :auto, show_pin_icon: 1, update_area: @update_area
 }) %>
-<div id="<%= @update_area %>"></div>

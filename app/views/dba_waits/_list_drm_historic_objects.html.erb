@@ -34,8 +34,7 @@
 %>
 <%= gen_slickgrid(@objects, column_options, {
     :caption => "Objects with dynamic remastering events from gv$Policy_History (Policy event = '#{@policy_event}') from #{@time_selection_start} until #{@time_selection_end}",
-    :max_height => 450, show_pin_icon: 1
+    :max_height => 450, show_pin_icon: 1, update_area: @update_area
 })
 %>
 
-<div id="<%= @update_area %>"></div>

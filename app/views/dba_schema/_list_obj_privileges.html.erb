@@ -16,6 +16,4 @@
   column_options << {caption: 'Granted privileges', data: link_privileges,                title: 'Number of grants for this object privilege', align: :right}
 %>
 
-<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs", max_height: 450, show_pin_icon: 1}) %>
-
-<div id="<%= @update_area %>"></div>
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>

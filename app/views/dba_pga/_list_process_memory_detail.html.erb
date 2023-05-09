@@ -18,7 +18,7 @@
 <%=
     gen_slickgrid(@details, column_options, {
        :caption => "PGA details from gv$Process_Memory_Details for instance = #{@instance}, PID = #{@pid}, category = '#{@category}'",
-       :max_height => 450
+       :max_height => 450, update_area: @update_area
   })
 %>
 
@@ -39,5 +39,3 @@
     <li>SQL> ORADEBUG DUMP PGA_DETAIL_CANCEL <%= @pid %>;</li>
   </ul>
 </div>
-
-<div id="<%= @update_area %>"></div>

@@ -11,8 +11,7 @@
 <%=
   gen_slickgrid(@distinct_values, column_options, {
     :caption => "Distinct values for column '#{@column_name}' of  #{@owner}.#{@table_name}",
-    :max_height => 450, :width=>:auto
+    :max_height => 450, :width=>:auto, update_area: @update_area
   })
 %>
 
-<div id="<%= @update_area %>"></div>

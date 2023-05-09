@@ -49,8 +49,7 @@
 <%= gen_slickgrid(@undo_transactions, column_options, {
         :max_height => 450,
         :caption => "Current transactions from gv$Transaction #{' for' if @where_string > ''}#{" undo segment id = #{@segment_id}" if @segment_id}#{" instance = #{@instance}" if @instance}#{" SID = #{@sid}" if @sid}#{" Serial_No = #{@serial_no}" if @serial_no}",
-        show_pin_icon: 1
+        show_pin_icon: 1,
+        update_area:   @update_area
 }) %>
-
-<div id="<%= @update_area %>"></div>
 

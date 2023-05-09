@@ -77,9 +77,8 @@
 
 <%= gen_slickgrid(@disks, column_options, {
     :max_height => 450,
-    :caption => "EXADATA physical disks#{" for#{@filter}" if @filter.length > 0}"
+    :caption => "EXADATA physical disks#{" for#{@filter}" if @filter.length > 0}",
+    update_area:   @update_area
 
 }) %>
 
-<div id="<%= @update_area %>">
-</div>

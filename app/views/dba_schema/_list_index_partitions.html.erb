@@ -142,7 +142,6 @@
 
     gen_slickgrid(@partitions, column_options, {
       :caption => "Partitions of index #{@owner}.#{@index_name} #{@partition_expression}",
-      :max_height => 450
+      :max_height => 450, show_pin_icon: 1, update_area: @update_area
 })
 %>
-<div id="<%= @update_area %>"></div>

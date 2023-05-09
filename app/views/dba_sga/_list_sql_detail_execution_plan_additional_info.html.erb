@@ -1,0 +1,21 @@
+
+<%
+  column_options = [
+    {:caption=>'Type',        :data=>proc{|rec| rec.record_type },  :title=>'Type of record in Other_XML'},
+    {:caption=>'Attribute',   :data=>proc{|rec| rec.attribute },    :title=>'Name of record in Other_XML'},
+    {:caption=>'Value',       :data=>proc{|rec| rec.value },        :title=>'Value of record in Other_XML'},
+  ]
+
+  caption = "Additional info for explain plan from gv$SQL_PLan.Other_XML<br>SQL-ID='#{@sql_id}'"
+  caption << ", Instance=#{@instance}" if @instance
+  caption << ", Plan Hash Value=#{@plan_hash_value}" if @plan_hash_value
+  caption << ", Child Number=#{@child_number}" if @child_number
+  caption << ", Child Address=#{@child_address}" if @child_address
+%>
+
+<%= gen_slickgrid(@plan_additions, column_options, {
+  :caption => caption,
+  :width=>:auto,
+  :max_height => 450,
+  show_pin_icon: 1
+}) %>

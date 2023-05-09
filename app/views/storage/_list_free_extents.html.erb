@@ -15,9 +15,7 @@
 
 <%= gen_slickgrid(@free_exts, column_options, {
     :max_height => 450, :width=>:auto,
-    :caption => "Free extents from DBA_Free_Space#{" for#{@filter}" if @filter.length > 0}"
+    :caption => "Free extents from DBA_Free_Space#{" for#{@filter}" if @filter.length > 0}",
+    update_area:   @update_area
 
 }) %>
-
-<div id="<%= @update_area %>">
-</div>

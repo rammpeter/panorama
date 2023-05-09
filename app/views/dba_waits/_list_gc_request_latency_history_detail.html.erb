@@ -24,8 +24,6 @@ column_options =
 %>
 <%= gen_slickgrid(@objects, column_options, {
     :caption => "Objekts of single AWR-Snapshot for instance #{@instance} beginning at  #{@begin_interval_time}",
-    :max_height => 450
+    :max_height => 450, update_area: @update_area
 })
 %>
-
-<div id="<%= @update_area %>"></div>

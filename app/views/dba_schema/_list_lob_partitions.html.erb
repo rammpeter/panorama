@@ -46,8 +46,7 @@
 
 <%= gen_slickgrid(@partitions, column_options, {
     :caption => "Partitions of LOB #{@lob_name} of #{@owner}.#{@table_name}",
-    :max_height => 450
+    :max_height => 450,
+    update_area: @update_area
 })
 %>
-
-<div id="<%= @update_area %>"></div>

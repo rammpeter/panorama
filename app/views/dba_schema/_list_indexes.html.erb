@@ -315,8 +315,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
 
   gen_slickgrid(@indexes, column_options, {
                                   :caption => caption,
-                                  :max_height => 450, show_pin_icon: 1
+                                  :max_height => 450, show_pin_icon: 1,
+                                  update_area: @update_area
                           })
 %>
-
-<div id="<%= @update_area %>"></div>

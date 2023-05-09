@@ -58,6 +58,4 @@
 
 %>
 
-<%= gen_slickgrid(@roles, column_options, {caption: "Database roles from DBA_Roles#{" filtered for role='#{@role}'" if @role}", max_height: 450, show_pin_icon: 1}) %>
-
-<div id="<%= @update_area %>"></div>
+<%= gen_slickgrid(@roles, column_options, {caption: "Database roles from DBA_Roles#{" filtered for role='#{@role}'" if @role}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>

@@ -1810,10 +1810,13 @@ class DbaSchemaController < ApplicationController
 
     @partitions = sql_select_all ["\
       WITH Storage AS (SELECT /*+ NO_MERGE MATERIALIZE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB, SUM(s.Blocks) Segment_Blocks, SUM(s.Extents) Extents
-                      FROM DBA_Segments s
-                      LEFT OUTER JOIN DBA_Ind_SubPartitions sp ON sp.Index_Owner = s.Owner AND sp.Index_Name = s.Segment_Name AND sp.SubPartition_Name = s.Partition_Name
-                      WHERE s.Owner = ? AND s.Segment_Name = ?
-                      GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
+                       FROM DBA_Segments s
+                       LEFT OUTER JOIN DBA_Ind_SubPartitions sp ON sp.Index_Owner = s.Owner AND sp.Index_Name = s.Segment_Name AND sp.SubPartition_Name = s.Partition_Name
+                       WHERE s.Owner = ? AND s.Segment_Name = ?
+                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
+                      ),
+           Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ SubObject_Name, Object_ID, Data_Object_ID, Created, Last_DDL_Time, Timestamp
+                       FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'INDEX SUBPARTITION'
                       )
       SELECT p.Partition_Name, p.Partition_Position, p.Tablespace_Name, p.Pct_Free, p.Ini_Trans, p.Max_Trans, p.Num_rows,
               p.Compression, p.Last_Analyzed, p.Logging, p.Interval, p.BLevel, p.Leaf_blocks, p.Distinct_Keys, p.Avg_Leaf_Blocks_Per_Key, p.Avg_Data_Blocks_Per_Key,
@@ -1832,7 +1835,7 @@ class DbaSchemaController < ApplicationController
               CASE WHEN Initial_Extent IS NOT NULL THEN Initial_Extent/1024 END Initial_Extent_KB
               #{", mi.GC_Mastering_Policy,  mi.Current_Master + 1  Current_Master,  mi.Previous_Master + 1  Previous_Master, mi.Remaster_Cnt" if PanoramaConnection.rac?}
       FROM DBA_Ind_Partitions p
-      LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Index_Owner AND o.Object_Name = p.Index_Name AND o.SubObject_Name = p.Partition_Name AND o.Object_Type = 'INDEX PARTITION'
+      LEFT OUTER JOIN Objects o ON o.SubObject_Name = p.Partition_Name
       LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Partition_Name, COUNT(*) SubPartition_Count,
                               COUNT(DISTINCT Status)          SP_Status_Count,          MIN(Status)           SP_Status,
@@ -1847,7 +1850,7 @@ class DbaSchemaController < ApplicationController
                       ) sp ON sp.Partition_Name = p.Partition_Name
    #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
       WHERE p.Index_Owner = ? AND p.Index_Name = ?
-      ", @owner, @index_name, @owner, @index_name, @owner, @index_name]
+      ", @owner, @index_name, @owner, @index_name, @owner, @index_name, @owner, @index_name]
 
     # avoid single row fetches due to LONG data type in main select
     high_values = sql_select_all  "\

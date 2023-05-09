@@ -27,9 +27,7 @@ column_options = [
 
 %>
 
-<%= gen_slickgrid(@recs, column_options, {:caption=>caption, :max_height=>450, :width=>"auto"}) %>
+<%= gen_slickgrid(@recs, column_options, {:caption=>caption, :max_height=>450, :width=>"auto", update_area: @update_area}) %>
 
-<div id="<%= @update_area %>" style="float:left; width:100%; ">
-</div>
 
 

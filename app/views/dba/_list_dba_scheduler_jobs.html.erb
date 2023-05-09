@@ -72,9 +72,7 @@
 
 %>
 
-<%= gen_slickgrid(@jobs, column_options, { caption: "Jobs from DBA_Scheduler_Jobs", max_height: 450, show_pin_icon: 1 }) %>
-
-<div id="<%= @update_area %>"></div>
+<%= gen_slickgrid(@jobs, column_options, { caption: "Jobs from DBA_Scheduler_Jobs", max_height: 450, show_pin_icon: 1, update_area: @update_area }) %>
 
 
 

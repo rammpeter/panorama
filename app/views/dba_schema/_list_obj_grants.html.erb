@@ -48,6 +48,4 @@
   column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
 %>
 
-<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs for #{"Privilege='#{@privilege}'" if @privilege}#{"Grantee='#{@grantee}'" if @grantee}", max_height: 450, show_pin_icon: 1}) %>
-
-<div id="<%= @update_area %>"></div>
+<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs for #{"Privilege='#{@privilege}'" if @privilege}#{"Grantee='#{@grantee}'" if @grantee}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>

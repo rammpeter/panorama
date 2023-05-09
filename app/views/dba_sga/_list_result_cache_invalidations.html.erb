@@ -72,9 +72,6 @@
 
 <%= gen_slickgrid(@dependencies, column_options, {
     :caption => "Result cache invalidations from gv$Result_Cache_Objects and gv$Result_Cache_Dependencies",
-    :max_height => 450, show_pin_icon: 1
+    :max_height => 450, show_pin_icon: 1, update_area: @update_area
 })
 %>
-
-
-<div id="<%= @update_area %>"></div>

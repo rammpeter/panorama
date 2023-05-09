@@ -150,9 +150,6 @@
 
 <%= gen_slickgrid(@objects, column_options, {
         :caption => "#{t(:dba_schema_list_objects_caption, :default=>'Objects for')}#{" Tablespace='#{@tablespace_name}'" if @tablespace_name}#{" Schema='#{@schema_name}'" if @schema_name}#{" SQL_ID='#{@sql_id}'" if @sql_id}#{" Instance=#{@instance}" if @instance}",
-        :max_height => 450, show_pin_icon: 1
+        :max_height => 450, show_pin_icon: 1, update_area: @update_area
 })
 %>
-
-
-<div id="<%= @update_area %>"></div>
