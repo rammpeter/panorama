@@ -237,6 +237,7 @@ class DbaSgaController < ApplicationController
                                                  MIN(TO_DATE(c.Last_Load_Time, 'YYYY-MM-DD/HH24:MI:SS')) Min_Last_Load_Time
                                           FROM   GV$SQL c
                                           WHERE c.Inst_ID = ? AND c.SQL_ID = ?", @instance, @sql_id]
+      #noinspection RubyResolve,RubyNilAnalysis
       sql[:child_count]            = sql_counts.child_count
       sql[:plan_hash_value_count]  = sql_counts.plan_hash_value_count
       sql[:min_last_load_time]     = sql_counts.min_last_load_time
@@ -1468,6 +1469,7 @@ class DbaSgaController < ApplicationController
                              )
                      ) o
               JOIN   gv$BH c ON c.Objd = o.Data_Object_ID
+              WHERE  c.Status != 'free'  /* dont show blocks of truncated tables or after flush buffer_cache */
               GROUP BY c.Inst_ID, TS#, o.Owner, o.Object_Name, o.SubObject_Name, o.Object_Type
              ) x
       JOIN   Tablespaces ts ON ts.TS# = x.TS#
