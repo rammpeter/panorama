@@ -469,18 +469,19 @@ class PanoramaSamplerConfig
       config_hash.delete(:last_cache_objects_snapshot_start)
       config_hash.delete(:last_error_time)
       config_hash.delete(:last_error_message)
+      config_hash.delete(:last_longterm_trend_snapshot_end)
+      config_hash.delete(:last_longterm_trend_snapshot_instance)
       config_hash.delete(:last_longterm_trend_snapshot_start)
       config_hash.delete(:last_object_size_snapshot_end)
       config_hash.delete(:last_object_size_snapshot_instance)
       config_hash.delete(:last_object_size_snapshot_start)
       config_hash.delete(:last_successful_connect)
       config_hash.delete(:management_pack_license)
-      config_hash.delete(:password)
       config_hash.delete(:privilege)
       config_hash.delete(:query_timeout)
       config_hash.delete(:structure_checks)
       config_hash.delete(:syspassword_decrypted)
-
+      config_hash[:password] = "<please add your password here>"                # Password should never be become visible after input
       export_array << config_hash
     end
     JSON.pretty_generate(export_array)
