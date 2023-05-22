@@ -500,7 +500,8 @@ class PanoramaSamplerConfig
         get_config_array.each do |existing_config|
           raise "Imported JSON document contains an entry with the name '#{config_hash[:name]}' that already exists in the configuration" if existing_config.get_name == config_hash[:name]
         end
-        config_hash[:password] = encryt_password(config_hash[:password_decrypted])         # Encrypt password with master_password
+        config_hash[:password] = config_hash[:password_decrypted]               # Encrypt password with master_password at prepare_saved_entry!
+        PanoramaSamplerConfig.prepare_saved_entry!(config_hash)
         PanoramaSamplerConfig.add_config_entry(config_hash)
       end
     end

@@ -110,7 +110,6 @@ class PanoramaSamplerController < ApplicationController
   def import_config
     json_data = prepare_param :json_data
     import_count = PanoramaSamplerConfig.import_config(json_data)
-    add_statusbar_message("#{import_count} configuration entries successfully imported")
-    list_config
+    show_popup_message("#{import_count} configuration entries successfully imported. Please refresh the page to see the new entries.")
   end
 end
