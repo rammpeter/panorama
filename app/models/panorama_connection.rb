@@ -818,7 +818,7 @@ class PanoramaConnection
     raise "PanoramaConnection.do_login: username missing"       if  username.nil?
     raise "PanoramaConnection.do_login: password missing"       if  password.nil?
     privilege = 'normal'                                        if  privilege.nil?
-    Rails.logger.debug('PanoramaConnection.do_login') { "Connecting to database: URL='#{url}' User='#{username}' Privilege='#{privilege}'" }
+    Rails.logger.debug('PanoramaConnection.do_login') { "Connecting to database: URL='#{url}' User='#{username}'   Privilege='#{privilege}'" }
     jdbc_connection = ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.new(
         adapter:          "oracle_enhanced",
         driver:           "oracle.jdbc.driver.OracleDriver",
