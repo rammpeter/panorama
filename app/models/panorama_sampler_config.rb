@@ -2,6 +2,7 @@
 # noinspection RubyClassVariableUsageInspection
 
 #require 'popup_message_exception'
+require 'json'
 
 class PanoramaSamplerConfig
   include ExceptionHelper
@@ -348,7 +349,9 @@ class PanoramaSamplerConfig
     min_snapshot_cycle
   end
 
-  #
+  # Encrypt the connection password with the master password
+  # @param native_password [String] password to encrypt
+  # @return [String] encrypted password
   def self.encryt_password(native_password)
     Encryption.encrypt_value(native_password, Panorama::Application.config.panorama_master_password) # Encrypt password with master_password
   end
@@ -444,6 +447,65 @@ class PanoramaSamplerConfig
     entry
   end
 
+  # Export config as JSON document
+  # @return [String] JSON document
+  def self.export_config
+    export_array = []
+    get_config_array.map{|config| config.get_cloned_config_hash}.each do |config_hash|
+      config_hash.delete(:adapter)
+      config_hash.delete(:choosen_dbid)
+      config_hash.delete(:client_salt)
+      config_hash.delete(:id)
+      config_hash.delete(:last_analyze_check_timestamp)
+      config_hash.delete(:last_awr_snapshot_end)
+      config_hash.delete(:last_awr_snapshot_instance)
+      config_hash.delete(:last_awr_ash_snapshot_start)
+      config_hash.delete(:last_awr_snapshot_start)
+      config_hash.delete(:last_blocking_locks_snapshot_end)
+      config_hash.delete(:last_blocking_locks_snapshot_instance)
+      config_hash.delete(:last_blocking_locks_snapshot_start)
+      config_hash.delete(:last_cache_objects_snapshot_end)
+      config_hash.delete(:last_cache_objects_snapshot_instance)
+      config_hash.delete(:last_cache_objects_snapshot_start)
+      config_hash.delete(:last_error_time)
+      config_hash.delete(:last_error_message)
+      config_hash.delete(:last_longterm_trend_snapshot_start)
+      config_hash.delete(:last_object_size_snapshot_end)
+      config_hash.delete(:last_object_size_snapshot_instance)
+      config_hash.delete(:last_object_size_snapshot_start)
+      config_hash.delete(:last_successful_connect)
+      config_hash.delete(:management_pack_license)
+      config_hash.delete(:password)
+      config_hash.delete(:privilege)
+      config_hash.delete(:query_timeout)
+      config_hash.delete(:structure_checks)
+      config_hash.delete(:syspassword_decrypted)
+
+      export_array << config_hash
+    end
+    JSON.pretty_generate(export_array)
+  end
+
+  # Import config from JSON document
+  # @param [String] json_doc JSON document
+  # @return [Integer] Number of imported entries
+  def self.import_config(json_doc)
+    raise "JSON document for import is empty" if json_doc.nil?
+    config_array = JSON.parse(json_doc)
+    raise "Imported JSON document is not an array" unless config_array.is_a?(Array)
+    ActiveRecord::Base.transaction do
+      config_array.each do |config_hash|
+        raise "Imported JSON document contains an array entry that is not a hash" unless config_hash.is_a?(Hash)
+        config_hash.symbolize_keys!
+        get_config_array.each do |existing_config|
+          raise "Imported JSON document contains an entry with the name '#{config_hash[:name]}' that already exists in the configuration" if existing_config.get_name == config_hash[:name]
+        end
+        config_hash[:password] = encryt_password(config_hash[:password_decrypted])         # Encrypt password with master_password
+        PanoramaSamplerConfig.add_config_entry(config_hash)
+      end
+    end
+    config_array.count
+  end
 
   private
 

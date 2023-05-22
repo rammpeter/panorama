@@ -518,16 +518,18 @@ private
 
   # @return [String] NONE | DIAGNOSTIC | DIAGNOSTIC+TUNING
   def read_control_management_pack_access
-    sql = "SELECT Value FROM V$Parameter WHERE name='control_management_pack_access'"
-    sql_select_one sql
-  rescue Exception => e
-    msg = "Cannot read managament pack licensing state from database!\nAssuming no management pack license exists.\n#{e.class}:#{e.message}\nUsed SQL:\n#{sql}"
-    Rails.logger.error('EnvController.read_control_management_pack_access') { msg }
-    log_exception_backtrace(e)
-    # reraise_extended_exception(e, msg)
-    'NONE'
+    pack = sql_select_one "SELECT Value FROM V$Parameter WHERE name='control_management_pack_access'"
+    if pack.nil?
+      if PanoramaConnection.autonomous_database?
+        pack = 'DIAGNOSTIC+TUNING' # 'control_management_pack_access' is not set in autonomous databases, but license is included
+      else
+        msg = "Cannot read management pack licensing state from database!\nAssuming no management pack license exists.\n#{e.class}:#{e.message}\nUsed SQL:\n#{sql}"
+        Rails.logger.error('EnvController.read_control_management_pack_access') { msg }
+        pack = 'NONE'
+      end
+    end
+    pack
   end
-
 
   def persist_management_pack_license(management_pack_license)
     current_database = get_current_database

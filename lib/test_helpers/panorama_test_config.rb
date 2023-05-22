@@ -27,7 +27,6 @@ class PanoramaTestConfig
         syspassword_decrypted:    test_syspassword,
         user:                     test_username,
         tns:                      test_tns,
-        tns_or_host_port_sn:      ENV['TEST_TNS'] ? :TNS : :HOST_PORT_SN
     }
 
     unless @@test_config_logged

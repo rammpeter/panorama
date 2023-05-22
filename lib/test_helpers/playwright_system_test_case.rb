@@ -82,7 +82,7 @@ class PlaywrightSystemTestCase < ActiveSupport::TestCase
     test_config = PanoramaTestConfig.test_config
     # page.screenshot(path: '/tmp/playwright.png')
     #
-    if test_config[:tns_or_host_port_sn] == :TNS
+    if test_config[:modus] == 'tns'
       page.check("#database_modus_tns")
       page.select_option('#database_tns', value: test_config[:tns])
     else

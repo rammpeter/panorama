@@ -54,5 +54,31 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
     Panorama::Application.config.panorama_master_password = 'hugo' # reset to previous value for next tests
   end
 
+  test "export JSON" do
+    json = PanoramaSamplerConfig.export_config
+    assert json.class == String
+    assert json.length > 0
+  end
+
+  test "import JSON" do
+    if PanoramaSamplerConfig.get_config_array.count == 0                        # Test data needed
+      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash)
+    end
+    json = PanoramaSamplerConfig.export_config
+    assert json.class == String
+    assert json.length > 0
+    assert_raise do
+      PanoramaSamplerConfig.import_config(json) # Import the sme config again should be raise an exception on double name
+    end
+    # remove the existing config
+    existing_ids = PanoramaSamplerConfig.get_config_array.map{|x| x.get_id}
+    existing_ids.each do |id|
+      PanoramaSamplerConfig.delete_config_entry(id)
+    end
+    PanoramaSamplerConfig.import_config(json)
+    assert PanoramaSamplerConfig.get_config_array.count == JSON.parse(json).count, 'Should have same number of entries after import'
+    new_json = PanoramaSamplerConfig.export_config
+    assert_equal json, new_json, 'JSON should be the same after import'
+  end
 
 end

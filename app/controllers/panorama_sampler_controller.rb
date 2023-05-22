@@ -97,4 +97,20 @@ class PanoramaSamplerController < ApplicationController
     retval = { config_list: config_list}
     render json: JSON.pretty_generate(retval, {indent: '  '}).gsub(/\\\\n/, "\\n"), status: status
   end
+
+  def export_config
+    @json_data = PanoramaSamplerConfig.export_config
+    render_partial
+  end
+
+  def show_import_config
+    render_partial
+  end
+
+  def import_config
+    json_data = prepare_param :json_data
+    import_count = PanoramaSamplerConfig.import_config(json_data)
+    add_statusbar_message("#{import_count} configuration entries successfully imported")
+    list_config
+  end
 end

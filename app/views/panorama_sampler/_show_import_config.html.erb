@@ -1,0 +1,8 @@
+<%= render_page_caption("Import Panorama-Sampler config") %>
+<% @update_area = get_unique_area_id %>
+<%= ajax_form(controller: :panorama_sampler, action: :import_config, update_area: @update_area) do %>
+  <br>Place a JSON document here created by the export function<br>
+  <%= text_area_tag(:json_data, '', style: "width:98%; height: 60vh;") %>
+  <%= submit_tag("Import configuration", :title => "Import the given configuration data for Panorama-Sampler") %>
+<% end %>
+<div id="<%= @update_area %>"></div>

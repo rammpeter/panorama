@@ -260,7 +260,10 @@ module ApplicationHelper
   end
 
 
-  # Zeistempel in sprach-lokaler Notation ausgeben
+  # Convert timestamp into locale-specific string
+  # @param [Time] timestamp
+  # @param [Symbol] format
+  # @return [String]
   def localeDateTime(timestamp, format = :seconds)
     return '' if timestamp.nil?                                                 # Leere Ausgabe, wenn nil
     timestamp = timestamp.to_datetime if timestamp.class == Time                # Sicherstellen, dass vom Typ DateTime and local timezone

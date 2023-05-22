@@ -170,7 +170,7 @@ class PanoramaConnection
   def read_initial_attributes
     db_config   = PanoramaConnection.direct_select_one(@jdbc_connection,
                   "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID,
-                          (SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE')                                    db_blocksize,
+                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE'), 8192)                         db_blocksize,
                           (SELECT /*+ NO_MERGE */ DECODE (INSTR (banner, '64bit'), 0, 4, 8) Word_Size FROM v$version WHERE Banner LIKE '%Oracle Database%') db_wordsize,
                           (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Enterprise Edition%' OR Banner LIKE '%EE%')                   enterprise_edition_count,
                           (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Express Edition%')                                            express_edition_count,

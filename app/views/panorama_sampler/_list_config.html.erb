@@ -169,12 +169,37 @@ Retention time for snapshot data before deletion = #{fn(rec[:longterm_trend_snap
     ]
 }) %>
 
-<%=
-  ajax_submit("Add new target database for sampling", {
-      :update_area => @update_area,
-      :action      => :show_new_config_form,
-  }, :title => 'Add new config for target database'
-  )
-%>
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("Add new target database for sampling", {
+          :update_area => @update_area,
+          :action      => :show_new_config_form,
+      }, :title => 'Add new config for target database'
+      )
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("Export config", {
+        :update_area => @update_area,
+        :action      => :export_config,
+      }, :title => 'Export the configuration in JSON format'
+      )
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("Import config", {
+        :update_area => @update_area,
+        :action      => :show_import_config,
+      }, :title => 'Import a configuration from JSON format'
+      )
+    %>
+  </div>
+</div>
+
 
 <div id="<%= @update_area %>"></div>
