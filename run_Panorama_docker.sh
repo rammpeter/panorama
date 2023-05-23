@@ -16,11 +16,8 @@ if [ -z "$PANORAMA_VAR_HOME" ]; then
   export PANORAMA_VAR_HOME=/var/opt/panorama
 fi
 
-# Remove all possible old work areas
-rm -rf $PANORAMA_HOME/work
-
-# Ensure existence of work dir
-mkdir -p $PANORAMA_HOME/work
+# Remove temporary objects from previous runs, especially the pid-file if the container was stopped by docker stop -t 0
+rm -rf $PANORAMA_HOME/tmp
 
 if [ -z "$MAX_JAVA_HEAP_SPACE_MB" ]
 then
