@@ -501,6 +501,7 @@ class PanoramaSamplerConfig
         get_config_array.each do |existing_config|
           raise "Imported JSON document contains an entry with the name '#{config_hash[:name]}' that already exists in the configuration" if existing_config.get_name == config_hash[:name]
         end
+        config_hash[:id] = PanoramaSamplerConfig.get_max_id+1
         PanoramaSamplerConfig.prepare_saved_entry!(config_hash)
         PanoramaSamplerConfig.add_config_entry(config_hash)
       end
