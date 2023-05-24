@@ -194,8 +194,8 @@ JOIN   (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len
        ) cs ON cs.Index_Owner = i.Owner AND cs.Index_Name = i.Index_Name
 LEFT OUTER JOIN ash ON ash.Owner = i.Owner AND ash.Object_Name = i.Index_Name
 WHERE  i.Compression != 'ADVANCED HIGH'
-AND    NVL(ash.Seconds_In_Wait, 0) < ?
 AND    seg.MBytes > ?
+AND    NVL(ash.Seconds_In_Wait, 0) < ?
 ORDER BY seg.MBytes DESC NULLS LAST
           ",
           :parameter=>[
