@@ -21,8 +21,7 @@ column_options = []
   column_options << {:caption=>"Type",              data: list_type,                                       :title=>"Parameter type"}  unless @reduced_columns
   column_options << {:caption=>"Name",              :data=>proc{|rec| rec.name},                           :title=>"Parameter name"}
   column_options << {:caption=>"Description",       :data=>proc{|rec| rec.description},                    :title=>"Description of parameter"}
-  column_options << {:caption=>"Value",             :data=>proc{|rec| rec.value},                          :title=>"Parameter-value"}
-  column_options << {:caption=>"Display-Value",     :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-value human readable"}
+  column_options << {:caption=>"Value",             :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-value human readable (display_value)", data_title: proc{|rec| "%t\nNative value = #{rec.value}" }}
   column_options << {:caption=>"Update comment",    :data=>proc{|rec| rec.update_comment},                 :title=>"Comments associated with the most recent update"}
   column_options << {:caption=>"Default",           :data=>proc{|rec| rec.isdefault},                      :title=>t(:dba_oracle_parameter_is_default_hint, :default=>'Is parameter value still default')}
   column_options << {caption: 'Session modifiable', data: proc{|rec| rec.isses_modifiable},                title: "Indicates whether the parameter can be changed with ALTER SESSION (TRUE) or not (FALSE)"} unless @reduced_columns

@@ -601,11 +601,6 @@ oradebug setorapname diag
 
     @hint = nil
 
-    record_modifier = proc{|rec|
-      rec.value = rec.value + " (Caution!!! This is local session setting of Panorama's DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='cursor_sharing'; to read real defaults."  if rec.name == 'cursor_sharing'
-      rec.value = rec.value + " (Caution!!! This is local session setting of Panoramas DB-Session! Database default may differ! Use sqlplus with SELECT * FROM gv$Parameter WHERE name='nls_length_semantics'; to read real defaults.)"  if rec.name == 'nls_length_semantics'
-    }
-
     begin
       @parameters = sql_select_all(["\
         SELECT /* Panorama-Tool Ramm */ *
@@ -642,18 +637,17 @@ oradebug setorapname diag
                                         Display_Value,
                                         IsDefault,
                                         ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
-                                 FROM  gv$Parameter
+                                 FROM  gv$System_Parameter
                                 ) v ON v.Instance = i.Instance AND v.ID = i.ID+1
                )
         WHERE 1=1 #{where_string}
-        ORDER BY Name, Instance"].concat(where_values),
-        record_modifier
+        ORDER BY Name, Instance"].concat(where_values)
       )
 
     rescue Exception
       if @option.nil?
         @hint = "Access rights on tables X$KSPPI and X$KSPPSV are possibly missing!</br>
-  Therefore only documented parameters from GV$Parameter are shown.</br></br>
+  Therefore only documented parameters from GV$System_Parameter are shown.</br></br>
 
   Possible solution to show underscore parameters also: Execute the following as user 'SYS':</br>
   &nbsp;&nbsp;  create view X_$KSPPI as select * from X$KSPPI;</br>
@@ -677,11 +671,10 @@ oradebug setorapname diag
                        Display_Value,
                        IsDefault,
                        ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
-                 FROM  gv$Parameter
+                 FROM  gv$System_Parameter
                 )
         WHERE 1=1 #{where_string}
-        ORDER BY Name, Instance"].concat(where_values),
-        record_modifier
+        ORDER BY Name, Instance"].concat(where_values)
       )
     ensure
       if @option == :auditing

@@ -167,9 +167,9 @@ class EnvController < ApplicationController
       @instance_data = sql_select_all "SELECT /* NO_CDB_TRANSFORMATION */ gi.*, i.Instance_Number Instance_Connected,
                                               (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET')         NLS_CharacterSet,
                                               (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_NCHAR_CHARACTERSET')   NLS_NChar_CharacterSet,
-                                              (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count')                 CPU_Count,
-                                              (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'resource_manager_plan')     Resource_Manager_Plan,
-                                              (SELECT p.Value FROM GV$Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'compatible')                Compatible,
+                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count')                 CPU_Count,
+                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'resource_manager_plan')     Resource_Manager_Plan,
+                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'compatible')                Compatible,
                                               s.Num_CPUs, s.Num_CPU_Cores, s.Num_CPU_Sockets, s.Phys_Mem_GB, s.Free_Mem_GB, s.Inactive_Mem_GB,
                                               d.DBID, d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging, d.Database_Role,
                                               d.Supplemental_Log_Data_Min, d.Supplemental_Log_Data_PK, d.Supplemental_Log_Data_UI, d.Supplemental_Log_Data_FK, d.Supplemental_Log_Data_All, d.Supplemental_Log_Data_PL,
@@ -518,7 +518,7 @@ private
 
   # @return [String] NONE | DIAGNOSTIC | DIAGNOSTIC+TUNING
   def read_control_management_pack_access
-    pack = sql_select_one "SELECT Value FROM V$Parameter WHERE name='control_management_pack_access'"
+    pack = sql_select_one "SELECT Value FROM V$System_Parameter WHERE name='control_management_pack_access'"
     if pack.nil?
       if PanoramaConnection.autonomous_database?
         pack = 'DIAGNOSTIC+TUNING' # 'control_management_pack_access' is not set in autonomous databases, but license is included
