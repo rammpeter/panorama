@@ -1221,11 +1221,10 @@ class DbaSchemaController < ApplicationController
                                   GROUP BY Index_Owner, Index_Name
                                  ) col_len ON col_len.Index_Owner = i.Owner AND col_len.Index_Name = i.Index_Name
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Index_Name, COUNT(*) Ref_Constraints_Cnt
-                                  FROM   (SELECT ii.Index_Name, cc.Constraint_Name
-                                          FROM   Indexes ii
-                                          CROSS JOIN Ref_Cons_Columns cc /* Check colums of ref. constraints for each index */
-                                          LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = ii.Owner AND ic.Index_Name = ii.Index_Name AND ic.Column_Name = cc.Column_Name /* Column position does not matter for FK-constraints */
-                                          GROUP BY ii.Index_Name, cc.Constraint_Name
+                                  FROM   (SELECT ic.Index_Name, cc.Constraint_Name
+                                          FROM   Ref_Cons_Columns cc /* Check colums of ref. constraints for each index */
+                                          LEFT OUTER JOIN Ind_Columns ic ON ic.Column_Name = cc.Column_Name /* Column position does not matter for FK-constraints */
+                                          GROUP BY ic.Index_Name, cc.Constraint_Name
                                           HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* Columns of an index starting left are matching all columns of an constraint */
                                           AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                          )
@@ -1461,40 +1460,7 @@ class DbaSchemaController < ApplicationController
     @owner      = params[:owner]
     @table_name = params[:table_name]
 
-    @referencing = sql_select_all ["\
-      SELECT c.*, ct.Num_Rows,  pi.Min_Index_Owner, pi.Min_Index_Name, pi.Index_Number,
-             #{get_db_version >= "11.2" ?
-                                      "(SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
-                                       (SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
-                                      " :
-                                      "(SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
-                                       (SELECT  wm_concat(column_name) FROM (SELECT * FROM DBA_Cons_Columns ORDER BY Position) cc WHERE cc.Owner = c.Owner AND cc.Constraint_Name = c.Constraint_Name) Columns
-                                      "
-                                   }
-      FROM   DBA_Constraints r
-      JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
-      JOIN   DBA_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
-      LEFT OUTER JOIN   (
-              SELECT Owner, Constraint_Name,
-                     MIN(Index_Owner) KEEP (DENSE_RANK FIRST ORDER BY Index_Name) Min_Index_Owner, MIN(Index_Name) Min_Index_Name,
-                     COUNT(*) Index_Number
-              FROM   (
-                      SELECT Owner, Constraint_Name, Index_Owner, Index_Name
-                      FROM   (SELECT cc.Owner, cc.Table_Name, cc.Constraint_Name, ic.Index_Owner, ic.Index_Name, ic.Column_Name Index_Column_Name,
-                                     COUNT(DISTINCT cc.Column_Name) OVER (PARTITION BY cc.Owner, cc.Table_Name, cc.Constraint_Name) Cons_Columns
-                              FROM   DBA_Cons_Columns cc
-                              LEFT OUTER JOIN DBA_Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_name = cc.Column_Name
-                              )
-                      GROUP BY Owner, Constraint_Name, Index_Owner, Index_Name
-                      HAVING MIN(Cons_Columns) = COUNT(DISTINCT Index_Column_Name)  /* All FK columns must exist in protecting index, no matter in which order */
-                     )
-              GROUP BY Owner, Constraint_Name
-             )  pi ON pi.Owner = c.Owner AND pi.Constraint_Name = c.Constraint_Name
-      WHERE  c.Constraint_Type = 'R'
-      AND    r.Owner      = ?
-      AND    r.Table_Name = ?
-      ", @owner, @table_name]
-
+    @referencing = Table.new(@owner, @table_name).references_to
     render_partial
   end
 

@@ -273,11 +273,10 @@ If none of the four reasons really requires the existence, the index can be remo
 }                           ),
                     Protected_FKs AS (SELECT /*+ NO_MERGE MATERIALIZE LEADING(fk c rc rt m) USE_HASH(fk c rc rt m) */ fk.Index_Owner, fk.Index_Name, fk.Constraint_Owner, fk.Constraint_Name,
                                              rc.Owner r_Owner, rt.Table_Name r_Table_Name, rt.Num_rows r_Num_rows, rt.Last_Analyzed r_Last_analyzed, m.Inserts, m.Updates, m.Deletes
-                                      FROM   (SELECT /*+ NO_MERGE */ i.Owner Index_Owner, i.Index_Name, cc.Owner Constraint_Owner, cc.Constraint_Name
-                                              FROM   Indexes i
-                                              JOIN   Cons_Columns cc ON cc.Owner = i.Table_Owner AND cc.Table_Name = i.Table_Name
-                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name AND ic.Column_Name = cc.Column_Name
-                                              GROUP BY i.Owner, i.Index_Name, cc.Owner, cc.Constraint_Name
+                                      FROM   (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, cc.Owner Constraint_Owner, cc.Constraint_Name
+                                              FROM   Cons_Columns cc
+                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Table_Owner = cc.Owner  AND ic.Table_Name = cc.Table_Name AND ic.Column_Name = cc.Column_Name
+                                              GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                               HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                               AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                              ) fk

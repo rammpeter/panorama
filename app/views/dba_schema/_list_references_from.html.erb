@@ -23,10 +23,14 @@
       If no index exists for constraints column(s) than each DELETE on #{rec.r_table_name} fires a full table scan on #{@table_name}.
       This and some lock issues are only a problem if #{rec.r_table_name} is a larger table with frequent DML-operations.
       Working without an index here may be useful if #{rec.r_table_name} has only few records and there is less or no DML on #{rec.r_table_name}.
-      #{"\nThere are #{rec.index_number} indexes on #{@table_name} starting with the same column!" if !rec.index_number.nil? && rec.index_number > 1}
+      #{"\nThere are #{rec.index_number} indexes on #{@table_name} starting with the same column(s)!" if !rec.index_number.nil? && rec.index_number > 1}
 
-      To catch lock propagation with index instead of table for foreign key constraints: All columns of FK-constraint must exist in protecting index!
+      To catch lock propagation with index instead of table for foreign key constraints: All columns of FK-constraint must exist in protecting index as leading columns (order does not matter)!
       "
+    end
+
+    protecting_index_data_style = proc do |rec|
+      "background-color: coral;" if rec.min_index_name.nil? && rec.r_num_rows > 10000 # referenced table with more than 10000 rows and no index for protection
     end
 
     column_options =
@@ -47,7 +51,7 @@
                     {:caption=> 'Ins.',                        :data=>proc{|rec| fn(rec.inserts)},                 :title=> 'Number of insert operations on referenced table since last analyze', :align=>:right},
                     {:caption=> 'Upd.',                        :data=>proc{|rec| fn(rec.updates)},                 :title=> 'Number of update operations on referenced table since last analyze', :align=>:right},
                     {:caption=> 'Del.',                        :data=>proc{|rec| fn(rec.deletes)},                 :title=> 'Number of delete operations on referenced table since last analyze', :align=>:right},
-                    {:caption=> 'Protecting index name',       :data=>link_index,                                  :title=> protecting_title, data_title: protecting_data_title },
+                    {:caption=> 'Protecting index name',       :data=>link_index,                                  :title=> protecting_title, data_title: protecting_data_title, data_style: protecting_index_data_style },
             ]
 
     gen_slickgrid(@references, column_options, {

@@ -27,10 +27,9 @@ module Dragnet::ForeignKeyConstraintHelper
                                          WHERE  Index_Owner NOT IN (#{system_schema_subselect})
                                         ),
                          Protected_Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Owner, cc.Constraint_Name
-                                              FROM   Indexes i
-                                              JOIN   Cons_Columns cc ON cc.Owner = i.Table_Owner AND cc.Table_Name = i.Table_Name
-                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name AND ic.Column_Name = cc.Column_Name
-                                              GROUP BY i.Owner, i.Index_Name, cc.Owner, cc.Constraint_Name
+                                              FROM   DBA_Cons_Columns cc
+                                              LEFT OUTER JOIN DBA_Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_Name = cc.Column_Name
+                                              GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                               HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                               AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                              )
@@ -60,7 +59,7 @@ module Dragnet::ForeignKeyConstraintHelper
                     WHERE  Ref.Constraint_Type='R'
                     AND targett.Num_rows > ?
                     AND (ref.Owner, ref.Constraint_Name) NOT IN (SELECT Owner, Constraint_Name FROM Protected_Constraints)
-                    ORDER BY targett.Num_rows DESC NULLS LAST, ref.Table_Name",
+                    ORDER BY targett.Num_rows+reft.Num_Rows DESC NULLS LAST, ref.Table_Name",
             :parameter=>[{:name=>t(:dragnet_helper_5_param_1_name, :default=> 'Min. no. of rows of referenced table'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_5_param_1_hint, :default=> 'Minimum number of rows of referenced table') },]
         },
         {
