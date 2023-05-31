@@ -115,9 +115,9 @@ jobs:
           pwd
           bundle config deployment 'true'
           # All runners should use the same path
-          bundle config path '/tmp'
+          # bundle config path '/tmp'
           # Prevent from error "Bundler::GemNotFound: Could not find rake-13.0.6.gem for installation"
-          gem install rake --no-doc
+          # gem install rake --no-doc
           bundle install
 
       # create encypted wallet zip file to store in repository, add passphrase
