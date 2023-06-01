@@ -61,8 +61,9 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
   end
 
   test "import JSON" do
-    if PanoramaSamplerConfig.get_config_array.count == 0                        # Test data needed
-      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash)
+    if PanoramaSamplerConfig.get_config_array.count < 2                        # Test data needed
+      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test1', user: 'test1', owner: 'test1', password: 'test1'}))
+      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test2', user: 'test2', owner: 'test2', password: 'test2'}))
     end
     json = PanoramaSamplerConfig.export_config
     assert json.class == String

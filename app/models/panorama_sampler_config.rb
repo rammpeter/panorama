@@ -416,7 +416,7 @@ class PanoramaSamplerConfig
 
   # Modify some content after edit and before storage
   def self.prepare_saved_entry!(entry)
-    entry[:tns]                                 = PanoramaConnection.get_host_tns(entry) if entry[:modus].to_sym == :host
+    entry[:tns]                                 = PanoramaConnection.get_host_tns(entry) if entry[:modus]&.to_sym == :host
     entry[:id]                                  = entry[:id].to_i
     entry[:awr_ash_snapshot_cycle]              = entry[:awr_ash_snapshot_cycle].to_i
     entry[:awr_ash_snapshot_retention]          = entry[:awr_ash_snapshot_retention].to_i
