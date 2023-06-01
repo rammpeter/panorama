@@ -198,7 +198,7 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       FROM   DBA_hist_Active_Sess_History s
                       WHERE  Sample_Time >SYSDATE - ?
                       AND    Instance_Number = ?
-                      AND    BID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                      AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                       GROUP BY Sample_Time
                       ORDER BY 1",
             :parameter=>[
