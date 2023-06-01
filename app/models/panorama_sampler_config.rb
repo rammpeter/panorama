@@ -410,6 +410,15 @@ class PanoramaSamplerConfig
     end
   end
 
+  # Delete all entries, used especially in tests
+  def self.delete_all_config_entries
+    # remove the existing config
+    existing_ids = PanoramaSamplerConfig.get_config_array.map{|x| x.get_id}
+    existing_ids.each do |id|
+      PanoramaSamplerConfig.delete_config_entry(id)
+    end
+  end
+
   #-------------- not validated class methods --------------
 
 

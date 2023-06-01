@@ -7,6 +7,8 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
     set_session_test_db_context
     Panorama::Application.config.panorama_master_password = 'hugo'
 
+    PanoramaSamplerConfig.delete_all_config_entries                             # Ensure that no config entries are present before test
+
     @config_entry_without_id            = get_current_database
     @config_entry_without_id[:name]     = 'Hugo'
     # Decrypted password used for test because this config is used as http request data for storing connection data
@@ -17,7 +19,7 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
 
     if PanoramaSamplerConfig.get_max_id < 100
       id = PanoramaSamplerConfig.get_max_id + 1
-      PanoramaSamplerConfig.add_config_entry(@config_entry_without_id.merge( {:id => id, :name => "Test-Config #{id}" }))
+      PanoramaSamplerConfig.add_config_entry(@config_entry_without_id.merge( {id: id, name: "Test-Config #{id} #{rand(1000)}" }))
     end
   end
 

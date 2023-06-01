@@ -8,6 +8,11 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
 
   setup do
     @sampler_config = prepare_panorama_sampler_thread_db_config
+    PanoramaSamplerConfig.delete_all_config_entries                             # Ensure that no config entries are present before test
+    # Test data needed, must not have valid DB user (until now)
+    PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test1', user: 'test1', owner: 'test1', password: 'test1'}))
+    PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test2', user: 'test2', owner: 'test2', password: 'test2'}))
+    PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test3', user: 'test3', owner: 'test3', password: 'test3'}))
   end
 
   test "validate" do
@@ -61,25 +66,17 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
   end
 
   test "import JSON" do
-    if PanoramaSamplerConfig.get_config_array.count < 2                        # Test data needed
-      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test1', user: 'test1', owner: 'test1', password: 'test1'}))
-      PanoramaSamplerConfig.add_config_entry(PanoramaSamplerConfig.new.get_cloned_config_hash.merge({name: 'test2', user: 'test2', owner: 'test2', password: 'test2'}))
-    end
     json = PanoramaSamplerConfig.export_config
     assert json.class == String
     assert json.length > 0
     assert_raise do
       PanoramaSamplerConfig.import_config(json) # Import the sme config again should be raise an exception on double name
     end
-    # remove the existing config
-    existing_ids = PanoramaSamplerConfig.get_config_array.map{|x| x.get_id}
-    existing_ids.each do |id|
-      PanoramaSamplerConfig.delete_config_entry(id)
-    end
+
+    PanoramaSamplerConfig.delete_all_config_entries # Delete all entries        # remove the existing config
     PanoramaSamplerConfig.import_config(json)
     assert PanoramaSamplerConfig.get_config_array.count == JSON.parse(json).count, 'Should have same number of entries after import'
     new_json = PanoramaSamplerConfig.export_config
     assert_equal json, new_json, 'JSON should be the same after import'
   end
-
 end
