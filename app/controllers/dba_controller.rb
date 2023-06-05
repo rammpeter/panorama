@@ -1557,14 +1557,14 @@ oradebug setorapname diag
                                    "
 
     @tasks = sql_select_iterator "SELECT a.*,
-                                         EXTRACT(HOUR FROM Mean_Job_Duration)*3600              + EXTRACT(MINUTE FROM Mean_Job_Duration)*60             + EXTRACT(SECOND FROM Mean_Job_Duration)            Mean_Job_Duration_Secs,
-                                         EXTRACT(HOUR FROM Mean_Job_CPU)*3600                   + EXTRACT(MINUTE FROM Mean_Job_CPU)*60                  + EXTRACT(SECOND FROM Mean_Job_CPU)                 Mean_Job_CPU_Secs,
-                                         EXTRACT(HOUR FROM TOTAL_CPU_LAST_7_DAYS)*3600          + EXTRACT(MINUTE FROM TOTAL_CPU_LAST_7_DAYS)*60         + EXTRACT(SECOND FROM TOTAL_CPU_LAST_7_DAYS)        TOTAL_CPU_LAST_7_DAYS_Secs,
-                                         EXTRACT(HOUR FROM TOTAL_CPU_LAST_30_DAYS)*3600         + EXTRACT(MINUTE FROM TOTAL_CPU_LAST_30_DAYS)*60        + EXTRACT(SECOND FROM TOTAL_CPU_LAST_30_DAYS)       TOTAL_CPU_LAST_30_DAYS_Secs,
-                                         EXTRACT(HOUR FROM MAX_DURATION_LAST_7_DAYS)*3600       + EXTRACT(MINUTE FROM MAX_DURATION_LAST_7_DAYS)*60      + EXTRACT(SECOND FROM MAX_DURATION_LAST_7_DAYS)     MAX_DURATION_LAST_7_DAYS_Secs,
-                                         EXTRACT(HOUR FROM MAX_DURATION_LAST_30_DAYS)*3600      + EXTRACT(MINUTE FROM MAX_DURATION_LAST_30_DAYS)*60     + EXTRACT(SECOND FROM MAX_DURATION_LAST_30_DAYS)    MAX_DURATION_LAST_30_DAYS_Secs,
-                                         EXTRACT(HOUR FROM WINDOW_DURATION_LAST_7_DAYS)*3600    + EXTRACT(MINUTE FROM WINDOW_DURATION_LAST_7_DAYS)*60   + EXTRACT(SECOND FROM WINDOW_DURATION_LAST_7_DAYS)  WINDOW_DURATION_7_DAYS_Secs,
-                                         EXTRACT(HOUR FROM WINDOW_DURATION_LAST_30_DAYS)*3600   + EXTRACT(MINUTE FROM WINDOW_DURATION_LAST_30_DAYS)*60  + EXTRACT(SECOND FROM WINDOW_DURATION_LAST_30_DAYS) WINDOW_DURATION_30_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('Mean_Job_Duration')}             Mean_Job_Duration_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('Mean_Job_CPU')}                  Mean_Job_CPU_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('TOTAL_CPU_LAST_7_DAYS')}         TOTAL_CPU_LAST_7_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('TOTAL_CPU_LAST_30_DAYS')}        TOTAL_CPU_LAST_30_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('MAX_DURATION_LAST_7_DAYS')}      MAX_DURATION_LAST_7_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('MAX_DURATION_LAST_30_DAYS')}     MAX_DURATION_LAST_30_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('WINDOW_DURATION_LAST_7_DAYS')}   WINDOW_DURATION_7_DAYS_Secs,
+                                         #{DatabaseHelper.extract_seconds_from_interval('WINDOW_DURATION_LAST_30_DAYS')}  WINDOW_DURATION_30_DAYS_Secs,
                                          j.Job_Runs
                                   FROM   DBA_AutoTask_Client a
                                   JOIN   (SELECT /*+ NO_MERGE */ Client_Name, COUNT(*) Job_Runs
@@ -1578,8 +1578,8 @@ oradebug setorapname diag
   def list_dba_autotask_job_runs
     @client_name =  params[:client_name]
     @job_runs = sql_select_iterator ["SELECT j.*,
-                                             EXTRACT(HOUR FROM Window_Duration)*3600  + EXTRACT(MINUTE FROM Window_Duration)*60   + EXTRACT(SECOND FROM Window_Duration)  Window_Duration_Secs,
-                                             EXTRACT(HOUR FROM Job_Duration)*3600     + EXTRACT(MINUTE FROM Job_Duration)*60      + EXTRACT(SECOND FROM Job_Duration)     Job_Duration_Secs
+                                             #{DatabaseHelper.extract_seconds_from_interval('Window_Duration')} Window_Duration_Secs,
+                                             #{DatabaseHelper.extract_seconds_from_interval('Job_Duration')}    Job_Duration_Secs
                                       FROM   DBA_Autotask_Job_History j
                                       WHERE Client_Name = ? ORDER BY Job_Start_Time DESC
                                      ", @client_name]
@@ -2229,9 +2229,9 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
 
   def list_dba_scheduler_jobs
     @jobs = sql_select_iterator "SELECT j.*,
-                                        EXTRACT(DAY FROM j.Last_Run_Duration * 86400 * 1000)/1000 Last_Run_Duration_Seconds,
-                                        EXTRACT(DAY FROM j.Schedule_Limit    * 86400 * 1000)/1000 Schedule_Limit_Seconds,
-                                        EXTRACT(DAY FROM j.Max_Run_Duration  * 86400 * 1000)/1000 Max_Run_Duration_Seconds,
+                                        #{DatabaseHelper.extract_seconds_from_interval('j.Last_Run_Duration')}  Last_Run_Duration_Seconds,
+                                        #{DatabaseHelper.extract_seconds_from_interval('j.Schedule_Limit')}     Schedule_Limit_Seconds,
+                                        #{DatabaseHelper.extract_seconds_from_interval('j.Max_Run_Duration')}   Max_Run_Duration_Seconds,
                                         NVL(j.Job_Type, p.Program_Type)     Job_or_Program_Type,
                                         NVL(j.Job_Action, p.Program_Action) Job_or_Program_Action
                                  FROM   DBA_Scheduler_Jobs j
@@ -2254,8 +2254,8 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
 
     @job_runs = sql_select_iterator ["SELECT d.*,
                                              Error# Error_no,
-                                             EXTRACT(DAY FROM d.Run_Duration * 86400 * 1000)/1000 Run_Duration_Seconds,
-                                             EXTRACT(DAY FROM d.CPU_Used     * 86400 * 1000)/1000 CPU_Used_Seconds
+                                             #{DatabaseHelper.extract_seconds_from_interval('d.Run_Duration')}  Run_Duration_Seconds,
+                                             #{DatabaseHelper.extract_seconds_from_interval('d.CPU_Used')}  CPU_Used_Seconds
                                       FROM   DBA_Scheduler_Job_Run_Details d
                                       WHERE  Owner = ?
                                       AND    Job_Name = ?

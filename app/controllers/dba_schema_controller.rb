@@ -2533,7 +2533,7 @@ class DbaSchemaController < ApplicationController
     end
 
     sql_select_all ["SELECT o.*,
-                            EXTRACT(HOUR FROM End_Time - Start_Time)*60*24 + EXTRACT(MINUTE FROM End_Time - Start_Time)*60 + EXTRACT(SECOND FROM End_Time - Start_Time) Duration
+                            #{DatabaseHelper.extract_seconds_from_interval('End_Time - Start_Time')} Duration
                     FROM   (SELECT SUBSTR(sTarget, 1, INSTR(sTarget, '.')-1) Owner,
                                    CASE WHEN INSTR(sTarget, '.', 1, 2) = 0
                                    THEN

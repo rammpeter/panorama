@@ -5,7 +5,12 @@ require 'encryption'
 # Hilfsmethoden mit Bezug auf die aktuell verbundene Datenbank sowie verbundene Einstellunen wie Sprache
 module DatabaseHelper
 
-public
+  # Generate the database expression to convert interval to the number of seconds
+  # @param [String] column_expression the column expression to be converted
+  # @return [String] the database expression to convert interval to the number of seconds
+  def self.extract_seconds_from_interval(column_expression)
+    "EXTRACT(DAY FROM #{column_expression})*86400 + EXTRACT(HOUR FROM #{column_expression})*3600 + EXTRACT(MINUTE FROM #{column_expression})*60 + EXTRACT(SECOND FROM #{column_expression})"
+  end
 
   # Format für JQuery-UI Plugin DateTimePicker
   def timepicker_dateformat

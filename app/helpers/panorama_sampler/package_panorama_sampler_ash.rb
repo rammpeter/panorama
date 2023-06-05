@@ -1,3 +1,5 @@
+require '../database_helper'
+
 module PanoramaSampler::PackagePanoramaSamplerAsh
   # PL/SQL-Package for snapshot creation
   # panorama_owner is replaced by real schema owner
@@ -239,12 +241,10 @@ END Panorama_Sampler_ASH;
              NULL,                -- DBREPLAY_FILE_ID
              NULL,                -- DBREPLAY_CALL_COUNTER
              -- cast SYSTIMESTAMP to timestamp without timezone to ensure timezone setting does not influence the difference SYSTIMESTAMP-Sample_Time
-             DECODE(ph.Sample_Time, NULL, NULL, (EXTRACT(DAY    FROM p_SysTimestamp-ph.Sample_Time)*86400 + EXTRACT(HOUR FROM p_SysTimestamp-ph.Sample_Time)*3600 +
-                                                 EXTRACT(MINUTE FROM p_SysTimestamp-ph.Sample_Time)*60    + EXTRACT(SECOND FROM p_SysTimestamp-ph.Sample_Time))*1000000), -- TM_Delta_Time
+             DECODE(ph.Sample_Time, NULL, NULL, (#{DatabaseHelper.extract_seconds_from_interval('p_SysTimestamp-ph.Sample_Time')})*1000000), -- TM_Delta_Time
              DECODE(ph.Sample_Time, NULL, NULL, stm_cp.Value - NVL(ph.TM_Delta_CPU_Time, 0)),     -- TM_DELTA_CPU_TIME
              DECODE(ph.Sample_Time, NULL, NULL, stm_db.Value - NVL(ph.TM_Delta_DB_Time, 0)),      -- TM_DELTA_DB_TIME
-             DECODE(ph.Sample_Time, NULL, NULL, (EXTRACT(DAY    FROM p_SysTimestamp-ph.Sample_Time)*86400 + EXTRACT(HOUR FROM p_SysTimestamp-ph.Sample_Time)*3600 +
-                                                 EXTRACT(MINUTE FROM p_SysTimestamp-ph.Sample_Time)*60    + EXTRACT(SECOND FROM p_SysTimestamp-ph.Sample_Time))*1000000), -- Delta_Time
+             DECODE(ph.Sample_Time, NULL, NULL, (#{DatabaseHelper.extract_seconds_from_interval('p_SysTimestamp-ph.Sample_Time')})*1000000), -- Delta_Time
              NULL, -- DECODE(ph.Sample_Time, NULL, NULL, ss_rio.Value - NVL(ph.DELTA_READ_IO_REQUESTS, 0)),  --  DELTA_READ_IO_REQUESTS
              NULL, -- DELTA_WRITE_IO_REQUESTS
              NULL, -- DELTA_READ_IO_BYTES
