@@ -1,4 +1,4 @@
-require '../database_helper'
+require_relative '../database_helper'
 
 module PanoramaSampler::PackagePanoramaSamplerAsh
   # PL/SQL-Package for snapshot creation

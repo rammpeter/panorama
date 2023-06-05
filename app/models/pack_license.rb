@@ -1,3 +1,5 @@
+require 'panorama_sampler_structure_check'
+
 class PackLicense
 
   def initialize(license_type)
