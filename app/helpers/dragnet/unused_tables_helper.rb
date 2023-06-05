@@ -225,6 +225,35 @@ The selection is based on two sample values per column (the lowest and the highe
                     ORDER BY MB_Only_For_Blanks DESC
                     ",
         },
+        {
+          :name  => t(:dragnet_helper_169_name, default: 'Empty partitions or subpartitions'),
+          :desc  => t(:dragnet_helper_169_desc, default: "Empty partitions or subpartitions are possibly not necessary and could be dropped."),
+          :sql=> "\
+WITH Tab_SubPartitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_SubPartitions),
+     Tab_Partitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_Partitions),
+     Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_Modifications WHERE Partition_Name IS NOT NULL),
+     Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partition_Name, Bytes FROM DBA_Segments WHERE Partition_Name IS NOT NULL)
+SELECT Table_Owner, Table_Name, Type, COUNT(*) Empty_Partition_Count, ROUND(SUM(Bytes)/(1024*1024), 2) MBytes,
+       SUM(Num_Rows) Num_Rows_At_Analyze,
+       SUM(Inserts) Inserts_since_Analyze,
+       SUM(Deletes) Deletes_since_Analyze
+FROM   (
+        SELECT 'SUBPARTITION' Type, p.Table_Owner, p.Table_Name, p.Num_Rows, p.Interval, NVL(m.Inserts, 0) Inserts, NVL(m.Deletes, 0) Deletes, s.Bytes
+        FROM   Tab_SubPartitions p
+        JOIN   Segments s ON s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.SubPartition_Name
+        LEFT OUTER JOIN Tab_Modifications m ON m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name = p.SubPartition_Name
+        UNION ALL
+        SELECT 'PARTITION' Type, p.Table_Owner, p.Table_Name, p.Num_Rows, p.Interval, NVL(m.Inserts, 0) Inserts, NVL(m.Deletes, 0) Deletes, s.Bytes
+        FROM   Tab_Partitions p
+        JOIN   Segments s ON s.Owner = p.Table_Owner AND s.Segment_Name = p.Table_Name AND s.Partition_Name = p.Partition_Name
+        LEFT OUTER JOIN Tab_Modifications m ON m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name IS NULL
+       )
+WHERE  Deletes >= NVL(Num_Rows, 0) + Inserts /* Num_Rows = 0 or all inserted rows are deleted */
+AND    Table_Owner NOT IN (#{system_schema_subselect})
+GROUP BY Table_Owner, Table_Name, Type
+ORDER BY MBytes DESC
+          ",
+        },
 
     ]
   end # unused_tables

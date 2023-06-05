@@ -1805,6 +1805,9 @@
   dragnet_helper_168_param_3_hint:                          Mindestgröße des Index in MB um bei dieser Auswahl berücksichtigt zu werden
   dragnet_helper_168_param_3_name:                          Mindestgröße des Index in MB für Berücksichtigung
 
+  dragnet_helper_169_desc:                                  Leere Partitionen oder Subpartitionen werden evtl. nicht mehr benötigt und können gedropt werden
+  dragnet_helper_169_name:                                  Leere Partitionen oder Subpartitionen
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen
