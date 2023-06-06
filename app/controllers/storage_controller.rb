@@ -87,11 +87,11 @@ class StorageController < ApplicationController
 
     end
 
+    @fra_not_reclaimable_usage = 0
     if @fra_size_bytes > 0
       totals['Fast Recovery Area'] = {'content_hint' => 'Fast Recovery Area'}
       totals['Fast Recovery Area']['mbtotal'] = @fra_size_bytes / (1024*1024).to_i
       totals['Fast Recovery Area']['mbused'] = 0
-      @fra_not_reclaimable_usage = 0
       @fra_usage.each do |f|
         totals['Fast Recovery Area']['mbused'] += f.percent_space_used*@fra_size_bytes/(1024*1024)/100
         @fra_not_reclaimable_usage += f.percent_space_used - f.percent_space_reclaimable
