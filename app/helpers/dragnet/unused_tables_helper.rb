@@ -229,10 +229,10 @@ The selection is based on two sample values per column (the lowest and the highe
           :name  => t(:dragnet_helper_169_name, default: 'Empty partitions or subpartitions'),
           :desc  => t(:dragnet_helper_169_desc, default: "Empty partitions or subpartitions are possibly not necessary and could be dropped."),
           :sql=> "\
-WITH Tab_SubPartitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_SubPartitions),
-     Tab_Partitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_Partitions),
-     Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Tab_Modifications WHERE Partition_Name IS NOT NULL),
-     Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partition_Name, Bytes FROM DBA_Segments WHERE Partition_Name IS NOT NULL)
+WITH Tab_SubPartitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, SubPartition_Name, Num_Rows, Interval  FROM DBA_Tab_SubPartitions),
+     Tab_Partitions    AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, Num_Rows, Interval                     FROM DBA_Tab_Partitions),
+     Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, SubPartition_Name, Inserts, Deletes    FROM DBA_Tab_Modifications WHERE Partition_Name IS NOT NULL),
+     Segments          AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partition_Name, Bytes                                      FROM DBA_Segments WHERE Partition_Name IS NOT NULL)
 SELECT Table_Owner, Table_Name, Type, COUNT(*) Empty_Partition_Count, ROUND(SUM(Bytes)/(1024*1024), 2) MBytes,
        SUM(Num_Rows) Num_Rows_At_Analyze,
        SUM(Inserts) Inserts_since_Analyze,
