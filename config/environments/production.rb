@@ -87,7 +87,7 @@ Rails.application.configure do
   # config.log_formatter = ::Logger::Formatter.new
   config.log_formatter = proc do |severity, datetime, progname, msg|
     date_format = datetime.strftime("%Y-%m-%d %H:%M:%S.%3N")
-    "[#{date_format}] #{severity} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
+    "[#{date_format}] #{severity.ljust(5)} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
   end
 
   # Use a different logger for distributed setups.
