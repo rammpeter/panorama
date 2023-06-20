@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.1.0'
+ruby '3.1.4'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
 # gem 'rails', '~> 6.1.7', '>= 6.1.7.2'
@@ -32,17 +32,6 @@ gem 'jbuilder', '~> 2.7'
 # Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
-# TODO: start really needed?
-# Use Uglifier as compressor for JavaScript assets
-#gem 'uglifier', '>= 1.3.0'
-# See https://github.com/rails/execjs#readme for more supported runtimes
-#gem 'therubyrhino'
-# Use jquery as the JavaScript library
-#gem 'jquery-rails'
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-#gem 'jbuilder'
-
-# TODO: end really needed?
 
 # gem 'activerecord-oracle_enhanced-adapter', github: "rsim/oracle-enhanced", branch: "release70"
 gem 'activerecord-oracle_enhanced-adapter'
@@ -68,6 +57,9 @@ group :development do
   gem 'listen', '~> 3.3'
   # Use SCSS for stylesheets
   gem 'sass-rails', '>= 6'
+
+  # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
+  #gem 'date'
 
   gem 'jarbler'
   gem 'brakeman'

@@ -1,7 +1,8 @@
 if [ "$1" != "without_clean_cache" ]
 then
-  echo "Clean Cache"
+  echo "Clean Cache and logs"
   rm -rf tmp/*
+  rm -rf log/*
 fi
 
 echo "Remove the assets at public"

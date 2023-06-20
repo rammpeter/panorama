@@ -128,6 +128,9 @@ class ActiveSupport::TestCase
     Rails.logger.info('ActiveSupport::TestCase.teardown') { '' }
   end
 
+  # Prepare a PanoramaSamplerConfig for a test
+  # @param [String] user - user for which the config is prepared
+  # @return [PanoramaSamplerConfig]
   def prepare_panorama_sampler_thread_db_config(user = nil)
     Panorama::Application.config.panorama_master_password = 'hugo'
 
@@ -161,7 +164,7 @@ class ActiveSupport::TestCase
     end
 
     PanoramaConnection.set_connection_info_for_request(sampler_config)
-
+    shrink_table_size_for_always_free_autonomous_db # Reduce size of table for always free autonomous DB
     PanoramaSamplerConfig.get_config_entry_by_id(sampler_config[:id])
   end
 
@@ -181,6 +184,15 @@ class ActiveSupport::TestCase
     Proc.new do
       Rails.logger.debug('TestHelper.log_on_failure'){ "Assertion failed: #{message}" }
       message
+    end
+  end
+
+  # Shrink table size for always free autonomous DB to not reach the size limit
+  def shrink_table_size_for_always_free_autonomous_db
+    if PanoramaConnection.autonomous_database?
+      ['PANORAMA_SQL_PLAN', 'PANORAMA_SQL_BIND', 'PANORAMA_SQLTEXT'].each do |table_name|
+        PanoramaConnection.sql_execute("TRUNCATE TABLE #{table_name}") if PanoramaConnection.table_exists?(table_name)
+      end
     end
   end
 
