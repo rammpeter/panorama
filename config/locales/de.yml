@@ -2004,8 +2004,8 @@
   menu_sga_pga_sqlarea_current_sqlid_childno_caption:       Aktuell SQLs (SQL-ID / Child-Nr.)
   menu_sga_pga_sqlarea_current_sqlid_childno_hint:          Auswertung aktuelle SQLs aus SGA auf Ebene SQL_ID, Child-Nr.
   menu_sga_pga_sqlarea_historic_caption:                    Historische SQLs
-  menu_sga_pga_sqlarea_historic_sql_monitor_caption:        SQL-Monitor Reports historisch
-  menu_sga_pga_sqlarea_historic_sql_monitor_hint:           Anzeige der aufgezeichnete SQL-Monitor Reports aus DBA_HIST_Reports
+  menu_sga_pga_sqlarea_historic_sql_monitor_caption:        SQL-Monitor Reports
+  menu_sga_pga_sqlarea_historic_sql_monitor_hint:           Anzeige der aufgezeichnete SQL-Monitor Reports aus gv$SQLMonitor und DBA_HIST_Reports
   menu_sga_pga_sqlarea_historic_hint:                       Auswertung historische SQLs aus DBA_Hist_SQLStat
   menu_sga_pga_sql_plan_baselines_hint:                     Anzeige der SQL-Plan Baselines der Datenbank
   menu_sga_pga_sql_plan_management_hint:                    Anzeige der SQL-Plan Managament-Direktiven der Datenbank

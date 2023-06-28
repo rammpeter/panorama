@@ -74,4 +74,13 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+
+  # Remove ANSI color controls from log file
+  config.colorize_logging = true
+
+  config.log_formatter = proc do |severity, datetime, progname, msg|
+    date_format = datetime.strftime("%Y-%m-%d %H:%M:%S.%3N")
+    "#{date_format} #{severity.ljust(5)} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
+  end
+
 end

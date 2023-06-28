@@ -521,8 +521,9 @@ class DbaSchemaController < ApplicationController
     @object_type = @object_type.upcase            if @object_type
 
     show_popup_message "Object name must be set! At least with wildcard character (%, _)." if @object_name == ''
-
-    case
+    repeat_check_forced = false
+    loop do
+      case
       when @owner.nil? && @object_type.nil? then
         @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ?", @object_name]
       when @owner.nil?
@@ -531,6 +532,18 @@ class DbaSchemaController < ApplicationController
         @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ? AND Owner LIKE ?", @object_name, @owner]
       else
         @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ? AND Owner LIKE ? AND Object_Type = ?", @object_name, @owner, @object_type]
+      end
+      break if @objects.count > 0 || repeat_check_forced
+
+      if @objects.count == 0
+        repeat_check_forced = true
+        synonym = sql_select_one ["SELECT Synonym_Name FROM DBA_Synonyms WHERE Synonym_Name = ?", @object_name]
+        if synonym                                                              # Look for public or private synonym
+          @owner = nil
+          @object_name = synonym
+          @object_type = nil
+        end
+      end
     end
 
     if @objects.count > 1
