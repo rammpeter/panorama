@@ -82,7 +82,7 @@ jobs:
             if [[ "$CONTAINER" == "CDB" ]]; then
               TEST_SERVICENAME=ORCLCDB
             fi
-            if [[ "$DB_VERSION" == *"xe" ]] && [[ "$DB_VERSION" < "19" ]]; then
+            if [[ "$DB_VERSION" == *"xe" ]]; then
               TEST_SERVICENAME=XEPDB1
               if [[ "$CONTAINER" == "CDB" ]]; then
                 TEST_SERVICENAME=XE
