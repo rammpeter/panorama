@@ -2314,7 +2314,7 @@ END;
       SELECT #{get_db_version >= '12.1' ? 'Report_ID' : '0'} Report_ID,
              Inst_ID Instance_Number, SID Session_ID, Session_Serial# Session_Serial_No,
              First_Refresh_Time Period_Start_time, Last_Refresh_Time Period_End_Time, SQL_ID, SQL_Exec_ID, NULL Generation_Time,
-             Last_Refresh_Time -  First_Refresh_Time Duration, SQL_Exec_Start, #{get_db_version >= '12.1' ? 'UserName' : "''"} UserName,
+             (Last_Refresh_Time -  First_Refresh_Time)*86400 Duration, SQL_Exec_Start, #{get_db_version >= '12.1' ? 'UserName' : "''"} UserName,
              Status,
              #{get_db_version >= '11.2' ? 'Module'  : "''"} Module,
              #{get_db_version >= '11.2' ? 'Action'  : "''"} Action,

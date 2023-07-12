@@ -1443,7 +1443,8 @@
 
   dragnet_helper_134_desc: |-
     Für kurz laufende SQL ist der Aufwand für den Start von parallel query Prozessen oftmals höher als für die Ausführung des SQLs selbst.
-    Weitere Probleme können sich ergeben aus der begrenzten Anzahl verfügbarer PQ-Prozesse bei hochfrequent ausgeführten SQLs.
+    Weitere Probleme können sich ergeben aus der begrenzten Anzahl verfügbarer PQ-Prozesse bei hochfrequent ausgeführten SQLs
+    sowie der grundsätzlichen Aufzeichnung von SQL Monitor Reports für parallelisierte SQL.
     Daher sollte für SQLs mit Laufzeiten im Sekundenbereich oder kleiner prinzipiell von der Nutzung von parallel query abgesehen werden.
     Diese Selektion betrachtet die SQLs in der aktuellen SGA.
   dragnet_helper_134_name: |-
@@ -1807,6 +1808,18 @@
 
   dragnet_helper_169_desc:                                  Leere Partitionen oder Subpartitionen werden evtl. nicht mehr benötigt und können gedropt werden
   dragnet_helper_169_name:                                  Leere Partitionen oder Subpartitionen
+
+  dragnet_helper_170_desc: |-
+    Für kurz laufende SQL ist der Aufwand für den Start von parallel query Prozessen oftmals höher als für die Ausführung des SQLs selbst.
+    Weitere Probleme können sich ergeben aus der begrenzten Anzahl verfügbarer PQ-Prozesse bei hochfrequent ausgeführten SQLs
+    sowie der grundsätzlichen Aufzeichnung von SQL Monitor Reports für parallelisierte SQL.
+    Daher sollte für SQLs mit Laufzeiten im Sekundenbereich oder kleiner prinzipiell von der Nutzung von parallel query abgesehen werden.
+    Diese Selektion betrachtet die SQLs aus den SQL Monitor Aufzeichnungen in gv$SQL_Monitor und DBA_Hist_Reports.
+  dragnet_helper_170_name: |-
+    Problematische Nutzung von parallel query für kurzlaufende SQLs (über SQL Monitor)
+  dragnet_helper_170_param_1_hint:                          Maximale Laufzeit je Ausführung des SQL in Sekunden für Berücksichtigung in der Selektion
+  dragnet_helper_170_param_1_name:                          Maximale Laufzeit je Ausführung des SQL in Sekunden
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
