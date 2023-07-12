@@ -316,7 +316,8 @@ The operations below that execution plan line are not really executed in paralle
         {
             :name  => t(:dragnet_helper_134_name, :default=>'Problematic usage of parallel query for short running SQLs (Current SGA)'),
             :desc  => t(:dragnet_helper_134_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for excuting the SQL iteself.
-Additional problems may be caused by the limited amount of PQ-processes for frequently executed SQLs.
+Additional problems may be caused by the limited amount of PQ-processes for frequently executed SQLs
+as well as by the basically recording of SQL Monitor reports for each PQ execution.
 Therfore for SQLs with runtime in seconds or less you should always avoid using parallel query.
 This selection considers SQLs in the current SGA'),
             :sql=> "SELECT Inst_ID, SQL_ID, Parsing_Schema_Name, Executions, Elapsed_Time/1000000 Elapsed_Time_Secs,
@@ -331,6 +332,42 @@ This selection considers SQLs in the current SGA'),
                     AND    Parsing_Schema_Name NOT IN (#{system_schema_subselect})
                     ORDER BY PX_Servers_Executions DESC",
             :parameter=>[{:name=>t(:dragnet_helper_134_param_1_name, :default=>'Maximum runtime per execution in seconds'), :size=>8, :default=>5, :title=>t(:dragnet_helper_134_param_1_hint, :default=>'Maximum runtime per execution in seconds for consideration in result') }]
+        },
+        {
+          :name  => t(:dragnet_helper_170_name, :default=>'Problematic usage of parallel query for short running SQLs (by SQL Monitor)'),
+          :desc  => t(:dragnet_helper_170_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for excuting the SQL iteself.
+Additional problems may be caused by the limited amount of PQ-processes for frequently executed SQLs
+as well as by the basically recording of SQL Monitor reports for each PQ execution.
+Therfore for SQLs with runtime in seconds or less you should always avoid using parallel query.
+This selection considers SQLs from SQL Monitor recordings in gv$SQL_Monitor and DBA_Hist_Reports'),
+          :sql=> "\
+SELECT Inst_ID, SQL_ID, Source, Count(*) Reports, ROUND(AVG((Last_Refresh_Time-SQL_Exec_Start)*86400), 3) \"Avg Secs per Execution\",
+       SUM(Elapsed_Time_Secs) Elapsed_Time_Secs, SUM(Elapsed_Time_Secs)/Count(*) \"Avg Elapsed Time Secs\",
+       MIN(SQL_Exec_Start) First_Occurrence, MAX(Last_Refresh_Time) Last_OCcurrence,
+       MIN(UserName) Min_UserName, COUNT(DISTINCT UserName) Users,
+       MIN(Module) Min_Module, COUNT(DISTINCT Module) Modules,
+       MIN(SQL_Text) SQL_Text
+FROM   (SELECT Inst_ID, SQL_ID, SQL_Exec_Start, Last_Refresh_Time, UserName, Module, SUBSTR(SQL_Text, 1, 100) SQL_Text,
+               'gv$SQL_Monitor' Source, Elapsed_Time/1000000 Elapsed_Time_Secs
+        FROM   gv$SQL_Monitor
+        UNION ALL
+        SELECT Instance_Number Inst_ID, Key1 SQL_ID, TO_DATE(r.Key3, 'MM:DD:YYYY HH24:MI:SS') SQL_Exec_Start, Period_End_Time Last_Refresh_Time,
+               EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/user')                     UserName,
+               EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/module')                   Module,
+               SUBSTR(EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/sql_text'),1, 100)  SQL_Text,
+               EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/stats/stat[@name=\"elapsed_time\"]')/1000000 Elapsed_Time_Secs,
+               'DBA_Hist_Reports' Source
+        FROM   DBA_HIST_Reports r
+        WHERE  Period_End_Time > SYSDATE - ?
+       )
+WHERE  UserName NOT IN (#{system_schema_subselect})
+GROUP BY Inst_ID, SQL_ID, Source
+HAVING AVG((Last_Refresh_Time-SQL_Exec_Start)*86400) < ?
+ORDER BY COUNT(*) DESC",
+          :parameter=>[
+            {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+            {:name=>t(:dragnet_helper_170_param_1_name, :default=>'Maximum runtime per execution in seconds'), :size=>8, :default=>5, :title=>t(:dragnet_helper_170_param_1_hint, :default=>'Maximum runtime per execution in seconds for consideration in result') }
+          ]
         },
         {
           :name  => t(:dragnet_helper_166_name, :default=>'Possible elimination of HASH JOIN BUFFERED by Parallel Shared Hash Join'),
