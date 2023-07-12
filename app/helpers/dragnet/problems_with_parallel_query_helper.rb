@@ -340,9 +340,12 @@ Additional problems may be caused by the limited amount of PQ-processes for freq
 as well as by the basically recording of SQL Monitor reports for each PQ execution.
 Therfore for SQLs with runtime in seconds or less you should always avoid using parallel query.
 This selection considers SQLs from SQL Monitor recordings in gv$SQL_Monitor and DBA_Hist_Reports'),
+          min_db_version: '12.1',
           :sql=> "\
-SELECT Inst_ID, SQL_ID, Source, Count(*) Reports, ROUND(AVG((Last_Refresh_Time-SQL_Exec_Start)*86400), 3) \"Avg Secs per Execution\",
-       SUM(Elapsed_Time_Secs) Elapsed_Time_Secs, SUM(Elapsed_Time_Secs)/Count(*) \"Avg Elapsed Time Secs\",
+SELECT Inst_ID, SQL_ID, Source, Count(*) Reports,
+       ROUND(AVG((Last_Refresh_Time-SQL_Exec_Start)*86400), 3) \"Avg. duration Secs. per Exec.\",
+       ROUND(SUM(Elapsed_Time_Secs), 3)                         \"Elapsed Secs Total\",
+       ROUND(SUM(Elapsed_Time_Secs)/Count(*), 3)                \"Avg. Elapsed Secs per Exec\",
        MIN(SQL_Exec_Start) First_Occurrence, MAX(Last_Refresh_Time) Last_OCcurrence,
        MIN(UserName) Min_UserName, COUNT(DISTINCT UserName) Users,
        MIN(Module) Min_Module, COUNT(DISTINCT Module) Modules,
@@ -355,8 +358,8 @@ FROM   (SELECT Inst_ID, SQL_ID, SQL_Exec_Start, Last_Refresh_Time, UserName, Mod
                EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/user')                     UserName,
                EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/module')                   Module,
                SUBSTR(EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/sql_text'),1, 100)  SQL_Text,
-               EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/stats/stat[@name=\"elapsed_time\"]')/1000000 Elapsed_Time_Secs,
-               'DBA_Hist_Reports' Source
+               'DBA_Hist_Reports' Source,
+               EXTRACTVALUE(XMLTYPE(REPORT_SUMMARY), '/report_repository_summary/sql/stats/stat[@name=\"elapsed_time\"]')/1000000 Elapsed_Time_Secs
         FROM   DBA_HIST_Reports r
         WHERE  Period_End_Time > SYSDATE - ?
        )
