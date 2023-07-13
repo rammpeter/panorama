@@ -34,6 +34,8 @@ jobs:
       DB_VERSION: ${{ inputs.db_version }}
       # CONTAINER contains CDB or PDB
       CONTAINER: ${{ inputs.container }}
+      JRUBY_OPTS: "-J-Djava.security.egd=file:/dev/./urandom"
+
 
     steps:
       - uses: actions/checkout@v1
