@@ -84,6 +84,9 @@
     {:caption=>"Max. Size",        :data=>proc{|rec| fn(rec.max_mem_used_mb, 3)},     :title=>"Maximum memory amount used by this PGA work area in MB", :align=>"right"},
     {:caption=>"P",                :data=>proc{|rec| fn(rec.number_passes)},          :title=>"Number of passes corresponding to this PGA work area (0 if running in optimal mode)", :align=>"right"},
     {:caption=>"WA Temp",          :data=>proc{|rec| fn(rec.wa_tempseg_size_mb, 3)},  :title=>"Temporary segment des PGA work area on disk (relocated in Temp-tablespace) in MB (incl. amont of parallel query slave processes)", :align=>"right"},
+    {:caption=>"OCI Client Lib",   :data=>proc{|rec| rec.client_oci_library},         :title=>"Client OCI Library"},
+    {:caption=>"Client version",   :data=>proc{|rec| rec.client_version},             :title=>"Client library version number"},
+    {:caption=>"Client driver",    :data=>proc{|rec| rec.client_driver},              :title=>"Client driver name"},
   ])
 
 %>

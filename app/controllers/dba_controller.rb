@@ -836,6 +836,7 @@ oradebug setorapname diag
         s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session,
         #{"s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session," if get_db_version >= '12.1' }
         sci.Network_Encryption, sci.Network_Checksumming,
+        sci.Client_Version, sci.Client_Driver, sci.Client_OCI_Library,
         i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
         temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
         (       SELECT TO_CHAR(MIN(Start_Time), 'HH24:MI:SS') FROM GV$Session_LongOps o                                                   
@@ -918,7 +919,10 @@ oradebug setorapname diag
       LEFT OUTER JOIN gv$Transaction tx ON tx.Inst_ID = s.Inst_ID AND tx.Addr = s.TAddr
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SID, Serial#,
                               DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
-                              DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming
+                              DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
+                              MIN(Client_OCI_Library) Client_OCI_Library,
+                              MIN(Client_Version) Client_Version,
+                              MIN(Client_Driver) Client_Driver
                        FROM   gV$SESSION_CONNECT_INFO
                        GROUP BY Inst_ID, SID, Serial#
                       )sci ON sci.Inst_ID = s.Inst_ID AND sci.SID = s.SID AND sci.Serial# = s.Serial#

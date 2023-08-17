@@ -164,12 +164,34 @@ class EnvController < ApplicationController
       }.extend SelectHashHelper)
 
 
-      @instance_data = sql_select_all "SELECT /* NO_CDB_TRANSFORMATION */ gi.*, i.Instance_Number Instance_Connected,
-                                              (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET')         NLS_CharacterSet,
-                                              (SELECT n.Value FROM gv$NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_NCHAR_CHARACTERSET')   NLS_NChar_CharacterSet,
-                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count')                 CPU_Count,
-                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'resource_manager_plan')     Resource_Manager_Plan,
-                                              (SELECT p.Value FROM GV$System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'compatible')                Compatible,
+      system_parameter_sql = if  get_db_version >= '12.1'
+                               # Ensure uniqueness of parameter names, because GV$System_Parameter may contain parameter names for each container
+                               # Use the parameter of the current container if exists, otherwise use the parameter of the CDB (0)
+                               "SELECT Inst_ID, Name, Value FROM GV$System_Parameter p0
+                                WHERE Con_ID = 0
+                                AND   NOT EXISTS (SELECT 1 FROM GV$System_Parameter pi WHERE pi.Inst_ID = p0.Inst_ID AND pi.Name = p0.Name AND pi.Con_ID = SYS_CONTEXT('USERENV', 'CON_ID'))
+                                UNION ALL
+                                SELECT Inst_ID, Name, Value FROM GV$System_Parameter WHERE Con_ID = SYS_CONTEXT('USERENV', 'CON_ID')"
+                             else
+                               "SELECT Inst_ID, Name, Value FROM GV$System_Parameter"
+                             end
+      nls_parameters_sql = if  get_db_version >= '12.1'
+                             "SELECT Inst_ID, Parameter, Value FROM gv$NLS_Parameters p0
+                              WHERE Con_ID = 0
+                              AND   NOT EXISTS (SELECT 1 FROM gv$NLS_Parameters pi WHERE pi.Inst_ID = p0.Inst_ID AND pi.Parameter = p0.Parameter AND pi.Con_ID = SYS_CONTEXT('USERENV', 'CON_ID'))
+                              UNION ALL
+                              SELECT Inst_ID, Parameter, Value FROM gv$NLS_Parameters WHERE Con_ID = SYS_CONTEXT('USERENV', 'CON_ID')"
+                           else
+                             "SELECT Inst_ID, Parameter, Value FROM NLS_Database_Parameters"
+                           end
+      @instance_data = sql_select_all "WITH System_Parameter AS (#{system_parameter_sql}),
+                                            NLS_Parameters   AS (#{nls_parameters_sql})
+                                       SELECT /* NO_CDB_TRANSFORMATION */ gi.*, i.Instance_Number Instance_Connected,
+                                              (SELECT n.Value FROM NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET')         NLS_CharacterSet,
+                                              (SELECT n.Value FROM NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_NCHAR_CHARACTERSET')   NLS_NChar_CharacterSet,
+                                              (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count')                 CPU_Count,
+                                              (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'resource_manager_plan')     Resource_Manager_Plan,
+                                              (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'compatible')                Compatible,
                                               s.Num_CPUs, s.Num_CPU_Cores, s.Num_CPU_Sockets, s.Phys_Mem_GB, s.Free_Mem_GB, s.Inactive_Mem_GB,
                                               d.DBID, d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging, d.Database_Role,
                                               d.Supplemental_Log_Data_Min, d.Supplemental_Log_Data_PK, d.Supplemental_Log_Data_UI, d.Supplemental_Log_Data_FK, d.Supplemental_Log_Data_All, d.Supplemental_Log_Data_PL,
@@ -213,7 +235,7 @@ class EnvController < ApplicationController
       Rails.logger.error('EnvController.start_page') { "#{e.class} #{e.message}" }
       log_exception_backtrace(e, 20)
       PanoramaConnection.destroy_connection                                     # Remove connection from pool. Ensure using new connection with next retry
-      raise PopupMessageException.new("Your user is missing SELECT-right on gv$Instance, gv$Database.<br/>Please ensure that your user has granted SELECT ANY DICTIONARY or SELECT_CATALOG_ROLE.<br/>Panorama is not usable with this user account!\n\n".html_safe, e)
+      raise PopupMessageException.new("Your user is possibly missing SELECT-right on gv$Instance, gv$Database.<br/>Please ensure that your user has granted SELECT ANY DICTIONARY or SELECT_CATALOG_ROLE.<br/>Panorama is not usable with this user account!\n\n".html_safe, e)
     end
 
     @dictionary_access_problem = true unless select_any_dictionary?(@dictionary_access_msg)
