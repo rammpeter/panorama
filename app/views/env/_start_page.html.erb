@@ -71,7 +71,7 @@
   column_options =
        [
            {:caption=>'DBID',          :data=>proc{|rec| rec.dbid },                           :title=>"Unique identifier for this database", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
-           {:caption=>"I.",            :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_connected && @instance_data.length >1}" },       :title=>"Instance number, (*) for connecting instance", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
+           {:caption=>"I.",            :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_number == @instance_number && @instance_data.length >1}" },       :title=>"Instance number, (*) for connecting instance", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
            {:caption=>'Version',       :data=>proc{|rec| rec.version >= '19' ? rec.version_full : rec.version }, :title=>"Instance version / full version" },
            {:caption=>"Name",          :data=>proc{|rec| rec.instance_name },                  :title=>"Instance name", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
            {:caption=>"Host name",     :data=>proc{|rec| rec.host_name },                      :title=>"Last startup time of instance"},

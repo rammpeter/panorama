@@ -113,7 +113,7 @@ class EnvController < ApplicationController
                                                     SYSDATE,       TO_CHAR(SYSTIMESTAMP,       'TZH:TZM') Sys_Offset,
                                                     CURRENT_DATE,  TO_CHAR(CURRENT_TIMESTAMP,  'TZH:TZM') Current_Offset
                                              FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
-
+      @instance_number = sql_select_one "SELECT Instance_Number FROM v$Instance"
 
       client_info = sql_select_first_row "SELECT sys_context('USERENV', 'NLS_DATE_LANGUAGE') || '_' || sys_context('USERENV', 'NLS_TERRITORY') NLS_Lang FROM DUAL"
 
@@ -182,11 +182,11 @@ class EnvController < ApplicationController
                               UNION ALL
                               SELECT Inst_ID, Parameter, Value FROM gv$NLS_Parameters WHERE Con_ID = SYS_CONTEXT('USERENV', 'CON_ID')"
                            else
-                             "SELECT Inst_ID, Parameter, Value FROM NLS_Database_Parameters"
+                             "SELECT #{@instance_number} Inst_ID, Parameter, Value FROM NLS_Database_Parameters"
                            end
       @instance_data = sql_select_all "WITH System_Parameter AS (#{system_parameter_sql}),
                                             NLS_Parameters   AS (#{nls_parameters_sql})
-                                       SELECT /* NO_CDB_TRANSFORMATION */ gi.*, i.Instance_Number Instance_Connected,
+                                       SELECT /* NO_CDB_TRANSFORMATION */ gi.*,
                                               (SELECT n.Value FROM NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_CHARACTERSET')         NLS_CharacterSet,
                                               (SELECT n.Value FROM NLS_Parameters n WHERE n.Inst_ID = gi.Inst_ID AND n.Parameter='NLS_NCHAR_CHARACTERSET')   NLS_NChar_CharacterSet,
                                               (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'cpu_count')                 CPU_Count,
@@ -201,7 +201,6 @@ class EnvController < ApplicationController
                                               #{", CDB" if get_db_version >= '12.1'}
                                        FROM  GV$Instance gi
                                        CROSS JOIN  v$Database d
-                                       LEFT OUTER JOIN v$Instance i ON i.Instance_Number = gi.Instance_Number
                                        LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID,
                                                                MAX(DECODE(Stat_Name, 'NUM_CPUS',              Comments||': '||Value))     Num_CPUs,
                                                                MAX(DECODE(Stat_Name, 'NUM_CPU_CORES',         Comments||': '||Value))     Num_CPU_Cores,
@@ -215,7 +214,7 @@ class EnvController < ApplicationController
                                        LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, COUNT(*) Service_Count FROM gv$Services GROUP BY Inst_ID) srv ON srv.Inst_ID = gi.Inst_ID
                                        "
       @instance_data.each do |i|
-        if i.instance_connected
+        if i.inst_id == @instance_number
           @instance_name = i.instance_name
           @host_name     = i.host_name
           set_current_database(get_current_database.merge({:cdb => true})) if get_db_version >= '12.1' && i.cdb == 'YES'  # Merken ob DB eine CDP/PDB ist
