@@ -3,7 +3,7 @@
 
 // Eigenes jQuery verwenden, da Version aus jquery_rails $.browser nicht unterstützte
 // jquery_3.1.0 statt 2.1.4 führt zu Problemen beim Ändern der Spaltenbreite
-//= require jquery-3.6.0.min
+//= require jquery-3.7.0.min
 //= require jquery-ui.min
 //= require jquery.ui.touch-punch.js
 // jquery_ujs.js aus gem jquery-rails nach vendor/assets/javascript kopiert, da im gem selbst nicht gefunden, statt dessen: sprocket-Error
