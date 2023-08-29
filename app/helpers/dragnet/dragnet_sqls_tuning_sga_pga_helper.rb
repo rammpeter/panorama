@@ -76,7 +76,7 @@ This selection scans for SQL statements in current SGA with access on indexes wh
                               GROUP BY p.Inst_ID, p.SQL_ID, p.Child_Number
                               HAVING
                               -- Ausfuehrungsplan hat genau einen Index-Zugriff ohne Filter
-                                     SUM(CASE WHEN p.Operation = 'INDEX' AND p.Options in ('RANGE SCAN', 'UNIQUE SCAN')
+                                     SUM(CASE WHEN p.Operation = 'INDEX' AND p.Options in ('RANGE SCAN', 'UNIQUE SCAN', 'SKIP SCAN')
                                          THEN 1 ELSE 0 END
                                         ) = 1
                               -- Keine Filter

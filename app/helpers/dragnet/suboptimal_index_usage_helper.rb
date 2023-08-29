@@ -34,7 +34,7 @@ This selection evaluates current SGA.
         },
         {
             :name  => t(:dragnet_helper_115_name, :default => 'Excessive filtering after TABLE ACCESS BY ROWID due to weak index access criteria (current SGA)'),
-            :desc  => t(:dragnet_helper_115_desc, :default => 'INDEX RANGE SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
+            :desc  => t(:dragnet_helper_115_desc, :default => 'INDEX RANGE|SKIP SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
 You should consider to expand index by filter criterias of table access to reduce number of TABLE ACCESS BY ROWID.
 This selection evaluates the current content of SGA.
 Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
@@ -45,15 +45,15 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
                              ash.Min_Sample_Time, ash.Max_Sample_Time
                       FROM   (SELECT /*+ MO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, Address, Access_Predicates, Filter_Predicates, ID, Cardinality, Object_Owner, Object_Name
                               FROM   gv$SQL_Plan
-                              WHERE  Operation = 'TABLE ACCESS' AND Options LIKE 'BY%INDEX ROWID'           /* should also catch BY LOCAL INDEX ROWID */
+                              WHERE  Operation = 'TABLE ACCESS' AND Options LIKE 'BY%INDEX ROWID%'           /* should also catch BY LOCAL INDEX ROWID and INDEX ROWID BATCHED */
                              ) ta
                       JOIN   (SELECT /*+ MO_MERGE */ Inst_ID, SQL_ID, Plan_Hash_Value, Child_Number, Address, Access_Predicates, Filter_Predicates, Parent_ID, Cardinality, Object_Owner, Object_Name
                               FROM   gv$SQL_Plan
-                              WHERE  Operation = 'INDEX' AND Options = 'RANGE SCAN'
+                              WHERE  Operation = 'INDEX' AND Options IN ('RANGE SCAN', 'SKIP SCAN')
                              ) ir ON ir.Inst_ID=ta.Inst_ID AND ir.SQL_ID=ta.SQL_ID AND ir.Plan_Hash_Value=ta.Plan_Hash_Value AND ir.Child_Number=ta.Child_Number AND ir.Address=ta.Address AND ir.Parent_ID=ta.ID
                       JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Seconds, MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time
                               FROM   gv$Active_Session_History
-                              WHERE  SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID'        /* only for this operation */
+                              WHERE  SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID%'        /* only for this operation */
                               GROUP BY Inst_ID, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                               HAVING COUNT(*) > ?
                              ) ash ON ash.Inst_ID=ta.Inst_ID AND ash.SQL_ID=ta.SQL_ID AND ash.SQL_Child_Number=ta.Child_Number AND ash.SQL_Plan_Hash_Value=ta.Plan_Hash_Value AND ash.SQL_Plan_Line_ID=ta.ID
@@ -67,7 +67,7 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
         },
         {
             :name  => t(:dragnet_helper_116_name, :default => 'Excessive filtering after TABLE ACCESS BY ROWID due to weak index access criteria (AWR history)'),
-            :desc  => t(:dragnet_helper_116_desc, :default => 'INDEX RANGE SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
+            :desc  => t(:dragnet_helper_116_desc, :default => 'INDEX RANGE|SKIP SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
 You should consider to expand index by filter criterias of table access to reduce number of TABLE ACCESS BY ROWID.
 This selection evaluates the AWR history.
 Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
@@ -76,16 +76,16 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
                              ir.Access_Predicates Access_Index, ir.Filter_Predicates Filter_Index, ta.Access_Predicates Access_Index, ta.Filter_Predicates Filter_Index, ROUND(ir.Cardinality/ta.Cardinality) Cardinality_Ratio, ash.Seconds Elapsed_Seconds
                       FROM   (SELECT /*+ MO_MERGE */ DBID, SQL_ID, Plan_Hash_Value, Access_Predicates, Filter_Predicates, ID, Cardinality, Object_Owner, Object_Name
                               FROM   DBA_Hist_SQL_Plan
-                              WHERE  Operation = 'TABLE ACCESS' AND Options LIKE 'BY%INDEX ROWID'  /* should also catch BY LOCAL INDEX ROWID */
+                              WHERE  Operation = 'TABLE ACCESS' AND Options LIKE 'BY%INDEX ROWID%'  /* should also catch BY LOCAL INDEX ROWID and INDEX ROWID BATCHED */
                              ) ta
                       JOIN   (SELECT /*+ MO_MERGE */ DBID, SQL_ID, Plan_Hash_Value, Access_Predicates, Filter_Predicates, Parent_ID, Cardinality, Object_Owner, Object_Name
                               FROM   DBA_Hist_SQL_Plan
-                              WHERE  Operation = 'INDEX' AND Options = 'RANGE SCAN'
+                              WHERE  Operation = 'INDEX' AND Options IN ('RANGE SCAN', 'SKIP SCAN')
                              ) ir ON ir.DBID=ta.DBID AND ir.SQL_ID=ta.SQL_ID AND ir.Plan_Hash_Value=ta.Plan_Hash_Value AND ir.Parent_ID=ta.ID
                       JOIN   (SELECT /*+ NO_MERGE */ DBID, Instance_Number, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Seconds
                               FROM   DBA_Hist_Active_Sess_History
                               WHERE  Sample_Time > SYSDATE - ?
-                              AND    SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID'
+                              AND    SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID%'
                               AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                               GROUP BY DBID, Instance_Number, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                               HAVING COUNT(*) > ?

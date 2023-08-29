@@ -10,9 +10,10 @@ if @res.count > 0
       i = 0
       @res[0].each do |key, value|   # Iteration über Spalten der ersten Zeile
         i += 1
-        @column_options << {:caption=>key,
-                           :title=>key,
-                           #:data_title=>proc{|rec| "#{key}: Classname=#{rec[key].class.name}"}
+        @column_options << {
+          caption:      key.gsub('_', ' '),                                     # allow wrap of column header in slickgrid
+          col_ref:      key,                                                    # Reference in result set because original caption is modified
+          title:        key,
         }
         raise "Problem with column #{i} of SQL result! Column header is empty.\nSQL columns identifier may not be processable by ActiveRecord." if key.nil?
       end
@@ -25,9 +26,9 @@ if @res.count > 0
         return number.length-index-1
       end
 
-      # does column with caption exists in result
+      # does column with col_ref exists in result
       def column_exists?(list)
-        @column_options.select{|e| list.include?(e[:caption])}.length > 0
+        @column_options.select{|e| list.include?(e[:col_ref])}.length > 0
       end
 
       #Iterieren über Spalten des Results
@@ -37,7 +38,7 @@ if @res.count > 0
         isDate   = true
         scale    = 0                            # Anzahl Nachkommastellen
         @res.each do |r|                         # Iteration über Zeilen des Results
-          fieldval = r[col[:caption]]              # Aktueller Feldinhalt
+          fieldval = r[col[:col_ref]]              # Aktueller Feldinhalt
 
           if isNumber && fieldval.class!=Integer && fieldval.class.name !='Fixnum' && fieldval.class!=BigDecimal && fieldval.class!=NilClass    # Prüfen auf alle Werte der Spalte numerisch
             isNumber = false;
@@ -53,7 +54,7 @@ if @res.count > 0
         end
 
         case
-          when sql_id_captions.select{|s| col[:caption].downcase[s]}.length > 0 then
+          when sql_id_captions.select{|s| col[:col_ref].downcase[s]}.length > 0 then
 
             col[:data] = proc{|rec|
                                 inst_id = nil
@@ -78,25 +79,15 @@ if @res.count > 0
                                 con_id = nil
                                 con_id = rec['con_id'] if rec['con_id']
 
-                                #link_sql_id('exec_dragnet_sql_detail_area', inst_id, my_html_escape(rec[col[:caption]]))
-
-                                link_current_or_historic_sql_id(:exec_dragnet_sql_detail_area, inst_id, my_html_escape(rec[col[:caption]]), time_selection_start, time_selection_end, parsing_schema_name, con_id)
-
-                                #link_historic_sql_id(inst_id,
-                                #                     my_html_escape(rec[col[:caption]]) ,
-                                #                     time_selection_start,
-                                 #                    time_selection_end,
-                                 #                    :exec_dragnet_sql_detail_area
-                                #)
-
+                                link_current_or_historic_sql_id(:exec_dragnet_sql_detail_area, inst_id, my_html_escape(rec[col[:col_ref]]), time_selection_start, time_selection_end, parsing_schema_name, con_id)
                              }
           when ['table_name', 'table name', 'tablename', 'referenced table', 'table-name', 'log_table',
                 'object_name', 'master_table', 'sequence_name', 'view_name', 'object according to ash', 'object according to sql plan', 'target_table'
-               ].include?(col[:caption].downcase) ||
-            col[:caption].downcase['_view']
+               ].include?(col[:col_ref].downcase) ||
+            col[:col_ref].downcase['_view']
           then
             col[:data] = proc{|rec|
-                                table_name = rec[col[:caption]]
+                                table_name = rec[col[:col_ref]]
                                 owner = nil                                     # Default
 
                                 if !table_name.nil? && table_name['.']          # extract schema and tablename from schema.tablename
@@ -113,16 +104,16 @@ if @res.count > 0
                                 owner = rec['sequence_owner']       if rec['sequence_owner']  && !owner
                                 owner = rec['log_owner']            if rec['log_owner']       && !owner
                                 if owner
-                                  link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(table_name), my_html_escape(rec[col[:caption]]))
+                                  link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(table_name), my_html_escape(rec[col[:col_ref]]))
                                 else
-                                  my_html_escape(rec[col[:caption]])            # Ohne Link
+                                  my_html_escape(rec[col[:col_ref]])            # Ohne Link
                                 end
                              }
           # Check for link on index_name
-          when ['index_name'].include?(col[:caption].downcase)
+          when ['index_name'].include?(col[:col_ref].downcase)
           then
             col[:data] = proc{|rec|
-                                index_name = rec[col[:caption]]
+                                index_name = rec[col[:col_ref]]
                                 owner = nil                                     # Default
 
                                 if !index_name.nil? && index_name['.']          # extract schema and tablename from schema.tablename
@@ -135,12 +126,12 @@ if @res.count > 0
                                 owner = rec['Owner']                if rec['Owner']           && !owner
                                 owner = rec['Owner']                if rec['Owner']           && !owner
                                 if owner
-                                  link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(index_name), my_html_escape(rec[col[:caption]]))
+                                  link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(index_name), my_html_escape(rec[col[:col_ref]]))
                                 else
-                                  my_html_escape(rec[col[:caption]])            # Ohne Link
+                                  my_html_escape(rec[col[:col_ref]])            # Ohne Link
                                 end
                              }
-          when sid_captions.include?(col[:caption].downcase) && column_exists?(serial_number_captions) && column_exists?(instance_captions)
+          when sid_captions.include?(col[:col_ref].downcase) && column_exists?(serial_number_captions) && column_exists?(instance_captions)
           then
             col[:data] = proc do |rec|
               instance = nil
@@ -152,24 +143,23 @@ if @res.count > 0
               serial_number_captions.each do |snc|
                 serial_no = rec[snc] if rec[snc]
               end
-              link_session_details(:exec_dragnet_sql_detail_area, instance, rec[col[:caption]], serial_no, print_val: fn(rec[col[:caption]]))
+              link_session_details(:exec_dragnet_sql_detail_area, instance, rec[col[:col_ref]], serial_no, print_val: fn(rec[col[:col_ref]]))
 #"#{instance}, #{serial_no}"
             end
             col[:align] = :right
           when isNumber then
-            col[:data] = proc{|rec| formattedNumber(rec[col[:caption]], scale)}
+            col[:data] = proc{|rec| formattedNumber(rec[col[:col_ref]], scale)}
             col[:align] = :right
           when isDate then
-            col[:data] = proc{|rec| localeDateTime(rec[col[:caption]])}
+            col[:data] = proc{|rec| localeDateTime(rec[col[:col_ref]])}
             unless chart_x_axis_found
               col[:plot_master_time] = true
               chart_x_axis_found = true
             end
         else
-          col[:data] = proc{|rec| my_html_escape(rec[col[:caption]]) }
+          col[:data] = proc{|rec| my_html_escape(rec[col[:col_ref]]) }
         end
       end
-
 %>
 
 <%= gen_slickgrid(@res, @column_options, {:caption => @caption, :plot_area_id => "exec_dragnet_sql_detail_area", :max_height=>450, show_pin_icon: 1}) %>

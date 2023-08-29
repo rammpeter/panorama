@@ -119,9 +119,7 @@ Solution for such situations is global (not) partitioning of index.'),
                                     MAX(p.SQL_ID) KEEP (DENSE_RANK LAST ORDER BY ash.Elapsed_Secs NULLS FIRST) Heaviest_SQL_ID,
                                     MAX(ash.Elapsed_Secs) KEEP (DENSE_RANK LAST ORDER BY ash.Elapsed_Secs NULLS FIRST) Heaviest_SQL_Elapsed_Secs
                              FROM   (
-                                     SELECT Inst_ID, Object_Owner, Object_Name, SQL_ID, Plan_Line_ID, Plan_Hash_Value, SUM(Executions) Executions,
-                                            LISTAGG(Partition_Start, ',') WITHIN GROUP (ORDER BY Partition_Start) Partition_Start_Values,
-                                            LISTAGG(Partition_Stop,  ',') WITHIN GROUP (ORDER BY Partition_Stop)  Partition_Stop_Values
+                                     SELECT Inst_ID, Object_Owner, Object_Name, SQL_ID, Plan_Line_ID, Plan_Hash_Value, SUM(Executions) Executions
                                      FROM   (
                                              SELECT /*+ NO_MERGE MATERIALIZE */ p.Inst_ID, p.Object_Owner, p.Object_Name, p.SQL_ID, p.Partition_Start, p.Partition_Stop, p.Object_Type, p.Options, p.ID Plan_Line_ID, p.Plan_Hash_Value,
                                                     s.Executions
@@ -139,7 +137,7 @@ Solution for such situations is global (not) partitioning of index.'),
                                      WHERE  Partition_Start IS NOT NULL
                                      AND    Object_Name IS NOT NULL
                                      AND    Object_Type LIKE 'INDEX%'
-                                     AND    Options IN ('UNIQUE SCAN', 'RANGE SCAN', 'RANGE SCAN (MIN/MAX)')
+                                     AND    Options IN ('UNIQUE SCAN', 'RANGE SCAN', 'RANGE SCAN (MIN/MAX)', 'SKIP SCAN')
                                      GROUP BY Inst_ID, Object_Owner, Object_Name, SQL_ID, Plan_Hash_Value, Plan_Line_ID
                                     ) p
                              LEFT OUTER JOIN Ash ON ash.Instance_Number = p.Inst_ID AND ash.SQL_ID = p.SQL_ID AND ash.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND ash.SQL_Plan_Line_ID = p.Plan_Line_ID
