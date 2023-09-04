@@ -87,7 +87,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
           <tr><th>Metric-Name</th><th>Total</th><th>Per Exec.</th></tr>
           <%= show_single_value("Executions", @sql.executions,0, "Number of executions in time period") %>
           <%= show_both_values("Parse calls", @sql.parse_calls,0, "#{strings(:parse_calls_title)}\n\n#{parse_title_addition.call(@sql)}") %>
-          <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time period (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
+          <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches in time period (Avg. #{fn(@sql.rows_processed/@sql.fetches,1 ) rescue nil} rows per fetch)")%>
           <%= show_both_values("Sorts", @sql.sorts,0, "Number of sorts in time period") %>
           <tr>
             <td title="Number of rows processed in time period">Rows processed</td>

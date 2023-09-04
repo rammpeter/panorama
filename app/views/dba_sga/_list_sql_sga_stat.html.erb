@@ -129,7 +129,7 @@ end
           <tr  title="<%= metrics_start_hint %>"><th>Metric-Name</th><th>Total</th><th>Per Exec.</th></tr>
           <%= show_single_value("Executions", @sql.executions,0, "Number of executions") %>
           <%= show_both_values("Parse calls", @sql.parse_calls,0, "#{strings(:parse_calls_title)}\n\n#{parse_title_addition.call(@sql)}", true) %>
-          <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches (Avg. #{@sql.rows_processed/@sql.fetches rescue nil} rows per fetch)")%>
+          <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches (Avg. #{fn(@sql.rows_processed/@sql.fetches.to_f, 1) rescue nil} rows per fetch)")%>
           <%= show_both_values("Sorts", @sql.sorts,0, "Number of sort operations") %>
           <%= show_both_values("Rows processed", @sql.rows_processed,0, "Number of rows processed") %>
           <%= show_both_values("Buffer gets", @sql.buffer_gets,0, t(:dba_sga_list_sql_sga_stat_buffer_gets_hint, :default=>'Number of DB blocks read total'), true) %>

@@ -154,8 +154,9 @@ Selection considers AWR history.'),
             :desc  => t(:dragnet_helper_81_desc, :default=>'Stored functions not for parallel execution per pragma PARALLEL_ENABLE lead  to serial processing if statements that should be executed in parallel.
 Listed functions should be checked if they can be expanded by pragma PARALLEL_ENABLE.'),
             :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
+                      Arguments AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Arguments WHERE Position = 0), /* Filter package function names from DBA_Procedures */
                       ProcLines AS (
-                            SELECT /*+ NO_MERGE MATERIALIZE PARALLEL(2) */ *
+                            SELECT /*+ NO_MERGE MATERIALIZE */ *
                             FROM   (
                                     SELECT p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name SuchText
                                     FROM   DBA_Procedures p
@@ -163,14 +164,14 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
                                     UNION ALL
                                     SELECT /*+ USE_HASH(p a) */ p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, p.Parallel, p.Object_Name||'.'||p.Procedure_Name SuchText
                                     FROM   DBA_Procedures p
-                                    JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name AND a.Position = 0
+                                    JOIN   Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name
                                     WHERE  p.Object_Type = 'PACKAGE'
                                    )
                             WHERE  Owner NOT IN (#{system_schema_subselect})
                             AND    Parallel = 'NO'
                        )
                       SELECT /*+ ORDERED */
-                             s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, s.Elapsed_Secs, s.Fundort
+                             s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, ROUND(s.Elapsed_Secs), s.Fundort
                       FROM   (
                               SELECT /*+ NO_MERGE MATERIALIZE  */  *
                               FROM   (
@@ -178,9 +179,9 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
                                       FROM gv$SQL s
                                       WHERE UPPER(s.SQL_FullText) LIKE '%PARALLEL%'   /* Hint im SQL verwendet */
                                       UNION ALL
-                                      SELECT /*+ NO_MERGE PARALLEL(t,4) */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort, s.SQL_ID
+                                      SELECT /*+ NO_MERGE */ UPPER(t.SQL_Text) FullText, s.Elapsed_Secs, 'History' Fundort, s.SQL_ID
                                       FROM   (
-                                              SELECT /*+ NO_MERGE PARALLEL(s,4) PARALLEL(ss,4) */
+                                              SELECT /*+ NO_MERGE */
                                                      s.DBID, s.SQL_ID, Plan_Hash_Value, SUM(s.Elapsed_Time_Delta)/1000000 Elapsed_Secs
                                               FROM   DBA_Hist_SQLStat s
                                               JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
@@ -205,7 +206,7 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
                       ",
             :parameter=>[
                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>2, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-                {:name=>'Minimum sum of elapsed time in seconds', :size=>8, :default=>10000, :title=>'Minimum sum of elapsed time in second for considered SQL' },
+                {:name=>'Minimum sum of elapsed time in seconds', :size=>8, :default=>100, :title=>'Minimum sum of elapsed time in second for considered SQL' },
             ]
         },
         {

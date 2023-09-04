@@ -25,6 +25,14 @@
     end
   end
 
+  wait_time_data_title = proc do |rec|
+    "%t\n#{seconds_explain(rec.wait_time_secs)}
+    Between #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}
+    Average load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}
+
+    Click link: Show ASH history for this session in considered period"
+  end
+
   link_wait_time_session = proc do |rec|
     ajax_link(fn(rec.wait_time_secs), {
       controller:     :active_session_history,
@@ -39,7 +47,8 @@
         time_selection_end:   localeDateTime(rec.last_occurrence+1)
       }
     },
-              { title: "Show ASH history for this session in considered period" },
+              { # no own title for link to not hide the title of the column
+              },
               refresh_off
     )
   end
@@ -60,7 +69,7 @@
   column_options_sessions = []
   column_options_sessions << {caption: 'I',                data: proc{|rec| rec.qinst_id},              title: "Instance-ID\n(of query coordinator session for parallel query)"} if PanoramaConnection.rac?
   column_options_sessions << {caption: 'SID / SN',         data: link_session,                          title: 'SID, Serial_No\n(of query coordinator session for parallel query)', data_title: proc{|rec| "%t\n#{rec.qsession_id},#{rec.qsession_serial_no}"}}
-  column_options_sessions << {caption: 'Wait time (sec.)', data: link_wait_time_session,                title: "Wait time of session in seconds in considered time period", align: :right, show_pct_background: true, data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_secs)}\nBetween #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}\nAverage load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}"}}
+  column_options_sessions << {caption: 'Wait time (sec.)', data: link_wait_time_session,                title: "Wait time of session in seconds in considered time period", align: :right, show_pct_background: true, data_title: wait_time_data_title }
   column_options_sessions << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0},       title: "Number of different parallel query server sessions involved in SQL execution of this session in considered time period", align: :right}
   column_options_sessions << {caption: 'User',             data: proc{|rec| rec.username},              title: "Name of DB-User"}
   column_options_sessions << {caption: 'Machine',          data: proc{|rec| rec.machine},               title: "Client machine"}
@@ -86,6 +95,15 @@
     end
   end
 
+  wait_time_sql_data_title = proc do |rec|
+    "%t
+    #{seconds_explain(rec.wait_time_secs)}
+    Between #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}
+    Average load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}
+
+    Click link: Show ASH history for this SQL ID in considered period"
+  end
+
   link_wait_time_sql = proc do |rec|
     ajax_link(fn(rec.wait_time_secs), {
       controller:     :active_session_history,
@@ -99,7 +117,8 @@
         time_selection_end:   localeDateTime(rec.last_occurrence+1)
       }.merge(@instance ? {Instance: @instance} : {})
     },
-              { title: "Show ASH history for this SQL ID in considered period" },
+              { # no own title for link to not hide the title of the column
+              },
               refresh_off
     )
   end
@@ -115,7 +134,7 @@
   column_options_sqls = []
   column_options_sqls << {caption: 'I',                data: proc{|rec| rec.inst_id},                     title: "Instance-ID"} if PanoramaConnection.rac?
   column_options_sqls << {caption: 'SQL ID',           data: link_sql_sql,                                title: "Current SQL-ID of session", data_title: proc{|rec| "%t\nNumber of children = #{rec.sql_child_count}"}}
-  column_options_sqls << {caption: 'Wait time (sec.)', data: link_wait_time_sql,                          title: "Wait time of SQL in seconds in considered time period", align: :right, show_pct_background: true, data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_secs)}\nBetween #{localeDateTime(rec.first_occurrence)} and #{localeDateTime(rec.last_occurrence)}\nAverage load = #{fn(rec.wait_time_secs / (rec.last_occurrence-rec.first_occurrence),1) rescue nil}"}}
+  column_options_sqls << {caption: 'Wait time (sec.)', data: link_wait_time_sql,                          title: "Wait time of SQL in seconds in considered time period", align: :right, show_pct_background: true, data_title: wait_time_sql_data_title }
   column_options_sqls << {caption: 'Sess.',            data: link_sql_session,                            title: "Session ID/serial# if only one session was executing this SQL in in considered time period\nor number of different sessions have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'User',             data: show_username,                               title: "DB-Username if only one user was executing this SQL in in considered time period\nor number of different users have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0}, title: "Number of different parallel query server sessions involved in execution of this SQL in considered time period", align: :right}
