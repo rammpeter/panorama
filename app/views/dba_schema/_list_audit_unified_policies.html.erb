@@ -1,0 +1,25 @@
+<%
+  column_options =
+    [
+      {caption: 'Audit condition',    data: proc{|rec| rec.audit_condition },                   title: 'Condition associated with the audit policy'},
+      {caption: 'Evaluation option',  data: proc{|rec| rec.condition_eval_opt},                 title: "Evaluation option associated with the audit policy's condition. The possible values are STATEMENT, SESSION, INSTANCE, and NONE."},
+      {caption: 'Audit option',       data: proc{|rec| rec.audit_option},                       title: "Auditing option defined in the audit policy"},
+      {caption: 'Audit option type',  data: proc{|rec| rec.audit_option_type},                  title: "Type of the auditing option."},
+      {caption: 'Object schema',      data: proc{|rec| rec.object_schema},                      title: 'Owner of the object, for an object-specific auditing option'},
+      {caption: 'Object name',        data:  proc{|rec| rec.object_name},                       title: 'Name of the object, for an object-specific auditing option'},
+      {caption: 'Object type',        data:  proc{|rec| rec.object_type},                       title: 'Type of the object, for an object-specific auditing option'},
+      {caption: 'Common',             data:  proc{|rec| rec.common},                            title: "Indicates whether the audit policy is a common audit policy or local audit policy. The value is NULL for a non-CDB.\nFor local audit policies, the value of the COMMON column is always NO.\nFor a CDB common policy:\n- If you query AUDIT_UNIFIED_POLICIES from the CDB root container, the value of the COMMON column will be YES and the value of the INHERITED column will be NO.\n- If you query AUDIT_UNIFIED_POLICIES from any other container besides the CDB root container, the value of the COMMON column and the INHERITED column will be YES.\nFor an application container common policy:\n- If you query AUDIT_UNIFIED_POLICIES from the application root container, the value of the COMMON column will be YES and the value of the INHERITED column will be NO.\n- If you query AUDIT_UNIFIED_POLICIES from any other container besides the application root container, the value of the COMMON column and the INHERITED column will be YES." },
+      {caption: 'Inherited',          data:  proc{|rec| rec.inherited},                         title: 'Indicates whether the audit policy was inherited from another container (YES) or not (NO). This value is NULL for non-CDBs.'},
+    ]
+  column_options << {caption: 'Audit only toplevel',  data:  proc{|rec| rec.audit_only_toplevel},  title: 'Indicates whether the audit policy is defined to audit only top level SQL statements (YES) or both top level SQL statements and recursive SQL statements (NO)'} if get_db_version >= '19.1'
+  # Used with rel. 19.11++ but not filtered with >= '19.11'
+  column_options << {caption: 'Oracle supplied',      data:  proc{|rec| rec['oracle_supplied']},    title: "Indicates whether the audit policy is an Oracle-supplied policy (YES) or not (NO)\nOracle-supplied policies are also called predefined policies."} if get_db_version >= '19.1'
+%>
+
+<%=
+  gen_slickgrid(@policies, column_options, {
+    caption: "Unified audit policies for policy = '#{@policy_name}' from Audit_Unified_Policies",
+    max_height: 450,
+    show_pin_icon: 1
+  })
+%>

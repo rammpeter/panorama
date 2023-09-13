@@ -999,8 +999,9 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   end
 
   def remove_string_literals(sql)
-    without_escaped = sql.gsub(/''/m, '')
-    without_escaped.gsub(/'.*'/m, '')
+    without_escaped = sql.gsub(/''/m, '')                                       # remove all escaped single quotes
+    result = without_escaped.gsub(/'[^']*'/m, '')                               # Remove all string literals betweeen single quotes
+    result
   end
 
   # @param [String] sql The statement

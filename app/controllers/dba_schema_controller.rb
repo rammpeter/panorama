@@ -1949,6 +1949,31 @@ class DbaSchemaController < ApplicationController
         raise
       end
     end
+
+    if get_db_version >= '12.2'                                                 # Start of recommended unified auditing
+      @audit_unified_enabled_policies = sql_select_all "\
+        WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
+             Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count FROM Audit_Unified_Policies GROUP BY Policy_Name),
+             Not_Enabled AS (SELECT Policy_Name FROM Policies WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled))
+        SELECT p.*, c.Comments, pc.Policy_Count
+        FROM   (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Enabled
+                UNION ALL
+                SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure FROM Not_Enabled
+                ) p
+        LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
+        LEFT OUTER JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
+        ORDER BY p.Policy_Name"
+    end
+    render_partial
+  end
+
+  def list_audit_unified_policies
+    @policy_name = prepare_param :policy_name
+    @policies = sql_select_iterator ["\
+      SELECT *
+      FROM   Audit_Unified_Policies
+      WHERE  Policy_Name = ?
+      ORDER BY Policy_Name, Object_Schema, Object_Name, Audit_Option", @policy_name]
     render_partial
   end
 
