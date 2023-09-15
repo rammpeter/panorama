@@ -10,8 +10,8 @@ Bundler.require(*Rails.groups)
 
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.17.09'
-  RELEASE_DATE = Date.parse('2023-08-28')
+  VERSION = '2.17.10'
+  RELEASE_DATE = Date.parse('2023-09-15')
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month
@@ -56,7 +56,17 @@ module Panorama
       config.panorama_var_home = "#{Dir.tmpdir}/Panorama"
       config.panorama_var_home_user_defined = false
     end
-    Dir.mkdir config.panorama_var_home if !File.exist?(config.panorama_var_home)  # Ensure that directory exists
+
+    unless File.exist?(config.panorama_var_home)  # Ensure that directory exists
+      begin
+        Dir.mkdir config.panorama_var_home
+        raise "Directory #{config.panorama_var_home} does not exist and could not be created" unless File.exist?(config.panorama_var_home)
+      rescue Exception => e
+        logger.error('Panorama::Application') { "Error #{e.class}:#{e.message} while creating #{config.panorama_var_home}" }
+        exit! 1                                                                 # Ensure application terminates if initialization fails
+      end
+    end
+
     logger.info "Panorama writes server side info to #{config.panorama_var_home}"
 
     # Password for access on Admin menu, Panorama-Sampler config etc. : admin menu is activated if password is not empty

@@ -391,6 +391,9 @@ class EnvController < ApplicationController
     begin
       PanoramaConnection.check_for_open_connection
     rescue Exception => e
+      Rails.logger.debug('EnvController.set_database') { "Error connecting to database: #{e.class.name}: #{e.message}" }
+      log_exception_backtrace(e, 20, log_mode: :debug)                          # Don't log each wrong connection credentials as error
+
       respond_to do |format|
         format.js {render :js => "show_status_bar_message('#{
                                           my_html_escape("#{

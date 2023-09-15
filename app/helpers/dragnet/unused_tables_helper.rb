@@ -53,17 +53,25 @@ This selections scans SGA as well as AWR history.
                                            AND    s.SQL_FullText NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
                                            AND    s.Command_Type = 3 /* SELECT */
                                           )
-                                 )
-                    SELECT /* DB-Tools Ramm not used tables */ o.*, sz.MBytes, ob.Created, ob.Last_DDL_Time, tm.Timestamp Last_DML_Timestamp, tm.Inserts, tm.Updates, tm.Deletes
+                                 ),
+                         Segment_Size AS (SELECT /*+ NO_MERGE MATERIALIZE */ Segment_Name, Owner, SUM(bytes)/(1024*1024) MBytes
+                                          FROM   DBA_SEGMENTS
+                                          WHERE  Owner NOT IN (#{system_schema_subselect})
+                                          GROUP BY Segment_Name, Owner
+                                         ),
+                         Dependencies AS (SELECT /*+ NO_MERGE MATERIALIZE */ Referenced_Owner, Referenced_Name, COUNT(*) Dependencies
+                                          FROM   DBA_Dependencies
+                                          WHERE  Referenced_Type = 'TABLE'
+                                          GROUP BY Referenced_Owner, Referenced_Name
+                                         )
+                    SELECT /* DB-Tools Ramm not used tables */ o.*, sz.MBytes, ob.Created, ob.Last_DDL_Time, tm.Timestamp Last_DML_Timestamp, tm.Inserts, tm.Updates, tm.Deletes,
+                           d.Dependencies
                     FROM Tabs_Inds o
                     LEFT OUTER JOIN used ON used.Object_Owner = o.Owner AND used.Object_Name = o.Object_Name
-                    LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Segment_Name, Owner, SUM(bytes)/(1024*1024) MBytes
-                                     FROM   DBA_SEGMENTS
-                                     WHERE  Owner NOT IN (#{system_schema_subselect})
-                                     GROUP BY Segment_Name, Owner
-                                    ) sz ON sz.SEGMENT_NAME = o.Object_Name AND sz.Owner = o.Owner
+                    LEFT OUTER JOIN Segment_Size sz ON sz.SEGMENT_NAME = o.Object_Name AND sz.Owner = o.Owner
                     LEFT OUTER JOIN DBA_Objects ob ON ob.Owner = o.Owner AND ob.Object_Name = o.Object_Name AND ob.SubObject_Name IS NULL
                     LEFT OUTER JOIN Tab_Modifications tm ON tm.Table_Owner = o.Owner AND tm.Table_Name = o.Object_Name AND tm.Partition_Name IS NULL AND tm.SubPartition_Name IS NULL
+                    LEFT OUTER JOIN Dependencies d ON d.Referenced_Owner = o.Owner AND d.Referenced_Name = o.Object_Name
                     WHERE  used.Object_Owner IS NULL
                     AND    used.Object_Name IS NULL
                     ORDER BY sz.MBytes DESC NULLS LAST",

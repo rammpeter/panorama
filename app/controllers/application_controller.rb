@@ -34,12 +34,8 @@ class ApplicationController < ActionController::Base
     @exception = exception                                                      # Sichtbarkeit im template
     @request   = request
 
-    Rails.logger.error('ApplicationController.global_exception_handler') { @exception.class.name }
-    if @request.parameters['controller']
-      Rails.logger.error('ApplicationController.global_exception_handler') { "#{@request.parameters['controller'].camelize}Controller#{"##{@request.parameters['action']}" if @request.parameters['action']}" }
-    end
-
-    Rails.logger.error('ApplicationController.global_exception_handler') { @exception.message }
+    location = @request.parameters['controller'] ? "#{@request.parameters['controller'].camelize}Controller#{"##{@request.parameters['action']}" if @request.parameters['action']} " : ''
+    Rails.logger.error('ApplicationController.global_exception_handler') { "#{location}#{@exception.class.name} : #{@exception.message}" }
     log_exception_backtrace(@exception, Rails.env.test? ? nil : 40)
 
     if performed?                                                               # Render already called in action?, Suppress DoubleRenderError

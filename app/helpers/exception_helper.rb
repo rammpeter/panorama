@@ -4,8 +4,13 @@
 
 module ExceptionHelper
 
-  def log_exception_backtrace(exception, line_number_limit=nil)
-    ExceptionHelper.log_memory_state(log_mode: :error)
+  # Log the stacktrace of an exception
+  # @param [Exception] exception: Exception to log
+  # @param [Integer] line_number_limit : Amount of lines to log, nil = all
+  # @param [Symbol] log_mode: mode for log outout, :debug, :info or :error
+  # @return [Integer] the number of characters logged
+  def log_exception_backtrace(exception, line_number_limit=nil, log_mode: :error)
+    ExceptionHelper.log_memory_state(log_mode: log_mode)
     curr_line_no=0
     output = ''
     exception.backtrace.each do |bt|
@@ -13,7 +18,7 @@ module ExceptionHelper
       curr_line_no += 1
     end
 
-    Rails.logger.error('ExceptionHelper.log_exception_backtrace') { "Stack-Trace for #{exception.class}:\n#{output}" }
+    Rails.logger.send(log_mode, 'ExceptionHelper.log_exception_backtrace') { "Stack-Trace for #{exception.class}:\n#{output}" }
   end
 
   # Raise an exception with original backtrace but extended message
@@ -44,7 +49,7 @@ module ExceptionHelper
   end
 
   def self.log_memory_state(log_mode: :info)
-    raise "ExceptionHelper.log_memory_state: log_mode '#{log_mode}' is not supported" unless [:info, :error].include? log_mode
+    raise "ExceptionHelper.log_memory_state: log_mode '#{log_mode}' is not supported" unless [:debug, :info, :warn, :error].include? log_mode
     Rails.logger.send(log_mode, "Memory resources:")
     memory_info_hash.each do |key, value|
       Rails.logger.send(log_mode, "#{value[:name].ljust(25)}: #{value[:value]}")
