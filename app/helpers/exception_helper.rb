@@ -35,17 +35,41 @@ module ExceptionHelper
   end
 
   def self.memory_info_hash
-    memoryBean = java.lang.management.ManagementFactory.getMemoryMXBean
     gb = (1024 * 1024 * 1024).to_f
-    {
-      total_memory:       { name: 'Total OS Memory (GB)',      value: gb_value_from_proc('MemTotal',      'hw.memsize') },
-      available_memory:   { name: 'Available OS Memory (GB)',  value: gb_value_from_proc('MemAvailable',  'hw.memsize') },   # Real avail. mem. for application. Max-OS: phys. mem. used to ensure valid test becaus real mem avail is not available
-      free_memory:        { name: 'Free Memory OS (GB)',       value: gb_value_from_proc('MemFree',       'page_free_count') },   # free mem. may be much smaller than real avail. mem. for app.
-      total_swap:         { name: 'Total OS Swap (GB)',        value: gb_value_from_proc('SwapTotal',     'vm.swapusage') },
-      free_swap:          { name: 'Free OS Swap (GB)',         value: gb_value_from_proc('SwapFree',      'vm.swapusage') },
-      initial_java_heap:  { name: 'Initial Java Heap (GB)',    value: (memoryBean.getHeapMemoryUsage.getInit/gb).round(3) },
-      maximum_java_heap:  { name: 'Maximum Java Heap (GB)',    value: (memoryBean.getHeapMemoryUsage.getMax/gb).round(3) },
-    }
+
+    meminfo = {}
+    case RbConfig::CONFIG['host_os']
+    when 'linux' then
+      meminfo[:total_memory]      = { name: 'Total OS Memory (GB)',      value: gb_value_for_linux('MemTotal') }
+      meminfo[:available_memory]  = { name: 'Available OS Memory (GB)',  value: gb_value_for_linux('MemAvailable') }   # Real avail. mem. for application. Max-OS: phys. mem. used to ensure valid test becaus real mem avail is not available
+      meminfo[:free_memory]       = { name: 'Free Memory OS (GB)',       value: gb_value_for_linux('MemFree') }   # free mem. may be much smaller than real avail. mem. for app.
+      meminfo[:total_swap]        = { name: 'Total OS Swap (GB)',        value: gb_value_for_linux('SwapTotal') }
+      meminfo[:free_swap]         = { name: 'Free OS Swap (GB)',         value: gb_value_for_linux('SwapFree') }
+    when 'darwin' then
+      meminfo[:total_memory]      = { name: 'Total OS Memory (GB)',      value: gb_value_for_darwin('hw.memsize') }
+      meminfo[:free_memory]       = { name: 'Free Memory OS (GB)',       value: gb_value_for_darwin('page_free_count') }   # free mem. may be much smaller than real avail. mem. for app.
+      meminfo[:total_swap]        = { name: 'Total OS Swap (GB)',        value: gb_value_for_darwin('vm.swapusage', 'SwapTotal') }
+      meminfo[:free_swap]         = { name: 'Free OS Swap (GB)',         value: gb_value_for_darwin('vm.swapusage', 'SwapFree') }
+    when 'mingw32', 'mingw64', 'mswin32', 'mswin64' then
+      begin
+        mem_bytes = `wmic memorychip get capacity`.split("\n")[1].to_i
+        meminfo[:total_memory]      = { name: 'Total OS Memory (GB)',      value: (mem_bytes/gb).round(3) }
+      rescue Exception => e
+        Rails.logger.error('ExceptionHelper.memory_info_hash') { "Error #{e.class}:#{e.message} while getting total_memory" }
+      end
+      begin
+        mem_bytes = `wmic OS get FreePhysicalMemory`.split("\n")[1].to_i
+        meminfo[:free_memory]      = { name: 'Free Memory OS (GB)',      value: (mem_bytes/gb).round(3) }
+      rescue Exception => e
+        Rails.logger.error('ExceptionHelper.memory_info_hash') { "Error #{e.class}:#{e.message} while getting free_memory" }
+      end
+    end
+
+    # Now add Java values
+    memoryBean = java.lang.management.ManagementFactory.getMemoryMXBean
+    meminfo[:initial_java_heap] = { name: 'Initial Java Heap (GB)',    value: (memoryBean.getHeapMemoryUsage.getInit/gb).round(3) }
+    meminfo[:maximum_java_heap] = { name: 'Maximum Java Heap (GB)',    value: (memoryBean.getHeapMemoryUsage.getMax/gb).round(3) }
+    meminfo
   end
 
   def self.log_memory_state(log_mode: :info)
@@ -57,32 +81,31 @@ module ExceptionHelper
   end
 
   private
-  def self.gb_value_from_proc(key_linux, key_darwin)
+
+  # get Value from proc file system
+  def self.gb_value_for_linux(key)
+    cmd = "cat /proc/meminfo 2>/dev/null | grep #{key}"
+    output = %x[ #{cmd} ]
+    (output.split(' ')[1].to_f/(1024*1024)).round(3) if output[key]
+  end
+
+  def self.gb_value_for_darwin(key_darwin, swap_key = nil)
     retval = nil
-    case RbConfig::CONFIG['host_os']
-    when 'linux' then
-      cmd = "cat /proc/meminfo 2>/dev/null | grep #{key_linux}"
-      output = %x[ #{cmd} ]
-      retval = (output.split(' ')[1].to_f/(1024*1024)).round(3) if output[key_linux]
-    when 'darwin' then
-      cmd = "sysctl -a | grep '#{key_darwin}'"
-      output = %x[ #{cmd} ]
-      if output[key_darwin]                                                     # anything found?
-        if key_darwin == 'vm.swapusage'
-          case key_linux
-          when 'SwapTotal' then
-            retval = (output.split(' ')[3].to_f / 1024).round(3)
-          when 'SwapFree' then
-            retval = (output.split(' ')[9].to_f / 1024).round(3)
-          end
-        else
-          page_multitplier = 1                                                  # bytes
-          page_multitplier= 4096 if output['vm.page']                           # pages
-          retval = (output.split(' ')[1].to_f * page_multitplier / (1024*1024*1024)).round(3)
+    cmd = "sysctl -a | grep '#{key_darwin}'"
+    output = %x[ #{cmd} ]
+    if output[key_darwin]                                                     # anything found?
+      if key_darwin == 'vm.swapusage'
+        case swap_key
+        when 'SwapTotal' then
+          retval = (output.split(' ')[3].to_f / 1024).round(3)
+        when 'SwapFree' then
+          retval = (output.split(' ')[9].to_f / 1024).round(3)
         end
+      else
+        page_multitplier = 1                                                  # bytes
+        page_multitplier= 4096 if output['vm.page']                           # pages
+        retval = (output.split(' ')[1].to_f * page_multitplier / (1024*1024*1024)).round(3)
       end
-    else
-      0                                                                         # unknown OS
     end
     retval
   end
