@@ -29,6 +29,11 @@ module Panorama
     # -- all .rb files in that directory are automatically loaded.
 
     logger.info "Panorama for Oracle: Release #{Panorama::VERSION} ( #{Panorama::RELEASE_YEAR}/#{Panorama::RELEASE_MONTH}/#{Panorama::RELEASE_DAY} )"
+    logger.info "Used runtime environments and frameworks:"
+    logger.info "   - Java:          #{java.lang.System.getProperty("java.runtime.version")} (#{java.lang.System.getProperty("java.runtime.name")}, #{java.lang.System.getProperty("java.vendor")})"
+    logger.info "   - JRE location:  #{java.lang.System.getProperty("java.home")}"
+    logger.info "   - JRuby:         #{JRUBY_VERSION}"
+    logger.info "   - Ruby on Rails: #{Rails.version}"
 
     # Remove ojdbc11.jar if Panorama is running with Java < 11.x
     # otherwise errors are causewd while loading JDBC driver like
@@ -67,7 +72,7 @@ module Panorama
       end
     end
 
-    logger.info "Panorama writes server side info to #{config.panorama_var_home}"
+    logger.info "Panorama writes server side info to folder #{config.panorama_var_home}"
 
     # Password for access on Admin menu, Panorama-Sampler config etc. : admin menu is activated if password is not empty
     # Backward campatibility for previously used environment entry
