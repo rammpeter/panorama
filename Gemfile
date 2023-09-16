@@ -49,6 +49,8 @@ gem 'jwt'
 gem 'rexml'
 
 group :development do
+  # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
+  gem 'rails', rails_version
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
   gem 'web-console', '>= 4.1.0'
   # Display performance information such as SQL time and flame graphs for each request in your browser.
@@ -70,8 +72,6 @@ group :development do
 end
 
 group :test do
-  # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
-  gem 'rails', rails_version
   # alternative to selenium
   gem 'playwright-ruby-client'
 end

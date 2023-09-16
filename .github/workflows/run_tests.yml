@@ -35,7 +35,7 @@ jobs:
       # CONTAINER contains CDB or PDB
       CONTAINER: ${{ inputs.container }}
       JRUBY_OPTS: "-J-Djava.security.egd=file:/dev/./urandom"
-
+      RAILS_ENV: test
 
     steps:
       - uses: actions/checkout@v1
