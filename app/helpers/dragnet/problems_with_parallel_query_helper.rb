@@ -173,7 +173,7 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
                       SELECT /*+ ORDERED */
                              s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, ROUND(s.Elapsed_Secs), s.Fundort
                       FROM   (
-                              SELECT /*+ NO_MERGE MATERIALIZE  */  *
+                              SELECT /*+ NO_MERGE */  *
                               FROM   (
                                       SELECT /*+ NO_MERGE */ UPPER(SQL_FullText) FullText, Elapsed_Time/1000000 Elapsed_Secs, 'SGA' Fundort, S.SQL_ID
                                       FROM gv$SQL s
