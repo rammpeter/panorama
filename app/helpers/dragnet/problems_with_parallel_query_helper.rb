@@ -154,7 +154,7 @@ Selection considers AWR history.'),
             :desc  => t(:dragnet_helper_81_desc, :default=>'Stored functions not for parallel execution per pragma PARALLEL_ENABLE lead  to serial processing if statements that should be executed in parallel.
 Listed functions should be checked if they can be expanded by pragma PARALLEL_ENABLE.'),
             :sql=>  "WITH /* DB-Tools Ramm Serialisierung in PQ durch Stored Functions */
-                      Arguments AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Arguments WHERE Position = 0), /* Filter package function names from DBA_Procedures */
+                      Arguments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Package_Name, Object_Name FROM DBA_Arguments WHERE Position = 0), /* Filter package function names from DBA_Procedures */
                       ProcLines AS (
                             SELECT /*+ NO_MERGE MATERIALIZE */ *
                             FROM   (
@@ -170,7 +170,7 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
                             WHERE  Owner NOT IN (#{system_schema_subselect})
                             AND    Parallel = 'NO'
                        )
-                      SELECT /*+ ORDERED */
+                      SELECT /*+ ORDERED NOPARALLEL */
                              s.FullText, s.SQL_ID, p.Owner, p.Object_Name, p.Procedure_Name, p.Object_Type, ROUND(s.Elapsed_Secs), s.Fundort
                       FROM   (
                               SELECT /*+ NO_MERGE */  *
