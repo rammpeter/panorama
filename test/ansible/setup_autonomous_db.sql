@@ -1,4 +1,4 @@
--- Setup Oracle allways free autonomous DB for Panorama tests
+-- Setup Oracle always free autonomous DB for Panorama tests
 -- connect as 'admin'
 
 purge dba_recyclebin;
@@ -29,6 +29,7 @@ DECLARE
     EXECUTE IMMEDIATE 'GRANT SELECT ON V$DIAG_ALERT_EXT TO '||p_Name;
     EXECUTE IMMEDIATE 'GRANT READ ON SYS.DBMS_LOCK_ALLOCATED TO '||p_Name;
     EXECUTE IMMEDIATE 'GRANT READ ON gv$BH TO '||p_Name;
+    EXECUTE IMMEDIATE 'GRANT AUDIT_VIEWER TO '||p_Name;
     EXECUTE IMMEDIATE 'ALTER USER '||p_Name||' QUOTA UNLIMITED ON DATA';
   END Create_User;
 BEGIN
