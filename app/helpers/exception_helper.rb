@@ -17,7 +17,7 @@ module ExceptionHelper
       output << "#{bt}\n" if line_number_limit.nil? || curr_line_no < line_number_limit # report First x lines of stacktrace in log
       curr_line_no += 1
     end
-
+    output << "--- end of stacktrace ---\n\n\n"
     Rails.logger.send(log_mode, 'ExceptionHelper.log_exception_backtrace') { "Stack-Trace for #{exception.class}:\n#{output}" }
   end
 
