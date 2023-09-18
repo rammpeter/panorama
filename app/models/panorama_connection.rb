@@ -109,7 +109,8 @@ end #class_eval
 
 # Config for DB connection for current threads request is stored in Thread.current[:]
 
-MAX_CONNECTION_POOL_SIZE = ENV['MAX_CONNECTION_POOL_SIZE'] || 100               # Number of pooled connections, may be more than max. threads
+MAX_CONNECTION_POOL_SIZE = (ENV['MAX_CONNECTION_POOL_SIZE'] || 100).to_i        # Number of pooled connections, may be more than max. threads
+Panorama::Application.log_env_setting('MAX_CONNECTION_POOL_SIZE', MAX_CONNECTION_POOL_SIZE)
 
 # noinspection RubyClassVariableUsageInspection
 class PanoramaConnection

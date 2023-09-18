@@ -10,8 +10,8 @@ Bundler.require(*Rails.groups)
 
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.17.10'
-  RELEASE_DATE = Date.parse('2023-09-15')
+  VERSION = '2.17.11'
+  RELEASE_DATE = Date.parse('2023-09-18')
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month
@@ -114,5 +114,11 @@ module Panorama
     # It's best enabled when your entire app is migrated and stable on 6.1.
     config.action_dispatch.cookies_same_site_protection = :lax
 
+    # Log the used settings from environment
+    # @param [String] setting Name of setting
+    # @param [Object] used_value Value of setting
+    def self.log_env_setting(setting, used_value)
+      Rails.logger.info "Environment setting: #{setting} = #{used_value}"
+    end
   end
 end

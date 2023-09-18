@@ -21,10 +21,12 @@
   end
 
   show_compatible = proc do |rec|
-    if rec.compatible == rec.version[0, rec.compatible&.length]
-      "<span class=\"cui-thumb-up\"></span>".html_safe
-    else
-      "<span style=\"background-color:lightyellow;\">#{rec.compatible}</span>".html_safe
+    if rec.compatible
+      if rec.compatible == rec.version[0, rec.compatible.length]
+        "<span class=\"cui-thumb-up\"></span>".html_safe
+      else
+        "<span style=\"background-color:lightyellow;\">#{rec.compatible}</span>".html_safe
+      end
     end
   end
 
