@@ -1,1 +1,69 @@
-Coming soon, still under construction!
+<% @update_area=get_unique_area_id %>
+
+<%= render_page_caption("Audit Trail records from UNIFIED_AUDIT_TRAIL") %>
+
+<%= ajax_form(:controller => :dba_schema, :action=>:list_unified_audit_trail, :update_area=>@update_area)  do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker(additional_title: 'in local timezone', line_feed_after_lable: true) %>
+    <%= instance_tag(line_feed: true) if PanoramaConnection.rac? %>
+    <div class="flex-row-element" title="Type of audit record source">
+      &nbsp;Audit type<br/>
+      <select name="audit_type">
+        <option selected value=''           >[All]</option>
+        <option value='Database Vault'      >Database Vault</option>
+        <option value='Datapump'            >Datapump</option>
+        <option value='Direct path API'     >Direct path API</option>
+        <option value='FineGrainedAudit'    >Fine Grained Audit</option>
+        <option value='KACL_AUDIT'          >KACL Audit</option>
+        <option value='Label Security'      >Label Security</option>
+        <option value='Protocol'            >Protocol</option>
+        <option value='RMAN_AUDIT'          >RMAN audit</option>
+        <option value='Standard Audit'      >Standard Audit</option>
+        <option value='XS'                  >XS</option>
+      </select>
+    </div>
+    <div class="flex-row-element" title="optional filter for session-ID (AUDSID) (exact match)">
+      &nbsp;Session-ID<br/>
+      <%= text_field_tag(:session_id, '', :size=>10) %>
+    </div>
+    <div class="flex-row-element">
+      &nbsp;OS-User<br/>
+      <%= text_field_tag(:os_user, "", :size=>10, :title=>"Filter for OS-user of client machine (like-comparison and case ignored)") %>
+    </div>
+    <div class="flex-row-element">
+      &nbsp;DB-User<br/>
+      <%= text_field_tag(:db_user, "", :size=>10, :title=>"Filter for database username used for db-connection (like-comparison and case ignored)") %>
+    </div>
+    <div class="flex-row-element">
+      &nbsp;Machine<br/>
+      <%= text_field_tag(:machine, "", :size=>10, :title=>"Filter for name of client machine (like-comparison and case ignored)") %>
+    </div>
+    <div class="flex-row-element">
+      &nbsp;Object<br/>
+      <%= text_field_tag(:object_name, "", :size=>10, :title=>"Filter for name of database object (like-comparison and case ignored)") %>
+    </div>
+    <div class="flex-row-element">
+      &nbsp;Action<br/>
+      <%= text_field_tag(:action_name, "", :size=>10, :title=>"Filter for name of recorded action (like-comparison and case ignored)") %>
+    </div>
+    <div class="flex-row-element" title="Group result by time cycle (none for not grouping)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
+      &nbsp;Grouping<br/>
+      <select name="grouping">
+        <option selected value='none'>[none]</option>
+        <option value='SS'>Second</option>
+        <option value='MI'>Minute</option>
+        <option value='HH24'>Hour</option>
+        <option value='DD'>Day</option>
+      </select>
+    </div>
+    <div class="flex-row-element" title="Count for top x hits to show as columns (only relevant if 'Grouping' is not 'none')">
+      &nbsp;Top x for group<br/>
+      <%= text_field_tag(:top_x, "5", :size=>5, style: "text-align:right;") %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show audit trail", :title => "Show audit trail records\n\nUse grouping by time unit if you expect large amount of audit records!") %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>
+

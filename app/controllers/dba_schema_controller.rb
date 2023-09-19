@@ -2168,6 +2168,82 @@ class DbaSchemaController < ApplicationController
     render_partial :list_audit_trail_grouping
   end
 
+
+  def list_unified_audit_trail
+    @instance       = prepare_param_instance
+    @audit_type     = prepare_param :audit_type
+    @session_id     = prepare_param :session_id
+    @os_user        = prepare_param :os_user
+    @db_user        = prepare_param :db_user
+    @machine        = prepare_param :machine
+    @object_name    = prepare_param :object_name
+    @action_name    = prepare_param :action_name
+    where_string = ""
+    where_values = []
+
+    if params[:time_selection_start] && params[:time_selection_end]
+      save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+      where_string << " AND Event_Timestamp >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND Event_Timestamp <  TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')"
+      where_values << @time_selection_start
+      where_values << @time_selection_end
+    end
+
+    if @instance
+      where_string << " AND Instance_ID =?"
+      where_values << @instance
+    end
+
+    if @audit_type
+      where_string << " AND Audit_Type=?"
+      where_values << @audit_type
+    end
+
+    if @session_id
+      where_string << " AND SessionID=?"
+      where_values << @session_id
+    end
+
+    if @os_user
+      where_string << " AND UPPER(OS_UserName) LIKE UPPER('%'||?||'%')"
+      where_values << @os_user
+    end
+
+    if @db_user
+      where_string << " AND UPPER(DBUserName) LIKE UPPER('%'||?||'%')"
+      where_values << @db_user
+    end
+
+    if @machine
+      where_string << " AND UPPER(UserHost) LIKE UPPER('%'||?||'%')"
+      where_values << @machine
+    end
+
+    if @object_name
+      where_string << " AND UPPER(Object_Name) LIKE UPPER('%'||?||'%')"
+      where_values << @object_name
+    end
+
+    if @action_name
+      where_string << " AND UPPER(Action_name) LIKE UPPER('%'||?||'%')"
+      where_values << @action_name
+    end
+
+    if params[:grouping] && params[:grouping] != "none"
+      list_unified_audit_trail_grouping(params[:grouping], where_string, where_values, params[:top_x].to_i)
+    else
+      @audits = sql_select_iterator ["\
+                     SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ a.*,
+                            RAWTOHEX(a.Transaction_ID) TransactionID_Hex
+                     FROM   Unified_Audit_Trail a
+                     WHERE  1=1 #{where_string}
+                     ORDER BY Event_Timestamp
+                    "].concat(where_values)
+
+      render_partial :list_unified_audit_trail
+    end
+  end
+
+
   def list_histogram
     @owner        = params[:owner]
     @table_name   = params[:table_name]
