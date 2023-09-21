@@ -211,7 +211,14 @@
    end
 
   data_title_use = proc do |rec|
-    "%t:\nmonitoring index = #{rec.monitoring}\nstart monitoring = #{localeDateTime(rec.start_monitoring)}\nend monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((Time.now - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
+    "%t:
+    - YES: Index has been used for access since last monitoring start
+    - NO: Index has not been used for access since last monitoring start
+    - Undef.: MONITORING USAGE is not active for this index
+
+    monitoring index = #{rec.monitoring}
+    start monitoring = #{localeDateTime(rec.start_monitoring)}
+    end monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((Time.now - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
   end
 
    blocksize = PanoramaConnection.db_blocksize                                   # call only once
@@ -226,7 +233,7 @@
 
    link_used = proc do |rec|
     if get_db_version >= '12.2'
-      ajax_link(rec.used,
+      ajax_link(rec.used ? rec.used : 'Undef.',
                  {controller:   :dba_schema,
                   action:       :list_index_usage,
                   owner:        rec.owner,
