@@ -1986,7 +1986,7 @@ class DbaSchemaController < ApplicationController
   end
 
   def list_audit_trail
-    @instance       = prepare_param_instance
+    @instance       = prepare_param_instance(allow_nil: true)
     @audit_type     = prepare_param :audit_type
     @session_id     = prepare_param :session_id
     @os_user        = prepare_param :os_user
@@ -2170,7 +2170,8 @@ class DbaSchemaController < ApplicationController
 
 
   def list_unified_audit_trail
-    @instance       = prepare_param_instance
+    @instance       = prepare_param_instance(allow_nil: true)
+    @dbid           = prepare_param :dbid
     @audit_type     = prepare_param :audit_type
     @session_id     = prepare_param :session_id
     @os_user        = prepare_param :os_user
@@ -2191,6 +2192,11 @@ class DbaSchemaController < ApplicationController
     if @instance
       where_string << " AND Instance_ID =?"
       where_values << @instance
+    end
+
+    if @dbid
+      where_string << " AND DBID =?"
+      where_values << @dbid
     end
 
     if @audit_type
@@ -2241,6 +2247,113 @@ class DbaSchemaController < ApplicationController
 
       render_partial :list_unified_audit_trail
     end
+  end
+
+  # Gruppierte Ausgabe der Audit-Trail-Info
+  def list_unified_audit_trail_grouping(grouping, where_string, where_values, top_x)
+    @grouping = grouping
+    @top_x    = top_x
+
+    group_time_sql = "TRUNC(Event_Timestamp, '#{grouping}')"
+    group_time_sql = "CAST (Event_Timestamp AS DATE)" if grouping == 'SS'
+
+    audits = sql_select_all ["\
+                   SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
+                   FROM   (SELECT #{group_time_sql} Begin_Timestamp,
+                                  MAX(Event_Timestamp)+1/1440 Max_Timestamp,  -- auf naechste ganze Minute aufgerundet
+                                  UserHost, OS_UserName, DBUserName, Action_Name,
+                                  COUNT(*)         Audits
+                                  FROM   Unified_Audit_Trail
+                                  WHERE  1=1 #{where_string}
+                                  GROUP BY #{group_time_sql}, UserHost, OS_UserName, DBUserName, Action_Name
+                          )
+                   ORDER BY Begin_Timestamp, Audits
+                  "].concat(where_values)
+
+    create_new_audit_result_record = proc do |audit_detail_record|
+      {
+        :begin_timestamp => audit_detail_record.begin_timestamp,
+        :max_timestamp   => audit_detail_record.max_timestamp,
+        :audits   => 0,
+        :machines => {},
+        :os_users  => {},
+        :db_users  =>{},
+        :actions  => {}
+      }
+    end
+
+    @audits = []
+    machines = {}; os_users={}; db_users={}; actions={}
+    if audits.count > 0
+      ts = audits[0].begin_timestamp
+      rec = create_new_audit_result_record.call(audits[0])
+      @audits << rec
+      audits.each do |a|
+        # Gruppenwechsel
+        if a.begin_timestamp != ts
+          ts = a.begin_timestamp
+          rec = create_new_audit_result_record.call(a)
+          @audits << rec
+        end
+        rec[:audits] = rec[:audits] + a.audits
+        rec[:max_timestamp] = a.max_timestamp if a.max_timestamp > rec[:max_timestamp]  # Merken des groessten Zeitstempels
+
+        rec[:machines][a.userhost] = (rec[:machines][a.userhost] ||=0) + a.audits
+        machines[a.userhost] = (machines[a.userhost] ||= 0) + a.audits  # Gesamtmenge je Maschine merken für Sortierung nach Top x
+
+        rec[:os_users][a.os_username] = (rec[:os_users][a.os_username] ||=0) + a.audits
+        os_users[a.os_username] = (os_users[a.os_username] ||= 0) + a.audits
+
+        rec[:db_users][a.dbusername] = (rec[:db_users][a.dbusername] ||=0) + a.audits
+        db_users[a.dbusername] = (db_users[a.dbusername] ||= 0) + a.audits
+
+        rec[:actions][a.action_name] = (rec[:actions][a.action_name] ||=0) + a.audits
+        actions[a.action_name] = (actions[a.action_name] ||= 0) + a.audits
+
+      end
+    end
+
+    @audits.each do |a|
+      a.extend SelectHashHelper
+    end
+
+    @machines = []
+    machines.each do |key, value|
+      @machines << { :machine=>key, :audits=>value}
+    end
+    @machines.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @machines.count > top_x
+      @machines.delete_at(@machines.count-1)
+    end
+
+    @os_users = []
+    os_users.each do |key, value|
+      @os_users << { :os_user=>key, :audits=>value}
+    end
+    @os_users.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @os_users.count > top_x
+      @os_users.delete_at(@os_users.count-1)
+    end
+
+    @db_users = []
+    db_users.each do |key, value|
+      @db_users << { :db_user=>key, :audits=>value}
+    end
+    @db_users.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @db_users.count > top_x
+      @db_users.delete_at(@db_users.count-1)
+    end
+
+    @actions = []
+    actions.each do |key, value|
+      @actions << { :action_name=>key, :audits=>value}
+    end
+    @actions.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @actions.count > top_x
+      @actions.delete_at(@actions.count-1)
+    end
+
+    render_partial :list_unified_audit_trail_grouping
   end
 
 

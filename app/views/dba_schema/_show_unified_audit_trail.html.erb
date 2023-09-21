@@ -22,6 +22,7 @@
         <option value='XS'                  >XS</option>
       </select>
     </div>
+    <%= dbid_selection(wrap_label: true, show_all: true) %>
     <div class="flex-row-element" title="optional filter for session-ID (AUDSID) (exact match)">
       &nbsp;Session-ID<br/>
       <%= text_field_tag(:session_id, '', :size=>10) %>

@@ -41,7 +41,7 @@ module HtmlHelper
   end
 
   # Select DBID from different sources
-  def dbid_selection(select_element_id: nil, onchange: nil)
+  def dbid_selection(select_element_id: nil, onchange: nil, wrap_label: false, show_all: false)
     result = ''
     dbids = []
 =begin
@@ -63,7 +63,9 @@ module HtmlHelper
     # Don't show choice if only one DBID available
     result << "<div class=\"flex-row-element\" #{"style=\"display:none;\"" if dbids.count < 2 } title=\"The requested info can be recorded for different database IDs as well as global and per PDB.\nSelect for which DBID values should be to evaluated.\">"
     result << "  <label>DB-ID</label>"
+    result << "  <br/>" if wrap_label
     result << "  <select name=\"dbid\" #{"id=\"#{select_element_id}\"" if select_element_id} #{"onchange=\"#{onchange}\"" if onchange}>"
+    result << "    <option value=\"\">[ #{t(:all, default: 'All')} ]</option>" if show_all
     selected_dbid = get_dbid                                                    # Default
     selected_dbid = @dbid.to_i if defined? @dbid                                # use previously used value if exists
     dbids.each do |d|
