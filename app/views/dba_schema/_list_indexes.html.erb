@@ -214,7 +214,7 @@
     "%t:
     - YES: Index has been used for access since last monitoring start
     - NO: Index has not been used for access since last monitoring start
-    - Undef.: MONITORING USAGE is not active for this index
+    - ?: MONITORING USAGE is not active for this index
 
     monitoring index = #{rec.monitoring}
     start monitoring = #{localeDateTime(rec.start_monitoring)}
@@ -233,7 +233,7 @@
 
    link_used = proc do |rec|
     if get_db_version >= '12.2'
-      ajax_link(rec.used ? rec.used : 'Undef.',
+      ajax_link(rec.used ? rec.used : '?',
                  {controller:   :dba_schema,
                   action:       :list_index_usage,
                   owner:        rec.owner,

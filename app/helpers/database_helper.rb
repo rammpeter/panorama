@@ -52,7 +52,7 @@ end
   def strftime_format_with_fractions6
     case get_locale
     when "de" then "%d.%m.%Y %H:%M:%S.%6N"
-    when "en" then "%Y\u2011%m\u2011%d %H:%M:%S.%6N".encode('utf-8')            # use unbreakable hyphen instead of '-'
+    when "en" then "%Y\u2011%m\u2011%d %H:%M:%S.&ZeroWidthSpace;%6N".encode('utf-8')            # use unbreakable hyphen instead of '-'
     else "%d.%m.%Y %H:%M:%S.%6N"
     end
   end
