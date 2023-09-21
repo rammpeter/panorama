@@ -308,6 +308,8 @@ module ApplicationHelper
       retval.gsub!(/\n/, '<br>')
     end
     retval.gsub!(/\\/, '\\\\\\\\')                                              # Escape single backslash
+    retval.gsub!(/&amp;#8203;/, '&#8203;')                                      # Restore Zero width space in result to ensure word wrap
+    retval.gsub!(/&amp;ZeroWidthSpace;/, '&ZeroWidthSpace;')                    # Restore Zero width space in result to ensure word wrap
     retval
   end
 
@@ -336,9 +338,10 @@ module ApplicationHelper
   end
 
   # Aufbereiten des Parameters "instance" aus Request, return nil wenn kein plausibler Wert
-  def prepare_param_instance
+  def prepare_param_instance(allow_nil: false)
     retval = params[:instance].to_i
     if retval == 0
+      return nil if allow_nil
       retval = nil
       retval = PanoramaConnection.instance_number unless PanoramaConnection.rac? # set valid instance number if not RAC
     end
