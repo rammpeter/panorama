@@ -450,6 +450,15 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
     %>
   </div>
   <div class="flex-row-element">
+    <%= ajax_submit("Visual refs.", {
+      :update_area => @update_area,
+      :action      => :show_visual_references,
+      :owner       => @owner,
+      :table_name  => @table_name,
+    }, :title => "Show references of #{@owner}.#{@table_name} visual")
+    %>
+  </div>
+  <div class="flex-row-element">
     <%= ajax_submit("#{@triggers} Triggers", {
         :update_area => @update_area,
         :action      => :list_triggers,

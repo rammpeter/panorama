@@ -107,12 +107,12 @@ GEM
       net-protocol
     net-protocol (0.2.1)
       timeout
-    net-smtp (0.3.3)
+    net-smtp (0.4.0)
       net-protocol
     nio4r (2.5.9-java)
     nokogiri (1.15.4-java)
       racc (~> 1.4)
-    playwright-ruby-client (1.37.1)
+    playwright-ruby-client (1.38.0)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
     puma (5.6.7-java)

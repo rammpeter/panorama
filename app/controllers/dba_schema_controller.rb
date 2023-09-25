@@ -1477,6 +1477,75 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def show_visual_references
+    @update_area  = prepare_param :update_area
+    @owner        = prepare_param :owner
+    @table_name   = prepare_param :table_name
+    @level        = prepare_param_int :level, default: 1
+    @direction    = prepare_param :direction, default: 'both'
+    raise "Unsupported value for direction" unless ['both', 'R', 'D'].include? @direction
+
+
+    references = sql_select_all ["\
+      WITH Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, R_Owner, R_Constraint_Name FROM DBA_Constraints WHERE Constraint_Type IN ('R', 'P', 'U')),
+                 Full_Refs AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'Referencing' Direction, c.Owner, c.Table_Name, c.Constraint_Name, r.Owner R_Owner, r.Table_Name R_Table_Name, c.R_Constraint_Name
+                               FROM   Constraints c
+                               JOIN   Constraints r ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
+                              ),
+                 Both AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+                          FROM   (/* Referencing */
+                                  SELECT 'R' Direction, Owner, Table_Name, Constraint_Name, r_Owner, r_Table_Name, r_Constraint_Name
+                                  FROM   Full_Refs
+                                  /* Referenced */
+                                  UNION ALL
+                                  SELECT 'D' Direction, r_Owner, r_Table_Name, r_Constraint_Name, Owner, Table_Name, Constraint_Name
+                                  FROM   Full_Refs
+                                 )
+                         ),
+                 Result(Direction, Owner, Table_Name, Constraint_Name, R_Owner, r_Table_Name, r_Constraint_Name, Lvl) As (
+                            SELECT Direction, Owner, Table_Name, Constraint_Name, r_Owner, r_Table_Name, r_Constraint_Name, 1 Lvl FROM Both WHERE Owner = ? AND Table_Name = ?
+                            UNION ALL
+                            SELECT b.Direction, b.Owner, b.Table_Name, b.Constraint_Name, b.r_Owner, b.r_Table_Name, b.r_Constraint_Name, Lvl+1 Lvl
+                            FROM   Result r, Both b
+                            WHERE r.r_Owner = b.Owner AND r.r_Table_Name = b.Table_Name
+                            AND   r.Lvl <= ?
+                            #{"AND r.Direction =  '#{@direction}'" if @direction != 'both'}
+                           )
+      CYCLE owner, Table_Name SET cycle TO 1 DEFAULT 0
+      /* Suppress doublettes possibly at different levels */
+      SELECT DISTINCT Direction, Owner, Table_Name, Constraint_Name, R_Owner, r_Table_Name, r_Constraint_Name FROM Result
+      WHERE Cycle = 0
+      AND Lvl <= ?
+      #{"AND Direction =  '#{@direction}'" if @direction != 'both'}
+      ", @owner, @table_name, @level, @level]
+
+    tables = {}
+
+    references.each do |r|
+      tables["#{r.owner}_#{r.table_name}"]     = {owner: r.owner, table_name: r.table_name}
+      tables["#{r.r_owner}_#{r.r_table_name}"] = {owner: r.r_owner, table_name: r.r_table_name}
+    end
+
+    @digraph = "
+      graph [rankdir=LR];
+      node [shape=record, style=filled, fillcolor=lightgray, fontsize = 10];
+      edge [arrowhead=crow, fontsize = 8];
+    "
+    tables.each do |key, value|
+      @digraph << "#{key} [label=\\\"#{value[:owner].downcase}.#{value[:table_name]}| primary key\\\"];\n"
+    end
+
+    references.each do |r|
+      if r.direction == 'R'
+        @digraph << "#{r.r_owner}_#{r.r_table_name} -> #{r.owner}_#{r.table_name} [label=\\\"#{r.constraint_name}\\\"];\n"
+      else
+        @digraph << "#{r.owner}_#{r.table_name} -> #{r.r_owner}_#{r.r_table_name} [label=\\\"#{r.r_constraint_name}\\\"];\n"
+      end
+    end
+
+    render_partial
+  end
+
   def list_triggers
     @owner      = params[:owner]
     @table_name = params[:table_name]

@@ -590,6 +590,21 @@ function check4update(div_id, current_release){
 
 }
 
+/**
+ * Ensure that graphviz package is loaded
+ * @param callback function to be called after loading the source
+ */
+function ensureGraphVizLoaded(callback){
+    if (typeof Viz === 'undefined'){
+        var script = document.createElement('script');
+        script.src = 'viz-standalone.js';
+        script.async = true;
+        script.onload = callback;
+        document.head.appendChild(script);
+    } else {
+        callback();
+    }
+}
 
 
 

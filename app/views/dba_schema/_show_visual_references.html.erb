@@ -1,0 +1,27 @@
+<%
+    caption = "Referential integrity relations for #{@owner}.#{@table_name}. &nbsp;&nbsp;&nbsp;&nbsp;<span style=\"font-weight: normal;\" title=\"Level of references. Increase to view relations of relations also.\">Level: "
+    caption << "<input type=\"number\" value=\"#{@level}\" min=\"1\" max=\"100\" onchange=\"ajax_html('#{@update_area}', 'dba_schema', 'show_visual_references', {update_area: '#{@update_area}', owner: '#{@owner}', table_name: '#{@table_name}', level: this.value, direction: '#{@direction}'});\">"
+    caption << "&nbsp;&nbsp;&nbsp;Direction: "
+    caption << "<select onchange=\"ajax_html('#{@update_area}', 'dba_schema', 'show_visual_references', {update_area: '#{@update_area}', owner: '#{@owner}', table_name: '#{@table_name}', level: '#{@level}', direction: this.value});\">"
+    caption << "<option value=\"both\"#{@direction == 'both' ? ' selected' : ''}>Both</option>"
+    caption << "<option value=\"R\"#{@direction == 'R' ? ' selected' : ''}>Referenced only</option>"
+    caption << "<option value=\"D\"#{@direction == 'D' ? ' selected' : ''}>Referencing only</option>"
+    caption << "</select>"
+    caption << "</span>"
+%>
+
+<%= render_page_caption(caption.html_safe) %>
+<div class="flex-row-container">
+  <div class="flex-row-element" style="overflow-x: auto;" id="graphviz"></div>
+</div>
+<script>
+    ensureGraphVizLoaded(function() {
+        Viz.instance()
+          .then(viz => {$('#graphviz').html(viz.renderSVGElement("digraph { <%= @digraph.gsub(/\n/, '\n').html_safe %> }"));
+          })
+          .catch(error => {
+              console.error(error);
+              alert(error);
+          });
+    });
+</script>
