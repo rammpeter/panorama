@@ -1534,6 +1534,10 @@ class DbaSchemaController < ApplicationController
       #{"AND Direction =  '#{@direction}'" if @direction != 'both'}
       ", @owner, @table_name, @level, @level]
 
+    build_table_key = proc do |owner, table_name|
+      "#{owner}_#{table_name}".gsub(/\$/, 'DLR')
+    end
+
     tables = {}
 
     references.each do |r|
@@ -1541,7 +1545,9 @@ class DbaSchemaController < ApplicationController
         { owner: r.owner,   table_name: r.table_name,   use_pk: false},
         { owner: r.r_owner, table_name: r.r_table_name, use_pk: true}
       ].each do |key|
-        table_key = "#{key[:owner]}_#{key[:table_name]}"
+        # The key used for SVG should not contain special characters
+        table_key = build_table_key.call(key[:owner], key[:table_name])
+
         tables[table_key] = {owner: key[:owner], table_name: key[:table_name], keys: {}} unless tables.has_key?(table_key)
         # Remember PKs only if the referenced table is the current table
         tables[table_key][:keys][r.pk_cols] = true  if key[:use_pk]             # Remember PKs as well as unique constraints (which are also referenced)
@@ -1568,7 +1574,7 @@ class DbaSchemaController < ApplicationController
       attribs = ''
       tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\\\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
       attribs = "label=\\\"#{r.fk_constraint_name}\\\" tooltip=\\\"#{tooltip}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
-      @digraph << "#{r.r_owner}_#{r.r_table_name} -> #{r.owner}_#{r.table_name} [#{attribs}];\n"
+      @digraph << "#{build_table_key.call(r.r_owner, r.r_table_name)} -> #{build_table_key.call(r.owner, r.table_name)} [#{attribs}];\n"
     end
 
     render_partial
