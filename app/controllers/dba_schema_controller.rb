@@ -1478,14 +1478,17 @@ class DbaSchemaController < ApplicationController
   end
 
   def show_visual_references
-    @update_area  = prepare_param :update_area
-    @owner        = prepare_param :owner
-    @table_name   = prepare_param :table_name
-    @level        = prepare_param_int :level, default: 1
-    @direction    = prepare_param :direction, default: 'both'
+    @update_area    = prepare_param :update_area
+    @owner          = prepare_param :owner
+    @table_name     = prepare_param :table_name
+    @level          = prepare_param_int :level, default: 1
+    @direction      = prepare_param :direction, default: 'both'
+    @show_fk_names  = prepare_param(:show_fk_names, default: 'true') == 'true'
+    @zoom_factor    = prepare_param_int :zoom_factor, default: 1
     raise "Unsupported value for direction" unless ['both', 'R', 'D'].include? @direction
 
 
+    #  Use recursive subquery factoring instead of CONNECT BY because CONNECT BY is too slow (first executes the CONNECT BY and then filter by level)
     references = sql_select_all ["\
       WITH Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, R_Owner, R_Constraint_Name FROM DBA_Constraints WHERE Constraint_Type IN ('R', 'P', 'U')),
                  Full_Refs AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'Referencing' Direction, c.Owner, c.Table_Name, c.Constraint_Name, r.Owner R_Owner, r.Table_Name R_Table_Name, c.R_Constraint_Name
@@ -1494,18 +1497,22 @@ class DbaSchemaController < ApplicationController
                               ),
                  Both AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
                           FROM   (/* Referencing */
-                                  SELECT 'R' Direction, Owner, Table_Name, Constraint_Name, r_Owner, r_Table_Name, r_Constraint_Name
+                                  SELECT 'R' Direction, Owner, Table_Name, Constraint_Name FK_Constraint_Name, r_Owner, r_Table_Name, r_Owner PK_Owner, r_Constraint_Name PK_Constraint_Name
                                   FROM   Full_Refs
                                   /* Referenced */
                                   UNION ALL
-                                  SELECT 'D' Direction, r_Owner, r_Table_Name, r_Constraint_Name, Owner, Table_Name, Constraint_Name
+                                  SELECT 'D' Direction, r_Owner, r_Table_Name, Constraint_Name FK_Constraint_Name, Owner, Table_Name, r_Owner PK_Owner, r_Constraint_Name PK_Constraint_Name
                                   FROM   Full_Refs
                                  )
                          ),
-                 Result(Direction, Owner, Table_Name, Constraint_Name, R_Owner, r_Table_Name, r_Constraint_Name, Lvl) As (
-                            SELECT Direction, Owner, Table_Name, Constraint_Name, r_Owner, r_Table_Name, r_Constraint_Name, 1 Lvl FROM Both WHERE Owner = ? AND Table_Name = ?
+                Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, LISTAGG(Column_name, ', ') WITHIN GROUP (ORDER BY Position) PK_Cols
+                                 FROM DBA_Cons_Columns
+                                 GROUP BY Owner, Constraint_Name
+                                ),
+                 Result(Direction, Owner, Table_Name, FK_Constraint_Name, R_Owner, r_Table_Name, PK_Owner, PK_Constraint_Name, Lvl) As (
+                            SELECT Direction, Owner, Table_Name, FK_Constraint_Name, r_Owner, r_Table_Name, PK_Owner, PK_Constraint_Name, 1 Lvl FROM Both WHERE Owner = ? AND Table_Name = ?
                             UNION ALL
-                            SELECT b.Direction, b.Owner, b.Table_Name, b.Constraint_Name, b.r_Owner, b.r_Table_Name, b.r_Constraint_Name, Lvl+1 Lvl
+                            SELECT b.Direction, b.Owner, b.Table_Name, b.FK_Constraint_Name, b.r_Owner, b.r_Table_Name, b.PK_Owner, b.PK_Constraint_Name, Lvl+1 Lvl
                             FROM   Result r, Both b
                             WHERE r.r_Owner = b.Owner AND r.r_Table_Name = b.Table_Name
                             AND   r.Lvl <= ?
@@ -1513,7 +1520,15 @@ class DbaSchemaController < ApplicationController
                            )
       CYCLE owner, Table_Name SET cycle TO 1 DEFAULT 0
       /* Suppress doublettes possibly at different levels */
-      SELECT DISTINCT Direction, Owner, Table_Name, Constraint_Name, R_Owner, r_Table_Name, r_Constraint_Name FROM Result
+      SELECT DISTINCT
+             DECODE(r.Direction, 'R', r.Owner, r.r_Owner)           Owner,
+             DECODE(r.Direction, 'R', r.Table_Name, r.r_Table_Name) Table_Name,
+             r.FK_Constraint_Name,
+             DECODE(r.Direction, 'D', r.Owner, r.r_Owner)           r_Owner,
+             DECODE(r.Direction, 'D', r.Table_Name, r.r_Table_Name) r_Table_Name,
+             r.PK_Constraint_Name, pk_cc.PK_Cols
+      FROM Result r
+      LEFT OUTER JOIN Cons_Columns pk_cc ON pk_cc.Owner = r.PK_Owner AND pk_cc.Constraint_Name = r.PK_Constraint_Name
       WHERE Cycle = 0
       AND Lvl <= ?
       #{"AND Direction =  '#{@direction}'" if @direction != 'both'}
@@ -1522,25 +1537,38 @@ class DbaSchemaController < ApplicationController
     tables = {}
 
     references.each do |r|
-      tables["#{r.owner}_#{r.table_name}"]     = {owner: r.owner, table_name: r.table_name}
-      tables["#{r.r_owner}_#{r.r_table_name}"] = {owner: r.r_owner, table_name: r.r_table_name}
+      [
+        { owner: r.owner,   table_name: r.table_name,   use_pk: false},
+        { owner: r.r_owner, table_name: r.r_table_name, use_pk: true}
+      ].each do |key|
+        table_key = "#{key[:owner]}_#{key[:table_name]}"
+        tables[table_key] = {owner: key[:owner], table_name: key[:table_name], keys: {}} unless tables.has_key?(table_key)
+        # Remember PKs only if the referenced table is the current table
+        tables[table_key][:keys][r.pk_cols] = true  if key[:use_pk]             # Remember PKs as well as unique constraints (which are also referenced)
+      end
     end
 
     @digraph = "
       graph [rankdir=LR];
-      node [shape=record, style=filled, fillcolor=lightgray, fontsize = 10];
-      edge [arrowhead=crow, fontsize = 8];
+      node [shape=record, style=filled, fillcolor=lightgray, fontsize = #{10 + @zoom_factor}];
+      edge [arrowhead=crow, fontsize = #{8 + @zoom_factor}];
     "
     tables.each do |key, value|
-      @digraph << "#{key} [label=\\\"#{value[:owner].downcase}.#{value[:table_name]}| primary key\\\"];\n"
+      label = "#{value[:owner].downcase}.#{value[:table_name]}"
+      tooltip = "Table: #{value[:owner].downcase}.#{value[:table_name]}"
+      value[:keys].each do |pk, _value|
+        label << "| #{pk}"
+        tooltip << "\\\nKey: #{pk}"
+      end
+      href="" # No href used up to now. Requires additional manual work to add onclick handler to the href
+      @digraph << "#{key} [label=\\\"#{label}\\\" URL=\\\"#{href}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
     end
 
     references.each do |r|
-      if r.direction == 'R'
-        @digraph << "#{r.r_owner}_#{r.r_table_name} -> #{r.owner}_#{r.table_name} [label=\\\"#{r.constraint_name}\\\"];\n"
-      else
-        @digraph << "#{r.owner}_#{r.table_name} -> #{r.r_owner}_#{r.r_table_name} [label=\\\"#{r.r_constraint_name}\\\"];\n"
-      end
+      attribs = ''
+      tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\\\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
+      attribs = "label=\\\"#{r.fk_constraint_name}\\\" tooltip=\\\"#{tooltip}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
+      @digraph << "#{r.r_owner}_#{r.r_table_name} -> #{r.owner}_#{r.table_name} [#{attribs}];\n"
     end
 
     render_partial
