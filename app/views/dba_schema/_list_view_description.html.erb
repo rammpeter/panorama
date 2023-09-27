@@ -38,7 +38,7 @@
 
 %>
 
-<%= gen_slickgrid(@columns, column_options, {:caption => "Columns of #{@object_type} #{@owner}.#{@object_name}", :height => :auto, show_pin_icon: 1}) %>
+<%= gen_slickgrid(@columns, column_options, {:caption => "Columns of #{@object_type} #{@owner}.#{@object_name}", max_height: 450, show_pin_icon: 1}) %>
 
 <%= gen_slickgrid(@attribs, view_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto, show_pin_icon: 1}) %>
 

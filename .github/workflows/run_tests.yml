@@ -39,7 +39,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+
+      - name: Generate Random Number 1 of 4
+        id: random
+        run: echo "::set-output name=random::$(shuf -i 1-4 -n 1)"
+
+      # test only for 1 of 4 management pack licenses to reduce test time
+      - name: Set Random value for management pack license to test
+        id: random-string
+        run: |
+          case ${{ steps.random.outputs.random }} in
+            1) RANDOM_STRING="dtp";;
+            2) RANDOM_STRING="dp";;
+            3) RANDOM_STRING="ps";;
+            4) RANDOM_STRING="none";;
+          esac
+          echo "::set-output name=random_string::$RANDOM_STRING"
+
       - name: Set MANAGEMENT_PACK_LICENSE according to matrix short value
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           if [[ "${{ matrix.management_pack_license }}" == "dtp" ]]; then             
             echo "MANAGEMENT_PACK_LICENSE=diagnostics_and_tuning_pack" >> $GITHUB_ENV
@@ -55,6 +73,7 @@ jobs:
           fi
 
       - name: Set environment for subsequent steps
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           if [[ "$DB_VERSION" == "autonomous" ]]; then
             if [[ "$MANAGEMENT_PACK_LICENSE" == "diagnostics_and_tuning_pack" ]]; then
@@ -102,6 +121,7 @@ jobs:
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
 
       - name: Check OS prerequisites
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           env
           docker ps -a
@@ -109,6 +129,7 @@ jobs:
           java -version
 
       - name: bundle install
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-${{ env.JRUBY_VERSION }}       
@@ -125,13 +146,14 @@ jobs:
       # create encypted wallet zip file to store in repository, add passphrase
       # gpg --symmetric --cipher-algo AES256 Wallet_panoramatest.zip
       - name: Decrypt Wallet for database access
-        if: ${{ env.DB_VERSION == 'autonomous' }}
+        if: ${{ env.DB_VERSION == 'autonomous' }} && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         env:
           GPG_KEY_FOR_DB_WALLET_ENCRYPTION: ${{ secrets.GPG_KEY_FOR_DB_WALLET_ENCRYPTION }}
         run: |
           cd .github && ./decrypt_DB_wallet.sh && unzip Wallet_panoramatest.zip
 
       - name: Ensure playwright installed
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           # uninstall needed only to ensure next version is completely installed
           # npm uninstall playwright 
@@ -140,6 +162,7 @@ jobs:
 
 
       - name: Start database
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         uses: nick-invision/retry@v2
         with:
           timeout_seconds: 300
@@ -164,7 +187,7 @@ jobs:
             fi
 
       - name: Wait for DB available
-        if: ${{ env.DB_VERSION != 'autonomous' }}
+        if: ${{ env.DB_VERSION != 'autonomous' }} && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-${{ env.JRUBY_VERSION }}       
@@ -177,6 +200,7 @@ jobs:
           )
 
       - name: run Test
+        if: ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-${{ env.JRUBY_VERSION }}       
@@ -196,11 +220,12 @@ jobs:
           fi
 
       - name: copy test.log locally to allow access before completion of whole actions
-        if: always()
+        if: always() && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
+
         run: cp log/test.log /home/pramm/github_runner/log/${MANAGEMENT_PACK_LICENSE}_${DB_VERSION}_${CONTAINER}_test.log
 
       - name: stop database
-        if: always()
+        if: always() && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         run: |
           if [[ "${{ env.DB_VERSION }}" != 'autonomous'  ]]; then
             docker logs ${{ env.DB_CONTAINER_NAME }}
@@ -212,14 +237,14 @@ jobs:
           fi
 
       - name: Archive test log
-        if: always()
+        if: always() && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         uses: actions/upload-artifact@v1
         with:
           name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_test.log
           path: log/test.log
 
       - name: Archive test screenshots
-        if: always()
+        if: always() && ${{ matrix.management_pack_license == steps.random-string.outputs.random_string }}
         uses: actions/upload-artifact@v1
         with:
           name: ${{ env.MANAGEMENT_PACK_LICENSE }}_${{ env.DB_VERSION }}_${{ env.CONTAINER }}_tmp
