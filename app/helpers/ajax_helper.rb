@@ -108,6 +108,9 @@ module AjaxHelper
     output << "<span style='font-weight: bold;'>#{my_html_escape(caption)}</span>"                         # Middle block
 
     output << "<span>#{right_addition}</span>"                                  # Right block
+    # Remove the whole block including the page caption if the user clicks on the X
+    output << "<span class=\"cui-x\" style=\"cursor: pointer; float: right;\" title=\"Remove this block from page\n(Including all its children)\" onclick=\"jQuery(this).parent().parent().empty();\"></span>"
+
     output << "</div>"
     output.html_safe
   end

@@ -1478,13 +1478,13 @@ class DbaSchemaController < ApplicationController
   end
 
   def show_visual_references
-    @update_area    = prepare_param :update_area
-    @owner          = prepare_param :owner
-    @table_name     = prepare_param :table_name
-    @level          = prepare_param_int :level, default: 1
-    @direction      = prepare_param :direction, default: 'both'
-    @show_fk_names  = prepare_param(:show_fk_names, default: 'true') == 'true'
-    @zoom_factor    = prepare_param_int :zoom_factor, default: 1
+    @current_update_area    = prepare_param :update_area
+    @owner                  = prepare_param :owner
+    @table_name             = prepare_param :table_name
+    @level                  = prepare_param_int :level, default: 1
+    @direction              = prepare_param :direction, default: 'both'
+    @show_fk_names          = prepare_param(:show_fk_names, default: 'true') == 'true'
+    @zoom_factor            = prepare_param_int :zoom_factor, default: 1
     raise "Unsupported value for direction" unless ['both', 'R', 'D'].include? @direction
 
 
@@ -1538,7 +1538,7 @@ class DbaSchemaController < ApplicationController
       "#{owner}_#{table_name}".gsub(/\$/, 'DLR')
     end
 
-    tables = {}
+    @tables = {}
 
     references.each do |r|
       [
@@ -1548,24 +1548,22 @@ class DbaSchemaController < ApplicationController
         # The key used for SVG should not contain special characters
         table_key = build_table_key.call(key[:owner], key[:table_name])
 
-        tables[table_key] = {owner: key[:owner], table_name: key[:table_name], keys: {}} unless tables.has_key?(table_key)
+        @tables[table_key] = {owner: key[:owner], table_name: key[:table_name], keys: {}} unless @tables.has_key?(table_key)
         # Remember PKs only if the referenced table is the current table
-        tables[table_key][:keys][r.pk_cols] = true  if key[:use_pk]             # Remember PKs as well as unique constraints (which are also referenced)
+        @tables[table_key][:keys][r.pk_cols] = true  if key[:use_pk]             # Remember PKs as well as unique constraints (which are also referenced)
       end
     end
 
     @digraph = "
-      graph [rankdir=LR];
-      node [shape=record, style=filled, fillcolor=lightgray, fontsize = #{10 + @zoom_factor}];
-      edge [arrowhead=crow, fontsize = #{8 + @zoom_factor}];
     "
-    tables.each do |key, value|
+    @tables.each do |key, value|
       label = "#{value[:owner].downcase}.#{value[:table_name]}"
       tooltip = "Table: #{value[:owner].downcase}.#{value[:table_name]}"
       value[:keys].each do |pk, _value|
         label << "| #{pk}"
         tooltip << "\\\nKey: #{pk}"
       end
+      tooltip << "\\\n\\\n- Click to replace this view with visualized references for this table\\\n- Right click to show the details for this table above"
       href="" # No href used up to now. Requires additional manual work to add onclick handler to the href
       @digraph << "#{key} [label=\\\"#{label}\\\" URL=\\\"#{href}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
     end
@@ -1573,7 +1571,8 @@ class DbaSchemaController < ApplicationController
     references.each do |r|
       attribs = ''
       tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\\\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
-      attribs = "label=\\\"#{r.fk_constraint_name}\\\" tooltip=\\\"#{tooltip}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
+      attribs = "tooltip=\\\"#{tooltip}\\\""
+      attribs << " label=\\\"#{r.fk_constraint_name}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
       @digraph << "#{build_table_key.call(r.r_owner, r.r_table_name)} -> #{build_table_key.call(r.owner, r.table_name)} [#{attribs}];\n"
     end
 

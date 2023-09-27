@@ -1,57 +1,83 @@
 <%
-    caption = ''
-    caption << "<div class=\"flex-row-container\">"
+  @update_area = get_unique_area_id
+  caption = ''
+  caption << "<div class=\"flex-row-container\">"
 
-    caption << "<div class=\"flex-row-element\" style=\"font-weight: bold;\">"
-    caption << "Referential integrity relations for #{@owner}.#{@table_name}."
-    caption << "</div>"
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: bold;\">"
+  caption << "Referential integrity relations for #{@owner}.#{@table_name}."
+  caption << "</div>"
 
-    caption << "&nbsp;&nbsp;&nbsp;"
+  caption << "&nbsp;&nbsp;&nbsp;"
 
-    caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Level of references. Increase to view relations of relations also.\">Level: "
-    caption << "<input type=\"number\" value=\"#{@level}\" min=\"1\" max=\"100\" onchange=\"refresh_viz({ level: this.value});\">"
-    caption << "</div>"
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Level of references. Increase to view relations of relations also.\">Level: "
+  caption << "<input type=\"number\" value=\"#{@level}\" min=\"1\" max=\"100\" onchange=\"refresh_viz({ level: this.value});\">"
+  caption << "</div>"
 
-    caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Show both directions of referential integrity relations or only one.\">Direction: "
-    caption << "<select onchange=\"refresh_viz({ direction: this.value});\">"
-    caption << "<option value=\"both\"#{@direction == 'both' ? ' selected' : ''}>Both</option>"
-    caption << "<option value=\"R\"#{@direction == 'R' ? ' selected' : ''}>Referenced only</option>"
-    caption << "<option value=\"D\"#{@direction == 'D' ? ' selected' : ''}>Referencing only</option>"
-    caption << "</select>"
-    caption << "</div>"
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Show both directions of referential integrity relations or only one.\">Direction: "
+  caption << "<select onchange=\"refresh_viz({ direction: this.value});\">"
+  caption << "<option value=\"both\"#{@direction == 'both' ? ' selected' : ''}>Both</option>"
+  caption << "<option value=\"R\"#{@direction == 'R' ? ' selected' : ''}>Referenced only</option>"
+  caption << "<option value=\"D\"#{@direction == 'D' ? ' selected' : ''}>Referencing only</option>"
+  caption << "</select>"
+  caption << "</div>"
 
-    caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Show names of foreign key constraints? This enlarges the distance between the nodes in the diagram.\">FK name: "
-    caption << "<input type=\"checkbox\" #{"checked" if @show_fk_names } onchange=\"refresh_viz({ show_fk_names: this.checked});\">"
-    caption << "</div>"
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Show names of foreign key constraints? This enlarges the distance between the nodes in the diagram.\">FK name: "
+  caption << "<input type=\"checkbox\" #{"checked" if @show_fk_names } onchange=\"refresh_viz({ show_fk_names: this.checked});\">"
+  caption << "</div>"
 
-    caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Zoom in and out\">Zoom: "
-    caption << "<input type=\"button\" value=\"-\" onclick=\"refresh_viz({ zoom_factor: #{@zoom_factor} - 1});\">"
-    caption << "<input type=\"button\" value=\"+\" onclick=\"refresh_viz({ zoom_factor: #{@zoom_factor} + 1});\">"
-    caption << "</div>"
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Zoom in and out\">Zoom: "
+  caption << "<input type=\"button\" value=\"-\" onclick=\"refresh_viz({ zoom_factor: #{@zoom_factor} - 1});\">"
+  caption << "<input type=\"button\" value=\"+\" onclick=\"refresh_viz({ zoom_factor: #{@zoom_factor} + 1});\">"
+  caption << "</div>"
 
-    caption << "</div>"
+  caption << "</div>"
 %>
 
 <%= render_page_caption(caption.html_safe) %>
 <div class="flex-row-container">
-  <div class="flex-row-element" style="overflow-x: auto;" id="graphviz"></div>
+  <div class="flex-row-element" style="overflow-x: auto;" id="<%= @current_update_area %>_graphviz"></div>
 </div>
 <script>
     ensureGraphVizLoaded(function() {
         showIndicator('hugo');
         Viz.instance()
-          .then(viz => {$('#graphviz').html(viz.renderSVGElement("digraph { <%= @digraph.gsub(/\n/, '\n').html_safe %> }"));
+          .then(viz => {$('#<%= @current_update_area %>_graphviz').html(viz.renderSVGElement(`digraph {
+            graph [rankdir=LR];
+            bgcolor=lightyellow;
+            node [shape=record, style=filled, fillcolor=lightgray, fontsize = <%= 10 + @zoom_factor %>];
+            edge [arrowhead=crow, fontsize = <%= 8 + @zoom_factor %>];
+            <%= @digraph.gsub(/\n/, '\n').html_safe %>
+            }`));
           })
           .catch(error => {
               console.error(error);
               alert(error);
           })
-          .finally(() => { hideIndicator('hugo'); });
+          .finally(() => {
+              let g_elem;
+              <% @tables.each do |key, value| %>
+                 g_elem = jQuery("#<%= @current_update_area %>_graphviz g title:contains('<%= key %>')")
+                   .filter(function() {
+                        return $(this).text() === "<%= key %>";                 // ensure exact match for <title> element, not only contains
+                   })
+                   .parent()
+                 ;
+                 g_elem
+                   .click(function() {refresh_viz({ owner: '<%= value[:owner] %>', table_name: '<%= value[:table_name] %>'});})
+                   .css('cursor', 'pointer')
+                   .on('contextmenu', function(event) {
+                       show_table_details('<%= value[:owner] %>', '<%= value[:table_name] %>'); // show details on right-click
+                        event.preventDefault(); // Prevent the default context menu
+                    })
+                 ;
+              <% end %>
+              hideIndicator('hugo');
+          });
     });
 
     function refresh_viz(changes){
         var current = {
-            update_area:    '<%= @update_area %>',
+            update_area:    '<%= @current_update_area %>',
             owner:          '<%= @owner %>',
             table_name:     '<%= @table_name %>',
             level:          <%= @level %>,
@@ -59,6 +85,12 @@
             show_fk_names:  '<%= @show_fk_names.to_s %>',
             zoom_factor:    <%= @zoom_factor %>
         };
-        ajax_html('<%= @update_area %>', 'dba_schema', 'show_visual_references', {...current, ...changes});
+        ajax_html('<%= @current_update_area %>', 'dba_schema', 'show_visual_references', {...current, ...changes});
+    }
+
+    function show_table_details(owner, name){
+        ajax_html('<%= @update_area %>', 'dba_schema', 'list_object_description', {update_area:'<%= @update_area %>', owner: owner, segment_name: name, object_type: 'TABLE' });
     }
 </script>
+
+<div id="<%= @update_area %>"></div>

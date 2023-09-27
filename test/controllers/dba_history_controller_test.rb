@@ -325,7 +325,6 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
         instances.each do |instance|
           # download_oracle_com_reachable: simulate test from previous dialog
           begin
-            puts "test genuine_oracle_reports with instance #{instance}: management_pack_license_ok? #{management_pack_license_ok?}, management_pack_license: #{management_pack_license}"
             post '/dba_history/list_performance_hub_report', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance, download_oracle_com_reachable: true }
             assert_response management_pack_license_ok? ? :success : :error
           rescue Exception => e
