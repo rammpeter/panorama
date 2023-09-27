@@ -21,7 +21,7 @@
   end
 
   show_compatible = proc do |rec|
-    if rec.compatible
+    if rec.compatible                                                           # some times empty for autonomous DBs
       if rec.compatible == rec.version[0, rec.compatible.length]
         "<span class=\"cui-thumb-up\"></span>".html_safe
       else
@@ -32,10 +32,12 @@
 
   data_title_compatible = proc do |rec|
     retval = "%t\ncompatible = #{rec.compatible}"
-    if rec.compatible == rec.version[0, rec.compatible.length]
-      retval << "\n\nNo difference between major instance version (#{rec.version}) and compatible value.\nInstance uses all optimizer features of DB version."
-    else
-      retval << "\n\nDifference between major instance version (#{rec.version}) and compatible value!\nInstance restricts optimizer features of DB version to compatible version."
+    if rec.compatible                                                           # some times empty for autonomous DBs
+      if rec.compatible == rec.version[0, rec.compatible.length]
+        retval << "\n\nNo difference between major instance version (#{rec.version}) and compatible value.\nInstance uses all optimizer features of DB version."
+      else
+        retval << "\n\nDifference between major instance version (#{rec.version}) and compatible value!\nInstance restricts optimizer features of DB version to compatible version."
+      end
     end
     retval
   end
