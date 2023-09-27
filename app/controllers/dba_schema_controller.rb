@@ -1561,19 +1561,100 @@ class DbaSchemaController < ApplicationController
       tooltip = "Table: #{value[:owner].downcase}.#{value[:table_name]}"
       value[:keys].each do |pk, _value|
         label << "| #{pk}"
-        tooltip << "\\\nKey: #{pk}"
+        tooltip << "\nKey: #{pk}"
       end
-      tooltip << "\\\n\\\n- Click to replace this view with visualized references for this table\\\n- Right click to show the details for this table above"
-      href="" # No href used up to now. Requires additional manual work to add onclick handler to the href
-      @digraph << "#{key} [label=\\\"#{label}\\\" URL=\\\"#{href}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
+      tooltip << "\n\n- Click to replace this view with visualized references for this table\n- Right click to show the details for this table above"
+      @digraph << "#{key} [label=\\\"#{label}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
     end
 
     references.each do |r|
       attribs = ''
-      tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\\\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
+      tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
       attribs = "tooltip=\\\"#{tooltip}\\\""
       attribs << " label=\\\"#{r.fk_constraint_name}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
       @digraph << "#{build_table_key.call(r.r_owner, r.r_table_name)} -> #{build_table_key.call(r.owner, r.table_name)} [#{attribs}];\n"
+    end
+
+    render_partial
+  end
+
+  def show_visual_dependencies
+    @current_update_area    = prepare_param :update_area
+    @owner                  = prepare_param :owner
+    @object_name            = prepare_param :object_name
+    @object_type            = prepare_param :object_type
+    @level                  = prepare_param_int :level, default: 1
+    @direction              = prepare_param :direction, default: 'both'
+    @show_edge_attribs      = prepare_param(:show_edge_attribs, default: 'true') == 'true'
+    @zoom_factor            = prepare_param_int :zoom_factor, default: 1
+    raise "Unsupported value for direction" unless ['both', 'R', 'D'].include? @direction
+
+    dependencies = sql_select_all ["\
+      WITH Dependencies AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+                            FROM   DBA_Dependencies
+                            --WHERE  Referenced_Name = 'LOGINFO' OR Name = 'CUSTTESTDATA'
+                           ),
+           Result_R(Owner, Name, Type, Referenced_Owner, Referenced_Name, Referenced_Type, Referenced_Link_Name, Dependency_Type, Lvl) AS
+           (SELECT Owner, Name, Type,  Referenced_Owner, Referenced_Name, Referenced_Type, Referenced_Link_Name, Dependency_Type, 1 Lvl
+            FROM   Dependencies
+            WHERE  Owner = ? AND Name = ? AND Type = ?
+            UNION ALL
+            SELECT d.Owner, d.Name, d.Type, d.Referenced_Owner, d.Referenced_Name, d.Referenced_Type, d.Referenced_Link_Name, d.Dependency_Type, r.Lvl+1 Lvl
+            FROM   Result_R r, Dependencies d
+            WHERE  r.Referenced_Owner = d.Owner AND r.Referenced_Name = d.Name AND r.Referenced_Type = d.Type
+            AND    r.Lvl <= ?
+           )
+           CYCLE owner, Name, Type SET cycle TO 1 DEFAULT 0,
+           Result_D(Owner, Name, Type, Referenced_Owner, Referenced_Name, Referenced_Type, Referenced_Link_Name, Dependency_Type, Lvl) AS
+           (SELECT Owner, Name, Type, Referenced_Owner, Referenced_Name, Referenced_Type, Referenced_Link_Name, Dependency_Type, 1 Lvl
+            FROM   Dependencies
+            WHERE  Referenced_Owner = ? AND Referenced_Name = ? AND Referenced_Type = ?
+            UNION ALL
+            SELECT d.Owner, d.Name, d.Type, d.Referenced_Owner, d.Referenced_Name, d.Referenced_Type, d.Referenced_Link_Name, d.Dependency_Type, r.Lvl+1 Lvl
+            FROM   Result_D r, Dependencies d
+            WHERE  r.Owner = d.Referenced_Owner AND r.Name = d.Referenced_Name AND r.Type = d.Referenced_Type
+            AND    r.Lvl <= ?
+           )
+           CYCLE owner, Name, Type SET cycle TO 1 DEFAULT 0
+      SELECT DISTINCT *
+      FROM   (
+              SELECT  'R' Direction, r.* FROM Result_R r
+              UNION ALL
+              SELECT  'D' Direction, d.* FROM Result_D d
+             )
+      WHERE  Lvl <= ?
+      AND    Cycle = 0
+      #{"AND  Direction =  '#{@direction}'" if @direction != 'both'}
+      ", @owner, @object_name, @object_type, @level, @owner, @object_name, @object_type, @level, @level]
+
+    build_object_key = proc do |owner, name, type|
+      "#{owner}_#{name}_#{type}".gsub(/\$/, 'DLR').gsub(/ /, '_')
+    end
+
+    @objects = {}
+
+    dependencies.each do |r|
+      object_key = build_object_key.call(r.owner, r.name, r.type)
+      @objects[object_key] = {owner: r.owner, name: r.name, type: r.type} unless @objects.has_key?(object_key)
+
+      object_key = build_object_key.call(r.referenced_owner, r.referenced_name, r.referenced_type)
+      @objects[object_key] = {owner: r.referenced_owner, name: r.referenced_name, type: r.referenced_type} unless @objects.has_key?(object_key)
+    end
+
+    @digraph = ''
+    @objects.each do |key, value|
+      label = "#{value[:owner].downcase}.#{value[:name]}|#{value[:type]}"
+      tooltip = "Object: #{value[:owner].downcase}.#{value[:name]}\nType: #{value[:type]}"
+      tooltip << "\n\n- Click to replace this view with visualized dependencies for this object\n- Right click to show the details for this object above"
+      @digraph << "#{key} [label=\\\"#{label}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
+    end
+
+    dependencies.each do |r|
+      attribs = ''
+      tooltip = "#{r.type} #{r.owner.downcase}.#{r.name} depends on\n#{r.referenced_type} #{r.referenced_owner.downcase}.#{r.referenced_name}\n(#{r.referenced_link_name} #{r.dependency_type})"
+      attribs = "tooltip=\\\"#{tooltip}\\\""
+      attribs << " label=\\\"#{r.dependency_type}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_edge_attribs
+      @digraph << "#{build_object_key.call(r.owner, r.name, r.type)} ->  #{build_object_key.call(r.referenced_owner, r.referenced_name, r.referenced_type)} [#{attribs}];\n"
     end
 
     render_partial

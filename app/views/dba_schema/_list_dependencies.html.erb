@@ -65,16 +65,6 @@
           :max_height => 450, :width=>:auto
       })
     %>
-
-    <%= ajax_submit('Show full dependency tree',
-        {:action         => :list_dependencies_from_me_tree,
-         :owner          => @owner,
-         :object_name    => @object_name,
-         :object_type    => @object_type,
-         :update_area    => @update_area,
-        },
-        :title=>"Show full tree of objects that are dependent from #{@object_type} #{@owner}.#{@object_name}")
-    %>
   </div>
   <div class="flex-row-element">
     <%=
@@ -85,7 +75,23 @@
       })
     %>
 
-    <%= ajax_submit('Show full dependency tree',
+  </div>
+</div>
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit('Show full tree of depending objects',
+                    {:action         => :list_dependencies_from_me_tree,
+                     :owner          => @owner,
+                     :object_name    => @object_name,
+                     :object_type    => @object_type,
+                     :update_area    => @update_area,
+                    },
+                    :title=>"Show full tree of objects that are dependent from #{@object_type} #{@owner}.#{@object_name}")
+    %>
+  </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('Show full tree of objects I depend on',
                     {:action         => :list_dependencies_im_from_tree,
                      :owner          => @owner,
                      :object_name    => @object_name,
@@ -95,7 +101,18 @@
                     :title=>"Show full tree of objects #{@object_type} #{@owner}.#{@object_name} depends on")
     %>
   </div>
+  <div class="flex-row-element">
+    <%= ajax_submit('Visualized dependencies',
+                    { controller: :dba_schema,
+                      action:     :show_visual_dependencies,
+                     :owner          => @owner,
+                     :object_name    => @object_name,
+                     :object_type    => @object_type,
+                     :update_area    => @update_area,
+                    },
+                    :title=>"Show visualized dependencies of #{@object_type} #{@owner}.#{@object_name}")
+    %>
+  </div>
 </div>
-
 
 <div id="<%= @update_area %>"></div>
