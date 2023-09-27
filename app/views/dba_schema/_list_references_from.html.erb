@@ -1,5 +1,6 @@
 <%=
     @update_area = get_unique_area_id
+    @external_update_area = get_unique_area_id
 
     link_index = proc do |rec|
       ajax_link(rec.min_index_name,
@@ -59,3 +60,19 @@
                                      :max_height => 450, show_pin_icon: 1, update_area: @update_area
                              })
 %>
+
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit("Visual References from", {
+      :update_area => @external_update_area,
+      :action      => :show_visual_references,
+      :owner       => @owner,
+      :table_name  => @table_name,
+      direction: 'R'
+    }, :title => "Show referential integrity relations of #{@owner}.#{@table_name} as a visual chart")
+    %>
+  </div>
+</div>
+
+<div id="<%= @external_update_area %>"></div>

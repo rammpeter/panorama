@@ -33,6 +33,10 @@
                         :title => 'Show histogram data for column')
    end
 
+   distinct_data_title = proc do |rec|
+     "%t\n#{fn((@attribs[0].num_rows - rec.num_nulls).to_f  / rec.num_distinct, 1) rescue nil} rows per value"
+   end
+
    link_distinct = proc do |rec|
      if rec.num_distinct&.< 100000
        ajax_link(fn(rec.num_distinct), {
@@ -56,7 +60,7 @@ column_options =
   {:caption=> 'Sc.',               :data=>proc{|rec| rec.data_scale},                          :title=> 'Scale', :align=>:right},
   {:caption=> 'N.',                :data=>proc{|rec| rec.nullable},                            :title=> 'Nullable'},
   {:caption=> 'Def.',              :data=>proc{|rec| rec.data_default},                        :title=> 'Default'},
-  {:caption=> 'Distinct',          :data=>link_distinct,                                       :title=> 'Number of distinct values in column', :data_title=>proc{|rec| "%t\n#{fn((@attribs[0].num_rows - rec.num_nulls).to_f  / rec.num_distinct, 1) rescue nil} rows per value" }, :align=>:right},
+  {:caption=> 'Distinct',          :data=>link_distinct,                                       :title=> 'Number of distinct values in column', data_title: distinct_data_title, :align=>:right},
   {:caption=> 'Nulls',             :data=>proc{|rec| fn(rec.num_nulls)},                       :title=> 'Number of null values in column',     :align=>:right},
   {:caption=> 'Avg. Len.',         :data=>proc{|rec| fn(rec.avg_col_len)},                     :title=> 'Average column length in bytes', :data_title=>proc{|rec| "%t\nStorage allocation by column:\n#{size_explain((@attribs[0].num_rows * rec.avg_col_len rescue nil).to_f/(1024*1024))}"}, :align=>:right},
   {:caption=> 'Density',           :data=>proc{|rec| fn(rec.density, 4)},                      :title=> 'If a histogram is available on COLUMN_NAME, then this column displays the selectivity of a value that spans fewer than 2 endpoints in the histogram. It does not represent the selectivity of values that span 2 or more endpoints. If a histogram is not available on COLUMN_NAME, then the value of this column is 1/NUM_DISTINCT.',     :align=>:right},

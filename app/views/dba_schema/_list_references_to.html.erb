@@ -1,6 +1,6 @@
 <%=
     @update_area = get_unique_area_id
-
+    @external_update_area = get_unique_area_id
     protecting_index_data_title = proc do |rec|
       data_title = "%t\n"
       data_title << "If no index exists for constraints column(s) than each DELETE on #{@table_name} fires a full table scan on #{rec.table_name}.\n"
@@ -37,3 +37,18 @@
                                       :max_height => 450, show_pin_icon: 1, update_area: @update_area
                               })
 %>
+
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <%= ajax_submit("Visual References from", {
+      :update_area => @external_update_area,
+      :action      => :show_visual_references,
+      :owner       => @owner,
+      :table_name  => @table_name,
+      direction: 'D'
+    }, :title => "Show referential integrity relations of #{@owner}.#{@table_name} as a visual chart")
+    %>
+  </div>
+</div>
+
+<div id="<%= @external_update_area %>"></div>
