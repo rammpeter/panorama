@@ -311,8 +311,8 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "genuine_oracle_reports with xhr: true" do
-    if get_db_version['18'] and PanoramaConnection.edition == :express
-      Rails.logger.debug "don't test this for 18.4 XE because it will raise ORA-13716: Diagnostic Package-Lizenz ist zur Verwendung dieses Features erforderlich."
+    if (get_db_version['18'] ||  get_db_version['21'])&& PanoramaConnection.edition == :express
+      Rails.logger.debug "don't test this for 18.4 and 21.3 XE because it will raise ORA-13716: Diagnostic Package-Lizenz ist zur Verwendung dieses Features erforderlich."
     else
       instance = PanoramaConnection.instance_number
       instances = [nil, PanoramaConnection.instance_number]
