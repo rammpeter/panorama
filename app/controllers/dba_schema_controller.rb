@@ -1563,7 +1563,7 @@ class DbaSchemaController < ApplicationController
         label << "| #{pk}"
         tooltip << "\nKey: #{pk}"
       end
-      tooltip << "\n\n- Click to replace this view with visualized references for this table\n- Right click to show the details for this table above"
+      tooltip << "\n\n- Click to replace this view with visualized references for this table\n- Right click to show the details for this table below"
       @digraph << "#{key} [label=\\\"#{label}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
     end
 
@@ -1645,7 +1645,7 @@ class DbaSchemaController < ApplicationController
     @objects.each do |key, value|
       label = "#{value[:owner].downcase}.#{value[:name]}|#{value[:type]}"
       tooltip = "Object: #{value[:owner].downcase}.#{value[:name]}\nType: #{value[:type]}"
-      tooltip << "\n\n- Click to replace this view with visualized dependencies for this object\n- Right click to show the details for this object above"
+      tooltip << "\n\n- Click to replace this view with visualized dependencies for this object\n- Right click to show the details for this object below"
       @digraph << "#{key} [label=\\\"#{label}\\\" tooltip=\\\"#{tooltip}\\\"];\n"
     end
 
