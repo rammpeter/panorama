@@ -138,7 +138,19 @@
 
   <% if @workareas.count > 0 %>
     <%
-    column_options = []
+
+      link_wa_session = proc do |rec|
+        ajax_link(rec.sid != @sid ? rec.sid : '', {
+          :action => :show_session_detail,
+          :instance => rec.inst_id,
+          :sid      => rec.sid,
+          :serial_no => rec.serialno,
+          :update_area => @update_area
+        },
+                  :title=> "Show details for the PQ slave session holding the workarea")
+      end
+
+      column_options = []
     column_options <<  {caption: 'I',               data: proc{|rec| rec.inst_id},                title: "RAC instance of workarea", align: :right} if PanoramaConnection.rac?
     column_options <<  {caption: 'SQL ID',          data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)},     title: "SQL ID of aktive workarea"}
     column_options <<  {caption: 'SQL exec start',  data: proc{|rec| localeDateTime(rec.sql_exec_start)}, title: "Start time of SQL execution"}
@@ -146,7 +158,7 @@
     column_options <<  {caption: 'Operation',       data: proc{|rec| rec.operation_type},         title: "Type of operation using the work area"}
     column_options <<  {caption: 'Plan line ID',    data: proc{|rec| fn(rec.operation_id)},       title: "ID of operation in the execution plan.", align: :right}
     column_options <<  {caption: 'Policy',          data: proc{|rec| rec.policy},                 title: "Sizing policy for this work area (MANUAL or AUTO)"}
-    column_options <<  {caption: 'PQ SID',          data: proc{|rec| rec.sid if rec.sid != @sid}, title: "Session ID of parallel query session if session is not PQ coordinator"}
+    column_options <<  {caption: 'PQ SID',          data: link_wa_session,                        title: "Session ID of parallel query session if session is not PQ coordinator"}
     column_options <<  {caption: 'Active time',     data: proc{|rec| fn(rec.active_time/1000000.0, 3) rescue nil},       title: "Average time this work area is active in seconds)", align: :right, data_title: proc{|rec| "%t\n#{seconds_explain(rec.active_time/1000000.0) rescue nil}"}}
     column_options <<  {caption: 'Work area size (MB)', data: proc{|rec| fn(rec.work_area_size.to_f/(1024*1024), 3) rescue nil}, title: "Maximum size (in MBytes) of the work area as it is currently used by the operation", align: :right, data_title: proc{|rec| "%t\n#{size_explain(rec.work_area_size.to_f/(1024*1024)) rescue nil}"}}
     column_options <<  {caption: 'Expected size (MB)',  data: proc{|rec| fn(rec.expected_size.to_f/(1024*1024), 3) rescue nil}, title: "Expected size (in MBytes) for this work area.\nEXPECTED_SIZE is set on behalf of the operation by the memory manager.\nMemory can be over-allocated when WORK_AREA_SIZE has a higher value than EXPECTED_SIZE.\nThis can occur when the operation using this work area takes a long time to resize it.", align: :right, data_title: proc{|rec| "%t\n#{size_explain(rec.expected_size.to_f/(1024*1024)) rescue nil}"}}

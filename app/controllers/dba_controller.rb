@@ -1045,13 +1045,14 @@ oradebug setorapname diag
             ", @instance, @sid, @serial_no, @instance, @sid, @serial_no]
 
       @workareas = sql_select_all ["\
-        SELECT wa.*
+        SELECT wa.*, NULL SerialNo
         FROM   gv$SQL_Workarea_Active wa
-        WHERE  Inst_ID=? AND SID=?
+        WHERE  wa.Inst_ID=? AND wa.SID=?
         UNION ALL
-        SELECT wa.*
+        SELECT wa.*, s.Serial# SerialNo
         FROM   gv$SQL_Workarea_Active wa
-        WHERE  QCInst_ID = ? AND QCSID = ? AND (Inst_ID!= ? OR SID!= ?)
+        JOIN   gv$Session s ON s.Inst_ID = wa.Inst_ID AND s.SID = wa.SID
+        WHERE  wa.QCInst_ID = ? AND wa.QCSID = ? AND (wa.Inst_ID != ? OR wa.SID != ?)
       ", @instance, @sid, @instance, @sid, @instance, @sid]
 
       render_partial :list_session_details
