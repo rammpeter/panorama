@@ -456,6 +456,52 @@ ORDER BY ash.Seconds DESC
             {:name=>t(:dragnet_helper_167_param_1_name, :default=>'Minimum runtime of plan line in seconds'), :size=>8, :default=>10, :title=>t(:dragnet_helper_167_param_1_hint, :default=>'Minimum runtime of SQL on particular plan line ID in seconds to be shown in selection') },
           ]
         },
+        {
+          :name  => t(:dragnet_helper_171_name, :default=>"Volatile columns in result due to 'SELECT * FROM table'"),
+          :desc  => t(:dragnet_helper_171_desc, :default=>"\
+'SELECT * FROM table;' without specification of columns in the SELECT-list may cause volatile results if the table structure changes.
+Suggestion is to specify the columns in the SELECT-list if SQL is used in applications.
+Otherwise a sensible use of SELECT * instead of a fix column list could be in PL/SQL if working with %ROWTYPE.
+
+This selection scans the current SGA and the AWR history for such SQLs.
+          "),
+          :sql=> "\
+WITH Hist_SQL_Text AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, MIN(SQL_Text) SQL_Text
+                       FROM   (SELECT SQL_ID, TO_CHAR(SUBSTR(SQL_Text, 1, 100)) SQL_Text FROM DBA_Hist_SQLText)
+                       WHERE REGEXP_LIKE(UPPER(SQL_Text), '(^|\\s)SELECT\\s+\\*')
+                       GROUP BY SQL_ID
+                      ),
+     Hist_SQLStat AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, Parsing_Schema_Name, SUM(Executions_Delta) Executions, SUM(Elapsed_Time_Delta) Elapsed_Time,
+                             MAX(Module) Module, MAX(Action) Action
+                      FROM   DBA_Hist_SQLStat
+                      WHERE  Snap_ID > (SELECT MIN(Snap_ID) FROM DBA_Hist_Snapshot WHERE Begin_Interval_Time > SYSDATE-?)
+                      GROUP BY SQL_ID, Parsing_Schema_Name
+                     )
+SELECT SQL_ID, Parsing_Schema_Name,
+       SUM(Executions_SGA)   Executions_SGA,   SUM(Executions_AWR)   Executions_AWR,
+       SUM(Elapsed_Secs_SGA) Elapsed_Secs_SGA, SUM(Elapsed_Secs_AWR) Elapsed_Secs_AWR,
+       MAX(Module) Module, MAX(Action) Action,
+       MIN(SQL_Text) SQL_Text
+FROM   (
+        SELECT SQL_ID, Parsing_Schema_Name, Executions Executions_SGA, 0 Executions_AWR,
+               ROUND(Elapsed_Time/1000000, 2) Elapsed_Secs_SGA, 0 Elapsed_Secs_AWR, Module, Action,
+               SUBSTR(SQL_Text, 1, 100) SQL_Text
+        FROM   gv$SQLArea
+        WHERE REGEXP_LIKE(UPPER(SQL_Text), '(^|\\s)SELECT\\s+\\*')
+        UNION ALL
+        SELECT s.SQL_ID, s.Parsing_Schema_Name, 0 Executions_SGA, s.Executions Executions_AWR, 0 Elapsed_Secs_SGA, ROUND(s.Elapsed_Time/1000000, 2) Elapsed_Secs_AWR,
+               s.Module, s.Action, t.Sql_Text
+        FROM   Hist_SQLStat s
+        JOIN   Hist_SQL_Text t ON t.SQL_ID = s.SQL_ID
+       )
+WHERE  Parsing_Schema_Name NOT IN (#{system_schema_subselect})
+GROUP BY SQL_ID, Parsing_Schema_Name
+ORDER BY NVL(Executions_SGA,0) + NVL(Executions_AWR,0) DESC
+           ",
+          :parameter=>[
+            {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+          ]
+        },
     ]
   end
 

@@ -31,12 +31,19 @@ WITH
   Views AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, View_Name
             FROM   DBA_Views
             WHERE  Owner NOT IN (#{system_schema_subselect})
-           )
-SELECT Owner, View_Name, Check_Result
+           ),
+  Dependencies AS (SELECT /*+ NO_MERGE MATERIALIZE */ Referenced_Owner, Referenced_Name, COUNT(*) References
+                   FROM   DBA_Dependencies
+                   WHERE  Referenced_Type = 'VIEW'
+                   GROUP BY Referenced_Owner, Referenced_Name
+                  )
+SELECT v.Owner, v.View_Name, d.References, v.Check_Result
 FROM   (SELECT Owner, View_Name, fCheck(Owner, View_Name) Check_Result
         FROM   Views
-       )
-WHERE  Check_Result != 'NO'
+       ) v
+LEFT OUTER JOIN Dependencies d ON d.Referenced_Owner = v.Owner AND d.Referenced_Name = v.View_Name
+WHERE  v.Check_Result != 'NO'
+ORDER BY v.Check_Result DESC, d.References DESC NULLS LAST
 ",
             :parameter=>[]
         },

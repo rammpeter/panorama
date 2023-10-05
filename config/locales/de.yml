@@ -1820,6 +1820,15 @@
   dragnet_helper_170_param_1_hint:                          Maximale Laufzeit je Ausführung des SQL in Sekunden für Berücksichtigung in der Selektion
   dragnet_helper_170_param_1_name:                          Maximale Laufzeit je Ausführung des SQL in Sekunden
 
+  dragnet_helper_171_desc: |-
+    'SELECT * FROM table;' ohne Angabe von Spalten in der SELECT-Liste kann zu unbeständigen Ergebnissen führen, wenn sich die Tabellenstruktur ändert.
+    Es wird vorgeschlagen, die Spalten in der SELECT-Liste anzugeben, wenn SQL in Anwendungen verwendet wird.
+    Ansonsten könnte eine sinnvolle Verwendung von SELECT * anstelle einer festen Spaltenliste in PL/SQL sein, wenn mit %ROWTYPE gearbeitet wird.
+  
+    Diese Auswahl durchsucht die aktuelle SGA und die AWR-Historie nach solchen SQLs.
+  dragnet_helper_171_name: |-
+    Unbestimmte Spalten im Ergebnis aufgrund von 'SELECT * FROM table'
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
