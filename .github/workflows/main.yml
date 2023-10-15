@@ -62,12 +62,15 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.GITHUB_ACTOR }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.repository }}
         run: |
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo JRUBY_VERSION=$JRUBY_VERSION
+          echo "Build docker image for $REPO_OWNER/$REPO_NAME"
           docker buildx create --use
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest .
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/$REPO_OWNER/$REPO_NAME:latest .
           docker login ghcr.io -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+          docker push ghcr.io/$REPO_OWNER/$REPO_NAME:latest
 
 
