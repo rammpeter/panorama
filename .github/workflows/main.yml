@@ -70,8 +70,6 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.GITHUB_ACTOR }}
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.repository }}
         run: |
           echo "Next"
           echo $DOCKER_USERNAME
@@ -79,9 +77,9 @@ jobs:
           echo "Fin"
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo JRUBY_VERSION=$JRUBY_VERSION
-          echo "Build docker image for $REPO_OWNER/$REPO_NAME"
-          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/$REPO_OWNER/$REPO_NAME:latest .
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ghcr.io
-          docker push ghcr.io/$REPO_OWNER/$REPO_NAME:latest
+          echo "Build Docker image $GITHUB_REPOSITORY
+          #docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
+          docker login -u rammpeter -p $DOCKER_PASSWORD ghcr.io
+          docker push ghcr.io/rammpeter/panorama:latest
 
 
