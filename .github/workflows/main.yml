@@ -48,8 +48,13 @@ jobs:
 #  test_21_3-se2_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
 #  test_21_3-xe_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-xe",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
 #
+  test_dummy:
+    needs: [setup]
+    group: test
+    run: ls -l
+
   build_docker:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Check out code
@@ -68,8 +73,7 @@ jobs:
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo JRUBY_VERSION=$JRUBY_VERSION
           echo "Build docker image for $REPO_OWNER/$REPO_NAME"
-          docker buildx create --use
-          docker buildx build --platform linux/amd64,linux/arm64 --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/$REPO_OWNER/$REPO_NAME:latest .
+          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/$REPO_OWNER/$REPO_NAME:latest .
           docker login ghcr.io -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
           docker push ghcr.io/$REPO_OWNER/$REPO_NAME:latest
 
