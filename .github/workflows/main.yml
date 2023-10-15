@@ -50,7 +50,7 @@ jobs:
 #
   test_dummy:
     needs: [setup]
-    group: test
+    # group: test
     steps:
       - name: Dummy
         run: ls -l
