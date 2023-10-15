@@ -51,7 +51,9 @@ jobs:
   test_dummy:
     needs: [setup]
     group: test
-    run: ls -l
+    steps:
+      - name: Dummy
+        run: ls -l
 
   build_docker:
     runs-on: self-hosted
