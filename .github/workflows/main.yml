@@ -73,6 +73,10 @@ jobs:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.repository }}
         run: |
+          echo "Next"
+          echo $DOCKER_USERNAME
+          echo ${DOCKER_PASSWORD:1:5}
+          echo "Fin"
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo JRUBY_VERSION=$JRUBY_VERSION
           echo "Build docker image for $REPO_OWNER/$REPO_NAME"
