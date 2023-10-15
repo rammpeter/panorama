@@ -58,7 +58,7 @@ jobs:
 
   build_docker:
     runs-on: self-hosted
-
+    needs: [setup]
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -67,13 +67,35 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
-        env:
-          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
           echo JRUBY_VERSION=$JRUBY_VERSION
+          for FROM in `grep "^FROM" Dockerfile | grep -v scratch |  awk '{print $2}' | tail -n1`; do
+            echo "Ensure using latest version of $FROM"
+            docker pull $FROM
+          done
           docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
-          docker login -u rammpeter -p $DOCKER_PASSWORD ghcr.io
+          docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           docker push ghcr.io/rammpeter/panorama:latest
+          VERSION_FILE="config/application.rb"
+          echo VERSION_FILE=$VERSION_FILE
+          PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          echo PANORAMA_VERSION=$PANORAMA_VERSION
+          # Check if release already exists
+          # Ensure that exit code != 0 does not stop the build
+          set +e
+          docker pull ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+          if [[ $? -eq 1 ]];then
+            echo "Image with release $PANORAMA_VERSION does not exist, deploying"
+            set -e
+            docker tag ghcr.io/rammpeter/panorama:latest ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker push ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker login -u rammpeter -p ${{ secrets.DOCKER_IO_API_KEY }} docker.io
+            docker tag ghcr.io/rammpeter/panorama:latest docker.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker push docker.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag ghcr.io/rammpeter/panorama:latest docker.io/rammpeter/panorama:latest
+            docker push docker.io/rammpeter/panorama:latest
+          fi
+
 
 
