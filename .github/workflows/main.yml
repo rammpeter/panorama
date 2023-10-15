@@ -77,7 +77,7 @@ jobs:
           echo JRUBY_VERSION=$JRUBY_VERSION
           echo "Build docker image for $REPO_OWNER/$REPO_NAME"
           docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/$REPO_OWNER/$REPO_NAME:latest .
-          docker login ghcr.io -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD ghcr.io
           docker push ghcr.io/$REPO_OWNER/$REPO_NAME:latest
 
 
