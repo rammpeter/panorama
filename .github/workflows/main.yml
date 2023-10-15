@@ -27,26 +27,47 @@ jobs:
         run: |
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
 
-  test_autonomous_PDB: { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "autonomous",    container: "PDB", max_parallel: 1 }, secrets: "inherit"}
-  test_11_2-ee:        { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "11.2.0.4-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_12_1-ee:        { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.1.0.2-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_12_2-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.2.0.1-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_12_2-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.2.0.1-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  #test_18_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  #test_18_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_18_4-xe_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.4.0.0-xe",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_18_4-xe_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.4.0.0-xe",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_19_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  #test_19_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  #test_19_10-ee_CDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-ee",  container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_19_19-ee_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-ee",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_19_10-se2_CDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-se2", container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_19_10-se2_PDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-se2", container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_21_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_21_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_21_3-se2_CDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "CDB", max_parallel: 4 }, secrets: "inherit"}
-  test_21_3-se2_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_21_3-xe_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-xe",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_autonomous_PDB: { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "autonomous",    container: "PDB", max_parallel: 1 }, secrets: "inherit"}
+#  test_11_2-ee:        { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "11.2.0.4-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_12_1-ee:        { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.1.0.2-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_12_2-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.2.0.1-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_12_2-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "12.2.0.1-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  #test_18_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  #test_18_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_18_4-xe_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.4.0.0-xe",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_18_4-xe_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "18.4.0.0-xe",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_19_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  #test_19_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  #test_19_10-ee_CDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-ee",  container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_19_19-ee_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-ee",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_19_10-se2_CDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-se2", container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_19_10-se2_PDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "19.10.0.0-se2", container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_21_3-ee_CDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-ee",   container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_21_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_21_3-se2_CDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "CDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_21_3-se2_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#  test_21_3-xe_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-xe",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+#
+  build_docker:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        env:
+          DOCKER_USERNAME: ${{ secrets.GITHUB_ACTOR }}
+          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+          echo JRUBY_VERSION=$JRUBY_VERSION
+          docker buildx create --use
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest .
+          docker login ghcr.io -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest
 
 
