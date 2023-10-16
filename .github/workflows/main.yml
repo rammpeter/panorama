@@ -99,6 +99,8 @@ jobs:
           rvm use --default jruby-$JRUBY_VERSION
           bundle config deployment 'true'
           bundle install
+          # Jarbler should not be part of Panorama.jar, therefore installed separately
+          gem install jarbler
           ./build_jar.sh
           PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
           echo PANORAMA_VERSION=$PANORAMA_VERSION
@@ -112,6 +114,11 @@ jobs:
           else
             echo "Release with version $PANORAMA_VERSION already exists, no deployment"
           fi          
-          
+      - name: Archive Panorama.jar
+        uses: actions/upload-artifact@v1
+        with:
+          name: Panorama.jar
+          path: Panorama.jar
+
 
 
