@@ -4,7 +4,7 @@
 
 Jarbler::Config.new do |config|
   # Name of the generated jar file 
-  # config.jar_name = 'Panorama.jar'
+  config.jar_name = 'Panorama.jar'
 
   # Application directories or files to include in the jar file
   # config.includes = ["app", "bin", "config", "config.ru", "db", "Gemfile", "Gemfile.lock", "lib", "log", "public", "script", "vendor", "tmp"]
