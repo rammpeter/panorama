@@ -127,12 +127,29 @@
         owner: root
         group: root
 
+    - name: Install or update sdkman and GraalVM for all users
+      become: 'true'
+      shell: |
+        export SDKMAN_DIR="/usr/local/sdkman" && curl -s "https://get.sdkman.io" | bash
+        source "/usr/local/sdkman/bin/sdkman-init.sh"
+        sdk selfupdate force
+        sdk install java 21-graal
+
+    - name: Source sdkman
+      become: 'true'
+      copy:
+        dest: "/etc/profile.d/sdkman.sh"
+        content: |
+          export SDKMAN_DIR="/usr/local/sdkman"
+          source "/usr/local/sdkman/bin/sdkman-init.sh"
+
     - name: Start service github_runners.service
       become: 'true'
       systemd:
         name: github_runners.service
         state: restarted
         enabled: yes
+
 #    config gitlab runner
 #>  docker run -d --name OCI_runner1 --restart always -v /srv/gitlab-runner/config1:/etc/gitlab-runner -v /var/run/docker.sock:/var/run/docker.sock gitlab/gitlab-runner:latest
 
