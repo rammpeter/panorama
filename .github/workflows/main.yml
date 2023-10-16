@@ -65,9 +65,7 @@ jobs:
           docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
           docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           docker push ghcr.io/rammpeter/panorama:latest
-          VERSION_FILE="config/application.rb"
-          echo VERSION_FILE=$VERSION_FILE
-          PANORAMA_VERSION=`cat $VERSION_FILE | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
           echo PANORAMA_VERSION=$PANORAMA_VERSION
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
@@ -83,13 +81,30 @@ jobs:
             docker push docker.io/rammpeter/panorama:$PANORAMA_VERSION
             docker tag ghcr.io/rammpeter/panorama:latest docker.io/rammpeter/panorama:latest
             docker push docker.io/rammpeter/panorama:latest
+          else
+            echo "Image with release $PANORAMA_VERSION already exists, no deployment"
           fi
 
   build_jar:
     runs-on: self-hosted
-    needs: [test_autonomous_PDB, test_11_2-ee, test_12_1-ee, test_12_2-ee_CDB, test_12_2-ee_PDB, test_18_4-xe_CDB, test_18_4-xe_PDB, test_19_3-ee_CDB, test_19_19-ee_PDB, test_19_10-se2_CDB, test_19_10-se2_PDB, test_21_3-ee_CDB, test_21_3-ee_PDB, test_21_3-se2_CDB, test_21_3-se2_PDB]
+    # needs: [test_autonomous_PDB, test_11_2-ee, test_12_1-ee, test_12_2-ee_CDB, test_12_2-ee_PDB, test_18_4-xe_CDB, test_18_4-xe_PDB, test_19_3-ee_CDB, test_19_19-ee_PDB, test_19_10-se2_CDB, test_19_10-se2_PDB, test_21_3-ee_CDB, test_21_3-ee_PDB, test_21_3-se2_CDB, test_21_3-se2_PDB]
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+      - name: Build jar
+        run: |
+          ./build_jar.sh
+          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          echo PANORAMA_VERSION=$PANORAMA_VERSION
+          # Ensure that exit code != 0 does not stop the build
+          set +e
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/rammpeter/panorama/releases | grep tag_name | grep "$PANORAMA_VERSION"
+          if [[ $? -eq 1 ]];then
+            echo "Release with version $PANORAMA_VERSION does not exist, deploying"
+            set -e
+          else
+            echo "Release with version $PANORAMA_VERSION already exists, no deployment"
+          fi          
+          
 
 
