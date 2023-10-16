@@ -316,6 +316,12 @@ class EnvController < ApplicationController
     render_partial
   end
 
+  def list_diag_info
+    @instance = prepare_param_instance
+    @diag_info = sql_select_all ["SELECT * FROM gv$Diag_Info WHERE Inst_ID = ?", @instance]
+    render_partial
+  end
+
   private
 
   def check_for_valid_cookie

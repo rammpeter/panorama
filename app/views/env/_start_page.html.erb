@@ -72,13 +72,23 @@
     )
   end
 
+  link_host_name = proc do |rec|
+    ajax_link(rec.host_name,
+              {action:      :list_diag_info,
+               instance:    rec.inst_id,
+               update_area: @update_area,
+              },
+              title: "Show diag location paths etc. from v$Diag_Info for instance #{rec.inst_id}"
+    )
+  end
+
   column_options =
        [
            {:caption=>'DBID',          :data=>proc{|rec| rec.dbid },                           :title=>"Unique identifier for this database", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
            {:caption=>"I.",            :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_number == @instance_number && @instance_data.length >1}" },       :title=>"Instance number, (*) for connecting instance", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
            {:caption=>'Version',       :data=>proc{|rec| rec.version >= '19' ? rec.version_full : rec.version }, :title=>"Instance version / full version" },
            {:caption=>"Name",          :data=>proc{|rec| rec.instance_name },                  :title=>"Instance name", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
-           {:caption=>"Host name",     :data=>proc{|rec| rec.host_name },                      :title=>"Last startup time of instance"},
+           {:caption=>"Host name",     :data=>link_host_name,                                  :title=>"Host name of instance"},
            {:caption=>"Startup",       :data=>proc{|rec| localeDateTime(rec.startup_time) },   :title=>"Startup der DB", :data_title=>proc{|rec| "%t, open mode = #{rec.open_mode}"}},
            {:caption=>"Archiver",      :data=>proc{|rec| rec.archiver },                       :title=>"Archiver mode of instance"},
            {:caption=>"Character-set", :data=>proc{|rec| rec.nls_characterset },               :title=>"Character set of database", :data_title=>proc{|rec| "%t: NChar_Character_Set=#{rec.nls_nchar_characterset}"}},

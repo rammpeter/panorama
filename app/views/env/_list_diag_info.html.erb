@@ -1,0 +1,14 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {caption: 'Name',             data: proc{|rec| rec.name},                title: "Name of the info"}
+  column_options << {caption: 'Value',            data: proc{|rec| rec.value},               title: "Describes the current state of the piece of data identified in the NAME column"}
+  column_options << {caption: 'Con ID',           data: proc{|rec| fn(rec.con_id)},          title: "Container ID"} if get_db_version >= "12.1"
+
+%>
+
+<%= gen_slickgrid(@diag_info, column_options, {
+  caption: "Content of gv$Diag_Info for instance=#{@instance}",
+  max_height: 450, show_pin_icon: 1, update_area:   @update_area })
+%>

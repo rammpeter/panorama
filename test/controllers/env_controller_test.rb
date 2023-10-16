@@ -46,6 +46,10 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
     end
   end
 
+  test "list_diag_info with xhr: true" do
+    post '/env/list_diag_info', :params => {:format=>:html, instance: @instance }
+    assert_response :success
+  end
 
   test "should throw oracle-error from test-db" do
 =begin
