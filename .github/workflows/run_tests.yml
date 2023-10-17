@@ -137,7 +137,7 @@ jobs:
           # bundle config path '/tmp'
           # Prevent from error "Bundler::GemNotFound: Could not find rake-13.0.6.gem for installation"
           # gem install rake --no-doc
-          bundle install
+          bundle install --jobs 4
 
       # create encypted wallet zip file to store in repository, add passphrase
       # gpg --symmetric --cipher-algo AES256 Wallet_panoramatest.zip
