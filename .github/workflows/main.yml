@@ -144,7 +144,7 @@ jobs:
             RES=`curl -L -X POST \
                       -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                       https://api.github.com/repos/rammpeter/panorama/releases \
-                      -d '{"tag_name":"v$PANORAMA_VERSION","target_commitish":"master","name":"Release $PANORAMA_VERSION","body":"Continous development","draft":false,"prerelease":false,"generate_release_notes":false}'` 
+                      -d "{\"tag_name\":\"v$PANORAMA_VERSION\",\"target_commitish\":\"master\",\"name\":\"Release $PANORAMA_VERSION\",\"body\":\"Continous development\",\"draft\":false,\"prerelease\":false,\"generate_release_notes\":false}"` 
             RELEASE_ID=`echo $RES | jq ".id"`
             if [[ "$RELEASE_ID" == "null" ]]; then
               echo "Release creation failed! Response was:"
