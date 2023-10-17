@@ -54,10 +54,16 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Build and push Docker image
+      - name: Get version numbers
         run: |
-          JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+          echo "JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`" >> $GITHUB_ENV
           echo JRUBY_VERSION=$JRUBY_VERSION
+          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          echo "PANORAMA_VERSION=$PANORAMA_VERSION" >> $GITHUB_ENV
+          echo PANORAMA_VERSION=$PANORAMA_VERSION
+
+      - name: Build and local push Docker image
+        run: |
           for FROM in `grep "^FROM" Dockerfile | grep -v scratch |  awk '{print $2}' | tail -n1`; do
             echo "Ensure using latest version of $FROM"
             docker pull $FROM
@@ -65,8 +71,13 @@ jobs:
           docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
           docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           docker push ghcr.io/rammpeter/panorama:latest
-          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
-          echo PANORAMA_VERSION=$PANORAMA_VERSION
+
+      - name: Test Docker image
+        run: |
+          echo "Test docker image"
+
+      - name: Final push Docker image
+        run: |
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
           set +e
@@ -84,6 +95,7 @@ jobs:
           else
             echo "Image with release $PANORAMA_VERSION already exists, no deployment"
           fi
+          
 
   build_jar:
     runs-on: self-hosted
@@ -91,10 +103,17 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Get version numbers
+        run: |
+          echo "JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`" >> $GITHUB_ENV
+          echo JRUBY_VERSION=$JRUBY_VERSION
+          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          echo "PANORAMA_VERSION=$PANORAMA_VERSION" >> $GITHUB_ENV
+          echo PANORAMA_VERSION=$PANORAMA_VERSION
+
       - name: Build jar
         run: |
-          JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
-          echo "JRUBY_VERSION=$JRUBY_VERSION"
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-$JRUBY_VERSION
           bundle config deployment 'true'
@@ -102,8 +121,19 @@ jobs:
           # Jarbler should not be part of Panorama.jar, therefore installed separately
           gem install jarbler
           ./build_jar.sh
-          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
-          echo PANORAMA_VERSION=$PANORAMA_VERSION
+
+      - name: Archive Panorama.jar
+        uses: actions/upload-artifact@v1
+        with:
+          name: Panorama.jar
+          path: Panorama.jar
+
+      - name: Test Panorama.jar
+        run: |
+          echo "Test Panorama.jar"
+
+      - name: Final deploy Panorama.jar
+        run: |
           # Ensure that exit code != 0 does not stop the build
           set +e
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/rammpeter/panorama/releases | grep tag_name | grep "$PANORAMA_VERSION"
@@ -114,11 +144,4 @@ jobs:
           else
             echo "Release with version $PANORAMA_VERSION already exists, no deployment"
           fi          
-      - name: Archive Panorama.jar
-        uses: actions/upload-artifact@v1
-        with:
-          name: Panorama.jar
-          path: Panorama.jar
-
-
 
