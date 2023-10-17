@@ -63,7 +63,7 @@ class PanoramaSamplerController < ApplicationController
     new_min_snapshot_cycle = PanoramaSamplerConfig.min_snapshot_cycle
 
     if new_min_snapshot_cycle < old_min_snapshot_cycle
-      add_statusbar_message("Sampling currently starts each #{old_min_snapshot_cycle} minutes, but you've requested sampling each #{new_min_snapshot_cycle} minutes now.\nIf you don't restart Panorama's server now than your setting starts working only after next full #{old_min_snapshot_cycle} minutes")
+      add_statusbar_message("Sampling currently starts each #{old_min_snapshot_cycle} minutes, but you've requested sampling each #{new_min_snapshot_cycle} minutes now.\nIf you don't restart Panorama's server now then your setting starts working only after next full #{old_min_snapshot_cycle} minutes")
     end
 
     list_config

@@ -3,7 +3,7 @@
     @external_update_area = get_unique_area_id
     protecting_index_data_title = proc do |rec|
       data_title = "%t\n"
-      data_title << "If no index exists for constraints column(s) than each DELETE on #{@table_name} fires a full table scan on #{rec.table_name}.\n"
+      data_title << "If no index exists for constraints column(s) then each DELETE on #{@table_name} fires a full table scan on #{rec.table_name}.\n"
       data_title << "This and some lock issues are only a problem if #{@table_name} is a larger table with frequent DML-operations.\n"
       data_title << "Working without an index here may be useful if #{@table_name} has only few records and there is less or no DML on #{@table_name}.\n"
       data_title << "\nThere are #{rec.index_number} indexes on #{rec.table_name} starting with the same column!" if !rec.index_number.nil? && rec.index_number > 1

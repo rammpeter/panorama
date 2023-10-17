@@ -20,7 +20,7 @@
       <%= t(:dba_show_sessions_only_db_link_caption, :default=>"DB links only") %>
       <%= check_box_tag(:showOnlyDbLink, 1, false) %>
     </div>
-    <div class="flex-row-element" title="If limited to active sessions than show also sessions that are suspended by timer (DBMS_LOCK.Sleep or DBMS_SESSION.Sleep)">
+    <div class="flex-row-element" title="If limited to active sessions then show also sessions that are suspended by timer (DBMS_LOCK.Sleep or DBMS_SESSION.Sleep)">
       Timer
       <%= check_box_tag(:showTimer, 1, false) %>
     </div>

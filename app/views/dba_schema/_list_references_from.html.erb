@@ -21,7 +21,7 @@
 
     protecting_data_title = proc do |rec|
       "%t\n
-      If no index exists for constraints column(s) than each DELETE on #{rec.r_table_name} fires a full table scan on #{@table_name}.
+      If no index exists for constraints column(s) then each DELETE on #{rec.r_table_name} fires a full table scan on #{@table_name}.
       This and some lock issues are only a problem if #{rec.r_table_name} is a larger table with frequent DML-operations.
       Working without an index here may be useful if #{rec.r_table_name} has only few records and there is less or no DML on #{rec.r_table_name}.
       #{"\nThere are #{rec.index_number} indexes on #{@table_name} starting with the same column(s)!" if !rec.index_number.nil? && rec.index_number > 1}

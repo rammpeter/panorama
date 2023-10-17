@@ -142,7 +142,7 @@
     {:caption=> 'Last DDL time',     :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},       :title=> "Timestamp of last DDL operation on object.\nIf grouped over partitions this is the last DDL operation on any partition" },
     {:caption=> 'Last spec. time',   :data=>proc{|rec| localeDateTime(rec.spec_ts)},             :title=> "Timestamp of last specification change on object.\nIf grouped over partitions this is the last specification change on any partition" },
     {:caption=> 'Analyzed',          :data=>proc{|rec| localeDateTime(rec.last_analyzed)},       :title=> "Timestamp of last analysis for object\nIf grouped over partitions this is oldest last analysis timestamp per partition" },
-    {:caption=> 'Last DML',          :data=>proc{|rec| localeDateTime(rec.last_dml_timestamp)},  :title=> "Timestamp of last DML on object.\nIf object is an index than last DML on table is shown.\nIf last DML is empty then no DML has happened since timestamp of last analysis" },
+    {:caption=> 'Last DML',          :data=>proc{|rec| localeDateTime(rec.last_dml_timestamp)},  :title=> "Timestamp of last DML on object.\nIf object is an index then last DML on table is shown.\nIf last DML is empty then no DML has happened since timestamp of last analysis" },
   ]
 
   column_options << {:caption=> 'InMemory', :data=>proc{|rec| rec.inmemory}, :title=> "Indicates whether the In-Memory Column Store (IM column store) is enabled (ENABLED) or disabled (DISABLED) for this segment" } if get_db_version >= '12.1.0.2'

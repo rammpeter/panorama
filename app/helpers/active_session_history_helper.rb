@@ -38,10 +38,10 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Module"]          = {:sql => "TRIM(s.Module)",      :sql_alias => "module",             :Name => 'Module',        :Title => 'Module set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }
       @session_statistics_key_rules_hash["Action"]          = {:sql => "TRIM(s.Action)",      :sql_alias => "action",             :Name => 'Action',        :Title => 'Action set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }
       @session_statistics_key_rules_hash["DB Object"]       = {:sql => "CASE WHEN o.Object_ID IS NOT NULL THEN LOWER(o.Owner)||'.'||o.Object_Name ELSE '[Unknown] TS='||NVL(f.Tablespace_Name, 'none') END", :sql_alias  => "current_object", :Name => 'DB Object',
-                                                           :Title => "DB Object #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, than this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}", :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
+                                                           :Title => "DB Object #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}", :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
       @session_statistics_key_rules_hash["DB Subobject"]    = {:sql=> "CASE WHEN o.Object_ID IS NOT NULL THEN LOWER(o.Owner)||'.'||o.Object_Name|| CASE WHEN o.SubObject_Name IS NULL THEN '' ELSE ' ('||o.SubObject_Name||')' END ELSE '[Unknown] TS='||NVL(f.Tablespace_Name, 'none') END",
                                                             :sql_alias  => "current_subobject", :Name => 'DB Subobject',
-                                                            :Title      => "DB Subobject / Partition #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, than this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}",
+                                                            :Title      => "DB Subobject / Partition #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}",
                                                             :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
       @session_statistics_key_rules_hash["Entry-PL/SQL"]    = {:sql => "peo.Object_Type||CASE WHEN peo.Owner IS NOT NULL THEN ' ' END||peo.Owner||CASE WHEN peo.Object_Name IS NOT NULL THEN '.' END||peo.Object_Name||CASE WHEN peo.Procedure_Name IS NOT NULL THEN '.' END||peo.Procedure_Name",
                                                                :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module' }
@@ -178,7 +178,7 @@ module ActiveSessionHistoryHelper
     @groupfilter[:Min_Snap_ID]  = @groupfilter[:Min_Snap_ID].to_i if @groupfilter.has_key?(:Min_Snap_ID)
     @groupfilter[:Max_Snap_ID]  = @groupfilter[:Max_Snap_ID].to_i if @groupfilter.has_key?(:Max_Snap_ID)
 
-    # Check if PDB is selected by DBID, than add con_id to groupfilter
+    # Check if PDB is selected by DBID, then add con_id to groupfilter
     if get_db_version >= '12.1' && @groupfilter[:DBID] && @groupfilter[:DBID] != PanoramaConnection.dbid
       @groupfilter[:con_id] = sql_select_one ["SELECT Con_ID FROM gv$Containers WHERE DBID = ?", @groupfilter[:DBID]]
     end

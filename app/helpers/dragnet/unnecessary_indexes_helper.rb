@@ -111,7 +111,7 @@ The purpose of the index with the smaller column set can regularly be covered by
 So the first index often can be dropped without loss of function.
 The effect of less indexes to maintain and less objects in database cache with better cache hit rate for the remaining objects in cache is mostly higher rated than the possible overhead of using range scan on index with larger column set.
 
-If the index with the smaller column set ensures uniqueness, than an unique constraint with this column set based on the second index with the larger column set can also cover this task.
+If the index with the smaller column set ensures uniqueness, then an unique constraint with this column set based on the second index with the larger column set can also cover this task.
 '),
             :sql=> "
 WITH Ind_Cols AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Listagg(Column_Name, ',') WITHIN GROUP (ORDER BY Column_Position) Columns
@@ -351,7 +351,7 @@ How to and scripts for activating MONITORING USAGE may be found here:
 
   %{url}
 
-Index usage can be evaluated than via v$Object_Usage or with previous selection.
+Index usage can be evaluated then via v$Object_Usage or with previous selection.
 ", url: "https://rammpeter.blogspot.com/2017/10/oracle-db-identify-unused-indexes.html"),
             :sql=> "
                     SELECT i.Owner, i.Table_Name, i.Index_Name, i.Index_Type, i.Num_Rows, i.Distinct_Keys, seg.MBytes, o.Created, o.Last_DDL_Time
@@ -443,7 +443,7 @@ Due to the poor selectivity such indexes are mostly not useful for access optimi
         {
             :name  => t(:dragnet_helper_131_name, :default=> 'Indexes on partitioned tables with same columns like partition keys'),
             :desc  => t(:dragnet_helper_131_desc, :default=>"If an index on partitioned table indexes the same columns like partition key and partitioning itself is selective enough by partition pruning
-than this index can be removed"),
+then this index can be removed"),
             :sql=> "SELECT x.Owner, x.Index_Name, x.Table_Owner, x.Table_Name, x.Uniqueness, x.Index_Partitioned, x.Num_Rows, x.Distinct_Keys, x.Partition_Columns, x.Table_Partitions, x.MBytes
                     FROM   (
                             SELECT i.Owner, i.Index_Name, i.Table_Owner, i.Table_Name, i.Uniqueness, i.Partitioned Index_Partitioned, i.Num_Rows, i.Distinct_Keys,
@@ -474,7 +474,7 @@ than this index can be removed"),
         {
             :name  => t(:dragnet_helper_143_name, :default=> 'Removable indexes if column order of another multi-column index can be changed'),
             :desc  => t(:dragnet_helper_143_desc, :default=>"This selection looks for multi-column indexes with first column with weak selectivity and second column with strong selectivity and another single-column index existing with the same column like the second column of the multi-column index.
-If column order of the multi-column index can be changed than the additional single-column index may become obsolete."),
+If column order of the multi-column index can be changed then the additional single-column index may become obsolete."),
             :sql=> "WITH Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Owner, Index_Name, Uniqueness, Num_Rows
                                      FROM   DBA_Indexes
                                     ),

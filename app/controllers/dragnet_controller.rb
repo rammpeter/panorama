@@ -124,7 +124,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
       @caption << ": "
       dragnet_sql[:parameter].each do |p|   # Binden evtl. Parameter
         bind_value = params[p[:name]]           # Parameter aus Form mit Name erwartet
-        bind_value = bind_value.to_i if bind_value.to_i.to_s == bind_value  # if full value can be interpreted as integer than use this
+        bind_value = bind_value.to_i if bind_value.to_i.to_s == bind_value  # if full value can be interpreted as integer then use this
         command_array << bind_value
         @caption << " '#{p[:name]}' = #{params[p[:name]]}," if params[p[:name]] && params[p[:name]] != ''  # Ausgabe im Header
       end

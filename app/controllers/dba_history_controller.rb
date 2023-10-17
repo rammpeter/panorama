@@ -2211,7 +2211,7 @@ BEGIN
 
   -- Drop SQL Tuning Set (STS) which is not needed no more
   #{dbms_sqltune}.DROP_SQLSET(sqlset_name => '#{sts_name}');
-  -- if you want to check the result of the tuning set than comment out #{dbms_sqltune}.DROP_SQLSET and execute
+  -- if you want to check the result of the tuning set then comment out #{dbms_sqltune}.DROP_SQLSET and execute
   -- SELECT * FROM TABLE(#{dbms_sqltune}.SELECT_SQLSET(sqlset_name => '#{sts_name}'));
 
   -- Get access criteria for the new created baseline based on exact- or force-signature

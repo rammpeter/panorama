@@ -380,7 +380,7 @@ AND    pxs.SID IS NULL
         },
         {
             :name  => t(:dragnet_helper_145_name, :default=>'Possibly missing guaranty of uniqueness by unique index or unique / primary key constraint'),
-            :desc  => t(:dragnet_helper_145_desc, :default=>"If an implicit expectation for uniqueness of a column exists, than this should be safeguarded by an unique index or unique constraint.
+            :desc  => t(:dragnet_helper_145_desc, :default=>"If an implicit expectation for uniqueness of a column exists, then this should be safeguarded by an unique index or unique constraint.
 This list shows all all columns with unique values at the time of last analysis if neither unqiue index nor unique constraint exists for this column.
             "),
             :sql=>  "

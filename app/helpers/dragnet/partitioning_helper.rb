@@ -166,7 +166,7 @@ Solution for such situations is global (not) partitioning of index.'),
         },
         {
           :name  => t(:dragnet_helper_158_name, :default=> 'Partitioning for expensive full table scans with filters'),
-          :desc  => t(:dragnet_helper_158_desc, :default=> "If expensive full table scan is done with filter conditions than range or list partitioning by one or more of this filter conditions may significantly reduce runtime.
+          :desc  => t(:dragnet_helper_158_desc, :default=> "If expensive full table scan is done with filter conditions then range or list partitioning by one or more of this filter conditions may significantly reduce runtime.
 Especially with release 12.2 and above automatic list partitioning lets you easy handle the creation of needed partitions without operation effort.
 Conditions for useful partitioning by these filters are:
 - The potential partition key should significantly reduce the result (e.g. to less than 3/4 if used as filter condition)
@@ -224,7 +224,7 @@ ORDER BY Wait_Time_Sec DESC
         },
         {
           :name  => t(:dragnet_helper_158_name, :default=> 'Partitioning for expensive access filtered by columns with low number of distinct values'),
-          :desc  => t(:dragnet_helper_158_desc, :default=> "If expensive full table access is done with filter conditions than range or list partitioning by one or more of this filter conditions may significantly reduce runtime.
+          :desc  => t(:dragnet_helper_158_desc, :default=> "If expensive full table access is done with filter conditions then range or list partitioning by one or more of this filter conditions may significantly reduce runtime.
 Especially with release 12.2 and above automatic list partitioning lets you easy handle the creation of needed partitions without operation effort.
 Conditions for useful partitioning by these filters are:
 - The potential partition key should significantly reduce the result (e.g. to less than 3/4 if used as filter condition)

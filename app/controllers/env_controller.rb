@@ -687,7 +687,7 @@ public
                 #get  "#{controller_short_name}/#{action_name}"
                 #post "#{controller_short_name}/#{action_name}"
 
-                # if controller is ApplicationController than set route for ApplicationController's methods for all controllers
+                # if controller is ApplicationController then set route for ApplicationController's methods for all controllers
               end
             end
           end

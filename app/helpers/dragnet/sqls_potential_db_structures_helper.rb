@@ -152,7 +152,7 @@ Free space in DB-blocks declared by PCT_FREE may be used for:
 - Reducing the risk of chained rows due to expansion of row-size by by update-statements
 - Reducing the risk of ITL-waits by allowing the expansion of the ITL-list above INI_TRANS entries
 This selection shows candidates without any update statements since last analyze.
-If you can exclude the need for allowing concurrent transactions in ITL-list above INI_TRANS than the recommendation is to set PCT_FREE=0.
+If you can exclude the need for allowing concurrent transactions in ITL-list above INI_TRANS then the recommendation is to set PCT_FREE=0.
 "),
             :sql=> "\
 WITH Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, SubPartition_Name,
