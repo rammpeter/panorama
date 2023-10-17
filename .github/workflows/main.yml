@@ -140,7 +140,29 @@ jobs:
           if [[ $? -eq 1 ]];then
             echo "Release with version $PANORAMA_VERSION does not exist, deploying"
             set -e
-
+            # Create release
+            RES=`curl -L -X POST \
+                      -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                      https://api.github.com/repos/rammpeter/panorama/releases \
+                      -d '{"tag_name":"v$PANORAMA_VERSION","target_commitish":"master","name":"Release $PANORAMA_VERSION","body":"Continous development","draft":false,"prerelease":false,"generate_release_notes":false}'` 
+            RELEASE_ID=`echo $RES | jq ".id"`
+            if [[ "$RELEASE_ID" == "null" ]]; then
+              echo "Release creation failed! Response was:"
+              echo $RES
+              exit 1
+            fi 
+            # Add asset to release
+            RES=`curl -L -X POST \
+                      -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                      -H "Content-Type: application/octet-stream" \
+                      --data-binary @Panorama.jar \
+                      "https://uploads.github.com/repos/rammpeter/panorama/releases/$RELEASE_ID/assets?name=Panorama.jar&label=Panorama.jar:%20Download%20and%20start%20with%20\"java%20-jar%20Panorama.jar\""`
+            URL=`echo $RES | jq ".url"`
+            if [[ "$URL" == "null" ]]; then
+              echo "Asset creation for release failed! Response was:"
+              echo $RES
+              exit 1
+            fi           
           else
             echo "Release with version $PANORAMA_VERSION already exists, no deployment"
           fi          
