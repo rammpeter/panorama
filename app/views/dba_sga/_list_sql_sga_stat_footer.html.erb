@@ -133,8 +133,8 @@
     </div>
   <% end %>
 
-  <% if @sql['child_number'] %>
-    <div class="flex-row-element">
+  <div class="flex-row-element">
+    <% if @sql['child_number'] %>
       <%=
         ajax_submit('DBMS_XPLAN', {
             :action        => :list_dbms_xplan_display,
@@ -145,8 +145,19 @@
             :update_area=> @update_area
         }, :title=>t(:dba_sga_list_sql_sga_stat_footer_dbms_xplan_hint, :default=>'Show execution plan as output from call DBMS_XPLAN.DISPLAY'))
       %>
-    </div>
-  <% end %>
+    <% else %>
+      <%= ajax_submit('DBMS_XPLAN', {
+        :update_area    => @update_area,
+        :controller     => :dba_sga,
+        :action         => :list_dbms_xplan_display_multiple_children,
+        :instance       => @sql.inst_id,
+        :sql_id         => @sql.sql_id,
+        object_status:  @object_status,
+        con_id:         @con_id
+      }, :title =>'Please select one of the multiple child cursors to be able to show the execution plan by DBMS_XPLAN')
+      %>
+    <% end %>
+  </div>
 
   <% if get_db_version >= '11.1' && get_current_database[:management_pack_license] == :diagnostics_and_tuning_pack %>
     <div class="flex-row-element">

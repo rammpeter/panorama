@@ -1855,6 +1855,14 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
+  # Show the children combined with a statusbar message
+  # Needs params:
+  # - :update_area, :instance, :sql_id, :object_status, :con_id
+  def list_dbms_xplan_display_multiple_children
+    add_statusbar_message("Please select one of the multiple child cursors and click DBMS_XPLAN again")
+    list_sql_child_cursors
+  end
+
   def generate_sql_translation
     @sql_id              = params[:sql_id]
     user_name            = params[:user_name]

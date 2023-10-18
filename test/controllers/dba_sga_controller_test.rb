@@ -122,6 +122,28 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "list_dbms_xplan_display with xhr: true" do
+    post '/dba_sga/list_dbms_xplan_display' , params: {format: :html, instance: PanoramaConnection.instance_number, sql_id: @@hist_sql_id, update_area: :hugo }
+    assert_response :success
+  end
+
+  test "list_dbms_xplan_display_multiple_children with xhr: true" do
+    post '/dba_sga/list_dbms_xplan_display_multiple_children' , params: {format: :html, instance: PanoramaConnection.instance_number, sql_id: @@hist_sql_id, update_area: :hugo }
+    assert_response :success
+  end
+
+  test "list_sql_shared_cursor with xhr: true" do
+    post '/dba_sga/list_sql_shared_cursor' , params: {format: :html, instance: PanoramaConnection.instance_number, sql_id: @@hist_sql_id, update_area: :hugo }
+    assert_response :success
+  end
+
+  test "expand_sql_text with xhr: true" do
+    if get_db_version >= '12.1'
+      post '/dba_sga/expand_sql_text' , params: {format: :html, sql_id: @@hist_sql_id, update_area: :hugo }
+      assert_response :success
+    end
+  end
+
   test "list_sga_components with xhr: true" do
     instance = PanoramaConnection.instance_number
     post '/dba_sga/list_sga_components', :params => {:format=>:html, :instance=>instance, :update_area=>:hugo }
