@@ -855,6 +855,7 @@ class AdditionController < ApplicationController
     @binds = binds_from_params(@expected_binds, params)
     if all_binds_defined?(@expected_binds, @binds)
       remember_binds_for_next_usage(@binds)
+      @start_time = Time.now
       # choose execution type and execute
       if stripped_sql_statement.upcase =~ /^SELECT/ || stripped_sql_statement.upcase =~ /^WITH/
         @res = []
@@ -864,7 +865,7 @@ class AdditionController < ApplicationController
       else
         PanoramaConnection.sql_execute_native(sql: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql')
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
-        render html: "<div class='page_caption'>Statement executed at #{localeDateTime(Time.now)}</div>
+        render html: "<div class='page_caption'>Statement execution started at #{localeDateTime(@start_time)}, finished within #{fn(Time.now-@start_time, 3)} seconds </div>
         #{render_code_mirror(@sql_statement)}\n".html_safe
       end
     else
