@@ -983,14 +983,13 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
     "
   end
 
-  # remove trailing semicomon if needed
+  # remove trailing semicolon or slash if needed
   def prepare_sql_statement(sql)
     sql.rstrip!
     lines = sql.split("\n")
-    if lines.count > 0 && lines[lines.length-1].strip.upcase != 'END;'
-      sql.gsub!(/;$/, "")
-    end
-    sql
+    lines[lines.length-1].gsub!(/\/$/, "")
+    lines[lines.length-1].gsub!(/;$/, "") if lines[lines.length-1].strip.upcase != 'END;' # do not remove the trailing semicolon for the last END; of PL/SQL
+    lines.join("\n")
   end
 
   def remove_comments_from_sql(sql)

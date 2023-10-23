@@ -30,7 +30,7 @@ class SQL_Worksheet  {
         let return_sql;
         let selection = this.cm.getSelection();
         if (selection != ''){
-            return_sql = selection;
+            return_sql = selection.trim();                                      // Use selection but remove whitespaces
         } else {
             let content             = this.cm.getValue();
             let content_lines       = content.split("\n");
@@ -49,11 +49,19 @@ class SQL_Worksheet  {
             if (current_stmt_end_line != null){                                 // remove follwing SQLs if exist
                 content_lines.length = current_stmt_end_line + 1;               // cut the rest of the array lines
             }
-            return_sql = content_lines.join("\n");
+            // remove empty content_lines
+            for (let i=0; i<content_lines.length; i++){
+                if (content_lines[i].trim() == ''){
+                    content_lines.splice(i, 1);
+                    i--;
+                }   // remove empty lines
+            }
+            return_sql = content_lines.join("\n").trim();                       // join lines to one string and remove whitespaces
+            // check if SQL is a PL/SQL block beginning with DECLARE, BEGIN or CREATE without selection and with multiple lines
+            if (return_sql.match(/^(DECLARE|BEGIN|CREATE)/i) && content_lines.length > 1) {
+                return_sql = 'PL/SQL';                                          // mark as PL/SQL without selection
+            }
         }
-        return_sql = return_sql.trim();                                         // remove whitespaces
-        // if (return_sql[return_sql.length-1] == ';')
-        //     return_sql = return_sql.slice(0, -1);                            // remove trailing ;
         return return_sql;
     }
 
@@ -81,9 +89,13 @@ class SQL_Worksheet  {
         tab_obj.click();                                                        // bring tab in foreground
 
         var sql_statement = this.get_sql_at_cursor_position();
-        setTimeout(function(){
-            ajax_html(tab_id+'_area_sql_worksheet', controller, action, {update_area: tab_id+'_area_sql_worksheet', sql_statement: sql_statement});
-        }, 100);                                                                  // Wait until click is processed to hit the visible div
+        if (sql_statement == 'PL/SQL') {
+            show_popup_message("The code under the cursor is a multiline PL/SQL or create statement!<br/>Please select the whole code block to execute in editor and try again.");
+        } else {
+            setTimeout(function(){
+                ajax_html(tab_id+'_area_sql_worksheet', controller, action, {update_area: tab_id+'_area_sql_worksheet', sql_statement: sql_statement});
+            }, 100);                                                                  // Wait until click is processed to hit the visible div
+        }
     }
 
     exec_worksheet_sql(){
