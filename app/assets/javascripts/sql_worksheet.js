@@ -1,10 +1,12 @@
 class SQL_Worksheet  {
-    constructor(parent_element_id) {
+    constructor(parent_element_id, file_open_id) {
         this.cm = CodeMirror(document.getElementById(parent_element_id), {
             value: "-- Place your SQL code here\n",
             mode:  "sql",
             lineNumbers: true
         });
+        this.file_open_id = file_open_id;
+        this.register_file_open();                                              // register file open event
         this.cm.setSize(null, 300);                                             // Set initial height of text area
         $(this.cm.getWrapperElement()).resizable();
         $(this.cm.getWrapperElement()).parent().find(".ui-resizable-se").remove(); // Entfernen des rechten unteren resize-Cursors
@@ -96,6 +98,48 @@ class SQL_Worksheet  {
                 ajax_html(tab_id+'_area_sql_worksheet', controller, action, {update_area: tab_id+'_area_sql_worksheet', sql_statement: sql_statement});
             }, 100);                                                                  // Wait until click is processed to hit the visible div
         }
+    }
+
+    register_file_open() {
+        const fileInput = document.getElementById(this.file_open_id);
+        // const fileContent = document.getElementById('fileContent');
+
+        fileInput.addEventListener('change', function () {
+            const selectedFile = fileInput.files[0]; // Get the first selected file
+
+            if (selectedFile) {
+                const reader = new FileReader(); // Create a FileReader
+
+                reader.onload = function (e) {
+                    const fileText = e.target.result; // Get the file content
+                    sql_worksheet.cm.setValue(fileText);
+                    // fileContent.textContent = fileText; // Display the content in the <pre> element
+                };
+                reader.readAsText(selectedFile); // Read the selected file as text
+            }
+        });
+    }
+
+    file_open() {
+        jQuery('#'+this.file_open_id).click();
+    }
+
+    file_save_as() {
+        // Get the text content from the textarea
+        const textContent = this.cm.getValue();
+
+        // Create a Blob from the text content
+        const blob = new Blob([textContent], { type: 'text/plain' });
+
+        // Create a download link for the Blob
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'sql_worksheet.sql'; // Set the desired filename and extension
+        // Trigger a click event on the download link to simulate the download
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     }
 
     exec_worksheet_sql(){

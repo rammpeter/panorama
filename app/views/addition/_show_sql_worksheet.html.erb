@@ -1,6 +1,29 @@
+<input type="file" id="fileInput" style="display: none;">
 <%=
   render_page_caption('SQL worksheet',
     [
+      {
+        name:                 :file_open,
+        caption:              'Open file',
+        hint:                 "Open a text file in editor",
+        icon_class:           'cui-file',
+        icon_style:           'font-size: larger;',
+        action:               'sql_worksheet.file_open();',
+        show_icon_in_caption: true
+      },
+      {
+        name:                 :file_save,
+        caption:              'Save file',
+        hint:                 "Download editor content as text file",
+        icon_class:           'cui-save',
+        icon_style:           'font-size: larger;',
+        action:               'sql_worksheet.file_save_as();',
+        show_icon_in_caption: true
+      },
+      {
+        name:                 :separator,
+        show_icon_in_caption: true
+      },
       {
           name:                 :execute,
           caption:              'Execute',
@@ -52,5 +75,5 @@
 </div>
 
 <script type="application/javascript">
-    var sql_worksheet = new SQL_Worksheet('sql_text_div');
+    var sql_worksheet = new SQL_Worksheet('sql_text_div', 'fileInput');
 </script>

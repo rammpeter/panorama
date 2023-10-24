@@ -44,7 +44,11 @@ module AjaxHelper
     context_menu_id = "#{div_id}_context_menu"
     output << "<div class=\"contextMenu\" id=\"#{context_menu_id}\" style=\"display:none;\"><ul>"
     command_array.each do |ca|
-      output << "<li id=\"#{context_menu_id}_#{ca[:name]}\" title=\"#{ca[:hint]}\"><div class=\"#{ca[:icon_class]}\" style=\"display: inline-block;\"></div><div style=\"display: inline-block;\">&nbsp;#{ca[:caption]}</div></li>"
+      if ca[:name] == :separator
+        output << "<li class=\"separator\"><hr></li>"
+      else
+        output << "<li id=\"#{context_menu_id}_#{ca[:name]}\" title=\"#{ca[:hint]}\"><div class=\"#{ca[:icon_class]}\" style=\"display: inline-block;\"></div><div style=\"display: inline-block;\">&nbsp;#{ca[:caption]}</div></li>"
+      end
     end
     output << "</ul></div>"
     output << "</span>"
@@ -54,7 +58,7 @@ module AjaxHelper
     output << "<script type=\"text/javascript\">"
     output << "var bindings = {};"
     command_array.each do |ca|
-      output << "bindings[\"#{context_menu_id}_#{ca[:name]}\"] = function(){ #{ca[:action]} };"
+      output << "bindings[\"#{context_menu_id}_#{ca[:name]}\"] = function(){ #{ca[:action]} };" if ca[:name] != :separator
     end
     output << "jQuery(\"##{div_id}\").contextMenu(\"#{context_menu_id}\", {
                     menuStyle: {  width: '330px' },
@@ -82,6 +86,8 @@ module AjaxHelper
   #                 :icon_style,
   #                 :action (JS-function)
   #                 :show_icon_in_caption => true|false|:only\:right  :only == only left
+  #             Add separator like this:
+  #               { name: :separator, show_icon_in_caption: true },
   #             left_addition:    insert html-content at left side after menu and icons
   #             right_addition:   insert html-content at right side before icons
   def render_page_caption(caption, command_array=nil, left_addition=nil, right_addition=nil)
@@ -93,13 +99,18 @@ module AjaxHelper
     output << "<span>"
 
     unless command_array.nil?                                                   # render command button and list
-      output << render_command_array_menu(command_array)
+      output << render_command_array_menu(command_array)                        # render the Hamburger menu
       command_array.each do |cmd|
         if cmd[:show_icon_in_caption] && cmd[:show_icon_in_caption] != :right
-          output << "<div style='margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;#{cmd[:icon_style]}'
+          if cmd[:name] == :separator
+            # vertical line as separator
+            output << "&nbsp;&nbsp;<span style=\"font-size: larger; border-left: 1px solid #000; height: 100%;\"></span>&nbsp;"
+          else
+            output << "<div style='margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;#{cmd[:icon_style]}'
                           title='#{cmd[:hint]}' onclick='#{cmd[:action]}'>
                        <span class='#{cmd[:icon_class]}'></span>
                      </div>"
+          end
         end
       end
     end
