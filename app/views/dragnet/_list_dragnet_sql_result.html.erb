@@ -1,3 +1,7 @@
+<% if defined? @start_time %>
+  <%= "<div class='page_caption' style='justify-content: center;'>Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(Time.now-@start_time, 3)} seconds </div>".html_safe  %>
+<% end %>
+
 <%  # Die folgende Logik liegt hier, da sonst nicht auf ActionView-Helper zurückgegriffen werden kann
     instance_captions = ['instance', 'inst_id']
     sid_captions = ['sid']
@@ -162,20 +166,13 @@ if @res.count > 0
       end
 %>
 
-<% if defined? @start_time %>
-  <%= "<div class='page_caption'>Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(Time.now-@start_time, 3)} seconds </div>".html_safe  %>
-<% end %>
 <%= gen_slickgrid(@res, @column_options, {:caption => @caption, :plot_area_id => "exec_dragnet_sql_detail_area", :max_height=>450, show_pin_icon: 1}) %>
 
 <div id='exec_dragnet_sql_detail_area'  style="padding-top: 5px;"></div>
 
-<%
-else
-%>
-<%= t(:dragnet_list_dragnet_sql_result_no_result, :default=>'No result for SQL') %>
-<%
-end
-%>
+<% else %>
+  <div class="page_caption" style="justify-content: center;"><%= t(:dragnet_list_dragnet_sql_result_no_result, :default=>'No result for SQL') %></div>
+<% end %>
 
 
 

@@ -70,7 +70,7 @@ class SQL_Worksheet  {
         for (let i=0; i<content_lines.length; i++){
             let trimmed_line = content_lines[i].trim();
             let last_char = trimmed_line[trimmed_line.length-1];
-            if (last_char == ';' || last_char == '/'){
+            if (last_char == ';' || trimmed_line == '/'){
                 return i;
             }
         }
