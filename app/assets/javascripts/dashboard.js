@@ -3,17 +3,20 @@ var dashboard_data = undefined;                                                 
 
 
 class DashboardData {
-    constructor(unique_id, canvas_id, top_session_sql_id, update_area_id, dbid, rac_instance, hours_to_cover, refresh_cycle_minutes, refresh_cycle_id, refresh_button_id, options={}){
-        this.unique_id                  = unique_id;
-        this.canvas_id                  = canvas_id;
-        this.top_session_sql_id         = top_session_sql_id;
-        this.update_area_id             = update_area_id;
-        this.dbid                       = dbid;
-        this.rac_instance               = rac_instance;                         // null if not used
-        this.hours_to_cover             = hours_to_cover;
-        this.refresh_cycle_minutes      = refresh_cycle_minutes;
-        this.refresh_cycle_id           = refresh_cycle_id;
-        this.refresh_button_id          = refresh_button_id;
+    constructor(options){
+        this.unique_id                  = options.unique_id;
+        this.canvas_id                  = options.canvas_id;
+        this.top_session_sql_id         = options.top_session_sql_id;
+        this.update_area_id             = options.update_area_id;
+        this.groupby                    = options.groupby;                      // the key in session_statistics_key_rules
+        this.groupby_alias              = options.groupby_alias;                // the field :sql_alias key in session_statistics_key_rules, used as column_name in SQL
+        this.topx                       = options.topx;
+        this.dbid                       = options.dbid;
+        this.rac_instance               = options.rac_instance;                         // null if not used
+        this.hours_to_cover             = options.hours_to_cover;
+        this.refresh_cycle_minutes      = options.refresh_cycle_minutes;
+        this.refresh_cycle_id           = options.refresh_cycle_id;
+        this.refresh_button_id          = options.refresh_button_id;
         this.ash_data_array             = [];
         this.last_refresh_time_string   = null;
         this.current_timeout            = null;                                 // current active timeout
@@ -47,7 +50,10 @@ class DashboardData {
 
     set_refresh_cycle_off(){
         this.cancel_timeout();
-        $('#'+this.refresh_cycle_id+' option[value="0"]').attr("selected", "selected");
+        //$('#'+this.refresh_cycle_id+' option[value="0"]').attr("selected", "selected");
+        let select = document.getElementById(this.refresh_cycle_id);
+        select.selectedIndex = 0;
+        select.value = select.options[select.selectedIndex].value
         $('#'+this.refresh_button_id).attr('type', 'submit');                   // make refresh button visible
     }
 
@@ -80,6 +86,8 @@ class DashboardData {
             data: {
                 'instance':                 this.rac_instance,
                 'hours_to_cover':           this.hours_to_cover,
+                'groupby':                  this.groupby,
+                'topx':                     this.topx,
                 'dbid':                     this.dbid,
                 'last_refresh_time_string': this.last_refresh_time_string,
                 'smallest_timestamp_ms':    smallest_timestamp_ms
@@ -87,16 +95,29 @@ class DashboardData {
         });
     }
 
+    // sort groups by sum of values
+    // requires that session_sum is calculated before
+    sort_data_array_by_session_sum() {
+        this.ash_data_array.sort((a,b)=>{
+            if (a.session_sum < b.session_sum)
+                return -1;
+            if (a.session_sum > b.session_sum)
+                return 1;
+            return 0;
+        });
+    }
+
     process_load_refresh_ash_data_success(response_data, xhr){
         let new_ash_data            = response_data.ash_data;
         let grouping_secs           = response_data.grouping_secs;              // Default distance in seconds between two data points
-        let timestamps              = {};
+        let groupby_alias           = response_data.groupby_alias;              // the field :sql_alias key in session_statistics_key_rules, used as column_name in SQL
+        let timestamps              = {};                                       // Object with key = sample_time_string and value = ms since 1970
         let data_to_add             = {};
         let initial_data_load       = this.ash_data_array.length == 0;          // initial or delta load
         let min_refresh_time_string = null;
         let max_refresh_time_string = null;
 
-        let previous_timestamps = [];                                           // remember used timestamps for later tasks
+        let previous_timestamps = [];                                           // remember used timestamps for later tasks, array of numbers
         if (this.ash_data_array.length > 0){
             this.ash_data_array[0].data.forEach((tupel)=>{
                 previous_timestamps.push(tupel[0]);
@@ -107,10 +128,10 @@ class DashboardData {
             if (this.last_refresh_time_string == null || this.last_refresh_time_string < d.sample_time_string)
                 this.last_refresh_time_string = d.sample_time_string;           // greatest known timestamp from ASH
             timestamps[d.sample_time_string] = new Date(d.sample_time_string + " GMT").getTime(); // remember all used timestamps
-            if (data_to_add[d.wait_class] === undefined){
-                data_to_add[d.wait_class] = {};
+            if (data_to_add[d[groupby_alias]] === undefined){
+                data_to_add[d[groupby_alias]] = {};
             }
-            data_to_add[d.wait_class][d.sample_time_string] = d.sessions;
+            data_to_add[d[groupby_alias]][d.sample_time_string] = d.sessions;
 
             if (!min_refresh_time_string || min_refresh_time_string > d.sample_time_string)
                 min_refresh_time_string = d.sample_time_string;
@@ -143,26 +164,26 @@ class DashboardData {
         });
 
         // copy values and generate 0-records for gaps in time series
-        for (const [key, value] of Object.entries(data_to_add)) {               // iterate over wait_classes of delta
-            let wait_class_object = this.ash_data_array.find(o => o.label == key)
-            if (wait_class_object === undefined){                               // create empty object in ash_data_array is not exists
-                wait_class_object = { label: key, data: []}
+        for (const [key, value] of Object.entries(data_to_add)) {               // iterate over groups of delta
+            let group_object = this.ash_data_array.find(o => o.label == key)
+            if (group_object === undefined){                                    // create empty object in ash_data_array is not exists
+                group_object = { label: key, data: []}
                 // generate 0 records for previous timestamps if wait class is new in delta
                 previous_timestamps.forEach((ts)=>{
-                    wait_class_object.data.push([ts, 0]);                       // ensure existing timestamps have a 0 record
+                    group_object.data.push([ts, 0]);                            // ensure existing timestamps have a 0 record
                 });
-                this.ash_data_array.push(wait_class_object);
+                this.ash_data_array.push(group_object);
             }
 
             let col_data_to_add = data_to_add[key];
-            // generate 0-records for gaps in time series where other wait classes have values
+            // generate 0-records for gaps in time series of delta where other wait classes have values
             Object.entries(timestamps).forEach((ts_tupel)=>{
                 if (col_data_to_add[ts_tupel[0]] === undefined)
                     col_data_to_add[ts_tupel[0]] = 0;
             });
 
             // Sort required because 0-records are pushed to object before
-            var col_data_delta_array = Object.entries(col_data_to_add).sort((a,b)=>{
+            let col_data_delta_array = Object.entries(col_data_to_add).sort((a,b)=>{
                 if (a[0] < b[0])
                     return -1;
                 if (a[0] > b[0])
@@ -176,32 +197,26 @@ class DashboardData {
                 //val_array[0] = new Date(val_array[0] + " GMT").getTime();
             });
 
-            wait_class_object['data'] = wait_class_object.data.concat(col_data_delta_array);    // add the delta data to the previous data
+            group_object['data'] = group_object.data.concat(col_data_delta_array);    // add the delta data to the previous data
         }
 
-        // build sum over wait_classes and sort by sums, so wait class with highest amount is on top in diagram
+        // build sum over groups and sort by sums, so wait class with highest amount is on top in diagram
         this.ash_data_array.forEach((col)=>{
-            var sum = 0;
+            let sum = 0;
             col.data.forEach((tupel)=>{
                 sum += tupel[1];
             });
             col['session_sum'] = sum;
         });
-        // ensure the graph with highest sum is on top in chart
-        this.ash_data_array.sort((a,b)=>{
-            if (a.session_sum < b.session_sum)
-                return -1;
-            if (a.session_sum > b.session_sum)
-                return 1;
-            return 0;
-        });
 
-        // remove wait_classes that do not exist in delta but exists only with 0 records in previous data
+        this.sort_data_array_by_session_sum();                                  // ensure the graph with highest sum is on top in chart
+
+        // remove groups that do not exist in delta but exists only with 0 records in previous data
         this.ash_data_array = this.ash_data_array.filter(col=>col.session_sum > 0);
 
-        // generate dummy records with 0 for wait_classes existing in previous data but not in new delta
+        // generate dummy records with 0 for groups existing in previous data but not in new delta
         this.ash_data_array.forEach((col)=>{
-            if (data_to_add[col.label] === undefined){
+            if (data_to_add[col.label] === undefined){                          // no delta for this group
                 let new_timestamps = Object.entries(timestamps)
                 new_timestamps.sort((a,b)=>{
                     if (a[0] < b[0])
@@ -216,7 +231,51 @@ class DashboardData {
             }
         });
 
-        // define colors
+        // now this.ash_data_array is complete for display in chart
+        // this.ash_data_array is left untouched for next refresh but reduced to topx groups for display in chart
+        let ash_data_arrayto_show = []                                          // clone array elements to not hurt content of this.ash_data_array
+
+        // compress groups into [ Others ] if there are more than x groups in diagram
+        if (this.ash_data_array.filter(col=>col.label !== '[ Others ]').length > this.topx){
+            let others_group = this.ash_data_array.find(o => o.label === '[ Others ]')
+            // Create the Others group if not yet exists and if there are more than x groups in diagram
+            if (others_group === undefined){
+                // Ensure that each used timestamp also exists in the new group
+                let others_data = [];
+                previous_timestamps.forEach((ts)=>{                             // iterate over previously existing timestamps
+                    others_data.push([ts, 0]);                                  // ensure existing timestamps have a 0 record
+                });
+                Object.entries(timestamps).forEach((ts_tupel)=>{ // iterate over new timestamps of delta
+                    others_data.push([ts_tupel[1], 0]);                         // ensure new timestamps have a 0 record
+                });
+                // sort new records by timestamp because previous_timestamps and timestamps are not sorted
+                others_data.sort((a,b)=>{
+                    if (a[0] < b[0])
+                        return -1;
+                    if (a[0] > b[0])
+                        return 1;
+                    return 0;
+                });
+                others_group = { label: 'Others', data: others_data, session_sum: 0 }
+                this.ash_data_array.push(others_group);
+            }
+            // this.ash_data_array is sorted by session_sum, so for top x ist should be reversed
+            const reversed_data_array = [...this.ash_data_array.filter(col=>col.label !== '[ Others ]')].reverse();
+            // add values from groups that are not in top x to [ Others ]
+            reversed_data_array.forEach((col, top_index)=>{
+                if (top_index >= this.topx) {
+                    others_group.session_sum += col.session_sum;
+                    col.data.forEach((tupel, index)=>{                          // add group values to Others
+                        others_group.data[index][1] += tupel[1];                // add value to [ Others ]
+                    });
+                    col.session_sum = 0;                                       // mark group for deletion outside of loop
+                }
+            });
+            this.ash_data_array = this.ash_data_array.filter(col=>col.session_sum > 0); // remove groups that exceed the top x
+            this.sort_data_array_by_session_sum();                              // Sort again to ensure [ Others ] is at the right position
+        }
+
+        // define fixed colors for wait classes or events
         this.ash_data_array.forEach((col)=> {
             let color = wait_class_color(col.label);
             if (color){
@@ -335,17 +394,19 @@ class DashboardData {
 }
 
 // function to be called from Rails template
-refresh_dashboard = function(unique_id, canvas_id, top_session_sql_id, update_area_id, dbid, rac_instance, hours_to_cover, refresh_cycle_minutes, refresh_cycle_id, refresh_button_id){
+// supported options:
+// - groupby: group criterial name like 'Wait Class'
+refresh_dashboard = function(options){
     if (dashboard_data !== undefined) {
-        if (dashboard_data.canvas_id != canvas_id)                              // check if dashboard_data belongs to the current element
+        if (dashboard_data.canvas_id != options.canvas_id)                              // check if dashboard_data belongs to the current element
             discard_dashboard_data();                                           // throw away old content
     }
 
     if (dashboard_data !== undefined) {
-        dashboard_data.draw_with_new_refresh_cycle(canvas_id, hours_to_cover, refresh_cycle_minutes);
+        dashboard_data.draw_with_new_refresh_cycle(options.canvas_id, options.hours_to_cover, options.refresh_cycle_minutes);
     } else {
-        dashboard_data = new DashboardData(unique_id, canvas_id, top_session_sql_id, update_area_id, dbid, rac_instance, hours_to_cover, refresh_cycle_minutes, refresh_cycle_id, refresh_button_id);
-        dashboard_data.draw_refreshed_data(canvas_id, 'init');
+        dashboard_data = new DashboardData(options);
+        dashboard_data.draw_refreshed_data(options.canvas_id, 'init');
     }
 }
 

@@ -517,7 +517,6 @@ function isSiteOnline(url,callback) {
  * Color for wait class in graph
  * @param wait_class
  */
-
 function wait_class_color(wait_class){
     switch(wait_class){
         case 'Administrative':

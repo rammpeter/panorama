@@ -3,11 +3,13 @@
   @submit_id            = get_unique_area_id
   @refresh_id           = get_unique_area_id
   @form_id              = get_unique_area_id
+  @groupby_id           = get_unique_area_id
+  @topx_id              = get_unique_area_id
   @dbid_id              = get_unique_area_id
-  @rac_instanc_id       = get_unique_area_id
+  @rac_instance_id      = get_unique_area_id
   @hours_to_cover_id    = get_unique_area_id
   @refresh_cycle_id     = get_unique_area_id
-  @wait_class_canvas_id = get_unique_area_id
+  @ash_chart_canvas_id = get_unique_area_id
   @top_session_sql_id   = get_unique_area_id
   @unique_id            = get_unique_area_id
 %>
@@ -18,12 +20,28 @@
       <%= submit_tag('', id: @submit_id, style: "visibility: hidden") %>
     </div>
 
-    <%= dbid_selection(select_element_id: @dbid_id, onchange: "dbid_changed();") %>
+    <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
+      <%= t(:grouping, :default=>'Grouping')%>
+      <select name="groupby" id="<%= @groupby_id %>" onchange="refresh_dashboard_on_change();">
+        <% session_statistics_key_rules.keys.sort.each do |key| %>
+          value = session_statistics_key_rules[key]
+          <%=  "<option value='#{key}' #{"selected='selected'" if key==@group_criteria}>#{key}</option>".html_safe %>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="Number of top x grouping criterias to show as own curve in chart
+    The others are subsumed under label 'others'">
+      Top x
+      <input value="10" id="<%= @topx_id %>" size="4" style="text-align: right" onchange="refresh_dashboard_on_change();"/>
+    </div>
+
+    <%= dbid_selection(select_element_id: @dbid_id, onchange: "refresh_dashboard_on_change();") %>
 
     <% if PanoramaConnection.rac? %>
       <div class="flex-row-element" title="Filter dashboard info for a specific RAC instance">
         RAC instance
-        <select name="instance" id="<%= @rac_instanc_id %>" onchange="instance_changed();">
+        <select name="instance" id="<%= @rac_instance_id %>" onchange="refresh_dashboard_on_change();">
           <option value="0" selected>[All]</option>
           <% PanoramaConnection.sql_select_all("SELECT Inst_ID, Instance_Name FROM gv$Instance ORDER BY Inst_ID").each do |i| %>
             <option value="<%= i.inst_id %>"><%= "#{i.inst_id} #{i.instance_name}" %></option>
@@ -37,7 +55,7 @@
 First, retrospective data is displayed as long as it is present in the table gv$ActiveSessionHistory.
 Refreshed data is buffered in browser then and may last longer than data is present in table gv$ActiveSessionHistory.">
       Time to cover
-      <select name="hours_to_cover" id="<%= @hours_to_cover_id %>" onchange="hours_to_cover_changed();">
+      <select name="hours_to_cover" id="<%= @hours_to_cover_id %>" onchange="refresh_dashboard_on_change();">
         <option value="0.083333" selected>5 minutes</option>
         <option value="0.25">15 minutes</option>
         <option value="0.5">30 minutes</option>
@@ -66,7 +84,7 @@ Refreshed data is buffered in browser then and may last longer than data is pres
   </div>
 
 
-<div id="<%= @wait_class_canvas_id %>"></div>
+<div id="<%= @ash_chart_canvas_id %>"></div>
 <div id="<%= @top_session_sql_id %>"></div>
 <div id="<%= @update_area %>"></div>
 
@@ -77,22 +95,8 @@ Refreshed data is buffered in browser then and may last longer than data is pres
         return $('#<%= @refresh_cycle_id %>').children("option:selected").val();
     }
 
-    function dbid_changed(){
-        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
-        if (refresh_cycle_selected() != '0'){
-            submit_refresh();
-        }
-    }
-
-    function instance_changed(){
-        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
-        if (refresh_cycle_selected() != '0'){
-            submit_refresh();
-        }
-    }
-
-    function hours_to_cover_changed(){
-        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other hours_to_cover
+    function refresh_dashboard_on_change(){
+        discard_dashboard_data();                                               // Ensure whole dashboard data is refreshed now to other groupby
         if (refresh_cycle_selected() != '0'){
             submit_refresh();
         }
@@ -110,27 +114,28 @@ Refreshed data is buffered in browser then and may last longer than data is pres
     }
 
     function submit_refresh(){
-        var dbid                    = $('#<%= @dbid_id %>').children("option:selected").val();
-        var hours_to_cover          = $('#<%= @hours_to_cover_id %>').children("option:selected").val();
-        var refresh_cycle_minutes   = refresh_cycle_selected();
-        var rac_instance            = null;
-        if ($('#<%= @rac_instanc_id %>').length > 0){                           // Instance selectable
-            rac_instance = $('#<%= @rac_instanc_id %>').children("option:selected").val();
+        let rac_instance            = null;
+        if ($('#<%= @rac_instance_id %>').length > 0){                           // Instance selectable
+            rac_instance = $('#<%= @rac_instance_id %>').children("option:selected").val();
             if (rac_instance == '0')
                 rac_instance = null;
         }
-
+        let groupby = $('#<%= @groupby_id %>').children("option:selected").val();
         refresh_dashboard(
-            '<%= @unique_id %>',
-            '<%= @wait_class_canvas_id %>',
-            '<%= @top_session_sql_id %>',
-            '<%= @update_area %>',
-            dbid,
-            rac_instance,
-            hours_to_cover,
-            refresh_cycle_minutes,
-            '<%= @refresh_cycle_id %>',
-            '<%= @refresh_id %>'
+            {
+                'unique_id':              '<%= @unique_id %>',
+                'canvas_id':              '<%= @ash_chart_canvas_id %>',
+                'top_session_sql_id':     '<%= @top_session_sql_id %>',
+                'update_area_id':        '<%= @update_area %>',
+                'groupby':                groupby,
+                'topx':                   $('#<%= @topx_id %>').val(),
+                'dbid':                   $('#<%= @dbid_id %>').children("option:selected").val(),
+                'rac_instance':           rac_instance,
+                'hours_to_cover':         $('#<%= @hours_to_cover_id %>').children("option:selected").val(),
+                'refresh_cycle_minutes':  refresh_cycle_selected(),
+                'refresh_cycle_id':       '<%= @refresh_cycle_id %>',
+                'refresh_button_id':      '<%= @refresh_id %>'
+            }
         );
         jQuery('#<%= @update_area %>').html('');
         return false;

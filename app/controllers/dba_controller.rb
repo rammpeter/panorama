@@ -2033,27 +2033,49 @@ oradebug setorapname diag
     end
   end
 
+  def show_dashboard
+    @group_criteria = 'Wait Class'  # TODO: Cache value in session store
+    render_partial
+  end
+
   def refresh_dashboard_ash
     instance                  = prepare_param_instance
-    @dbid                      = prepare_param_dbid
+    @groupby                  = prepare_param :groupby
+    groupby_rules             = session_statistics_key_rules[@groupby]
+    @topx                     = prepare_param_int :topx
+    @dbid                     = prepare_param_dbid
     hours_to_cover            = prepare_param(:hours_to_cover).to_f
     last_refresh_time_string  = prepare_param :last_refresh_time_string
     smallest_timestamp_ms     = prepare_param_int :smallest_timestamp_ms
     window_width              = prepare_param_int :window_width
 
+    groupby_rules_sql = groupby_rules[:sql]
+                          .gsub(/instance_number/i,   'Inst_ID') # Cover difference of instance name between DBA_Hist_Active_Sess_History and gv$Active_Session_History
+                          .gsub(/Session_Serial_No/i, 'Session_Serial#')
+                          .gsub(/s\.TX_ID/i, 'RawToHex(XID)')
+                          .gsub(/Service_Name/i, 'Name')
+                          .gsub(/Current_File_No/i, 'Current_File#')
+                          .gsub(/s\.Modus/i, convert_modus_sql)
+                          .gsub(/Remote_Instance_No/i, 'Remote_Instance#')
+
+    with_sql = nil
+    if ['Entry-PL/SQL', 'PL/SQL'].include?(@groupby)
+      with_sql = "procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures),"
+    end
+
     where_string = ''
     where_values = []
 
     if last_refresh_time_string                                                 # add refresh delta to existing data
-      where_string << "WHERE TO_CHAR(Sample_Time, 'YYYY/MM/DD HH24:MI:SS') > ?"
+      where_string << "WHERE TO_CHAR(s.Sample_Time, 'YYYY/MM/DD HH24:MI:SS') > ?"
       where_values << last_refresh_time_string
     else                                                                        # Initially read data
-      where_string << "WHERE Sample_Time > SYSDATE - ?/24"
+      where_string << "WHERE s.Sample_Time > SYSDATE - ?/24"
       where_values << hours_to_cover
     end
 
     if instance
-      where_string << " AND Inst_ID = ?"
+      where_string << " AND s.Inst_ID = ?"
       where_values << instance
     end
 
@@ -2061,7 +2083,7 @@ oradebug setorapname diag
     smallest_timestamp = nil
     if smallest_timestamp_ms.nil?                                               # first time read data (or none existing until now)
       smallest_timestamp = sql_select_one ["\
-        SELECT MIN(Sample_Time) FROM gv$Active_Session_History #{where_string}
+        SELECT MIN(Sample_Time) FROM gv$Active_Session_History s #{where_string}
       "].concat(where_values)
       smallest_timestamp = Time.now-300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
     else
@@ -2073,33 +2095,54 @@ oradebug setorapname diag
     grouping_secs = 1 if grouping_secs < 1
     grouping_secs = grouping_secs.to_f                                          # ensure exact values after division in SQL
     ash_data = sql_select_all ["\
-      SELECT MAX(Sample_Time_String) OVER (PARTITION BY Grouping) Sample_Time_String, /* max. timestamp over all wait classes in group */
-             Wait_Class, Sessions
-      FROM  (
-             SELECT Grouping,
-                    Wait_Class,
-                    TO_CHAR(MAX(Sample_Time_Date), 'YYYY/MM/DD HH24:MI:SS') Sample_Time_String,
-                    ROUND(AVG(Sessions), 2) Sessions
-             FROM   (SELECT Sample_Time_Date,
-                            Wait_Class,
-                            COUNT(*) Sessions,
-                            ROUND(((Sample_Time_Date - date '1970-01-01')*86400) / ?) Grouping /* grouping criteria for condensed data due to window width */
-                     FROM   (SELECT CAST (Sample_Time AS DATE) Sample_Time_Date,
-                                    COALESCE(Wait_Class, DECODE(Session_State, 'ON CPU', 'CPU', '[Unknown]')) Wait_Class
-                             FROM   gv$Active_Session_History
-                             #{where_string}
-                            )
-                     GROUP BY Sample_Time_Date, Wait_Class /* group by seconds to get number of waiting sessions for timestamp */
-                    )
-             GROUP BY Grouping, Wait_Class
-            )
-      ORDER BY Sample_Time_String, Wait_Class
-    "].concat([grouping_secs]).concat(where_values)
+      WITH #{with_sql}
+           Ash AS ( SELECT /*+ NO_MERGE */ MAX(Sample_Time_String) OVER (PARTITION BY Grouping) Sample_Time_String, /* max. timestamp over all wait classes in group */
+                           #{groupby_rules[:sql_alias]}, Sessions
+                    FROM  (
+                           SELECT Grouping,
+                                  #{groupby_rules[:sql_alias]},
+                                  TO_CHAR(MAX(Sample_Time_Date), 'YYYY/MM/DD HH24:MI:SS') Sample_Time_String,
+                                  ROUND(AVG(Sessions), 2) Sessions
+                           FROM   (SELECT Sample_Time_Date,
+                                          #{groupby_rules[:sql_alias]},
+                                          COUNT(*) Sessions,
+                                          ROUND(((Sample_Time_Date - date '1970-01-01')*86400) / ?) Grouping /* grouping criteria for condensed data due to window width */
+                                   FROM   (SELECT CAST (Sample_Time AS DATE) Sample_Time_Date,
+                                                  #{groupby_rules_sql} #{groupby_rules[:sql_alias]}
+                                           FROM   gv$Active_Session_History s
+                                           #{groupby_rules[:join]}
+                                           #{where_string}
+                                          )
+                                   GROUP BY Sample_Time_Date, #{groupby_rules[:sql_alias]} /* group by seconds to get number of waiting sessions for timestamp */
+                                  )
+                           GROUP BY Grouping, #{groupby_rules[:sql_alias]}
+                          )
+                  ), /* Ash */
+           TopX_Groups AS (SELECT /*+ NO_MERGE */ #{groupby_rules[:sql_alias]} Group_Name
+                           FROM   (
+                                   SELECT /*+ NO_MERGE */ #{groupby_rules[:sql_alias]}
+                                   FROM   Ash
+                                   GROUP BY #{groupby_rules[:sql_alias]}
+                                   ORDER BY SUM(Sessions) DESC
+                                  )
+                           WHERE  ROWNUM <= ?
+                          )
+      SELECT Sample_Time_String, DECODE(topx.Group_Name, NULL, '[ Others ]', topx.Group_Name) #{groupby_rules[:sql_alias]}, SUM(Sessions) Sessions
+      FROM   Ash
+      LEFT OUTER JOIN TopX_Groups topx ON topx.Group_Name = ash.#{groupby_rules[:sql_alias]}
+      GROUP BY Sample_Time_String, DECODE(topx.Group_Name, NULL, '[ Others ]', topx.Group_Name)
+      ORDER BY Sample_Time_String, DECODE(topx.Group_Name, NULL, '[ Others ]', topx.Group_Name)
+    ", grouping_secs].concat(where_values).concat([@topx])
+
+
+
+    #ash_data << { Sample_Time_String: db_time_now.strftime("%Y/%m/%d %H:%M:%S"), 'wait_class': "END #{db_time_now.strftime("%H:%M:%S")}", 'sessions': 20}.extend(SelectHashHelper) # add end marker for chart
+    # Calculate sums for grouping categories
 
     ash_data.each do |a|
       a.sessions = a.sessions.to_f if a.sessions.instance_of? BigDecimal
     end
-    render json: { grouping_secs: grouping_secs, ash_data: ash_data }
+    render json: { grouping_secs: grouping_secs, groupby_alias: groupby_rules[:sql_alias], ash_data: ash_data }
   end
 
   def refresh_top_session_sql

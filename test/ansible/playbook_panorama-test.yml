@@ -1,6 +1,12 @@
 # Setup VM for panorama-test
-# Run: > ansible-playbook playbook_panorama-test.yml
+# Run: > ansible-playbook -i inventory.yml playbook_panorama-test.yml --extra-vars "datadog_api_key=<your API key>"
 - hosts: panorama-test
+
+  vars_prompt:
+    - name: datadog_api_key
+      prompt: Datadog API Key
+      private: yes
+
   tasks:
     - name: set timezone to Europe/Berlin
       become: true
@@ -149,6 +155,42 @@
         name: github_runners.service
         state: restarted
         enabled: yes
+
+    - name: Pull Datadog Docker image
+      become: true
+      docker_image:
+        name: gcr.io/datadoghq/agent:7
+        source: pull
+        force_source: yes
+
+    - name: DataDog Docker container
+      become: true
+      docker_container:
+        name: DataDogAgent
+        image: "gcr.io/datadoghq/agent:7"
+        restart_policy: "always"
+        recreate: "yes"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock:ro"
+          - "/proc/:/host/proc/:ro"
+          - "/sys/fs/cgroup/:/host/sys/fs/cgroup:ro"
+          - "/etc/os-release:/host/etc/os-release:ro"
+        cgroupns_mode: host
+        pid_mode: host
+        env:
+          # Setting different hostname prevents containers from being recognized by Datadog
+          # DD_HOSTNAME: "panorama.osp-dd.de"
+          DD_SITE: "datadoghq.eu"
+          DD_API_KEY: "{{ datadog_api_key }}"
+          DD_ENV: "dev"
+          #  export DD_TAGS="env:production"
+          DD_LOGS_ENABLED: "true"
+          DD_PROCESS_AGENT_ENABLED: "true"
+          DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+        log_driver: json-file
+        log_options:
+          max-size: "10m"
+          max-file: "10"
 
 #    config gitlab runner
 #>  docker run -d --name OCI_runner1 --restart always -v /srv/gitlab-runner/config1:/etc/gitlab-runner -v /var/run/docker.sock:/var/run/docker.sock gitlab/gitlab-runner:latest

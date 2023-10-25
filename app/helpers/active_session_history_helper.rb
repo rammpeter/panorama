@@ -20,7 +20,7 @@ module ActiveSessionHistoryHelper
                          )"
 
       @session_statistics_key_rules_hash["Wait Event"]      = {:sql => "NVL(s.Event, s.Session_State)", :sql_alias => "event",    :Name => 'Wait Event',    :Title => 'Wait event (session state, if wait event = NULL)', :Data_Title => '#{explain_wait_event(rec.event)}' }
-      @session_statistics_key_rules_hash["Wait Class"]      = {:sql => "NVL(s.Wait_Class, 'CPU')", :sql_alias => "wait_class",    :Name => 'Wait Class',    :Title => 'Wait class' }
+      @session_statistics_key_rules_hash["Wait Class"]      = {:sql => "COALESCE(s.Wait_Class, DECODE(s.Session_State, 'ON CPU', 'CPU', '[Unknown]'))", :sql_alias => "wait_class",    :Name => 'Wait Class',    :Title => 'Wait class' }
       @session_statistics_key_rules_hash["Instance"]        = {:sql => "s.Instance_Number",   :sql_alias => "instance_number",    :Name => 'Inst.',         :Title => 'RAC instance' }
       @session_statistics_key_rules_hash["Con-ID"]          = {:sql => "s.Con_ID",            :sql_alias => "con_id",             :Name => 'Con.-ID',       :Title => 'Container-ID for pluggable database', :info_sql=>"(SELECT MIN(Name) FROM gv$Containers i WHERE i.Con_ID=s.Con_ID)", :info_caption=>'Container name' } if get_current_database[:cdb]
       if get_db_version >= "11.2"
@@ -30,7 +30,7 @@ module ActiveSessionHistoryHelper
       end
       @session_statistics_key_rules_hash["Session Type"]    = {:sql => "SUBSTR(s.Session_Type,1,1)", :sql_alias => "session_type",              :Name => 'S-T',          :Title      => "Session-type: (U)SER, (F)OREGROUND or (B)ACKGROUND" }
       @session_statistics_key_rules_hash["Transaction"]     = {:sql => "s.Tx_ID",             :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if get_db_version >= "11.2"
-      @session_statistics_key_rules_hash["User"]            = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User" }
+      @session_statistics_key_rules_hash["User"]            = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User", join: "LEFT JOIN All_Users u ON u.User_ID = s.User_ID" }
       @session_statistics_key_rules_hash["SQL-ID"]          = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID of the direct executed SQL', :info_sql  => sql_id_info_sql, :info_caption => "SQL-Text (first chars)" }
       @session_statistics_key_rules_hash["SQL Exec-ID"]     = {:sql => "s.SQL_Exec_ID",       :sql_alias => "sql_exec_id",        :Name => 'SQL Exec-ID',   :Title => 'SQL Execution ID', :info_sql  => "MIN(SQL_Exec_Start)", :info_caption => "Exec. start time"} if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["Top Level SQL-ID"]= {:sql => "s.Top_Level_SQL_ID",  :sql_alias => "top_level_sql_id",   :Name => 'Top Level SQL-ID',  :Title => "Top level SQL-ID\nID of the surrounding SQL if direct SQL is called recursive by another SQL", :info_sql  => top_level_sql_id_info_sql, :info_caption => "SQL-Text (first chars)" }
@@ -38,17 +38,25 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Module"]          = {:sql => "TRIM(s.Module)",      :sql_alias => "module",             :Name => 'Module',        :Title => 'Module set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }
       @session_statistics_key_rules_hash["Action"]          = {:sql => "TRIM(s.Action)",      :sql_alias => "action",             :Name => 'Action',        :Title => 'Action set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }
       @session_statistics_key_rules_hash["DB Object"]       = {:sql => "CASE WHEN o.Object_ID IS NOT NULL THEN LOWER(o.Owner)||'.'||o.Object_Name ELSE '[Unknown] TS='||NVL(f.Tablespace_Name, 'none') END", :sql_alias  => "current_object", :Name => 'DB Object',
-                                                           :Title => "DB Object #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}", :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
+                                                               :Title => "DB Object #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}", :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type",
+                                                               :join => "LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Current_Obj# LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File#"
+      }
       @session_statistics_key_rules_hash["DB Subobject"]    = {:sql=> "CASE WHEN o.Object_ID IS NOT NULL THEN LOWER(o.Owner)||'.'||o.Object_Name|| CASE WHEN o.SubObject_Name IS NULL THEN '' ELSE ' ('||o.SubObject_Name||')' END ELSE '[Unknown] TS='||NVL(f.Tablespace_Name, 'none') END",
-                                                            :sql_alias  => "current_subobject", :Name => 'DB Subobject',
-                                                            :Title      => "DB Subobject / Partition #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}",
-                                                            :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type" }
+                                                               :sql_alias  => "current_subobject", :Name => 'DB Subobject',
+                                                               :Title      => "DB Subobject / Partition #{I18n.t(:active_session_history_helper_db_object_title, :default=>" from gv$Session.Row_Wait_Obj#. If p2Text=object#, then this will be used instead of  row_wait_obj#. Attention: May contain object of previous action!")}",
+                                                               :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type",
+                                                               :join => "LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Current_Obj# LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File#"
+      }
       @session_statistics_key_rules_hash["Entry-PL/SQL"]    = {:sql => "peo.Object_Type||CASE WHEN peo.Owner IS NOT NULL THEN ' ' END||peo.Owner||CASE WHEN peo.Object_Name IS NOT NULL THEN '.' END||peo.Object_Name||CASE WHEN peo.Procedure_Name IS NOT NULL THEN '.' END||peo.Procedure_Name",
-                                                               :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module' }
+                                                               :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module',
+                                                               join: "LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID"
+      }
       @session_statistics_key_rules_hash["PL/SQL"]          = {:sql => "po.Object_Type||CASE WHEN po.Owner IS NOT NULL THEN ' ' END||po.Owner||CASE WHEN po.Object_Name IS NOT NULL THEN '.' END||po.Object_Name||CASE WHEN po.Procedure_Name IS NOT NULL THEN '.' END||po.Procedure_Name",
-                                                               :sql_alias => "plsql_module",       :Name => 'PL/SQL',        :Title => 'currently executed PL/SQL module' }
-      @session_statistics_key_rules_hash["Service"]         = {:sql => "sv.Service_Name",     :sql_alias => "service",            :Name => 'Service',       :Title =>'TNS-Service' }
-      @session_statistics_key_rules_hash["Tablespace"]      = {:sql => "f.TableSpace_Name",   :sql_alias => "ts_name",            :Name => 'TS-name',       :Title => "Tablespace name" }
+                                                               :sql_alias => "plsql_module",       :Name => 'PL/SQL',        :Title => 'currently executed PL/SQL module',
+                                                               join: "LEFT OUTER JOIN procs po ON po.Object_ID = s.PLSQL_Object_ID AND po.SubProgram_ID = s.PLSQL_SubProgram_ID"
+      }
+      @session_statistics_key_rules_hash["Service"]         = {:sql => "sv.Service_Name",     :sql_alias => "service",            :Name => 'Service',       :Title =>'TNS-Service', join: "LEFT OUTER JOIN gv$Services sv ON sv.Inst_ID = s.Inst_ID AND sv.Name_Hash = s.Service_Hash" }
+      @session_statistics_key_rules_hash["Tablespace"]      = {:sql => "f.TableSpace_Name",   :sql_alias => "ts_name",            :Name => 'TS-name',       :Title => "Tablespace name", join: "LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File#" }
       @session_statistics_key_rules_hash["Datafile"]        = {:sql => "s.Current_File_No",   :sql_alias => "file_no",            :Name => 'Datafile#',     :Title => "Datafile number", :info_sql => "MIN(f.File_Name)||' TS='||MIN(f.Tablespace_Name)", :info_caption => "Tablespace-Name" }
       @session_statistics_key_rules_hash["Program"]         = {:sql => "TRIM(s.Program)",     :sql_alias => "program",            :Name => 'Program',       :Title      => "Client program" }
       @session_statistics_key_rules_hash["Machine"]         = {:sql => "TRIM(s.Machine)",     :sql_alias => "machine",            :Name => 'Machine',       :Title      => "Client machine" } if get_db_version >= "11.2"
@@ -269,7 +277,20 @@ module ActiveSessionHistoryHelper
                  TM_Delta_Time/1000000 TM_Delta_Time_Secs, TM_Delta_CPU_Time/1000000 TM_Delta_CPU_Time_Secs, TM_Delta_DB_Time/1000000 TM_Delta_DB_Time_Secs,
                  Delta_Time/1000000 Delta_Time_Secs, Delta_Read_IO_Requests, Delta_Write_IO_Requests,
                  Delta_Read_IO_Bytes/1024 Delta_Read_IO_kBytes, Delta_Write_IO_Bytes/1024 Delta_Write_IO_kBytes, Delta_Interconnect_IO_Bytes/1024 Delta_Interconnect_IO_kBytes,
-                 SUBSTR(DECODE(In_Connection_Mgmt,   'Y', ', connection management') ||
+                 #{convert_modus_sql} Modus
+                "
+    else
+      retval << ', SQL_ID' # für 10er DB keine Top_Level_SQL_ID verfügbar
+    end
+    if get_db_version >= '12.1'
+      retval << ", Con_ID"
+    end
+    retval
+  end
+
+  # @return SQL snippet for text expression of several state flag columns for DBA_Hist_Active_Sess_History / v$Active_Session_History
+  def convert_modus_sql
+    "SUBSTR(DECODE(In_Connection_Mgmt,   'Y', ', connection management') ||
                  DECODE(In_Parse,             'Y', ', parse') ||
                  DECODE(In_Hard_Parse,        'Y', ', hard parse') ||
                  DECODE(In_SQL_Execution,     'Y', ', SQL exec') ||
@@ -283,15 +304,7 @@ module ActiveSessionHistoryHelper
                  DECODE(Capture_Overhead,     'Y', ', capture overhead') ||
                  DECODE(Replay_Overhead,      'Y', ', replay overhead') ||
                  DECODE(Is_Captured,          'Y', ', session captured') ||
-                 DECODE(Is_Replayed,          'Y', ', session replayed'), 3) Modus
-                "
-    else
-      retval << ', SQL_ID' # für 10er DB keine Top_Level_SQL_ID verfügbar
-    end
-    if get_db_version >= '12.1'
-      retval << ", Con_ID"
-    end
-    retval
+                 DECODE(Is_Replayed,          'Y', ', session replayed'), 3)"
   end
 
   # round sample time for ASH so that samples from different RAC instances are comparable/matchable

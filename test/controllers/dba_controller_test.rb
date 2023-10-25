@@ -234,5 +234,19 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-
+  test "refresh_dashboard_ash with xhr: true" do
+    session_statistics_key_rules.each do |key, sskr|
+      instance = rand(0..1)
+      instance = nil if instance = 0
+      if rand(0..1) == 0
+        last_refresh_time_string = nil
+        smallest_timestamp_ms = nil
+      else
+        last_refresh_time_string = Time.now.strftime('%Y/%m/%d %H:%M:%S')
+        smallest_timestamp_ms = 1698157539000
+      end
+      post '/dba/refresh_dashboard_ash', :params => {:format=>:html, :update_area=>:hugo, instance: instance, hours_to_cover: 0.5, groupby: key, topx: 10, last_refresh_time_string: last_refresh_time_string, smallest_timestamp_ms: smallest_timestamp_ms, window_width: 1024 }
+      assert_response :success, log_on_failure("refresh_dashboard_ash failed for key #{key} and instance #{instance}")
+    end
+  end
 end
