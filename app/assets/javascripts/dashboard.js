@@ -233,11 +233,12 @@ class DashboardData {
 
         // now this.ash_data_array is complete for display in chart
         // this.ash_data_array is left untouched for next refresh but reduced to topx groups for display in chart
-        let ash_data_arrayto_show = []                                          // clone array elements to not hurt content of this.ash_data_array
+        // this is necessary to keep the detailed values over the whole period of diagram and rate topx by the sum of detailed values over the whole period
+        let ash_data_array_to_show = JSON.parse(JSON.stringify(this.ash_data_array)); // deep clone array elements to not hurt content of this.ash_data_array
 
         // compress groups into [ Others ] if there are more than x groups in diagram
-        if (this.ash_data_array.filter(col=>col.label !== '[ Others ]').length > this.topx){
-            let others_group = this.ash_data_array.find(o => o.label === '[ Others ]')
+        if (ash_data_array_to_show.filter(col=>col.label !== '[ Others ]').length > this.topx){
+            let others_group = ash_data_array_to_show.find(o => o.label === '[ Others ]')
             // Create the Others group if not yet exists and if there are more than x groups in diagram
             if (others_group === undefined){
                 // Ensure that each used timestamp also exists in the new group
@@ -257,10 +258,10 @@ class DashboardData {
                     return 0;
                 });
                 others_group = { label: 'Others', data: others_data, session_sum: 0 }
-                this.ash_data_array.push(others_group);
+                ash_data_array_to_show.push(others_group);
             }
-            // this.ash_data_array is sorted by session_sum, so for top x ist should be reversed
-            const reversed_data_array = [...this.ash_data_array.filter(col=>col.label !== '[ Others ]')].reverse();
+            // ash_data_array_to_show is sorted by session_sum, so for top x ist should be reversed
+            const reversed_data_array = [...ash_data_array_to_show.filter(col=>col.label !== '[ Others ]')].reverse();
             // add values from groups that are not in top x to [ Others ]
             reversed_data_array.forEach((col, top_index)=>{
                 if (top_index >= this.topx) {
@@ -271,12 +272,12 @@ class DashboardData {
                     col.session_sum = 0;                                       // mark group for deletion outside of loop
                 }
             });
-            this.ash_data_array = this.ash_data_array.filter(col=>col.session_sum > 0); // remove groups that exceed the top x
+            ash_data_array_to_show = ash_data_array_to_show.filter(col=>col.session_sum > 0); // remove groups that exceed the top x
             this.sort_data_array_by_session_sum();                              // Sort again to ensure [ Others ] is at the right position
         }
 
         // define fixed colors for wait classes or events
-        this.ash_data_array.forEach((col)=> {
+        ash_data_array_to_show.forEach((col)=> {
             let color = wait_class_color(col.label);
             if (color){
                 col['color'] = color;
@@ -301,13 +302,13 @@ class DashboardData {
         this.options.legend.labelFormatter = (label, series) => {
 
             let label_ajax_call = "" +
-                "let json_data                       = { groupfilter: {}};\n" +
-                "json_data.groupfilter.DBID          = "+this.dbid+";\n" +
-                "json_data.groupfilter['Wait Class'] = '"+label+"';\n" +
-                "json_data.groupby                   = 'Wait Event';\n" +
-                "json_data.xstart_ms                 = "+min_time_ms+";\n" +
-                "json_data.xend_ms                   = "+max_time_ms+";\n" +
-                "json_data.update_area               = '"+this.update_area_id+"';\n"
+                "let json_data                                  = { groupfilter: {}};\n" +
+                "json_data.groupfilter.DBID                     = "+this.dbid+";\n" +
+                "json_data.groupfilter['" + this.groupby + "']  = '"+label+"';\n" +
+                "json_data.groupby                              = '" + this.groupby + "';\n" +
+                "json_data.xstart_ms                            = "+min_time_ms+";\n" +
+                "json_data.xend_ms                              = "+max_time_ms+";\n" +
+                "json_data.update_area                          = '"+this.update_area_id+"';\n"
             ;
 
             // use start and ent time of selection if selected
@@ -321,15 +322,17 @@ class DashboardData {
                 label_ajax_call += "json_data.groupfilter.Instance = "+this.rac_instance+";\n"
 
             label_ajax_call += "ajax_html('"+this.update_area_id+"', 'active_session_history', 'list_session_statistic_historic_grouping_with_ms_times', json_data);\n"
-
-            return '<a href="#" onclick="'+label_ajax_call+' return false;" title="Show details for this wait class grouped by wait event">' + label + '</a>';
+            if (label === '[ Others ]')                                         // no ASH link exists for [ Others ]
+                return label;
+            else
+                return '<a href="#" onclick="'+label_ajax_call+' return false;" title="Show details for this wait class grouped by wait event">' + label + '</a>';
         }
 
         let wait_string = ''+this.hours_to_cover+' hours';
         if (this.hours_to_cover < 1)
             wait_string = ''+Math.round(this.hours_to_cover*60)+ ' minutes';
 
-        this.diagram = plot_diagram(this.unique_id, sub_canvas_id, 'Number of active sessions within last '+wait_string+' grouped by wait class', this.ash_data_array, this.options);
+        this.diagram = plot_diagram(this.unique_id, sub_canvas_id, 'Number of active sessions within last '+wait_string+' grouped by wait class', ash_data_array_to_show, this.options);
 
         // set selection in chart to delta just added in diagram
         if (!initial_data_load)
