@@ -246,7 +246,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
         smallest_timestamp_ms = 1698157539000
       end
       post '/dba/refresh_dashboard_ash', :params => {:format=>:html, :update_area=>:hugo, instance: instance, hours_to_cover: 0.5, groupby: key, topx: 10, last_refresh_time_string: last_refresh_time_string, smallest_timestamp_ms: smallest_timestamp_ms, window_width: 1024 }
-      assert_response :success, log_on_failure("refresh_dashboard_ash failed for key #{key} and instance #{instance}")
+      assert_response management_pack_license == :none ? :error : :success, log_on_failure("refresh_dashboard_ash failed for key #{key} and instance #{instance}")
     end
   end
 end
