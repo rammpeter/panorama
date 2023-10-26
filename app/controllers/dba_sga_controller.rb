@@ -343,6 +343,7 @@ class DbaSgaController < ApplicationController
     @child_number           = prepare_param_int :child_number
     @child_address          = prepare_param :child_address
     @show_adaptive_plans     = prepare_param_int :show_adaptive_plans
+    @show_additional_columns = prepare_param(:show_additional_columns)&.upcase == 'TRUE'
 
     where_string = ''
     where_values = []
@@ -541,6 +542,7 @@ class DbaSgaController < ApplicationController
 
     # Segmentation of XML document
     @plan_additions = []
+    @hint_usage = []
     begin
       xml_doc = Nokogiri::XML(other_xml)
       xml_doc.xpath('//info').each do |info|
@@ -565,11 +567,20 @@ class DbaSgaController < ApplicationController
         }.extend SelectHashHelper)
       end
 
+      # below outline_data
       xml_doc.xpath('//hint').each do |hint|
         @plan_additions << ({
           :record_type  => 'Hint',
           :attribute    => nil,
           :value        => hint.children.text
+        }.extend SelectHashHelper)
+      end
+
+      xml_doc.xpath('//hint_usage/q').each do |hint|
+        @plan_additions << ({
+          :record_type  => 'Hint_Usage',
+          :attribute    => nil,
+          :value        => hint.children.to_s
         }.extend SelectHashHelper)
       end
 

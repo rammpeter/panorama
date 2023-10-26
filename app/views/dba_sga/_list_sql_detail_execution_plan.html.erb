@@ -139,6 +139,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
   column_options = []
   column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
   column_options << {:caption=>"Operation",   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, mp[:plans]) }, :no_wrap=>true,                         :title=>'Kind of data access', :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
+  column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if @show_additional_columns
   column_options << {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
   column_options << {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
   column_options << { :caption=>"Object-name", :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
@@ -220,7 +221,16 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
         :icon_class            => 'cui-map',
         :show_icon_in_caption  => true,
         :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan_additional_info', #{param_string.call("plan_hash_value: #{mp.plan_hash_value}")});"
-      }]
+      },
+      {
+        name:                  :additional_columns,
+        caption:               'Toggle display of additional columns (query block name)',
+        :hint                  => "Show/hide additional additional columns in execution plan (query block name, ...)",
+        :icon_class            => 'cui-tabl et',
+        :show_icon_in_caption  => true,
+        :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call("show_additional_columns: #{!@show_additional_columns}")});"
+     }
+    ]
     if mp[:adaptive_plan]
       command_menu_entries << {
           name:                  :adaptive_plans,
