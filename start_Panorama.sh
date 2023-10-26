@@ -47,7 +47,7 @@ java -Xmx1024m \
      -Djava.io.tmpdir=$WORK_DIR \
      -Dwarbler.port=$HTTP_PORT \
      -Djava.security.egd=file:/dev/urandom \
-     -jar $PANORAMA_HOME/Panorama.war 2>>$LOG >>$LOG &
+     -jar $PANORAMA_HOME/Panorama.jar 2>>$LOG >>$LOG &
 
 if [ $? -ne 0 ]
 then
@@ -57,7 +57,7 @@ then
 fi
 
 export MAX_WAIT=300
-export URL="http://localhost:$HTTP_PORT/Panorama/"
+export URL="http://localhost:$HTTP_PORT"
 
 typeset -i LOOP_COUNT=0
 while [ $LOOP_COUNT -lt $MAX_WAIT ]

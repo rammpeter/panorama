@@ -322,10 +322,36 @@ class DashboardData {
                 label_ajax_call += "json_data.groupfilter.Instance = "+this.rac_instance+";\n"
 
             label_ajax_call += "ajax_html('"+this.update_area_id+"', 'active_session_history', 'list_session_statistic_historic_grouping_with_ms_times', json_data);\n"
+
+            // add tooltip with sum of sessions for this group
+            let tooltip = ''
+            let period_start_ms = previous_timestamps[0];
+            if (period_start_ms === undefined)                                  // no previous data exists at first call -> use start of delta
+                period_start_ms = min_time_ms;
+            let whole_period_session_sum = ash_data_array_to_show.filter(col=>col.label == label)[0].session_sum;
+            let whole_period_seconds = (max_time_ms - period_start_ms)/1000;
+            tooltip += whole_period_session_sum.toFixed(0) + " seconds spent within this "+this.groupby+" '"+label+"' in the whole shown period of " + whole_period_seconds +" seconds.\n"
+            tooltip += "Average "+ (whole_period_session_sum/whole_period_seconds).toFixed(2) +" sessions have been active in the whole shown period.\n\n"
+
+            let refresh_period_seconds = (max_time_ms - min_time_ms)/1000;
+            if (data_to_add[label] !== undefined){
+                let refresh_sum = 0;
+                Object.values(data_to_add[label]).forEach((val)=>{
+                    refresh_sum += val;
+                });
+                tooltip += refresh_sum.toFixed(0) + " seconds spent within this "+this.groupby+" '"+label+"' in the last refreshed (grayed) period of " + refresh_period_seconds + " seconds\n";
+                tooltip += "Average "+ (refresh_sum/refresh_period_seconds).toFixed(2) +" sessions have been active in the refreshed period."
+            } else {
+                tooltip += "This "+this.groupby+" '"+label+"' was not included in the top "+ this.topx + " of the last refreshed (grayed) period of " + refresh_period_seconds + " seconds.";
+            }
+
+            let display_label = '<div title="' + tooltip + '">';                // label to display in legend
             if (label === '[ Others ]')                                         // no ASH link exists for [ Others ]
-                return label;
+                display_label += label;
             else
-                return '<a href="#" onclick="'+label_ajax_call+' return false;" title="Show details for this wait class grouped by wait event">' + label + '</a>';
+                display_label += '<a href="#" onclick="'+label_ajax_call+' return false;" title="Click link to show details for this wait class grouped by wait event\n\n'+ tooltip +'">' + label + '</a>';
+            display_label += "</div>"
+            return display_label;
         }
 
         let wait_string = ''+this.hours_to_cover+' hours';

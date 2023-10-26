@@ -13,7 +13,7 @@ there are two ways to run Panorama:
 
 ### 1. Use Panorama as Java program (jar file)
 - Ensure you have Java installed (version 8 or higher)
-- Download the latest release of Panorama.jar from https://github.com/rammpeter/Panorama/releases/latest
+- Download the latest release of Panorama.jar from https://github.com/rammpeter/panorama/releases/latest
 - Start the application by executing the jar file in a terminal:
   ```
   > java -jar panorama.jar
