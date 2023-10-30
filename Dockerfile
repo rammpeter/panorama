@@ -9,7 +9,8 @@
 # > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
 # STAGE 1: JRE build
-FROM openjdk:19 as openjdk
+FROM eclipse-temurin:21 as openjdk
+#FROM openjdk:19 as openjdk
 
 # Build small JRE image
 RUN $JAVA_HOME/bin/jlink \
