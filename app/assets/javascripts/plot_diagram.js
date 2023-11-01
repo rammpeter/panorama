@@ -32,20 +32,62 @@
 //      }
 //      plotselected_handler:   function(start, end) with parameters as ms since 1970: (xstart, xend)=>{ ... }
 
-function plot_diagram(unique_id, plot_area_id, caption, data_array, options){
-    let p = new plot_diagram_class(unique_id, plot_area_id, caption, data_array, options);
+/**
+ * Factory method to initally create a plot diagram
+ * @param unique_id A generated unique id for the elements of the diagram
+ * @param parent_id The DOM element where the diagram should be placed, should be a div that is empty for the first call
+ * @param caption
+ * @param data_array
+ * @param options
+ * @returns {plot_diagram_class}
+ */
+function plot_diagram(unique_id, parent_id, caption, data_array, options){
+
+    jQuery('#'+parent_id).html("");                                             //  Remove the DOM element of the whole diagram below
+    let p = new plot_diagram_class(unique_id, parent_id, caption, data_array, options);
     p.initialize();
     return p;
 }
 
-function plot_diagram_class(unique_id, plot_area_id, caption, data_array, options) {
-    var plot_area               = jQuery('#'+plot_area_id);
-    var canvas_id               = "canvas_" + unique_id;
-    var head_id                 = "head_" + canvas_id;
+/**
+ * Refresh an existing diagram with new data
+ * @param pd The plot_diagram object to refresh
+ */
+function refresh_existing_diagram(pd){
+    // Execute async because it may be called from a context menu event handler
+    setTimeout(function() {
+            jQuery('#' + pd.parent_id).contextMenu('destroy', 'div');   // remove the previous context menu registration
+            plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, pd.getOptions());
+        },
+        1);
+}
+
+/**
+ * Class to create a plot diagram
+ * @param unique_id
+ * @param parent_id
+ * @param caption
+ * @param data_array
+ * @param options
+ */
+function plot_diagram_class(unique_id, parent_id, caption, data_array, options) {
+    let thiz                        = this;
+    // allow access on attributes from outside
+    this.unique_id                  = unique_id;
+    this.parent_id                  = parent_id;
+    this.caption                    = caption;
+    this.data_array                 = data_array;
+    // Doo not provide the options from construktor because they are replaced later
+
+    let plot_area_id        = "diagram_"+unique_id;
+    let plot_area = jQuery("<div id='"+plot_area_id+"'></div>").appendTo("#"+parent_id);       // add a new div for the diagram
+
+    var canvas_id              = "canvas_" + unique_id;
+    var head_id                = "head_" + canvas_id;
     var updateLegendTimeout     = null;
     var latestPosition          = null;
     var legend_values           = null;         // Liste der letzten Spalten der Legende für Werte
-    var legend_indexes          = {};           // Hash mit 'legend-name': index in Legende
+    var legend_indexes           = {};           // Hash mit 'legend-name': index in Legende
     var legendXAxis             = null;         // erzeugt in initialize
     var previousToolTipPoint    = null;
     var toolTipID               = canvas_id+"_ToolTip";
@@ -79,6 +121,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         options = jQuery.extend(true, {}, default_options,options);
 
         // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
+
         plot_area
             .css("background-color", "white")
             .addClass('plot_diagram')               // Ermitteln aller aktiven Diagramme
@@ -122,88 +165,97 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
 
 
         // ############ Context-Menü
+        jQuery('#' + plot_area_id).contextMenu({
+            //selector: '#' + plot_area_id, // the selector for the items to show the menu
+            selector: 'div',
+            build: function ($trigger, e) {
+                // this callback is executed every time the menu is to be shown
+                // its results are destroyed every time the menu is hidden
+                // e is the original contextmenu event, containing e.pageX and e.pageY (amongst other data)
 
-        var context_menu_id = "menu_"+canvas_id;
-        var menu = jQuery("<div class='contextMenu' id='"+context_menu_id+"' style='display:none;'>").insertAfter('#'+canvas_id);
-        var ul   = jQuery("<ul></ul>").appendTo(menu);
-        jQuery("<div id='header_"+context_menu_id+"' style='padding: 3px; background-color:lightgray;' align='center'>Diagram</div>").appendTo(ul);
-        var bindings = {};
+                // !!! Don't directly reference the plot object in event handlers because this may result in memory leaks !!!
+                let items = {
+                    header: {
+                        name: '<b>Diagram</b>',
+                        isHtmlName: true,
+                        disabled: true // Disable the header item to make it unselectable
+                    }
+                };
 
-        function context_menu_entry(name, icon_class, label, hint, click_action ){
-            jQuery("<li id='"+context_menu_id+"_"+name+"' title='"+hint+"'><span class='"+icon_class+"' style='float:left'>&nbsp;</span><span id='"+context_menu_id+"_"+name+"_label'>"+label+"</span></li>").appendTo(ul);
-            bindings[context_menu_id+"_"+name] = click_action;
-        }
+                /**
+                 * Add item to context menu
+                 * @param items The items object a new item should be added to
+                 * @param label The label of the new item
+                 * @param icon_class The icon class of the new item
+                 * @param click_action The click action of the new item
+                 * @param hint The title of the new item
+                 */
+                function add_item_to_context_menu(items, label, icon_class, click_action, hint){
+                    items[label] = {
+                        name: "<span class='"+icon_class+"' style='float:left'></span><span title='"+hint+ "'>&nbsp;"+label+"</span>",
+                        isHtmlName: true,
+                        callback: click_action,
+                    };
+                }
 
-        context_menu_entry(
-            'y_axis',
-            "cui-expand-left",
-            options.yaxis.show===true ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
-            options.yaxis.show===true ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint'),
-            function(t){
-                plot_area.html(""); // Altes Diagramm entfernen
-                options.yaxis.show = !options.yaxis.show;
-                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
-            }
-        );
+                add_item_to_context_menu(items,
+                    options.yaxis.show ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
+                    'cui-expand-left',
+                    function(t){
+                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
+                        let options = pd.getOptions();
+                        options.yaxis.show = !options.yaxis.show;
+                        refresh_existing_diagram(pd);
+                        //plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
+                    },
+                        options.yaxis.show ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint')
+                );
 
-        context_menu_entry(
-            'all_in_one',
-            'cui-sort-numeric-up',
-            options.plot_diagram.multiple_y_axes===true ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
-            options.plot_diagram.multiple_y_axes===true ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint'),
-            function(t){
-                plot_area.html(""); // Altes Diagramm entfernen
-                options.plot_diagram.multiple_y_axes = !options.plot_diagram.multiple_y_axes;
-                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
-            }
-        );
+                add_item_to_context_menu(items,
+                    options.plot_diagram.multiple_y_axes ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
+                    'cui-sort-numeric-up',
+                    function(t){
+                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
+                        let options = pd.getOptions();
+                        options.plot_diagram.multiple_y_axes = !options.plot_diagram.multiple_y_axes;
+                        refresh_existing_diagram(pd);
+                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
+                    },
+                    options.plot_diagram.multiple_y_axes ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint')
+                );
 
-        context_menu_entry(
-            'stack',
-            'cuis-chart-area',
-            options.series.stack===true ? locale_translate('diagram_unstack_name') : locale_translate('diagram_stack_name'),
-            options.series.stack===true ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint'),
-            function(t){
-                plot_area.html(""); // Altes Diagramm entfernen
-                options.series.stack = !options.series.stack;
-                options.series.lines.fill = options.series.stack;
-                if (options.series.stack)
-                    options.plot_diagram.multiple_y_axes = false;
-                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
-            }
-        );
+                add_item_to_context_menu(items,
+                    options.series.stack ? locale_translate('diagram_unstack_name') : locale_translate('diagram_stack_name'),
+                    'cuis-chart-area',
+                    function(t){
+                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
+                        let options = pd.getOptions();
+                        options.series.stack = !options.series.stack;
+                        options.series.lines.fill = options.series.stack;
+                        if (options.series.stack)
+                            options.plot_diagram.multiple_y_axes = false;
+                        refresh_existing_diagram(pd);
+                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
+                    },
+                    options.series.stack ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint')
+                );
 
-        context_menu_entry(
-            'point',
-            'cui-options',
-            options.series.points.show===true ? locale_translate('diagram_hide_points_name') : locale_translate('diagram_show_points_name'),
-            options.series.points.show===true ? locale_translate('diagram_hide_points_hint') : locale_translate('diagram_show_points_hint'),
-            function(t){
-                plot_area.html(""); // Altes Diagramm entfernen
-                options.series.points.show = !options.series.points.show;
-                plot_diagram(unique_id, plot_area_id, caption, data_array, options);
-            }
-        );
+                add_item_to_context_menu(items,
+                    options.series.points.show ? locale_translate('diagram_hide_points_name') : locale_translate('diagram_show_points_name'),
+                    'cui-sort-numeric-up',
+                    function(t){
+                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
+                        let options = pd.getOptions();
+                        options.series.points.show = !options.series.points.show;
+                        refresh_existing_diagram(pd);
+                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
+                    },
+                    options.series.points.show ? locale_translate('diagram_hide_points_hint') : locale_translate('diagram_show_points_hint')
+                );
 
-//        context_menu_entry(
-//            'save',
-//            "cui-disk",
-//            locale_translate('diagram_save_to_image_name'),
-//            locale_translate('diagram_save_to_image_hint'),
-//            function(t){
-//                var myCanvas = plot.getCanvas();
-//                var image = myCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  /// here is the most important part because if you dont replace you will get a DOM 18 exception.
-//                document.location.href=image;
-//            }
-//        );
-
-        jQuery('#'+canvas_id).contextMenu(context_menu_id, {
-            menuStyle: {  width: '330px' },
-            bindings:   bindings,
-            onContextMenu : function(event, menu)                               // dynamisches Anpassen des Context-Menü
-            {
-                var cell = $(event.target);
-                return true;
+                return {
+                    items: items
+                };
             }
         });
 
@@ -216,6 +268,13 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
         return plot;
     }
 
+    /**
+     * Get the options of the diagram, options from constructor are replaced in the meantime
+     * @returns {*}
+     */
+    this.getOptions = function(){
+        return options;
+    }
 
     function pad2(number){          // Vornullen auffuellen für Datum etc.
         var str=''+number;
@@ -332,6 +391,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
 
                 //var escaped_legend_name = $("<div>").text(legend_name).html();
                 tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='delete_single_plot_chart(\""+plot_area_id+"\", "+index+"); return false;'>X</a></td>");
+                //tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='thiz.delete_single_chart("+index+"); return false;'>X</a></td>");
             });
 
             // Zeile für Anzeige des Zeitstempels zufügen
@@ -372,7 +432,7 @@ function plot_diagram_class(unique_id, plot_area_id, caption, data_array, option
                     data_array[data_index]['delete_callback'](legend_name);     // deregistrieren der Spalte beim Aufrufer wenn callback hinterlegt
                 }
                 data_array.splice(data_index, 1);                               // Entfernen des Elements aus Data_Array
-                plot_diagram(unique_id, plot_area_id, caption, data_array, options);    // Neuzeichnen des Diagramm
+                plot_diagram(unique_id, parent_id, caption, data_array, options);    // Neuzeichnen des Diagramm
             }
         }
     };

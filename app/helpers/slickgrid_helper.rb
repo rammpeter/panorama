@@ -170,7 +170,7 @@ module SlickgridHelper
   #     :caption_style        => Style-Attribute für caption der Tabelle
   #     :caption_title        => MouseOver-Hint for table caption
   #     :command_menu_entries => Array with hashes or single hash for actions available in caption bar: :name, :caption, :hint, :icon_class=>"cui-xxx", :show_icon_in_caption=>true|false|:only\:right ,  :action=>javascript
-  #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :label, :icon, :action
+  #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :label, :ui_icon, :action (only if no sub-entries defined), :hint, entries: Array with hashes for sub-entries if entry is a node (no action)
   #     :div_style            => Einpacken der Tabelle in Div mit diesem Style
   #     :data_filter          => Name der JavaScript-Methode für filtern der angezeigten Zeilen: Methode muss einen Parameter "item" besitzen mit aktuell zu prüfender Zeile
   #     :grid_id              => DOM-ID des DIV-Elementes für slickgrid
@@ -320,13 +320,26 @@ module SlickgridHelper
     if context_menu_entries
       context_menu_entries = [context_menu_entries] if context_menu_entries.class == Hash  # Einzelnen Hash in Array einbetten, wenn nicht Array üebergeben wurde
       raise "Parameter :context_menu_entries is expected as Hash or Array, not #{context_menu_entries.class.name}" if context_menu_entries.class != Array
-      context_menu_entries.each_index do |i|
-        output << "  { label:   \"#{context_menu_entries[i][:label]}\",
-                       hint:    \"#{context_menu_entries[i][:hint]}\",
-                       ui_icon: \"#{context_menu_entries[i][:ui_icon] ? context_menu_entries[i][:ui_icon] : 'cui-image'}\",
-                       action:  function(t){ #{context_menu_entries[i][:action]}}
-                     },"
+
+      print_entry_list = proc do |entries|
+        entries.each do |entry|
+          output << "  { label:   \"#{entry[:label]}\",\n"
+          output << "    hint:    \"#{entry[:hint]}\",\n"
+          output << "    ui_icon: \"#{entry[:ui_icon] ? entry[:ui_icon] : 'cui-image'}\",\n"
+          if entry[:entries]                                    # Entry is a node for subentries
+            output << "    entries: [\n"
+            print_entry_list.call(entry[:entries])
+            output << "    ]\n"
+          else
+            output << "    action:  function(t){ #{entry[:action]}}\n"
+          end
+          output << "  }"
+          output << "," unless entry == entries.last
+          output << "\n"
+        end
       end
+
+      print_entry_list.call(context_menu_entries)
     end
     output << '];' # Ende Context-Menu
 

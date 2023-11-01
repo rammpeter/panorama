@@ -383,46 +383,38 @@ function SlickGridExtended(container_id, options){
             }
 
             if (show_command_entry_menu) {                                  // Showing menu not suppressed for at least one entry
-                var command_menu_id = 'cmd_menu_'+container_id;
+                let command_menu_id = 'cmd_menu_'+container_id;
 
-                var command_menu_context_id = command_menu_id+'_context_menu';
+                let command_menu_context_id = command_menu_id+'_context_menu';
 
                 caption_left_box.append('<div style="margin-left:5px; margin-right:5px; display: inline-block;" class="slick-shadow">' +
                     '<div id="'+command_menu_id+'" style="padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer;" title="'+locale_translate('slickgrid_menu_hint')+'">' +
                     '\u2261' + // 3 waagerechte Striche ≡
-                    '<div class="contextMenu" id="'+command_menu_context_id+'" style="display:none;">' +
-                    '</div></div></div>'
+                    '</div></div>'
                 );
-
-                var command_menu_list = '<ul>';
-                var bindings = {};
-
-                for (var cmd_index in options['command_menu_entries']) {
-                    var cmd = options['command_menu_entries'][cmd_index];
-                    if (cmd['show_icon_in_caption'] != 'only' && cmd['show_icon_in_caption'] != 'right'){
-                        command_menu_list = command_menu_list +
-                            '<li id="'+command_menu_id+'_'+cmd['name']+'" title="'+cmd['hint']+'"><span class="'+cmd['icon_class']+'" style="float:left;">&nbsp;</span><span>'+cmd['caption']+'</span></li>';
-                        bindings[command_menu_id+'_'+cmd['name']] = new Function(cmd['action']); // create function from text
-
-                    }
-                }
-                command_menu_list = command_menu_list + '</ul>';
-                jQuery('#'+command_menu_context_id).html(command_menu_list);
-
-                jQuery("#"+command_menu_id).contextMenu(command_menu_context_id, {
-                    menuStyle: {  width: '340px' },
-                    bindings:   bindings, onContextMenu : function(event, menu) // dynamisches Anpassen des Context-Menü
-                    {
-                        return true;
-                    }
-                });
-
                 jQuery("#"+command_menu_id).bind('click' , function( event) {
                     jQuery("#"+command_menu_id).trigger("contextmenu", event);
                     return false;
                 });
-            }
 
+                jQuery('#' + command_menu_id).parent().contextMenu({
+                    selector: 'div',
+                    build: function ($trigger, e) {
+                        let command_menu_items = {};
+                        for (let cmd_index in options.command_menu_entries) {
+                            let cmd = options.command_menu_entries[cmd_index];
+                            if (cmd.show_icon_in_caption != 'only' && cmd.show_icon_in_caption != 'right') {
+                                command_menu_items[cmd.name] = {
+                                    name: "<span class='"+cmd.icon_class+"' style='float:left'></span><span title='"+cmd.hint+ "'>&nbsp;"+cmd.caption+"</span>",
+                                    isHtmlName: true,
+                                    callback: new Function(cmd.action)  // create function from text
+                                };
+                            }
+                        }
+                        return { items: command_menu_items };
+                    }
+                });
+            }
 
             // Check for icons in left box of caption line
             for (var cmd_index in options['command_menu_entries']) {
@@ -842,110 +834,154 @@ function SlickGridExtended(container_id, options){
     };
 
     /**
-     * Aufbau context-Menu für slickgrid, Parameter: DOM-ID, Array mit Entry-Hashes
-     * @param table_id
-     * @param menu_entries
+     * Calculate column-specific attributes for xy-position ov event
+     * @param container_id  DOM-ID of grid-container
+     * @param event the triggered event
      */
-    function build_slickgrid_context_menu(table_id,  menu_entries){
-        var options = thiz.grid.getOptions();
-        var context_menu_id = "menu_"+table_id;
-        var menu = jQuery("<div class='contextMenu' id='"+context_menu_id+"' style='display:none;'>").insertAfter('#'+table_id);
-        var ul   = jQuery("<ul></ul>").appendTo(menu);
-        jQuery("<div id='header_"+context_menu_id+"' style='padding: 3px;' align='center'>Header</div>").appendTo(ul);
-        var bindings = {};
+    function set_column_attributes_for_event(container_id, event){
+        var cell = $(event.target);
+        thiz.last_slickgrid_contexmenu_col_header = null;                        // Initialisierung, um nachfolgend Treffer zu testen
 
-        function menu_entry(name, icon_class, click_action, label, hint){
-            if (!label)
-                label = locale_translate("slickgrid_context_menu_"+name);
-            if (!hint)
-                hint = locale_translate("slickgrid_context_menu_"+name+"_hint");
-            jQuery("<li id='"+context_menu_id+"_"+name+"' title='"+hint+"'><span class='"+icon_class+"' style='float:left'>&nbsp;</span><span id='"+context_menu_id+"_"+name+"_label'>"+label+"</span></li>").appendTo(ul);
-            bindings[context_menu_id+"_"+name] = click_action;
-
+        if (cell.parents(".slickgrid_header_"+container_id).length > 0){        // Mouse-Event fand in Unterstruktur des Spalten-Headers statt
+            cell = cell.parents(".slickgrid_header_"+container_id);             // Zeiger auf Spaltenheader stellen
         }
-
-        menu_entry("sort_column",       'cui-sort-ascending',               function(){ thiz.last_slickgrid_contexmenu_col_header.click();} );                  // Menu-Eintrag Sortieren
-        menu_entry("search_filter",     'cui-magnifying-glass',             function(){ thiz.switch_slickgrid_filter_row();} );                                 // Menu-Eintrag Filter einblenden / verstecken
-        menu_entry("export_csv",        'cui-file-xls',                     function(){ grid2CSV(table_id);} );                                            // Menu-Eintrag Export CSV
-        menu_entry("column_sum",        'cui-settings',                     function(){ show_column_stats(thiz.last_slickgrid_contexmenu_column_name);} );      // Menu-Eintrag Spaltensumme
-        menu_entry("field_content",     'cui-zoom-in',                      function(){ show_full_cell_content(thiz.last_slickgrid_contexmenu_field_content);} ); // Menu-Eintrag Feld-Inhalt
-        menu_entry("line_height_single", 'cui-text-height',                 function(){ options['line_height_single'] = !options['line_height_single']; thiz.calculate_current_grid_column_widths("context menu line_height_single");} );
-
-
-        if (options['plotting']){
-            // Menu-Eintrag Spalte in Diagramm
-            menu_entry("plot_column",     'cui-chart-line',     function(){ plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], thiz.last_slickgrid_contexmenu_column_name, options['multiple_y_axes'], options['show_y_axes']);} );
-            // Menu-Eintrag Alle entfernen aus Diagramm
-            menu_entry("remove_all_from_diagram", 'cui-trash',         function(){
-                    var columns = thiz.grid.getColumns();
-                    for (var col_index in columns){
-                        columns[col_index]['plottable'] = 0;
-                    }
-                    plot_slickgrid_diagram(table_id, options['plot_area_id'], options['caption'], null);  // Diagramm neu zeichnen
-                }
-            );
+        if (cell.hasClass("slickgrid_header_"+container_id)){                   // Mouse-Event fand direkt im Spalten-Header oder innerhalb statt
+            thiz.last_slickgrid_contexmenu_col_header = cell;
+            thiz.last_slickgrid_contexmenu_column_name = cell.data('column')['field']
         }
-
-        menu_entry("sort_method", 'cui-calculator',      function(){
-                if (options['sort_method'] === 'QuickSort'){
-                    options['sort_method'] = 'BubbleSort';
-                } else {
-                    options['sort_method'] = 'QuickSort';
-                }
-                jQuery("#"+context_menu_id+"_sort_method_label")
-                    .html(locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']))
-                    .attr('title', locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']+'_hint'));
-            },
-            locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']),
-            locale_translate('slickgrid_context_menu_sort_method_'+options['sort_method']+'_hint')
-        );
-
-        for (var entry_index in menu_entries){
-            menu_entry(entry_index, menu_entries[entry_index]['ui_icon'], menu_entries[entry_index]['action'], menu_entries[entry_index]['label'], menu_entries[entry_index]['hint']);
+        if (cell.parents(".slick-cell").length > 0){                        // Mouse-Event fand in Unterstruktur der Zelle statt
+            cell = cell.parents(".slick-cell");                             // Zeiger auf äußerstes DIV der Zelle stellen
         }
+        if (cell.hasClass("slick-cell")){                                   // Mouse-Event fand in äußerstem DIV der Zelle oder innerhalb statt
+            var slick_header = thiz.gridContainer.find('.slick-header-columns');
+            cell = cell.find(".slick-inner-cell");                          // Inneren DIV mit Spalten-Info suchen
+            thiz.last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');  // merken der Header-Spalte des mouse-Events;
+            thiz.last_slickgrid_contexmenu_column_name = cell.attr('column');
+            thiz.last_slickgrid_contexmenu_field_content = cell.text();
+        }
+    }
 
-        // basiert auf ContextMenu - jQuery plugin for right-click context menus, Author: Chris Domigan, http://www.trendskitchens.co.nz/jquery/contextmenu/
-        thiz.gridContainer.contextMenu(context_menu_id, {
-            menuStyle: {  width: '330px' },
-            bindings:   bindings,
-            onContextMenu : function(event, menu)                                   // dynamisches Anpassen des Context-Menü
-            {
-                var cell = $(event.target);
-                thiz.last_slickgrid_contexmenu_col_header = null;                        // Initialisierung, um nachfolgend Treffer zu testen
+    /**
+     * Create context-Menu für slickgrid, Parameter: DOM-ID, Array with Entry-Hashes
+     * @param table_id Element to bind the context menu to
+     * @param menu_entries Additional menu entries to show in context menu
+     */
+    function build_slickgrid_context_menu(container_id,  additional_menu_entries){
+        jQuery('#'+container_id).contextMenu({
+            selector: 'div', // the selector for the items to show the menu
+            build: function($trigger, e) {
+                // this callback is executed every time the menu is to be shown
+                // its results are destroyed every time the menu is hidden
+                // e is the original contextmenu event, containing e.pageX and e.pageY (amongst other data)
+                let options = thiz.grid.getOptions();
+                set_column_attributes_for_event(container_id, e);
 
-                if (cell.parents(".slickgrid_header_"+table_id).length > 0){        // Mouse-Event fand in Unterstruktur des Spalten-Headers statt
-                    cell = cell.parents(".slickgrid_header_"+table_id);             // Zeiger auf Spaltenheader stellen
-                }
-                if (cell.hasClass("slickgrid_header_"+table_id)){                   // Mouse-Event fand direkt im Spalten-Header oder innerhalb statt
-                    thiz.last_slickgrid_contexmenu_col_header = cell;
-                    thiz.last_slickgrid_contexmenu_column_name = cell.data('column')['field']
-                }
-                if (cell.parents(".slick-cell").length > 0){                        // Mouse-Event fand in Unterstruktur der Zelle statt
-                    cell = cell.parents(".slick-cell");                             // Zeiger auf äußerstes DIV der Zelle stellen
-                }
-                if (cell.hasClass("slick-cell")){                                   // Mouse-Event fand in äußerstem DIV der Zelle oder innerhalb statt
-                    var slick_header = thiz.gridContainer.find('.slick-header-columns');
-                    cell = cell.find(".slick-inner-cell");                          // Inneren DIV mit Spalten-Info suchen
-                    thiz.last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');  // merken der Header-Spalte des mouse-Events;
-                    thiz.last_slickgrid_contexmenu_column_name = cell.attr('column');
-                    thiz.last_slickgrid_contexmenu_field_content = cell.text();
-                }
-
+                // define the context menu header
+                let header_line = '';
                 if (thiz.last_slickgrid_contexmenu_col_header) {                         // konkrete Spalte ist bekannt
-                    var column = thiz.grid.getColumns()[thiz.grid.getColumnIndex(thiz.last_slickgrid_contexmenu_column_name)];
-                    jQuery('#header_'+context_menu_id)
-                        .html('Column: <b>'+thiz.last_slickgrid_contexmenu_col_header.html()+'</b>')
-                        .css('background-color','lightgray');
-
-                    jQuery("#"+context_menu_id+"_plot_column_label").html(locale_translate(column['plottable'] ? "slickgrid_context_menu_switch_col_from_diagram" : "slickgrid_context_menu_switch_col_into_diagram"));
-                    jQuery("#"+context_menu_id+"_line_height_single_label").html(locale_translate(options["line_height_single"] ? "slickgrid_context_menu_line_height_full" : "slickgrid_context_menu_line_height_single"));
+                    header_line = 'Column: <b>'+thiz.last_slickgrid_contexmenu_col_header.text()+'</b>';
                 } else {
-                    jQuery('#header_'+context_menu_id)
-                        .html('Column/cell not exactly hit! Please retry.')
-                        .css('background-color','red');
+                    header_line = '<span style="background-color: red; color: black;">&nbsp;Column/cell not exactly hit! Please retry.&nbsp;</span>';
                 }
-                jQuery("#"+context_menu_id+"_search_filter_label").html(locale_translate(thiz.grid.getOptions()["showHeaderRow"] ? "slickgrid_context_menu_hide_filter" : "slickgrid_context_menu_show_filter"));
-                return true;
+                let items = {
+                    header: {
+                        name: header_line,
+                        isHtmlName: true,
+                        disabled: true // Disable the header item to make it unselectable
+                    },
+                };
+
+                /**
+                 * Add item to context menu
+                 * @param items The items object a new item should be added to
+                 * @param label The label of the new item
+                 * @param icon_class The icon class of the new item
+                 * @param click_action The click action of the new item
+                 * @param hint The title of the new item
+                 */
+                function add_item_to_context_menu(items, label, icon_class, click_action, hint){
+                    items[label] = {
+                        name: "<span class='"+icon_class+"' style='float:left'></span><span title='"+hint+ "'>&nbsp;"+label+"</span>",
+                        isHtmlName: true,
+                        callback: click_action,
+                    };
+                }
+
+                function add_default_item_to_context_menu(name, icon_class, click_action){
+                    add_item_to_context_menu(items, locale_translate("slickgrid_context_menu_"+name), icon_class, click_action, locale_translate("slickgrid_context_menu_"+name+"_hint"));
+                }
+
+                add_default_item_to_context_menu("sort_column", 'cui-sort-ascending', function(){ thiz.last_slickgrid_contexmenu_col_header.click();} );                  // Menu-Eintrag Sortieren
+                if (thiz.grid.getOptions().showHeaderRow) {
+                    add_default_item_to_context_menu("hide_filter", 'cui-magnifying-glass', function(){ thiz.switch_slickgrid_filter_row();} );
+                } else {
+                    add_default_item_to_context_menu("show_filter", 'cui-magnifying-glass', function(){ thiz.switch_slickgrid_filter_row();} );
+                }
+                add_default_item_to_context_menu("export_csv", 'cui-file-xls', function(){ grid2CSV(container_id);} );
+                add_default_item_to_context_menu("column_sum", 'cui-settings', function(){ show_column_stats(thiz.last_slickgrid_contexmenu_column_name);} );
+                add_default_item_to_context_menu("field_content", 'cui-zoom-in', function(){ show_full_cell_content(thiz.last_slickgrid_contexmenu_field_content);} );
+
+
+                if (options.line_height_single)
+                    add_default_item_to_context_menu("line_height_full", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; thiz.calculate_current_grid_column_widths("context menu line_height_single"); } );
+                else
+                    add_default_item_to_context_menu("line_height_single", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; thiz.calculate_current_grid_column_widths("context menu line_height_single"); } );
+
+                if (options['plotting']){
+                    if (thiz.last_slickgrid_contexmenu_col_header) {            // konkrete Spalte ist bekannt
+                        let column = thiz.grid.getColumns()[thiz.grid.getColumnIndex(thiz.last_slickgrid_contexmenu_column_name)];
+                        if (column.plottable) {                                 // Column should be shown in diagram
+                            add_default_item_to_context_menu("switch_col_from_diagram", 'cui-chart-line', function(){
+                                plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, thiz.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
+                            });
+                        } else {
+                            add_default_item_to_context_menu("switch_col_into_diagram", 'cui-chart-line', function(){
+                                plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, thiz.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
+                            });
+                        }
+                    }
+
+                    add_default_item_to_context_menu("remove_all_from_diagram", 'cui-trash', function(){
+                        let columns = thiz.grid.getColumns();
+                        for (let col_index in columns){
+                            columns[col_index].plottable = 0;
+                        }
+                        plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, null);  // Diagramm neu zeichnen
+                    });
+                }
+
+                if (options['sort_method'] === 'QuickSort'){
+                    add_default_item_to_context_menu("sort_method_QuickSort", 'cui-calculator', function(){ options.sort_method = 'BubbleSort'; } );
+                } else {
+                    add_default_item_to_context_menu("sort_method_BubbleSort", 'cui-calculator', function(){ options.sort_method = 'QuickSort'; } );
+                }
+
+                /**
+                 * Add the additional menu entries to the items structure
+                 * @param local_items The items object a new item should be added to, can be a sub menu
+                 * @param entry_array The array of entries to add
+                 */
+                function create_additional_menu_entries(local_items, entry_array){
+                    for (let entry_index in entry_array){
+                        let entry = entry_array[entry_index];
+                        if (entry.entries !== undefined){                       // Submenu
+                            let submenu_items = {};
+                            create_additional_menu_entries(submenu_items, entry.entries);
+                            local_items[entry.label] = {
+                                name: "<span class='"+entry.ui_icon+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.label+"</span>",
+                                isHtmlName: true,
+                                items: submenu_items
+                            }
+                        } else {                                                // Menu entry
+                            add_item_to_context_menu(local_items, entry.label, entry.ui_icon, entry.action, entry.hint)
+                        }
+                    }
+                }
+                create_additional_menu_entries(items, additional_menu_entries);
+
+                return {
+                    items: items
+                };
             }
         });
     }
@@ -1044,7 +1080,7 @@ function SlickGridExtended(container_id, options){
 
         if (count > 0)
             average = sum/count;
-        show_full_cell_content("Sum = "+sum+"<br/>Average = "+average+"<br/>Count = "+count+"<br/>Count distinct = "+distinct_count);
+        show_full_cell_content("Sum = "+sum+"<br/>Average = "+average+"<br/>Count = "+count+"<br/>Count distinct = "+distinct_count, 'Column: '+column.name);
     }
 
     /**
@@ -1052,7 +1088,7 @@ function SlickGridExtended(container_id, options){
      *
      * @param content
      */
-    function show_full_cell_content(content){
+    function show_full_cell_content(content, title=''){
         // remove a-tags from content
         var wrapped = jQuery("<div>" + content + "</div>");
         wrapped.find("a").replaceWith(function() { return jQuery(this).html(); });
@@ -1067,7 +1103,7 @@ function SlickGridExtended(container_id, options){
         jQuery("#"+div_id)
             .html(content)
             .dialog({
-                    title:'',
+                    title:      title,
                     draggable:  true,
                     width:      jQuery(window).width()*0.5,
                     maxHeight:  jQuery(window).height()*0.9,
@@ -1702,24 +1738,32 @@ function get_slickgrid_translations() {
             'de': 'Anzeige des Inhaltes des Tabellenfeldes'
         },
         'slickgrid_context_menu_field_content_hint': {
-            'en': 'Show content of table cell in popup window (for better copy & paste)',
-            'de': 'Anzeige des Inhaltes des Tabellenfeldes in Popup-Fenster (zum Markieren und Kopieren)'
+            'en': 'Show content of table cell in popup window (for better copy & paste).\nAlso reachable by double click in table cell.',
+            'de': 'Anzeige des Inhaltes des Tabellenfeldes in Popup-Fenster (zum Markieren und Kopieren).\nAuch erreichbar durch Doppelklick in Tabellenzelle.'
         },
         'slickgrid_context_menu_hide_filter': {
             'en': 'Hide search filter',
             'de': 'Suchfilter ausblenden'
         },
+        'slickgrid_context_menu_hide_filter_hint': {
+            'en': 'Hide column-specific search filter in first line of table',
+            'de': 'Ausblenden des spalten-spezifischen Suchfilters in erster Zeile der Tabelle'
+        },
         'slickgrid_context_menu_line_height_full': {
             'en': 'Line height for full visible content',
             'de': 'Zeilenhöhe für volle Anzeige Feldinhalt'
+        },
+        'slickgrid_context_menu_line_height_full_hint': {
+            'en': 'Display the of complete content of cell and enlarge line height if necessary',
+            'de': 'Anzeige des kompletten Feld-Inhaltes mit Erweiterung der Zeilenhöhe bei Bedarf'
         },
         'slickgrid_context_menu_line_height_single': {
             'en': 'Line height for single line only',
             'de': 'Zeilenhöhe für einzeiligen Text'
         },
         'slickgrid_context_menu_line_height_single_hint': {
-            'en': 'Switch between single text line in row and display of complete content',
-            'de': 'Wechsel zwischen einzeiligem Text und Anzeige des kompletten Feld-Inhaltes'
+            'en': 'Display of one text line only and reduce line height if necessary',
+            'de': 'Anzeige nur einer Textzeile des Feld-Inhaltes und Reduktion der Zeilenhöhe bei Bedarf'
         },
         'slickgrid_context_menu_plot_column_hint': {
             'en': 'Add/remove column to graphic timeline diagram',
@@ -1733,13 +1777,13 @@ function get_slickgrid_translations() {
             'en': 'Remove all column-graphs from current diagram',
             'de': 'Antfernen aller Spalten-Kurven aus dem aktuellen Diagramm'
         },
-        'slickgrid_context_menu_search_filter_hint': {
-            'en': 'Show/hide column-specific search filter in first line of table',
-            'de': 'Anzeigen/Ausblenden des spalten-spezifischen Suchfilters in erster Zeile der Tabelle'
-        },
         'slickgrid_context_menu_show_filter': {
             'en': 'Show search filter',
             'de': 'Suchfilter einblenden'
+        },
+        'slickgrid_context_menu_show_filter_hint': {
+            'en': 'Show column-specific search filter in first line of table',
+            'de': 'Anzeigen des spalten-spezifischen Suchfilters in erster Zeile der Tabelle'
         },
         'slickgrid_context_menu_sort_column': {
             'en': 'Sort by this column',

@@ -28,6 +28,7 @@
 //= require codemirror/sql.js
 //= require codemirror/search.js
 //= require codemirror/searchcursor.js
+//= require jquery.contextMenu.js
 //= require_tree .
 
 "use strict";

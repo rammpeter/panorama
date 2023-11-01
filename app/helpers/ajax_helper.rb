@@ -40,39 +40,32 @@ module AjaxHelper
     output << "<span style=\"margin-left:5px;   \" class=\"slick-shadow\" >"
     output << "<span id=\"#{div_id}\" style=\"padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer; \">"
     output << "\u2261" # 3 waagerechte Striche ≡
+    output << "</span></span>"
+    output << "&nbsp;\n"   # Space before following icons
     # Construction context-menu
-    context_menu_id = "#{div_id}_context_menu"
-    output << "<div class=\"contextMenu\" id=\"#{context_menu_id}\" style=\"display:none;\"><ul>"
-    command_array.each do |ca|
-      if ca[:name] == :separator
-        output << "<li class=\"separator\"><hr></li>"
-      else
-        output << "<li id=\"#{context_menu_id}_#{ca[:name]}\" title=\"#{ca[:hint]}\"><div class=\"#{ca[:icon_class]}\" style=\"display: inline-block;\"></div><div style=\"display: inline-block;\">&nbsp;#{ca[:caption]}</div></li>"
-      end
-    end
-    output << "</ul></div>"
-    output << "</span>"
-    output << "</span>"
-    output << "&nbsp;"   # Space before following icons
-
-    output << "<script type=\"text/javascript\">"
-    output << "var bindings = {};"
-    command_array.each do |ca|
-      output << "bindings[\"#{context_menu_id}_#{ca[:name]}\"] = function(){ #{ca[:action]} };" if ca[:name] != :separator
-    end
-    output << "jQuery(\"##{div_id}\").contextMenu(\"#{context_menu_id}\", {
-                    menuStyle: {  width: '330px' },
-                    bindings:   bindings,
-                    onContextMenu : function(event, menu)                                   // dynamisches Anpassen des Context-Menü
-                    {
-                      return true;
-                    }
-                    });"
+    output << "<script type=\"text/javascript\">\n"
     output << "jQuery(\"##{div_id}\").bind('click' , function( event) {
                                 jQuery(\"##{div_id}\").trigger(\"contextmenu\", event);
                                 return false;
-                    });"
-    output << "</script>"
+                    });\n"
+    output << "\jQuery('##{div_id}').parent().contextMenu({
+                                           selector: '##{div_id}',
+                                           build: function ($trigger, e) {
+                let items = {};\n"
+    command_array.each do |ca|
+      if ca[:name] == :separator
+        output << "items['separator_#{ca[:caption]}'] = { name: '---' };\n"
+      else
+        output << "items['#{ca[:name]}'] = {
+                     name: \"<span class='"+ca[:icon_class]+"' style='float:left'></span><span title='"+ca[:hint].gsub(/\n/, '\n')+ "'>&nbsp;"+ca[:caption]+"</span>\",
+                     isHtmlName: true,
+                     callback: function(){ #{ca[:action]} }
+                  };\n"
+      end
+    end
+    output << "return {items: items};\n"
+    output << "}});\n"
+    output << "</script>\n"
     output
   end
 
