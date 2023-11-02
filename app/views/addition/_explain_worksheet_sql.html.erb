@@ -27,13 +27,6 @@
     end
   end
 
-  show_projektion = proc do |rec|
-    result = my_html_escape expand_compare_spaces(rec.projection)
-    unless result.nil?
-      "#{result[0,10]}#{'...' if result.length > 10}"
-    end
-  end
-
   analyzed_spec_title = proc do |rec|
     "\nLast_Analyzed = #{localeDateTime(rec.last_analyzed)}
 Created = #{localeDateTime(rec.created)}
@@ -42,23 +35,34 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     <span style=\"background-color:green;\">HUGO</span>".html_safe
   end
 
-  column_options =
-      [
-          { caption: "Operation",     data: proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) }, :no_wrap=>true,                         title: 'Kind of data access', data_title: proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}},
-          { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} },
-          { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} },
-          { caption: "Object-name", data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true },
-          { caption: "Rows",          data: link_real_num_rows,                                       title: "Number of rows of object (from analyze info)",     align: :right, data_title: proc{|rec| "%t\n#{analyzed_spec_title.call(rec)}"}  },
-          { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right },
-          { caption: "Cost", data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } },
-          { caption: 'Card.', data: proc{|rec| fn(rec.cardinality) }, title: 'Estimated number of rows produced by the operation', align: :right, data_title: proc { |rec| cost_card_data_title(rec) } },
-          { caption: "Parallel",      data: proc{|rec| parallel_short(rec) },                         title: "Parallelization (from Other_Tag)", data_title: proc{|rec| "%t\n#{rec.other_tag}"} },
-          { caption: "Access",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   title: 'Access criteria for data object', :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}#{"\nNumber of index columns with matching predicates = #{rec.search_columns}" if rec.search_columns }"} },
-          { caption: "Filter",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) },   title: 'Filter criteria for data object (after access)',  :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.filter_predicates}"} },
-          { caption: 'Temp est.',     data: proc{|rec| fn(rec.temp_space.to_f/(1024*1024)) },                      title: "Temp-space in MB (estimated forecast by optimizer)", :align=>:right},
-          { caption: "Distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"},
-          { caption: "Proj.",         data: show_projektion,                                          title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"} },
-      ]
+  col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
+  column_options = []
+  column_options << { caption: "Operation",     data: proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) }, :no_wrap=>true,                         title: 'Kind of data access', data_title: proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
+  column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name}, :title=>'Name of the query block of this operation' } if col_setting['Query block']
+  column_options << { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} }
+  column_options << { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} }
+  column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
+  column_options << { caption: "Rows",          data: link_real_num_rows,                                       title: "Number of rows of object (from analyze info)",     align: :right, data_title: proc{|rec| "%t\n#{analyzed_spec_title.call(rec)}"}  }
+  column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
+  column_options << { caption: "Cost",          data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
+  column_options << { caption: 'Card.',         data: proc{|rec| fn(rec.cardinality) }, title: 'Estimated number of rows produced by the operation', align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
+  column_options << { caption: "Parallel",      data: proc{|rec| parallel_short(rec) },                         title: "Parallelization (from Other_Tag)", data_title: proc{|rec| "%t\n#{rec.other_tag}"} }
+  column_options << { caption: "Access",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   title: 'Access criteria for data object', :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}#{"\nNumber of index columns with matching predicates = #{rec.search_columns}" if rec.search_columns }"} }
+  column_options << { caption: "Filter",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) },   title: 'Filter criteria for data object (after access)',  :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.filter_predicates}"} }
+  column_options << { caption: 'Temp est.',     data: proc{|rec| fn(rec.temp_space.to_f/(1024*1024)) },                      title: "Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
+  column_options << { caption: "Distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
+  column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 }
+
+  # The Javascript code to execute to show or hide the additional columns
+  toggle_column = proc do |header|
+    js = ''
+    js = "ajax_html('', 'env', 'remember_client_setting', { 'additional_explain_plan_columns', '#{header}', 'true'});\n"
+    js << "ajax_html('#{@previous_update_area}', 'addition', 'explain_worksheet_sql',\n {"
+    js << params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
+    js << " });\n"
+    js
+  end
+
 %>
 
 <%= gen_slickgrid(@plans, column_options, {
@@ -67,7 +71,25 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     data_filter:        'explain_plan_filter_collapsed_item_rows',
     grid_id:            @grid_id,
     show_pin_icon:      1,
-    update_area:        @update_area
+    update_area:        @update_area,
+    context_menu_entries: [
+      {label: 'Toggle additional columns', ui_icon: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
+       entries: [
+         {
+           label: 'Toggle query block name',
+           ui_icon: 'cui-columns',
+           action: "#{toggle_column.call('Query block')} ",
+           hint: 'Toggle view of query block name as own column'
+         },
+         {
+           label: 'Toggle another column',
+           ui_icon: 'cui-columns',
+           action: 'alert("ANOTHER");',
+           hint: 'Toggle view of another column as own column'
+         },
+       ]
+      },
+    ]
 })
 %>
 

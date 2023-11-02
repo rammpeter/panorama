@@ -150,9 +150,9 @@ module EnvHelper
   end
 
   # Helper to distiguish browser tabs, sets @browser_tab_id
-  def initialize_browser_tab_id(suppress_non_existing_error: false)
-    tab_ids = read_from_client_info_store(:browser_tab_ids, suppress_non_existing_error: suppress_non_existing_error)
-    tab_ids = {} if tab_ids.nil? || tab_ids.class != Hash
+  def initialize_browser_tab_id
+    tab_ids = read_from_client_info_store(:browser_tab_ids, default: {})
+    tab_ids = {} if tab_ids.class != Hash
     @browser_tab_id = 1                                                         # Default tab-id if no other exists
     while tab_ids.key?(@browser_tab_id) do
       if tab_ids[@browser_tab_id].key?(:last_used) && tab_ids[@browser_tab_id][:last_used] < Time.now-84600*10  # Reuse after 10 days

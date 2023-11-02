@@ -25,7 +25,7 @@ class EnvController < ApplicationController
   def index
     # Ensure client browser has unique client_key stored as cookie (create new one if not already exists)
     initialize_client_key_cookie
-    initialize_browser_tab_id(suppress_non_existing_error: true)                                                   # Helper to distiguish browser tabs
+    initialize_browser_tab_id                                                   # Helper to distiguish browser tabs
     write_to_browser_tab_client_info_store(:current_database, nil)              # Overwrite previous setting from last session
 
     set_I18n_locale('en') if get_locale.nil?                                    # Locale not yet specified, set default
@@ -320,6 +320,22 @@ class EnvController < ApplicationController
     @instance = prepare_param_instance
     @diag_info = sql_select_all ["SELECT * FROM gv$Diag_Info WHERE Inst_ID = ?", @instance]
     render_partial
+  end
+
+  # write client setting to client_info_store without response
+  def remember_client_setting
+    object_key  = prepare_param :object                                         # != nil if value should not be stored directly in client_info_store
+    key         = prepare_param :key
+    value       = prepare_param :value
+
+    if object_key.nil?                                                          # Store value directly in client_info_store
+      write_to_client_info_store(key, value)
+    else
+      current_obj = read_from_client_info_store(object_key, {})                 # Get the current object if exists or empty hash
+      current_obj[key] = value                                                  # Store value in object
+      write_to_client_info_store(object_key, current_obj)                       # Store object in client_info_store
+    end
+
   end
 
   private

@@ -54,11 +54,7 @@ class ApplicationController < ActionController::Base
     check_params_4_vulnerability(params)
 
     begin
-      if get_locale(suppress_non_existing_error: true)
-        I18n.locale = get_locale                                                # fuer laufende Action Sprache aktivieren
-      else
-        I18n.locale = 'en'                                                      # Use english for first conversation
-      end
+      I18n.locale = get_locale(default: 'en')                                   # fuer laufende Action Sprache aktivieren
     rescue
       I18n.locale = 'en'                                                        # wenn Problem bei Lesen des Cookies auftreten, dann Default verwenden
     end
