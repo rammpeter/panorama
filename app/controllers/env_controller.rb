@@ -324,18 +324,21 @@ class EnvController < ApplicationController
 
   # write client setting to client_info_store without response
   def remember_client_setting
-    object_key  = prepare_param :object                                         # != nil if value should not be stored directly in client_info_store
-    key         = prepare_param :key
-    value       = prepare_param :value
+    container_key   = prepare_param :container_key                              # != nil if value should not be stored directly in client_info_store
+    key             = prepare_param :key
+    value           = prepare_param :value
 
-    if object_key.nil?                                                          # Store value directly in client_info_store
+    value = true  if value == 'true'  || value == 'TRUE'                        # Convert string to boolean
+    value = false if value == 'false' || value == 'FALSE'                       # Convert string to boolean
+
+    if container_key.nil?                                                       # Store value directly in client_info_store
       write_to_client_info_store(key, value)
     else
-      current_obj = read_from_client_info_store(object_key, {})                 # Get the current object if exists or empty hash
+      current_obj = read_from_client_info_store(container_key, default: {})     # Get the current object if exists or empty hash
       current_obj[key] = value                                                  # Store value in object
-      write_to_client_info_store(object_key, current_obj)                       # Store object in client_info_store
+      write_to_client_info_store(container_key, current_obj)                    # Store object in client_info_store
     end
-
+    render html: '', status: :ok
   end
 
   private

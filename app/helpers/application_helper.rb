@@ -337,6 +337,12 @@ module ApplicationHelper
     retval.to_i
   end
 
+  def prepare_param_boolean(param_sym, **options)
+    retval = prepare_param(param_sym)
+    return options[:default] if retval.nil?                                     # nil if no default option given
+    retval == 'true' || retval == 'TRUE' || retval == '1'
+  end
+
   # Aufbereiten des Parameters "instance" aus Request, return nil wenn kein plausibler Wert
   def prepare_param_instance(allow_nil: false)
     retval = params[:instance].to_i

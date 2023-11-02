@@ -46,21 +46,38 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
   column_options << { caption: "Cost",          data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
   column_options << { caption: 'Card.',         data: proc{|rec| fn(rec.cardinality) }, title: 'Estimated number of rows produced by the operation', align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
+  column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if col_setting['Partition attributes']
+  column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if col_setting['Partition attributes']
+  column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if col_setting['Partition attributes']
   column_options << { caption: "Parallel",      data: proc{|rec| parallel_short(rec) },                         title: "Parallelization (from Other_Tag)", data_title: proc{|rec| "%t\n#{rec.other_tag}"} }
   column_options << { caption: "Access",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   title: 'Access criteria for data object', :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}#{"\nNumber of index columns with matching predicates = #{rec.search_columns}" if rec.search_columns }"} }
   column_options << { caption: "Filter",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) },   title: 'Filter criteria for data object (after access)',  :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.filter_predicates}"} }
   column_options << { caption: 'Temp est.',     data: proc{|rec| fn(rec.temp_space.to_f/(1024*1024)) },                      title: "Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
-  column_options << { caption: "Distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
-  column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 }
+  column_options << { caption: "PQ distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
+  column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if col_setting['Projection']
 
   # The Javascript code to execute to show or hide the additional columns
   toggle_column = proc do |header|
+    show_hide = col_setting[header] ? 'Hide' : 'Show'
     js = ''
-    js = "ajax_html('', 'env', 'remember_client_setting', { 'additional_explain_plan_columns', '#{header}', 'true'});\n"
-    js << "ajax_html('#{@previous_update_area}', 'addition', 'explain_worksheet_sql',\n {"
-    js << params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
-    js << " });\n"
-    js
+    js << "jQuery.ajax({\n"
+    js << "              method: 'POST',\n"
+    js << "              dataType: 'html',\n"
+    js << "              success: function (data, status, xhr) {\n"
+    js << "                ajax_html('#{@previous_update_area}', 'addition', 'explain_worksheet_sql',\n {"
+    js << "               " + params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
+    js << "                });\n"
+    js << "              },\n"
+    js << "              url: 'env/remember_client_setting?window_width='+jQuery(window).width()+'&browser_tab_id='+browser_tab_id,\n"
+    js << "              data: { 'container_key': 'additional_explain_plan_columns', 'key': '#{header}', 'value': '#{!col_setting[header]}'}\n"
+    js << "            });\n"
+
+    {
+      label: "#{show_hide} #{header}",
+      ui_icon: 'cui-columns',
+      action: "#{js} ",
+      hint: "#{show_hide} view of attribute '#{header}' as own column in execution plan"
+    }
   end
 
 %>
@@ -73,20 +90,11 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     show_pin_icon:      1,
     update_area:        @update_area,
     context_menu_entries: [
-      {label: 'Toggle additional columns', ui_icon: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
+      {label: 'Toggle additional columns for plan', ui_icon: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
        entries: [
-         {
-           label: 'Toggle query block name',
-           ui_icon: 'cui-columns',
-           action: "#{toggle_column.call('Query block')} ",
-           hint: 'Toggle view of query block name as own column'
-         },
-         {
-           label: 'Toggle another column',
-           ui_icon: 'cui-columns',
-           action: 'alert("ANOTHER");',
-           hint: 'Toggle view of another column as own column'
-         },
+         toggle_column.call('Query block'),
+         toggle_column.call('Partition attributes'),
+         toggle_column.call('Projection'),
        ]
       },
     ]
