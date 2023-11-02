@@ -68,7 +68,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     update_area:        @update_area,
     context_menu_entries: [
       { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
-       entries: [
+        items: [
          toggle_column(header: 'Query block',           controller: :addition, action: :explain_worksheet_sql),
          toggle_column(header: 'Partition attributes',  controller: :addition, action: :explain_worksheet_sql),
          toggle_column(header: 'Projection',            controller: :addition, action: :explain_worksheet_sql),

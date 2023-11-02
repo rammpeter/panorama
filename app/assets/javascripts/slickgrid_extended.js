@@ -976,9 +976,9 @@ function SlickGridExtended(container_id, options){
                 function create_additional_menu_entries(local_items, entry_array){
                     for (let entry_index in entry_array){
                         let entry = entry_array[entry_index];
-                        if (entry.entries !== undefined){                       // Submenu
+                        if (entry.items !== undefined){                       // Submenu
                             let submenu_items = {};
-                            create_additional_menu_entries(submenu_items, entry.entries);
+                            create_additional_menu_entries(submenu_items, entry.items);
                             local_items[entry.label] = {
                                 name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
                                 isHtmlName: true,

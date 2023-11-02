@@ -170,7 +170,7 @@ module SlickgridHelper
   #     :caption_style        => Style-Attribute für caption der Tabelle
   #     :caption_title        => MouseOver-Hint for table caption
   #     :command_menu_entries => Array with hashes or single hash for actions available in caption bar: :name, :caption, :hint, :icon_class=>"cui-xxx", :show_icon_in_caption=>true|false|:only\:right ,  :action=>javascript
-  #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :caption, :icon_class, :action (only if no sub-entries defined), :hint, entries: Array with hashes for sub-entries if entry is a node (no action)
+  #     :context_menu_entries => Array mit Hashes bzw. einzelner Hash mit weiterem Eintrag für Context-Menu: :caption, :icon_class, :action (only if no sub-entries defined), :hint, items: Array with hashes for sub-entries if entry is a node (no action)
   #     :div_style            => Einpacken der Tabelle in Div mit diesem Style
   #     :data_filter          => Name der JavaScript-Methode für filtern der angezeigten Zeilen: Methode muss einen Parameter "item" besitzen mit aktuell zu prüfender Zeile
   #     :grid_id              => DOM-ID des DIV-Elementes für slickgrid
@@ -326,9 +326,9 @@ module SlickgridHelper
           output << "  { caption:   \"#{entry[:caption]}\",\n"
           output << "    hint:    \"#{entry[:hint]}\",\n"
           output << "    icon_class: \"#{entry[:icon_class] ? entry[:icon_class] : 'cui-image'}\",\n"
-          if entry[:entries]                                    # Entry is a node for subentries
-            output << "    entries: [\n"
-            print_entry_list.call(entry[:entries])
+          if entry[:items]                                    # Entry is a node for subentries
+            output << "    items: [\n"
+            print_entry_list.call(entry[:items])
             output << "    ]\n"
           else
             output << "    action:  function(t){ #{entry[:action]}}\n"
