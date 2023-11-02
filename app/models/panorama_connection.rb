@@ -68,6 +68,13 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         #col_name =~ /[a-z]/ ? col_name : col_name.downcase!
         col_name.downcase!.freeze
       end
+
+      # get synthetic names if SQL did not return any column names (e.g. SELECT 1 FROM DUAL)
+      columns.each_with_index do |col, index|
+        col = "[ Unnamed #{index} ]" if col.nil? || col.empty?
+        columns[index] = col
+      end
+
       fetch_options = {get_lob_value: true} # convert LOB columns to String
       # noinspection RubyAssignmentExpressionInConditionalInspection
       row_count = 0
