@@ -44,6 +44,7 @@ module AjaxHelper
     output << "&nbsp;\n"   # Space before following icons
     # Construction context-menu
     output << "<script type=\"text/javascript\">\n"
+
     output << "jQuery(\"##{div_id}\").bind('click' , function( event) {
                                 jQuery(\"##{div_id}\").trigger(\"contextmenu\", event);
                                 return false;
@@ -52,17 +53,29 @@ module AjaxHelper
                                            selector: '##{div_id}',
                                            build: function ($trigger, e) {
                 let items = {};\n"
-    command_array.each do |ca|
-      if ca[:name] == :separator
-        output << "items['separator_#{ca[:caption]}'] = { name: '---' };\n"
-      else
-        output << "items['#{ca[:name]}'] = {
-                     name: \"<span class='"+ca[:icon_class]+"' style='float:left'></span><span title='"+ca[:hint].gsub(/\n/, '\n')+ "'>&nbsp;"+ca[:caption]+"</span>\",
-                     isHtmlName: true,
-                     callback: function(){ #{ca[:action]} }
-                  };\n"
+
+    print_entry_list = proc do |entries|
+      entries.each do |entry|
+        if entry[:name] == :separator
+          output << "items['separator_#{entry[:caption]}'] = { name: '---' };\n"
+        else
+          output << "items['#{entry[:name]}'] = {
+                     name: \"<span class='"+entry[:icon_class]+"' style='float:left'></span><span title='"+entry[:hint].gsub(/\n/, '\n')+ "'>&nbsp;"+entry[:caption]+"</span>\",
+                     isHtmlName: true,\n"
+          if entry[:entries]
+            output << "    items: [\n"
+            print_entry_list.call(entry[:entries])
+            output << "    ]\n"
+          else
+            output << "callback: function(){ #{entry[:action]} }\n"
+          end
+          output << "};\n"
+        end
       end
     end
+
+    print_entry_list.call(command_array)
+
     output << "return {items: items};\n"
     output << "}});\n"
     output << "</script>\n"

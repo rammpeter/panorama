@@ -151,10 +151,11 @@
     hint    = "Show Top 10 ordered by total time waited in time line diagram, each point in graph for one #{point_group}#{addition}"
     action  = "$('##{@hidden_link_timeline_id}_#{point_group}').click();"
 
+    # TODO: combine both arrays
     context_menu_entries << {
-                              :label   => label,
+                              :caption   => label,
                               :hint    => hint,
-                              :ui_icon => icon_class,
+                              :icon_class => icon_class,
                               :action  => action
                             }
 

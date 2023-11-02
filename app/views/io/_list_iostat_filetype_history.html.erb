@@ -72,9 +72,9 @@
                           show_pin_icon: 1,
                           :context_menu_entries => [
                                   {
-                                          :label   => t(:list_iostat_filetype_history_timeline ,     :default=>"Show values in time line diagram (Top 20)"),
+                                          :caption   => t(:list_iostat_filetype_history_timeline ,     :default=>"Show values in time line diagram (Top 20)"),
                                           :hint    => t(:list_iostat_filetype_history_timeline_hint, :default=>"Show values time line, each point in graph for one snapshot sample"),
-                                          :ui_icon => "cui-chart-line",
+                                          :icon_class => "cui-chart-line",
                                           # Setze den Spaltenheader der angeklickten Spalte in text_field eines Formulares und sende dieses
                                           :action  => "$('##{@hidden_link_data_column_id}').val($(t).data('slickgridextended').last_slickgrid_contexmenu_col_header.text()); $('##{@hidden_link_timeline_id}').click();"
                                   }]

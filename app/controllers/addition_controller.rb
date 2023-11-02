@@ -881,7 +881,6 @@ class AdditionController < ApplicationController
       show_popup_message('Nothing to explain: No statement typed')
       return
     end
-    @previous_update_area = prepare_param :update_area                          # remember update area for repeated usage in partial
     @sql_statement = prepare_sql_statement(params[:sql_statement])       # remove trailing semicolon
     @expected_binds = find_binds_in_sql(@sql_statement)
     @binds = binds_from_params(@expected_binds, params)

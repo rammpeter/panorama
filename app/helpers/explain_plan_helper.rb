@@ -169,6 +169,40 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     end
   end
 
+  # The context menu extension with Javascript code to execute to show or hide the additional columns
+  # Uses the param of the current request
+  # @param [String] header column header text in slickgrid
+  # @param [String] previous_update_area id of the area to update after the ajax call
+  # @param [String] controller name of the controller to call
+  # @param [String] action name of the action to call
+  # @return [Hash] context menu entry
+  def toggle_column(header:, controller:, action:)
+    raise "header must be given" unless header
+    raise "controller must be given" unless controller
+    raise "action must be given" unless action
+    col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
+    show_hide = col_setting[header] ? 'Hide' : 'Show'
+    js = ''
+    js << "jQuery.ajax({\n"
+    js << "              method: 'POST',\n"
+    js << "              dataType: 'html',\n"
+    js << "              success: function (data, status, xhr) {\n"
+    js << "                ajax_html('#{params[:update_area]}', '#{controller}', '#{action}',\n {"
+    js << "               " + params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
+    js << "                });\n"
+    js << "              },\n"
+    js << "              url: 'env/remember_client_setting?window_width='+jQuery(window).width()+'&browser_tab_id='+browser_tab_id,\n"
+    js << "              data: { 'container_key': 'additional_explain_plan_columns', 'key': '#{header}', 'value': '#{!col_setting[header]}'}\n"
+    js << "            });\n"
+
+    {
+      caption: "#{show_hide} #{header}",
+      icon_class: 'cui-columns',
+      action: "#{js} ",
+      hint: "#{show_hide} view of attribute '#{header}' as own column in execution plan"
+    }
+  end
+
 end
 
 

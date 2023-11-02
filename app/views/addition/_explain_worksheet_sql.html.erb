@@ -56,29 +56,6 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "PQ distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
   column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if col_setting['Projection']
 
-  # The Javascript code to execute to show or hide the additional columns
-  toggle_column = proc do |header|
-    show_hide = col_setting[header] ? 'Hide' : 'Show'
-    js = ''
-    js << "jQuery.ajax({\n"
-    js << "              method: 'POST',\n"
-    js << "              dataType: 'html',\n"
-    js << "              success: function (data, status, xhr) {\n"
-    js << "                ajax_html('#{@previous_update_area}', 'addition', 'explain_worksheet_sql',\n {"
-    js << "               " + params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
-    js << "                });\n"
-    js << "              },\n"
-    js << "              url: 'env/remember_client_setting?window_width='+jQuery(window).width()+'&browser_tab_id='+browser_tab_id,\n"
-    js << "              data: { 'container_key': 'additional_explain_plan_columns', 'key': '#{header}', 'value': '#{!col_setting[header]}'}\n"
-    js << "            });\n"
-
-    {
-      label: "#{show_hide} #{header}",
-      ui_icon: 'cui-columns',
-      action: "#{js} ",
-      hint: "#{show_hide} view of attribute '#{header}' as own column in execution plan"
-    }
-  end
 
 %>
 
@@ -90,11 +67,11 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     show_pin_icon:      1,
     update_area:        @update_area,
     context_menu_entries: [
-      {label: 'Toggle additional columns for plan', ui_icon: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
+      { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
        entries: [
-         toggle_column.call('Query block'),
-         toggle_column.call('Partition attributes'),
-         toggle_column.call('Projection'),
+         toggle_column(header: 'Query block',           controller: :addition, action: :explain_worksheet_sql),
+         toggle_column(header: 'Partition attributes',  controller: :addition, action: :explain_worksheet_sql),
+         toggle_column(header: 'Projection',            controller: :addition, action: :explain_worksheet_sql),
        ]
       },
     ]

@@ -3,118 +3,118 @@
 
 
   <%
-     @update_area = get_unique_area_id                                          # DOM-ID des DIVs mit dem Update-Link, own for each plan
-     @toggle_id_prefix = get_unique_area_id
-     @grid_id          = get_unique_area_id                                     # DOM-ID des DIVs mit SlickGrid
-     @indent_vector    = []                                                     # Array mit Hashes für jede Einrückung: :parent_id, :last_exists_id
+    @update_area = get_unique_area_id                                          # DOM-ID des DIVs mit dem Update-Link, own for each plan
+    @toggle_id_prefix = get_unique_area_id
+    @grid_id          = get_unique_area_id                                     # DOM-ID des DIVs mit SlickGrid
+    @indent_vector    = []                                                     # Array mit Hashes für jede Einrückung: :parent_id, :last_exists_id
 
-     def avg_read_bytes(rec)
-       fn(rec.read_io_bytes/rec.read_io_requests) if rec.read_io_bytes && rec.read_io_requests && rec.read_io_requests > 0
-     end
+    def avg_read_bytes(rec)
+      fn(rec.read_io_bytes/rec.read_io_requests) if rec.read_io_bytes && rec.read_io_requests && rec.read_io_requests > 0
+    end
 
-     def avg_write_bytes(rec)
-       fn(rec.write_io_bytes/rec.write_io_requests) if rec.write_io_bytes && rec.write_io_requests && rec.write_io_requests > 0
-     end
+    def avg_write_bytes(rec)
+      fn(rec.write_io_bytes/rec.write_io_requests) if rec.write_io_bytes && rec.write_io_requests && rec.write_io_requests > 0
+    end
 
-     sql_starts = 1   # Default falls keine andere Aussage wegen division / 0
-     sql_starts = mp[:plans][0].starts if mp[:plans][0] && mp[:plans][0].starts && mp[:plans][0].starts > 0
+    sql_starts = 1   # Default falls keine andere Aussage wegen division / 0
+    sql_starts = mp[:plans][0].starts if mp[:plans][0] && mp[:plans][0].starts && mp[:plans][0].starts > 0
 
-     @min_sample_time     = nil
-     if @include_ash_in_sql
-       @sum_io_requests = 0
-       @sum_interconnect_io_bytes = 0
-       @sum_cpu_seconds = 0                             # Anzahl der Samples
-       @sum_waiting_seconds = 0                         # Anzahl der Samples
-       @sum_db_time_seconds = 0
-       mp[:plans].each do |p|
-         @sum_io_requests           += p.io_requests             if p.io_requests
-         @sum_interconnect_io_bytes += p.interconnect_io_bytes   if p.interconnect_io_bytes
-         @sum_cpu_seconds           += p.cpu_seconds             if p.cpu_seconds
-         @sum_waiting_seconds       += p.waiting_seconds         if p.waiting_seconds
-         @sum_db_time_seconds       += p.db_time_seconds         if p.db_time_seconds
-         @min_sample_time           =  p.min_sample_time         if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time  # Kleinste Aufzeichnung eines Samples
-       end
-     end
+    @min_sample_time     = nil
+    if @include_ash_in_sql
+      @sum_io_requests = 0
+      @sum_interconnect_io_bytes = 0
+      @sum_cpu_seconds = 0                             # Anzahl der Samples
+      @sum_waiting_seconds = 0                         # Anzahl der Samples
+      @sum_db_time_seconds = 0
+      mp[:plans].each do |p|
+        @sum_io_requests           += p.io_requests             if p.io_requests
+        @sum_interconnect_io_bytes += p.interconnect_io_bytes   if p.interconnect_io_bytes
+        @sum_cpu_seconds           += p.cpu_seconds             if p.cpu_seconds
+        @sum_waiting_seconds       += p.waiting_seconds         if p.waiting_seconds
+        @sum_db_time_seconds       += p.db_time_seconds         if p.db_time_seconds
+        @min_sample_time           =  p.min_sample_time         if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time  # Kleinste Aufzeichnung eines Samples
+      end
+    end
 
-     link_column_wait = proc do |rec|
-         ajax_link(fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds),1), {
-                                 :controller     => :active_session_history,
-                                 :action         => :list_session_statistic_historic_grouping,
-                                 :groupfilter    => {
-                                         :DBID                   => get_dbid,
-                                         :Instance               => @instance,
-                                         "SQL-ID"                => @sql_id,
-                                         #"Plan-Hash-Value"       => @mp.plan_hash_value,
-                                         :Plan_Line_ID           => rec.id,
-                                         :time_selection_start   => localeDateTime(rec.min_sample_time, :minutes),
-                                         :time_selection_end     => localeDateTime((rec.max_sample_time+60 rescue nil), :minutes),   # add 60 seconds to ensure cut by minute covers exact sample time
-                                         :Idle_Wait1             => "PX Deq Credit: send blkd"
-                                 },
-                                 :groupby        => 'Wait Event',
-                                 :update_area    => @update_area
-                         },
-                         :title => "Show wait events for operation in Active Session History"
-         )
-       end
+    link_column_wait = proc do |rec|
+      ajax_link(fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds),1), {
+        :controller     => :active_session_history,
+        :action         => :list_session_statistic_historic_grouping,
+        :groupfilter    => {
+          :DBID                   => get_dbid,
+          :Instance               => @instance,
+          "SQL-ID"                => @sql_id,
+          #"Plan-Hash-Value"       => @mp.plan_hash_value,
+          :Plan_Line_ID           => rec.id,
+          :time_selection_start   => localeDateTime(rec.min_sample_time, :minutes),
+          :time_selection_end     => localeDateTime((rec.max_sample_time+60 rescue nil), :minutes),   # add 60 seconds to ensure cut by minute covers exact sample time
+          :Idle_Wait1             => "PX Deq Credit: send blkd"
+        },
+        :groupby        => 'Wait Event',
+        :update_area    => @update_area
+      },
+                :title => "Show wait events for operation in Active Session History"
+      )
+    end
 
      # Anzeige %-Wert wenn != 0
-     def nn_pct(single, sum)
-       retval = percentage(single, sum)
-       retval == 0 ? nil : retval
-     end
+    def nn_pct(single, sum)
+      retval = percentage(single, sum)
+      retval == 0 ? nil : retval
+    end
 
-     parallel_text = proc do |rec|
-       output = "#{parallel_short(rec)}"
-       output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if @include_ash_in_sql
-       output
-     end
+    parallel_text = proc do |rec|
+      output = "#{parallel_short(rec)}"
+      output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if @include_ash_in_sql
+      output
+    end
 
-     parallel_title = proc do |rec|
-       output = "%t:\n#{rec.other_tag}\n"
-       output << "\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if @include_ash_in_sql
-       output << "\nStrategy of PQ distribution = #{rec.distribution}" if rec.distribution
-       output << "\nPQ degree of last execution = #{rec.last_degree}"
-       output
-     end
+    parallel_title = proc do |rec|
+      output = "%t:\n#{rec.other_tag}\n"
+      output << "\nMaximum number of different active PQ slaves within one ASH sample = #{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0 if @include_ash_in_sql
+      output << "\nStrategy of PQ distribution = #{rec.distribution}" if rec.distribution
+      output << "\nPQ degree of last execution = #{rec.last_degree}"
+      output
+    end
 
-     temp_data = proc do |rec|
-       if rec.max_temp_ash_mb
-         fn(rec.max_temp_ash_mb)
-       else
-         fn(rec.last_tempseg_size/(1024*1024)) if rec.last_tempseg_size && rec.last_tempseg_size > 0
-       end
-     end
+    temp_data = proc do |rec|
+      if rec.max_temp_ash_mb
+        fn(rec.max_temp_ash_mb)
+      else
+        fn(rec.last_tempseg_size/(1024*1024)) if rec.last_tempseg_size && rec.last_tempseg_size > 0
+      end
+    end
 
-     temp_title = proc do |rec|
-       output = "%t\n"
-       output << "\nMaximum temp segment_size allocated by one session (incl. PQ-server) recorded by ASH = #{fn(rec.max_temp_ash_mb, 3)}" if rec.max_temp_ash_mb
-       output << "\nMaximum temp segment size recorded in gv$SQL_Plan_Statistics_All = #{fn(rec.max_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.max_tempseg_size && rec.max_tempseg_size != 0
-       output << "\nTemp segment size at last execution in gv$SQL_Plan_Statistics_All = #{fn(rec.last_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.last_tempseg_size && rec.last_tempseg_size != 0
-       output
-     end
+    temp_title = proc do |rec|
+      output = "%t\n"
+      output << "\nMaximum temp segment_size allocated by one session (incl. PQ-server) recorded by ASH = #{fn(rec.max_temp_ash_mb, 3)}" if rec.max_temp_ash_mb
+      output << "\nMaximum temp segment size recorded in gv$SQL_Plan_Statistics_All = #{fn(rec.max_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.max_tempseg_size && rec.max_tempseg_size != 0
+      output << "\nTemp segment size at last execution in gv$SQL_Plan_Statistics_All = #{fn(rec.last_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.last_tempseg_size && rec.last_tempseg_size != 0
+      output
+    end
 
-     memory_title = proc do |rec|
-       output = "%t\n"
-       output << "\nSizing policy for this work area = #{rec.policy}" if rec.policy
-       output << "\nEstimated optimal size = #{fn(rec.estimated_optimal_size)} KBytes" if rec.estimated_optimal_size
-       output << "\nEstimated onepass size = #{fn(rec.estimated_onepass_size)} KBytes" if rec.estimated_onepass_size
-       output << "\nMemory used by the last execution = #{fn(rec.last_memory_used)} KBytes" if rec.last_memory_used
-       output << "\nWork area mode of last execution = #{rec.last_execution}" if rec.last_execution
-       output << "\nWork area mode of last execution = #{rec.last_execution}" if rec.last_execution
-       output << "\nNumber of times this work area was active = #{fn rec.total_executions}" if rec.total_executions
-       output << "\nNumber of times this work area ran in optimal mode = #{fn rec.optimal_executions}" if rec.optimal_executions
-       output << "\nNumber of times this work area ran in one pass mode = #{fn rec.onepass_executions}" if rec.onepass_executions
-       output << "\nNumber of times this work area ran below the one pass memory requirement = #{fn rec.multipasses_executions}" if rec.multipasses_executions
-       output << "\nAverage time this work area is active = #{fn(rec.active_time/100.0)} seconds" if rec.active_time && rec.active_time != 0
-     end
+    memory_title = proc do |rec|
+      output = "%t\n"
+      output << "\nSizing policy for this work area = #{rec.policy}" if rec.policy
+      output << "\nEstimated optimal size = #{fn(rec.estimated_optimal_size)} KBytes" if rec.estimated_optimal_size
+      output << "\nEstimated onepass size = #{fn(rec.estimated_onepass_size)} KBytes" if rec.estimated_onepass_size
+      output << "\nMemory used by the last execution = #{fn(rec.last_memory_used)} KBytes" if rec.last_memory_used
+      output << "\nWork area mode of last execution = #{rec.last_execution}" if rec.last_execution
+      output << "\nWork area mode of last execution = #{rec.last_execution}" if rec.last_execution
+      output << "\nNumber of times this work area was active = #{fn rec.total_executions}" if rec.total_executions
+      output << "\nNumber of times this work area ran in optimal mode = #{fn rec.optimal_executions}" if rec.optimal_executions
+      output << "\nNumber of times this work area ran in one pass mode = #{fn rec.onepass_executions}" if rec.onepass_executions
+      output << "\nNumber of times this work area ran below the one pass memory requirement = #{fn rec.multipasses_executions}" if rec.multipasses_executions
+      output << "\nAverage time this work area is active = #{fn(rec.active_time/100.0)} seconds" if rec.active_time && rec.active_time != 0
+    end
 
-     link_real_num_rows = proc do |rec|
-       object_type = rec.object_type
-       object_type = 'INDEX' if !rec.object_type.nil? && rec.object_type['INDEX']
+    link_real_num_rows = proc do |rec|
+      object_type = rec.object_type
+      object_type = 'INDEX' if !rec.object_type.nil? && rec.object_type['INDEX']
 
-       if object_type == 'TABLE' || object_type == 'INDEX'
-         update_area = "#{@update_area}_#{rec.id}"
-         ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
+      if object_type == 'TABLE' || object_type == 'INDEX'
+        update_area = "#{@update_area}_#{rec.id}"
+        ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
                                  :controller      => :storage,
                                  :action          => :list_real_num_rows,
                                  :owner           => rec.object_owner,
@@ -124,40 +124,42 @@
                                  :update_area     => update_area
                                 },
                          :title=>"Count current number of rows in Table. CAUTION: May be long running!")+"<span id=\"#{update_area}\"></span>".html_safe
-       else
-         fn(rec.num_rows)
-       end
-     end
+      else
+        fn(rec.num_rows)
+      end
+    end
 
-     analyzed_spec_title = proc do |rec|
-       "\nLast_Analyzed = #{localeDateTime(rec.last_analyzed)}
+    analyzed_spec_title = proc do |rec|
+      "\nLast_Analyzed = #{localeDateTime(rec.last_analyzed)}
 Created = #{localeDateTime(rec.created)}
 Last DDL = #{localeDateTime(rec.last_ddl_time)}
 Last specification change = #{localeDateTime(rec.last_spec_ts)}"
-     end
+    end
 
-  column_options = []
-  column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
-  column_options << {:caption=>"Operation",   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, mp[:plans]) }, :no_wrap=>true,                         :title=>'Kind of data access', :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
-  column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if @show_additional_columns
-  column_options << {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
-  column_options << {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
-  column_options << { :caption=>"Object-name", :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
-  column_options << { :caption=>"Rows", :data=>link_real_num_rows, :title=>"Number of rows of object (from analyze info)", :align=>:right, data_title: proc { |rec| "%t\n#{analyzed_spec_title.call(rec)}" } }
-  column_options << {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right }
-  column_options << {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
-  column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
-  column_options << {:caption=>"PQ",          :data=>parallel_text,                                           :title=>"Parallelization (from Other_Tag)", :data_title=>parallel_title }
-  column_options << {:caption=>"Access",      :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}\nNumber of index columns with matching predicates = #{rec.search_columns}"} }
-  column_options << { :caption=>"Filter", :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>'Filter criteria for data object (after access)', :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc { |rec| "%t:\n#{my_html_escape rec.filter_predicates}" } }
-  column_options << {:caption=>"DB time",     :data=>proc{|rec| fn(nn_pct(rec.db_time_seconds, @sum_db_time_seconds),1) }, :align=>:right, :data_title=>proc{|rec| "%t\nDB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
-  column_options << {:caption=>"CPU",         :data=>proc{|rec| fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds),1)  },        :align=>:right, :data_title=>proc{|rec| "%t\nCPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if @include_ash_in_sql
-  column_options << {:caption=>"Waits",       :data=>link_column_wait,                          :align=>:right, :data_title=>proc{|rec| "%t\nWaiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if @include_ash_in_sql
-  column_options << {:caption=>'Temp est.',   :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
-  column_options << {:caption=>'Temp max.',   :data=>temp_data,                      :title=>'Maximum amount of Temp-space in MB allocated by one session during execution of this plan line', data_title: temp_title, :align=>:right }  if @include_ash_in_sql
-  column_options << {:caption=>"I/O",         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests),1)},          :align=>:right, :data_title=>proc{|rec| "%t\nIO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
-  column_options << {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes),1)}, :align=>:right, :data_title=>proc{|rec| "%t\nInterconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
-  column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line (from ASH)', data_title: memory_title, :align=>:right }  if @include_ash_in_sql
+    col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
+
+    column_options = []
+    column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
+    column_options << {:caption=>"Operation",   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, mp[:plans]) }, :no_wrap=>true,                         :title=>'Kind of data access', :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
+    column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if  col_setting['Query block']
+    column_options << {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
+    column_options << {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
+    column_options << { :caption=>"Object-name", :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
+    column_options << { :caption=>"Rows", :data=>link_real_num_rows, :title=>"Number of rows of object (from analyze info)", :align=>:right, data_title: proc { |rec| "%t\n#{analyzed_spec_title.call(rec)}" } }
+    column_options << {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right }
+    column_options << {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+    column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+    column_options << {:caption=>"PQ",          :data=>parallel_text,                                           :title=>"Parallelization (from Other_Tag)", :data_title=>parallel_title }
+    column_options << {:caption=>"Access",      :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}\nNumber of index columns with matching predicates = #{rec.search_columns}"} }
+    column_options << { :caption=>"Filter", :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>'Filter criteria for data object (after access)', :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc { |rec| "%t:\n#{my_html_escape rec.filter_predicates}" } }
+    column_options << {:caption=>"DB time",     :data=>proc{|rec| fn(nn_pct(rec.db_time_seconds, @sum_db_time_seconds),1) }, :align=>:right, :data_title=>proc{|rec| "%t\nDB-time: #{fn(rec.db_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
+    column_options << {:caption=>"CPU",         :data=>proc{|rec| fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds),1)  },        :align=>:right, :data_title=>proc{|rec| "%t\nCPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if @include_ash_in_sql
+    column_options << {:caption=>"Waits",       :data=>link_column_wait,                          :align=>:right, :data_title=>proc{|rec| "%t\nWaiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / ASH). Part of DB-time.", :show_pct_background=>true } if @include_ash_in_sql
+    column_options << {:caption=>'Temp est.',   :data=>proc{|rec| fn(rec.temp_space_mb) },                      :title=>"Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
+    column_options << {:caption=>'Temp max.',   :data=>temp_data,                      :title=>'Maximum amount of Temp-space in MB allocated by one session during execution of this plan line', data_title: temp_title, :align=>:right }  if @include_ash_in_sql
+    column_options << {:caption=>"I/O",         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests),1)},          :align=>:right, :data_title=>proc{|rec| "%t\nIO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
+    column_options << {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes),1)}, :align=>:right, :data_title=>proc{|rec| "%t\nInterconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
+    column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line (from ASH)', data_title: memory_title, :align=>:right }  if @include_ash_in_sql
 
 
   column_options.concat [
@@ -222,14 +224,6 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
         :show_icon_in_caption  => true,
         :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan_additional_info', #{param_string.call("plan_hash_value: #{mp.plan_hash_value}")});"
       },
-      {
-        name:                  :additional_columns,
-        caption:               'Toggle display of additional columns (query block name)',
-        :hint                  => "Show/hide additional additional columns in execution plan (query block name, ...)",
-        :icon_class            => 'cui-tabl et',
-        :show_icon_in_caption  => true,
-        :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call("show_additional_columns: #{!@show_additional_columns}")});"
-     }
     ]
     if mp[:adaptive_plan]
       command_menu_entries << {
@@ -249,6 +243,14 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
         :action                => "ajax_html('#{params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
       }
     end
+    command_menu_entries << {
+      caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
+      items: [
+        toggle_column(header: 'Query block',           controller: :dba_sga, action: :list_sql_detail_execution_plan),
+        toggle_column(header: 'Partition attributes',  controller: :dba_sga, action: :list_sql_detail_execution_plan),
+        toggle_column(header: 'Projection',            controller: :dba_sga, action: :list_sql_detail_execution_plan),
+      ]
+    }
 
   %>
 

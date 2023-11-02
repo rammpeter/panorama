@@ -76,7 +76,7 @@ function SlickGridExtended(container_id, options){
      * @param columns                   An array of column definitions.
      * @param options                   Grid options.
      * @param additional_context_menu   additional_context_menu Array with additional context menu entries as object
-     *                             { label: "Menu-Label", hint: "MouseOver-Hint", ui_icon: "cui-x", action:  function(t){ ActionName } }
+     *                             { caption: "Menu-Label", hint: "MouseOver-Hint", icon_class: "cui-x", action:  function(t){ ActionName } }
      */
     this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
         var col_index;
@@ -401,16 +401,28 @@ function SlickGridExtended(container_id, options){
                     selector: 'div',
                     build: function ($trigger, e) {
                         let command_menu_items = {};
-                        for (let cmd_index in options.command_menu_entries) {
-                            let cmd = options.command_menu_entries[cmd_index];
-                            if (cmd.show_icon_in_caption != 'only' && cmd.show_icon_in_caption != 'right') {
-                                command_menu_items[cmd.name] = {
-                                    name: "<span class='"+cmd.icon_class+"' style='float:left'></span><span title='"+cmd.hint+ "'>&nbsp;"+cmd.caption+"</span>",
-                                    isHtmlName: true,
-                                    callback: new Function(cmd.action)  // create function from text
-                                };
+
+                        function create_command_menu_entries(local_items, entry_array){
+                            for (let entry_index in entry_array){
+                                let entry = entry_array[entry_index];
+                                if (entry.show_icon_in_caption != 'only' && entry.show_icon_in_caption != 'right') {
+                                    let new_item = {
+                                        name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
+                                        isHtmlName: true,
+                                    };
+                                    if (entry.items !== undefined){                       // Submenu
+                                        let submenu_items = {};
+                                        create_command_menu_entries(submenu_items, entry.items);
+                                        new_item.items = submenu_items;
+                                    } else {
+                                        new_item.callback = new Function(entry.action);
+                                    }
+                                    local_items[entry.caption] = new_item;
+                                }
                             }
                         }
+                        create_command_menu_entries(command_menu_items, options.command_menu_entries);
+
                         return { items: command_menu_items };
                     }
                 });
@@ -968,12 +980,12 @@ function SlickGridExtended(container_id, options){
                             let submenu_items = {};
                             create_additional_menu_entries(submenu_items, entry.entries);
                             local_items[entry.label] = {
-                                name: "<span class='"+entry.ui_icon+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.label+"</span>",
+                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
                                 isHtmlName: true,
                                 items: submenu_items
                             }
                         } else {                                                // Menu entry
-                            add_item_to_context_menu(local_items, entry.label, entry.ui_icon, entry.action, entry.hint)
+                            add_item_to_context_menu(local_items, entry.caption, entry.icon_class, entry.action, entry.hint)
                         }
                     }
                 }

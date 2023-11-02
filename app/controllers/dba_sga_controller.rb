@@ -342,8 +342,7 @@ class DbaSgaController < ApplicationController
     @instance               = prepare_param_instance
     @child_number           = prepare_param_int :child_number
     @child_address          = prepare_param :child_address
-    @show_adaptive_plans     = prepare_param_int :show_adaptive_plans
-    @show_additional_columns = prepare_param(:show_additional_columns)&.upcase == 'TRUE'
+    @show_adaptive_plans    = prepare_param_int :show_adaptive_plans
 
     where_string = ''
     where_values = []
