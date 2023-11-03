@@ -288,7 +288,7 @@
     <br/>
     <%= submit_tag('Test connection', :title =>"Save configuration if connection to configured database has been tested successful" ) %>
     <%= submit_tag('Save', :title =>"Save configuration data (ignore possible connect errors with this configuration)" ) %>
-    <input type="button" value="Cancel" onclick="jQuery('#edit_config_global_area').html('');">
+    <input type="button" value="Cancel" onclick="jQuery('#edit_config_global_area').children().remove();">
   </div>
 
 

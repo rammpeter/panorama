@@ -245,7 +245,8 @@ function process_ajax_success(data, xhr, target, options){
         }
 
         if (xhr.getResponseHeader("content-type").indexOf("text/html") >= 0) {
-            $('#' + target).html(data);                                               // render html in target dom-element
+            $('#' + target).children().remove();                                // remove all children of target including their event handlers and data objects
+            $('#' + target).html(data);                                         // render html in target dom-element
         } else if (xhr.getResponseHeader("content-type").indexOf("text/javascript") >= 0) {
             eval(data);                                                             // Execute as javascript
         } else {
@@ -428,8 +429,8 @@ function code_mirror_from_textarea(id, cm_options, options){
 
 
 function show_popup_message(message){
-    var div_id = 'show_popup_message_alert_box';
-    var msg_div = jQuery('#'+div_id);
+    let div_id = 'show_popup_message_alert_box';
+    let msg_div = jQuery('#'+div_id);
 
     // create div for dialog at body if not exists
     if (!msg_div.length){
@@ -444,7 +445,7 @@ function show_popup_message(message){
             open:       function(/*event, ui*/){ $(this).parent().focus(); },
             width:      jQuery(window).width()*0.5,
             maxHeight:  jQuery(window).height()*0.9,
-            beforeClose:function(){msg_div.html('')}     // clear div before close dialog
+            beforeClose:function(){ msg_div.children().remove(); }     // clear div before close dialog
         })
     ;
 
@@ -605,6 +606,7 @@ function ensureGraphVizLoaded(callback){
         callback();
     }
 }
+
 
 
 

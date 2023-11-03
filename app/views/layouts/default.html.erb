@@ -61,7 +61,7 @@
                   width:700,
                   draggable:true,
                   title:'Panorama: <%= t(:error, :default=>'Error') %>',
-                  beforeClose:function(){jQuery('#error_dialog_content').html('')}  // übergreifend auf body wirkenden css-Inhalt entsorgen
+                  beforeClose:function(){jQuery('#error_dialog_content').children().remove();}  // übergreifend auf body wirkenden css-Inhalt entsorgen
               });
 
               jQuery('body').resize(function(){ check_menu_width();});

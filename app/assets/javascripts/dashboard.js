@@ -285,7 +285,7 @@ class DashboardData {
         });
 
         // remove and recreate the sub_canvas object to suppress "Total canvas memory use exceeds the maximum limit"
-        $('#'+this.canvas_id).html('');
+        $('#'+this.canvas_id).children().remove();
         let sub_canvas_id = this.canvas_id+'_sub';
         $('#'+this.canvas_id).append('<div id="'+sub_canvas_id+'"></div>');
 

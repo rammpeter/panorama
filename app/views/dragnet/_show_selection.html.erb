@@ -16,9 +16,8 @@
 
 <script type="text/javascript">
     function refresh_tree(filter, include_description) {
-        $('#dragnet_selection_wrapper')
-                .html('')
-                .append('<div id="dragnet_selection_tree"></div>');
+        $('#dragnet_selection_wrapper').children().remove();
+        $('#dragnet_selection_wrapper').append('<div id="dragnet_selection_tree"></div>');
         $('#dragnet_selection_tree')
             // listen for event
                 .on('changed.jstree', function (e, data) {

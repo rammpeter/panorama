@@ -65,7 +65,6 @@ function SlickGridExtended(container_id, options){
 
     this.gridContainer = jQuery('#'+container_id);                              // Puffern des jQuery-Objektes
     this.gridContainer.addClass('slickgrid_top');                               // css-Klasse setzen zur Wiedererkennung
-    jQuery(window).resize(function(){ resize_handler();});                      // Registrieren des Resize-Event Handlers
 
     // ###################### Ende Constructor-Code #######################
 
@@ -1119,7 +1118,7 @@ function SlickGridExtended(container_id, options){
                     draggable:  true,
                     width:      jQuery(window).width()*0.5,
                     maxHeight:  jQuery(window).height()*0.9,
-                    beforeClose:function(){jQuery('#'+div_id).html('')}     // clear div before close dialog
+                    beforeClose:function(){jQuery('#'+div_id).children().remove(); }     // clear div before close dialog
             })
         ;
 
@@ -1459,7 +1458,7 @@ function SlickGridExtended(container_id, options){
         }
 
         if (options['update_area']){
-            jQuery('#'+ options['update_area']).html('');
+            jQuery('#'+ options['update_area']).children().remove();
         }
 
         var grid_parent = thiz.gridContainer.parent();
@@ -1543,13 +1542,15 @@ function resize_slickGrids(){
     });
 }
 
-var TO = false;
+var in_slickgrid_resize_handler_timeout = false;
 // Empfänger der Resize-events
 function resize_handler(){
-    if(TO !== false)
-        clearTimeout(TO);
-    TO = setTimeout(resize_slickGrids, 100); //200 is time in miliseconds
+    if(in_slickgrid_resize_handler_timeout !== false)
+        clearTimeout(in_slickgrid_resize_handler_timeout);
+    in_slickgrid_resize_handler_timeout = setTimeout(resize_slickGrids, 100); //200 is time in miliseconds
 }
+
+jQuery(window).resize(function(){ resize_handler();});                      // Onetime registration of resize event handler at first load
 
 
 // Calculate dimension for every cell exactly one time

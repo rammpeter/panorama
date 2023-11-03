@@ -33,7 +33,7 @@
 //      plotselected_handler:   function(start, end) with parameters as ms since 1970: (xstart, xend)=>{ ... }
 
 /**
- * Factory method to initally create a plot diagram
+ * Factory method to initally create a plot diagram from outside
  * @param unique_id A generated unique id for the elements of the diagram
  * @param parent_id The DOM element where the diagram should be placed, should be a div that is empty for the first call
  * @param caption
@@ -42,21 +42,22 @@
  * @returns {plot_diagram_class}
  */
 function plot_diagram(unique_id, parent_id, caption, data_array, options){
-
-    jQuery('#'+parent_id).html("");                                             //  Remove the DOM element of the whole diagram below
+    jQuery.contextMenu('destroy', '#' + parent_id);                             // remove the previous context menu registration
+    jQuery('#'+parent_id).off();                                                //  Remove all handlers from the element
+    jQuery('#'+parent_id).children().remove();                                  //  Remove the DOM element of the whole diagram below
     let p = new plot_diagram_class(unique_id, parent_id, caption, data_array, options);
     p.initialize();
     return p;
 }
 
 /**
- * Refresh an existing diagram with new data
+ * Refresh an existing diagram with new data, async because it may be called from a context menu event handler
  * @param pd The plot_diagram object to refresh
  */
 function refresh_existing_diagram(pd){
     // Execute async because it may be called from a context menu event handler
-    setTimeout(function() {
-            jQuery('#' + pd.parent_id).contextMenu('destroy', 'div');   // remove the previous context menu registration
+    setTimeout(
+        function() {
             plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, pd.getOptions());
         },
         1);
@@ -165,7 +166,7 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
 
 
         // ############ Context-Menü
-        jQuery('#' + plot_area_id).contextMenu({
+        jQuery('#' + parent_id).contextMenu({
             //selector: '#' + plot_area_id, // the selector for the items to show the menu
             selector: 'div',
             build: function ($trigger, e) {
@@ -206,7 +207,6 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
                         let options = pd.getOptions();
                         options.yaxis.show = !options.yaxis.show;
                         refresh_existing_diagram(pd);
-                        //plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
                     },
                         options.yaxis.show ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint')
                 );
@@ -219,7 +219,6 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
                         let options = pd.getOptions();
                         options.plot_diagram.multiple_y_axes = !options.plot_diagram.multiple_y_axes;
                         refresh_existing_diagram(pd);
-                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
                     },
                     options.plot_diagram.multiple_y_axes ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint')
                 );
@@ -235,7 +234,6 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
                         if (options.series.stack)
                             options.plot_diagram.multiple_y_axes = false;
                         refresh_existing_diagram(pd);
-                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
                     },
                     options.series.stack ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint')
                 );
@@ -248,7 +246,6 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
                         let options = pd.getOptions();
                         options.series.points.show = !options.series.points.show;
                         refresh_existing_diagram(pd);
-                        // plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, options);
                     },
                     options.series.points.show ? locale_translate('diagram_hide_points_hint') : locale_translate('diagram_show_points_hint')
                 );
@@ -285,7 +282,8 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
     }
 
     function remove_diagram(){      // Komplettes Diagramm entfernen
-        plot_area.html("");                                  // Area putzen
+        data_array.length = 0;                                                  // Remove the array content but preserve the array object
+        jQuery('#'+parent_id).children().remove();                              // Area putzen
     }
 
     // ############ MouseOver-Hint Anzeige aktualisieren
@@ -432,7 +430,8 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
                     data_array[data_index]['delete_callback'](legend_name);     // deregistrieren der Spalte beim Aufrufer wenn callback hinterlegt
                 }
                 data_array.splice(data_index, 1);                               // Entfernen des Elements aus Data_Array
-                plot_diagram(unique_id, parent_id, caption, data_array, options);    // Neuzeichnen des Diagramm
+                refresh_existing_diagram(this);                                 // Redraw the diagram
+                //plot_diagram(unique_id, parent_id, caption, data_array, options);    // Neuzeichnen des Diagramm
             }
         }
     };

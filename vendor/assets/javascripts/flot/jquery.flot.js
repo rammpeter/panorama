@@ -2712,7 +2712,7 @@ Licensed under the MIT license.
         function insertLegend() {
 
             if (options.legend.container != null) {
-                $(options.legend.container).html("");
+                $(options.legend.container).children().remove();
             } else {
                 placeholder.find(".legend").remove();
             }

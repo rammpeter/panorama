@@ -137,7 +137,7 @@ Refreshed data is buffered in browser then and may last longer than data is pres
                 'refresh_button_id':      '<%= @refresh_id %>'
             }
         );
-        jQuery('#<%= @update_area %>').html('');
+        jQuery('#<%= @update_area %>').children().remove();
         return false;
     }
 
