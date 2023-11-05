@@ -172,14 +172,9 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
   # The context menu extension with Javascript code to execute to show or hide the additional columns
   # Uses the param of the current request
   # @param [String] header column header text in slickgrid
-  # @param [String] previous_update_area id of the area to update after the ajax call
-  # @param [String] controller name of the controller to call
-  # @param [String] action name of the action to call
   # @return [Hash] context menu entry
-  def toggle_column(header:, controller:, action:)
+  def toggle_column(header:)
     raise "header must be given" unless header
-    raise "controller must be given" unless controller
-    raise "action must be given" unless action
     col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
     show_hide = col_setting[header] ? 'Hide' : 'Show'
     js = ''
@@ -187,7 +182,7 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     js << "              method: 'POST',\n"
     js << "              dataType: 'html',\n"
     js << "              success: function (data, status, xhr) {\n"
-    js << "                ajax_html('#{params[:update_area]}', '#{controller}', '#{action}',\n {"
+    js << "                ajax_html('#{params[:update_area]}', '#{controller_name}', '#{action_name}',\n {"
     js << "               " + params.permit!.to_h.map{|key, value| "'#{key}': `#{value.gsub('`', '\\\\`')}`"}.join(",\n")
     js << "                });\n"
     js << "              },\n"
@@ -203,6 +198,26 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     }
   end
 
+  # The additional context menu entries for the explain plan
+  def explain_plan_context_menu_entries
+    [
+      { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
+        items: [
+          toggle_column(header: 'Query block'),
+          toggle_column(header: 'Partition attributes'),
+          toggle_column(header: 'Projection'),
+        ]
+      }
+    ]
+  end
+
+  # get the current user-specific setting for the additional columns in the explain plan
+  # Set defaults for columns that should be initially shown
+  def explain_plan_col_setting
+    read_from_client_info_store('additional_explain_plan_columns', default: {
+      'Projection' => true,
+    })
+  end
 end
 
 

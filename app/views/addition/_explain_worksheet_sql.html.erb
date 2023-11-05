@@ -35,10 +35,9 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     <span style=\"background-color:green;\">HUGO</span>".html_safe
   end
 
-  col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
   column_options = []
   column_options << { caption: "Operation",     data: proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) }, :no_wrap=>true,                         title: 'Kind of data access', data_title: proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
-  column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name}, :title=>'Name of the query block of this operation' } if col_setting['Query block']
+  column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name}, :title=>'Name of the query block of this operation' } if explain_plan_col_setting['Query block']
   column_options << { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} }
   column_options << { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} }
   column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
@@ -46,15 +45,15 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
   column_options << { caption: "Cost",          data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
   column_options << { caption: 'Card.',         data: proc{|rec| fn(rec.cardinality) }, title: 'Estimated number of rows produced by the operation', align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
-  column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if col_setting['Partition attributes']
-  column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if col_setting['Partition attributes']
-  column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if col_setting['Partition attributes']
+  column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+  column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+  column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if explain_plan_col_setting['Partition attributes']
   column_options << { caption: "Parallel",      data: proc{|rec| parallel_short(rec) },                         title: "Parallelization (from Other_Tag)", data_title: proc{|rec| "%t\n#{rec.other_tag}"} }
   column_options << { caption: "Access",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   title: 'Access criteria for data object', :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}#{"\nNumber of index columns with matching predicates = #{rec.search_columns}" if rec.search_columns }"} }
   column_options << { caption: "Filter",        data: proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) },   title: 'Filter criteria for data object (after access)',  :max_wrap_width=>500, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.filter_predicates}"} }
   column_options << { caption: 'Temp est.',     data: proc{|rec| fn(rec.temp_space.to_f/(1024*1024)) },                      title: "Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
   column_options << { caption: "PQ distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
-  column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if col_setting['Projection']
+  column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if explain_plan_col_setting['Projection']
 
 
 %>
@@ -66,15 +65,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     grid_id:            @grid_id,
     show_pin_icon:      1,
     update_area:        @update_area,
-    context_menu_entries: [
-      { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
-        items: [
-         toggle_column(header: 'Query block',           controller: :addition, action: :explain_worksheet_sql),
-         toggle_column(header: 'Partition attributes',  controller: :addition, action: :explain_worksheet_sql),
-         toggle_column(header: 'Projection',            controller: :addition, action: :explain_worksheet_sql),
-       ]
-      },
-    ]
+    context_menu_entries: explain_plan_context_menu_entries
 })
 %>
 

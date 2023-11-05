@@ -101,6 +101,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    column_options = []
    column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
    column_options << {:caption=>'Operation',   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) },         :no_wrap=>true, :title=>t(:dba_history_list_sql_detail_execution_plan_operation_hint, :default=>'Kind of access'), :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
+   column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if explain_plan_col_setting['Query block']
    column_options << {:caption=>'ID',          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>t(:dba_history_list_sql_detail_execution_plan_id_hint, :default=>'ID of operation'),             :data_title=>proc{|rec| "%t:\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
    column_options << {:caption=>'R.',          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>t(:dba_history_list_sql_detail_execution_plan_order_hint, :default=>'Execution order of operation'),    :data_title=>proc{|rec| "%t:\nID=#{rec.id}, Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
    column_options << { :caption=>'Object-name', :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name) }, :title=>t(:dba_history_list_sql_detail_execution_plan_objectname_hint, :default=>'Name of object'), data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
@@ -108,10 +109,13 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    column_options << {:caption=>'MB',          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right }
    column_options << {:caption=>'Cost',        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
    column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+   column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+   column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+   column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if explain_plan_col_setting['Partition attributes']
    column_options << {:caption=>'Parallel',    :data=>proc{|rec| parallel_text(rec)},                          :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| parallel_title(rec)} }
    column_options << {:caption=>'A.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.access_predicates)}\nNumber of columns with matching predicates = #{rec.search_columns}"} }
    column_options << {:caption=>'F.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.filter_predicates) }"} }
-   column_options << {:caption=>'P.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.projection)}"}}
+   column_options << {:caption=>'P.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.projection)}"}} if explain_plan_col_setting['Projection']
    column_options << {:caption=>'DB time',     :data=>proc{|rec| fn(nn_pct(rec.ash_time_seconds, @sum_ash_time_seconds), 1) }, :align=>:right, :data_title=>proc{|rec| "%t\nDB-time: #{fn(rec.ash_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
    column_options << {:caption=>'CPU',         :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds), 1))  },        :align=>:right, :data_title=>proc{|rec| "%t\nCPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
    column_options << {:caption=>'Waits',       :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds), 1))  },:align=>:right, :data_title=>proc{|rec| "%t\nWaiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
@@ -199,8 +203,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
        :action                => "ajax_html('#{params[:update_area]}', 'dba_history', 'list_sql_historic_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
      }
    end
-
-
+   command_menu_entries.concat(explain_plan_context_menu_entries)
 %>
 
     <%= gen_slickgrid(@plans, column_options, {
@@ -213,9 +216,9 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
             :max_height         => "jQuery(window).height()*0.9",  # Max. 90 % of browsers client height
             show_pin_icon:      1,
             update_area:        @update_area,
-            command_menu_entries: command_menu_entries
+            command_menu_entries: command_menu_entries,
+            context_menu_entries: explain_plan_context_menu_entries,
     }) %>
-
 
 <% end %>
 

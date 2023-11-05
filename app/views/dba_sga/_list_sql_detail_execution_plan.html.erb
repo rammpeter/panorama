@@ -145,12 +145,10 @@ Last DDL = #{localeDateTime(rec.last_ddl_time)}
 Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     end
 
-    col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
-
     column_options = []
     column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
     column_options << {:caption=>"Operation",   :data=>proc{|rec| list_tree_column_operation(rec, @indent_vector, mp[:plans]) }, :no_wrap=>true,                         :title=>'Kind of data access', :data_title=>proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
-    column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if col_setting['Query block']
+    column_options << {:caption=>"Query block", :data=>proc{|rec| rec.qblock_name }, title: 'Query block name'} if explain_plan_col_setting['Query block']
     column_options << {:caption=>"ID",          :data=>proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
     column_options << {:caption=>"R.",          :data=>proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}\n#{rec['id_hint']}"} }
     column_options << { :caption=>"Object-name", :data=>proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
@@ -158,9 +156,9 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     column_options << {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes",     :align=>:right }
     column_options << {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
     column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
-    column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if col_setting['Partition attributes']
-    column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if col_setting['Partition attributes']
-    column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if col_setting['Partition attributes']
+    column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+    column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
+    column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if explain_plan_col_setting['Partition attributes']
     column_options << {:caption=>"PQ",          :data=>parallel_text,                                           :title=>"Parallelization (from Other_Tag)", :data_title=>parallel_title }
     column_options << {:caption=>"Access",      :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) },   :title=>'Access criteria for data object', :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape rec.access_predicates}\nNumber of index columns with matching predicates = #{rec.search_columns}"} }
     column_options << { :caption=>"Filter", :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>'Filter criteria for data object (after access)', :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc { |rec| "%t:\n#{my_html_escape rec.filter_predicates}" } }
@@ -172,7 +170,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     column_options << {:caption=>"I/O",         :data=>proc{|rec| fn(nn_pct(rec.io_requests, @sum_io_requests),1)},          :align=>:right, :data_title=>proc{|rec| "%t\nIO-Requests: #{fn(rec.read_io_requests)} reads, #{fn(rec.write_io_requests)} writes, avg.read=#{avg_read_bytes(rec)} bytes, avg.write=#{avg_write_bytes(rec)} bytes" }, :title=>"Percentage of  I/O-Requests in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
     column_options << {:caption=>"IC",          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes),1)}, :align=>:right, :data_title=>proc{|rec| "%t\nInterconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / ASH)", :show_pct_background=>true } if @include_ash_in_sql
     column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line (from ASH)', data_title: memory_title, :align=>:right }  if @include_ash_in_sql
-    column_options << {:caption=>"Proj.",       :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection) }"} } if col_setting['Projection']
+    column_options << {:caption=>"Proj.",       :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) },       :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection) }"} } if explain_plan_col_setting['Projection']
     column_options << {:caption=>"Starts",      :data=>proc{|rec| fn(rec.starts/sql_starts)         if rec.starts },         :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.starts)         }, Last=#{fn(rec.last_starts)}" },              :title=>t(:dba_sga_list_sql_detail_execution_plan_starts_title, :default=>'Avg. number of operation starts per execution of SQL') } if @use_starts
     column_options << {:caption=>"Rows",        :data=>proc{|rec| fn(rec.output_rows/sql_starts)    if rec.output_rows },    :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.output_rows)    }, Last=#{fn(rec.last_output_rows)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_rows_title, :default=>'Avg. number of rows for operation per execution of SQL') } if @use_output_rows
     column_options << {:caption=>"CR",          :data=>proc{|rec| fn(rec.cr_buffer_gets/sql_starts) if rec.cr_buffer_gets }, :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.cr_buffer_gets) }, Last=#{fn(rec.last_cr_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cr_title, :default=>'Avg, number of buffer gets in consistent mode (mostly for query) for operation per execution of SQL, cumulative incl. all subordinated operations') } if @use_cr_buffer_gets
@@ -251,15 +249,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
         :action                => "ajax_html('#{params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
       }
     end
-    toggle_additional_columns = {
-      caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
-      items: [
-        toggle_column(header: 'Query block',           controller: :dba_sga, action: :list_sql_detail_execution_plan),
-        toggle_column(header: 'Partition attributes',  controller: :dba_sga, action: :list_sql_detail_execution_plan),
-        toggle_column(header: 'Projection',            controller: :dba_sga, action: :list_sql_detail_execution_plan),
-      ]
-    }
-    command_menu_entries << toggle_additional_columns
+    command_menu_entries.concat(explain_plan_context_menu_entries)
 
   %>
 
@@ -273,7 +263,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
                         :max_height         => "jQuery(window).height()*0.9",  # Max. 90 % of browsers client height
                         show_pin_icon:      1,
                         command_menu_entries: command_menu_entries,
-                        context_menu_entries: toggle_additional_columns,
+                        context_menu_entries: explain_plan_context_menu_entries,
                         update_area: @update_area # local update area per plan
                     }) %>
 
