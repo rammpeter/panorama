@@ -55,17 +55,21 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "PQ distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
   column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if explain_plan_col_setting['Projection']
 
-
+  caption = "Execution plan created by EXPLAIN PLAN for SQL '#{my_html_escape @sql_statement.gsub("\n", ' ')[0,30]}"
+  caption << "... " if @sql_statement.length > 30
+  caption << "' "
+  caption << "at #{localeDateTime(@plans[0].timestamp)}" if @plans.count > 0
 %>
 
 <%= gen_slickgrid(@plans, column_options, {
-    max_height:         450,
-    line_height_single: true,
-    data_filter:        'explain_plan_filter_collapsed_item_rows',
-    grid_id:            @grid_id,
-    show_pin_icon:      1,
-    update_area:        @update_area,
-    context_menu_entries: explain_plan_context_menu_entries
+  caption:            caption,
+  max_height:         450,
+  line_height_single: true,
+  data_filter:        'explain_plan_filter_collapsed_item_rows',
+  grid_id:            @grid_id,
+  show_pin_icon:      1,
+  update_area:        @update_area,
+  context_menu_entries: explain_plan_context_menu_entries
 })
 %>
 

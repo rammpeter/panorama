@@ -855,18 +855,25 @@ class AdditionController < ApplicationController
     @binds = binds_from_params(@expected_binds, params)
     if all_binds_defined?(@expected_binds, @binds)
       remember_binds_for_next_usage(@binds)
+      worksheet_autotrace_start
       @start_time = Time.now
       # choose execution type and execute
       if stripped_sql_statement.upcase =~ /^SELECT/ || stripped_sql_statement.upcase =~ /^WITH/
         @res = []
         PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql').each {|r| @res << r}
+        @end_time = Time.now
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
-        render_partial :list_dragnet_sql_result, controller: :dragnet
+        render_partial :list_dragnet_sql_result, controller: :dragnet, additional_javascript_string: worksheet_autotrace_end
       else
         PanoramaConnection.sql_execute_native(sql: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql')
+        @end_time = Time.now
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
-        render html: "<div class='page_caption'>Statement execution started at #{localeDateTime(@start_time)}, finished within #{fn(Time.now-@start_time, 3)} seconds </div>
-        #{render_code_mirror(@sql_statement)}\n".html_safe
+        render html: "<div class='page_caption'><b>Statement execution started at #{localeDateTime(@start_time)}, finished within #{fn(@end_time-@start_time, 3)} seconds</b></div>
+        #{render_code_mirror(@sql_statement)}
+        <script type=\"text/javascript\">
+        #{worksheet_autotrace_end}
+        </script>
+        ".html_safe
       end
     else
       @update_area = prepare_param :update_area
@@ -1089,5 +1096,87 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
     sql_id = sql_select_one "SELECT Prev_SQL_ID FROM v$Session WHERE SID=SYS_CONTEXT('USERENV', 'SID')"
     write_to_client_info_store(:last_used_worksheet_sql_id, sql_id)
   end
+
+  # Read the session statistics in separate thread
+  def read_session_stats
+    session_stats = nil                                                         # initialization for use in thread
+    sid = PanoramaConnection.sid                                                # get sid from current connection of active thread
+    client_salt = Thread.current[:panorama_connection_connect_info][:client_salt]
+    thread = Thread.new do
+      PanoramaConnection.set_connection_info_for_request(get_current_database)
+      Thread.current[:panorama_connection_connect_info][:client_salt] = client_salt
+      session_stats = sql_select_all ["\
+      SELECT s.Statistic# ID, n.Name, s.Value
+      FROM v$sesstat s
+      JOIN v$StatName n ON n.Statistic# = s.Statistic#
+      WHERE SID=?
+      AND   s.Value != 0
+      ORDER BY n.Name
+      ", sid]
+      PanoramaConnection.release_connection
+      Rails.logger.debug('AdditionController.read_session_stats') { "Connection released" }
+    rescue Exception => e
+      Rails.logger.error('AdditionController.read_session_stats') { "#{e.class} #{e.message}" }
+      log_exception_backtrace(e)
+    end
+    thread.join
+    result = {}
+    session_stats.each {|s| result[s.id] = s }
+    result
+  end
+
+
+  # Called before statement execution in separate connection
+  def worksheet_autotrace_start
+    @session_stats_start = read_session_stats if read_from_client_info_store('worksheet_auto_trace', default: false)
+  end
+
+  # Called after before statement execution, returns the Javascript code to view the results in the autotrace tab
+  def worksheet_autotrace_end
+    if read_from_client_info_store('worksheet_auto_trace', default: false)      # only if autotrace is enabled
+      session_stats_end = read_session_stats
+      session_stats_end.each do |id, stat|
+        stat[:increase] = stat.value.to_i - (@session_stats_start[id] ? @session_stats_start[id].value.to_i : 0 )
+      end
+
+      "
+        setTimeout(function(){                                                    // let the result tab be drawn, then switch to autotrace tab
+          let tab_header = $('#autotrace_area_sql_worksheet_id');
+          tab_header.parent().css('display', 'inline-block');                     // make tab header visible
+          tab_header.click();                                                     // click the tab header to make the tab visible, needed for slickgrid width calculation
+          let tab_area = $('#autotrace_area_sql_worksheet');
+          tab_area.children().remove();
+          $('<div id=\"autotrace_grid\"></div>').appendTo(tab_area);              // create the div for the grid
+          setTimeout(function(){                                                  // wait until the div is visible and width can be calculated
+            createSlickGridExtended('autotrace_grid',
+              [
+                #{session_stats_end.map{|id, s| "{ 'col1': '#{my_html_escape(s.name)}', 'col2': '#{s.increase}', 'col3': '#{s.value}','metadata': {'columns': {}}}" }.join(",\n")}
+              ],
+              [
+                { 'id': 'col1', 'sort_type': 'string', 'name': 'Statistic name',            'toolTip': 'The name of the statistics attribute'},
+                { 'id': 'col2', 'sort_type': 'float',  'name': 'Increase by last SQL execution', 'toolTip': 'The increase of this statistics attribute during the last execution of SQL Statement', 'cssClass': 'align-right'},
+                { 'id': 'col3', 'sort_type': 'float',  'name': 'Total since session start', 'toolTip': 'The total value of this statistics attribute cumulated since session creation', 'cssClass': 'align-right'},
+              ],
+              {'caption': '<b>Session statistics for execution at #{localeDateTime(@end_time)}</b>',
+               'maxHeight': 450,
+               'top_level_container_id': 'content_for_layout'
+              }, []
+            );
+            setTimeout(function(){                                              // let the autotrace grid be created and drawn before bringing back to result tab
+              $('#result_area_sql_worksheet_id').click();                       // bring back to result tab into foreground
+            }, 100);
+          }, 100);                                                                // Wait until click is processed to hit the visible div
+        }, 100);
+      "
+    else                                                                        # autotrace is not enabled
+      "
+      setTimeout(function(){                                                    // let the result tab be drawn, then switch to autotrace tab
+        let tab_header = $('#autotrace_area_sql_worksheet_id');
+        tab_header.parent().css('display', 'none');                             // make tab header for autotrace invisible
+      }, 100);
+      "
+    end
+  end
+
 end
 

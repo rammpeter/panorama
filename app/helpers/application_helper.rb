@@ -636,12 +636,10 @@ module ApplicationHelper
     id = get_unique_area_id
     output = ''
     #output << ActionView::Helpers::FormTagHelper.text_area_tag(id, text)
-    output << "<textarea id=\"#{id}\" name=\"#{id}\">#{ERB::Util.html_escape(text)}</textarea>"
-    output << "\
-<script type=\"text/javascript\">
-  code_mirror_from_textarea(\"#{id}\", #{cm_options.to_json}, #{options.to_json});
-</script>
-    "
+    output << "<textarea id=\"#{id}\" name=\"#{id}\">#{ERB::Util.html_escape(text)}</textarea>\n"
+    output << "<script type=\"text/javascript\">\ncode_mirror_from_textarea(\"#{id}\", #{cm_options.to_json}, #{options.to_json});"
+    output << options[:additional_javascript_string] if options[:additional_javascript_string]
+    output << "</script>\n"
     output.html_safe
   end
 

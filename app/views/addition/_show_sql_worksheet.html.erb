@@ -51,6 +51,15 @@
           action:               'sql_worksheet.sql_in_sga();',
           show_icon_in_caption: true
       },
+      {
+        name:                 :sql_in_sga,
+        caption:              "Switch auto trace mode",
+        hint:                 "Switch auto trace mode on/off.\nIf auto trace is on then the changes of session statistics are shown in a separate tab after execution.",
+        icon_class:           "autotrace-icon #{read_from_client_info_store('worksheet_auto_trace', default: false) ? 'cuis-audio' : 'cui-audio'}",
+        icon_style:           'font-size: larger;',
+        action:               'sql_worksheet.toggle_autotrace();',
+        show_icon_in_caption: true
+      },
     ]
   )
 %>
@@ -61,19 +70,21 @@
 
 <div id="sql_worksheet_tab_container" style="width: 100%; display: inline-block;" class="tab-container">
   <ul class="etabs">
-    <li class="tab"><a id="result_area_sql_worksheet_id"  href="#result_area_sql_worksheet"     >Result data</a></li>
-    <li class="tab"><a id="explain_area_sql_worksheet_id" href="#explain_area_sql_worksheet"    >Execution plan</a></li>
-    <li class="tab"><a id="sga_area_sql_worksheet_id"     href="#sga_area_sql_worksheet"        >SQL in SGA</a></li>
+    <li class="tab"><a id="result_area_sql_worksheet_id"    href="#result_area_sql_worksheet"     >Result data</a></li>
+    <li class="tab"><a id="explain_area_sql_worksheet_id"   href="#explain_area_sql_worksheet"    >Execution plan</a></li>
+    <li class="tab"><a id="sga_area_sql_worksheet_id"       href="#sga_area_sql_worksheet"        >SQL in SGA</a></li>
+    <li class="tab"><a id="autotrace_area_sql_worksheet_id" href="#autotrace_area_sql_worksheet"  >Autotrace</a></li>
   </ul>
   <div class="panel-container">
     <div class="tab-inner-frame">
-      <div id="result_area_sql_worksheet"   ></div>
-      <div id="explain_area_sql_worksheet"  ></div>
-      <div id="sga_area_sql_worksheet"      ></div>
+      <div id="result_area_sql_worksheet"     ></div>
+      <div id="explain_area_sql_worksheet"    ></div>
+      <div id="sga_area_sql_worksheet"        ></div>
+      <div id="autotrace_area_sql_worksheet"  ></div>
     </div>
   </div>
 </div>
 
 <script type="application/javascript">
-    var sql_worksheet = new SQL_Worksheet('sql_text_div', 'fileInput');
+    var sql_worksheet = new SQL_Worksheet('sql_text_div', 'fileInput', <%= read_from_client_info_store('worksheet_auto_trace', default: false) ? 'true' : 'false' %>);
 </script>

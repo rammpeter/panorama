@@ -1,11 +1,18 @@
 class SQL_Worksheet  {
-    constructor(parent_element_id, file_open_id) {
+    /**
+     *
+     * @param parent_element_id
+     * @param file_open_id
+     * @param auto_trace_on boolean true if autotrace is on
+     */
+    constructor(parent_element_id, file_open_id, autotrace_on) {
         this.cm = CodeMirror(document.getElementById(parent_element_id), {
             value: "-- Place your SQL code here\n",
             mode:  "sql",
             lineNumbers: true
         });
         this.file_open_id = file_open_id;
+        this.autotrace_on = autotrace_on;
         this.register_file_open();                                              // register file open event
         this.cm.setSize(null, 300);                                             // Set initial height of text area
         $(this.cm.getWrapperElement()).resizable();
@@ -155,5 +162,21 @@ class SQL_Worksheet  {
         this.open_and_focus_tab('sga', 'dba_sga', 'list_last_sql_from_sql_worksheet');            // bring tab in front
     }
 
-
+    /**
+     * change the autotrace mode
+     */
+    toggle_autotrace() {
+        jQuery.ajax({
+            method: 'POST',
+            dataType: 'html',
+            success: function () {
+                sql_worksheet.autotrace_on = !sql_worksheet.autotrace_on;
+                let icon = $('.autotrace-icon');
+                icon.removeClass('cui-audio').removeClass('cuis-audio');
+                icon.addClass(sql_worksheet.autotrace_on ? 'cuis-audio' : 'cui-audio');
+            },
+            url: ('env/remember_client_setting?window_width='+jQuery(window).width()+'&browser_tab_id='+browser_tab_id),
+            data: { 'key': 'worksheet_auto_trace', 'value': !sql_worksheet.autotrace_on },
+        });
+    }
 }
