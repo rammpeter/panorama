@@ -64,6 +64,7 @@ class DragnetControllerTest < ActionController::TestCase
             !full_entry[:not_for_autonomous]
             start_time = Time.now
             post  :exec_dragnet_sql, :params => params                          # call execution of SQL
+            set_session_test_db_context                                         # Set connection info again because previous post call has reset this, needed e.g. for PanoramaConnection.autonomous_database?
             Rails.logger.debug('DragnetControllerTest.execute_tree') {"#{Time.now-start_time} secs. in execute dragnet sql for #{entry['id']}"}
             errmsg = "Error testing dragnet SQL #{entry['id']} #{full_entry[:name]}, result should be '#{expected_result}'"
             if @response.response_code.to_s[0] != ActionDispatch::AssertionResponse.new(expected_result).code[0]
