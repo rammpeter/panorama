@@ -312,7 +312,7 @@ class DashboardData {
             ;
 
             // use start and ent time of selection if selected
-            label_ajax_call += "let selection = jQuery('#"+sub_canvas_id+"').data('plot_diagram').get_plot().getSelection();\n";
+            label_ajax_call += "let selection = jQuery('#"+sub_canvas_id+"').children('.plot_diagram').data('plot_diagram').get_plot().getSelection();\n";
             label_ajax_call += "if (selection){\n"
             label_ajax_call += "  json_data.xstart_ms = selection.xaxis.from;\n"
             label_ajax_call += "  json_data.xend_ms = selection.xaxis.to;\n"
