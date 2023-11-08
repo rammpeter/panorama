@@ -5,9 +5,9 @@ module Dragnet::OptimalIndexStorageHelper
   def optimal_index_storage
     [
         {
-            :name  => t(:dragnet_helper_1_name, :default=> 'Ensure PCTFree >= 10'),
-            :desc  => t(:dragnet_helper_1_desc, :default=> 'Ensure that indexes are used with PCTFree >= 10 (minimum from my experience).
-  With PCTFree < 10 (especially = 0) problems with automatic balancing are expected, especially during insert of sorted data'),
+            :name  => t(:dragnet_helper_1_name, :default=> 'Check for PCTFree >= 10'),
+            :desc  => t(:dragnet_helper_1_desc, :default=> '0 or very small values of PCTFree for indices can lead to performance losses, especially when inserting sorted data.
+It is recommended to have at least 10% free space in the index blocks to avoid frequent block splits.'),
             :sql=> "SELECT /* DB-Tools Ramm Index-PCTFree */* FROM (
                           SELECT Owner, Table_Name, Index_Name, NULL Partition_Name, PCT_Free, Num_Rows
                           FROM DBA_Indexes

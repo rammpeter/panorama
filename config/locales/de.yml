@@ -630,9 +630,9 @@
   dragnet_helper_predefined_menu_name:                      Vordefinierte Erweiterungen hinterlegt auf dem lokalen Panorama-Server
 
   dragnet_helper_1_desc: |-
-    Sicherstellen, dass Indizes mit PCTFree >= 10 gefahren werden (Minimum als Erfahrungswert).
-    Mit PCTFree < 10 (insbesondere = 0) sind Probleme mit automatischer Ausbalancierung zu erwarten, insbesondere beim Insert der Daten in vorsortierter Folge
-  dragnet_helper_1_name:                                    Sicherstellen Index PCTFree >= 10
+    0 oder sehr kleine Werte von PCTFree für Indizes können zu Leistungseinbußen führen, insbesondere beim Einfügen sortierter Daten.
+    Es wird empfohlen, mindestens 10% freien Platz in den Indexblöcken zu haben, um häufige Blocksplits zu vermeiden.
+  dragnet_helper_1_name:                                    Prüefen auf Index PCTFree >= 10
   dragnet_helper_1_param_1_name:                            Schwellwert für PctFree Index
   dragnet_helper_1_param_1_hint:                            Selektion von Indizes, die diesen Wert für PctFree unterschreiten
   dragnet_helper_1_param_2_name:                            Schwellwert für PctFree Index-Partition
