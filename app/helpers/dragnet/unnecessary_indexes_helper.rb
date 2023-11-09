@@ -305,10 +305,12 @@ If none of the four reasons really requires the existence, the index can be remo
                            seg.Tablespace_Name                                                        \"Tablespace\",
                            u.\"End monitoring\",
                            i.Index_Type,
-                           t.IOT_Type                                                                 \"IOT Type\"
+                           t.IOT_Type                                                                 \"IOT Type\",
+                           ROUND(NVL(im.Inserts + im.Updates + im.Deletes, 0) / (SYSDATE - NVL(t.Last_Analyzed, tto.Created))) \"Table DML per day\"
                     FROM   I_Object_Usage u
                     JOIN Indexes i                        ON i.Owner = u.Owner AND i.Index_Name = u.Index_Name AND i.Table_Name=u.Table_Name
                     JOIN Tables t                         ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
+                    LEFT OUTER JOIN DBA_Objects tto       ON tto.Owner = i.Table_Owner AND tto.Object_Name = i.Table_Name AND tto.Object_Type = 'TABLE'
                     LEFT OUTER JOIN Ind_Columns_Group icg ON icg.Index_Owner = u.Owner AND icg.Index_Name = u.Index_Name
                     /* Indexes used for protection of FOREIGN KEY constraints */
                     LEFT OUTER JOIN Protected_FKs fk      ON fk.Index_Owner = i.Owner AND fk.Index_Name = i.Index_Name
@@ -325,22 +327,25 @@ If none of the four reasons really requires the existence, the index can be remo
                                  CASE WHEN COUNT(DISTINCT TableSpace_Name) > 1 THEN '< '||COUNT(DISTINCT TableSpace_Name)||' different >' ELSE MIN(TableSpace_Name) END TableSpace_Name
                           FROM   DBA_Segments
                           GROUP BY Owner, Segment_Name
-                          HAVING SUM(bytes)/(1024*1024) > ?
                          ) seg ON seg.Owner = u.Owner AND seg.Segment_Name = u.Index_Name
                     LEFT OUTER JOIN PE_Candidates pec ON pec.Owner = i.Table_Owner AND pec.Table_Name = i.Table_Name
+                    LEFT OUTER JOIN Tab_Modifications im ON im.Table_Owner = i.Table_Owner AND im.Table_Name = i.Table_Name /* Modifications of table of index */
                     CROSS JOIN (SELECT ? value FROM DUAL) Max_DML
-                    WHERE (fk.r_Num_Rows IS NULL OR fk.r_Num_Rows < ?)
+                    WHERE (seg.MBytes > ? OR (? < NVL(im.Inserts + im.Updates + im.Deletes, 0) / (SYSDATE - NVL(t.Last_Analyzed, tto.Created))))
+                    AND   (fk.r_Num_Rows IS NULL OR fk.r_Num_Rows < ?)
                     AND   (? = 'YES' OR i.Uniqueness != 'UNIQUE')
                     AND   (Max_DML.Value IS NULL OR NVL(fk.Inserts + fk.Updates + fk.Deletes, 0) < Max_DML.Value)
                     ORDER BY seg.MBytes DESC NULLS LAST
                    ",
-          :parameter=>[{:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_9_param_3_hint, :default=>'List only indexes for this schema (optional)')},
-                       {:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},
-                       {:name=>t(:dragnet_helper_139_param_1_name, :default=>'Minimum size of index in MB'),    :size=>8, :default=>1,   :title=>t(:dragnet_helper_139_param_1_hint, :default=>'Minumin size of index in MB to be considered in selection')},
-                       {:name=>t(:dragnet_helper_9_param_4_name, :default=>'Maximum DML-operations on referenced table'), :size=>8, :default=>100,   :title=>t(:dragnet_helper_9_param_4_hint, :default=>'Maximum number of DML-operations (Inserts + Updates + Deletes) on referenced table since last analyze (optional, may be empty)')},
-                       {:name=>t(:dragnet_helper_9_param_5_name, :default=>'Maximum number of rows in referenced table'), :size=>8, :default=>10000,   :title=>t(:dragnet_helper_9_param_5_hint, :default=>"Maximum number rows in referenced table for consideration in selection.\n(to prevent from long running deletes if housekeeping of referenced table occurs)")},
-                       {:name=>t(:dragnet_helper_9_param_2_name, :default=>'Show unique indexes also (YES/NO)'), :size=>4, :default=>'NO',   :title=>t(:dragnet_helper_9_param_2_hint, :default=>'Unique indexes are needed for uniqueness even if they are not used')},
-            ]
+          :parameter=>[
+            {:name=>'Schema-Name (optional)',    :size=>20, :default=>'',   :title=>t(:dragnet_helper_9_param_3_hint, :default=>'List only indexes for this schema (optional)')},
+            {:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},
+            {:name=>t(:dragnet_helper_9_param_4_name, :default=>'Maximum DML-operations on referenced table'), :size=>8, :default=>100,   :title=>t(:dragnet_helper_9_param_4_hint, :default=>'Maximum number of DML-operations (Inserts + Updates + Deletes) on referenced table since last analyze (optional, may be empty)')},
+            {:name=>t(:dragnet_helper_9_param_6_name, :default=>'Minimum size of index in MB'),    :size=>8, :default=>1,   :title=>t(:dragnet_helper_9_param_6_hint, :default=>"Minimum size of index in MB to be considered in selection.\nThis criteria may be overruled by the criteria of minimum number of DML operations on index per day.")},
+            {:name=>t(:dragnet_helper_9_param_7_name, :default=>'Minimum number of DML / day on index'), :size=>8, :default=>100000,   :title=>t(:dragnet_helper_9_param_7_hint, :default=>"Minimum number of DML operations on index per day.\nAlso if indexes are small in size they matter for index maintenance load if they are updated frequently.\nThis criteria may overrule the criteria of minimum size of index in MB.")},
+            {:name=>t(:dragnet_helper_9_param_5_name, :default=>'Maximum number of rows in referenced table'), :size=>8, :default=>1000,   :title=>t(:dragnet_helper_9_param_5_hint, :default=>"Maximum number rows in referenced table for consideration in selection.\n(to prevent from long running deletes if housekeeping of referenced table occurs)")},
+            {:name=>t(:dragnet_helper_9_param_2_name, :default=>'Show unique indexes also (YES/NO)'), :size=>4, :default=>'NO',   :title=>t(:dragnet_helper_9_param_2_hint, :default=>'Unique indexes are needed for uniqueness even if they are not used')},
+          ]
         },
         {
             :name  => t(:dragnet_helper_139_name, :default=> 'Detection of indexes without MONITORING USAGE'),

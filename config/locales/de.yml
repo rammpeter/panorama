@@ -733,6 +733,15 @@
     Maximale Anzahl Rows der referenzierten Tabelle für Berücksichtigung in Selektion
     (Um vor langlaufenden Deletes zu schützen fall Housekeeping auf der referenzierten Tabelle durchgeführt wird)
   dragnet_helper_9_param_5_name:                            Maximale Anzahl Rows der referenzierten Tabelle
+  dragnet_helper_9_param_6_hint: |
+    Minimale Größe des Index in MB um in Selektion berücksichtigt zu werden.
+    Dieses Kriterium kann übersteuert werden wenn die minimale Anzahl DML-Operationen/Tag für den Index überschritten wird.
+  dragnet_helper_9_param_6_name:                            Minimale Größe des Index in MB
+  dragnet_helper_9_param_7_hint: |
+    Minimale Anzahl von DML Operationen pro Tag auf dem Index.
+    Auch wenn die Größe des Index klein ist, ist die Last durch Index-Maintenance relevant wenn der Index frequent geändert wird.
+    Dieses Kriterium kann das Kriterium der minimalen Größe des Index übersteuern.
+  dragnet_helper_9_param_7_name:                            Minimale Anzahl DML / Tag auf Index
 
   dragnet_helper_10_name:                                   Identifikation von Indizes mit unnötigen Spalten mit geringer Selektivität
   dragnet_helper_10_desc: |-
@@ -1494,7 +1503,7 @@
     Die Nutzung von Indizes kann selektiert werden aus v$Object_Usage bzw. mit der Vorgänger-Abfrage.
   dragnet_helper_139_name: |-
     Erkennung von Indizes ohne MONITORING USAGE
-  dragnet_helper_139_param_1_hint:                          Minimale Größe des Index in MB um in Selektion berücksichtigt zu werden
+  dragnet_helper_139_param_1_hint:                          Minimale Größe des Index in MB um in Selektion berücksichtigt zu werden.
   dragnet_helper_139_param_1_name:                          Minimale Größe des Index in MB
   dragnet_helper_139_param_2_hint:                          Nur Indizes dieses Schemas anlisten (optional)
 
