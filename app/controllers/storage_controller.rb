@@ -238,7 +238,7 @@ class StorageController < ApplicationController
              f.FileSize                     MBTotal,
              NVL(free.MBFree,0)             MBFree,
              f.FileSize-NVL(free.MBFree,0)  MBUsed,
-             (f.FileSize-NVL(free.MBFree,0))/f.FileSize*100 PctUsed,
+             (f.FileSize-NVL(free.MBFree,0))/NULLIF(f.FileSize, 0) * 100 PctUsed,
              t.Status, t.Logging, t.Force_Logging, t.Extent_Management,
              t.Allocation_Type, t.Plugged_In,
              t.Segment_Space_Management, t.Bigfile,
@@ -268,7 +268,7 @@ class StorageController < ApplicationController
              NVL(f.MBTotal,0)               MBTotal,
              NVL(f.MBTotal,0)-NVL(s.Used_Blocks,0)*t.Block_Size/1048576 MBFree,
              NVL(s.Used_Blocks,0)*t.Block_Size/1048576 MBUsed,
-             (NVL(s.Used_Blocks,0)*t.Block_Size/1048576)/NVL(f.MBTotal,0)*100 PctUsed,
+             (NVL(s.Used_Blocks,0)*t.Block_Size/1048576)/NULLIF(f.MBTotal, 0) * 100 PctUsed,
              t.Status, t.Logging, t.Force_Logging, t.Extent_Management,
              t.Allocation_Type, t.Plugged_In,
              t.Segment_Space_Management, t.Bigfile,
@@ -278,7 +278,9 @@ class StorageController < ApplicationController
              #{ ", t.Def_InMemory, t.Def_InMemory_Compression" if get_db_version >= '12.1.0.2' && PanoramaConnection.edition == :enterprise}
              #{", t.Con_ID" if PanoramaConnection.is_cdb?}
       FROM  #{dba_or_cdb('DBA_Tablespaces')} t
-      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Tablespace_Name, #{"Con_ID," if PanoramaConnection.is_cdb?} SUM(Bytes)/1048576 MBTotal, SUM(Bytes)/SUM(Blocks) BlockSize,
+      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Tablespace_Name, #{"Con_ID," if PanoramaConnection.is_cdb?} SUM(Bytes)/1048576 MBTotal,
+                              CASE WHEN SUM(Blocks) IS NULL OR SUM(Blocks) = 0 THEN NULL
+                              ELSE SUM(Bytes)/SUM(Blocks) END BlockSize,
                               CASE WHEN COUNT(DISTINCT AutoExtensible)> 1 THEN 'Partial' ELSE MIN(AutoExtensible) END AutoExtensible,
                               SUM(DECODE(AutoExtensible, 'YES', MaxBytes, Bytes))/1048576 Max_Size_MB,
                               COUNT(*) File_Count
