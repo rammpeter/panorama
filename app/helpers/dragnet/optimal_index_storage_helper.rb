@@ -139,7 +139,24 @@ This selection considers indexes with < x seconds in wait at SQLs accessing this
 "),
           min_db_version: '12.2',
           :sql=> "\
-WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
+WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
+     SQLs AS (SELECT /*+ NO_MERGE MATERIALIZE */ sqls.Object_Owner, sqls.Object_Name, COUNT(*) SQLs, SUM(Executions) Executions
+              FROM   (SELECT /*+ NO_MERGE */ s.SQL_ID, SUM(Executions_Delta) Executions
+                      FROM   DBA_Hist_SQLStat s
+                      JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
+                      WHERE  ss.Begin_Interval_Time > (SELECT Datum FROM Days_Back)
+                      AND    ss.DBID = #{get_dbid}
+                      GROUP BY s.SQL_ID
+                     ) s
+              JOIN   (SELECT /*+ NO_MERGE */ SQL_ID, Object_Owner, Object_Name
+                      FROM   DBA_Hist_SQL_Plan
+                      WHERE  Operation = 'INDEX'
+                      AND    DBID = #{get_dbid}
+                      GROUP BY SQL_ID, Object_Owner, Object_Name
+                     ) sqls ON sqls.SQL_ID = s.SQL_ID
+              GROUP BY sqls.Object_Owner, sqls.Object_Name
+             ),
+     Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
                   FROM   DBA_Segments
                   WHERE  Owner NOT IN (SELECT /*+ NO_MERGE */ UserName FROM All_Users WHERE Oracle_Maintained = 'Y')
                   GROUP BY Owner, Segment_Name
@@ -169,7 +186,7 @@ WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(
                               FROM gv$Active_Session_History
                               GROUP BY Inst_ID
                              ) mh ON mh.Inst_ID = h.Instance_Number
-                      WHERE  h.Sample_Time > SYSDATE -?
+                      WHERE  h.Sample_Time > (SELECT Datum FROM Days_Back)
                       AND    h.Sample_Time < mh.Min_Sample_Time
                       AND    h.DBID = #{get_dbid}
                       GROUP BY Current_Obj#
@@ -183,7 +200,8 @@ WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(
               GROUP BY  o.Owner, o.Object_Name
              )
 SELECT /* Advanced High Compression Suggestions */ i.Owner, i.Index_Name, i.Index_Type, i.Compression, i.Table_Owner, i.Table_Name,
-       ash.Seconds_In_Wait, t.IOT_Type, seg.MBytes, i.Num_Rows, Distinct_Keys, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key, cs.Avg_Col_Len
+       ash.Seconds_In_Wait, t.IOT_Type, seg.MBytes, i.Num_Rows, Distinct_Keys, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key, cs.Avg_Col_Len,
+       sqls.SQLs \"Number of distinct SQL in AWR\", sqls.Executions \"Number of SQL executions in AWR\"
 FROM   Indexes i
 JOIN   Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
 JOIN   Segments seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
@@ -193,15 +211,18 @@ JOIN   (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len
         GROUP BY ic.Index_Owner, ic.Index_Name
        ) cs ON cs.Index_Owner = i.Owner AND cs.Index_Name = i.Index_Name
 LEFT OUTER JOIN ash ON ash.Owner = i.Owner AND ash.Object_Name = i.Index_Name
+LEFT OUTER JOIN sqls ON sqls.Object_Owner = i.Owner AND sqls.Object_Name = i.Index_Name
 WHERE  i.Compression != 'ADVANCED HIGH'
 AND    seg.MBytes > ?
 AND    NVL(ash.Seconds_In_Wait, 0) < ?
+AND    NVL(sqls.Executions, 0) < ?
 ORDER BY seg.MBytes DESC NULLS LAST
           ",
           :parameter=>[
-            {name: t(:dragnet_helper_168_param_1_name, default: 'Number of last days in ASH to consider') , size: 8, default: 8, title: t(:dragnet_helper_168_param_1_hint, default: 'Number of last days in Active Session History to consider for calculation of seconds in wait for that index') },
+            {name: t(:dragnet_helper_168_param_1_name, default: 'Number of last days in history to consider') , size: 8, default: 8, title: t(:dragnet_helper_168_param_1_hint, default: 'Number of last days in Active Session History (ASH) or Active Workload Repository (AWR) to consider for calculation of seconds in wait for that index') },
             {name: t(:dragnet_helper_168_param_3_name, default: 'Maximum seconds in wait for index') , size: 8, default: 100, title: t(:dragnet_helper_168_param_3_hint, default: 'Maximum number of seconds Active Session History has recorded in the considered period as session activity on index') },
-            {name: t(:dragnet_helper_168_param_2_name, default: 'Minimum size of index in MB to be considered') , size: 1, default: 8, title: t(:dragnet_helper_168_param_2_hint, default: 'Minimum size of index in MB to be considered in this selection') },
+            {name: t(:dragnet_helper_168_param_2_name, default: 'Minimum size of index in MB to be considered') , size: 8, default: 100, title: t(:dragnet_helper_168_param_2_hint, default: 'Minimum size of index in MB to be considered in this selection') },
+            {name: t(:dragnet_helper_168_param_4_name, default: 'Maximum number of SQL executions in AWR') , size: 8, default: 1000000, title: t(:dragnet_helper_168_param_4_hint, default: 'Maximum number of SQL executions containing this index in considered days back in AWR history') },
           ]
         },
         {

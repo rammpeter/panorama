@@ -1808,12 +1808,14 @@
     Daher wird COMPRESS ADVANCED HIGH insbesondere für weniger häufig verwendete Indizes auf Tabellen mit weniger DML empfohlen.
     Diese Auswahl hält Indizes mit < x Sekunden Wartezeit bei SQLs, die auf diesen Index zugreifen, für mögliches COMPRESS ADVANCED HIGH wert.
   dragnet_helper_168_name:                                  Empfehlungen für ADVANCED HIGH Index-Komprimierung
-  dragnet_helper_168_param_1_hint:                          Anzahl der letzten Tage in der Active Session History, die für die Berechnung der Wartezeit in Sekunden für diesen Index berücksichtigt wird
-  dragnet_helper_168_param_1_name:                          Anzahl der letzten zu berücksichtigenden Tage in ASH
+  dragnet_helper_168_param_1_hint:                          Anzahl der letzten Tage in der Active Session History (ASH) oder Active Workload Repository (AWR), die für die Berechnung der Wartezeit in Sekunden für diesen Index berücksichtigt wird
+  dragnet_helper_168_param_1_name:                          Anzahl der letzten zu berücksichtigenden Tage in Historie
   dragnet_helper_168_param_2_hint:                          Maximale Anzahl von Sekunden, die Active Session History im betrachteten Zeitraum als Sitzungsaktivität für den Index aufgezeichnet hat
   dragnet_helper_168_param_2_name:                          Maximale Wartezeit von Sekunden auf den Index
   dragnet_helper_168_param_3_hint:                          Mindestgröße des Index in MB um bei dieser Auswahl berücksichtigt zu werden
   dragnet_helper_168_param_3_name:                          Mindestgröße des Index in MB für Berücksichtigung
+  dragnet_helper_168_param_4_hint:                          Maximale Anzahl Ausführungen von diesen Index beinhaltenden SQLs im den betrachteten Tagen der AWR -Historie
+  dragnet_helper_168_param_4_name:                          Maximale Anzahl von SQL-AUsführungen in AWR
 
   dragnet_helper_169_desc:                                  Leere Partitionen oder Subpartitionen werden evtl. nicht mehr benötigt und können gedropt werden
   dragnet_helper_169_name:                                  Leere Partitionen oder Subpartitionen
