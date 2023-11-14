@@ -200,7 +200,10 @@ WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
               GROUP BY  o.Owner, o.Object_Name
              )
 SELECT /* Advanced High Compression Suggestions */ i.Owner, i.Index_Name, i.Index_Type, i.Compression, i.Table_Owner, i.Table_Name,
-       ash.Seconds_In_Wait, t.IOT_Type, seg.MBytes, i.Num_Rows, Distinct_Keys, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key, cs.Avg_Col_Len,
+       ash.Seconds_In_Wait Seconds_in_Wait_in_ASH_history,
+       t.IOT_Type, seg.MBytes, i.Num_Rows Num_Rows_of_Index,
+       Distinct_Keys Distinct_Keys_of_Index, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key_in_Index,
+       cs.Avg_Col_Len Avg_Length_of_Index_Columns,
        sqls.SQLs \"Number of distinct SQL in AWR\", sqls.Executions \"Number of SQL executions in AWR\"
 FROM   Indexes i
 JOIN   Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name

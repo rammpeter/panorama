@@ -24,7 +24,7 @@ fi
 # Fixen durch auskommentieren des protection-Flags für pathmap_replace in gems/rake-11.3.0/lib/rake/ext/string.rb
 
 echo "Create Panorama.jar"
-jarble
+bundle exec jarble
 if [ $? -ne 0 ]
 then
   echo "######### Error creating jar file"
