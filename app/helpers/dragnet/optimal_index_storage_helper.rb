@@ -141,17 +141,33 @@ This selection considers indexes with < x seconds in wait at SQLs accessing this
           :sql=> "\
 WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
      SQLs AS (SELECT /*+ NO_MERGE MATERIALIZE */ sqls.Object_Owner, sqls.Object_Name, COUNT(*) SQLs, SUM(Executions) Executions
-              FROM   (SELECT /*+ NO_MERGE */ s.SQL_ID, SUM(Executions_Delta) Executions
-                      FROM   DBA_Hist_SQLStat s
-                      JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
-                      WHERE  ss.Begin_Interval_Time > (SELECT Datum FROM Days_Back)
-                      AND    ss.DBID = #{get_dbid}
-                      GROUP BY s.SQL_ID
+              FROM   (SELECT /*+ NO_MERGE */ SQL_ID, SUM(Executions) Executions
+                      FROM   (
+                              SELECT /*+ NO_MERGE */ s.SQL_ID, SUM(Executions_Delta) Executions
+                              FROM   DBA_Hist_SQLStat s
+                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
+                              WHERE  ss.Begin_Interval_Time > (SELECT Datum FROM Days_Back)
+                              AND    ss.DBID = #{get_dbid}
+                              GROUP BY s.SQL_ID
+                              UNION ALL
+                              SELECT /*+ NO_MERGE */ SQL_ID, SUM(Executions) Executions
+                              FROM   gv$SQLArea
+                              GROUP BY SQL_ID
+                             )
+                      GROUP BY SQL_ID
                      ) s
               JOIN   (SELECT /*+ NO_MERGE */ SQL_ID, Object_Owner, Object_Name
-                      FROM   DBA_Hist_SQL_Plan
-                      WHERE  Operation = 'INDEX'
-                      AND    DBID = #{get_dbid}
+                      FROM   (SELECT /*+ NO_MERGE */ SQL_ID, Object_Owner, Object_Name
+                              FROM   DBA_Hist_SQL_Plan
+                              WHERE  Operation = 'INDEX'
+                              AND    DBID = #{get_dbid}
+                              GROUP BY SQL_ID, Object_Owner, Object_Name
+                              UNION ALL
+                              SELECT /*+ NO_MERGE */ SQL_ID, Object_Owner, Object_Name
+                              FROM   gv$SQL_Plan
+                              WHERE  Operation = 'INDEX'
+                              GROUP BY SQL_ID, Object_Owner, Object_Name
+                             )
                       GROUP BY SQL_ID, Object_Owner, Object_Name
                      ) sqls ON sqls.SQL_ID = s.SQL_ID
               GROUP BY sqls.Object_Owner, sqls.Object_Name
@@ -204,7 +220,7 @@ SELECT /* Advanced High Compression Suggestions */ i.Owner, i.Index_Name, i.Inde
        t.IOT_Type, seg.MBytes, i.Num_Rows Num_Rows_of_Index,
        Distinct_Keys Distinct_Keys_of_Index, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key_in_Index,
        cs.Avg_Col_Len Avg_Length_of_Index_Columns,
-       sqls.SQLs \"Number of distinct SQL in AWR\", sqls.Executions \"Number of SQL executions in AWR\"
+       sqls.SQLs \"Distinct SQLs in AWR and SGA\", sqls.Executions \"No of SQL execs in AWR and SGA\"
 FROM   Indexes i
 JOIN   Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
 JOIN   Segments seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
