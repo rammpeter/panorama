@@ -215,7 +215,8 @@ WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
               WHERE  o.Owner NOT IN (SELECT /*+ NO_MERGE */ UserName FROM All_Users WHERE Oracle_Maintained = 'Y')
               GROUP BY  o.Owner, o.Object_Name
              )
-SELECT /* Advanced High Compression Suggestions */ i.Owner, i.Index_Name, i.Index_Type, i.Compression, i.Table_Owner, i.Table_Name,
+SELECT /* Advanced High Compression Suggestions */ i.Owner, i.Index_Name, i.Index_Type, io.Created Creation_of_index,
+       i.Compression, i.Table_Owner, i.Table_Name,
        ash.Seconds_In_Wait Seconds_in_Wait_in_ASH_history,
        t.IOT_Type, seg.MBytes, i.Num_Rows Num_Rows_of_Index,
        Distinct_Keys Distinct_Keys_of_Index, ROUND(i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys)) Rows_Per_Key_in_Index,
@@ -231,6 +232,7 @@ JOIN   (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len
        ) cs ON cs.Index_Owner = i.Owner AND cs.Index_Name = i.Index_Name
 LEFT OUTER JOIN ash ON ash.Owner = i.Owner AND ash.Object_Name = i.Index_Name
 LEFT OUTER JOIN sqls ON sqls.Object_Owner = i.Owner AND sqls.Object_Name = i.Index_Name
+LEFT OUTER JOIN DBA_Objects io ON io.Owner = i.Owner AND io.Object_Name = i.Index_Name
 WHERE  i.Compression != 'ADVANCED HIGH'
 AND    seg.MBytes > ?
 AND    NVL(ash.Seconds_In_Wait, 0) < ?

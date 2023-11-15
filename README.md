@@ -4,7 +4,9 @@ Panorama for Oracle-DB
 Web-tool for analyzing performance issues of Oracle databases.<br/>
 Provides easy access to several current and historic state information of Oracle DBs.<br>
 
-For more information please see: https://rammpeter.github.io/panorama.html
+![Dashboard](doc/dashboard.png)
+
+For more details please see: https://rammpeter.github.io/panorama.html
 
 ## Installation / Usage
 there are two ways to run Panorama:
@@ -21,11 +23,11 @@ there are two ways to run Panorama:
 - Open the application in your browser: http://localhost:8080
 - Login with an Oracle user of the choosen database 
 
-### 2. Use Panorama as Docker container
-- Ensure you have Docker installed
+### 2. Use Panorama as container
+- Ensure you have Docker or Podman installed
 - Run the application by executing the following command in a terminal:
   ```
-  > docker run -p 8080:8080 rammpeter/panorama
+  > docker run -p 8080:8080 docker.io/rammpeter/panorama
   ```
 - Open the application in your browser: http://localhost:8080
 - Login with an Oracle user of the choosen database
