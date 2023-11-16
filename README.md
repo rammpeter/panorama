@@ -4,7 +4,7 @@ Panorama for Oracle-DB
 Web-tool for analyzing performance issues of Oracle databases.<br/>
 Provides easy access to several current and historic state information of Oracle DBs.<br>
 
-![Dashboard](doc/dashboard.png)
+![Dashboard](doc/dashboard.jpg)
 
 For more details please see: https://rammpeter.github.io/panorama.html
 
