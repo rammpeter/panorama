@@ -82,11 +82,11 @@
                 <%= hidden_field_tag('dragnet_hidden_entry_id') %>
 
                 <div class="flex-row-container">
-                  <div class="flex-row-element_left"><%= submit_tag(t(:dragnet_show_selection_do_sql_caption, :default=>"Do selection"), :disabled=>true, :id=>'dragnet_show_selection_do_selection', :name=>:commit_exec, :title => t(:dragnet_show_selection_do_sql_hint, :default=>"Execute selected report")) %></div>
-                  <div class="flex-row-element_left"><%= submit_tag("Show SQL",  :disabled=>true,  :id=>'dragnet_show_selection_show_sql',           :name=>:commit_show, :title => t(:dragnet_show_selection_show_sql_hint, :default=>"show select SQL-statement")) %></div>
+                  <div class="flex-row-element"><%= submit_tag(t(:dragnet_show_selection_do_sql_caption, :default=>"Do selection"), :disabled=>true, :id=>'dragnet_show_selection_do_selection', :name=>:commit_exec, :title => t(:dragnet_show_selection_do_sql_hint, :default=>"Execute selected report")) %></div>
+                  <div class="flex-row-element"><%= submit_tag("Show SQL",  :disabled=>true,  :id=>'dragnet_show_selection_show_sql',           :name=>:commit_show, :title => t(:dragnet_show_selection_show_sql_hint, :default=>"show select SQL-statement")) %></div>
 
 
-                  <div class="flex-row-element_left">
+                  <div class="flex-row-element">
                     <input type="submit" id="dragnet_drop_personal_selection_button" value="Drop personal SQL" style="display: none;"
                            data-confirm="Do you really want to drop this selection"
                            title="<%= t(:dragnet_show_selection_drop_personal_selection_button_hint, :default=>"Drop this personal selection from list") %>"
