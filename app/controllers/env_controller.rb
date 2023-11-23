@@ -376,6 +376,7 @@ class EnvController < ApplicationController
     current_database = params[:database]                                        # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
     if called_from_set_database_by_params
       current_database[:save_login] = current_database[:save_login] == '1' # Store as bool instead of number fist time after login
+      write_to_client_info_store(:save_login, current_database[:save_login])   # Merken, ob Login-Info gespeichert werden soll
       current_database[:management_pack_license] = :none                        # No license violation possible until the user decides the license to use
     end
 

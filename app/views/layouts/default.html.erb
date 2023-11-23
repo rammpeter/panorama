@@ -216,7 +216,7 @@
       </tr>
       <tr>
         <td class="login_dialog_lhead"><%= t :login_save_login_caption, :default=>"Save login?" %></td>
-        <td align="center"><%= check_box_tag('database[save_login]', 1, true, :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
+        <td align="center"><%= check_box_tag('database[save_login]', 1, read_from_client_info_store(:save_login, default: false), :title=>t(:login_save_login_hint, :default=>"save login-info for further usage?")) %></td>
       </tr>
       <tr>
         <td colspan="2" align="center">
