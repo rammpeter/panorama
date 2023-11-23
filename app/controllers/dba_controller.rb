@@ -947,6 +947,7 @@ oradebug setorapname diag
                   s.UserName, s.Machine, s.OSUser, s.Process, s.Program,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
                   s.Logon_Time,
+                  SYSDATE,
                   sci.Network_Encryption, sci.Network_Checksumming,
                   p.spID, p.PID,
                   RawToHex(tx.XID) Tx_ID,

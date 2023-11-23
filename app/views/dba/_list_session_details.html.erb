@@ -1,5 +1,5 @@
 <div style="clear:both; padding: 5px;"></div>
-<%= render_page_caption("#{t(:dba_list_session_details_caption, :default=>'Details for session')} SID=#{@sid}, Serial#=#{@serial_no}, Instance=#{@instance}, #{"CDB=#{@dbsessions[0].con_id} (#{@dbsessions[0].container_name}), " if get_current_database[:cdb]}#{localeDateTime(Time.now)}", get_recall_params_info_for_render_page_caption) %>
+<%= render_page_caption("#{t(:dba_list_session_details_caption, :default=>'Details for session')} SID=#{@sid}, Serial#=#{@serial_no}, Instance=#{@instance}, #{"CDB=#{@dbsessions[0].con_id} (#{@dbsessions[0].container_name}), " if get_current_database[:cdb]}#{localeDateTime(@dbsessions[0].sysdate)}", get_recall_params_info_for_render_page_caption) %>
 
 <% @prev_update_area = @update_area
    @update_area = get_unique_area_id
