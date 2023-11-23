@@ -218,7 +218,7 @@
 
     monitoring index = #{rec.monitoring}
     start monitoring = #{localeDateTime(rec.start_monitoring)}
-    end monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((Time.now - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
+    end monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((PanoramaConnection.db_systime - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
   end
 
    blocksize = PanoramaConnection.db_blocksize                                   # call only once

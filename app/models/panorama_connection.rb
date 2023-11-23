@@ -150,6 +150,7 @@ class PanoramaConnection
   attr_reader :sid
   attr_reader :sql_stmt_in_execution
   attr_reader :table_directory_entry_size
+  attr_reader :time_delay_secs                                                  # Difference between DB-Server and Panorama-Server in seconds (DB-server - Panorama-server)
   attr_reader :transaction_fixed_header_size
   attr_reader :transaction_variable_header_size
   attr_reader :unsigned_byte_4_size
@@ -233,6 +234,12 @@ class PanoramaConnection
       @con_id        = 0
       @cdb           = 'NO'
     end
+
+    db_time = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT SYSDATE FROM Dual")['sysdate'] # Time on DB-Server, but flagged as UTC
+    local_time = Time.now                                                       # Time on Panorama-Server with time zone
+    panorama_time = Time.new(local_time.year, local_time.month, local_time.day, local_time.hour, local_time.min, local_time.sec, 0) # Time on Panorama-Server with same value but flagged as UTC
+    @time_delay_secs = db_time - panorama_time                                  # Difference between both UTC times DB-Server and Panorama-Server in seconds (DB-server - Panorama-server)
+    @time_delay_secs = (@time_delay_secs/10.0).round * 10                       # Round to seconds with +/- 5 seconds
   end
 
   def register_sql_execution(stmt)
@@ -427,6 +434,8 @@ class PanoramaConnection
   def self.saddr;                           check_for_open_connection;        Thread.current[:panorama_connection_connection_object].saddr;                             end
   def self.serial_no;                       check_for_open_connection;        Thread.current[:panorama_connection_connection_object].serial_no;                         end
   def self.sid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].sid;                               end
+  # @return [Time] Time on DB-Server in his default timezone, but flagged with the time zone of the Panorama server
+  def self.db_systime;                      check_for_open_connection;        Time.now + Thread.current[:panorama_connection_connection_object].time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection;        Thread.current[:panorama_connection_connection_object].stat_id_consistent_gets;           end
   def self.table_directory_entry_size;      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].table_directory_entry_size;        end
   def self.table_directory_entry_size;      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].table_directory_entry_size;        end

@@ -947,7 +947,6 @@ oradebug setorapname diag
                   s.UserName, s.Machine, s.OSUser, s.Process, s.Program,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
                   s.Logon_Time,
-                  SYSDATE,
                   sci.Network_Encryption, sci.Network_Checksumming,
                   p.spID, p.PID,
                   RawToHex(tx.XID) Tx_ID,
@@ -2086,7 +2085,7 @@ oradebug setorapname diag
       smallest_timestamp = sql_select_one ["\
         SELECT MIN(Sample_Time) FROM gv$Active_Session_History s #{where_string}
       "].concat(where_values)
-      smallest_timestamp = Time.now-300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
+      smallest_timestamp = PanoramaConnection.db_systime-300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
     else
       smallest_timestamp = Time.at(smallest_timestamp_ms/1000).utc
     end

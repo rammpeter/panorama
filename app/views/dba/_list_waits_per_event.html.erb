@@ -35,7 +35,7 @@
 %>
 
 <%= gen_slickgrid(@waits, column_options, {
-        :caption => "Session-Waits: Event='#{@event}', Instance=#{@instance}, #{localeDateTime(Time.now)}",
+        :caption => "Session-Waits: Event='#{@event}', Instance=#{@instance}, #{localeDateTime(PanoramaConnection.db_systime)}",
         :max_height => 450,
         show_pin_icon: 1,
         update_area: @update_area

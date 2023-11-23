@@ -39,7 +39,7 @@
 
 <%= gen_slickgrid(@wait_sums, column_options, {
     :width=>:auto,
-    :caption=>"Session-Waits (Summary) at #{localeDateTime(Time.now)}",
+    :caption=>"Session-Waits (Summary) at #{localeDateTime(PanoramaConnection.db_systime)}",
     :max_height => 450
 }) %>
 

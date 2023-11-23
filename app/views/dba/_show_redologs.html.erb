@@ -32,7 +32,7 @@ column_options << {:caption=>'Log switch interval', :data=>proc{|rec| fn(rec.log
 
 <%=
     gen_slickgrid(@redologs, column_options, {
-            :caption => "Redo-Logfiles from GV$LOG at #{localeDateTime(Time.now)}",
+            :caption => "Redo-Logfiles from GV$LOG at #{localeDateTime(PanoramaConnection.db_systime)}",
             max_height: 450,
             :width=>:auto,
             show_pin_icon: 1
