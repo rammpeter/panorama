@@ -1840,6 +1840,12 @@
   dragnet_helper_171_name: |-
     Unbestimmte Spalten im Ergebnis aufgrund von 'SELECT * FROM table'
 
+  dragnet_helper_172_desc: |-
+    In function-based Indizes genutzte Funktionen sollen als DETERMINISTIC deklariert sein.
+    Wenn diese Funktionen von Tabellen abhängig sind, besteht das Risiko dass die Funktionsergebnisse von einem SQL-Ergebnis abhängen und somit der deterministische Zustand nicht gewährleistet werden kann.
+    Diese Selektion prüft nur Indexe die von Funktionen abhängen und nicht von Package-Funktionen, da hier die Wahrscheinlichkeit von False-Positives sehr hoch ist.
+  dragnet_helper_172_name: |-
+    Eventuelle Verletzung der DETERMINISTIC-Deklaration von in function-based Indexes genutzten Funktionen
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
