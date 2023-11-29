@@ -1392,6 +1392,18 @@ class DbaSchemaController < ApplicationController
                               WHERE  Owner= ?
                               AND    Name = ?
                              ", @owner, @index_name]
+    usage_info = sql_select_first_row "SELECT  MIN(Last_Flush_Time) min_last_flush_time,
+                                               MAX(Last_Flush_Time) max_last_flush_time,
+                                               MIN(INST_ID) KEEP (DENSE_RANK FIRST ORDER BY Last_Flush_Time) min_inst_id,
+                                               MAX(INST_ID) KEEP (DENSE_RANK LAST  ORDER BY Last_Flush_Time) max_inst_id
+                                        FROM
+                                        gv$Index_Usage_Info
+                                       "
+    @last_flush_time = if usage_info.min_last_flush_time == usage_info.max_last_flush_time
+                         localeDateTime(usage_info.min_last_flush_time)
+                       else
+                         "#{localeDateTime(usage_info.min_last_flush_time)} (Inst=#{usage_info.min_inst_id}) .. #{localeDateTime(usage_info.max_last_flush_time)} (Inst=#{usage_info.max_inst_id})"
+                       end
     render_partial
   end
 
