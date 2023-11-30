@@ -1226,6 +1226,9 @@ class DbaSchemaController < ApplicationController
                         sp.SP_Min_Extents_Count,  sp.SP_Min_Extents,
                         sp.SP_Max_Extents_Count,  sp.SP_Max_Extents
                         #{", mi.GC_Mastering_Policy, mi.GC_Mastering_Policy_Cnt, mi.Current_Master, mi.Current_Master, mi.Current_Master_Cnt, mi.Previous_Master, mi.Previous_Master_Cnt, mi.Remaster_Cnt" if PanoramaConnection.rac?}
+                        #{get_db_version >= '12.2' ? ", iu.Total_Access_Count" : ", NULL Total_Access_Count"}
+                        #{get_db_version >= '12.2' ? ", DECODE(iu.Total_Access_Count, NULL, 'NO', 'YES')" : ", NULL"} DBA_Index_Usage
+                        #{get_db_version >= '12.2' ? ", iu.last_used" : ", NULL Last_Used"}
                  FROM   Indexes i
                  LEFT OUTER JOIN DBA_Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len) Sum_Col_Len
@@ -1284,7 +1287,8 @@ class DbaSchemaController < ApplicationController
                                   JOIN   V$GCSPFMASTER_INFO i ON i.Data_Object_ID = o.Data_Object_ID
                                   GROUP BY ii.Index_Name
                                  ) mi ON mi.Index_Name = i.Index_Name" if PanoramaConnection.rac?}
-                  ORDER BY i.Index_Name
+              #{"LEFT OUTER JOIN DBA_Index_Usage iu ON iu.Owner = i.Owner AND iu.Name = i.Index_Name" if get_db_version >= '12.1'}
+                 ORDER BY i.Index_Name
                 ",  @owner, @table_name]
                                   .concat(where_values)
                                   .concat([@owner, @table_name, @owner, @table_name, @owner, @table_name])

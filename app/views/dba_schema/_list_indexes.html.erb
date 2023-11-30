@@ -212,13 +212,36 @@
 
   data_title_use = proc do |rec|
     "%t:
-    - YES: Index has been used for access since last monitoring start
-    - NO: Index has not been used for access since last monitoring start
-    - ?: MONITORING USAGE is not active for this index
 
-    monitoring index = #{rec.monitoring}
-    start monitoring = #{localeDateTime(rec.start_monitoring)}
-    end monitoring = #{localeDateTime(rec.end_monitoring)}#{"\nnot used since #{fn((PanoramaConnection.db_systime - rec.start_monitoring)/86400)} days" if rec.start_monitoring && rec.used=='NO'}"
+    There are two ways to detect index usage:
+
+    1. ALTER INDEX ... MONITORING USAGE (recorded in sys.Object_Usage/DBA_Object_Usage)
+
+    #{ output = ''
+       if rec.used == 'YES' || rec.used == 'NO'
+         if rec.used == 'YES'
+           output << "YES, this index has been used for access since last monitoring start\n"
+         else
+           output << "NO, this index has not been used for access since last monitoring start\n"
+         end
+         output << "Monitoring index = #{rec.monitoring}\n"
+         output << "Start monitoring = #{localeDateTime(rec.start_monitoring)}\n"
+         output << "End monitoring = #{localeDateTime(rec.end_monitoring)}\n"
+         output << "Not used since #{fn((PanoramaConnection.db_systime - rec.start_monitoring)/86400)} days\n" if rec.start_monitoring && rec.used=='NO'
+       else
+         output << "MONITORING USAGE is not active for this index\n"
+       end
+       output
+    }
+    2. DBA_INDEX_USAGE
+
+    #{case rec.dba_index_usage
+      when 'YES' then "YES there is a recorded usage of this index in DBA_Index_Usage\nTotal access count = #{rec.total_access_count}\nLast used = #{localeDateTime(rec.last_used)}\nClick on the link to show the details of the recorded usage."
+      when 'NO' then "NO, there is no recorded usage of this index in DBA_Index_Usage"
+      else "DBA_Index_Usage is not available for your DB release"
+      end
+    }
+"
   end
 
    blocksize = PanoramaConnection.db_blocksize                                   # call only once
@@ -233,7 +256,7 @@
 
    link_used = proc do |rec|
     if get_db_version >= '12.2'
-      ajax_link(rec.used ? rec.used : '?',
+      ajax_link(rec.used ? rec.used : (rec.dba_index_usage ? rec.dba_index_usage : '?' ),
                  {controller:   :dba_schema,
                   action:       :list_index_usage,
                   owner:        rec.owner,
@@ -309,7 +332,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
                    { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},                         title: "Timestamp for the last specification change of the index" },
                    {:caption=> 'Last analyzed',    data: link_last_analyzed,                                              :title=> 'The date of the most recent time this table was analyzed'},
                    {:caption=> 'FK',               data: link_fk,                                                         title: 'Number of protected foreign key constraints if this index is used for protection of foreign key constraints?', align: :right },
-                   {:caption=> 'Use',              data: link_used,                                                       :title=> 'Usage of index detected? From sys.Object_Usage', data_title: data_title_use, data_style: proc{|rec| 'background-color:coral;' if rec.used=='NO'} },
+                   {:caption=> 'Use',              data: link_used,                                                       :title=> 'Real usage of index detected?', data_title: data_title_use, data_style: proc{|rec| 'background-color:coral;' if rec.used=='NO' || (rec.dba_index_usage=='NO' && rec.used != 'YES')} },
                    {:caption=> 'Several States',   :data=>list_states,                                                    :title=> title_states},
                    {:caption=> 'Action',           :data=>render_action_buttons,                                          :title=> 'Call action for this index'},
            ]

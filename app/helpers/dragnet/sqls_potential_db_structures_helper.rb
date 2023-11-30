@@ -516,7 +516,7 @@ ORDER BY s.MBytes DESC
           :name  => t(:dragnet_helper_172_name, :default=>'Possible violations of DETERMINISTIC declared functions that are used in function-based indexes'),
           :desc  => t(:dragnet_helper_172_desc, :default=>"The functions used in function-based indexes should be declared as DETERMINISTIC.
 If this functions are depending on tables, there could be a risk that the function result depends on a SQL result and this way the deterministic state could not be ensured.
-This selection checks only indexes depending functions and not on package functions because of the high probability of false positives."),
+This selection checks only indexes depending on functions and not on package functions because of the high probability of false positives."),
           :sql=> "\
 SELECT id.Owner Index_Owner, id.Name Index_Name, id.Referenced_Owner Function_Owner, id.Referenced_Name Function_Name,
        fd.Referenced_Owner Table_Owner, fd.Referenced_Name Table_Name
