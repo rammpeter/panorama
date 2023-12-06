@@ -1013,7 +1013,7 @@ SELECT /* Panorama-Tool Ramm */
        (SELECT TO_CHAR(SUBSTR(SQL_Text,1,100)) FROM DBA_Hist_SQLText t WHERE t.DBID=sql.DBID AND t.SQL_ID=sql.SQL_ID) SQL_Text,
        sql.*
 FROM (
-        SELECT p.DBID, p.SQL_ID, s.Instance_Number, Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag,
+        SELECT p.DBID, p.SQL_ID, s.Instance_Number, Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag, p.Access_Predicates, p.Search_Columns, p.Filter_Predicates,
                COUNT(DISTINCT s.Snap_ID)          Sample_Count,
                COUNT(DISTINCT s.Plan_Hash_Value)  Plans,
                COUNT(DISTINCT s.Instance_number)  Instance_Count,
@@ -1049,7 +1049,7 @@ FROM (
         WHERE  p.Object_Name  LIKE UPPER(?) #{where_filter}
         AND    s.Snap_ID >= NVL(snap_limit.StartMin, snap_limit.StartMax)
         AND    s.Snap_ID <= NVL(snap_limit.EndMax,   snap_limit.EndMin)
-        GROUP BY p.DBID, p.SQL_ID, s.Instance_Number, s.Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag
+        GROUP BY p.DBID, p.SQL_ID, s.Instance_Number, s.Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag, p.Access_Predicates, p.Search_Columns, p.Filter_Predicates
       ) sql
       ORDER BY sql.Elapsed_Time_Secs DESC",
     @time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid, @object_name].concat(where_values)

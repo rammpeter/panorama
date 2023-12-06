@@ -47,7 +47,10 @@
           {:caption=>"I",           :data=>proc{|rec| list_instance(rec) }, :title=>'Instance-ID if only one RAC instance affected or number of affected instances "< 2 >"' },
     ]
     # Anzeige Attribute aus explain plan bei Nutzung des Views für Result von show_using_sqls_historic
-    column_options << {:caption=>"Operation",      :data=>proc{|rec| "#{rec.operation} #{rec.options}"}, :title=>"Operation", :data_title=>proc{|rec| "Operation: #{rec.other_tag}"} } if @sqls.count>0 && @sqls[0]["operation"] && @sqls[0]["options"]
+    column_options << {caption: "Operation",      data: proc{|rec| "#{rec.operation} #{rec.options}"},  title: "Operation", :data_title=>proc{|rec| "Operation: #{rec.other_tag}"} } if @sqls.count>0 && @sqls[0].has_key?('operation') && @sqls[0].has_key?('options')
+    column_options << {caption: "Access",         data: proc{|rec| rec.access_predicates},              title: "Access criteria"} if @sqls.count>0 && @sqls[0].has_key?('access_predicates')
+    column_options << {caption: "Search columns", data: proc{|rec| rec.search_columns},                 title: "Number of columns with matching predicates for index scans", align: :right} if @sqls.count>0 && @sqls[0].has_key?('search_columns')
+    column_options << {caption: "Filter",         data: proc{|rec| rec.filter_predicates},              title: "Filter criteria"} if @sqls.count>0 && @sqls[0].has_key?('filter_predicates')
     column_options.concat [
           {:caption=>"SQL-ID",      :data=>proc{|rec| link_column_sql(rec, rec.sql_id) },                                   :title=>"SQL-ID" },
           {:caption=>"SQL-Text",    :data=>proc{|rec| my_html_escape rec.sql_text },                                        :title=>"SQL-Text" },
