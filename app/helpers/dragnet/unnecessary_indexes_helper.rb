@@ -615,8 +615,9 @@ Caution:
                           HAVING SUM(bytes)/(1024*1024) > ?
                          ) seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
                     CROSS JOIN (SELECT ? value FROM DUAL) Max_DML
-                    WHERE (? = 'YES' OR i.Uniqueness != 'UNIQUE')
-                    AND   (Max_DML.Value IS NULL OR NVL(cc.Inserts + cc.Updates + cc.Deletes, 0) < Max_DML.Value)
+                    WHERE   iu.Name IS NULL /* Index not used since x days */
+                    AND     (? = 'YES' OR i.Uniqueness != 'UNIQUE')
+                    AND     (Max_DML.Value IS NULL OR NVL(cc.Inserts + cc.Updates + cc.Deletes, 0) < Max_DML.Value)
                     ORDER BY seg.MBytes DESC NULLS LAST
                    ",
             :parameter=>[{:name=>t(:dragnet_helper_9_param_1_name, :default=>'Number of days backwards without usage'),    :size=>8, :default=>7,   :title=>t(:dragnet_helper_9_param_1_hint, :default=>'Minumin age in days of Start-Monitoring timestamp of unused index')},

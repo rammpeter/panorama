@@ -87,7 +87,7 @@ module EnvHelper
     # Transformation der cookie-Kürzel in lesbare Bezeichner
     cookies_last_logins.map{|c| {:host=>c[:h], :port=>c[:p], :sid=>c[:s], :user=>c[:u], :password=>c[:w], :authorization=>c[:a], :sid_usage=>(c[:g]==1 ? :SID : :SERVICE_NAME)} }
 =end
-    last_logins = read_from_client_info_store(:last_logins)
+    last_logins = read_from_client_info_store(:last_logins, default: [])
     if last_logins.nil? || !last_logins.instance_of?(Array)
       last_logins = []
       write_last_logins(last_logins)   # Zurückschreiben in client_info-store

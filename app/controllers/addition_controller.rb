@@ -1016,7 +1016,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   def find_binds_in_sql(sql)
     remaining = remove_string_literals(remove_comments_from_sql(sql))
     result = []
-    stored_binds = read_from_client_info_store(:bind_aliases) || {}
+    stored_binds = read_from_client_info_store(:bind_aliases, default: {})
     while remaining[':'] do
       remaining = remaining[remaining.index(':')+1..]
       end_pos = remaining.length
@@ -1047,7 +1047,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   # Store used bind values
   # @param [Array] binds
   def remember_binds_for_next_usage(binds)
-    stored_binds = read_from_client_info_store(:bind_aliases)
+    stored_binds = read_from_client_info_store(:bind_aliases, default: {})
     stored_binds = {} if stored_binds.nil?
     binds.each do |bind|
       stored_binds[bind[:alias]] = bind

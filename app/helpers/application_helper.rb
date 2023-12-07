@@ -88,10 +88,10 @@ module ApplicationHelper
     end
     if @buffered_client_info_store.nil? || @buffered_client_info_store.class != Hash || @buffered_client_info_store[key].nil? # Abbruch wenn Struktur nicht passt
       msg = "read_from_client_info_store: No data found in client_info_store while looking for key=#{key}"
-      if default
-        Rails.logger.debug('ApplicationHelper.read_from_client_info_store') {msg}
-      else
+      if default.nil?                                                           # default not set, also not set to false
         Rails.logger.error('ApplicationHelper.read_from_client_info_store') {msg}
+      else
+        Rails.logger.debug('ApplicationHelper.read_from_client_info_store') {msg}
       end
       return default
     end

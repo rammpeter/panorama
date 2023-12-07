@@ -176,8 +176,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
 
   public
   def add_personal_selection
-    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
-    dragnet_personal_selection_list = [] if dragnet_personal_selection_list.nil?
+    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list, default: [])
 
     begin
       new_selection = JSON.parse(params[:selection])
@@ -220,7 +219,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
     drop_selection = extract_entry_by_entry_id(params[:dragnet_hidden_entry_id])
 
 
-    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list)
+    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list, default: [])
 
     drop_external_selection(dragnet_personal_selection_list, drop_selection[:name])
 
