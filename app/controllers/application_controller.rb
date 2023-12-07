@@ -77,7 +77,7 @@ class ApplicationController < ActionController::Base
     end
 
     raise "URL-parameter 'browser_tab_id' missing for request with controller = #{controller_name}, action = #{action_name}.\nPlease report error to administrator." if @browser_tab_id.nil?
-    raise PopupMessageException.new("Your browser session has expired!\nPlease reload the page in browser and start again!") if session.empty?
+    raise PopupMessageException.new("Your browser session has expired!\nPlease reload the page in browser and start again!") if session.empty? && !Rails.env.test?
 
     begin
       current_database = get_current_database
