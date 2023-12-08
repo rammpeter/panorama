@@ -142,19 +142,42 @@ module ExplainPlanHelper
 
   # Create a mapping between the short names of query blocks (like SEL$4) and the long names (like SEL$4A5A5A5A) which are used in the plan lines
   # @param other_xml [Nokogiri::XML::Document] XML document with other_xml
+  # @param qb_names_in_plan [Hash] hash with query block names used in the plan
   # @return [Hash] mapping between short and long names
-  def extract_qb_mapping(other_xml)
+  def extract_qb_mapping(other_xml, qb_names_in_plan)
     result = {}
     other_xml.xpath('//qb_registry/q').each do |q|
       qblock_longname = nil
       q.xpath('*').each do |np|
         case np.name
         when 'n' then qblock_longname = np.content
-        when 'p' then result[np.content] = qblock_longname
+        when 'p' then
+          result[np.content] = qblock_longname                                  # Add mapping from short name to long name
+          # result[qblock_longname] = np.content                                  # Add mapping from long name to short name
         end
       end
     end
-    result
+
+    # reduce the tree relation to the both endpoints
+    # the value must be in qb_names_in_plan
+    reduced_result = {}
+
+    find_root = proc do |key, value|
+      if result.has_key?(value)                                                 # value is a key in result
+        find_root.call(key, result[value])
+      else
+        reduced_result[key] = value if qb_names_in_plan.has_key?(value)         # add the root entry if the value is in qb_names_in_plan
+      end
+    end
+
+    result.each do |key, value|                                                 # all entries where value is not in qb_names_in_plan
+      if qb_names_in_plan.has_key?(value)
+        reduced_result[key] = value                                             # add the root entry if the value is in qb_names_in_plan
+      else
+        find_root.call(key, value)
+      end
+    end
+    reduced_result
   end
 
   # Extract additional info as array from other_xml
@@ -240,6 +263,7 @@ module ExplainPlanHelper
   # @param plan_array [Array] array with plan lines
   # @return void
   def hint_usage_from_other_xml(plan_array)
+    return if plan_array.nil? || plan_array.count == 0
 
     # Process a single h tag content into given result structure
     # @param h_tag [Nokogiri::XML::Element] h tag element
@@ -257,7 +281,13 @@ module ExplainPlanHelper
       hint_usage << hint
     end
 
-    other_xml = plan_array.select{|p| !p.other_xml.nil?}.first&.other_xml
+    other_xml = nil
+    qb_names_in_plan = {}
+    plan_array.each do |p|
+      other_xml = p.other_xml if !p.other_xml.nil?
+      qb_names_in_plan[p.qblock_name] = true if !p.qblock_name.nil?             # remember the used query block names
+    end
+
     if other_xml.nil?
       Rails.logger.warn("No other_xml found in plan lines")
       return
@@ -271,12 +301,17 @@ module ExplainPlanHelper
     #   ]
     # }
     hint_usages = {}
-    qb_mapping = extract_qb_mapping(xml_doc)
+    qb_names_in_hints = {}                                                      # Query block names used in hints
+    qb_mapping = extract_qb_mapping(xml_doc, qb_names_in_plan)
     xml_doc.xpath('//hint_usage/q').each do |q|
       qblock_name = nil  # TODO: CHeck if there are q without n
       q.xpath('*').each do |nhmst|
         case nhmst.name
-        when 'n' then qblock_name = nhmst.content                               # Query block name (n) should be the first element in q
+        when 'n' then
+          qblock_name = nhmst.content                               # Query block name (n) should be the first element in q
+          qb_names_in_hints[qblock_name] = true                                 # Remember the used native query block name
+          qblock_name = qb_mapping[qblock_name] if !qb_names_in_plan.has_key?(qblock_name) && qb_mapping.has_key?(qblock_name)  # Use the corresponding long name from QB mapping
+          qblock_name = 'force_row_0' if !qb_names_in_plan.has_key?(qblock_name)  # Force relation to row 0 if query block name is not known in plan rows
         else
           hint_usage = []
           object_alias = nil
@@ -292,11 +327,7 @@ module ExplainPlanHelper
               end
             end
           end
-          hint_usage_key = if qb_mapping.has_key?(qblock_name)                  # Short name has been used in hint_usage
-                             "#{qb_mapping[qblock_name]}:#{object_alias}"       # Use the corresponding long name from QB mapping
-                           else
-                             "#{qblock_name}:#{object_alias}"                   # Use the QB name as is
-                           end
+          hint_usage_key = "#{qblock_name}:#{object_alias}"                     # Use the QB name as is
           if hint_usages.has_key?(hint_usage_key)
             hint_usages[hint_usage_key].concat(hint_usage)                      # Add to existing result
           else
@@ -306,34 +337,51 @@ module ExplainPlanHelper
       end
     end
 
+    qb_mapping_reverse = {}
+    qb_mapping.each do |key, value|
+      qb_mapping_reverse[value] = key if qb_names_in_plan.has_key?(value) && qb_names_in_hints.has_key?(key) # Only add the mapping if the query block name is used in the plan
+    end
+
+    process_hint_usage = proc do |hint_usage, p|
+      hint_usage.each do |hint|
+        p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
+        p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
+        p['hint_usage'] << "#{my_html_escape(hint[:hint_text])}"            # Escape special characters in hint text to avoid XSS
+        p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
+        p['hint_usage'] << "\n"
+        hint[:attributes].each do |attr|
+          p['hint_usage'] << case attr[:value].to_s
+                             when 'EM' then ''  # TODO: Check if EM is always set for hints or not
+                             when 'EU' then "This hint is not used (EU)!\n"
+                             when 'NU' then "This hint is not used (NU)!\n"
+                             when 'PE' then "Syntax parsing error (PE)!\n"
+                             when 'UR' then "This hint is unresolved (UR)!\n"
+                             else "Unknown attribute for hint usage (#{attr[:value]})\n"
+                             end
+        end
+        p['hint_usage'] << "Hint type = #{hint[:type]}\n"
+        p['hint_usage'] << "\n"
+      end
+    end
+
     plan_array.each do |p|
       p['hint_usage'] = ''
       p['wrong_hint_usage'] = false
-      if !p.qblock_name.nil?
-        hint_usage = hint_usages["#{p.qblock_name}:#{p.object_alias}"]
-        unless hint_usage.nil?                                                  # Hint-Usages exist for that query block and object alias
-          hint_usage.each do |hint|
-            p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
-            p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
-            p['hint_usage'] << "#{my_html_escape(hint[:hint_text])}"            # Escape special characters in hint text to avoid XSS
-            p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
-            p['hint_usage'] << "\n"
-            hint[:attributes].each do |attr|
-              p['hint_usage'] << case attr[:value].to_s
-                                 when 'EM' then ''  # TODO: Check if EM is always set for hints or not
-                                 when 'EU' then "This hint is not used (EU)!\n"
-                                 when 'NU' then "This hint is not used (NU)!\n"
-                                 when 'PE' then "Syntax parsing error (PE)!\n"
-                                 when 'UR' then "This hint is unresolved (UR)!\n"
-                                 else "Unknown attribute for hint usage (#{attr[:value]})\n"
-                                 end
-            end
-            p['hint_usage'] << "Type = #{hint[:type]}\n"
-            p['hint_usage'] << "\n"
-          end
+      if !p.qblock_name.nil? || p.id == 0                                       # Only process plan lines with a query block name or the first line
+        # process hints for query block only (no object alias)
+        hint_usage = hint_usages["#{p.qblock_name}:"]                           # Look for hints that are not related to an object alias
+        unless hint_usage.nil?
+          process_hint_usage.call(hint_usage, p)
+          hint_usages.delete("#{p.qblock_name}:")                          # Remove the entry from the hash to avoid processing it again
         end
+
+        # process hints for query block and alias
+        hint_usage = hint_usages["#{p.qblock_name}:#{p.object_alias}"]
+        hint_usage = hint_usages["force_row_0:"] if p.id == 0                   # Look for global hints that are not related to a query block
+        process_hint_usage.call(hint_usage, p) unless hint_usage.nil?           # Hint-Usages exist for that query block and object alias
       end
-      p['hint_usage'] = nil if p['hint_usage'] == ''                             # nothing added to hint_usage
+      p['hint_usage'] = nil if p['hint_usage'] == ''                            # nothing added to hint_usage
+      p['qblock_name_short'] = qb_mapping_reverse[p.qblock_name]                # The query block name as set by hint QB_NAME
     end
   end
 
