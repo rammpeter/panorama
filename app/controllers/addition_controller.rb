@@ -883,6 +883,13 @@ class AdditionController < ApplicationController
     end
   end
 
+  def explain_worksheet_sql_additional_info
+    other_xml = prepare_param :other_xml
+    @plan_additions = extract_additional_info_from_other_xml(other_xml)
+    @caption_addition = " from Plan_Table"
+    render_partial :list_sql_detail_execution_plan_additional_info, controller: :dba_sga
+  end
+
   def explain_worksheet_sql
     if params[:sql_statement].nil? || params[:sql_statement] == ''
       show_popup_message('Nothing to explain: No statement typed')
@@ -916,6 +923,7 @@ class AdditionController < ApplicationController
       raise "Column 'DEPTH' missing in your Plan_Table (old structure)!\nPlease drop your local plan table to ensure usage of builtin public Plan_Table." if @plans.length > 0 && @plans[0]['depth'].nil?
 
       calculate_execution_order_in_plan(@plans)                                   # Calc. execution order by parent relationship
+      hint_usage_from_other_xml(@plans)                                     # Extract hint usage from other_tag
 
       render_partial
       PanoramaConnection.sql_execute ["DELETE FROM Plan_Table WHERE STatement_ID = ?", statement_id]

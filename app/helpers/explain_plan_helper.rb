@@ -140,6 +140,203 @@ module ExplainPlanHelper
 
   end
 
+  # Create a mapping between the short names of query blocks (like SEL$4) and the long names (like SEL$4A5A5A5A) which are used in the plan lines
+  # @param other_xml [Nokogiri::XML::Document] XML document with other_xml
+  # @return [Hash] mapping between short and long names
+  def extract_qb_mapping(other_xml)
+    result = {}
+    other_xml.xpath('//qb_registry/q').each do |q|
+      qblock_longname = nil
+      q.xpath('*').each do |np|
+        case np.name
+        when 'n' then qblock_longname = np.content
+        when 'p' then result[np.content] = qblock_longname
+        end
+      end
+    end
+    result
+  end
+
+  # Extract additional info as array from other_xml
+  # @param other_xml [String] XML document with other_xml
+  # @return [Array] array with additional info records
+  def extract_additional_info_from_other_xml(other_xml)
+    plan_additions = []
+    xml_doc = Nokogiri::XML(other_xml)
+    xml_doc.xpath('//other_xml/*').each do |rec|
+      begin
+        case rec.name
+        when 'info' then
+          plan_additions << ({
+            :record_type  => 'Info',
+            :attribute    => rec.attributes['type'].to_s,
+            :value        => rec.children.text
+          }.extend SelectHashHelper)
+        when 'bind' then
+          attributes = ''
+          rec.attributes.each do |key, val|
+            attributes << "#{key}=#{val} "
+          end
+          plan_additions << ({
+            :record_type  => 'Peeked bind',
+            #              :attribute    => Hash[bind.attributes.map {|key, val| [key, val.to_s]}].to_s,
+            :attribute    => attributes,
+            :value        => rec.children.text
+          }.extend SelectHashHelper)
+        when 'hint' then
+          plan_additions << ({
+            record_type: 'Hint',
+            attribute:   nil,
+            value:       rec.children.text
+          }.extend SelectHashHelper)
+        when 'hint_usage' then
+          rec.xpath('q').each do |hint|
+            plan_additions << ({
+              :record_type  => 'Hint_Usage',
+              :attribute    => nil,
+              :value        => my_html_escape(hint.children.to_s)
+            }.extend SelectHashHelper)
+          end
+        when 'display_map' then
+          rec.xpath('row').each do |dm|
+            attributes = ''
+            dm.attributes.each do |key, val|
+              attributes << "#{key}=#{val} "
+            end
+
+            plan_additions << ({
+              :record_type  => 'Display Map',
+              :attribute    => nil,
+              :value        => attributes
+            }.extend SelectHashHelper)
+          end
+        when 'qb_registry' then
+          rec.xpath('q').each do |qb|
+            plan_additions << ({
+              :record_type  => 'QB Registry',
+              :attribute    => nil,
+              :value        => my_html_escape(qb.children.to_s)
+            }.extend SelectHashHelper)
+          end
+        else
+          plan_additions << ({
+            record_type: rec.name,
+            attribute:   nil,
+            value:       my_html_escape(rec.children.to_s)
+          }.extend SelectHashHelper)
+        end
+      rescue Exception => e
+        plan_additions << ({
+          :record_type  => 'Exception while processing XML document',
+          :attribute => e.message,
+          :value => my_html_escape(other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
+        }.extend SelectHashHelper)
+      end
+    end
+    plan_additions
+  end
+
+  # Add the hint usage to the plan lines based on column other_xml
+  # @param plan_array [Array] array with plan lines
+  # @return void
+  def hint_usage_from_other_xml(plan_array)
+
+    # Process a single h tag content into given result structure
+    # @param h_tag [Nokogiri::XML::Element] h tag element
+    # @param type [String] type of hint (h, t, m, s
+    # @param hint_usage [Hash] hint usage structure to add the hint to
+    process_h_tag = proc do |h_tag, type,  hint_usage|
+      hint = {
+        hint_text: h_tag.content,
+        type: type,
+        attributes: []
+      }
+      h_tag.attributes.each do |name, value|
+        hint[:attributes] << {name: name, value: value.to_s}
+      end
+      hint_usage << hint
+    end
+
+    other_xml = plan_array.select{|p| !p.other_xml.nil?}.first&.other_xml
+    if other_xml.nil?
+      Rails.logger.warn("No other_xml found in plan lines")
+      return
+    end
+    xml_doc = Nokogiri::XML(other_xml)
+    # Temporary hash with all hint usages
+    # { qblock_name:object_alias => [
+    #     hint_text: "USE_NL(c)"
+    #     type => h|m|s|t,
+    #     attributes: [  {name: 'st', value: 'EU'} ]
+    #   ]
+    # }
+    hint_usages = {}
+    qb_mapping = extract_qb_mapping(xml_doc)
+    xml_doc.xpath('//hint_usage/q').each do |q|
+      qblock_name = nil  # TODO: CHeck if there are q without n
+      q.xpath('*').each do |nhmst|
+        case nhmst.name
+        when 'n' then qblock_name = nhmst.content                               # Query block name (n) should be the first element in q
+        else
+          hint_usage = []
+          object_alias = nil
+          if nhmst.name == 'h'
+            process_h_tag.call(nhmst, nhmst.name, hint_usage)                   # Directly process the h-tag
+          else
+            nhmst.xpath('*').each do |fh|                                       # Process all children of nhmst
+              case fh.name
+              when 'f' then object_alias = fh.content                           # Object alias (f) should be the first element in hmst, but it is not always present
+              when 'h' then process_h_tag.call(fh, nhmst.name, hint_usage)
+              else
+                Rails.logger.warn('ExplainPlanHelper.hint_usage_from_other_xml'){ "Unknown element 'q/#{fh.name}' with content '#{fh.content}' in other_xml/hint_usage" }
+              end
+            end
+          end
+          hint_usage_key = if qb_mapping.has_key?(qblock_name)                  # Short name has been used in hint_usage
+                             "#{qb_mapping[qblock_name]}:#{object_alias}"       # Use the corresponding long name from QB mapping
+                           else
+                             "#{qblock_name}:#{object_alias}"                   # Use the QB name as is
+                           end
+          if hint_usages.has_key?(hint_usage_key)
+            hint_usages[hint_usage_key].concat(hint_usage)                      # Add to existing result
+          else
+            hint_usages[hint_usage_key] = hint_usage                            # Put to result and tag with query block name and object alias
+          end
+        end
+      end
+    end
+
+    plan_array.each do |p|
+      p['hint_usage'] = ''
+      p['wrong_hint_usage'] = false
+      if !p.qblock_name.nil?
+        hint_usage = hint_usages["#{p.qblock_name}:#{p.object_alias}"]
+        unless hint_usage.nil?                                                  # Hint-Usages exist for that query block and object alias
+          hint_usage.each do |hint|
+            p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
+            p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
+            p['hint_usage'] << "#{my_html_escape(hint[:hint_text])}"            # Escape special characters in hint text to avoid XSS
+            p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
+            p['hint_usage'] << "\n"
+            hint[:attributes].each do |attr|
+              p['hint_usage'] << case attr[:value].to_s
+                                 when 'EM' then ''  # TODO: Check if EM is always set for hints or not
+                                 when 'EU' then "This hint is not used (EU)!\n"
+                                 when 'NU' then "This hint is not used (NU)!\n"
+                                 when 'PE' then "Syntax parsing error (PE)!\n"
+                                 when 'UR' then "This hint is unresolved (UR)!\n"
+                                 else "Unknown attribute for hint usage (#{attr[:value]})\n"
+                                 end
+            end
+            p['hint_usage'] << "Type = #{hint[:type]}\n"
+            p['hint_usage'] << "\n"
+          end
+        end
+      end
+      p['hint_usage'] = nil if p['hint_usage'] == ''                             # nothing added to hint_usage
+    end
+  end
+
   # build data title for columns cost and cardinality
   def cost_card_data_title(rec)
     "%t\n#{"
@@ -203,9 +400,10 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     [
       { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
         items: [
-          toggle_column(header: 'Query block'),
+          toggle_column(header: 'Optimizer hint usage'),
           toggle_column(header: 'Partition attributes'),
           toggle_column(header: 'Projection'),
+          toggle_column(header: 'Query block'),
         ]
       }
     ]

@@ -32,7 +32,17 @@
 Created = #{localeDateTime(rec.created)}
 Last DDL = #{localeDateTime(rec.last_ddl_time)}
 Last specification change = #{localeDateTime(rec.last_spec_ts)}
-    <span style=\"background-color:green;\">HUGO</span>".html_safe
+    ".html_safe
+  end
+
+  data_title_object_name = proc do |rec|
+    output = "%t\n\n"
+    output << "\nType = #{rec.object_type}"
+    output << "\nAlias = #{rec.object_alias}"
+    output << "\nQuery block name = #{rec.qblock_name}"
+    output << "\n#Other = #{rec.other}" if rec.other
+    output << analyzed_spec_title.call(rec)
+    output << "\n\nOptimizer hint usage:\n#{rec.hint_usage.gsub(/<\/?s>/, '')}" if rec.hint_usage
   end
 
   column_options = []
@@ -40,7 +50,8 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name}, :title=>'Name of the query block of this operation' } if explain_plan_col_setting['Query block']
   column_options << { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} }
   column_options << { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} }
-  column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: proc { |rec| "%t\nType = #{rec.object_type},\nAlias = #{rec.object_alias},\nQuery block name = #{rec.qblock_name}#{"\nOther = #{rec.other}" if rec.other }#{analyzed_spec_title.call(rec)}" }, no_wrap: true }
+  column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name)}, :title=>'Name of accessed object', data_title: data_title_object_name, no_wrap: true, data_style: proc{|rec| 'background-color:lightpink;' if rec.wrong_hint_usage} }
+  column_options << { caption: "Optimizer hint usage", data: proc{|rec| rec.hint_usage }, title: 'Optimizer hint usage', data_title: proc{|rec| "%t\n\n#{rec.hint_usage&.gsub(/<\/?s>/, '')   }"}}  if explain_plan_col_setting['Optimizer hint usage']
   column_options << { caption: "Rows",          data: link_real_num_rows,                                       title: "Number of rows of object (from analyze info)",     align: :right, data_title: proc{|rec| "%t\n#{analyzed_spec_title.call(rec)}"}  }
   column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
   column_options << { caption: "Cost",          data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
@@ -59,6 +70,20 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   caption << "... " if @sql_statement.length > 30
   caption << "' "
   caption << "at #{localeDateTime(@plans[0].timestamp)}" if @plans.count > 0
+
+  other_xml = @plans.select{|p| !p.other_xml.nil?}.first&.other_xml
+
+  command_menu_entries = [
+    {
+      name:                  :additional_info,
+      caption:               'Show additional info',
+      :hint                  => "Show additional info for explain plan from column Other_XML of plan table",
+      :icon_class            => 'cui-map',
+      :show_icon_in_caption  => true,
+      :action                => "ajax_html('#{@update_area}', 'addition', 'explain_worksheet_sql_additional_info', { other_xml: '#{my_html_escape(escape_js_single_quote(other_xml))}'});"
+    },
+  ].concat explain_plan_context_menu_entries
+
 %>
 
 <%= gen_slickgrid(@plans, column_options, {
@@ -67,6 +92,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   line_height_single: true,
   data_filter:        'explain_plan_filter_collapsed_item_rows',
   grid_id:            @grid_id,
+  command_menu_entries: command_menu_entries,
   show_pin_icon:      1,
   update_area:        @update_area,
   context_menu_entries: explain_plan_context_menu_entries

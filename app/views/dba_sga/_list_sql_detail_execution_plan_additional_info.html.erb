@@ -6,7 +6,7 @@
     {:caption=>'Value',       :data=>proc{|rec| rec.value },        :title=>'Value of record in Other_XML'},
   ]
 
-  caption = "Additional info for explain plan from gv$SQL_PLan.Other_XML<br>SQL-ID='#{@sql_id}'"
+  caption = "Additional info for explain plan #{@caption_addition}"
   caption << ", Instance=#{@instance}" if @instance
   caption << ", Plan Hash Value=#{@plan_hash_value}" if @plan_hash_value
   caption << ", Child Number=#{@child_number}" if @child_number

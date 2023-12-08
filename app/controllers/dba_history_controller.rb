@@ -617,6 +617,12 @@ class DbaHistoryController < ApplicationController
     render_partial
   end
 
+  def list_sql_detail_historic_execution_plan_additional_info
+    other_xml = prepare_param :other_xml
+    @plan_additions = extract_additional_info_from_other_xml(other_xml)
+    @caption_addition = " from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}.Other_XML"
+    render_partial :list_sql_detail_execution_plan_additional_info, controller: :dba_sga
+  end
 
 
   def list_sql_historic_execution_plan
@@ -806,6 +812,7 @@ class DbaHistoryController < ApplicationController
 
       end
       calculate_execution_order_in_plan(mp[:plans])                             # Calc. execution order by parent relationship
+      hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 
 

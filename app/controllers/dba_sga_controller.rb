@@ -494,6 +494,7 @@ class DbaSgaController < ApplicationController
                                                    show_adaptive_plans:    @show_adaptive_plans
       )
       calculate_execution_order_in_plan(mp[:plans])                             # Calc. execution order by parent relationship
+      hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 
     @additional_ash_message = nil
@@ -510,101 +511,10 @@ class DbaSgaController < ApplicationController
   end
 
   def list_sql_detail_execution_plan_additional_info
-    @sql_id                 = prepare_param :sql_id
-    @instance               = prepare_param_instance
-    @child_number           = prepare_param_int :child_number
-    @child_address          = prepare_param :child_address
-    @plan_hash_value        = prepare_param_int :plan_hash_value
-
-    where_string = ''
-    where_values = []
-
-    if !@child_number.nil?
-      where_string << ' AND Child_Number = ?'
-      where_values << @child_number
-    end
-
-    if !@child_address.nil?
-      where_string << ' AND Child_Address = HEXTORAW(?)'
-      where_values << @child_address
-    end
-
-    other_xml = sql_select_one ["\
-      SELECT Other_XML
-      FROM   gv$SQL_Plan p
-      WHERE  SQL_ID  = ?
-      AND    Inst_ID = ?
-      AND    Plan_Hash_Value = ?
-      AND    Other_XML IS NOT NULL
-      #{where_string}
-      ", @sql_id, @instance, @plan_hash_value].concat(where_values)
-
-    # Segmentation of XML document
-    @plan_additions = []
-    @hint_usage = []
-    begin
-      xml_doc = Nokogiri::XML(other_xml)
-      xml_doc.xpath('//info').each do |info|
-        @plan_additions << ({
-          :record_type  => 'Info',
-          :attribute    => info.attributes['type'].to_s,
-          :value        => info.children.text
-        }.extend SelectHashHelper)
-      end
-
-      xml_doc.xpath('//bind').each do |bind|
-        attributes = ''
-        bind.attributes.each do |key, val|
-          attributes << "#{key}=#{val} "
-        end
-
-        @plan_additions << ({
-          :record_type  => 'Peeked bind',
-          #              :attribute    => Hash[bind.attributes.map {|key, val| [key, val.to_s]}].to_s,
-          :attribute    => attributes,
-          :value        => bind.children.text
-        }.extend SelectHashHelper)
-      end
-
-      # below outline_data
-      xml_doc.xpath('//hint').each do |hint|
-        @plan_additions << ({
-          :record_type  => 'Hint',
-          :attribute    => nil,
-          :value        => hint.children.text
-        }.extend SelectHashHelper)
-      end
-
-      xml_doc.xpath('//hint_usage/q').each do |hint|
-        @plan_additions << ({
-          :record_type  => 'Hint_Usage',
-          :attribute    => nil,
-          :value        => hint.children.to_s
-        }.extend SelectHashHelper)
-      end
-
-      xml_doc.xpath('//display_map/row').each do |dm|
-        attributes = ''
-        dm.attributes.each do |key, val|
-          attributes << "#{key}=#{val} "
-        end
-
-        @plan_additions << ({
-          :record_type  => 'Display Map',
-          :attribute    => nil,
-          :value        => attributes
-        }.extend SelectHashHelper)
-      end
-
-    rescue Exception => e
-      @plan_additions << ({
-        :record_type  => 'Exception while processing XML document',
-        :attribute => e.message,
-        :value => my_html_escape(other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
-      }.extend SelectHashHelper)
-    end
-
-    render_partial
+    other_xml = prepare_param :other_xml
+    @plan_additions = extract_additional_info_from_other_xml(other_xml)
+    @caption_addition = " from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}.Other_XML"
+    render_partial :list_sql_detail_execution_plan_additional_info, controller: :dba_sga
   end
 
 
