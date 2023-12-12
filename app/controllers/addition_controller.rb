@@ -1002,6 +1002,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   def prepare_sql_statement(sql)
     sql.rstrip!
     lines = sql.split("\n")
+    return nil if lines.length == 0
     lines[lines.length-1].gsub!(/\/$/, "")
     lines[lines.length-1].gsub!(/;$/, "") if lines[lines.length-1].strip.upcase != 'END;' # do not remove the trailing semicolon for the last END; of PL/SQL
     lines.join("\n")

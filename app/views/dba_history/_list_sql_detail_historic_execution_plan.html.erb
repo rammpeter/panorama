@@ -49,16 +49,6 @@
      retval == 0 ? nil : retval
    end
 
-   def get_formatted_other_xml(rec)
-     return nil if rec.other_xml.nil?
-      my_html_escape(rec.other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
-   end
-
-   def get_formatted_other_xml_title(rec)
-     return nil if rec.other_xml.nil?
-      my_html_escape(rec.other_xml).gsub(/&lt;info/, "\n&lt;info").gsub(/&lt;hint/, "\n&lt;hint")
-   end
-
   def parallel_text(rec)
     output = "#{parallel_short(rec)}"
     output << "&nbsp;#{rec.max_pq_sessions}" if rec.max_pq_sessions && rec.max_pq_sessions > 0  if get_db_version >= "11.2"
@@ -128,7 +118,6 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    column_options << {:caption=>'Parallel',    :data=>proc{|rec| parallel_text(rec)},                          :title=>"Parallelization (from Other_Tag)", :data_title=>proc{|rec| parallel_title(rec)} }
    column_options << {:caption=>'A.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.access_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_access_hint, :default=>'Access criteria on object'), :max_wrap_width=>300, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.access_predicates)}\nNumber of columns with matching predicates = #{rec.search_columns}"} }
    column_options << {:caption=>'F.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.filter_predicates) }, :title=>t(:dba_history_list_sql_detail_execution_filter_hint, :default=>'Filter criteria on object'),  :max_wrap_width=>300, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.filter_predicates) }"} }
-   column_options << {:caption=>'P.',          :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.projection)}"}} if explain_plan_col_setting['Projection']
    column_options << {:caption=>'DB time',     :data=>proc{|rec| fn(nn_pct(rec.ash_time_seconds, @sum_ash_time_seconds), 1) }, :align=>:right, :data_title=>proc{|rec| "%t\nDB-time: #{fn(rec.ash_time_seconds)} seconds" }, :title=>"Percentage of total DB-time in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
    column_options << {:caption=>'CPU',         :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.cpu_seconds, @sum_cpu_seconds), 1))  },        :align=>:right, :data_title=>proc{|rec| "%t\nCPU: #{fn(rec.cpu_seconds)} seconds" }, :title=>"Percentage of CPU usage in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
    column_options << {:caption=>'Waits',       :data=>proc{|rec| link_column_wait.call(rec, fn(nn_pct(rec.waiting_seconds, @sum_waiting_seconds), 1))  },:align=>:right, :data_title=>proc{|rec| "%t\nWaiting: #{fn(rec.waiting_seconds)} seconds" }, :title=>"Percentage of wait events % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')}). Part of DB-time.", :show_pct_background=>true } if get_db_version >= "11.2"
@@ -138,7 +127,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    column_options << {:caption=>'IC',          :data=>proc{|rec| fn(nn_pct(rec.interconnect_io_bytes, @sum_interconnect_io_bytes), 1)}, :align=>:right, :data_title=>proc{|rec| "%t\nInterconnect IO (kBytes): #{fn(rec.interconnect_io_bytes ? rec.interconnect_io_bytes/1024 : nil)}" }, :title=>"Percentage of  Interconnect-I/O in % (from active session history / #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')})", :show_pct_background=>true } if get_db_version >= "11.2"
    column_options << {:caption=>'Dist',        :data=>proc{|rec| rec.distribution },                           :title=>"PQ-distribution-strategy" }
    column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line', :align=>:right }  if get_db_version >= '11.2'
-   column_options << {:caption=>"Other XML",   :data=>proc{|rec| get_formatted_other_xml(rec) }, :title=>"Provides extra information specific to an execution step of the execution plan. The content of this column is structured using XML since multiple pieces of information can be stored there.", :max_wrap_width=>80, :data_title=>proc{|rec| get_formatted_other_xml_title(rec)} } if get_db_version >= "11.2"
+   column_options << {:caption=>'Proj.',       :data=>proc{|rec| my_html_escape expand_compare_spaces(rec.projection) }, :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", data_title: proc{|rec| "%t\n#{my_html_escape expand_compare_spaces(rec.projection)}"}} if explain_plan_col_setting['Projection']
 
    column_options.each do |c|
      c[:data_style] = proc do|rec|
@@ -235,7 +224,6 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     <%= gen_slickgrid(@plans, column_options, {
             :caption            => @caption.html_safe,
             caption_title:      @caption_title,
-            :width              => :auto,
             :line_height_single => true,
             :data_filter        => 'explain_plan_filter_collapsed_item_rows',
             :grid_id            => @grid_id,
