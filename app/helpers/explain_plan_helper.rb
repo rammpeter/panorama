@@ -213,10 +213,10 @@ module ExplainPlanHelper
             value:       rec.children.text
           }.extend SelectHashHelper)
         when 'hint_usage' then
-          rec.xpath('q').each do |hint|
+          rec.children.each do |hint|
             plan_additions << ({
               :record_type  => 'Hint_Usage',
-              :attribute    => nil,
+              :attribute    => my_html_escape("<#{hint.name}>"),
               :value        => my_html_escape(hint.children.to_s)
             }.extend SelectHashHelper)
           end
@@ -271,11 +271,23 @@ module ExplainPlanHelper
     # @param hint_usage [Hash] hint usage structure to add the hint to
     process_h_tag = proc do |h_tag, type,  hint_usage|
       hint = {
-        hint_text: h_tag.content,
-        type: type,
-        attributes: []
+        hint_text:    '',
+        hint_reason:  '',
+        type:         type,
+        attributes:   []
       }
-      h_tag.attributes.each do |name, value|
+      h_tag.children.each do |child|                                            # Add all children to the hint
+        case child.name
+        when 'x' then hint[:hint_text] << child.content
+        when 'r' then hint[:hint_reason] << child.content
+        else
+          hint[:hint_reason] << "Unknown element '#{child.name}' with content '#{child.content}' in other_xml/hint_usage"
+        end
+      end
+      h_tag.parent.attributes.each do |name, value|                             # Add all attributes to the hint at the parent of the h-tag level (t|m|s)
+        hint[:attributes] << {name: name, value: value.to_s}
+      end
+      h_tag.attributes.each do |name, value|                                    # Add all attributes to the hint at h-tag level
         hint[:attributes] << {name: name, value: value.to_s}
       end
       hint_usage << hint
@@ -303,12 +315,12 @@ module ExplainPlanHelper
     hint_usages = {}
     qb_names_in_hints = {}                                                      # Query block names used in hints
     qb_mapping = extract_qb_mapping(xml_doc, qb_names_in_plan)
-    xml_doc.xpath('//hint_usage/q').each do |q|
-      qblock_name = nil  # TODO: CHeck if there are q without n
+    xml_doc.xpath('//hint_usage/*').each do |q|                               # Iterate over all toplevel q tags
+      qblock_name = nil
       q.xpath('*').each do |nhmst|
         case nhmst.name
-        when 'n' then
-          qblock_name = nhmst.content                               # Query block name (n) should be the first element in q
+        when 'n' then                                                           # Contains the query block name
+          qblock_name = nhmst.content                                           # Query block name (n) should be the first element in q
           qb_names_in_hints[qblock_name] = true                                 # Remember the used native query block name
           qblock_name = qb_mapping[qblock_name] if !qb_names_in_plan.has_key?(qblock_name) && qb_mapping.has_key?(qblock_name)  # Use the corresponding long name from QB mapping
           qblock_name = 'force_row_0' if !qb_names_in_plan.has_key?(qblock_name)  # Force relation to row 0 if query block name is not known in plan rows
@@ -318,7 +330,7 @@ module ExplainPlanHelper
           if nhmst.name == 'h'
             process_h_tag.call(nhmst, nhmst.name, hint_usage)                   # Directly process the h-tag
           else
-            nhmst.xpath('*').each do |fh|                                       # Process all children of nhmst
+            nhmst.xpath('*').each do |fh|                                       # Process all children of m|s|t
               case fh.name
               when 'f' then object_alias = fh.content                           # Object alias (f) should be the first element in hmst, but it is not always present
               when 'h' then process_h_tag.call(fh, nhmst.name, hint_usage)
@@ -351,24 +363,26 @@ module ExplainPlanHelper
       hint_usage.each do |hint|
         p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
         p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
-        p['hint_usage'] << "#{my_html_escape(hint[:hint_text])}"            # Escape special characters in hint text to avoid XSS
+        p['hint_usage'] << "'#{my_html_escape(hint[:hint_text])}'"          # Escape special characters in hint text to avoid XSS
         p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
         p['hint_usage'] << "\n"
+        p['hint_usage'] << "#{my_html_escape(hint[:hint_reason])}\n" if !hint[:hint_reason].nil? && hint[:hint_reason] != ''
         hint[:attributes].each do |attr|
           p['hint_usage'] << case attr[:value].to_s
-                             when 'EM' then ''  # TODO: Check if EM is always set for hints or not
+                             when 'EM' then ''  # Hint supplied by user (EM) is not shown
                              when 'EU' then "This hint is not used (EU)!\n"
                              when 'NU' then "This hint is not used (NU)!\n"
+                             when 'OU' then "This hint is supplied internally by Oracle (OU)\n"
                              when 'PE' then "Syntax parsing error (PE)!\n"
                              when 'UR' then "This hint is unresolved (UR)!\n"
                              else "Unknown attribute for hint usage (#{attr[:value]})\n"
                              end
         end
-        p['hint_usage'] << "Hint type = #{hint[:type]}\n"
         p['hint_usage'] << "\n"
       end
     end
 
+    # Add the hint usage to the plan lines
     plan_array.each do |p|
       p['hint_usage'] = ''
       p['wrong_hint_usage'] = false
