@@ -374,6 +374,8 @@ module ExplainPlanHelper
                              when 'NU' then "This hint is not used (NU)!\n"
                              when 'OU' then "This hint is supplied internally by Oracle (OU)\n"
                              when 'PE' then "Syntax parsing error (PE)!\n"
+                             when 'SH' then "related to MMON stats advisor auto task (SH)\n"
+                             when 'SR' then "Hint is supplied by a SQL profile (SR)\n"
                              when 'UR' then "This hint is unresolved (UR)!\n"
                              else "Unknown attribute for hint usage (#{attr[:value]})\n"
                              end
