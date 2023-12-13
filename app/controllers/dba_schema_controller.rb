@@ -1287,7 +1287,7 @@ class DbaSchemaController < ApplicationController
                                   JOIN   V$GCSPFMASTER_INFO i ON i.Data_Object_ID = o.Data_Object_ID
                                   GROUP BY ii.Index_Name
                                  ) mi ON mi.Index_Name = i.Index_Name" if PanoramaConnection.rac?}
-              #{"LEFT OUTER JOIN DBA_Index_Usage iu ON iu.Owner = i.Owner AND iu.Name = i.Index_Name" if get_db_version >= '12.1'}
+              #{"LEFT OUTER JOIN DBA_Index_Usage iu ON iu.Owner = i.Owner AND iu.Name = i.Index_Name" if get_db_version >= '12.2'}
                  ORDER BY i.Index_Name
                 ",  @owner, @table_name]
                                   .concat(where_values)
