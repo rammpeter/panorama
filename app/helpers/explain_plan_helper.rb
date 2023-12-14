@@ -368,7 +368,7 @@ module ExplainPlanHelper
       hint_usage.each do |hint|
         p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
         p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
-        p['hint_usage'] << "'#{my_html_escape(hint[:hint_text])}'"          # Escape special characters in hint text to avoid XSS
+        p['hint_usage'] << my_html_escape(hint[:hint_text])                 # Escape special characters in hint text to avoid XSS
         p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
         p['hint_usage'] << "\n"
         p['hint_usage'] << "#{my_html_escape(hint[:hint_reason])}\n" if !hint[:hint_reason].nil? && hint[:hint_reason] != ''
