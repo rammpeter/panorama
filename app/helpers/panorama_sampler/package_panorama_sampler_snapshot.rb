@@ -568,7 +568,7 @@ END Panorama_Sampler_Snapshot;
                      )
               CROSS JOIN (SELECT p_Begin_Interval_Time Begin FROM DUAL) i
               GROUP BY SQL_ID, Plan_Hash_Value, Con_DBID, Con_ID
-              HAVING MAX(Last_Active_time) > MAX(i.Begin)  -- Count all childs if one child is active in period
+              HAVING MAX(Last_Active_time) > MAX(i.Begin)  -- Count all children if one child is active in period
              ) s
       LEFT OUTER JOIN  (SELECT MAX(Snap_ID) Max_Snap_ID, DBID, Instance_Number, SQL_ID, Plan_Hash_Value, Con_DBID
                         FROM   panorama_owner.Panorama_SQLStat

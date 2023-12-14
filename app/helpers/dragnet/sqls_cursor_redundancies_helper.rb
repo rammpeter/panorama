@@ -227,7 +227,7 @@ SQLs with multiple open cursors withon one session my flood session cursor cache
                               HAVING count(*) > COUNT(DISTINCT oc.SQL_ID)
                              ) cu
                       JOIN   gv$Session s ON s.Inst_ID=cu.Inst_ID AND s.SID=cu.SID
-                      JOIN   (SELECT Inst_ID, SQL_ID, COUNT(*) \"Number of childs\", MIN(Parsing_schema_name) Parsing_schema_Name
+                      JOIN   (SELECT Inst_ID, SQL_ID, COUNT(*) \"Number of children\", MIN(Parsing_schema_name) Parsing_schema_Name
                               FROM gv$SQL
                               GROUP BY Inst_ID, SQL_ID
                              )sq ON sq.Inst_ID = cu.Inst_ID AND sq.SQL_ID = cu.SQL_ID
@@ -300,7 +300,7 @@ Documentation is available here: http://docs.oracle.com/cd/E16655_01/server.121/
                     GROUP BY Inst_ID, SQL_ID
                     HAVING COUNT(*) > ?
                     ORDER BY COUNT(*) DESC",
-            :parameter=>[{:name=> t(:dragnet_helper_57_param1_name, :default => 'Min. number of childs per SQL-ID'), :size=>8, :default=>5, :title=> t(:dragnet_helper_57_param1_desc, :default => 'Minimum number of child cursors per SQL-ID for display')}]
+            :parameter=>[{:name=> t(:dragnet_helper_57_param1_name, :default => 'Min. number of children per SQL-ID'), :size=>8, :default=>5, :title=> t(:dragnet_helper_57_param1_desc, :default => 'Minimum number of child cursors per SQL-ID for display')}]
         },
     ]
   end

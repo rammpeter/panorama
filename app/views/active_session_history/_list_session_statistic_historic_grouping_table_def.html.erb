@@ -232,8 +232,8 @@
 
   @column_options << {:caption=>'min_snap_id', :data=>proc{|rec| rec.min_snap_id}, :hidden=>:true}
   @column_options << {:caption=>'max_snap_id', :data=>proc{|rec| rec.max_snap_id}, :hidden=>:true}
-  session_statistics_key_rules.each do |key, value|
-    unless @groupby == key  || @groupfilter[key.to_sym]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+  session_statistics_key_rules(check_rac_relevance: true).each do |key, value|
+    if @groupby != key  && !@groupfilter.has_key?(key.to_sym)   # Aktuelles oder früheres Gruppierungskriterium weglassen
       @column_options << {:caption=>"#{value[:Name]}_Cnt", :data=>proc{|rec| rec["#{value[:sql_alias]}_cnt"]}, :hidden=>:true}
       @column_options << {:caption=>value[:Name], :data=>proc{|rec| rec[value[:sql_alias]] } , :title=>"#{value[:Title]}\n#{t(:active_session_history_number_hint, :default=>"(< Number of occurrences> if there are multiple occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil) , :field_decorator_function=>decorator_grouping(key)}
     end

@@ -295,9 +295,11 @@ module ExplainPlanHelper
 
     other_xml = nil
     qb_names_in_plan = {}
+    qb_plus_object_aliases_in_plan = {}
     plan_array.each do |p|
       other_xml = p.other_xml if !p.other_xml.nil?
       qb_names_in_plan[p.qblock_name] = true if !p.qblock_name.nil?             # remember the used query block names
+      qb_plus_object_aliases_in_plan["#{p.qblock_name}:#{p.object_alias}"]  = true if !p.object_alias.nil?    # remember the used combination of qb name and  object aliases
     end
 
     if other_xml.nil?
@@ -332,7 +334,10 @@ module ExplainPlanHelper
           else
             nhmst.xpath('*').each do |fh|                                       # Process all children of m|s|t
               case fh.name
-              when 'f' then object_alias = fh.content                           # Object alias (f) should be the first element in hmst, but it is not always present
+              when 'f' then
+                if qb_plus_object_aliases_in_plan.has_key?("#{qblock_name}:#{fh.content}")  # Map hint to the query block without object alias, if combination of qb and alias isn't in the plan (happens e.g. if a CTE is resolved inside the plan)
+                  object_alias = fh.content                                     # Object alias (f) should be the first element in hmst, but it is not always present
+                end
               when 'h' then process_h_tag.call(fh, nhmst.name, hint_usage)
               else
                 Rails.logger.warn('ExplainPlanHelper.hint_usage_from_other_xml'){ "Unknown element 'q/#{fh.name}' with content '#{fh.content}' in other_xml/hint_usage" }

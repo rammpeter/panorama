@@ -23,7 +23,7 @@
     <div class="flex-row-element" title="<%= t(:grouping_hint, :default=>'Group listing by attribute') %>">
       <%= t(:grouping, :default=>'Grouping')%>
       <select name="groupby" id="<%= @groupby_id %>" onchange="refresh_dashboard_on_change();">
-        <% session_statistics_key_rules.keys.sort.each do |key| %>
+        <% session_statistics_key_rules(check_rac_relevance: true).keys.sort.each do |key| %>
           value = session_statistics_key_rules[key]
           <%=  "<option value='#{key}' #{"selected='selected'" if key==@group_criteria}>#{key}</option>".html_safe %>
         <% end %>
