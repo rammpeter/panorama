@@ -863,6 +863,7 @@ class AdditionController < ApplicationController
         PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql').each {|r| @res << r}
         @end_time = PanoramaConnection.db_systime
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
+        @caption = "Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(@end_time-@start_time, 3)} seconds"
         render_partial :list_dragnet_sql_result, controller: :dragnet, additional_javascript_string: worksheet_autotrace_end
       else
         PanoramaConnection.sql_execute_native(sql: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql')

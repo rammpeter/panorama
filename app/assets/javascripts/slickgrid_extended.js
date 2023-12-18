@@ -318,10 +318,10 @@ function SlickGridExtended(container_id, options){
 
         // set caption and additional menu actions
         if (options['caption'] && options['caption'] !== ""){
-            var caption = jQuery("<div id='caption_"+container_id+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
+            let caption = jQuery("<div id='caption_"+container_id+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
 
-            var caption_left_box  = jQuery("<span class='slick_header_left_box'></span>");
-            var caption_right_box = jQuery("<span class='slick_header_right_box'></span>");
+            let caption_left_box  = jQuery("<span class='slick_header_left_box'></span>");
+            let caption_right_box = jQuery("<span class='slick_header_right_box'></span>");
             caption.append(caption_left_box);
             caption.append('<span class="slick_header_middle_box">'+options['caption']+'</span>');                                 // Add header text itself
             caption.append(caption_right_box);
@@ -1789,6 +1789,10 @@ function get_slickgrid_translations() {
         'slickgrid_context_menu_remove_all_from_diagram_hint': {
             'en': 'Remove all column-graphs from current diagram',
             'de': 'Antfernen aller Spalten-Kurven aus dem aktuellen Diagramm'
+        },
+        'slickgrid_context_menu_search_filter_hint': {
+            'en': 'Toggle search filter for columns',
+            'de': 'Ein- und Ausblenden der Suchfilter für Spalten'
         },
         'slickgrid_context_menu_show_filter': {
             'en': 'Show search filter',

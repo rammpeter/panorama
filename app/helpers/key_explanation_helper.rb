@@ -413,7 +413,7 @@ module KeyExplanationHelper
           'enq: TX - contention'              => 'Lock held by a transaction to allow other transactions to wait for it',
           'enq: TX - row lock contention'     => 'Lock held on a particular row by a transaction to prevent other transactions from modifying it',
           'enq: TX - allocate ITL entry'      => 'Allocating an ITL entry in order to begin a transaction',
-          'enq: TX - index contention'        => 'Lock held on an index during a split to prevent other operations on it',
+          'enq: TX - index contention'        => 'Lock held on an index during a index block split operation to prevent other operations on it',
           'enq: UL - contention'              => 'Lock used by user applications',
           'enq: US - contention'              => 'Lock held to perform DDL on the undo segment',
           'enq: WA - contention'              => 'Lock used for recovery when setting Watermark for memory usage in AQ notifications',

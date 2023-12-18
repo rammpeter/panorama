@@ -1170,7 +1170,8 @@ class DbaSchemaController < ApplicationController
                                      WHERE  Owner = ? AND Table_Name = ?
                                      AND    Constraint_Type = 'R'
                                     ),
-                 Ref_Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Constraint_Name, cc.Column_Name, cc.Position
+                 Ref_Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Constraint_Name, cc.Column_Name,
+                                             MAX(cc.Position) OVER (PARTITION BY cc.Constraint_Name) Max_Position /* Last position of column in constraint */
                                       FROM   Cons_Columns cc
                                       JOIN   Ref_Constraints c ON c.Constraint_Name = cc.Constraint_Name
                                      ),
@@ -1241,8 +1242,8 @@ class DbaSchemaController < ApplicationController
                                           FROM   Ref_Cons_Columns cc /* Check colums of ref. constraints for each index */
                                           LEFT OUTER JOIN Ind_Columns ic ON ic.Column_Name = cc.Column_Name /* Column position does not matter for FK-constraints */
                                           GROUP BY ic.Index_Name, cc.Constraint_Name
-                                          HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* Columns of an index starting left are matching all columns of an constraint */
-                                          AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                          HAVING COUNT(*) = MAX(cc.Max_Position) /* Columns of an index starting left are matching all columns of an constraint */
+                                          AND MAX(cc.Max_Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                          )
                                   GROUP BY Index_Name
                                  ) c ON c.Index_Name = i.Index_Name

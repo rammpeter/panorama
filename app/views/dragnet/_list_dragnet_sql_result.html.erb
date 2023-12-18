@@ -1,7 +1,3 @@
-<% if defined?(@start_time) && defined?(@end_time) # Show for SQL worksheet only %>
-  <%= "<div class='page_caption' style='justify-content: center;'><b>Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(@end_time-@start_time, 3)} seconds</b></div>".html_safe  %>
-<% end %>
-
 <%  # Die folgende Logik liegt hier, da sonst nicht auf ActionView-Helper zurückgegriffen werden kann
     instance_captions = ['instance', 'inst_id']
     sid_captions = ['sid']
