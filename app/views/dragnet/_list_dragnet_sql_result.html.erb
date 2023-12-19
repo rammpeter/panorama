@@ -14,6 +14,7 @@ if @res.count > 0
           caption:      key.gsub('_', ' '),                                     # allow wrap of column header in slickgrid
           col_ref:      key,                                                    # Reference in result set because original caption is modified
           title:        key,
+          data_title:   proc{|rec| "%t\n\n#{rec[key]}"},                        # Tooltip
         }
         raise "Problem with column #{i} of SQL result! Column header is empty.\nSQL columns identifier may not be processable by ActiveRecord." if key.nil?
       end

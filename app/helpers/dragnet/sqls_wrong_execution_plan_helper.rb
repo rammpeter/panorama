@@ -347,6 +347,90 @@ This reduces runtime, redo-contention and ensures reset of high water mark'),
                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
             ]
         },
+        {
+          :name  => t(:dragnet_helper_173_name, :default => 'Possibly unnecessary scan of all partitions of a partitioned table or index'),
+          :desc  => t(:dragnet_helper_173_desc, :default => 'This selection shows SQLs which access all partitions of a partitioned table or index,
+but within the same or a close line of the execution plan the partition key is used as filter.
+Often this is a sign of missed partition pruning, e.g. due to a conversion function around the partition key.
+If, on the other hand, the partition key could be directly used as filter, the optimizer should be able to prune partitions and access only the relevant partitions.'),
+          :sql=>  "\
+WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias,
+                      CASE WHEN Object_Type LIKE 'INDEX%' THEN 'INDEX' ELSE Object_Type END Object_Type,  /* treat 'INDEX (UNIQUE)' as 'INDEX' */
+                      Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
+               FROM   (SELECT ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias, Object_Type,
+                              Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
+                       FROM   gv$SQL_Plan
+                       WHERE  Operation NOT LIKE '%JOIN%'  /* do not consider join operations for surrounding plan lines */
+                       GROUP BY ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias, Object_Type,
+                              Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
+                       UNION  /* Duplicates possible if Access_Predicates and Filter_Predicates in AWR are not set (pre 19.19) */
+                       SELECT ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias, Object_Type,
+                              Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
+                       FROM   DBA_Hist_SQL_Plan
+                       WHERE  DBID =  #{get_dbid} /* do not count multiple times for multiple different DBIDs/ConIDs */
+                       AND    Operation NOT LIKE '%JOIN%'  /* do not consider join operations for surrounding plan lines */
+                       GROUP BY ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias, Object_Type,
+                              Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
+                      )
+              ),
+     Part_Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'TABLE' Object_type, Owner, Table_Name Object_Name, Partition_Count
+                      FROM DBA_Part_Tables
+                      UNION ALL
+                      SELECT 'INDEX' Object_Type, Owner, Index_Name Object_Name, Partition_Count
+                      FROM DBA_Part_Indexes
+                     ),
+     Part_Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ p.ID, p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner, p.Object_Name, p.Object_Type,
+                           p.Object_Alias, p.Access_Predicates, p.Filter_Predicates, po.Partition_Count
+                    FROM   Plans p
+                    JOIN   Part_Objects po ON po.Owner = p.Object_Owner AND po.Object_Name = p.Object_Name AND po.Object_Type = p.Object_Type
+                    WHERE  p.Partition_Start = '1'
+                    AND    p.Partition_Stop = TO_CHAR(po.Partition_Count)
+                    AND    p.Object_Type IS NOT NULL
+                   ),
+     Surrounding_Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Type,
+                           Access_Predicates, Filter_Predicates
+                           FROM   Plans p
+                           WHERE  (Access_Predicates IS NOT NULL OR Filter_Predicates IS NOT NULL)
+                          ),
+     Min_Ash AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID),
+     ASH AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, SUM(Elapsed_Secs) Elapsed_Secs
+             FROM   (SELECT /*+ NO_MERGE */ SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Elapsed_Secs
+                     FROM   gv$Active_Session_History
+                     GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+                     UNION ALL
+                     SELECT /*+ NO_MERGE */ SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) * 10 Elapsed_Secs
+                     FROM   DBA_Hist_Active_Sess_History h
+                     JOIN   Min_Ash ma ON ma.Inst_ID = h.Instance_Number
+                     WHERE  Sample_Time > SYSDATE -?
+                     AND    Sample_Time < ma.Min_Sample_Time
+                     AND    DBID =  #{get_dbid} /* do not count multiple times for multiple different DBIDs/ConIDs */
+                     GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+                    )
+             GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+            ),
+     Part_Key_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Name, Object_Type, Column_Name FROM DBA_Part_Key_Columns)
+SELECT /*+ LEADING(p) USE_HASH(pkc) USE_HASH(sp) USE_HASH(ash) */
+       p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner Owner, p.Object_Name, p.Object_Type, p.Object_Alias, sp.Access_Predicates, sp.Filter_Predicates,
+       pkc.Column_Name Partition_Criteria, p.Partition_Count, p.ID Plan_Line_ID_Partition, sp.ID Plan_Line_ID_Filter, SUM(ash.Elapsed_Secs) Elapsed_Secs_At_Plan_Lines
+FROM   Part_Plans p
+JOIN   Part_Key_Columns pkc ON pkc.Owner = p.Object_Owner AND pkc.Name = p.Object_Name AND pkc.Object_Type = p.Object_Type
+JOIN   Surrounding_Plans sp ON sp.SQL_ID = p.SQL_ID AND sp.Plan_Hash_Value = p.Plan_Hash_Value
+                               AND sp.ID < p.ID /* only consider plan lines before full partition scan */
+                               AND p.ID - sp.ID  <= ? /* max. distance between lines of execution plan */
+JOIN   Ash ON ash.SQL_ID = p.SQL_ID AND ash.SQL_Plan_Hash_Value = p.Plan_Hash_Value
+              AND (ash.SQL_Plan_Line_ID = p.ID OR ash.SQL_Plan_Line_ID = sp.ID)
+WHERE  (   sp.Access_Predicates LIKE '%'||pkc.Column_Name||'%'
+        OR sp.Filter_Predicates LIKE '%'||pkc.Column_Name||'%'
+       )
+GROUP BY p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner, p.Object_Name, p.Object_Type, p.Object_Alias, sp.Access_Predicates, sp.Filter_Predicates,
+         pkc.Column_Name, p.Partition_Count, p.ID, sp.ID
+ORDER BY SUM(ash.Elapsed_Secs) DESC
+",
+          :parameter=>[
+            {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+            {:name=>t(:dragnet_helper_173_param_1_name, :default=>'Max. distance between lines of execution plan'), :size=>8, :default=>3, :title=>t(:dragnet_helper_173_param_1_hint, :default=>'Maximum distance between the execution plan line with full partition access and the considered associated lines with the partition key as filter') },
+          ]
+        },
     ]
   end
 

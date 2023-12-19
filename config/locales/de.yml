@@ -1847,6 +1847,17 @@
   dragnet_helper_172_name: |-
     Eventuelle Verletzung der DETERMINISTIC-Deklaration von in function-based Indexes genutzten Funktionen
 
+  dragnet_helper_173_desc: |-
+    Diese Selektion zeigt SQLs, die auf alle Partitionen einer partitionierten Tabelle oder eines Index zugreifen,
+    aber innerhalb der gleichen oder einer nahen Zeile des Ausführungsplans den Partitionsschlüssel als Filter verwenden.
+    Oft ist dies ein Zeichen für ein verpasstes Partition Pruning, z.B. aufgrund einer Einbettung des Partitionsschlüssel in eine Konvertierungsfunktion.
+    Wenn hingegen der Partitionsschlüssel direkt als Filter verwendet werden könnte, sollte der Optimierer in der Lage sein, Partition Pruning zu verwenden und nur auf die relevanten Partitionen zuzugreifen.
+  dragnet_helper_173_name: |-
+    Möglicherweise unnötiger Scan aller Partitionen einer partitionierten Tabelle oder eines Index
+  dragnet_helper_173_param_1_hint: |-                         
+    Maximaler Abstand zwischen der Ausführungsplanzeile mit vollständigem Partitionszugriff und den betrachteten zugehörigen Zeilen mit dem Partitionsschlüssel als Filter
+  dragnet_helper_173_param_1_name:                          Max. Abstand zwischen Zeilen des Execution Plans
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen
