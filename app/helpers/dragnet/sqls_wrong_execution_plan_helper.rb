@@ -372,19 +372,31 @@ WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ ID, SQL_ID, Plan_Hash_Value, O
                        GROUP BY ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Alias, Object_Type,
                               Access_Predicates, Filter_Predicates, Partition_Start, Partition_Stop
                       )
+               WHERE  Partition_Start = '1' OR Access_Predicates IS NOT NULL OR Filter_Predicates IS NOT NULL
               ),
-     Part_Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'TABLE' Object_type, Owner, Table_Name Object_Name, Partition_Count
-                      FROM DBA_Part_Tables
-                      UNION ALL
-                      SELECT 'INDEX' Object_Type, Owner, Index_Name Object_Name, Partition_Count
-                      FROM DBA_Part_Indexes
+     -- get number of physical existing partitions or subpartitions for partitioned tables and indexes
+     Part_Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Object_Type, Owner, Object_Name, COUNT(*) Phys_Partition_Count
+                      FROM   (SELECT CASE WHEN Segment_Type LIKE 'TABLE%' THEN 'TABLE'
+                                          WHEN Segment_Type LIKE 'INDEX%' THEN 'INDEX'
+                                     END Object_Type, Owner, Segment_Name Object_Name
+                              FROM   DBA_Segments WHERE Segment_Type LIKE '%PARTITION%'
+                             )
+                      GROUP BY Object_Type, Owner, Object_Name
                      ),
+     -- get number of physical or potential (interval) partitions for partitioned tables and indexes
+     Part_Max AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'TABLE' Object_type, Owner, Table_Name Object_Name, Partition_Count
+                  FROM DBA_Part_Tables
+                  UNION ALL
+                  SELECT 'INDEX' Object_Type, Owner, Index_Name Object_Name, Partition_Count
+                  FROM DBA_Part_Indexes
+                 ),
      Part_Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ p.ID, p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner, p.Object_Name, p.Object_Type,
-                           p.Object_Alias, p.Access_Predicates, p.Filter_Predicates, po.Partition_Count
+                           p.Object_Alias, p.Access_Predicates, p.Filter_Predicates, po.Phys_Partition_Count
                     FROM   Plans p
                     JOIN   Part_Objects po ON po.Owner = p.Object_Owner AND po.Object_Name = p.Object_Name AND po.Object_Type = p.Object_Type
+                    JOIN   Part_Max pm     ON pm.Owner = p.Object_Owner AND pm.Object_Name = p.Object_Name AND pm.Object_Type = p.Object_Type
                     WHERE  p.Partition_Start = '1'
-                    AND    p.Partition_Stop = TO_CHAR(po.Partition_Count)
+                    AND    p.Partition_Stop = TO_CHAR(pm.Partition_Count)
                     AND    p.Object_Type IS NOT NULL
                    ),
      Surrounding_Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ ID, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name, Object_Type,
@@ -411,11 +423,11 @@ WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ ID, SQL_ID, Plan_Hash_Value, O
      Part_Key_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Name, Object_Type, Column_Name FROM DBA_Part_Key_Columns)
 SELECT /*+ LEADING(p) USE_HASH(pkc) USE_HASH(sp) USE_HASH(ash) */
        p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner Owner, p.Object_Name, p.Object_Type, p.Object_Alias, sp.Access_Predicates, sp.Filter_Predicates,
-       pkc.Column_Name Partition_Criteria, p.Partition_Count, p.ID Plan_Line_ID_Partition, sp.ID Plan_Line_ID_Filter, SUM(ash.Elapsed_Secs) Elapsed_Secs_At_Plan_Lines
+       pkc.Column_Name Partition_Criteria, p.Phys_Partition_Count, p.ID Plan_Line_ID_Partition, sp.ID Plan_Line_ID_Filter, SUM(ash.Elapsed_Secs) Elapsed_Secs_At_Plan_Lines
 FROM   Part_Plans p
 JOIN   Part_Key_Columns pkc ON pkc.Owner = p.Object_Owner AND pkc.Name = p.Object_Name AND pkc.Object_Type = p.Object_Type
 JOIN   Surrounding_Plans sp ON sp.SQL_ID = p.SQL_ID AND sp.Plan_Hash_Value = p.Plan_Hash_Value
-                               AND sp.ID < p.ID /* only consider plan lines before full partition scan */
+                               AND sp.ID <= p.ID /* only consider plan lines at or before full partition scan */
                                AND p.ID - sp.ID  <= ? /* max. distance between lines of execution plan */
 JOIN   Ash ON ash.SQL_ID = p.SQL_ID AND ash.SQL_Plan_Hash_Value = p.Plan_Hash_Value
               AND (ash.SQL_Plan_Line_ID = p.ID OR ash.SQL_Plan_Line_ID = sp.ID)
@@ -423,12 +435,12 @@ WHERE  (   sp.Access_Predicates LIKE '%'||pkc.Column_Name||'%'
         OR sp.Filter_Predicates LIKE '%'||pkc.Column_Name||'%'
        )
 GROUP BY p.SQL_ID, p.Plan_Hash_Value, p.Object_Owner, p.Object_Name, p.Object_Type, p.Object_Alias, sp.Access_Predicates, sp.Filter_Predicates,
-         pkc.Column_Name, p.Partition_Count, p.ID, sp.ID
+         pkc.Column_Name, p.Phys_Partition_Count, p.ID, sp.ID
 ORDER BY SUM(ash.Elapsed_Secs) DESC
 ",
           :parameter=>[
             {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
-            {:name=>t(:dragnet_helper_173_param_1_name, :default=>'Max. distance between lines of execution plan'), :size=>8, :default=>3, :title=>t(:dragnet_helper_173_param_1_hint, :default=>'Maximum distance between the execution plan line with full partition access and the considered associated lines with the partition key as filter') },
+            {:name=>t(:dragnet_helper_173_param_1_name, :default=>'Max. distance between lines of execution plan'), :size=>8, :default=>2, :title=>t(:dragnet_helper_173_param_1_hint, :default=>'Maximum distance between the execution plan line with full partition access and the considered associated lines with the partition key as filter') },
           ]
         },
     ]
