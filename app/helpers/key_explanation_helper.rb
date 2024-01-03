@@ -674,6 +674,23 @@ module KeyExplanationHelper
     end
   end
 
-
+  def other_xml_info_type(type)
+    case type
+    when 'adaptive_plan'        then 'Is the execution plan an adaptive plan'
+    when 'baseline'             then 'The SQL plan baseline that is used for calculation of the execution plan'
+    when 'cardinality_feedback' then 'Cardinality is recorded at the first executions to compare estimated and actual cardinality'
+    when 'dop'                  then 'The degree of parallelism for this SQL statement'
+    when 'dop_reason'           then 'Why a degree of parallelism was chosen for this SQL statement'
+    when 'dynamic_sampling'     then 'The dynamic sampling level for this SQL statement'
+    when 'idl_reason'           then 'Why direct load was disabled for this SQL statement'
+    when 'outline'              then 'The stored outline that is used for calculation of the execution plan'
+    when 'pdml_reason'          then 'Why parallel DML was not chosen for this SQL statement (parallel DML is   possibly enabled for this session)'
+    when 'performance_feedback' then 'Cardinality is recorded at the first executions to compare estimated and actual cardinality'
+    when 'plan_hash'            then 'The hash value of the execution plan for the SQL statement'
+    when 'sql_patch'            then 'The SQL profile that is used for calculation of the execution plan'
+    when 'sql_profile'          then 'The SQL profile that is used for calculation of the execution plan'
+    else ''
+    end
+  end
 
 end

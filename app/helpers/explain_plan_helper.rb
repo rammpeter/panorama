@@ -193,7 +193,8 @@ module ExplainPlanHelper
           plan_additions << ({
             :record_type  => 'Info',
             :attribute    => rec.attributes['type'].to_s,
-            :value        => rec.children.text
+            :value        => rec.children.text,
+            description: other_xml_info_type(rec.attributes['type'].to_s)
           }.extend SelectHashHelper)
         when 'bind' then
           attributes = ''
