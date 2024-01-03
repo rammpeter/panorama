@@ -1858,6 +1858,12 @@
     Maximaler Abstand zwischen der Ausführungsplanzeile mit vollständigem Partitionszugriff und den betrachteten zugehörigen Zeilen mit dem Partitionsschlüssel als Filter
   dragnet_helper_173_param_1_name:                          Max. Abstand zwischen Zeilen des Execution Plans
 
+  dragnet_helper_174_desc: |-
+    Diese Selektion zeigt SQL Statements, bei denen paralleles DML oder direct load verwendet werden könnte oder sollte, aber nicht verwendet wird.
+    Die gweünschte parallele Ausführung von DML wird angenommen, wenn PARALLEL DML in der Session enabled ist.
+  dragnet_helper_174_name: |-
+    Unterdrückte Nutzung von möglicherweise erwartetem parallelem DML oder direct load
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

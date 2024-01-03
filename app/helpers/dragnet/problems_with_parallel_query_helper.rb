@@ -432,6 +432,59 @@ ORDER BY Seconds_Waiting DESC
             {:name=>t(:dragnet_helper_param_minimal_elapsed_name, :default=>'Minimum total elapsed time (sec.)'), :size=>8, :default=>60, :title=>t(:dragnet_helper_param_minimal_elapsed_hint, :default=>'Minimum total elapsed time in seconds for consideration in selection') }
           ]
         },
+        {
+          :name  => t(:dragnet_helper_174_name, :default=>'Suppressed use of possibly expected parallel DML or direct load'),
+          :desc  => t(:dragnet_helper_174_desc, :default=>"\
+This selection shows SQL statements where parallel DML or direct load could or should be used, but is not really used.
+Parallel execution of DML is assumed to be used if PARALLEL DML is enabled in the session.
+"),
+          :sql=> "\
+WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, Plan_Hash_Value, PDML_Reason, IDL_Reason
+               FROM   (SELECT SQL_ID, Plan_Hash_Value,
+                              EXTRACTVALUE(XMLTYPE(Other_XML), '/*/info[@type = \"pdml_reason\"]') PDML_Reason,
+                              EXTRACTVALUE(XMLTYPE(Other_XML), '/*/info[@type = \"idl_reason\"]') IDL_Reason
+                       FROM   gv$SQL_Plan
+                       WHERE  Other_XML LIKE '%pdml_reason%' OR Other_XML LIKE '%idl_reason%'
+                       UNION  ALL
+                       SELECT SQL_ID, Plan_Hash_Value,
+                              EXTRACTVALUE(XMLTYPE(Other_XML), '/*/info[@type = \"pdml_reason\"]') pdml_reason,
+                              EXTRACTVALUE(XMLTYPE(Other_XML), '/*/info[@type = \"idl_reason\"]') IDL_Reason
+                       FROM   DBA_Hist_SQL_Plan
+                       WHERE  DBID =  #{get_dbid} /* do not count multiple times for multiple different DBIDs/ConIDs */
+                       AND    Other_XML LIKE '%pdml_reason%' OR Other_XML LIKE '%idl_reason%'
+                      )
+               WHERE  PDML_Reason IS NOT NULL OR IDL_Reason IS NOT NULL
+               GROUP BY SQL_ID, Plan_Hash_Value, PDML_Reason, IDL_Reason /* DISTINCT */
+              ),
+     Min_Ash AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History GROUP BY Inst_ID),
+     ASH AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, SQL_Plan_Hash_Value, User_ID, SUM(Elapsed_Secs) Elapsed_Secs
+             FROM   (SELECT /*+ NO_MERGE */ SQL_ID, SQL_Plan_Hash_Value, User_ID, COUNT(*) Elapsed_Secs
+                     FROM   gv$Active_Session_History
+                     GROUP BY SQL_ID, SQL_Plan_Hash_Value, User_ID
+                     UNION ALL
+                     SELECT /*+ NO_MERGE */ SQL_ID, SQL_Plan_Hash_Value, User_ID, COUNT(*) * 10 Elapsed_Secs
+                     FROM   DBA_Hist_Active_Sess_History h
+                     JOIN   Min_Ash ma ON ma.Inst_ID = h.Instance_Number
+                     WHERE  Sample_Time > SYSDATE - ?
+                     AND    Sample_Time < ma.Min_Sample_Time
+                     AND    DBID =  #{get_dbid} /* do not count multiple times for multiple different DBIDs/ConIDs */
+                     GROUP BY SQL_ID, SQL_Plan_Hash_Value, User_ID
+                    )
+             WHERE  User_ID NOT IN (#{system_userid_subselect})
+             GROUP BY SQL_ID, SQL_Plan_Hash_Value, User_ID
+            )
+SELECT /*+ LEADING(p) USE_HASH(ash) */
+       p.SQL_ID, p.Plan_Hash_Value, p.PDML_Reason, p.IDL_Reason, u.UserName, SUM(ash.Elapsed_Secs) Elapsed_Secs
+FROM   Plans p
+JOIN   Ash ON ash.SQL_ID = p.SQL_ID AND ash.SQL_Plan_Hash_Value = p.Plan_Hash_Value
+LEFT OUTER JOIN All_Users u ON u.User_ID = ash.User_ID
+GROUP BY p.SQL_ID, p.Plan_Hash_Value, p.PDML_Reason, p.IDL_Reason, u.UserName
+ORDER BY SUM(ash.Elapsed_Secs) DESC
+          ",
+          :parameter=>[
+            {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+          ]
+        },
 
     ]
   end # problems_with_parallel_query
