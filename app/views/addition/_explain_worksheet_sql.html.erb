@@ -52,7 +52,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name_short || rec.qblock_name},    :title=>'Name of the query block of this operation', data_title: proc{|rec| "%t\n\nQuery block name in plan table = '#{rec.qblock_name}'\nAlternative query block name = '#{rec.qblock_name_short}'"} } if explain_plan_col_setting['Query block']
   column_options << { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} }
   column_options << { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} }
-  column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name, additional_tooltip: nil)}, :title=>'Name of accessed object', data_title: data_title_object_name, no_wrap: true, data_style: proc{|rec| 'background-color:lightpink;' if rec.wrong_hint_usage} }
+  column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name, additional_tooltip: nil)}, :title=>'Name of accessed object', data_title: data_title_object_name, no_wrap: true }
   column_options << { caption: "Optimizer hint usage", data: proc{|rec| rec.hint_usage }, title: 'Optimizer hint usage', data_title: proc{|rec| "%t\n\n#{rec.hint_usage&.gsub(/<\/?s>/, '')   }"}}  if explain_plan_col_setting['Optimizer hint usage']
   column_options << { caption: "Rows",          data: link_real_num_rows,                                       title: "Number of rows of object (from analyze info)",     align: :right, data_title: proc{|rec| "%t\n#{analyzed_spec_title.call(rec)}"}  }
   column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
@@ -67,6 +67,14 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   column_options << { caption: 'Temp est.',     data: proc{|rec| fn(rec.temp_space.to_f/(1024*1024)) },                      title: "Temp-space in MB (estimated forecast by optimizer)", :align=>:right}
   column_options << { caption: "PQ distribution",  data: proc{|rec| rec.distribution},                             title: "Strategy of PQ-distribution"}
   column_options << { caption: "Proj.",         data: proc{|rec| my_html_escape expand_compare_spaces(rec.projection)}, title: "Projection: table- and index-columns gotten by this operation", :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{my_html_escape expand_compare_spaces(rec.projection)}"}, max_wrap_width: 80 } if explain_plan_col_setting['Projection']
+
+  column_options.each do |c|
+    c[:data_style] = proc do|rec|
+      if rec.wrong_hint_usage && ((c[:caption] == 'Object name' && !explain_plan_col_setting['Optimizer hint usage']) || c[:caption] == 'Optimizer hint usage')
+        'background-color:#FFE8D6;'
+      end
+    end
+  end
 
   caption = "Execution plan created by EXPLAIN PLAN for SQL '#{my_html_escape @sql_statement.gsub("\n", ' ')[0,30]}"
   caption << "... " if @sql_statement.length > 30
