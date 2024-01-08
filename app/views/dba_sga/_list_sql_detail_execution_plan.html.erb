@@ -206,7 +206,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
        end
      end
 
-     @caption = "Explain Plan from gV$SQL_Plan_Statistics_All:"
+     @caption = "Execution Plan from gV$SQL_Plan_Statistics_All:"
      if mp[:plans].length > 0
         if mp.child_count == 1
           @caption << " of Child=#{mp.min_child_number} "
@@ -242,7 +242,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
       {
         name:                  :additional_info,
         caption:               'Show additional info',
-        :hint                  => "Show additional info for explain plan from gv$SQL_PLan.Other_XML",
+        :hint                  => "Show additional info for execution plan from gv$SQL_PLan.Other_XML",
         :icon_class            => 'cui-map',
         :show_icon_in_caption  => true,
         :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_detail_execution_plan_additional_info', { other_xml: '#{my_html_escape(escape_js_single_quote(other_xml))}'});"

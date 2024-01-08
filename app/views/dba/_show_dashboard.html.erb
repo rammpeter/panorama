@@ -13,10 +13,9 @@
   @top_session_sql_id   = get_unique_area_id
   @unique_id            = get_unique_area_id
 %>
-
+  <%= render_page_caption("Realtime Dashboard from #{PanoramaConnection.adjust_table_name('gv$Active_Session_History')}") %>
   <div style="display: flex; flex-direction: row; justify-content: space-between">
     <div class="flex-row-element">
-      <b>Realtime Dashboard</b> from <%= PanoramaConnection.adjust_table_name('gv$Active_Session_History') %>
       <%= submit_tag('', id: @submit_id, style: "visibility: hidden") %>
     </div>
 

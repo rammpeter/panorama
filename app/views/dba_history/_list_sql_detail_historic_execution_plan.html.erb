@@ -161,7 +161,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     end
   end
 
-  @caption =  "Explain Plan from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}: last parse time #{localeDateTime(mp[:timestamp])}, Plan_Hash_Value=#{@mp.plan_hash_value}, Optimizer-Mode=#{@plans[0] ? @plans[0].optimizer : "[Unknown]"}, Optimizer_Env_Hash_Value=#{@mp.optimizer_env_hash_value}"
+  @caption =  "Execution Plan from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}: last parse time #{localeDateTime(mp[:timestamp])}, Plan_Hash_Value=#{@mp.plan_hash_value}, Optimizer-Mode=#{@plans[0] ? @plans[0].optimizer : "[Unknown]"}, Optimizer_Env_Hash_Value=#{@mp.optimizer_env_hash_value}"
   if @multiplans.length > 1
     @caption << "<br/>Valid from #{localeDateTime(@mp.first_occurrence)} bis #{localeDateTime(@mp.last_occurrence)}<br/>"
     @caption << "#{@mp.executions} executions, #{formattedNumber(@mp.secs_per_execution,6)} seconds elapsed / execution"
@@ -194,7 +194,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
      {
        name:                  :additional_info,
        caption:               'Show additional info',
-       :hint                  => "Show additional info for explain plan from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}.Other_XML",
+       :hint                  => "Show additional info for execution plan from #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')}.Other_XML",
        :icon_class            => 'cui-map',
        :show_icon_in_caption  => true,
        :action                => "ajax_html('#{@update_area}', 'dba_history', 'list_sql_detail_historic_execution_plan_additional_info', { other_xml: '#{my_html_escape(escape_js_single_quote(other_xml))}'});"
