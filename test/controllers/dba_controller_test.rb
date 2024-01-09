@@ -237,7 +237,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   test "refresh_dashboard_ash with xhr: true" do
     session_statistics_key_rules.each do |key, sskr|
       instance = rand(0..1)
-      instance = nil if instance = 0
+      instance = nil if instance == 0
       if rand(0..1) == 0
         last_refresh_time_string = nil
         smallest_timestamp_ms = nil

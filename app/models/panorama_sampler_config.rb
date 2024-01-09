@@ -3,6 +3,7 @@
 
 #require 'popup_message_exception'
 require 'json'
+require_relative '../helpers/application_helper'
 
 class PanoramaSamplerConfig
   include ExceptionHelper

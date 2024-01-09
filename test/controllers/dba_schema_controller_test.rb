@@ -233,7 +233,7 @@ class DbaSchemaControllerTest < ActionController::TestCase
         :machine=>"Hugo", :object_name=>"Hugo", :statement_type=>"Hugo", :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none", :update_area=>:hugo }
+    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :session_id=>12345, :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
     get :list_audit_trail, :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }

@@ -259,9 +259,9 @@
         ajax_submit("Audit Trail", {
                                    :controller   => :dba_schema,
                                    :action       => :list_audit_trail,
-                                   :sessionid    => @dbsession.audsid,
+                                   :session_id   => @dbsession.audsid,
                                    :update_area  => @update_area
-        }, :title=> "Show audit trail records from DBA_Audit_Trail"
+        }, :title=> "Show audit trail records from DBA_Audit_Trail for this session"
         )
       %>
   </div>
