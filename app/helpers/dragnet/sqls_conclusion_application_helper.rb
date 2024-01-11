@@ -62,8 +62,8 @@ Often problematic usage of business keys can be detetcted by existence of refere
              FROM   Constraints r
              JOIN   Constraints p  ON p.Owner = r.R_Owner AND p.Constraint_Name = r.r_Constraint_Name
              JOIN   DBA_Cons_Columns c ON c.Owner = p.Owner   AND c.Constraint_Name = p.Constraint_Name
-             JOIN   DBA_Tables pr ON pr.Owner = p.Owner AND pr.Table_Name = p.Table_Name
-             JOIN   DBA_Tables tr ON tr.Owner = r.Owner AND tr.Table_Name = r.Table_Name
+             JOIN   DBA_All_Tables pr  ON pr.Owner = p.Owner AND pr.Table_Name = p.Table_Name
+             JOIN   DBA_All_Tables tr  ON tr.Owner = r.Owner AND tr.Table_Name = r.Table_Name
              WHERE  r.Constraint_Type = 'R'
              GROUP BY p.Owner, p.Table_Name, p.Constraint_Name, r.Owner, r.Table_Name, r.Constraint_Name
              HAVING COUNT(*) > 1
@@ -390,7 +390,7 @@ WITH Constraints  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name,
      Ind_Columns  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Column_name FROM DBA_Ind_Columns WHERE Column_Position = 1)
 SELECT tc.Owner, tc.Table_Name, tc.Column_Name, t.Num_Rows, tc.Num_Distinct, tc.Num_Nulls, tc.Num_Distinct+tc.Num_Nulls Distinct_and_Nulls
 FROM   DBA_Tab_Columns tc
-JOIN   DBA_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+JOIN   DBA_All_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
 WHERE  tc.Num_Distinct + tc.Num_Nulls >= t.Num_Rows
 AND    tc.Num_Distinct > 1
 AND    tc.Owner NOT IN (#{system_schema_subselect})

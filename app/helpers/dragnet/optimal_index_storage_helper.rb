@@ -46,7 +46,7 @@ FROM (
              AND tc.Owner = i.Table_Owner AND tc.Table_Name = i.Table_Name AND tc.Column_Name = ic.Column_Name
             ) Avg_Col_Len
             FROM   DBA_Indexes i
-            JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
+            JOIN   DBA_All_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
             JOIN   Segments seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
             WHERE  i.Compression='DISABLED'
             AND    i.Distinct_Keys > 0
@@ -69,7 +69,7 @@ ORDER BY NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/Distinct_Keys DESC NULLS LAST
                              ROUND(i.Num_Rows/i.Distinct_Keys) Rows_Per_Key,
                              Avg_Leaf_Blocks_Per_Key, Avg_Data_Blocks_Per_Key, i.Num_Rows, t.IOT_Type
                       FROM   DBA_Indexes i
-                      JOIN   DBA_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
                       WHERE  Avg_Leaf_Blocks_Per_Key > ?
                       AND    i.Compression = 'DISABLED'
                       ORDER BY Avg_Leaf_Blocks_Per_Key*Num_Rows DESC NULLS LAST",
@@ -191,7 +191,7 @@ WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
                  AND    Index_Type NOT IN ('BITMAP')
                 ),
      Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, IOT_Type
-                FROM   DBA_Tables
+                FROM   DBA_All_Tables
                 WHERE  Owner NOT IN (SELECT /*+ NO_MERGE */ UserName FROM All_Users WHERE Oracle_Maintained = 'Y')
                ),
      ASH AS ( SELECT /*+ NO_MERGE MATERIALIZE */ o.Owner, o.Object_Name, SUM(h.Seconds_In_Wait) Seconds_In_Wait
@@ -270,7 +270,7 @@ ORDER BY seg.MBytes DESC NULLS LAST
                                      t.Owner, t.Table_Name,
                                      t.Num_Rows,
                                      t.Avg_Row_Len
-                              FROM   DBA_Tables t
+                              FROM   DBA_All_Tables t
                               WHERE  t.IOT_Type Is NULL
                               AND    t.Num_Rows Is NOT NULL AND t.Num_Rows>0 /* nur analysierte Tabellen betrachten */
                               AND    (SELECT Count(*) FROM DBA_Tab_Columns c WHERE c.Owner=t.Owner AND c.Table_Name=t.Table_Name)<6

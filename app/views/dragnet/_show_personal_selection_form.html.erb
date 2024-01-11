@@ -7,8 +7,8 @@
        template = "
 {
   \"name\": \"Select table attributes for one table\",
-  \"desc\": \"Select attributes from DBA_Tables for your selected table\",
-  \"sql\":  \"SELECT * FROM DBA_Tables WHERE Owner = UPPER(?) AND Table_Name = UPPER(?)\",
+  \"desc\": \"Select attributes from DBA_All_Tables for your selected table\",
+  \"sql\":  \"SELECT * FROM DBA_All_Tables WHERE Owner = UPPER(?) AND Table_Name = UPPER(?)\",
   \"parameter\": [
     {
       \"name\":     \"Owner\",

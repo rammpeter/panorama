@@ -20,7 +20,7 @@ Negative aspect is multiple access on every partition of index if partition key 
                              tc.Column_Name First_Partition_Key,
                              DECODE(ic.Column_Name, tc.Column_Name, 'YES') \"Partit. Key = Index Column\"
                       FROM   DBA_Indexes i
-                      JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
                       JOIN   (SELECT /*+ NO_MERGE */ Table_Owner, Table_Name, COUNT(*) Partitions
                               FROM   DBA_Tab_Partitions
                               GROUP BY Table_Owner, Table_Name
@@ -61,7 +61,7 @@ Negative aspect is multiple access on every partition of index if partition key 
 This way partition pruning may be used for access on unique indexes plus possible decrease of index' BLevel."),
             :sql=> "SELECT /* DB-Tools Ramm Partitionierung Unique Indizes */
                               t.Owner, t.Table_Name, i.Uniqueness, tc.Column_Name Partition_Key1, i.Index_Name, t.Num_Rows, seg.MBytes
-                      FROM   DBA_Tables t
+                      FROM   DBA_All_Tables t
                              JOIN DBA_Part_Key_Columns tc
                              ON (    tc.Owner           = t.Owner
                                  AND tc.Name            = t.Table_Name
@@ -298,7 +298,7 @@ WITH Indexes AS     (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table
                      WHERE  Owner NOT IN (#{system_schema_subselect})
                     ),
      Tables  AS     (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows
-                     FROM   DBA_Tables
+                     FROM   DBA_All_Tables
                      WHERE  Owner NOT IN (#{system_schema_subselect})
                     ),
      Ind_and_Tab AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner Object_Owner, Table_Name Object_Name, Owner Table_Owner, Table_Name, Num_Rows

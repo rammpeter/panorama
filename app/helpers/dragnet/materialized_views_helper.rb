@@ -26,7 +26,7 @@ SELECT l.Log_Owner, l.Master Master_Table, l.Log_Table, t.Tablespace_Name, t.Num
        m.Owner MV_Owner, m.Name MV_Name, m.MView_Site
 FROM   DBA_Snapshot_Logs l
 LEFT OUTER JOIN DBA_MView_Logs ml       ON ml.Log_Owner = l.Log_Owner AND ml.Log_Table = l.Log_Table
-LEFT OUTER JOIN DBA_Tables t            ON t.Owner = l.Log_Owner AND t.Table_Name = l.Log_Table
+LEFT OUTER JOIN DBA_All_Tables t        ON t.Owner = l.Log_Owner AND t.Table_Name = l.Log_Table
 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024), 1) MBytes
                  FROM   DBA_Segments
                  GROUP BY Owner, Segment_Name

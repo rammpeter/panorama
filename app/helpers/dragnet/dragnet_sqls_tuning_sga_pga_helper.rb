@@ -41,7 +41,7 @@ This selection scans for objects with high block access rate compared to size of
                                      WHEN Object_Type = 'INDEX PARTITION' THEN ip.Num_Rows
                                      END Num_Rows
                               FROM   DBA_Objects o
-                              LEFT OUTER JOIN DBA_Tables          t  ON t.Owner = o.Owner AND t.Table_Name = O.Object_Name AND o.Object_Type = 'TABLE'
+                              LEFT OUTER JOIN DBA_AllTables       t  ON t.Owner = o.Owner AND t.Table_Name = O.Object_Name AND o.Object_Type = 'TABLE'
                               LEFT OUTER JOIN DBA_Indexes         i  ON i.Owner = o.Owner AND i.Index_Name = O.Object_Name AND o.Object_Type = 'INDEX'
                               LEFT OUTER JOIN DBA_Tab_Partitions  tp ON tp.Table_Owner = o.Owner AND tp.Table_Name = O.Object_Name AND tp.Partition_Name = o.SubObject_Name AND o.Object_Type = 'TABLE PARTITION'
                               LEFT OUTER JOIN DBA_Ind_Partitions  ip ON ip.Index_Owner = o.Owner AND ip.Index_Name = O.Object_Name AND ip.Partition_Name = o.SubObject_Name AND o.Object_Type = 'INDEX PARTITION'

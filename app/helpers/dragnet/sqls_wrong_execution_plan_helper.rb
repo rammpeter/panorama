@@ -60,7 +60,7 @@ This statement executes only for current (login) RAC-instance. Please execute se
                              p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, p.operation, p.Object_Type,  p.options, p.Object_Name,
                              ROUND(s.Elapsed_Time/1000000) Elapsed_Secs, s.Executions, s.Rows_Processed,
                              ROUND(s.Rows_Processed/DECODE(s.Executions,0,1,s.Executions),2) Rows_Per_Execution,
-                             CASE WHEN p.Object_Type = 'TABLE' THEN (SELECT /*+ NO_MERGE */ Num_Rows FROM DBA_Tables t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
+                             CASE WHEN p.Object_Type = 'TABLE' THEN (SELECT /*+ NO_MERGE */ Num_Rows FROM DBA_All_Tables t WHERE t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name)
                                   WHEN p.Object_Type LIKE 'INDEX%' THEN (SELECT /*+ NO_MERGE */ Num_Rows FROM DBA_Indexes i WHERE i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name)
                              END Num_Rows,
                              SUBSTR(s.SQL_FullText, 1, 200) SQL_Text
@@ -148,7 +148,7 @@ Statement executes only for current connected RAC-Instance (due to runtime probl
                                       AND s.SQL_ID          = p.SQL_ID
                                       AND s.Child_Number    = p.Child_Number
                                       AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                      LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                      LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                       LEFT OUTER JOIN DBA_Indexes i ON i.Owner = p.Object_Owner AND i.Index_Name = p.Object_Name
                       WHERE  p.Object_Owner NOT IN (#{system_schema_subselect})
                       ORDER BY Elapsed_Time DESC NULLS LAST",
@@ -213,7 +213,7 @@ LEFT OUTER JOIN DBA_Ind_Columns ic ON (   (p.Object_Type LIKE 'INDEX%' AND ic.In
                                        OR (p.Object_Type LIKE 'TABLE%' AND ic.Table_Owner = p.Object_Owner AND ic.Table_Name = p.Object_Name) /* IOT */
                                       )
                                       AND ic.Column_Name = p.Column_Name
-LEFT OUTER JOIN DBA_Tables t ON t.Owner = ic.Table_Owner AND t.Table_Name = ic.Table_Name
+LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = ic.Table_Owner AND t.Table_Name = ic.Table_Name
 LEFT OUTER JOIN DBA_Tab_Columns tc ON tc.Owner = ic.Table_Owner AND tc.Table_Name = ic.Table_Name AND tc.Column_Name = p.Column_Name
 WHERE  (p.Reason = 'TO_NUMBER' OR ic.Index_Name IS NOT NULL) /* Show internal_function only if alternative index exists for column */
 ORDER BY h.Seconds DESC
@@ -253,7 +253,7 @@ Results are from GV$SQL_Plan'),
                                        GROUP BY h.Inst_ID, h.SQL_ID, h.SQL_Child_Number, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
                                       ) h ON h.Inst_ID = p.Inst_ID AND h.SQL_ID = p.SQL_ID AND h.SQL_Child_Number = p.Child_Number AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID = p.Cartesian_Line_ID
                       LEFT OUTER JOIN DBA_Indexes i ON i.Owner = p.Object_Owner AND i.Index_Name = p.Object_Name
-                      LEFT OUTER JOIN DBA_Tables t  ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                      LEFT OUTER JOIN DBA_All_Tables t  ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                       WHERE Object_Name IS NOT NULL  -- Erstes Vorkommen von ObjectName in der Parent-Hierarchie nutzen
                       AND   Object_Owner NOT IN (#{system_schema_subselect})
                       AND   Elapsed_Time/1000000 > ?
@@ -271,7 +271,7 @@ Results are from DBA_Hist_SQL_Plan'),
             :sql=>  "WITH Min_Time AS (SELECT SYSDATE - ? min_time FROM DUAL)
                       SELECT ps.*, h.Seconds Seconds_ASH_Cartesian,
                              (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner = ps.Object_Owner AND i.Index_Name = ps.Object_Name) Num_Rows_Index,
-                             (SELECT Num_Rows FROM  DBA_Tables t WHERE t.Owner = ps.Object_Owner AND t.Table_Name = ps.Object_Name) Num_Rows_Table
+                             (SELECT Num_Rows FROM  DBA_All_Tables t WHERE t.Owner = ps.Object_Owner AND t.Table_Name = ps.Object_Name) Num_Rows_Table
                       FROM   (
                               SELECT /*+ LEADING(p) */ s.Instance_Number, p.SQL_ID, p.Plan_Hash_Value, p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.ID Line_ID, p.Parent_ID, p.Cartesian_Line_ID,
                                      SUM(s.Executions_Delta) Executions, ROUND(SUM(s.Elapsed_Time_Delta/1000000), 1) Elapsed_Time_Secs

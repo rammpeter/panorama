@@ -427,7 +427,7 @@ class DbaSgaController < ApplicationController
                 AND    p.SQL_ID          = ?
                 #{where_string}
                ) p
-        LEFT OUTER JOIN DBA_Tables  t ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
+        LEFT OUTER JOIN DBA_All_Tables t ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
         LEFT OUTER JOIN DBA_Indexes i ON i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name
         #{" LEFT OUTER JOIN (SELECT SQL_PLan_Line_ID, SQL_Plan_Hash_Value,
                                     SUM(DB_Time_Seconds)                    DB_Time_Seconds,

@@ -14,7 +14,7 @@ This selections scans SGA as well as AWR history.
             :sql=> "WITH Days AS (SELECT ? backward FROM DUAL),
                          Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM   DBA_Tab_Modifications),
                          Tabs_Inds AS (SELECT /*+ NO_MERGE MATERIALIZE */ 'TABLE' Object_Type, Owner, Table_Name Object_Name, Last_Analyzed, Num_Rows
-                                       FROM   DBA_Tables
+                                       FROM   DBA_All_Tables
                                        WHERE  IOT_TYPE IS NULL AND Temporary='N'
                                        AND    Owner NOT IN (#{system_schema_subselect})
                                        UNION ALL
@@ -94,7 +94,7 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
                               FROM sys.DBA_Tab_Modifications
                               GROUP BY Table_Owner, Table_Name
                              ) m
-                      JOIN   DBA_Tables t ON t.Owner = m.Table_Owner AND t.Table_Name = m.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner = m.Table_Owner AND t.Table_Name = m.Table_Name
                       LEFT OUTER JOIN (SELECT Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024),1) Size_MB
                                        FROM DBA_Segments s
                                        WHERE Owner NOT IN (#{system_schema_subselect})
@@ -122,7 +122,7 @@ For valid function of this selection table analysis should only be done if there
                             SELECT t.Owner, t.Table_Name, o.Max_Created, o.Max_Last_DDL_Time, t.Last_Analyzed,
                                    ROUND(SYSDATE - t.Last_Analyzed, 2) Days_After_Analyze,
                                    t.Num_Rows, s.Size_MB
-                            FROM   DBA_Tables t
+                            FROM   DBA_All_Tables t
                             LEFT OUTER JOIN (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp
                                              FROM sys.DBA_Tab_Modifications
                                              GROUP BY Table_Owner, Table_Name
@@ -164,7 +164,7 @@ You can use virtual columns instead if this table structure is precondition (SAP
             :sql=> "SELECT /* DB-Tools Ramm  Spalten mit komplett  NULL-Values */
                              c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct
                       FROM   DBA_Tab_Columns c
-                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
                       WHERE  c.Num_Nulls = t.Num_Rows
                       AND    t.Num_Rows  > 0   -- Tabelle enthaelt auch Daten
                       AND    c.Owner NOT IN (#{system_schema_subselect})
@@ -179,7 +179,7 @@ May be it their value is redundant to other columns of that table. In this case 
                              c.Owner, c.Table_Name, c.Column_Name, t.Num_Rows, c.Num_Nulls, c.Num_Distinct, c.Avg_Col_Len,
                              ROUND((c.Avg_Col_Len*(Num_Rows-Num_Nulls)+Num_Nulls)/(1024*1024),2) Megabyte_Column
                       FROM   DBA_Tab_Columns c
-                      JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
                       WHERE  NVL(c.Num_Distinct,0) > 0
                       AND    NVL(c.Num_Distinct,0) <= ?
                       AND    (c.Num_Nulls = 0 OR UPPER(?) = 'YES')
@@ -197,7 +197,7 @@ May be it their value is redundant to other columns of that table. In this case 
 '),
             :sql=> 'SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
                       FROM   DBA_Unused_Col_Tabs cs
-                      JOIN   DBA_Tables t ON t.Owner = cs.Owner AND t.Table_Name = cs.Table_Name
+                      JOIN   DBA_All_Tables t ON t.Owner = cs.Owner AND t.Table_Name = cs.Table_Name
                       ORDER BY t.Num_Rows*cs.Count DESC NULLS LAST',
         },
         {
@@ -223,7 +223,7 @@ The selection is based on two sample values per column (the lowest and the highe
                                     SELECT c.*, RTRIM(UTL_I18N.RAW_TO_CHAR(Low_Value)) Low_Value_Char, RTRIM(UTL_I18N.RAW_TO_CHAR(High_Value)) High_Value_Char,
                                            t.Num_Rows
                                     FROM   DBA_Tab_Columns c
-                                    JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                                    JOIN   DBA_All_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
                                     WHERE  c.Data_Type = 'CHAR'
                                     AND    c.Owner NOT IN (#{system_schema_subselect})
                                     AND    c.Data_Length > 1

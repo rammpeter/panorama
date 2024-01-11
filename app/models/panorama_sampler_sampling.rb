@@ -177,7 +177,7 @@ class PanoramaSamplerSampling
   def do_object_size_sampling(snapshot_time)
     PanoramaConnection.sql_execute ["\
       INSERT INTO #{@sampler_config.get_owner}.Panorama_Object_Sizes (Owner, Segment_Name, Segment_Type, Tablespace_Name, Gather_Date, Bytes, Num_Rows)
-      WITH Tables      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name Object_Name, Num_Rows, 'TABLE' Type FROM DBA_Tables  WHERE Num_Rows IS NOT NULL),
+      WITH Tables      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name Object_Name, Num_Rows, 'TABLE' Type FROM DBA_All_Tables  WHERE Num_Rows IS NOT NULL),
            Indexes     AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name Object_Name, Num_Rows, 'INDEX' Type FROM DBA_Indexes WHERE Num_Rows IS NOT NULL),
            Lobs        AS (SELECT /*+ NO_MERGE MATERIALIZE */ l.Owner, l.Segment_Name Object_Name, t.Num_Rows, 'LOB' Type
                            FROM   DBA_Lobs l

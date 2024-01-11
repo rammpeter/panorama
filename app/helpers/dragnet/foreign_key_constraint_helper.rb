@@ -50,8 +50,8 @@ module Dragnet::ForeignKeyConstraintHelper
                            target_mod.Deletes \"Target Deletes since analyze\"
                     FROM   Constraints Ref
                     JOIN   Constraints target       ON target.Owner = ref.R_Owner AND target.Constraint_Name = ref.R_Constraint_Name
-                    JOIN   DBA_Tables reft          ON reft.Owner = ref.Owner AND reft.Table_Name = ref.Table_Name
-                    JOIN   DBA_Tables targett       ON targett.Owner = target.Owner AND targett.Table_Name = target.Table_Name
+                    JOIN   DBA_All_Tables reft      ON reft.Owner = ref.Owner AND reft.Table_Name = ref.Table_Name
+                    JOIN   DBA_All_Tables targett   ON targett.Owner = target.Owner AND targett.Table_Name = target.Table_Name
                     LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Table_Owner, Table_Name, SUM(Deletes) Deletes
                                      FROM   DBA_Tab_Modifications
                                      GROUP BY Table_Owner, Table_Name
@@ -74,7 +74,7 @@ ALTER TABLE <tab> NOPARALLEL;
   '),
             :sql=> "\
 WITH Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, Constraint_Type, r_Owner, r_Constraint_Name, Validated, Last_Change FROM DBA_Constraints),
-     Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows FROM DBA_Tables)
+     Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows FROM DBA_All_Tables)
 SELECT c.Owner, c.Table_Name, t.Num_Rows, c.Constraint_Name, c.r_Owner, rt.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows, c.r_Constraint_Name, c.Last_Change
 FROM   Constraints c
 JOIN   Tables t       ON  t.Owner = c.Owner   AND t.Table_Name = c.Table_Name

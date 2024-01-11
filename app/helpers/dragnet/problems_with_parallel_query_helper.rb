@@ -74,7 +74,7 @@ Selection considers current SGA.'),
                                      CASE WHEN Operation = 'INDEX' THEN
                                           (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name = ps.Object_Name)
                                           WHEN Operation = 'TABLE ACCESS' THEN
-                                          (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name = ps.Object_Name)
+                                          (SELECT Num_Rows FROM DBA_All_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name = ps.Object_Name)
                                      ELSE 0 END Num_Rows,
                                      ps.*
                               FROM   (
@@ -110,7 +110,7 @@ Selection considers AWR history.'),
             :sql=>  "SELECT /* DB-Tools Ramm Nichparallel Anteile bei PQ */ * FROM (
                       SELECT /*+ NO_MERGE */ x.*, ps.Operation, ps.Options, ps.Object_Type, ps.Object_Owner, ps.Object_Name,
                              CASE
-                             WHEN ps.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name=ps.Object_Name)
+                             WHEN ps.Object_Type LIKE 'TABLE%' THEN (SELECT Num_Rows FROM DBA_All_Tables t WHERE t.Owner=ps.Object_Owner AND t.Table_Name=ps.Object_Name)
                              WHEN ps.Object_Type LIKE 'INDEX%' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=ps.Object_Owner AND i.Index_Name=ps.Object_Name)
                              ELSE NULL END Num_Rows,
                             (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=x.DBID AND t.SQL_ID=x.SQL_ID AND RowNum < 2) SQLText
@@ -218,7 +218,7 @@ This Selection lists all statements with 'PARALLEL_FROM_SERIAL'-processing after
                      SELECT /* DB-Tools Ramm PARALLEL_FROM_SERIAL in PQ */ * FROM (
                       SELECT /*+ NO_MERGE */ a.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=a.DBID AND t.SQL_ID=a.SQL_ID AND RowNum < 2) SQLText,
                              CASE
-                             WHEN Operation='TABLE ACCESS' THEN (SELECT Num_Rows FROM DBA_Tables t WHERE t.Owner=Object_Owner AND t.Table_Name=Object_Name)
+                             WHEN Operation='TABLE ACCESS' THEN (SELECT Num_Rows FROM DBA_All_Tables t WHERE t.Owner=Object_Owner AND t.Table_Name=Object_Name)
                              WHEN Operation='INDEX' THEN (SELECT Num_Rows FROM DBA_Indexes i WHERE i.Owner=Object_Owner AND i.Index_Name=Object_Name)
                              ELSE NULL END Num_Rows
                       FROM (

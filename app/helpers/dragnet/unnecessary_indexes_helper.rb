@@ -91,7 +91,7 @@ SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
                              WHERE  ic.Index_Owner = i.Owner AND ic.Index_Name = i.Index_Name
                             ) Nullable
                      FROM   DBA_Indexes i
-                     JOIN   DBA_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
+                     JOIN   DBA_All_Tables t ON t.Owner=i.Table_Owner AND t.Table_Name=i.Table_Name
                      LEFT OUTER JOIN (SELECT  /*+ NO_MERGE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
                                       FROM   DBA_SEGMENTS s
                                       GROUP BY Owner, Segment_Name
@@ -187,7 +187,7 @@ If none of the four reasons really requires the existence, the index can be remo
                                                 WHERE  Owner NOT IN (#{system_schema_subselect})
                                                ),
                          Tables AS             (SELECT /*+ NO_MERGE MATERIALIZE */  Owner, Table_Name, Num_Rows, Last_analyzed, IOT_Type, Partitioned
-                                                FROM DBA_Tables
+                                                FROM DBA_All_Tables
                                                 WHERE  Owner NOT IN (#{system_schema_subselect})
                                                ),
                          Tab_Modifications AS  (SELECT /*+ NO_MERGE MATERIALIZE */  Table_Owner, Table_Name, Inserts, Updates, Deletes
@@ -538,10 +538,10 @@ FROM   (
         GROUP BY Owner, Constraint_Name, Table_Name
         HAVING COUNT(*) = 1  /* exactly one column in PK-Constraint */
        ) cc
-JOIN   Constraints c  ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Table_Name = cc.Table_Name AND c.Constraint_Type = 'P'
-JOIN   DBA_Tables t   ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
-JOIN   Indexes pi     ON pi.Owner = c.Index_Owner AND pi.Index_Name = c.Index_Name
-JOIN   Tab_Columns tc ON tc.Owner = c.Owner AND tc.Table_Name = c.Table_Name AND tc.Column_Name = cc.Column_Name
+JOIN   Constraints c    ON c.Owner = cc.Owner AND c.Constraint_Name = cc.Constraint_Name AND c.Table_Name = cc.Table_Name AND c.Constraint_Type = 'P'
+JOIN   DBA_All_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+JOIN   Indexes pi       ON pi.Owner = c.Index_Owner AND pi.Index_Name = c.Index_Name
+JOIN   Tab_Columns tc   ON tc.Owner = c.Owner AND tc.Table_Name = c.Table_Name AND tc.Column_Name = cc.Column_Name
 LEFT OUTER JOIN Segments si    ON si.Owner = pi.Owner AND si.Segment_Name = pi.Index_Name
 LEFT OUTER JOIN Constraints uc ON uc.Owner = c.Owner AND uc.Table_Name = c.Table_Name AND c.Constraint_Type = 'U'
 LEFT OUTER JOIN Indexes ui     ON ui.Table_Owner = c.Owner AND ui.Table_Name = c.Table_Name AND ui.Uniqueness = 'UNIQUE' AND ui.Index_Type NOT IN ('LOB') AND ui.Index_Name != pi.Index_Name
@@ -566,7 +566,7 @@ Caution:
                                     ),
                          Ind_Columns AS        (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Table_Owner, Table_Name, Column_name, Column_Position FROM DBA_Ind_Columns),
                          Cons_Columns AS       (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Column_name, Position, Constraint_Name FROM DBA_Cons_Columns),
-                         Tables AS             (SELECT /*+ NO_MERGE MATERIALIZE */  Owner, Table_Name, Num_Rows, Last_analyzed FROM DBA_Tables),
+                         Tables AS             (SELECT /*+ NO_MERGE MATERIALIZE */  Owner, Table_Name, Num_Rows, Last_analyzed FROM DBA_All_Tables),
                          Tab_Modifications AS  (SELECT /*+ NO_MERGE MATERIALIZE */  Table_Owner, Table_Name, Inserts, Updates, Deletes FROM DBA_Tab_Modifications WHERE Partition_Name IS NULL /* Summe der Partitionen wird noch einmal als Einzel-Zeile ausgewiesen */)
                     SELECT /*+ USE_HASH(i ic cc c rc rt) */ i.Owner, i.Table_Name, i.Index_Name,
                            ic.Column_Name                                                             \"First Column name\",
@@ -586,7 +586,7 @@ Caution:
                            cc.Deletes                                                                 \"Deletes on ref. since anal.\",
                            i.Tablespace_Name                                                          \"Tablespace\",
                            i.Index_Type,
-                           (SELECT IOT_Type FROM DBA_Tables t WHERE t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name) \"IOT Type\"
+                           (SELECT IOT_Type FROM DBA_All_Tables t WHERE t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name) \"IOT Type\"
                     FROM   Indexes i
                     JOIN   All_Users u ON u.UserName = i.Owner AND u.Oracle_Maintained = 'N'
                     JOIN   DBA_Objects o ON o.Owner = i.Owner AND o.Object_Name = i.Index_Name AND o.SubObject_Name IS NULL

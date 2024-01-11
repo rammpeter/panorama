@@ -3,18 +3,18 @@ class TableDependenciesController < ApplicationController
 
 public
   def show_frame
-    @all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_Tables ORDER BY Owner"
+    @all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_All_Tables ORDER BY Owner"
 
     render_partial
   end
   
   def select_schema
     @username = params["username"] ? params["username"] : params[:all_user][:username]
-    @all_tables = sql_select_all ['SELECT * FROM DBA_Tables WHERE Owner = ? ORDER BY Table_Name', @username]
+    @all_tables = sql_select_all ['SELECT * FROM DBA_All_Tables WHERE Owner = ? ORDER BY Table_Name', @username]
     # Schema-Filter für Ergebnisanzeige
     @filter_users = []
     @filter_users << ({ :username => "[Alle]"}.extend SelectHashHelper)
-    all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_Tables ORDER BY Owner"
+    all_users = sql_select_all "SELECT DISTINCT Owner UserName FROM DBA_All_Tables ORDER BY Owner"
     all_users.each do |user|
       @filter_users << user
     end

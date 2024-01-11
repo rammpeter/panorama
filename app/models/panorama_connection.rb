@@ -541,7 +541,7 @@ class PanoramaConnection
   # @param owner [String] owner of table
   # @return [Boolean] true if table exists in DB
   def self.table_exists?(table_name, owner = PanoramaConnection.username)
-    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]) > 0
+    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_All_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]) > 0
   end
 
   # Analog sql_select all, jedoch return ResultIterator mit each-Method

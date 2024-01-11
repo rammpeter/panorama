@@ -107,7 +107,7 @@ class WorkerThread
 
       # Check if create table is allowed
       check_table_name = 'Panorama_Resource_Test'
-      if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", @sampler_config.get_owner.upcase, check_table_name.upcase]) > 0
+      if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_All_Tables WHERE Owner = ? AND Table_Name = ?", @sampler_config.get_owner.upcase, check_table_name.upcase]) > 0
         PanoramaConnection.sql_execute "DROP TABLE #{@sampler_config.get_owner}.#{check_table_name}"  # drop table if remaining from former test
       end
       PanoramaConnection.sql_execute "CREATE TABLE #{@sampler_config.get_owner}.#{check_table_name}(ID NUMBER)"

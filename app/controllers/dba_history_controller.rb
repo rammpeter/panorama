@@ -58,7 +58,7 @@ class DbaHistoryController < ApplicationController
              (#{@show_partitions=="1" ?
                "CASE
                 WHEN o.Object_Type = 'TABLE' 
-                     THEN (SELECT Num_Rows FROM DBA_Tables t
+                     THEN (SELECT Num_Rows FROM DBA_All_Tables t
                              WHERE t.Owner      = o.Owner
                              AND   t.Table_Name = o.Object_Name)
                 WHEN o.Object_Type = 'TABLE PARTITION'
@@ -88,7 +88,7 @@ class DbaHistoryController < ApplicationController
                 ELSE NULL END"  :
                "CASE
                   WHEN o.Object_Type IN ('TABLE', 'TABLE PARTITION', 'TABLE SUBPARTITION') THEN
-                    (SELECT Num_Rows FROM DBA_Tables t
+                    (SELECT Num_Rows FROM DBA_All_Tables t
                     WHERE t.Owner = o.Owner
                     AND   t.Table_Name = o.Object_Name)
                   WHEN o.Object_Type IN ('INDEX', 'INDEX PARTITION', 'INDEX SUBPARTITION') THEN
@@ -730,7 +730,7 @@ class DbaHistoryController < ApplicationController
                                  GROUP BY s.SQL_ID, s.Plan_Hash_Value, s.DBID, s.Parsing_Schema_Name
                                 ) ps
                          JOIN   DBA_Hist_SQL_Plan p ON p.DBID=ps.DBID AND p.SQL_ID=ps.SQL_ID AND p.Plan_Hash_Value=ps.Plan_Hash_Value
-                         LEFT OUTER JOIN DBA_Tables t  ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name -- evtl. weiter zu filtern per  NVL(p.Object_Type, 'TABLE') LIKE 'TABLE%'
+                         LEFT OUTER JOIN DBA_All_Tables t ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name -- evtl. weiter zu filtern per  NVL(p.Object_Type, 'TABLE') LIKE 'TABLE%'
                          LEFT OUTER JOIN DBA_Indexes i ON i.Owner=p.Object_Owner AND i.Index_Name=p.Object_Name -- evtl. weiter zu filtern per  p.Object_Type LIKE 'INDEX%'
                          -- Object_Type ensures that only one record is gotten from DBA_Objects even if object is partitioned
                          LEFT OUTER JOIN DBA_Objects o ON o.Owner = p.Object_Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = DECODE(p.Object_Type, 'INDEX (UNIQUE)', 'INDEX', p.Object_Type)

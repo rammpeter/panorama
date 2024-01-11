@@ -192,6 +192,7 @@ column_options =
     result << "#{'<br/>' if result.length > 0}Clustering On DataMovement = #{rec.ct_on_datamovement}"                                     if get_db_version >= '12.1.0.2' && rec.ct_on_datamovement == 'YES'
     result << "#{'<br/>' if result.length > 0}Clustering With Zonemap = #{rec.ct_with_zonemap}"                                           if get_db_version >= '12.1.0.2' && rec.ct_with_zonemap == 'YES'
     result << "#{'<br/>' if result.length > 0}Clustering Valid = #{rec.ct_valid}"                                                         if get_db_version >= '12.1.0.2' && !rec.ct_valid.nil? && rec.ct_valid != 'YES'
+    result << "#{'<br/>' if result.length > 0}Table type = #{rec['table_type']}"                                                          if rec['table_type']
     @stat_prefs.each {|p| result << "#{'<br/>' if result.length > 0}#{p}" }
     result.html_safe
   end

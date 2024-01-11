@@ -26,7 +26,7 @@ WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partit
                  ),
      Tables AS   (SELECT /*+ NO_MERGE MATERIALIZE */ t.Owner, t.Table_Name, t.Num_Rows, t.Last_Analyzed, NULL Partition_Name,
                          m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, t.Compression
-                  FROM   DBA_Tables t
+                  FROM   DBA_All_Tables t
                   LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name AND m.Partition_Name IS NULL
                   AND    t.Compression = 'DISABLED'
                  ),
@@ -96,7 +96,7 @@ WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, Partit
                  ),
      Tables AS   (SELECT /*+ NO_MERGE MATERIALIZE */ t.Owner, t.Table_Name, t.Num_Rows, t.Last_Analyzed, NULL Partition_Name,
                          m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, t.Compression
-                  FROM   DBA_Tables t
+                  FROM   DBA_All_Tables t
                   LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name AND m.Partition_Name IS NULL
                   AND    t.Compression = 'DISABLED'
                  ),
@@ -161,7 +161,7 @@ WITH Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table
                            WHERE  Table_Owner NOT IN (#{system_schema_subselect})
                           ),
      Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, PCT_Free, Num_Rows, Avg_Row_Len, Last_Analyzed, Ini_Trans, Max_Trans
-                FROM   DBA_Tables
+                FROM   DBA_All_Tables
                 WHERE  Owner NOT IN (#{system_schema_subselect})
                 AND    Num_Rows > 0
                ),
@@ -319,7 +319,7 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('===========================================');
   SELECT Statistic# INTO StatNum FROM v$StatName WHERE Name='consistent gets';
   FOR Rec IN (SELECT Owner, Table_Name, Num_Rows
-              FROM   DBA_Tables
+              FROM   DBA_All_Tables
               WHERE  IOT_Type IS NULL
               AND    Num_Rows > 10000   -- nur genügende große Tabellen testen
               AND    Owner NOT IN (#{system_schema_subselect})
@@ -363,7 +363,7 @@ Usable with Oracle 11g and above only.'),
                                     WHERE  SQL_Plan_Line_ID IS NOT NULL
                                     GROUP BY Inst_ID, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                    ) h ON h.Inst_ID=p.Inst_ID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
-                            LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                            LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                             WHERE  p.Operation = 'TABLE ACCESS' AND p.Options LIKE 'BY INDEX ROWID%'
                             AND    p.Object_Owner NOT IN (#{system_schema_subselect})
                             AND    NVL(t.Num_Rows, 0) < ?
@@ -394,7 +394,7 @@ Usable with Oracle 11g and above only.'),
                                     AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
                                     GROUP BY DBID, Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                    ) h ON h.DBID = p.DBID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
-                            LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                            LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
                             WHERE  p.Operation = 'TABLE ACCESS' AND p.Options LIKE 'BY INDEX ROWID%'
                             AND    p.Object_Owner NOT IN (#{system_schema_subselect})
                             AND    NVL(t.Num_Rows, 0) < ?
@@ -481,7 +481,7 @@ This is especially important if the column is indexed, since without the NOT NUL
             :sql=> "
 SELECT /*+ NO_MERGE */ tc.Owner, tc.Table_Name, tc.Column_Name, ic.Index_Name, tc.Num_Distinct, t.Num_Rows, t.Last_Analyzed
 FROM   DBA_Tab_Columns tc
-JOIN   DBA_Tables t                ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+JOIN   DBA_All_Tables t  ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
 LEFT OUTER JOIN DBA_Ind_Columns ic ON ic.Table_Owner = tc.Owner AND ic.Table_Name = tc.Table_Name AND ic.Column_Name = tc.Column_Name AND ic.Column_Position = 1
 WHERE  tc.Nullable = 'Y'
 AND    tc.Num_Nulls = 0
@@ -501,7 +501,7 @@ Licensing of Advanced Compression Option is required for usage of LOB-Compressio
 SELECT /*+ ORDERED */ l.Owner, l.Table_name, l.Column_Name, tc.Data_Type, l.Segment_Name, l.Tablespace_Name, s.MBytes,
        l.Encrypt, l.Compression, l.Deduplication, l.In_Row, l.Partitioned, l.Securefile, t.Num_Rows, tc.Num_Nulls, tc.Avg_Col_Len Avg_Col_Len_In_Row
 FROM   DBA_Lobs l
-LEFT OUTER JOIN DBA_Tables t       ON t.Owner = l.Owner AND t.Table_Name = l.Table_Name
+LEFT OUTER JOIN DBA_All_Tables t       ON t.Owner = l.Owner AND t.Table_Name = l.Table_Name
 LEFT OUTER JOIN DBA_Tab_Columns tc ON tc.Owner = l.Owner AND tc.Table_Name = l.Table_Name AND tc.Column_Name = l.Column_Name
 JOIN   (SELECT /*+ NO_MERGE */ Owner, Segment_Name, Segment_Type, SUM(Bytes)/(1024*1024) MBytes
         FROM   DBA_Segments

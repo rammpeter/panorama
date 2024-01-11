@@ -371,7 +371,7 @@ class StorageController < ApplicationController
       FROM   sys.dba_registered_mviews m
       LEFT OUTER JOIN (SELECT Snapshot_ID, COUNT(*) Snapshot_Logs, MIN(Current_Snapshots) Oldest_Refresh_Date
                        FROM DBA_Snapshot_Logs GROUP BY Snapshot_ID) l  ON l.Snapshot_ID = m.MView_ID
-      LEFT OUTER JOIN DBA_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.Name AND m.MView_Site = '#{global_name}'     /* Table nur Joinen wenn registered MView auf lokaler DB */
+      LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.Name AND m.MView_Site = '#{global_name}'     /* Table nur Joinen wenn registered MView auf lokaler DB */
       LEFT OUTER JOIN DBA_MViews mv ON mv.Owner = m.Owner AND mv.MView_Name = m.Name AND m.MView_Site = '#{global_name}'  /* Table nur Joinen wenn registered MView auf lokaler DB */
       WHERE 1=1 #{where_string}
     "].concat where_values
@@ -419,7 +419,7 @@ class StorageController < ApplicationController
       LEFT OUTER JOIN DBA_Registered_MViews r ON r.Owner = m.Owner AND r.Name = m.MView_Name AND r.MView_Site='#{global_name}'
       LEFT OUTER JOIN (SELECT Snapshot_ID, COUNT(*) Snapshot_Logs, MIN(Current_Snapshots) Oldest_Refresh_Date
                        FROM DBA_Snapshot_Logs GROUP BY Snapshot_ID) l  ON l.Snapshot_ID = r.MView_ID
-      LEFT OUTER JOIN DBA_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.MView_Name
+      LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = m.Owner AND t.Table_Name = m.MView_Name
       LEFT OUTER JOIN DBA_Objects o ON o.Owner = m.Owner AND o.Object_Name = m.MView_Name AND o.SubObject_Name IS NULL AND o.Object_Type = 'MATERIALIZED VIEW'
       WHERE  1=1 #{where_string}
       ORDER BY m.MView_Name
@@ -468,7 +468,7 @@ class StorageController < ApplicationController
                          WHERE  Snapshot_ID IS NOT NULL -- hat wirklich registrierte Snapshots
                          GROUP BY Log_Owner, Log_Table
                         ) sl ON sl.Log_Owner = l.Log_Owner AND sl.Log_Table = l.Log_Table
-      LEFT OUTER JOIN DBA_Tables t ON t.Owner = l.Log_Owner AND t.Table_Name = l.Log_Table
+      LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = l.Log_Owner AND t.Table_Name = l.Log_Table
       WHERE 1=1 #{where_string}
       "].concat where_values
 

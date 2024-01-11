@@ -366,7 +366,7 @@ class DbaSchemaController < ApplicationController
         WITH Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, SubPartition_Name, Timestamp FROM DBA_Tab_Modifications WHERE Partition_Name IS NULL),
              Segments          AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Segments s        WHERE s.SEGMENT_TYPE<>'CACHE' #{where_string}),
              Objects           AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Object_Name, SubObject_Name, Created, Last_DDL_Time, Timestamp FROM DBA_Objects),
-             Tables            AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows, Pct_Free, Ini_Trans, Avg_Row_Len, Empty_Blocks, Avg_Space, Last_Analyzed, Compression#{", Compress_For" if get_db_version >= '11.2'} FROM DBA_Tables),
+             Tables            AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows, Pct_Free, Ini_Trans, Avg_Row_Len, Empty_Blocks, Avg_Space, Last_Analyzed, Compression#{", Compress_For" if get_db_version >= '11.2'} FROM DBA_All_Tables),
              Tab_Partitions    AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, Num_Rows, Pct_Free, Ini_Trans, Avg_Row_Len, Empty_Blocks, Avg_Space, Last_Analyzed, Compression#{", Compress_For" if get_db_version >= '11.2'} FROM DBA_Tab_Partitions),
              Tab_SubPartitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, SubPartition_Name, Num_Rows, Pct_Free, Ini_Trans, Avg_Row_Len, Empty_Blocks, Avg_Space, Last_Analyzed, Compression#{", Compress_For" if get_db_version >= '11.2'} FROM DBA_Tab_SubPartitions),
              Indexes           AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name, Index_Type, Num_Rows, Pct_Free, Ini_Trans, Compression, Last_Analyzed, Leaf_Blocks FROM DBA_Indexes),
@@ -1845,7 +1845,7 @@ class DbaSchemaController < ApplicationController
                                 WHERE c.Owner = ? AND c.Cluster_Name = ?
                                ", @owner, @cluster_name]
 
-    @tables = sql_select_one ['SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Cluster_Name = ?', @owner, @cluster_name]
+    @tables = sql_select_one ['SELECT COUNT(*) FROM DBA_All_Tables WHERE Owner = ? AND Cluster_Name = ?', @owner, @cluster_name]
 
     @indexes = sql_select_one ['SELECT COUNT(*) FROM DBA_Indexes WHERE Table_Owner = ? AND Table_Name = ?', @owner, @cluster_name]
 
@@ -1873,7 +1873,7 @@ class DbaSchemaController < ApplicationController
     @owner        = params[:owner]
     @cluster_name = params[:cluster_name]
 
-    @tables = sql_select_all ["SELECT t.* FROM DBA_Tables t WHERE t.Owner = ? AND t.Cluster_Name = ?", @owner, @cluster_name]
+    @tables = sql_select_all ["SELECT t.* FROM DBA_All_Tables t WHERE t.Owner = ? AND t.Cluster_Name = ?", @owner, @cluster_name]
 
     render_partial :list_cluster_tables
   end
@@ -2799,7 +2799,7 @@ class DbaSchemaController < ApplicationController
 
     segments.each do |segment|
       pct_free = nil                                                            # Default
-      pct_free = sql_select_one ["SELECT Pct_Free FROM DBA_Tables             WHERE Owner = ?       AND Table_Name = ?",                            @owner, @segment_name]                              if @segment_type == 'TABLE'
+      pct_free = sql_select_one ["SELECT Pct_Free FROM DBA_All_Tables         WHERE Owner = ?       AND Table_Name = ?",                            @owner, @segment_name]                              if @segment_type == 'TABLE'
       pct_free = sql_select_one ["SELECT Pct_Free FROM DBA_Tab_Partitions     WHERE Table_Owner = ? AND Table_Name = ? AND Partition_Name = ?",     @owner, @segment_name, segment.partition_name]      if @segment_type == 'TABLE PARTITION'
       pct_free = sql_select_one ["SELECT Pct_Free FROM DBA_Tab_SubPartitions  WHERE Table_Owner = ? AND Table_Name = ? AND SubPartition_Name = ?",  @owner, @segment_name, segment.partition_name]      if @segment_type == 'TABLE SUBPARTITION'
       pct_free = sql_select_one ["SELECT Pct_Free FROM DBA_Indexes            WHERE Owner = ?       AND Index_Name = ?",                            @owner, @segment_name]                              if @segment_type == 'INDEX'

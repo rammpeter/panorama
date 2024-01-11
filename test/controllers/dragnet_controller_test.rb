@@ -103,7 +103,7 @@ class DragnetControllerTest < ActionController::TestCase
 {
   \"name\": \"Name of selection in list#{Random.rand(1000000)}\",
   \"desc\": \"Explanation of selection in right dialog\",
-  \"sql\":  \"SELECT * FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?\",
+  \"sql\":  \"SELECT * FROM DBA_All_Tables WHERE Owner = ? AND Table_Name = ?\",
   \"parameter\": [
     {
       \"name\":     \"Name of parameter for \\\"owner\\\" in dialog\",

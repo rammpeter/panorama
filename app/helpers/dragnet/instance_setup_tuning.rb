@@ -54,7 +54,7 @@ SELECT CASE
        x.*
 FROM   (SELECT t.Owner, t.Table_Name, NULL Partition_Name, NULL SubPartition_Name, t.Num_Rows, t.Last_Analyzed,
                s.MBytes, m.Inserts \"Inserts since last analyze\", m.Updates \"Updates since last analyze\", m.Deletes \"Deletes since last analyze\"
-        FROM   DBA_Tables t
+        FROM   DBA_All_Tables t
         LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(Size_MB) MBytes
                          FROM   Segments
                          GROUP BY Owner, Segment_Name
@@ -107,7 +107,7 @@ FROM   (
         SELECT i.Owner, i.Table_Name, i.Index_Name, NULL Partition_Name, NULL SubPartition_Name, i.Num_Rows, i.Last_Analyzed,
                ROUND(s.MBytes,2) MBytes
         FROM   DBA_Indexes i
-        JOIN   DBA_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
+        JOIN   DBA_All_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
         LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(Bytes)/(1024*1024) MBytes
                          FROM   DBA_Segments
                          GROUP BY Owner, Segment_Name

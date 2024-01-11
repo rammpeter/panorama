@@ -81,7 +81,7 @@ FROM   (
                 FROM   DBA_Hist_SQL_Plan p
                 JOIN   DBA_Hist_SQLStat s   ON s.DBID=p.DBID AND s.SQL_ID=p.SQL_ID AND s.Plan_Hash_Value=p.Plan_Hash_Value
                 JOIN   DBA_Hist_Snapshot ss ON ss.DBID=s.DBID AND ss.Instance_Number=s.Instance_Number AND ss.Snap_ID=s.Snap_ID
-                JOIN   DBA_Tables t         ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
+                JOIN   DBA_All_Tables t     ON t.Owner=p.Object_Owner AND t.Table_Name=p.Object_Name
                 WHERE  p.Operation = 'TABLE ACCESS'
                 AND    p.Options LIKE '%FULL'           /* Auch STORAGE FULL der Exadata mit inkludieren */
                 AND    ss.Begin_Interval_Time > SYSDATE - (SELECT Days FROM Backward)
@@ -140,7 +140,7 @@ FROM   (SELECT /*+ NO_MERGE */ ss.DBID, ss.Instance_Number, h.User_ID, h.SQL_ID,
         GROUP BY ss.DBID, ss.Instance_Number, h.User_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
        ) h
 JOIN   DBA_Hist_SQL_Plan p ON p.DBID = h.DBID AND p.SQL_ID = h.SQL_ID AND p.Plan_Hash_Value = h.SQL_Plan_Hash_Value AND p.ID = h.SQL_Plan_Line_ID
-LEFT OUTER JOIN DBA_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
 LEFT OUTER JOIN (SELECT SQL_ID, Plan_Hash_Value, ID, MIN(Access_Predicates) Access_Predicates, MIN(Filter_Predicates) Filter_Predicates
                  FROM   gv$SQL_Plan gp
                  WHERE  Operation = 'TABLE ACCESS'

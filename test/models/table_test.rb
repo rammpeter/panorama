@@ -3,7 +3,7 @@ require 'test_helper'
 class TableTest < ActiveSupport::TestCase
 
   def drop_table_if_exists(owner, table_name)
-    if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]) > 0
+    if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_All_Tables WHERE Owner = ? AND Table_Name = ?", owner, table_name]) > 0
       PanoramaConnection.sql_execute("DROP TABLE #{owner}.#{table_name} CASCADE CONSTRAINTS")
     end
   end

@@ -46,7 +46,7 @@ class Table
     }
       FROM   DBA_Constraints c
       JOIN   DBA_Constraints r    ON r.Owner = c.R_Owner AND r.Constraint_Name = c.R_Constraint_Name
-      JOIN   DBA_Tables rt        ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
+      JOIN   DBA_All_Tables rt        ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       LEFT OUTER JOIN DBA_Tab_Modifications m ON m.Table_Owner = rt.Owner AND m.Table_Name = rt.Table_Name AND m.Partition_Name IS NULL    -- Summe der Partitionen wird noch einmal als Einzel-Zeile ausgewiesen
       LEFT OUTER JOIN  (SELECT Owner, Constraint_Name,
                                MIN(Index_Owner) KEEP (DENSE_RANK FIRST ORDER BY Index_Name) Min_Index_Owner, MIN(Index_Name) Min_Index_Name,
@@ -83,8 +83,8 @@ class Table
     }
       FROM   DBA_Constraints r
       JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
-      JOIN   DBA_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
-      JOIN   DBA_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
+      JOIN   DBA_All_Tables ct ON ct.Owner = c.Owner AND ct.Table_Name = c.Table_Name
+      JOIN   DBA_All_Tables rt ON rt.Owner = r.Owner AND rt.Table_Name = r.Table_Name
       LEFT OUTER JOIN  (SELECT Owner, Constraint_Name,
                                MIN(Index_Owner) KEEP (DENSE_RANK FIRST ORDER BY Index_Name) Min_Index_Owner, MIN(Index_Name) Min_Index_Name,
                                COUNT(*) Index_Number

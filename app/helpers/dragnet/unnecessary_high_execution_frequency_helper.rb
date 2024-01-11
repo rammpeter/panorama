@@ -97,7 +97,7 @@ Stored functions with function result caching or selects/subselects with result 
                                HAVING SUM(Executions_Delta) > ?
                                ) s
                             JOIN   DBA_Hist_SQL_Plan p ON (p.DBID=s.DBID AND p.SQL_ID=s.SQL_ID AND p.Plan_Hash_Value=s.Plan_Hash_Value)
-                            JOIN   (SELECT Owner, Table_Name Name, Num_Rows FROM DBA_Tables WHERE Num_Rows < 100000
+                            JOIN   (SELECT Owner, Table_Name Name, Num_Rows FROM DBA_All_Tables WHERE Num_Rows < 100000
                                     UNION ALL
                                     SELECT Owner, Index_Name Name, Num_Rows FROM DBA_Indexes WHERE Num_Rows < 100000
                                    ) obj ON (obj.Owner = p.Object_Owner AND obj.Name = p.Object_Name)
