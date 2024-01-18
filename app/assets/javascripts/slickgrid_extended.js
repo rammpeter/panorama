@@ -1650,13 +1650,18 @@ function HTML_Formatter_prepare(slickGrid, row, cell, value, columnDef, dataCont
  * Get inner style of element if requested
  * @param slickGrid     SlickGridExtended-Object
  * @param columnDef     Column definition object
+ * @param column_metadata   Metadata of column for this row
  * @param value         Value of cell
  * @return {string}
  */
-function html_formatter_background_style(slickGrid, columnDef, value) {
+function html_formatter_background_style(slickGrid, columnDef, column_metadata, value) {
     let total_value = null;
+
     if (columnDef['show_pct_col_sum_background'] && columnDef['column_sum'] > 0 )
         total_value = columnDef['column_sum'];
+
+    if ('pct_total_value' in column_metadata)
+        total_value = parseFloat(column_metadata.pct_total_value);
 
     if (total_value !== null) {
         let pct_value = Math.round(slickGrid.parseFloatLocale(value) * 100 / total_value);
@@ -1716,25 +1721,11 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
         output += " style='"+style+"'";
     output += ">";
 
-    let inner_style = html_formatter_background_style(slickGrid, columnDef, value);
+    let inner_style = html_formatter_background_style(slickGrid, columnDef, column_metadata, value);
     if (inner_style !== "")
         output += "<div style='"+inner_style+"'>"+fullvalue+"</div>";
     else
         output += fullvalue;
-
-/*
-    if (columnDef['show_pct_col_sum_background'] && columnDef['column_sum'] > 0 ){
-        var pct_value = Math.round(slickGrid.parseFloatLocale(value) * 100 / columnDef['column_sum']);
-        output += "<div "+
-              "style='background-image: -webkit-linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%); "+
-                     "background-image: -moz-linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%);    "+
-                     "background-image: linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%);         "+
-                     "'>" +
-              fullvalue + "</div>"
-    } else {
-        output += fullvalue
-    }
-*/
 
     output += "</div>";
     return output;
