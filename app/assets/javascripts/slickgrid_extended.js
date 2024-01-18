@@ -116,7 +116,7 @@ function SlickGridExtended(container_id, options){
             if (column['plot_master'] || column['plot_master_time'])
                 options['plotting'] = true;
 
-            if (column['show_pct_hint'] || column['show_pct_background']){
+            if (column['show_pct_col_sum_hint'] || column['show_pct_col_sum_background']){
                 var column_sum = 0;
                 for (var row_index in data){
                     column_sum += this.parseFloatLocale(data[row_index]['col'+col_index]);  // Kumulieren der Spaltensumme
@@ -1646,6 +1646,27 @@ function HTML_Formatter_prepare(slickGrid, row, cell, value, columnDef, dataCont
     return fullvalue;
 }
 
+/**
+ * Get inner style of element if requested
+ * @param slickGrid     SlickGridExtended-Object
+ * @param columnDef     Column definition object
+ * @param value         Value of cell
+ * @return {string}
+ */
+function html_formatter_background_style(slickGrid, columnDef, value) {
+    let total_value = null;
+    if (columnDef['show_pct_col_sum_background'] && columnDef['column_sum'] > 0 )
+        total_value = columnDef['column_sum'];
+
+    if (total_value !== null) {
+        let pct_value = Math.round(slickGrid.parseFloatLocale(value) * 100 / total_value);
+        return "background-image: -webkit-linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%); "+
+            "background-image: -moz-linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%);    "+
+            "background-image: linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%);         "
+        ;
+    }
+    return '';
+}
 
 /**
  * Default-Formatter für Umsetzung HTML in SlickGrid
@@ -1676,7 +1697,7 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
         if (columnDef['toolTip'])
             title = columnDef['toolTip']
     }
-    if (columnDef['show_pct_hint'] && columnDef['column_sum'] > 0 ){
+    if (columnDef['show_pct_col_sum_hint'] && columnDef['column_sum'] > 0 ){
         var pct_value = slickGrid.parseFloatLocale(value) * 100 / columnDef['column_sum'];
         title += "\n\n= "+ slickGrid.printFloatLocale(pct_value, 2) + ' % ' + slickGrid.ext_locale_translate('slickgrid_pct_hint') + ' ' + slickGrid.printFloatLocale(columnDef['column_sum'], 0);
     }
@@ -1695,7 +1716,14 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
         output += " style='"+style+"'";
     output += ">";
 
-    if (columnDef['show_pct_background'] && columnDef['column_sum'] > 0 ){
+    let inner_style = html_formatter_background_style(slickGrid, columnDef, value);
+    if (inner_style !== "")
+        output += "<div style='"+inner_style+"'>"+fullvalue+"</div>";
+    else
+        output += fullvalue;
+
+/*
+    if (columnDef['show_pct_col_sum_background'] && columnDef['column_sum'] > 0 ){
         var pct_value = Math.round(slickGrid.parseFloatLocale(value) * 100 / columnDef['column_sum']);
         output += "<div "+
               "style='background-image: -webkit-linear-gradient(left, gray 0%, lightgray "+pct_value+"%, rgba(255, 255, 255, 0) "+pct_value+"%, rgba(255, 255, 255, 0) 100%); "+
@@ -1706,6 +1734,8 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
     } else {
         output += fullvalue
     }
+*/
+
     output += "</div>";
     return output;
 }
