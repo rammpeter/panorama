@@ -33,7 +33,7 @@
     [
       {:caption => "Schema",        :data => proc {|rec| rec.owner},                  :title => 'Name of schema'},
       {:caption => "Tablespace",    :data => proc {|rec| rec.tablespace_name},        :title => t(:storage_tablespace_usage_tablespace_name_hint, :default => 'Name of tablespace')},
-      {:caption => "Used (MB)",     :data => link_mb_used,                            :title => "Used space in tablespace by this schema in MB from DBA_SEGMENTS", data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"}, :align => :right, show_pct_hint: true},
+      {:caption => "Used (MB)",     :data => link_mb_used,                            :title => "Used space in tablespace by this schema in MB from DBA_SEGMENTS", data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"}, :align => :right, show_pct_col_sum_hint: true},
       {:caption => "Quota (MB)",    :data => show_quota,                              :title => "Maximum quota in tablespace for this schema in MB", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes_quota.to_f / (1024*1024) rescue nil)) if rec.bytes_quota != -1 && !rec.bytes_quota.nil?}"}, :align => :right},
       {:caption => "Charged (MB)",  :data => show_charged,                            :title => "MB charged for quota in tablespace for this schema from DBA_TS_QUOTAS", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes_charged.to_f / (1024*1024) rescue nil)) if !rec.bytes_charged.nil?}"}, :align => :right},
     ]

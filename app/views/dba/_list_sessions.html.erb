@@ -24,6 +24,19 @@
      )
    end
 
+   link_longops = proc do |rec|
+     ajax_link(localeDateTime(rec.longsql_starttime), {
+         controller:   :dba_sga,
+         action:       :list_session_longops,
+         sid:          rec.sid,
+         serial_no:    rec.serial_no,
+         sql_id:       rec.sql_id,
+         sql_exec_id:  rec.sql_exec_id,
+         update_area:  @update_area
+     }, title: 'Show long running operations from gv$Session_LongOps'
+     )
+   end
+
    wait_event_data_title = proc do |rec|
      output = explain_wait_event(rec.wait_event).clone(freeze: false)
      if rec.blocking_session
@@ -66,7 +79,7 @@
     {:caption=>"I/O-Index",        :data=>proc{|rec| fn(rec.ioindex)},                :title=>t(:dba_list_sessions_io_hint, :default=>'Weighted value of logical and physical I/O of session'), :align=>"right"},
     {:caption=>"Tx.",              :data=>link_transaction,                           :title=>'Active transaction of session', max_wrap_width: 15},
     {:caption=>"Temp",             :data=>proc{|rec| fn(rec.temp_mb,3)},              :data_title=>proc{|rec| "Temp (MB), #{rec.temp_extents} Extents, #{rec.temp_blocks} Blocks"}, :title=>t(:dba_list_sessions_temp_hint, :default=>'Used TEMP-tablespace in MBytes'), :align=>"right"},
-    {:caption=>"Long SQL",         :data=>proc{|rec| rec.longsql},                    :title=>t(:dba_list_sessions_long_hint, :default=>'long running SQL statement')},
+    {:caption=>"Long SQL",         :data=>link_longops,                               :title=>t(:dba_list_sessions_long_hint, :default=>'long running SQL statement starting at')},
     {:caption=>"Open Cursor",      :data=>proc{|rec| fn(rec.open_cursor)},            :title=>t(:dba_list_sessions_open_cursor_hint, :default=>'Number of open cursor for session'), :align=>"right"},
     {:caption=>"OC SQL",           :data=>proc{|rec| fn(rec.open_cursor_sql)},        :title=>t(:dba_list_sessions_open_cursor_sql_hint, :default=>'Number of different SQL-IDs for open cursor of session'), :align=>"right"},
     {:caption=>"P Q",              :data=>proc{|rec| fn(rec.pqcount)},                :title=>t(:dba_list_sessions_pq_hint, :default=>'Number of parallel uqery slave processes'), :align=>"right"},

@@ -64,8 +64,8 @@ module SlickgridHelper
         output << " style:        '#{col[:style]}'," if col[:style]
         output << ' no_wrap:      1,'               if col[:no_wrap]
         output << ' plot_master:  1,'               if col[:plot_master]
-        output << ' show_pct_hint:  1,'             if col[:show_pct_hint]
-        output << ' show_pct_background:  1,'       if col[:show_pct_background]
+        output << ' show_pct_col_sum_hint:  1,'             if col[:show_pct_col_sum_hint]
+        output << ' show_pct_col_sum_background:  1,'       if col[:show_pct_col_sum_background]
         output << ' hidden:       1,'               if col[:hidden]
 
         # field_decorator_function: Übergeben wird Funktionskörper mit folgenden Variablen:
@@ -161,8 +161,9 @@ module SlickgridHelper
   #     :no_wrap              => Keinen Umbruch in Spalte akzeptieren <true|false>, Default = false
   #     :plot_master          => Spalte ist X-Achse für Diagramm-Darstellung <true>
   #     :plot_master_time     => Spalte ist x-Achse mit Datum/Zeit, die als Zeitstrahl dargestellt werden soll <true>
-  #     :show_pct_background  => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als transparenter horizontaler Füllstand
-  #     :show_pct_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als Zusatz zum MouseOver-Hint
+  #     :show_pct_col_sum_background  => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als transparenter horizontaler Füllstand
+  #     :show_pct_col_sum_hint        => true für Anzeige des %-Anteil des Feldes an der Summe aller Records als Zusatz zum MouseOver-Hint
+  #     :pct_total_value      => Get the total value to show a transparent fill level as percentage of column value from given total value. Place total value as proc "pct_total_value" in column definition
   #     :style                => Style für Spaltenheader und Spaltendaten
   #     :title                => MouseOver-Hint für Spaltenheader und Spaltendaten
   #   global_options: Hash mit globalen Optionen
@@ -298,11 +299,12 @@ module SlickgridHelper
         end
 
         output << "#{col[:name]}: '#{escape_js_chars stripped_celldata}',"
-        if (title && title != '') || (style && style != '') || (celldata != stripped_celldata)
+        if (title && title != '') || (style && style != '') || (celldata != stripped_celldata) || col[:pct_total_value]
           metadata << "#{col[:name]}: {"
           metadata << "title:    '#{ecape_js_chars_without_br title}',"    if title && title != ''    # \n erhalten bei esacpe, da das vom tooltip so dargestellt werden kann
           metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
           metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
+          metadata << "pct_total_value: #{col[:pct_total_value].call(rec)}," if col[:pct_total_value]  # show pct as transparent fill level
           metadata << '},'
         end
       end

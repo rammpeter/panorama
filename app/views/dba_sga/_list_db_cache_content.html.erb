@@ -55,7 +55,7 @@ column_options =
   {:caption=>'SQLs',        :data=>link_column_sql,                                         :title=>'Number of different SQL-IDs in SGA for this object', align: :right},
   {:caption=>"Size (MB)",   :data=>proc{|rec| formattedNumber(rec.size_mb, 3)},             :title=>"Size of object in cache in MBytes", :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}"} },
   {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks)},                 :title=>"Number of DB-blocks", :align=>:right },
-  {:caption=>"%",           :data=>proc{|rec| formattedNumber(rec.blocks*100.0/@total_blocks,2)},:title=>"Percentage of total cache", :align=>:right, :show_pct_background=>true },
+  {:caption=>"%",           :data=>proc{|rec| formattedNumber(rec.blocks*100.0/@total_blocks,2)},:title=>"Percentage of total cache", :align=>:right, :show_pct_col_sum_background=>true },
   {:caption=>"Dirty",       :data=>proc{|rec| formattedNumber(rec.dirtyblocks)},            :title=>"Number of dirty blocks", :align=>:right },
   {:caption=>"cr",          :data=>proc{|rec| formattedNumber(rec.status_cr)},              :title=>"Number of blocks in state 'cr', for info see hint in summary", :align=>:right },
   {:caption=>"pi",          :data=>proc{|rec| formattedNumber(rec.status_pi)},              :title=>"Number of blocks in state 'pi', for info see hint in summary", :align=>:right },

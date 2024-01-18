@@ -2230,4 +2230,53 @@ END;
     @pools = pools.sort_by {|key,value| value}.map{|x| x[0]}    # pool-names sorted by MBytes
     render_partial
   end
+
+  def list_session_longops
+    @instance     = prepare_param_instance
+    @sql_id       = prepare_param(:sql_id)
+    @sql_exec_id  = prepare_param(:sql_exec_id)
+    @sid          = prepare_param(:sid)
+    @serial_no    = prepare_param(:serial_no)
+    @qc_sid       = prepare_param(:qc_sid)
+
+    where_string = ''
+    where_values = []
+
+    if @instance
+      where_string << " AND l.Instance_Number = ?"
+      where_values << @instance
+    end
+
+    if @sql_id
+      where_string << " AND l.SQL_ID = ?"
+      where_values << @sql_id
+    end
+
+    if @sql_exec_id
+      where_string << " AND l.SQL_Exec_ID = ?"
+      where_values << @sql_exec_id
+    end
+
+    if @sid
+      where_string << " AND NVL(DECODE(l.QCSID, 0, NULL, l.QCSID), l.SID) = ?"  # look for all PQ sessions of a SID if is the coordinator
+      where_values << @sid
+    end
+
+    if @serial_no
+      where_string << " AND l.Serial# = ?"
+      where_values << @serial_no
+    end
+
+    if @qc_sid
+      where_string << " AND l.QC_Sid = ?"
+      where_values << @qc_sid
+    end
+
+    @session_longops = sql_select_all ["SELECT l.*, l.Serial# Serial_No
+                                        FROM   gv$Session_Longops l
+                                        WHERE  1=1 #{where_string}
+                                        ORDER BY l.Start_Time DESC  "].concat(where_values)
+
+    render_partial
+  end
 end

@@ -388,7 +388,7 @@
   dba_list_sessions_client_user_hint:                       Betriebssystem-User der Client-Maschine
   dba_list_sessions_io_hint:                                Gewichteter Wert der logischen und physischen I/O der Session
   dba_list_sessions_last_active_start_hint:                 Beginn der letzten Active-Phase der Session
-  dba_list_sessions_long_hint:                              Langlaufendes SQL-Statement
+  dba_list_sessions_long_hint:                              Langlaufendes SQL-Statement gestartet ab
   dba_list_sessions_open_cursor_hint:                       Anzahl offene Cursor der Session
   dba_list_sessions_open_cursor_sql_hint:                   Anzahl unterschiedliche SQL-IDs der offenen Cursor der Session
   dba_list_sessions_pga_free_hint:                          Aktuell von Prozess alloziierter PGA-Memory der freigegeben werden kann in MB

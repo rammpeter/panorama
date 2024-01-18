@@ -14,7 +14,7 @@
         {:caption=>"MB Total",    :data=>proc{|rec| formattedNumber(rec.mbtotal)},    :title=>t(:storage_tablespace_usage_total_size_total_hint, :default=>'Total size in MBytes'),        :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)}, data_title: proc{|rec| "%t\n#{size_explain(rec.mbtotal)}"} },
         {:caption=>"MB Used",     :data=>proc{|rec| formattedNumber(rec.mbused)},     :title=>t(:storage_tablespace_usage_total_size_used_hint, :default=>'Used size in MBytes'),    :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)},  data_title: proc{|rec| "%t\n#{size_explain(rec.mbused)}"} },
         {:caption=>"MB Free",     :data=>proc{|rec| formattedNumber(rec.mbfree)},     :title=>t(:storage_tablespace_usage_total_size_free_hint, :default=>'Free size in MBytes'),       :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)},  data_title: proc{|rec| "%t\n#{size_explain(rec.mbfree)}"} },
-        {:caption=>"% used",      :data=>proc{|rec| formattedNumber((rec.mbused.to_f * 100/rec.mbtotal rescue nil),1)},  :title=>t(:storage_tablespace_usage_total_pct_hint, :default=>'Percent used'),                   :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
+        {:caption=>"% used",      :data=>proc{|rec| formattedNumber((rec.mbused.to_f * 100/rec.mbtotal rescue nil),1)},  pct_total_value: proc { 100 }, :title=>t(:storage_tablespace_usage_total_pct_hint, :default=>'Percent used'),                   :align=>:right,   :data_style=>proc{|rec| total_data_style(rec)} },
       ]
 
   %>
@@ -29,8 +29,8 @@
     column_options =
       [
         {:caption=>"File type",      :data=>proc{|rec| rec.file_type},                       :title=>'File type within fast recovery area'},
-        {:caption=>"MB used",        :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MBytes', data_title: proc{|rec| "%t\n#{size_explain((rec.percent_space_used*@fra_size_bytes/(1024*1024)/100 rescue nil))}"}, :align=>:right, show_pct_hint: true},
-        {:caption=>"% used",         :data=>proc{|rec| fn(rec.percent_space_used,2)},        :title=>'Percentage used from total',        :align=>:right},
+        {:caption=>"MB used",        :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MBytes', data_title: proc{|rec| "%t\n#{size_explain((rec.percent_space_used*@fra_size_bytes/(1024*1024)/100 rescue nil))}"}, :align=>:right, show_pct_col_sum_hint: true},
+        {:caption=>"% used",         :data=>proc{|rec| fn(rec.percent_space_used,2)},  pct_total_value: proc { 100 },      :title=>'Percentage used from total',        :align=>:right},
         {:caption=>"% recl.",     :data=>proc{|rec| fn(rec.percent_space_reclaimable,2)}, :title=>'Percentage reclaimable compared to total',        :align=>:right},
       ]
 

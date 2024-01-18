@@ -817,7 +817,7 @@ oradebug setorapname diag
         s.Serial# Serial_No,
         s.Status,
         s.SQL_ID,
-        s.SQL_Child_Number,
+        s.SQL_Child_Number, s.SQL_Exec_ID,
         s.Inst_ID,
         #{"s.Con_ID, con.Name Container_Name, " if get_current_database[:cdb]}
         s.UserName,                 
@@ -839,20 +839,13 @@ oradebug setorapname diag
         sci.Client_Version, sci.Client_Driver, sci.Client_OCI_Library,
         i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
         temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
-        (       SELECT TO_CHAR(MIN(Start_Time), 'HH24:MI:SS') FROM GV$Session_LongOps o                                                   
+        (       SELECT MIN(Start_Time) FROM GV$Session_LongOps o
                 WHERE   o.SID                   = s.SID                 /* Referenz auf Session */                                        
                 AND     o.Serial#               = s.Serial#             /* Referenz auf Session */                                        
                 AND     o.SQL_Address           = s.SQL_Address         /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */ 
-                AND     o.SQL_Hash_Value        = s.SQL_Hash_Value      /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */ 
-                /* Vom Aktuellen Stmt aelteste Aktion nur zeigen, wenn kein anderes Stmt zwischendurch ausgefuehrt wurde */               
-                AND     NOT EXISTS (SELECT '!' FROM GV$Session_LongOpS o1                                                                 
-                                WHERE   o1.SID                  = o.SID                                                                   
-                                AND     o1.Serial#              = o.Serial#                                                               
-                                AND     o1.SQL_Address          != o.SQL_Address                                                          
-                                AND     o1.SQL_Hash_Value       != o.SQL_Hash_Value                                                       
-                                AND     o1.Last_Update_Time     > o.Last_Update_Time                                                      
-                                )                                                                                                         
-        )       LongSQL,
+                AND     o.SQL_Hash_Value        = s.SQL_Hash_Value      /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */
+                AND     o.SQL_Exec_ID           = s.SQL_Exec_ID
+        )       LongSQL_StartTime,
         px.Anzahl PQCount,
         pqc.QCInst_ID, pqc.QCSID, pqc.QCSerial# QCSerial_No,
         p.PGA_Used_Mem     + NVL(pq_mem.PQ_PGA_Used_Mem,0)     PGA_Used_Mem,

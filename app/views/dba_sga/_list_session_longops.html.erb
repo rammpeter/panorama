@@ -1,0 +1,43 @@
+<%
+  @update_area = get_unique_area_id
+  column_options = []
+  column_options << { caption: 'I',                   data: proc{|rec| rec.inst_id}, title: 'RAC instance', align: :right} if PanoramaConnection.rac?
+  column_options << { caption: 'SID/SN',              data: proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)}, title: 'Session ID / Serial no.'}
+  column_options << { caption: 'Operation',           data: proc{|rec| rec.opname}, title: 'Brief description of the operation'}
+  column_options << { caption: 'Target',              data: proc{|rec| link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])}, title: 'Object on which the operation is carried out'}
+  column_options << { caption: 'Target desc.',        data: proc{|rec| rec.target_desc}, title: 'Description of the target'}
+  column_options << { caption: 'So far',              data: proc{|rec| fn(rec.sofar)}, title: 'Units of work done so far for the operation specified in the OPNAME column', align: :right}
+  column_options << { caption: 'Total work',          data: proc{|rec| fn(rec.totalwork)}, title: 'Total units of work for the operation specified in the OPNAME column', align: :right}
+  column_options << { caption: 'Unit name',           data: proc{|rec| rec.units}, title: 'Units of measurement'}
+  column_options << { caption: '% done',              data: proc{|rec| fn((rec.sofar*100.0/rec.totalwork rescue nil), 2)}, pct_total_value: proc { 100 }, title: 'Percentage of work done so far', align: :right}
+  column_options << { caption: 'Start time',          data: proc{|rec| localeDateTime(rec.start_time)}, title: 'Starting time of the operation'}
+  column_options << { caption: 'Last update time',    data: proc{|rec| localeDateTime(rec.last_update_time)}, title: 'Time when statistics were last updated for the operation'}
+  column_options << { caption: 'Timestamp',           data: proc{|rec| localeDateTime(rec.timestamp)}, title: 'Timestamp specific to the operation'}
+  column_options << { caption: 'Seconds remaining',   data: proc{|rec| fn(rec.time_remaining)}, title: 'Estimate (in seconds) of time remaining for the operation to complete', align: :right}
+  column_options << { caption: 'Elapsed seconds',     data: proc{|rec| fn(rec.elapsed_seconds)}, title: 'Number of elapsed seconds from the start of the operations', align: :right}
+  column_options << { caption: 'Context',             data: proc{|rec| rec.context}, title: 'Context'}
+  column_options << { caption: 'Message',             data: proc{|rec| rec.message}, title: 'Statistics summary message'}
+  column_options << { caption: 'User name',           data: proc{|rec| rec.username}, title: 'User ID of the user performing the operation'}
+  column_options << { caption: 'SQL ID',              data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)}, title: 'SQL identifier of the SQL statement associated with the long operation, if any'}
+  column_options << { caption: 'SQL plan hash value', data: proc{|rec| fn(rec.sql_plan_hash_value)}, title: 'SQL plan hash value', align: :right}
+  column_options << { caption: 'SQL exec start',      data: proc{|rec| localeDateTime(rec.sql_exec_start)}, title: 'Time when the execution of the SQL started'}
+  column_options << { caption: 'SQL exec id',         data: proc{|rec| fn(rec.sql_exec_id)}, title: 'SQL execution identifier', align: :right}
+  column_options << { caption: 'SQL plan line id',    data: proc{|rec| fn(rec.sql_plan_line_id)}, title: 'SQL plan line ID corresponding to the long operation', align: :right}
+  column_options << { caption: 'SQL plan operation',  data: proc{|rec| "#{rec.sql_plan_operation} #{rec.sql_plan_options}" }, title: 'SQL plan operation and options'}
+  column_options << { caption: 'QC SID',              data: proc{|rec| rec.qcsid}, title: 'SID of the parallel query coordinator'}
+  column_options << { caption: 'Con ID',              data: proc{|rec| fn(rec.con_id)}, title: 'The ID of the container to which the data pertains', align: :right} if get_db_version >= '12.1'
+
+  filter = []
+  filter << "Instance = #{@instance}"         if @instance
+  filter << "SQL ID = #{@sql_id}"             if @sql_id
+  filter << "SQL exec. ID = #{@sql_exec_id}"  if @sql_exec_id
+  filter << "SID = #{@sid}"                   if @sid
+  filter << "Serial no. = #{@serial_no}"      if @serial_no
+  filter << "QC SID = #{@qc_sid}"             if @qc_sid
+
+  caption = "Long operations from gv$Session_LongOps for #{filter.join(', ')}"
+%>
+<%= gen_slickgrid(@session_longops, column_options, {
+  caption: caption,
+  max_height: 450, show_pin_icon: 1, update_area: @update_area
+}) %>
