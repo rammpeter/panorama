@@ -58,7 +58,7 @@ class ActiveSupport::TestCase
         last_used: Time.now
     }
     }
-    write_to_client_info_store(:browser_tab_ids, browser_tab_ids)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:browser_tab_ids, browser_tab_ids)
 
     set_connection_info_for_request(current_database)
 

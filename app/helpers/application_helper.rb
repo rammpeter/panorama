@@ -36,89 +36,12 @@ module ApplicationHelper
     I18n.translate(key, **options)
   end
 
-  @@client_store_mutex = Mutex.new
-  def self.get_client_info_store
-    if !defined?($login_client_store) || $login_client_store.nil?
-      @@client_store_mutex.synchronize do                                       # Ensure that only one thread is allowed to process
-        if !defined?($login_client_store) || $login_client_store.nil?
-          $login_client_store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
-          Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
-        end
-      end
-      @@client_store_mutex = nil                                                # Free mutex that will never be used again
-    end
-    $login_client_store
-  rescue Exception =>e
-    ExceptionHelper.reraise_extended_exception(e, "while creating file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ApplicationHelper.get_client_info_store')
-  end
-
-  # Write client related info value to server-side cache
-  # @param [String, Symbol] key
-  # @param value
-  # @param [Integer] retries Should not be used in direct call, for recursive calls only
-  def write_to_client_info_store(key, value, retries: 0)
-    cached_client_key = get_decrypted_client_key                                # ausserhalb des Exception-Handlers, da evtl. ActiveSupport::MessageVerifier::InvalidSignature bereits in get_cached_client_key gefangen wird
-    if !defined?(@buffered_client_info_store) || @buffered_client_info_store.nil?  # First access after initiation of object
-      @buffered_client_info_store = ApplicationHelper.get_client_info_store.read(cached_client_key)                 # Kompletten Hash aus Cache auslesen
-    end
-    @buffered_client_info_store = {} if @buffered_client_info_store.nil? || @buffered_client_info_store.class != Hash  # Neustart wenn Struktur nicht passt
-
-    @buffered_client_info_store[key] = value                                      # Wert in Hash verankern
-    begin
-      ApplicationHelper.get_client_info_store.write(cached_client_key, @buffered_client_info_store, expires_in: 3.months )  # Überschreiben des kompletten Hashes im Cache
-    rescue Exception =>e
-      # Especially for test environments, reread the store content if something goes wrong, content has changed etc.
-      if retries < 2
-        Rails.logger.warn('ApplicationHelper.write_to_client_info_store') { "Retry after #{e.class} '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'" }
-        @buffered_client_info_store = nil
-        write_to_client_info_store(key, value, retries: retries+1)
-      else
-        ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ApplicationHelper.write_to_client_info_store')
-      end
-    end
-  end
-
-  # Lesen eines client-bezogenen Wertes aus serverseitigem Cache
-  # Parameter:
-  #     key: Key to find
-  #     default_proc: proc to kalkulate value if does not yet exists
-  def read_from_client_info_store(key, default: nil)
-    if !defined?(@buffered_client_info_store) || @buffered_client_info_store.nil?                                           # First access after initiation of object
-      @buffered_client_info_store = ApplicationHelper.get_client_info_store.read(get_decrypted_client_key)    # Auslesen des kompletten Hashes aus Cache
-    end
-    if @buffered_client_info_store.nil? || @buffered_client_info_store.class != Hash || @buffered_client_info_store[key].nil? # Abbruch wenn Struktur nicht passt
-      msg = "read_from_client_info_store: No data found in client_info_store while looking for key=#{key}"
-      if default.nil?                                                           # default not set, also not set to false
-        Rails.logger.error('ApplicationHelper.read_from_client_info_store') {msg}
-      else
-        Rails.logger.debug('ApplicationHelper.read_from_client_info_store') {msg}
-      end
-      return default
-    end
-    @buffered_client_info_store[key]                                              # return value regardless it's nil or not
-  end
-
-  def read_from_browser_tab_client_info_store(key)
-#    Rails.logger.debug "read_from_browser_tab_client_info_store: start read for key = #{key}"
-    browser_tab_ids = read_from_client_info_store(:browser_tab_ids)             # read full tree with all browser-tab-specific connections
-    raise "No session state available at Panorama-Server: Please restart app in browser" if browser_tab_ids.nil? || browser_tab_ids[@browser_tab_id].nil?
-    browser_tab_ids[@browser_tab_id][key]                                       # get current value for current browser tab
-  end
-
-  def write_to_browser_tab_client_info_store(key, value)
-#    Rails.logger.debug "write_from_browser_tab_client_info_store: start read for key = #{key}"
-    browser_tab_ids = read_from_client_info_store(:browser_tab_ids)             # read full tree with all browser-tab-specific connections
-    raise "No session state available at Panorama-Server: Please restart app in browser" if browser_tab_ids.nil? || browser_tab_ids[@browser_tab_id].nil?
-    browser_tab_ids[@browser_tab_id][key] = value                               # set current value for current browser tab
-    write_to_client_info_store(:browser_tab_ids, browser_tab_ids)               # write full tree back to store
-  end
-
   # Setzen locale in Client_Info-Cache und aktueller Session
   def set_I18n_locale(locale)
     if !locale.nil? && ['de', 'en'].include?(locale)
-      write_to_client_info_store(:locale, locale)
+      ClientInfoStore.write_for_client_key(get_decrypted_client_key,:locale, locale)
     else
-      write_to_client_info_store(:locale, 'en')
+      ClientInfoStore.write_for_client_key(get_decrypted_client_key,:locale, 'en')
       Rails.logger.warn(">>> I18n.locale set to 'en' because '#{locale}' is not yet supported")
     end
     @buffered_locale = nil                                                      # Sicherstellen, dass lokaler Cache neu aus FileStore gelesen wird
@@ -127,7 +50,7 @@ module ApplicationHelper
 
   # Cachen diverser Client-Einstellungen in lokalen Variablen
   def get_locale(default: nil)
-    @buffered_locale = read_from_client_info_store(:locale, default: default) if !defined?(@buffered_locale) || @buffered_locale.nil?
+    @buffered_locale = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:locale, default: default) if !defined?(@buffered_locale) || @buffered_locale.nil?
     @buffered_locale
   end
 
@@ -141,16 +64,13 @@ module ApplicationHelper
       end
     end
 
-    @buffered_current_database = nil                                            # lokalen Cache verwerfen
     current_database[:query_timeout] = current_database[:query_timeout].to_i if !current_database.nil?
-
-    write_to_browser_tab_client_info_store(:current_database, current_database)
+    ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, {current_database: current_database})
     set_connection_info_for_request(current_database)                           # Pin connection info for following request
   end
 
   def get_current_database
-    @buffered_current_database = read_from_browser_tab_client_info_store(:current_database) if !defined?(@buffered_current_database) || @buffered_current_database.nil?
-    @buffered_current_database
+    ClientInfoStore.read_from_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, :current_database)
   end
 
   def set_cached_dbid(dbid)                                                     # Current or previous DBID of connected database
@@ -171,21 +91,21 @@ module ApplicationHelper
 
   def set_cached_time_selection_start(time_selection_start)
     @buffered_time_selection_start = nil
-    write_to_client_info_store(:time_selection_start, time_selection_start)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:time_selection_start, time_selection_start)
   end
 
   def get_cached_time_selection_start
-    @buffered_time_selection_start = read_from_client_info_store(:time_selection_start) if !defined?(@buffered_time_selection_start) ||  @buffered_time_selection_start.nil?
+    @buffered_time_selection_start = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:time_selection_start) if !defined?(@buffered_time_selection_start) ||  @buffered_time_selection_start.nil?
     @buffered_time_selection_start
   end
 
   def set_cached_time_selection_end(time_selection_end)
     @buffered_time_selection_end = nil
-    write_to_client_info_store(:time_selection_end, time_selection_end)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:time_selection_end, time_selection_end)
   end
 
   def get_cached_time_selection_end
-    @buffered_time_selection_end = read_from_client_info_store(:time_selection_end) if !defined?(@buffered_time_selection_end) || @buffered_time_selection_end.nil?
+    @buffered_time_selection_end = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:time_selection_end) if !defined?(@buffered_time_selection_end) || @buffered_time_selection_end.nil?
     @buffered_time_selection_end
   end
 
@@ -351,7 +271,7 @@ module ApplicationHelper
       retval = nil
       retval = PanoramaConnection.instance_number unless PanoramaConnection.rac? # set valid instance number if not RAC
     end
-    write_to_client_info_store(:instance, retval)                               # Werte puffern fuer spaetere Wiederverwendung
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:instance, retval)                               # Werte puffern fuer spaetere Wiederverwendung
     retval
   end
 

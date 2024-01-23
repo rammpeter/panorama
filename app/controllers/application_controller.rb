@@ -97,27 +97,18 @@ class ApplicationController < ActionController::Base
     current_database.symbolize_keys! if current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 
     # Letzten Menü-aufruf festhalten z.B. für Hilfe
-    write_to_browser_tab_client_info_store(:last_used_menu_controller, params[:last_used_menu_controller]) if params[:last_used_menu_controller]
-    write_to_browser_tab_client_info_store(:last_used_menu_action, params[:last_used_menu_action]) if params[:last_used_menu_action]
-    write_to_browser_tab_client_info_store(:last_used_menu_caption, params[:last_used_menu_caption])    if params[:last_used_menu_caption]
-    write_to_browser_tab_client_info_store(:last_used_menu_hint, params[:last_used_menu_hint])       if params[:last_used_menu_hint]
+    client_info_data = {}
+    client_info_data[:last_used_menu_controller]  = params[:last_used_menu_controller]  if params[:last_used_menu_controller]
+    client_info_data[:last_used_menu_action]      = params[:last_used_menu_action]      if params[:last_used_menu_action]
+    client_info_data[:last_used_menu_caption]     = params[:last_used_menu_caption]     if params[:last_used_menu_caption]
+    client_info_data[:last_used_menu_hint]        = params[:last_used_menu_hint]        if params[:last_used_menu_hint]
+    ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key,  @browser_tab_id, client_info_data)
 
     # Protokollieren der Aufrufe in lokalem File
     real_controller_name = params[:last_used_menu_controller] ? params[:last_used_menu_controller] : controller_name
     real_action_name     = params[:last_used_menu_action]     ? params[:last_used_menu_action]     : action_name
 
-    begin
-      # Ausgabe Logging-Info in File für Usage-Auswertung
-      filename = Panorama::Application.config.usage_info_filename
-      client_ip = request.remote_ip
-      client_ip = 'localhost'                       if request.remote_ip.nil?
-      client_ip = request.env['HTTP_X_REAL_IP']     if request.env['HTTP_X_REAL_IP'] # original address behind reverse proxy
-
-      File.open(filename, 'a') { |file| file.write("#{client_ip} #{PanoramaConnection.database_name} #{Time.now.year}/#{'%02d' % Time.now.month} #{real_controller_name} #{real_action_name} #{Time.now.strftime('%Y/%m/%d-%H:%M:%S')} #{get_current_database[:tns]}\n") }
-    rescue Exception => e
-      Rails.logger.warn('ApplicationController.begin_request') { "#{e.class} while writing in #{filename}: #{e.message}" }
-    end
-
+    UsageInfo.write_record(request, real_controller_name, real_action_name, get_current_database[:tns])
     add_statusbar_message(params[:statusbar_message]) if params[:statusbar_message]
   end
 
@@ -207,11 +198,4 @@ class ApplicationController < ActionController::Base
       end
     end
   end
-
-  # Remove expired entries
-  def self.cleanup_client_info_store
-    ApplicationHelper.get_client_info_store.cleanup
-  end
-
-
 end

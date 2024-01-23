@@ -169,7 +169,7 @@ module DragnetHelper
       end
 
       # Extend list with personal selections (dependent from browser cookie)
-      dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list, default: [])   # personal extensions from cache
+      dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])   # personal extensions from cache
       if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
         tag_external_selections(dragnet_personal_selection_list, :personal)     # Mark as personal
 

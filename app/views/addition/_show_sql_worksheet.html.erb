@@ -55,7 +55,7 @@
         name:                 :sql_in_sga,
         caption:              "Switch auto trace mode",
         hint:                 "Switch auto trace mode on/off.\nIf auto trace is on then the changes of session statistics are shown in a separate tab after execution.",
-        icon_class:           "autotrace-icon #{read_from_client_info_store('worksheet_auto_trace', default: false) ? 'cuis-audio' : 'cui-audio'}",
+        icon_class:           "autotrace-icon #{ClientInfoStore.read_for_client_key(get_decrypted_client_key,'worksheet_auto_trace', default: false) ? 'cuis-audio' : 'cui-audio'}",
         icon_style:           'font-size: larger;',
         action:               'sql_worksheet.toggle_autotrace();',
         show_icon_in_caption: true
@@ -86,5 +86,5 @@
 </div>
 
 <script type="application/javascript">
-    var sql_worksheet = new SQL_Worksheet('sql_text_div', 'fileInput', <%= read_from_client_info_store('worksheet_auto_trace', default: false) ? 'true' : 'false' %>);
+    var sql_worksheet = new SQL_Worksheet('sql_text_div', 'fileInput', <%= ClientInfoStore.read_for_client_key(get_decrypted_client_key,'worksheet_auto_trace', default: false) ? 'true' : 'false' %>);
 </script>

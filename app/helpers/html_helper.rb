@@ -30,7 +30,7 @@ module HtmlHelper
   def instance_tag(required: false, line_feed: false, rac_only: false)
     return '' if rac_only && !PanoramaConnection.rac?
     if required
-      instance = read_from_client_info_store(:instance, default: PanoramaConnection.instance_number)
+      instance = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:instance, default: PanoramaConnection.instance_number)
     end
 
     "<div class='flex-row-element' title='#{t(:instance_filter_hint, default: 'Filter on specific RAC instance')} (#{required ? "#{t(:mandatory, default: 'mandatory')}" : 'Optional'})'>

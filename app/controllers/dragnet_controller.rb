@@ -176,7 +176,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
 
   public
   def add_personal_selection
-    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list, default: [])
+    dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])
 
     begin
       new_selection = JSON.parse(params[:selection])
@@ -196,7 +196,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
       raise "Error: Name \"#{key}\" is duplicated" if value > 1
     end
 
-    write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, dragnet_personal_selection_list)
 
     show_selection                                                              # Show edited selection list again
   end
@@ -219,11 +219,11 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
     drop_selection = extract_entry_by_entry_id(params[:dragnet_hidden_entry_id])
 
 
-    dragnet_personal_selection_list = read_from_client_info_store(:dragnet_personal_selection_list, default: [])
+    dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])
 
     drop_external_selection(dragnet_personal_selection_list, drop_selection[:name])
 
-    write_to_client_info_store(:dragnet_personal_selection_list, dragnet_personal_selection_list)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, dragnet_personal_selection_list)
 
     show_selection                                                              # Show edited selection list again
   end

@@ -26,7 +26,7 @@ class EnvController < ApplicationController
     # Ensure client browser has unique client_key stored as cookie (create new one if not already exists)
     initialize_client_key_cookie
     initialize_browser_tab_id                                                   # Helper to distiguish browser tabs
-    write_to_browser_tab_client_info_store(:current_database, nil)              # Overwrite previous setting from last session
+    ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, {current_database: nil}) # Overwrite previous setting from last session
 
     set_I18n_locale('en') if get_locale.nil?                                    # Locale not yet specified, set default
 
@@ -51,12 +51,16 @@ class EnvController < ApplicationController
 
     #set_I18n_locale(get_locale)                                                 # ruft u.a. I18n.locale = get_locale auf
 
-    write_to_browser_tab_client_info_store(:last_used_menu_controller,  'env')
-    write_to_browser_tab_client_info_store(:last_used_menu_action,      'index')
-    write_to_browser_tab_client_info_store(:last_used_menu_caption,     'Start')
-    write_to_browser_tab_client_info_store(:last_used_menu_hint,        t(:menu_env_index_hint, :default=>"Start of application without connect to database"))
-
-
+    ClientInfoStore.write_to_browser_tab_client_info_store(
+      get_decrypted_client_key,
+      @browser_tab_id,
+      {
+        last_used_menu_controller: 'env',
+        last_used_menu_action:     'index',
+        last_used_menu_caption:    'Start',
+        last_used_menu_hint:       t(:menu_env_index_hint, :default=>"Start of application without connect to database")
+      }
+    )
   rescue Exception=>e
     Rails.logger.error('EnvController.index'){ "#{e.message}" }
     set_current_database(nil) unless cookies['client_key'].nil? # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg (nur wenn client_info_store bereits initialisiert ist)
@@ -247,7 +251,7 @@ class EnvController < ApplicationController
     check_for_valid_cookie
     if params[:login]                                                           # Button Login gedrückt
       params[:database] = read_last_logins[params[:saved_logins_id].to_i]   # Position des aktuell ausgewählten in Array
-
+      # TODO: encrypt password with session specific key
       raise "No saved login info found at position #{params[:saved_logins_id]}" if params[:database].nil?
       params[:database][:query_timeout] = 360 unless params[:database][:query_timeout]  # Initialize if stored login dies not contain query_timeout
       params.delete(:cached_panorama_object_sizes_exists)                       # Reset cached info so first access reads new state from database
@@ -332,11 +336,11 @@ class EnvController < ApplicationController
     value = false if value == 'false' || value == 'FALSE'                       # Convert string to boolean
 
     if container_key.nil?                                                       # Store value directly in client_info_store
-      write_to_client_info_store(key, value)
+      ClientInfoStore.write_for_client_key(get_decrypted_client_key,key, value)
     else
-      current_obj = read_from_client_info_store(container_key, default: {})     # Get the current object if exists or empty hash
+      current_obj = ClientInfoStore.read_for_client_key(get_decrypted_client_key,container_key, default: {})     # Get the current object if exists or empty hash
       current_obj[key] = value                                                  # Store value in object
-      write_to_client_info_store(container_key, current_obj)                    # Store object in client_info_store
+      ClientInfoStore.write_for_client_key(get_decrypted_client_key,container_key, current_obj)                    # Store object in client_info_store
     end
     render html: '', status: :ok
   end
@@ -365,18 +369,22 @@ class EnvController < ApplicationController
   # Wurde direkt aus Browser aufgerufen oder per set_database_by_params_called?
   def set_database(called_from_set_database_by_params = false)
 
-    write_to_browser_tab_client_info_store(:last_used_menu_controller, "env")
-    write_to_browser_tab_client_info_store(:last_used_menu_action,     "set_database")
-    write_to_browser_tab_client_info_store(:last_used_menu_caption,    "Login")
-    write_to_browser_tab_client_info_store(:last_used_menu_hint,       t(:menu_env_set_database_hint, :default=>"Start of application after connect to database"))
-
-
+    ClientInfoStore.write_to_browser_tab_client_info_store(
+      get_decrypted_client_key,
+      @browser_tab_id,
+      {
+        last_used_menu_controller: 'env',
+        last_used_menu_action:     'set_database',
+        last_used_menu_caption:    'Login',
+        last_used_menu_hint:       t(:menu_env_set_database_hint, :default=>"Start of application after connect to database")
+      }
+    )
 
     #current_database = params[:database].to_h.symbolize_keys                   # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
     current_database = params[:database]                                        # Puffern in lokaler Variable, bevor in client_info-Cache geschrieben wird
     if called_from_set_database_by_params
       current_database[:save_login] = current_database[:save_login] == '1' # Store as bool instead of number fist time after login
-      write_to_client_info_store(:save_login, current_database[:save_login])   # Merken, ob Login-Info gespeichert werden soll
+      ClientInfoStore.write_for_client_key(get_decrypted_client_key,:save_login, current_database[:save_login])   # Merken, ob Login-Info gespeichert werden soll
       current_database[:management_pack_license] = :none                        # No license violation possible until the user decides the license to use
     end
 
@@ -646,8 +654,8 @@ public
 
   # repeat last called menu action
   def repeat_last_menu_action
-    controller_name = read_from_browser_tab_client_info_store(:last_used_menu_controller)
-    action_name     = read_from_browser_tab_client_info_store(:last_used_menu_action)
+    controller_name = ClientInfoStore.read_from_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, :last_used_menu_controller)
+    action_name     = ClientInfoStore.read_from_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, :last_used_menu_action)
 
     # Suchen des div im Menü-ul und simulieren eines clicks auf den Menü-Eintrag
     respond_to do |format|

@@ -17,6 +17,8 @@ module Panorama
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month
   RELEASE_YEAR  = "%04d" % RELEASE_DATE.year
 
+  MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST = 8.hours
+
   class Application < Rails::Application
 
     # Initialize configuration defaults for originally generated Rails version.
@@ -82,6 +84,8 @@ module Panorama
     # Textdatei zur Erfassung der Panorama-Nutzung
     # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und Deployment der Applikation überlebt durch Definition von ENV['PANORAMA_VAR_HOME']
     config.usage_info_filename = "#{config.panorama_var_home}/Usage.log"
+    raise "PANORAMA_USAGE_INFO_MAX_AGE ('#{ENV['PANORAMA_USAGE_INFO_MAX_AGE']}') should contain only a number" if ENV['PANORAMA_USAGE_INFO_MAX_AGE'] && !(ENV['PANORAMA_USAGE_INFO_MAX_AGE'].match(/^\d+$/))
+    config.usage_info_max_age = (ENV['PANORAMA_USAGE_INFO_MAX_AGE'] || 180).to_i
 
     # File-Store für ActiveSupport::Cache::FileStore
     config.client_info_filename = "#{config.panorama_var_home}/client_info.store"

@@ -14,6 +14,12 @@ class PanoramaSamplerConfig
   def initialize(config_hash = {})
     @config_hash = config_hash.clone                                            # Store config as instance element
 
+    unless @config_hash.instance_of?(Hash)
+      msg = "Paremeter config_hash is not a Hash but a #{config_hash.class}"
+      Rails.logger.error('PanoramaSamplerConfig.initialize: '){msg}
+      raise msg
+    end
+
     # Intitalize defaults
     @config_hash[:id]                                 = PanoramaSamplerConfig.get_max_id+1     if !@config_hash.has_key?(:id)
 
@@ -263,7 +269,7 @@ class PanoramaSamplerConfig
         if Panorama::Application.config.panorama_master_password.nil?
           @@config_array = []                                                     # No config to read if master password is not given
         else
-          config_hash_array = ApplicationHelper.get_client_info_store.read(client_info_store_key)  # get stored values as Hash
+          config_hash_array = ClientInfoStore.read(client_info_store_key)  # get stored values as Hash
           config_hash_array = [] if config_hash_array.nil?
           @@config_array = config_hash_array.map{|config_hash| PanoramaSamplerConfig.new(config_hash)} # Store instances in array
         end
@@ -276,7 +282,7 @@ class PanoramaSamplerConfig
   def self.get_reduced_config_array_for_status_monitor
     retval = []
     @@config_access_mutex.synchronize do
-      config_hash_array = ApplicationHelper.get_client_info_store.read(client_info_store_key)  # get stored values as Hash
+      config_hash_array = ClientInfoStore.read(client_info_store_key)  # get stored values as Hash
       config_hash_array = [] if config_hash_array.nil?
 
       config_hash_array.each do |config_hash|
@@ -530,7 +536,7 @@ class PanoramaSamplerConfig
   #  Call inside Mutex.synchronize only
   def self.write_config_array_to_store
     raise "PanoramaSamplerConfig.write_config_array_to_store: Mutex @@config_access_mutex is not locked before call" unless @@config_access_mutex.locked?
-    ApplicationHelper.get_client_info_store.write(client_info_store_key, @@config_array.map{|config| config.get_cloned_config_hash})  # Store config array as Hash-Array
+    ClientInfoStore.write(client_info_store_key, @@config_array.map{|config| config.get_cloned_config_hash})  # Store config array as Hash-Array
   rescue Exception =>e
     ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'PanoramaSamplerConfig.write_config_array_to_store')
   end

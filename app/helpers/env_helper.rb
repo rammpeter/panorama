@@ -65,29 +65,7 @@ module EnvHelper
 
   # Einlesen last_logins aus client_info-store
   def read_last_logins
-=begin
-    begin
-      if cookies[:last_logins]
-        #last_logins = Marshal.load(Zlib::Inflate.inflate(cookies[:last_logins]))
-        cookies_last_logins = Marshal.load(cookies[:last_logins])
-      else
-        cookies_last_logins = []
-      end
-    rescue Exception => e
-      Rails.logger.warn "read_last_login_cookies: #{e.message}"
-      cookies_last_logins = []      # Cookie neu initialisieren wenn Fehler beim Auslesen
-      write_last_logins(cookies_last_logins)   # Zurückschreiben in cookie-store
-    end
-
-    unless cookies_last_logins.instance_of?(Array)  # Falscher Typ des Cookies?
-      cookies_last_logins = []
-      write_last_logins(cookies_last_logins)   # Zurückschreiben in cookie-store
-    end
-
-    # Transformation der cookie-Kürzel in lesbare Bezeichner
-    cookies_last_logins.map{|c| {:host=>c[:h], :port=>c[:p], :sid=>c[:s], :user=>c[:u], :password=>c[:w], :authorization=>c[:a], :sid_usage=>(c[:g]==1 ? :SID : :SERVICE_NAME)} }
-=end
-    last_logins = read_from_client_info_store(:last_logins, default: [])
+    last_logins = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:last_logins, default: [])
     if last_logins.nil? || !last_logins.instance_of?(Array)
       last_logins = []
       write_last_logins(last_logins)   # Zurückschreiben in client_info-store
@@ -97,20 +75,7 @@ module EnvHelper
 
   # Zurückschreiben des logins in client_info_store
   def write_last_logins(last_logins)
-=begin
-    #compressed_cookie = Zlib::Deflate.deflate(Marshal.dump(last_logins))
-
-    # Transformation der lesbaren Bezeichner in cookie-Kürzel
-    write_cookie = last_logins.map {|o| {:h=>o[:host], :p=>o[:port], :s=>o[:sid], :u=>o[:user], :w=>o[:password], :a=>o[:authorization], :g=>(o[:sid_usage] == :SID ? 1 : 0) } }
-
-    while Marshal.dump(write_cookie).length > 1500 do                           # Größe des Cookies überschreitet x kByte
-      write_cookie.delete(write_cookie.last)                                    # Letzten Eintrag loeschen
-    end
-
-    compressed_cookie = Marshal.dump(write_cookie)
-    cookies[:last_logins] = { :value => compressed_cookie, :expires => 1.year.from_now }
-=end
-    write_to_client_info_store(:last_logins, last_logins)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:last_logins, last_logins)
   end
 
   # Ensure client browser has unique client_key stored as cookie
@@ -136,12 +101,11 @@ module EnvHelper
       while loop_count < MAX_NEW_KEY_TRIES
         loop_count = loop_count + 1
         new_client_key = rand(10000000)
-        unless ApplicationHelper.get_client_info_store.exist?(new_client_key) # Dieser Key wurde noch nie genutzt
+        unless ClientInfoStore.exist?(new_client_key) # Dieser Key wurde noch nie genutzt
           # Salt immer mit belegen bei Vergabe des client_key, da es genutzt wird zur Verschlüsselung des Client_Key im cookie
           cookies['client_salt'] = {:value => rand(10000000000), :expires => 1.year.from_now, httponly: true} # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
           cookies['client_key'] = {:value => Encryption.encrypt_value(new_client_key, cookies['client_salt']), :expires => 1.year.from_now, httponly: true}
-          client_store = ApplicationHelper.get_client_info_store
-          client_store.write(new_client_key, 1) # Marker fuer Verwendung des Client-Keys
+          ClientInfoStore.write(new_client_key, 1) # Marker fuer Verwendung des Client-Keys
           break
         end
       end
@@ -151,7 +115,7 @@ module EnvHelper
 
   # Helper to distiguish browser tabs, sets @browser_tab_id
   def initialize_browser_tab_id
-    tab_ids = read_from_client_info_store(:browser_tab_ids, default: {})
+    tab_ids = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids, default: {})
     tab_ids = {} if tab_ids.class != Hash
     @browser_tab_id = 1                                                         # Default tab-id if no other exists
     while tab_ids.key?(@browser_tab_id) do
@@ -162,7 +126,7 @@ module EnvHelper
     end
     tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)             # create Hash for browser tab if not already exsists
     tab_ids[@browser_tab_id][:last_used] = Time.now
-    write_to_client_info_store(:browser_tab_ids, tab_ids)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:browser_tab_ids, tab_ids)
   end
 
   # Read tnsnames.ora

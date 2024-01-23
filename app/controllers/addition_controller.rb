@@ -1026,7 +1026,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   def find_binds_in_sql(sql)
     remaining = remove_string_literals(remove_comments_from_sql(sql))
     result = []
-    stored_binds = read_from_client_info_store(:bind_aliases, default: {})
+    stored_binds = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:bind_aliases, default: {})
     while remaining[':'] do
       remaining = remaining[remaining.index(':')+1..]
       end_pos = remaining.length
@@ -1057,12 +1057,12 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   # Store used bind values
   # @param [Array] binds
   def remember_binds_for_next_usage(binds)
-    stored_binds = read_from_client_info_store(:bind_aliases, default: {})
+    stored_binds = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:bind_aliases, default: {})
     stored_binds = {} if stored_binds.nil?
     binds.each do |bind|
       stored_binds[bind[:alias]] = bind
     end
-    write_to_client_info_store(:bind_aliases, stored_binds)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:bind_aliases, stored_binds)
   end
 
   # read the bind values from params into Hash
@@ -1104,7 +1104,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   # persist the SQL ID of the last executed statement in this session
   def remember_last_executed_sql_id
     sql_id = sql_select_one "SELECT Prev_SQL_ID FROM v$Session WHERE SID=SYS_CONTEXT('USERENV', 'SID')"
-    write_to_client_info_store(:last_used_worksheet_sql_id, sql_id)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:last_used_worksheet_sql_id, sql_id)
   end
 
   # Read the session statistics in separate thread
@@ -1138,12 +1138,12 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
 
   # Called before statement execution in separate connection
   def worksheet_autotrace_start
-    @session_stats_start = read_session_stats if read_from_client_info_store('worksheet_auto_trace', default: false)
+    @session_stats_start = read_session_stats if ClientInfoStore.read_for_client_key(get_decrypted_client_key,'worksheet_auto_trace', default: false)
   end
 
   # Called after before statement execution, returns the Javascript code to view the results in the autotrace tab
   def worksheet_autotrace_end
-    if read_from_client_info_store('worksheet_auto_trace', default: false)      # only if autotrace is enabled
+    if ClientInfoStore.read_for_client_key(get_decrypted_client_key,'worksheet_auto_trace', default: false)      # only if autotrace is enabled
       session_stats_end = read_session_stats
       session_stats_end.each do |id, stat|
         stat[:increase] = stat.value.to_i - (@session_stats_start[id] ? @session_stats_start[id].value.to_i : 0 )

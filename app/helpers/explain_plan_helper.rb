@@ -447,7 +447,7 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
   # @return [Hash] context menu entry
   def toggle_column(header:)
     raise "header must be given" unless header
-    col_setting = read_from_client_info_store('additional_explain_plan_columns', default: {})
+    col_setting = ClientInfoStore.read_for_client_key(get_decrypted_client_key,'additional_explain_plan_columns', default: {})
     show_hide = col_setting[header] ? 'Hide' : 'Show'
     js = ''
     js << "jQuery.ajax({\n"
@@ -487,7 +487,7 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
   # get the current user-specific setting for the additional columns in the explain plan
   # Set defaults for columns that should be initially shown
   def explain_plan_col_setting
-    read_from_client_info_store('additional_explain_plan_columns', default: {
+    ClientInfoStore.read_for_client_key(get_decrypted_client_key,'additional_explain_plan_columns', default: {
       'Projection' => true,
     })
   end

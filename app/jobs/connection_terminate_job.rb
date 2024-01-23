@@ -11,7 +11,8 @@ class ConnectionTerminateJob < ApplicationJob
     ConnectionTerminateJob.set(wait_until: Time.now.round + CHECK_CYCLE_SECONDS).perform_later  # Schedule next start
     thread = Thread.new{PanoramaConnection.disconnect_aged_connections(CHECK_CYCLE_SECONDS)}
     thread.name = 'ConnectionTerminateJob'
-    ApplicationController.cleanup_client_info_store                             # Remove expired cache entries
+    ClientInfoStore.cleanup                                                     # Remove expired cache entries
+    UsageInfo.housekeeping                                                      # Remove expired usage info
   rescue Exception => e
     Rails.logger.error('ConnectionTerminateJob.perform') { "Exception #{e.class}\n#{e.message}" }
     log_exception_backtrace(e, 40)

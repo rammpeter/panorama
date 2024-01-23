@@ -66,12 +66,7 @@ class AdminController < ApplicationController
 
   def show_usage_history
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
-    begin
-      file = File.open(Panorama::Application.config.usage_info_filename, "r")
-    rescue Exception => e
-      Rails.logger.error('UsageController.fill_usage_info') { "Error opening file #{Panorama::Application.config.usage_info_filename}: #{e.message}. PWD = #{Dir.pwd}" }
-      raise
-    end
+    file = UsageInfo.file_for_read
 
     months = {}
     begin
@@ -124,7 +119,7 @@ class AdminController < ApplicationController
     @filter = @filter.to_unsafe_h.to_h.symbolize_keys  if @filter.class == ActionController::Parameters
     raise "Parameter filter should be of class Hash or ActionController::Parameters" if @filter.class != Hash
 
-    file = File.open(Panorama::Application.config.usage_info_filename, "r")
+    file = UsageInfo.file_for_read
     groups = {}
     begin
       while true do
@@ -185,7 +180,7 @@ class AdminController < ApplicationController
   def usage_single_record
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @filter   = params[:filter]
-    file = File.open(Panorama::Application.config.usage_info_filename, "r")
+    file = UsageInfo.file_for_read
     @recs = []
     begin
       while true do
@@ -247,7 +242,7 @@ class AdminController < ApplicationController
   def client_info_store_sizes
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = []
-    @result = get_client_info_store_elements
+    @result = ClientInfoStore.instance.get_client_info_store_elements
     render_partial :client_info_detail
   end
 
@@ -255,13 +250,13 @@ class AdminController < ApplicationController
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = params[:locate_array].values
 
-    @result = get_client_info_store_elements(@locate_array)
+    @result = ClientInfoStore.instance.get_client_info_store_elements(@locate_array)
     render_partial :client_info_detail
   end
 
   def browser_tab_ids
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
-    render html: JSON.pretty_generate(read_from_client_info_store(:browser_tab_ids)).gsub(/\n/, "<br/>").gsub(/ /, '&nbsp;').html_safe
+    render html: JSON.pretty_generate(ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids)).gsub(/\n/, "<br/>").gsub(/ /, '&nbsp;').html_safe
   end
 
 
@@ -285,35 +280,6 @@ class AdminController < ApplicationController
     retval
   end
 
-  def get_client_info_store_elements(locate_array = [])
-    client_info_store = ApplicationHelper.get_client_info_store.read(get_decrypted_client_key)
-
-    locate_array.each do |l|
-      # step down in hierarchy
-      l[:key_name] = l[:key_name].to_sym if l[:class_name] == 'Symbol'
-      l[:key_name] = l[:key_name].to_i   if l[:class_name] == 'Integer'
-      client_info_store = client_info_store[l[:key_name]]
-    end
-
-    result = []
-
-    # Convert Array to Hash before processing
-    client_info_store = client_info_store.map.with_index { |x, i| [i, x] }.to_h  if client_info_store.class == Array
-
-    client_info_store.each do |key, value|
-      row =  {
-        key_name:       key,
-        class_name:     value.class.name,
-        elements:       0,
-        total_elements: get_total_elements_no(value) - 1                      # Do not count the first element
-      }
-      row[:elements] = value.count if value.class == Hash || value.class == Array
-
-
-      result << row.extend(SelectHashHelper)
-    end
-    result
-  end
 
 
 end
