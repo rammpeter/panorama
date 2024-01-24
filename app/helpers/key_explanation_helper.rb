@@ -32,17 +32,25 @@ module KeyExplanationHelper
   def explain_data_access(operation_options)
     unless @@data_access
       @@data_access = {
+        'BUFFER SORT'                         => "The result of the previous operation is sorted before beeing used in the next operation",
+        'COLLECTION ITERATOR PICKLER FETCH'   => "Fetch data from collection iterator pickler like TABLE() cast of collection or XMLTABLE",
         'EXTENDED DATA LINK FULL'             => "Execution through data link on another container of this instance with it's own container-specific process",
         'GENERATE CUBE'                       => "Generate subtotals for all combinations of the specified dimensions at GROUP BY CUBE",
         'HASH JOIN BUFFERED'                  => "A hash join where a hash table is built on the first row souece and the second row source must be completely read and buffered in memory rsp. temporary tablespace, before the hash join will be processed.\n\nSometimes it will process much better with the HASH JOIN SHARED (not yet producton ready up to 21.c).\nUsing HASH JOIN SHARED can be forced by either:\n- \"SET _px_shared_hash_join=TRUE\" at system or session level\n- the hint /*+ OPT_PARAM('_px_shared_hash_join' 'true') */ for th entire statement\n- the hint /*+ PQ_DISTRIBUTE(t2 SHARED NONE) */ for a particular join where t2 is the second row source of the hash join.",
+        'INDEX UNIQUE SCAN'                   => "Index scan on on unique index with all index columns given as access criteria.\nResults in one or zero rows.",
         'JOIN FILTER CREATE'                  => "Create bloom filter based on data from previous operation.\nBloom filter allows to exactly state that a value does not exist in an result.\nThis created filter is used at an operation JOIN FILTER USE with same object name to filter out (not all) rows that will not match the join condition.\n\nUsage of bloom filters in SQL can be controlled by optimizer hint \"NO_PX_JOIN_FILTER\" or \"OPT_PARAM('_bloom_filter_enabled' 'false')\"",
         'JOIN FILTER USE'                     => "Usage of bloom filter to filter out (not all) rows that will not match the join condition. Used bloom filter data was created by operation JOIN FILTER CREATE with same object name.\nBloom filter allows to exactly state that a value does not exist in an result.\n\nUsage of bloom filters in SQL can be controlled by optimizer hint \"NO_PX_JOIN_FILTER\" or \"OPT_PARAM('_bloom_filter_enabled' 'false')\"",
         'LOAD AS SELECT (HYBRID TSM/HWMB)'    => "This is a hybrid solution that combines the beneficial characteristics of temp segment merge and high water mark brokering.",
+        'MERGE JOIN CARTESIAN'                => "Cartesian join of two row sources.\nEach row of the first row source is joined with each row of the second row source.\n\nThis operation is probably a result of a missing join condition.",
+        'MERGE STATEMENT'                     => "This statement is a merge statement.",
+        'NESTED LOOPS'                        => "Join operation there the first data source is executed once and the second data source is executed for each row of the first data source.\nThe join condition is usually an equality condition on the join columns.",
+        'NESTED LOOPS OUTER'                  => "Join operation there the first data source is executed once and the second data source is executed for each row of the first data source.\nThe Result of the first dataset delivers each row no matter if there are hits at the second data source or not.",
         'OPTIMIZER STATISTICS GATHERING'      => "Automatic gathering of statistics for tables and indexes.\nMay double run time of load processes (e.g. CREATE TABLE AS SELECT) in worst case!\nTo disable automatic gathering:\n- Use optimizer hint like CREATE TABLE AS SELECT /*+ NO_GATHER_OPTIMIZER_STATISTICS */ ... or\n- ALTER SESSION SET \"_optimizer_gather_stats_on_load\"=FALSE;",
         'PX SEND QC (RANDOM)'                 => "Takes the result of the following line and sends it to the Query Coordinator.\nWhen they send their results to the Query Coordinator,\nthe order they send the result is not important.\nHence, it is random.",
         'REMOTE'                              => "Access remote database per DB-link.\nExecute Sub-select shown in column 'OTHER' on remote database.",
         'STATISTICS COLLECTOR'                => 'Collecting statistics for adaptive plan feature',
         'TABLE ACCESS STORAGE FULL'           =>  "Table full scan on EXADATA storage cell.\nAccess predicates contains conditions that are filtered at Exadata storage cell server before transferring result to database server.\nFilter predicates contains conditions that are filtered at database server after consuming result from cell servers.",
+        'VIEW'                                => "A view is used to split the internal view SQL from the outer SQL",
       }
     end
     result = @@data_access[operation_options.strip]
