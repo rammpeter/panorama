@@ -119,13 +119,13 @@ module EnvHelper
     tab_ids = {} if tab_ids.class != Hash
     @browser_tab_id = 1                                                         # Default tab-id if no other exists
     while tab_ids.key?(@browser_tab_id) do
-      if tab_ids[@browser_tab_id].key?(:last_used) && tab_ids[@browser_tab_id][:last_used] < Time.now-84600*10  # Reuse after 10 days
+      if tab_ids[@browser_tab_id].key?(:last_page_load) && tab_ids[@browser_tab_id][:last_page_load] < Time.now-84600*10  # Reuse after 10 days
         break
       end
       @browser_tab_id += 1
     end
     tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)             # create Hash for browser tab if not already exsists
-    tab_ids[@browser_tab_id][:last_used] = Time.now
+    tab_ids[@browser_tab_id][:last_page_load] = Time.now
     ClientInfoStore.write_for_client_key(get_decrypted_client_key,:browser_tab_ids, tab_ids)
   end
 

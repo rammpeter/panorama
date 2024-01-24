@@ -15,11 +15,7 @@ class ClientInfoStore
   def self.exist?(key)            instance.exist?(key)        end
   def self.read_for_client_key(client_key, key, default: nil) instance.read_for_client_key(client_key, key, default: default) end
   def self.write_for_client_key(client_key, key, value, retries: 0) instance.write_for_client_key(client_key, key, value, retries: retries) end
-
-  # Remove expired entries
-  def self.cleanup
-    instance.store.cleanup
-  end
+  def self.cleanup()              instance.cleanup            end
 
   def self.read_from_browser_tab_client_info_store(client_key, browser_tab_id, key)
     browser_tab_ids = ClientInfoStore.read_for_client_key(client_key,:browser_tab_ids) # read full tree with all browser-tab-specific connections
@@ -28,7 +24,7 @@ class ClientInfoStore
   end
 
 
-  # Write browser-tab-specific info value to server-side cache
+  # Write browser-tab-specific info value to server-side cache (add to existing values or overwrite)
   # @param [String] client_key The decrypted client key for identifying client
   # @param [String] browser_tab_id The browser tab id for identifying browser tab
   # @param [Hash] values The values to be written for browser tab
@@ -116,8 +112,12 @@ class ClientInfoStore
     end
   end
 
-  def get_client_info_store_elements(locate_array = [])
-    client_info_store = ClientInfoStore.read(get_decrypted_client_key)
+  # List all cache elements for client_key
+  # @param [String] client_key The decrypted client key for identifying client
+  # @param [Array] locate_array Array of Hashes with key_name and class_name to locate the element in the client_info_store
+  # @return [Array] Array of Hashes with key_name, class_name, elements, total_elements
+  def get_client_info_store_elements(client_key, locate_array = [])
+    client_info_store = ClientInfoStore.read(client_key)
 
     locate_array.each do |l|
       # step down in hierarchy
@@ -146,26 +146,64 @@ class ClientInfoStore
     result
   end
 
-  #
-  def get_decrypted_client_key
-    if !defined?(@buffered_client_key) || @buffered_client_key.nil?
-      #      Rails.logger.debug "get_decrypted_client_key: client_key = #{cookies['client_key']} client_salt = #{cookies['client_salt']}"
-      return nil if cookies['client_key'].nil? && cookies['client_salt'].nil?  # Connect vom Job oder monitor
-      @buffered_client_key = Encryption.decrypt_value(cookies['client_key'], cookies['client_salt'])      # wirft ActiveSupport::MessageVerifier::InvalidSignature wenn cookies['client_key'] == nil
-    end
-    @buffered_client_key
-  rescue ActiveSupport::MessageVerifier::InvalidSignature => e
-    Rails.logger.error('ApplicationHelper.get_decrypted_client_key') { "Exception '#{e.message}' raised while decrypting cookies['client_key'] (#{cookies['client_key']})" }
-    #log_exception_backtrace(e, 20)
-    if cookies['client_key'].nil?
-      raise("Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and reload the page.")
-    else
-      cookies.delete('client_key')                                               # Verwerfen des nicht entschlüsselbaren Cookies
-      cookies.delete('client_salt')
-      ExceptionHelper.reraise_extended_exception(e, "while decrypting your client key from browser cookie. \nPlease try again.", log_location: 'ApplictionHelper.get_decrypted_client_key')
+  # Remove expired entries from cache
+  def cleanup
+    @store.cleanup                                                              # Remove expired entries from cache by cache API
+
+    # Remove expired entries from cache by file system
+    cached_keys.each do |key|
+      value = @store.read(key)
+      if value.class == Hash && value[:browser_tab_ids]
+        value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
+          if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
+            value[:browser_tab_ids].delete(browser_tab_id)                      # Remove expired browser tab id
+          end
+        end
+      end
+      @store.write(key, value)                                                  # Write back to cache
     end
   end
 
+  private
+
+  # Get the number of elements in a given Hash or Array
+  # @param [Hash, Array] element
+  # @return [Integer] number of elements
+  def get_total_elements_no(element)
+    retval = 1                                                                  # count at least itself
+
+    if element.class == Hash
+      element.each do |key, value|
+        retval += get_total_elements_no(value)
+      end
+    end
+
+    if element.class == Array
+      element.each do |value|
+        retval += get_total_elements_no(value)
+      end
+    end
+
+    retval
+  end
+
+  # Get all keys from cache in recursive dirs
+  def cached_keys
+    result = []
+
+    process_level = proc do |result, dirname|
+      Dir.glob(File.join(dirname, '*')).each do |filename|
+        if File.directory?(filename)
+          process_level.call(result, filename)
+        else
+          result << File.basename(filename)
+        end
+      end
+    end
+
+    process_level.call(result, @store.cache_path)
+    result
+  end
 end
 
 

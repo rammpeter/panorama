@@ -102,6 +102,7 @@ class ApplicationController < ActionController::Base
     client_info_data[:last_used_menu_action]      = params[:last_used_menu_action]      if params[:last_used_menu_action]
     client_info_data[:last_used_menu_caption]     = params[:last_used_menu_caption]     if params[:last_used_menu_caption]
     client_info_data[:last_used_menu_hint]        = params[:last_used_menu_hint]        if params[:last_used_menu_hint]
+    client_info_data[:last_request]               = Time.now                    # Time of last request, used for housekeeping
     ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key,  @browser_tab_id, client_info_data)
 
     # Protokollieren der Aufrufe in lokalem File

@@ -242,7 +242,7 @@ class AdminController < ApplicationController
   def client_info_store_sizes
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = []
-    @result = ClientInfoStore.instance.get_client_info_store_elements
+    @result = ClientInfoStore.instance.get_client_info_store_elements(get_decrypted_client_key)
     render_partial :client_info_detail
   end
 
@@ -250,7 +250,7 @@ class AdminController < ApplicationController
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = params[:locate_array].values
 
-    @result = ClientInfoStore.instance.get_client_info_store_elements(@locate_array)
+    @result = ClientInfoStore.instance.get_client_info_store_elements(get_decrypted_client_key, @locate_array)
     render_partial :client_info_detail
   end
 
@@ -258,28 +258,4 @@ class AdminController < ApplicationController
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     render html: JSON.pretty_generate(ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids)).gsub(/\n/, "<br/>").gsub(/ /, '&nbsp;').html_safe
   end
-
-
-  private
-
-  def get_total_elements_no(element)
-    retval = 1                                                                  # count at least itself
-
-    if element.class == Hash
-      element.each do |key, value|
-        retval += get_total_elements_no(value)
-      end
-    end
-
-    if element.class == Array
-      element.each do |value|
-        retval += get_total_elements_no(value)
-      end
-    end
-
-    retval
-  end
-
-
-
 end
