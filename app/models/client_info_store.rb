@@ -1,5 +1,4 @@
 class ClientInfoStore
-  attr_reader :store  # TODO: remove after conversion
   @@instance = nil
 
     private_class_method :new
@@ -41,7 +40,9 @@ class ClientInfoStore
   ############### Instance methods
 
   def initialize
+    # Only the synchronized instance methods read, write, exists? and cleanup should access @store directly
     @store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
+    @mutex = Mutex.new
     Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
     @buffered_key = nil
     @buffered_value = nil
@@ -53,11 +54,13 @@ class ClientInfoStore
   # @param [String] key
   # @return [String] value
   def read(key)
-    if @buffered_key != key
-      @buffered_key = key
-      @buffered_value = @store.read(key)
+    @mutex.synchronize do
+      if @buffered_key != key
+        @buffered_key = key
+        @buffered_value = @store.read(key)
+      end
+      @buffered_value
     end
-    @buffered_value
   end
 
   # write the content for particular key
@@ -65,13 +68,17 @@ class ClientInfoStore
   # @param [String] value
   # @param [Hash] options
   def write(key, value, options = nil)
-    @buffered_key = key                                                         # Buffer key and value for next read
-    @buffered_value = value                                                     # ensure that new or changed value is returned on next read
-    store.write(key, value)
+    @mutex.synchronize do
+      @buffered_key = key                                                         # Buffer key and value for next read
+      @buffered_value = value                                                     # ensure that new or changed value is returned on next read
+      @store.write(key, value)
+    end
   end
 
   def exist?(key)
-    @store.exist?(key)
+    @mutex.synchronize do
+      @store.exist?(key)
+    end
   end
 
   # Read client related data,, ex. read_from_client_info_store
@@ -119,7 +126,7 @@ class ClientInfoStore
       all_entries: 0
     }.extend(SelectHashHelper)
     cached_keys.each do |key|
-      element = @store.read(key)
+      element = read(key)
       if [Hash, Array].include?(element.class)
         result[:cached_keys] += 1
         result[:second_level_entries] += element.count
@@ -165,11 +172,13 @@ class ClientInfoStore
 
   # Remove expired entries from cache
   def cleanup
-    @store.cleanup                                                              # Remove expired entries from cache by cache API
+    @mutex.synchronize do
+      @store.cleanup                                                              # Remove expired entries from cache by cache API
+    end
 
     # Remove expired entries from cache by file system
     cached_keys.each do |key|
-      value = @store.read(key)
+      value = read(key)
       if value.class == Hash && value[:browser_tab_ids]
         value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
           if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
@@ -177,7 +186,7 @@ class ClientInfoStore
           end
         end
       end
-      @store.write(key, value)                                                  # Write back to cache
+      write(key, value)                                                  # Write back to cache
     end
   end
 
