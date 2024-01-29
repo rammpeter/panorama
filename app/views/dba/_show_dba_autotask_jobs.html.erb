@@ -34,6 +34,16 @@
      )
   end
 
+  link_window_group = proc do |rec|
+    ajax_link(rec.window_group, {
+      controller:   :dba,
+      action:       :list_dba_scheduler_window_groups,
+      window_group: rec.window_group,
+      update_area:  @update_area
+    }, title: "Show window group details for this job"
+    )
+  end
+
    column_options =
            [
                    {:caption=>'Client name',                    :data=>proc{|rec| rec.client_name},                         :title=>'Name of Automated Maintenance Tasks Client'},
@@ -43,7 +53,7 @@
                    {:caption=>'Client tag',                     :data=>proc{|rec| rec.client_tag},                          :title=>'Tag used in forming job names'},
                    {:caption=>'Priority override',              :data=>proc{|rec| rec.priority_override},                   :title=>'Priority override for jobs'},
                    {:caption=>'Attributes',                     :data=>proc{|rec| rec.attributes},                          :title=>'Client attributes'},
-                   {:caption=>'Window group',                   :data=>proc{|rec| rec.window_group},                        :title=>'Window group used to schedule jobs'},
+                   {:caption=>'Window group',                   data: link_window_group,                                    :title=>'Window group used to schedule jobs'},
                    {:caption=>'Service name',                   :data=>proc{|rec| rec.service_name},                        :title=>'Service on which jobs will execute'},
                    {:caption=>'Resource percentage',            :data=>proc{|rec| fn(rec.resource_percentage)},             :title=>'Percentage of maintenance resources for high priority maintenance tasks for this client', :align=>:right},
                    {:caption=>'Use resource estimates',         :data=>proc{|rec| rec.use_resource_estimates},              :title=>'Indicates whether resource estimates are used for this client'},

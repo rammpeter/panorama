@@ -97,8 +97,6 @@ class ClientInfoStore
     client_data = {} if client_data.nil? || client_data.class != Hash           # Neustart wenn Struktur nicht passt
     client_data[key] = value                                                    # Wert in Hash verankern
 
-    puts "write_for_client_key #{client_key} #{key} #{value} caller=#{caller(2).first}"
-
     begin
       write(client_key, client_data, expires_in: 3.months )  # Überschreiben des kompletten Hashes im Cache
     rescue Exception =>e
@@ -110,6 +108,25 @@ class ClientInfoStore
         ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ClientInfoStore.write_for_client_key')
       end
     end
+  end
+
+  # Get the number of elements of levels
+  # @return [Array] Array of Hashes with cached_keys, second_level_entries, all_entries
+  def get_elements_count
+    result = {
+      cached_keys: 0,
+      second_level_entries: 0,
+      all_entries: 0
+    }.extend(SelectHashHelper)
+    cached_keys.each do |key|
+      element = @store.read(key)
+      if [Hash, Array].include?(element.class)
+        result[:cached_keys] += 1
+        result[:second_level_entries] += element.count
+        result[:all_entries] += get_total_elements_no(element) - 1              # Do not count the first element
+      end
+    end
+    [result]
   end
 
   # List all cache elements for client_key

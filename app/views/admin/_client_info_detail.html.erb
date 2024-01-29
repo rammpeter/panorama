@@ -1,7 +1,18 @@
-<%
-  @update_area = get_unique_area_id
+ <% @update_area = get_unique_area_id %>
 
+ <% if defined?(@global_result) && @global_result %>
+   <%
+       column_options =
+         [
+           {:caption=>'Keys',                    :data=>proc{|rec| fn(rec.cached_keys)},            :title=>"Number of keys stored in this cache store", align: :right},
+           {:caption=>'2nd level elements',      :data=>proc{|rec| fn(rec.second_level_entries)},   :title=>"Number of elements stored directly inside cached values (Hashes or Arrays)", align: :right},
+           {:caption=>'Total elements',          :data=>proc{|rec| fn(rec.all_entries) },           :title=>"Total number of elements including subelements stored in cached values", align: :right},
+         ]
+   %>
+   <%= gen_slickgrid(@global_result, column_options, {:caption=>'Total number of stored elements for all browser sessions', :max_height=>450}) %>
+<% end %>
 
+ <%
   link_column = proc do |rec|
     param_locate_array = @locate_array.clone
     param_locate_array << {key_name: rec.key_name, class_name: rec.key_name.class.name }
@@ -26,11 +37,14 @@
           {:caption=>'Total Elements',          :data=>proc{|rec| fn(rec.total_elements) if rec.total_elements > 0},         :title=>"Total number of elements including subelements", align: :right},
       ]
 
-  caption = "Client info store '"
-  @locate_array.each do |l|
-    caption << "#{l[:key_name]} / "
+  caption = "Client info store for current browser "
+  if @locate_array.size > 0
+    caption << "'"
+    @locate_array.each do |l|
+      caption << "#{l[:key_name]} / "
+    end
+    caption << "'"
   end
-  caption << "'"
 
 %>
 <%= gen_slickgrid(@result, column_options, {:caption=>caption, :max_height=>450}) %>

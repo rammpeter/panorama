@@ -242,6 +242,7 @@ class AdminController < ApplicationController
   def client_info_store_sizes
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = []
+    @global_result = ClientInfoStore.instance.get_elements_count
     @result = ClientInfoStore.instance.get_client_info_store_elements(get_decrypted_client_key)
     render_partial :client_info_detail
   end
@@ -249,6 +250,7 @@ class AdminController < ApplicationController
   def client_info_detail
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @locate_array = params[:locate_array].values
+    @cache_key = params[:cache_key]
 
     @result = ClientInfoStore.instance.get_client_info_store_elements(get_decrypted_client_key, @locate_array)
     render_partial :client_info_detail

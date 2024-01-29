@@ -1584,6 +1584,17 @@ oradebug setorapname diag
     render_partial
   end
 
+  def list_dba_scheduler_window_groups
+    @window_group_name = prepare_param :window_group
+    @members = sql_select_all ["\
+      SELECT  *
+      FROM    DBA_SCHEDULER_WINGROUP_MEMBERS m
+      LEFT OUTER JOIN DBA_Autotask_Window_Clients c ON c.Window_Name = m.Window_Name
+      WHERE   m.Window_Group_Name = ?
+    ", @window_group_name]
+    render_partial
+  end
+
   def list_database_triggers
     @triggers = sql_select_iterator "\
       SELECT t.*, o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS

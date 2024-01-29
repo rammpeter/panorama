@@ -249,4 +249,12 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
       assert_response management_pack_license == :none ? :error : :success, log_on_failure("refresh_dashboard_ash failed for key #{key} and instance #{instance}")
     end
   end
+
+  test "scheduler_autoruns with xhr: true" do
+    post '/dba/list_dba_autotask_job_runs', :params => {format: :html, update_area: :hugo, client_name: 'auto optimizer stats collection' }
+    assert_response :success
+
+    post '/dba/list_dba_scheduler_window_groups', :params => {format: :html, update_area: :hugo, window_group: 'ORA$AT_WGRP_OS' }
+    assert_response :success
+  end
 end
