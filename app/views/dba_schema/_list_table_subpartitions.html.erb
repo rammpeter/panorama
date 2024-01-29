@@ -24,7 +24,23 @@
 
   list_states = proc do |rec|
     result = ''
-    result << "#{'<br/>' if result.length > 0}Compression = #{rec.compression}#{" (#{rec.compress_for})" if get_db_version >= '11.2'}"    if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
+
+    if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
+      result << '<br/>' if result.length > 0
+      result << ajax_link("Compression = #{rec.compression} (#{rec.compress_for})",
+                          {controller:      :dba_schema,
+                           action:          :show_compression_check,
+                           owner:           @owner,
+                           table_name:      @table_name,
+                           partition_name:  rec.subpartition_name,
+                           is_subpartition: 'true',
+                           update_area:     @update_area,
+                           avg_row_len:     rec.avg_row_len,
+                          },
+                          :title=>"Check real compression state of this table partition"
+      )
+    end
+
     result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')
     result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')
     result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1' && !(rec.cell_flash_cache.nil? || rec.cell_flash_cache == 'DEFAULT')

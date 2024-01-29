@@ -1,0 +1,20 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+    [
+      {caption: 'Number of blocks',           data: proc {|rec| fn(rec.blocks)},                  title: "Number of checked DB blocks for this combination of compression types for first and last row in block.\nWith a gap value of 1 this is the total number of data blocks below the high water mark for this object.\nWith a gap value > 1 the number of total DB blocks may be higher.", align: :right},
+      {caption: 'Compression type first row', data: proc {|rec| rec.compression_type_first_row }, title: "Compression type found for the first row in considered DB blocks"},
+      {caption: 'Compression type last row',  data: proc {|rec| rec.compression_type_last_row }, title: "Compression type found for the last row in considered DB blocks"},
+    ]
+  column_options << {caption: 'Avg. rows per block',        data: proc{|rec| fn(rec.avg_rows_per_block, 1)},    title: "Average number of rows per block.\n\nValid only if gap value is = 1.\nIf gap value is > 1 then not all rows are counted per block.\nAlso for Hybrid Columnar Compression (HCC) this value is not accurate.", align: :right} if @gap_number == 1
+  column_options << {caption: 'Compression ratio',          data: proc{|rec| fn((rec.avg_rows_per_block * @avg_row_len / PanoramaConnection.db_blocksize rescue nil), 1)},    title: "Compression ratio for this combination of compression types.\n\nCalculated by rows per block * avg. row len / block size without (regardless of pct. free)\n\nIf gap value is > 1 then not all rows are counted per block.\nAlso for Hybrid Columnar Compression (HCC) this value is not accurate.", align: :right} if @gap_number == 1
+
+%>
+
+<%=
+  gen_slickgrid(@result, column_options, {
+    :caption => "Real compression state per DB block for #{@owner}.#{@table_name} #{"( #{@partition_name} )" if @partition_name}",
+    :max_height => 450, :width=>:auto, update_area: @update_area
+  })
+%>

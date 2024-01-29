@@ -88,7 +88,7 @@ class ClientInfoStore
   def read_for_client_key(client_key, key, default: nil)
     value = read(client_key)                                                    # Read the whole content Hash from cache
     if value.nil? || value.class != Hash || value[key].nil?                     # Abbruch wenn Struktur nicht passt
-      Rails.logger.error('ClientInfoStore.read_for_client_key') {"No data found in client specific client_info_store while looking for key=#{key}"}
+      Rails.logger.info('ClientInfoStore.read_for_client_key') {"No data found in client specific client_info_store while looking for key=#{key}"}
       return default
     end
     value[key]                                                                  # return value regardless it's nil or not

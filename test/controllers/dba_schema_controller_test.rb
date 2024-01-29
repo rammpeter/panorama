@@ -28,6 +28,7 @@ class DbaSchemaControllerTest < ActionController::TestCase
                                       PARTITION BY HASH(ID) PARTITIONS 2"
       PanoramaConnection.sql_execute ["INSERT INTO #{@part_table_table_name} VALUES (1, ?)", '1'*10]
       PanoramaConnection.sql_execute "CREATE INDEX #{@part_index_index_name} ON #{@part_table_table_name}(ID) LOCAL"
+      @part_table_partition_name = sql_select_one ["SELECT Partition_Name FROM User_Tab_Partitions WHERE Table_Name = ? AND RowNum < 2", @part_table_table_name]
 
       lob_part_table = sql_select_first_row ["SELECT Lob_Name, Partition_Name, LOB_Partition_Name FROM User_Lob_Partitions WHERE Segment_Created = 'YES' AND Table_Name = ? AND RowNum < 2", @part_table_table_name]
       @lob_part_lob_name            = lob_part_table.lob_name
@@ -383,6 +384,22 @@ class DbaSchemaControllerTest < ActionController::TestCase
   test 'list roles' do
     # call without parameters is tested as first level menu entry
     post :list_roles, params: {format: :html, role: 'CONNECT' }
+    assert_response :success
+  end
+
+  test "compression_check with xhr: true" do
+    post :show_compression_check, :params => {format: :html, owner: 'SYS', table_name: 'AUD$', avg_row_len: 32, :update_area=>:hugo }
+    assert_response :success
+    post :show_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, :update_area=>:hugo }
+    assert_response :success
+    post :show_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name, is_subpartition: 'true', avg_row_len: 32, :update_area=>:hugo }
+    assert_response :success
+
+    post :list_compression_check, :params => {format: :html, owner: 'SYS', table_name: 'AUD$', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+    assert_response :success
+    post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+    assert_response :success
+    post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
     assert_response :success
   end
 end

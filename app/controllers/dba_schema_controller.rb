@@ -497,7 +497,6 @@ class DbaSchemaController < ApplicationController
   end # objekte_nach_groesse
 
   private
-
   def get_dependencies_count(owner, object_name, object_type)
     sql_select_one ["SELECT SUM(Anzahl) FROM (SELECT COUNT(*) Anzahl FROM DBA_Dependencies WHERE Owner = ? AND Name = ? AND Type = ?
                                     UNION ALL SELECT COUNT(*) Anzahl FROM DBA_Dependencies WHERE Referenced_Owner = ? AND Referenced_Name = ? AND Referenced_Type = ?
@@ -509,7 +508,6 @@ class DbaSchemaController < ApplicationController
   end
 
   public
-
   def list_object_description
     @owner = prepare_param(:owner)
     @owner       = @owner.upcase                  if @owner
@@ -2784,6 +2782,74 @@ class DbaSchemaController < ApplicationController
     end
   end
 
+  def show_compression_check
+    @owner              = prepare_param(:owner)
+    @table_name         = prepare_param(:table_name)
+    @partition_name     = prepare_param(:partition_name)
+    @is_subpartition    = prepare_param_boolean(:is_subpartition)
+    @avg_row_len        = prepare_param_int(:avg_row_len)
+    render_partial
+  end
+
+  def list_compression_check
+    @owner              = prepare_param(:owner)
+    @table_name         = prepare_param(:table_name)
+    @partition_name     = prepare_param(:partition_name)
+    @is_subpartition    = prepare_param_boolean(:is_subpartition)
+    @gap_number         = prepare_param_int(:gap_number)
+    @avg_row_len        = prepare_param_int(:avg_row_len)
+
+    set_client_default(:show_compression_gap_number, @gap_number)               # Remember for next time
+
+    @result = sql_select_all "\
+      SELECT COUNT(*) Blocks, AVG(RowsPerBlock) Avg_Rows_per_Block, Compression_Type_Min, Compression_Type_Max
+      FROM   (
+              SELECT Block_Number, RowsPerBlock,
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Min_RowID#{", '#{@partition_name}'" if @partition_name}) Compression_Type_Min,
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Max_RowID#{", '#{@partition_name}'" if @partition_name}) Compression_Type_Max
+              FROM   (
+                      SELECT MIN(Row_ID) Min_RowID, MAX(Row_ID) Max_RowID, Block_Number, COUNT(*) RowsPerBlock
+                      FROM  (SELECT Row_ID, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
+                             FROM   (SELECT RowNum Row_Num, RowID Row_ID
+                                     FROM   #{@owner}.#{@table_name}#{" #{"SUB" if @is_subpartition}PARTITION (#{@partition_name})" if @partition_name}
+                                    )
+                             WHERE  MOD(Row_Num, #{@gap_number}) = 0
+                            )
+                      GROUP BY Block_Number
+                     )
+             )
+      GROUP BY Compression_Type_Min,  Compression_Type_Max
+    "
+
+    explain_compression_type = proc do |compression_type|
+      case compression_type
+      when 1 then 'No Compression'
+      when 2 then 'ROW STORE COMPRESS ADVANCED'
+      when 4 then 'COLUMN STORE COMPRESS FOR QUERY HIGH'
+      when 8 then 'COLUMN STORE COMPRESS FOR QUERY LOW'
+      when 16 then 'COLUMN STORE COMPRESS FOR ARCHIVE HIGH'
+      when 32 then 'COLUMN STORE COMPRESS FOR ARCHIVE LOW'
+      when 64 then 'Compressed row'
+      when 128 then 'High compression level for LOB operations'
+      when 256 then 'Medium compression level for LOB operations'
+      when 512 then 'Low compression level for LOB operations'
+      when 1000 then 'Minimum required number of LOBs in the object for which LOB compression ratio is to be estimated'
+      when 4096 then 'ROW STORE COMPRESS BASIC'
+      when 5000 then 'Maximum number of LOBs used to compute the LOB compression ratio'
+      when 1000000 then 'Minimum required number of rows in the object for which HCC ratio is to be estimated'
+      when -1 then 'To indicate the use of all the rows in the object to estimate HCC ratio'
+      when 1 then 'Identifies the object whose compression ratio is estimated as of type table'
+      ELSE "Unknown Compression Type #{compression_type}"
+      end
+    end
+
+    @result.each do |r|
+      r['compression_type_first_row'] = explain_compression_type.call(r.compression_type_min)
+      r['compression_type_last_row']  = explain_compression_type.call(r.compression_type_max)
+    end
+    render_partial
+  end
+
   private
   def list_space_usage_default
     @result = []
@@ -2946,6 +3012,7 @@ class DbaSchemaController < ApplicationController
       raise e
     end
   end
+
 
   private
   def analyze_operations(owner, object_name, partition_name)

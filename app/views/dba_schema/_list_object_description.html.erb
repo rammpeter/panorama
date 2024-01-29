@@ -180,7 +180,19 @@ column_options =
     result << "#{'<br/>' if result.length > 0}TEMPORARY (#{rec.duration.gsub(/SYS\$/, '')})"                                              if rec.temporary == 'Y'
     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree.to_i != 1
     result << "#{'<br/>' if result.length > 0}Cached =  #{rec.cache}"                                                                     if rec.cache.strip != 'N'
-    result << "#{'<br/>' if result.length > 0}Compression = #{rec.compression} (#{rec.compress_for})"                                     if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A')
+    if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A')
+      result << '<br/>' if result.length > 0
+      result << ajax_link("Compression = #{rec.compression} (#{rec.compress_for})",
+                          {controller:   :dba_schema,
+                           action:       :show_compression_check,
+                           owner:        @owner,
+                           table_name:   @table_name,
+                           update_area:  @update_area,
+                           avg_row_len:  @attribs[0]&.avg_row_len,
+                          },
+                          :title=>"Check real compression state of this object"
+      )
+    end
     result << "#{'<br/>' if result.length > 0}Partition default for compression = #{rec.def_compression} (#{rec.def_compress_for})"       if !(rec.def_compression.nil? || rec.def_compression == 'DISABLED' || rec.def_compression == 'N/A')
     result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1.0.2' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')
     result << "#{'<br/>' if result.length > 0}Partition default for InMemory = #{rec.def_inmemory}"                                       if get_db_version >= '12.1.0.2' && !(rec.def_inmemory.nil? || rec.def_inmemory == 'DISABLED' || rec.def_inmemory == 'N/A' || rec.def_inmemory == 'NONE')

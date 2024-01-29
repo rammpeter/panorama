@@ -732,6 +732,16 @@ module ApplicationHelper
     end
   end
 
+  # Get client specific value from ClientInfoStore
+  def get_client_default(key, default_value)
+    ClientInfoStore.read_for_client_key(get_decrypted_client_key,key, default: default_value)
+  end
+
+  # Set client specific value in ClientInfoStore
+  def set_client_default(key, value)
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,key, value)
+  end
+
   # Ermitteln der Min- und Max-Abgrenzungen auf Basis Snap_ID für Zeitraum über alle Instanzen hinweg
   def get_min_max_snap_ids(time_selection_start, time_selection_end, dbid, raise_if_not_found: false)
     min_snap_id = sql_select_one ["SELECT /*+ Panorama-Tool Ramm */ MIN(Snap_ID)

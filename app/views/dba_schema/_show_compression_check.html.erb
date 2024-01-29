@@ -1,0 +1,35 @@
+<% @update_area=get_unique_area_id %>
+
+<%= render_page_caption("Check compression state for #{@owner}.#{@table_name} #{"( #{@partition_name} )" if @partition_name}") %>
+
+<%= ajax_form(
+      controller:       :dba_schema,
+      action:           :list_compression_check,
+      owner:            @owner,
+      table_name:       @table_name,
+      partition_name:   @partition_name,
+      is_subpartition:  @is_subpartition.to_s,
+      avg_row_len:      @avg_row_len,
+      update_area:      @update_area
+    )  do %>
+  <div class="flex-row-container">
+    <div class="flex-row-element" title="Number of not considered rows between checked rows
+
+    This function may need some time to execute.
+    For large tables / partitions you may increase the gap between considered rows to improve execution speed.
+
+    The first and the last row of a block are checked for compression (if not being skipped due to this setting).
+    If you use a larger gap between considered rows, then some blocks may not be checked at all.
+
+    1 = Check each row
+    1000 = Check only every thousandth row">
+      &nbsp;Gap between considered rows
+      <%= number_field_tag(:gap_number, get_client_default(:show_compression_gap_number, 1), size: 10, style: 'text-align: right; ') %>
+    </div>
+    <div class="flex-row-element">
+      <%= submit_tag("Show compression state", :title => "Show compression state per block for this object\n\nYou need read grants on this object to execute this function.") %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>
+
