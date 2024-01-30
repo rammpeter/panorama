@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class UsageInfoTest < ActiveSupport::TestCase
-  test "housekeeping" do
+  test "housekeeping_usage_info" do
     UsageInfo.housekeeping
   end
 end
