@@ -9,6 +9,7 @@ module Dragnet::DragnetSqlsTuningSgaPgaHelper
             :name  => t(:dragnet_helper_96_name, :default=>'Identification of hot blocks in DB-cache: frequent access on small objects'),
             :desc  => t(:dragnet_helper_96_desc, :default=>"Statements with frequent read blocks in DB-cache cause risk of 'cache buffers chains' latch waits.
 This selection scans for objects with high block access rate compared to size of object."),
+            min_db_version: '12.1',
             :sql =>  "SELECT /*+ NO_MERGE USE_HASH(o s) */ /* DB-Tools Ramm Hot-Blocks im DB-Cache */
                              s.Instance_Number Inst, o.Owner, o.Object_Name, o.SubObject_Name,
                              o.Object_Type,
