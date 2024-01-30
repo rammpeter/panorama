@@ -3,9 +3,9 @@
 
   column_options =
     [
-      {caption: 'Number of blocks',           data: proc {|rec| fn(rec.blocks)},                  title: "Number of checked DB blocks for this combination of compression types for first and last row in block.\n\nWith a gap value of 1 this is the total number of data blocks below the high water mark for this object.\nWith a gap value > 1 the number of total DB blocks may be higher.\n\nThis metric only counts blocks really containing rows.", align: :right},
-      {caption: 'Compression type first row', data: proc {|rec| rec.compression_type_first_row }, title: "Compression type found for the first row in considered DB blocks"},
-      {caption: 'Compression type last row',  data: proc {|rec| rec.compression_type_last_row }, title: "Compression type found for the last row in considered DB blocks"},
+      {caption: 'Checked blocks',           data: proc {|rec| fn(rec.blocks)},                  title: "Number of checked DB blocks for this compression type.\n\nWith a gap value of 1 this is the total number of row containimg data blocks below the high water mark for this object.\nWith a gap value > 1 this is the number of blocks of the checked rows.", align: :right},
+      {caption: 'Checked rows',             data: proc {|rec| fn(rec.checked_rows)},            title: "Number of checked rows with this compression type.", align: :right},
+      {caption: 'Compression type',         data: proc {|rec| rec.compression_type_text },      title: "Compression type found for the considered rows"},
     ]
   column_options << {caption: 'Avg. rows per block',        data: proc{|rec| fn(rec.avg_rows_per_block, 1)},    title: "Average number of rows per block.\n\nValid only if gap value is = 1.\nIf gap value is > 1 then not all rows are counted per block.\nAlso for Hybrid Columnar Compression (HCC) this value is not accurate.", align: :right} if @gap_number == 1
   column_options << {caption: 'Compression ratio',          data: proc{|rec| fn((rec.avg_rows_per_block * @avg_row_len / PanoramaConnection.db_blocksize rescue nil), 1)},    title: "Compression ratio for this combination of compression types.\n\nCalculated by rows per block * avg. row len / block size without (regardless of pct. free).\n\nCalculation includes only blocks with at least one row.\n\nIf gap value is > 1 then not all rows are counted per block.\nAlso for Hybrid Columnar Compression (HCC) this value is not accurate.", align: :right} if @gap_number == 1

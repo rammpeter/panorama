@@ -102,12 +102,7 @@
       result = ''
       if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
         result << '<br/>' if result.length > 0
-        compress_text = "Compression = #{rec.compression} (#{rec.compress_for})"
-        if rec.subpartition_count && rec.subpartition_count > 0                 # No physical partitions exist
-          result << compress_text
-        else
-          link_compression_check.call(rec, compress_text)
-        end
+        result << link_compression_check.call(rec, "Compression = #{rec.compression} (#{rec.compress_for})")
       end
 
       result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')

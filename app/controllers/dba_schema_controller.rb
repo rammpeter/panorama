@@ -2803,31 +2803,25 @@ class DbaSchemaController < ApplicationController
 
     @result = sql_select_all "\
       WITH Data_Objects AS (SELECT /*+ MATERIALIZE */ Data_Object_ID, SubObject_Name FROM DBA_Objects WHERE Owner = '#{@owner}' AND Object_Name = '#{@table_name}')
-      SELECT COUNT(*) Blocks, AVG(RowsPerBlock) Avg_Rows_per_Block, Compression_Type_Min, Compression_Type_Max
+      SELECT Compression_Type,
+             COUNT(DISTINCT Block_Number) Blocks,
+             COUNT(*)                     Checked_Rows,
+             COUNT(*)/COUNT(DISTINCT Block_Number) Avg_Rows_per_Block
       FROM   (
-              SELECT /*+ NO_MERGE */ Block_Number, RowsPerBlock,
-                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Min_RowID, SubObject_Name_Min) Compression_Type_Min,
-                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Max_RowID, SubObject_Name_Max) Compression_Type_Max
-              FROM   (SELECT /*+ NO_MERGE */ Min_RowID, Max_RowID, Block_Number, RowsPerBlock,
-                              omin.SubObject_Name SubObject_Name_Min, omax.SubObject_Name SubObject_Name_Max
+              SELECT /*+ NO_MERGE */ Block_Number,
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Row_ID, SubObject_Name) Compression_Type
+              FROM   (SELECT /*+ NO_MERGE */ Row_ID, Block_Number, o.SubObject_Name
                       FROM   (
-                              SELECT /*+ NO_MERGE */
-                                     MIN(Row_ID) KEEP (DENSE_RANK FIRST ORDER BY Row_Num) Min_RowID,
-                                     MAX(Row_ID) KEEP (DENSE_RANK LAST  ORDER BY Row_Num) Max_RowID,
-                                     Block_Number, COUNT(*) RowsPerBlock
-                              FROM  (SELECT /*+ NO_MERGE */ Row_ID, Row_Num, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
-                                     FROM   (SELECT /*+ FULL(x) */ RowNum Row_Num, RowID Row_ID /* FULL ensures RowNum in physical order */
-                                             FROM   #{@owner}.#{@table_name}#{" #{"SUB" if @is_subpartition}PARTITION (#{@partition_name})" if @partition_name} x
-                                            )
-                                     WHERE  MOD(Row_Num, #{@gap_number}) = 0
-                                    )
-                              GROUP BY Block_Number
-                             ) x
-                      LEFT OUTER JOIN Data_Objects omin ON omin.Data_Object_ID = DBMS_ROWID.RowID_Object(Min_RowID)
-                      LEFT OUTER JOIN Data_Objects omax ON omax.Data_Object_ID = DBMS_ROWID.RowID_Object(Max_RowID)
+                              SELECT /*+ NO_MERGE */ Row_ID, Row_Num, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
+                              FROM   (SELECT /*+ FULL(x) */ RowNum Row_Num, RowID Row_ID /* FULL ensures RowNum in physical order */
+                                      FROM   #{@owner}.#{@table_name}#{" #{"SUB" if @is_subpartition}PARTITION (#{@partition_name})" if @partition_name} x
+                                     )
+                               WHERE  MOD(Row_Num, #{@gap_number}) = 0
+                              ) x
+                      LEFT OUTER JOIN Data_Objects o ON o.Data_Object_ID = DBMS_ROWID.RowID_Object(Row_ID)
                      )
              )
-      GROUP BY Compression_Type_Min,  Compression_Type_Max
+      GROUP BY Compression_Type
     "
 
     explain_compression_type = proc do |compression_type|
@@ -2853,8 +2847,7 @@ class DbaSchemaController < ApplicationController
     end
 
     @result.each do |r|
-      r['compression_type_first_row'] = explain_compression_type.call(r.compression_type_min)
-      r['compression_type_last_row']  = explain_compression_type.call(r.compression_type_max)
+      r['compression_type_text'] = explain_compression_type.call(r.compression_type)
     end
     render_partial
   end
