@@ -34,8 +34,39 @@
       end
     end
 
+    compression_ratio = proc do |rec|
+      (rec.num_rows * rec.avg_row_len).to_f / (rec.blocks * PanoramaConnection.db_blocksize) rescue 1
+    end
+
     list_percent_unused = proc do |rec|
-      link_space_usage.call(rec, (fn(100 - (mb_used.call(rec) * 100 / rec.size_mb), 1) rescue nil))
+      if compression_ratio.call(rec) <= 1
+        link_space_usage.call(rec, (fn(100 - (mb_used.call(rec) * 100 / rec.size_mb), 1) rescue nil))
+      else
+        nil
+      end
+    end
+
+    link_compression_check = proc do |rec, value|
+      ajax_link(value,
+                {controller:      :dba_schema,
+                 action:          :show_compression_check,
+                 owner:           @owner,
+                 table_name:      @table_name,
+                 partition_name:  rec.partition_name,
+                 update_area:     @update_area,
+                 avg_row_len:     rec.avg_row_len,
+                },
+                :title=>"Check real compression state of this table partition"
+      )
+    end
+
+    link_compression_ratio = proc do |rec|
+      ratio = compression_ratio.call(rec)
+      if ratio > 1
+        link_compression_check.call(rec, fn(ratio, 1))
+      else
+        nil
+      end
     end
 
 
@@ -72,21 +103,10 @@
       if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
         result << '<br/>' if result.length > 0
         compress_text = "Compression = #{rec.compression} (#{rec.compress_for})"
-        if rec.subpartition_count > 0                                           # No physical partitions exist
+        if rec.subpartition_count && rec.subpartition_count > 0                 # No physical partitions exist
           result << compress_text
         else
-
-          result << ajax_link(compress_text,
-                              {controller:      :dba_schema,
-                               action:          :show_compression_check,
-                               owner:           @owner,
-                               table_name:      @table_name,
-                               partition_name:  rec.partition_name,
-                               update_area:     @update_area,
-                               avg_row_len:     rec.avg_row_len,
-                              },
-                              :title=>"Check real compression state of this table partition"
-          )
+          link_compression_check.call(rec, compress_text)
         end
       end
 
@@ -162,20 +182,18 @@
       {:caption=> 'Ini. ext. (KB)',         :data=>proc{|rec| rec.initial_extent_kb},            :title=> 'Initial extent size in kByte', :align=>:right},
     ]
 
-    column_options.concat [
-      {:caption=> 'Num. rows',              :data=>link_real_num_rows,                           :title=> 'Number of rows in the partition', :align=>:right},
-      {:caption=> 'Size (MB)',              :data=>proc{|rec| link_space_usage.call(rec, fn(rec.size_mb,2))},                :title=> 'Current object size in megabytes', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}#{blocks_data_title.call(rec)}"} },
-      {:caption=> 'Ext.',                   data: link_extents,                                  :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"} },
-      {:caption=> '% unused',               :data=>list_percent_unused,                          :title=> "Unused storage of table partition within extents in percent.\nCalculated by size of all allocated extents - (Avg_Row_Len * Num_Rows)\nAlso includes the free space in blocks according to PCT_FREE\nMay be negative e.g. for compressed tables", data_title: proc{|rec| "%t\n\nCorrelating unused space in MB = #{fn(rec.size_mb - mb_used.call(rec), 2) rescue nil}"}, :align=>:right},
-      {:caption=> 'Avg. row len',           :data=>proc{|rec| fn rec.avg_row_len},               :title=> 'Average length of a row in the partition (in bytes)', :align=>:right},
-      {:caption=> 'Sub-part.',              :data=>proc{|rec| link_tab_subpartitions(rec)},      :title=> 'Number of subpartitions for this partition', :align=>:right},
-      {:caption=> 'Created',                :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of partition creation'},
-      {:caption=> 'Last DDL',               :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on table partition'},
-      { caption: 'Spec. TS',                 data: proc{|rec| localeDateTime(rec.spec_ts)},      title: "Timestamp for the last specification change of the table partition" },
-      {:caption=> 'Last analyzed',          :data=>link_last_analyzed,                           :title=> 'Date on which this partition was most recently analyzed'},
-      {:caption=> 'Log.',                   :data=>proc{|rec| rec.logging},                      :title=> "Indicates whether or not changes to the table are logged in Redo-Log" },
-    ]
-
+    column_options << {:caption=> 'Num. rows',              :data=>link_real_num_rows,                           :title=> 'Number of rows in the partition', :align=>:right}
+    column_options << {:caption=> 'Size (MB)',              :data=>proc{|rec| link_space_usage.call(rec, fn(rec.size_mb,2))},                :title=> 'Current object size in megabytes', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}#{blocks_data_title.call(rec)}"} }
+    column_options << {:caption=> 'Ext.',                   data: link_extents,                                  :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"} }
+    column_options << {:caption=> '% unused',               :data=>list_percent_unused,                          :title=> "Unused storage of table partition within extents in percent.\nCalculated by size of all allocated extents - (Avg_Row_Len * Num_Rows)\nAlso includes the free space in blocks according to PCT_FREE\nMay be negative e.g. for compressed tables", data_title: proc{|rec| "%t\n\nCorrelating unused space in MB = #{fn(rec.size_mb - mb_used.call(rec), 2) rescue nil}"}, :align=>:right}
+    column_options << {:caption=> 'Compr. ratio',     :data=>proc{|rec| link_compression_ratio.call(rec)}, :title=> "Compression ratio for this partition.\n\nPartition data seems to be compressed.\nCalculated by num rows * avg row len / (blocks * block size)", data_title: proc{|rec| "%t\n\nSaved space by compression = #{fn((rec.blocks*PanoramaConnection.db_blocksize*compression_ratio.call(rec)).to_f/(1024*1024) - rec.size_mb, 1)} MB"}, :align=>:right}
+    column_options << {:caption=> 'Avg. row len',           :data=>proc{|rec| fn rec.avg_row_len},               :title=> 'Average length of a row in the partition (in bytes)', :align=>:right}
+    column_options << {:caption=> 'Sub-part.',              :data=>proc{|rec| link_tab_subpartitions(rec)},      :title=> 'Number of subpartitions for this partition', :align=>:right}
+    column_options << {:caption=> 'Created',                :data=>proc{|rec| localeDateTime(rec.created)},      :title=> 'Timestamp of partition creation'}
+    column_options << {:caption=> 'Last DDL',               :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},:title=> 'Timestamp of last DDL operation on table partition'}
+    column_options << { caption: 'Spec. TS',                 data: proc{|rec| localeDateTime(rec.spec_ts)},      title: "Timestamp for the last specification change of the table partition" }
+    column_options << {:caption=> 'Last analyzed',          :data=>link_last_analyzed,                           :title=> 'Date on which this partition was most recently analyzed'}
+    column_options << {:caption=> 'Log.',                   :data=>proc{|rec| rec.logging},                      :title=> "Indicates whether or not changes to the table are logged in Redo-Log" }
     column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                  :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
     column_options << {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                  :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
     column_options << {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                  :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}

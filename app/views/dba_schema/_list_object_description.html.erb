@@ -174,6 +174,19 @@ column_options =
      "\n\nNumber of used blocks below high water mark = #{fn(rec.blocks)}\nNumber of allocated blocks in segments = #{fn(rec.segment_blocks)} "
    end
 
+   link_compression_check = proc do |rec, value|
+     ajax_link(value,
+               {controller:   :dba_schema,
+                action:       :show_compression_check,
+                owner:        @owner,
+                table_name:   @table_name,
+                update_area:  @update_area,
+                avg_row_len:  rec.avg_row_len,
+               },
+               :title=>"Check real compression state of blocks of this object"
+     )
+   end
+
    list_states = proc do |rec|
     result = ''
     result << "#{'<br/>' if result.length > 0}IOT-Type = #{rec.iot_type}"                                                                 if rec.iot_type
@@ -182,16 +195,7 @@ column_options =
     result << "#{'<br/>' if result.length > 0}Cached =  #{rec.cache}"                                                                     if rec.cache.strip != 'N'
     if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A')
       result << '<br/>' if result.length > 0
-      result << ajax_link("Compression = #{rec.compression} (#{rec.compress_for})",
-                          {controller:   :dba_schema,
-                           action:       :show_compression_check,
-                           owner:        @owner,
-                           table_name:   @table_name,
-                           update_area:  @update_area,
-                           avg_row_len:  @attribs[0]&.avg_row_len,
-                          },
-                          :title=>"Check real compression state of this object"
-      )
+      result << link_compression_check.call(rec, "Compression = #{rec.compression} (#{rec.compress_for})")
     end
     result << "#{'<br/>' if result.length > 0}Partition default for compression = #{rec.def_compression} (#{rec.def_compress_for})"       if !(rec.def_compression.nil? || rec.def_compression == 'DISABLED' || rec.def_compression == 'N/A')
     result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1.0.2' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')
@@ -296,6 +300,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    end
 
    blocksize = PanoramaConnection.db_blocksize                                   # call only once
+   compression_ratio = (@attribs[0].num_rows *  @attribs[0].avg_row_len).to_f / (@attribs[0].blocks * blocksize) rescue 1
 
    column_options = []
    column_options << {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name', data_title: proc{|rec| data_title_part_def.call(rec.def_tablespace_name)} }
@@ -306,7 +311,8 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    column_options << {:caption=> 'Size (MB) Table',  data: proc{|rec| link_space_usage.call(rec, fn(rec.size_mb_table, 2))}, :title=> 'Current table size in megabytes (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb_table)}#{blocks_data_title.call(rec)}"}}
    column_options << {:caption=> 'Size (MB) Total',  :data=>proc{|rec| fn(@size_mb_total, 2)},                :title=> 'Current total size in megabytes (includes table, indexes, LOBs)', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(@size_mb_total)}"}}
    column_options << {:caption=> 'Ext.',             :data=>link_extents,                                     :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"} }
-   column_options << {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table)))}, :title=> "Unused storage of table within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: proc{|rec| "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table), 3)}"}, :align=>:right}
+   column_options << {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table)))}, :title=> "Unused storage of table within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: proc{|rec| "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_table(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb_table), 3)}"}, :align=>:right} if compression_ratio <= 1
+   column_options << {:caption=> 'Compr. ratio',     :data=>proc{|rec| link_compression_check.call(rec, fn(compression_ratio, 1))}, :title=> "Compression ratio for this table.\n\nTable data seems to be compressed.\nCalculated by num rows * avg row len / (blocks * block size)", data_title: proc{|rec| "%t\n\nSaved space by compression = #{fn((rec.blocks*blocksize*compression_ratio).to_f/(1024*1024) - rec.size_mb_table, 1)} MB"}, :align=>:right} if compression_ratio > 1
    column_options << {:caption=> 'Empty',            :data=>proc{|rec| fn(rec.empty_blocks)},                 :title=> "Number of empty (never used) blocks calculated by last analyze run\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}                                              if @attribs.count > 0 && @attribs[0].empty_blocks != 0
    column_options << {:caption=> 'Avg. Spc.',        :data=>proc{|rec| fn(rec.avg_space)},                    :title=> "Average amount of free space, in bytes, in a data block allocated to the table calculated by last analyze run\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}   if @attribs.count > 0 && @attribs[0].avg_space != 0
    column_options << {:caption=> 'Chn.',             :data=>proc{|rec| fn(rec.chain_cnt)},                    :title=> "Number of chained rows calculated by last analyze run.\nThis metric is not populated by calls of DBMS_STATS.Gather_xxx_Stats.\nThis value is populated only by execution of ALTER TABLE xxx COMPUTE STATISTICS;", :align=>:right}  if @attribs.count > 0 && @attribs[0].chain_cnt != 0

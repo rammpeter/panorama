@@ -2802,20 +2802,29 @@ class DbaSchemaController < ApplicationController
     set_client_default(:show_compression_gap_number, @gap_number)               # Remember for next time
 
     @result = sql_select_all "\
+      WITH Data_Objects AS (SELECT /*+ MATERIALIZE */ Data_Object_ID, SubObject_Name FROM DBA_Objects WHERE Owner = '#{@owner}' AND Object_Name = '#{@table_name}')
       SELECT COUNT(*) Blocks, AVG(RowsPerBlock) Avg_Rows_per_Block, Compression_Type_Min, Compression_Type_Max
       FROM   (
-              SELECT Block_Number, RowsPerBlock,
-                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Min_RowID#{", '#{@partition_name}'" if @partition_name}) Compression_Type_Min,
-                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Max_RowID#{", '#{@partition_name}'" if @partition_name}) Compression_Type_Max
-              FROM   (
-                      SELECT MIN(Row_ID) Min_RowID, MAX(Row_ID) Max_RowID, Block_Number, COUNT(*) RowsPerBlock
-                      FROM  (SELECT Row_ID, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
-                             FROM   (SELECT RowNum Row_Num, RowID Row_ID
-                                     FROM   #{@owner}.#{@table_name}#{" #{"SUB" if @is_subpartition}PARTITION (#{@partition_name})" if @partition_name}
+              SELECT /*+ NO_MERGE */ Block_Number, RowsPerBlock,
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Min_RowID, SubObject_Name_Min) Compression_Type_Min,
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Max_RowID, SubObject_Name_Max) Compression_Type_Max
+              FROM   (SELECT /*+ NO_MERGE */ Min_RowID, Max_RowID, Block_Number, RowsPerBlock,
+                              omin.SubObject_Name SubObject_Name_Min, omax.SubObject_Name SubObject_Name_Max
+                      FROM   (
+                              SELECT /*+ NO_MERGE */
+                                     MIN(Row_ID) KEEP (DENSE_RANK FIRST ORDER BY Row_Num) Min_RowID,
+                                     MAX(Row_ID) KEEP (DENSE_RANK LAST  ORDER BY Row_Num) Max_RowID,
+                                     Block_Number, COUNT(*) RowsPerBlock
+                              FROM  (SELECT /*+ NO_MERGE */ Row_ID, Row_Num, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
+                                     FROM   (SELECT /*+ FULL(x) */ RowNum Row_Num, RowID Row_ID /* FULL ensures RowNum in physical order */
+                                             FROM   #{@owner}.#{@table_name}#{" #{"SUB" if @is_subpartition}PARTITION (#{@partition_name})" if @partition_name} x
+                                            )
+                                     WHERE  MOD(Row_Num, #{@gap_number}) = 0
                                     )
-                             WHERE  MOD(Row_Num, #{@gap_number}) = 0
-                            )
-                      GROUP BY Block_Number
+                              GROUP BY Block_Number
+                             ) x
+                      LEFT OUTER JOIN Data_Objects omin ON omin.Data_Object_ID = DBMS_ROWID.RowID_Object(Min_RowID)
+                      LEFT OUTER JOIN Data_Objects omax ON omax.Data_Object_ID = DBMS_ROWID.RowID_Object(Max_RowID)
                      )
              )
       GROUP BY Compression_Type_Min,  Compression_Type_Max
