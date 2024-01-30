@@ -2809,7 +2809,7 @@ class DbaSchemaController < ApplicationController
              COUNT(*)/COUNT(DISTINCT Block_Number) Avg_Rows_per_Block
       FROM   (
               SELECT /*+ NO_MERGE */ Block_Number,
-                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Row_ID, SubObject_Name) Compression_Type
+                     DBMS_COMPRESSION.Get_Compression_Type('#{@owner}', '#{@table_name}', Row_ID#{", SubObject_Name" if get_db_version >= '12.1'}) Compression_Type
               FROM   (SELECT /*+ NO_MERGE */ Row_ID, Block_Number, o.SubObject_Name
                       FROM   (
                               SELECT /*+ NO_MERGE */ Row_ID, Row_Num, DBMS_ROWID.RowID_Block_Number(Row_ID) Block_Number
