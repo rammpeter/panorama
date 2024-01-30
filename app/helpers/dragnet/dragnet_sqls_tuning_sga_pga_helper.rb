@@ -9,7 +9,6 @@ module Dragnet::DragnetSqlsTuningSgaPgaHelper
             :name  => t(:dragnet_helper_96_name, :default=>'Identification of hot blocks in DB-cache: frequent access on small objects'),
             :desc  => t(:dragnet_helper_96_desc, :default=>"Statements with frequent read blocks in DB-cache cause risk of 'cache buffers chains' latch waits.
 This selection scans for objects with high block access rate compared to size of object."),
-            min_db_version: '12.1',
             :sql =>  "SELECT /*+ NO_MERGE USE_HASH(o s) */ /* DB-Tools Ramm Hot-Blocks im DB-Cache */
                              s.Instance_Number Inst, o.Owner, o.Object_Name, o.SubObject_Name,
                              o.Object_Type,
@@ -42,7 +41,7 @@ This selection scans for objects with high block access rate compared to size of
                                      WHEN Object_Type = 'INDEX PARTITION' THEN ip.Num_Rows
                                      END Num_Rows
                               FROM   DBA_Objects o
-                              LEFT OUTER JOIN DBA_AllTables       t  ON t.Owner = o.Owner AND t.Table_Name = O.Object_Name AND o.Object_Type = 'TABLE'
+                              LEFT OUTER JOIN DBA_All_Tables      t  ON t.Owner = o.Owner AND t.Table_Name = O.Object_Name AND o.Object_Type = 'TABLE'
                               LEFT OUTER JOIN DBA_Indexes         i  ON i.Owner = o.Owner AND i.Index_Name = O.Object_Name AND o.Object_Type = 'INDEX'
                               LEFT OUTER JOIN DBA_Tab_Partitions  tp ON tp.Table_Owner = o.Owner AND tp.Table_Name = O.Object_Name AND tp.Partition_Name = o.SubObject_Name AND o.Object_Type = 'TABLE PARTITION'
                               LEFT OUTER JOIN DBA_Ind_Partitions  ip ON ip.Index_Owner = o.Owner AND ip.Index_Name = O.Object_Name AND ip.Partition_Name = o.SubObject_Name AND o.Object_Type = 'INDEX PARTITION'
