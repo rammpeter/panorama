@@ -8,6 +8,13 @@ class ClientInfoStore
     @@instance
   end
 
+  # Needed for test purposes only to ensure next access creates the instance again
+  def self.reset_instance
+    @@instance = nil
+  end
+
+  #
+
   # wrap calls to instance
   def self.read(key)              instance.read(key)          end
   def self.write(key, value)      instance.write(key, value)  end
