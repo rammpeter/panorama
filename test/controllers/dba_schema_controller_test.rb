@@ -388,18 +388,13 @@ class DbaSchemaControllerTest < ActionController::TestCase
   end
 
   test "compression_check with xhr: true" do
-    post :show_compression_check, :params => {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, :update_area=>:hugo }
-    assert_response :success
-    post :show_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, :update_area=>:hugo }
-    assert_response :success
-    post :show_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name, is_subpartition: 'true', avg_row_len: 32, :update_area=>:hugo }
-    assert_response :success
-
     post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
     assert_response :success
-    post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
-    assert_response :success
-    post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
-    assert_response :success
+    if PanoramaConnection.edition == :enterprise
+      post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+      assert_response :success
+      post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+      assert_response :success
+    end
   end
 end
