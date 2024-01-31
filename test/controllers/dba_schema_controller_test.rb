@@ -20,7 +20,8 @@ class DbaSchemaControllerTest < ActionController::TestCase
     # Use LOB for test from Panorama itself (if already created)m suppress ORA-10614: Operation not allowed on this segment
     @lob_segment_name = sql_select_one ["SELECT Segment_Name FROM User_Lobs WHERE Segment_Created = 'YES' AND Table_Name = UPPER(?) AND RowNum < 2", @lob_table_name]
 
-    if PanoramaConnection.edition == :enterprise                                # Precondition for partitioning
+    @edition = PanoramaConnection.edition
+    if @edition == :enterprise                                                  # Precondition for partitioning
       @part_table_table_name  = 'LOB_PART_TEST_TABLE'
       @part_index_index_name  = "IX_#{@part_table_table_name}"
       PanoramaConnection.sql_execute "DROP TABLE #{@part_table_table_name}" if PanoramaConnection.user_table_exists? @part_table_table_name
@@ -390,7 +391,7 @@ class DbaSchemaControllerTest < ActionController::TestCase
   test "compression_check with xhr: true" do
     post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
     assert_response :success
-    if PanoramaConnection.edition == :enterprise
+    if @edition == :enterprise
       post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
       assert_response :success
       post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
