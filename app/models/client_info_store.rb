@@ -1,10 +1,17 @@
 class ClientInfoStore
   @@instance = nil
+  @@mutex = Mutex.new
 
     private_class_method :new
 
   def self.instance
-    @@instance = new unless @@instance
+    unless @@instance
+      @@mutex.synchronize do
+        unless @@instance
+          @@instance = new
+        end
+      end
+    end
     @@instance
   end
 
@@ -49,7 +56,6 @@ class ClientInfoStore
   def initialize
     # Only the synchronized instance methods read, write, exists? and cleanup should access @store directly
     @store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
-    @mutex = Mutex.new
     Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
     @buffered_key = nil
     @buffered_value = nil
@@ -61,7 +67,7 @@ class ClientInfoStore
   # @param [String] key
   # @return [String] value
   def read(key)
-    @mutex.synchronize do
+    @@mutex.synchronize do
       if @buffered_key != key
         @buffered_key = key
         @buffered_value = @store.read(key)
@@ -75,7 +81,7 @@ class ClientInfoStore
   # @param [String] value
   # @param [Hash] options
   def write(key, value, options = nil)
-    @mutex.synchronize do
+    @@mutex.synchronize do
       @buffered_key = key                                                         # Buffer key and value for next read
       @buffered_value = value                                                     # ensure that new or changed value is returned on next read
       @store.write(key, value)
@@ -83,7 +89,7 @@ class ClientInfoStore
   end
 
   def exist?(key)
-    @mutex.synchronize do
+    @@mutex.synchronize do
       @store.exist?(key)
     end
   end
@@ -179,7 +185,7 @@ class ClientInfoStore
 
   # Remove expired entries from cache
   def cleanup
-    @mutex.synchronize do
+    @@mutex.synchronize do
       @store.cleanup                                                              # Remove expired entries from cache by cache API
     end
 
