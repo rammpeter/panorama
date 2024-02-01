@@ -69,15 +69,15 @@ class DragnetControllerTest < ActionController::TestCase
             errmsg = "Error testing dragnet SQL #{entry['id']} #{full_entry[:name]}, result should be '#{expected_result}'"
             if @response.response_code.to_s[0] != ActionDispatch::AssertionResponse.new(expected_result).code[0]
               Rails.logger.debug errmsg
-              # Ensure that some error responses do net break the test for autonomous DB
-              if PanoramaConnection.autonomous_database? && (
-                errmsg['ORA-12801'] || errmsg['ORA-00600']
-              )
-                Rails.logger.debug('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for autonomous database"}
+
+              # Check if error may be suppressed for certain selections
+              if errmsg[full_entry[:suppress_error_for_code]]
+                Rails.logger.info('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for this selection because of suppress_error_for_code #{full_entry[:suppress_error_for_code]}" }
               else
-                # Check if error may be suppressed for certain selections
-                if errmsg[full_entry[:suppress_error_for_code]]
-                  Rails.logger.info('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for this selection because of suppress_error_for_code #{full_entry[:suppress_error_for_code]}" }
+                Rails.logger.info('DragnetControllerTest.execute_tree') {"Raise error #{errmsg} for this selection because suppress_error_for_code does not fit '#{full_entry[:suppress_error_for_code]}'" }
+                # Ensure that some error responses do net break the test for autonomous DB
+                if PanoramaConnection.autonomous_database? && (errmsg['ORA-12801'] || errmsg['ORA-00600'])
+                  Rails.logger.debug('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for autonomous database"}
                 else
                   assert_response(expected_result, errmsg)
                 end

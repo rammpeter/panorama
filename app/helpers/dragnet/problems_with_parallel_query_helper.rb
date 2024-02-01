@@ -440,7 +440,7 @@ This selection shows SQL statements where parallel DML or direct load could or s
 'idl reason' shows reason why direct load is not used for this statement.
 Parallel execution of DML is assumed to be used if PARALLEL DML is enabled in the session.
 "),
-          suppress_error_for_code: 'ORA-06512: in "SYS.XMLTYPE"',
+          suppress_error_for_code: "ORA-06502",
           :sql=> "\
 WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, Plan_Hash_Value, PDML_Reason, IDL_Reason
                FROM   (SELECT SQL_ID, Plan_Hash_Value,
