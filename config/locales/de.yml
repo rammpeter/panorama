@@ -1860,6 +1860,8 @@
 
   dragnet_helper_174_desc: |-
     Diese Selektion zeigt SQL Statements, bei denen paralleles DML oder direct load verwendet werden könnte oder sollte, aber nicht verwendet wird.
+    'pdml reason' zeigt den Grund warum parallel DML nicht genutzt wurde für das Statement.
+    'idl reason' zeigt den Grund warum direct Load nicht genutzt wurde für das Statement.
     Die gweünschte parallele Ausführung von DML wird angenommen, wenn PARALLEL DML in der Session enabled ist.
   dragnet_helper_174_name: |-
     Unterdrückte Nutzung von möglicherweise erwartetem parallelem DML oder direct load

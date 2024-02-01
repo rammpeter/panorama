@@ -53,6 +53,7 @@ module DragnetHelper
   #   :sql            SQL-Statement zur Ausführung
   #   :min_db_version Optional minimum DB version
   #   :not_executable Optional mark entry as not executable SQL
+  #   :suppress_error_for_code Ignore errors if this code is contained in error message
   #   :parameter      Array von Hashes mit folgender Struktur
   #       :name       Name des Parameters
   #       :size       Darstellungsgröße

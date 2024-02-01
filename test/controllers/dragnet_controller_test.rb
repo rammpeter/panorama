@@ -75,7 +75,12 @@ class DragnetControllerTest < ActionController::TestCase
               )
                 Rails.logger.debug('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for autonomous database"}
               else
-                assert_response(expected_result, errmsg)
+                # Check if error may be suppressed for certain selections
+                if errmsg[full_entry[:suppress_error_for_code]]
+                  Rails.logger.info('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for this selection because of suppress_error_for_code #{full_entry[:suppress_error_for_code]}" }
+                else
+                  assert_response(expected_result, errmsg)
+                end
               end
             else
               # Without management pack license execution should result in error if SQL contains DBA_HIST

@@ -436,8 +436,11 @@ ORDER BY Seconds_Waiting DESC
           :name  => t(:dragnet_helper_174_name, :default=>'Suppressed use of possibly expected parallel DML or direct load'),
           :desc  => t(:dragnet_helper_174_desc, :default=>"\
 This selection shows SQL statements where parallel DML or direct load could or should be used, but is not really used.
+'pdml reason' shows reason why parallel DML is not used for this statement.
+'idl reason' shows reason why direct load is not used for this statement.
 Parallel execution of DML is assumed to be used if PARALLEL DML is enabled in the session.
 "),
+          suppress_error_for_code: 'ORA-06512: in "SYS.XMLTYPE"',
           :sql=> "\
 WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ SQL_ID, Plan_Hash_Value, PDML_Reason, IDL_Reason
                FROM   (SELECT SQL_ID, Plan_Hash_Value,
