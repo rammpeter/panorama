@@ -81,20 +81,20 @@ module EnvHelper
   # Ensure client browser has unique client_key stored as cookie
   MAX_NEW_KEY_TRIES  = 1000
   def initialize_client_key_cookie
-    if cookies['client_key']
+    if cookies[:client_key]
       begin
-        Encryption.decrypt_value(cookies['client_key'], cookies['client_salt']) # Test client_key-Cookie for possible decryption
+        Encryption.decrypt_value(cookies[:client_key], cookies[:client_salt]) # Test client_key-Cookie for possible decryption
       rescue Exception => e
-        Rails.logger.error('EnvHelper.initialize_client_key_cookie') { "Exception #{e.message} while database_helper_decrypt_value(cookies['client_key'])" }
-        cookies.delete('client_key')                                            # Verwerfen des nicht entschlüsselbaren Cookies
-        cookies.delete('client_salt')
+        Rails.logger.error('EnvHelper.initialize_client_key_cookie') { "Exception #{e.message} while database_helper_decrypt_value(cookies[:client_key])" }
+        cookies.delete(:client_key)                                            # Verwerfen des nicht entschlüsselbaren Cookies
+        cookies.delete(:client_salt)
       end
     end
 
-    if cookies['client_key']
+    if cookies[:client_key]
       if cookies.class.name != 'Rack::Test::CookieJar' # Don't set Hash for cookies in test because it becomes String like ' { :value => 100, :expires => ... }'
-        cookies['client_salt'] = {:value => cookies['client_salt'], :expires => 1.year.from_now, httponly: true} # Timeout neu setzen bei Benutzung
-        cookies['client_key'] = {:value => cookies['client_key'], :expires => 1.year.from_now, httponly: true} # Timeout neu setzen bei Benutzung
+        cookies[:client_salt] = {:value => cookies[:client_salt], :expires => 1.year.from_now, httponly: true} # Timeout neu setzen bei Benutzung
+        cookies[:client_key] = {:value => cookies[:client_key], :expires => 1.year.from_now, httponly: true} # Timeout neu setzen bei Benutzung
       end
     else # Erster Zugriff in neu gestartetem Browser oder Cookie nicht mehr verfügbar
       loop_count = 0
@@ -103,8 +103,8 @@ module EnvHelper
         new_client_key = rand(10000000)
         unless ClientInfoStore.exist?(new_client_key) # Dieser Key wurde noch nie genutzt
           # Salt immer mit belegen bei Vergabe des client_key, da es genutzt wird zur Verschlüsselung des Client_Key im cookie
-          cookies['client_salt'] = {:value => rand(10000000000), :expires => 1.year.from_now, httponly: true} # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
-          cookies['client_key'] = {:value => Encryption.encrypt_value(new_client_key, cookies['client_salt']), :expires => 1.year.from_now, httponly: true}
+          cookies[:client_salt] = {:value => rand(10000000000), :expires => 1.year.from_now, httponly: true} # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
+          cookies[:client_key] = {:value => Encryption.encrypt_value(new_client_key, cookies[:client_salt]), :expires => 1.year.from_now, httponly: true}
           ClientInfoStore.write(new_client_key, 1) # Marker fuer Verwendung des Client-Keys
           break
         end

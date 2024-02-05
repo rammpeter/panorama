@@ -15,7 +15,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
     config_hash        = get_current_database.clone
     config_hash[:name] = 'Hugo'
     # Get the password of the default test connection
-    decrypted_password = Encryption.decrypt_value(config_hash[:password], cookies['client_salt'])
+    decrypted_password = Encryption.decrypt_value(config_hash[:password], cookies[:client_salt])
     # Encrypt the password again with salt = panorama_sampler master password
     config_hash[:password]                       = Encryption.encrypt_value(decrypted_password, Panorama::Application.config.panorama_master_password)
     config_hash[:owner]                          = config_hash[:user] # Default

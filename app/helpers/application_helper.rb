@@ -579,7 +579,7 @@ module ApplicationHelper
   # Accessed by PanoramaConnection within request
   def set_connection_info_for_request(current_database)
     PanoramaConnection.set_connection_info_for_request(current_database.merge(
-        :client_salt              => cookies['client_salt'],
+        :client_salt              => cookies[:client_salt],
         :current_controller_name  => controller_name,
         :current_action_name      => action_name
     ))
@@ -621,7 +621,7 @@ module ApplicationHelper
   end
 
   def admin_jwt_valid?
-    token = cookies['master']
+    token = cookies[:master]
     begin
       decoded_token = JWT.decode(token, jwt_secret, true, { algorithm: 'HS256' })
       true
@@ -651,7 +651,7 @@ module ApplicationHelper
 
   # @return [String] the secret used for encryption of JWT
   def jwt_secret
-    "#{cookies['client_salt']}#{Rails.application.secrets.secret_key_base}"
+    "#{cookies[:client_salt]}#{Rails.application.secrets.secret_key_base}"
   end
 
   def get_sga_sql_statement(instance, sql_id)  # Ermittlung formatierter SQL-Text
@@ -715,19 +715,19 @@ module ApplicationHelper
   # Ausliefern des client-Keys
   def get_decrypted_client_key
     if !defined?(@buffered_client_key) || @buffered_client_key.nil?
-#      Rails.logger.debug "get_decrypted_client_key: client_key = #{cookies['client_key']} client_salt = #{cookies['client_salt']}"
-      return nil if cookies['client_key'].nil? && cookies['client_salt'].nil?  # Connect vom Job oder monitor
-      @buffered_client_key = Encryption.decrypt_value(cookies['client_key'], cookies['client_salt'])      # wirft ActiveSupport::MessageVerifier::InvalidSignature wenn cookies['client_key'] == nil
+#      Rails.logger.debug "get_decrypted_client_key: client_key = #{cookies[:client_key]} client_salt = #{cookies[:client_salt]}"
+      return nil if cookies[:client_key].nil? && cookies[:client_salt].nil?  # Connect vom Job oder monitor
+      @buffered_client_key = Encryption.decrypt_value(cookies[:client_key], cookies[:client_salt])      # wirft ActiveSupport::MessageVerifier::InvalidSignature wenn cookies[:client_key] == nil
     end
     @buffered_client_key
   rescue ActiveSupport::MessageVerifier::InvalidSignature => e
-    Rails.logger.error('ApplicationHelper.get_decrypted_client_key') { "Exception '#{e.message}' raised while decrypting cookies['client_key'] (#{cookies['client_key']})" }
+    Rails.logger.error('ApplicationHelper.get_decrypted_client_key') { "Exception '#{e.message}' raised while decrypting cookies[:client_key] (#{cookies[:client_key]})" }
     #log_exception_backtrace(e, 20)
-    if cookies['client_key'].nil?
+    if cookies[:client_key].nil?
       raise("Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and reload the page.")
     else
-      cookies.delete('client_key')                                               # Verwerfen des nicht entschlüsselbaren Cookies
-      cookies.delete('client_salt')
+      cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
+      cookies.delete(:client_salt)
       ExceptionHelper.reraise_extended_exception(e, "while decrypting your client key from browser cookie. \nPlease try again.", log_location: 'ApplictionHelper.get_decrypted_client_key')
     end
   end

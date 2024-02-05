@@ -17,7 +17,7 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
   test "should connect to test-db with xhr: true" do
     database = get_current_database
-    database[:password] = Encryption.decrypt_value(database[:password], cookies['client_salt'])
+    database[:password] = Encryption.decrypt_value(database[:password], cookies[:client_salt])
 
     # Test with new login parameters
     database[:save_login] = '1'                                                 # String insted of bool like for connect with saved credentials

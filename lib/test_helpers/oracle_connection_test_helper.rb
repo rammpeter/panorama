@@ -50,7 +50,7 @@ class ActiveSupport::TestCase
     initialize_client_key_cookie
 
     # Passwort verschlüsseln in session
-    current_database[:password] = Encryption.encrypt_value(current_database[:password_decrypted], cookies['client_salt'])
+    current_database[:password] = Encryption.encrypt_value(current_database[:password_decrypted], cookies[:client_salt])
 
     @browser_tab_id = 1
     browser_tab_ids = { @browser_tab_id => {
@@ -71,8 +71,8 @@ class ActiveSupport::TestCase
   def set_session_test_db_context(ensure_sampler_tables_if_needed: true)
     # 2017/07/26 cookies are reset in ActionDispatch::IntegrationTest if using initialize_client_key_cookie
     # possibly redundant to def cookies above
-    cookies['client_salt'] = 100
-    cookies['client_key']  = Encryption.encrypt_value(100, cookies['client_salt'])
+    cookies[:client_salt] = 100
+    cookies[:client_key]  = Encryption.encrypt_value(100, cookies[:client_salt])
 
     connect_oracle_db
 

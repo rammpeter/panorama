@@ -63,7 +63,7 @@ class EnvController < ApplicationController
     )
   rescue Exception=>e
     Rails.logger.error('EnvController.index'){ "#{e.message}" }
-    set_current_database(nil) unless cookies['client_key'].nil? # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg (nur wenn client_info_store bereits initialisiert ist)
+    set_current_database(nil) unless cookies[:client_key].nil? # Sicherstellen, dass bei naechstem Aufruf neuer Einstieg (nur wenn client_info_store bereits initialisiert ist)
     raise e                                                                     # Werfen der Exception
   end
 
@@ -275,7 +275,7 @@ class EnvController < ApplicationController
   def set_database_by_params
     check_for_valid_cookie
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
-    params[:database][:password]  =  Encryption.encrypt_value(params[:database][:password], cookies['client_salt'])
+    params[:database][:password]  =  Encryption.encrypt_value(params[:database][:password], cookies[:client_salt])
 
     #set_I18n_locale(params[:database][:locale])  # locale is set directly before, use this
     set_database(true)
