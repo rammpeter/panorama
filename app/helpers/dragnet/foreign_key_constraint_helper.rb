@@ -32,6 +32,7 @@ module Dragnet::ForeignKeyConstraintHelper
                                               GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                               HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                               AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                              AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
                                              )
                     SELECT /* DB-Tools Ramm  Index fehlt fuer Foreign Key*/
                            LOWER(Ref.Owner)||'.'||Ref.Table_Name Table_name,

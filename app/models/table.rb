@@ -25,6 +25,7 @@ class Table
                                                  GROUP BY cc.Constraint_Name
                                                  HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                                  AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                                 AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
                                                 )"
       where_values << index_owner
       where_values << index_name
@@ -58,6 +59,7 @@ class Table
                                 GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                 HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                 AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
                                )
                         GROUP BY Owner, Constraint_Name
                        ) pi ON pi.Owner = c.Owner AND pi.Constraint_Name = c.Constraint_Name
@@ -95,6 +97,7 @@ class Table
                                 GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                 HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                 AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
+                                AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
                                )
                         GROUP BY Owner, Constraint_Name
                        ) pi ON pi.Owner = c.Owner AND pi.Constraint_Name = c.Constraint_Name

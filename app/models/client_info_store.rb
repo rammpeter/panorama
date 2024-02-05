@@ -57,8 +57,6 @@ class ClientInfoStore
     # Only the synchronized instance methods read, write, exists? and cleanup should access @store directly
     @store = ActiveSupport::Cache::FileStore.new(Panorama::Application.config.client_info_filename)
     Rails.logger.info("Local directory for client-info store is #{Panorama::Application.config.client_info_filename}")
-    @buffered_key = nil
-    @buffered_value = nil
   rescue Exception =>e
     ExceptionHelper.reraise_extended_exception(e, "while creating file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ClientInfoStore.initialize')
   end
@@ -68,11 +66,7 @@ class ClientInfoStore
   # @return [String] value
   def read(key)
     @@mutex.synchronize do
-      if @buffered_key != key
-        @buffered_key = key
-        @buffered_value = @store.read(key)
-      end
-      @buffered_value
+      @store.read(key)
     end
   end
 
@@ -82,8 +76,6 @@ class ClientInfoStore
   # @param [Hash] options
   def write(key, value, options = nil)
     @@mutex.synchronize do
-      @buffered_key = key                                                         # Buffer key and value for next read
-      @buffered_value = value                                                     # ensure that new or changed value is returned on next read
       @store.write(key, value)
     end
   end
