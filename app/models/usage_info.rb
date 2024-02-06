@@ -29,31 +29,36 @@ class UsageInfo
   def self.housekeeping
     filename = Panorama::Application.config.usage_info_filename
     temp_filename = filename + '.tmp'
-    # Open the file in write mode with exclusive lock
-    File.open(filename, 'r+') do |file|
-      file.flock(File::LOCK_EX) # Acquire an exclusive lock
 
-      FileUtils.cp(filename, temp_filename)                                     # create a copy of original file with full content
+    if File.exist?(filename)
+      # Open the file in write mode with exclusive lock
+      File.open(filename, 'r+') do |file|
+        file.flock(File::LOCK_EX) # Acquire an exclusive lock
 
-      # Truncate the original file
-      file.rewind
-      file.truncate(0)
+        FileUtils.cp(filename, temp_filename)                                     # create a copy of original file with full content
 
-      temp_file = File.open(temp_filename, 'r')
-      begin
-        min_age = DateTime.now - 180
-        while true
-          line = temp_file.readline
-          begin
-            date = DateTime.parse(line.split[5])
-            file.puts(line) if date > min_age                                   # copy all lines from temp file to original file with younger date
-          rescue Exception => e
-            Rails.logger.error('UsageInfo.housekeeping') { "#{e.class}:#{e.message} while writing the following line in #{filename}: #{line}" }
+        # Truncate the original file
+        file.rewind
+        file.truncate(0)
+
+        temp_file = File.open(temp_filename, 'r')
+        begin
+          min_age = DateTime.now - 180
+          while true
+            line = temp_file.readline
+            begin
+              date = DateTime.parse(line.split[5])
+              file.puts(line) if date > min_age                                   # copy all lines from temp file to original file with younger date
+            rescue Exception => e
+              Rails.logger.error('UsageInfo.housekeeping') { "#{e.class}:#{e.message} while writing the following line in #{filename}: #{line}" }
+            end
           end
+        rescue EOFError
+          temp_file.close
         end
-      rescue EOFError
-        temp_file.close
       end
+    else
+      Rails.logger.warn('UsageInfo.housekeeping') { "File #{filename} does not exist" }
     end
   rescue RuntimeError => e
     Rails.logger.error('UsageInfo.housekeeping') { "#{e.class} while housekeeping #{filename}: #{e.message}" }
