@@ -205,6 +205,7 @@ module ApplicationHelper
 
   # Escape single quote in Javascript strings bounded with single quotes themself
   def escape_js_single_quote(org)
+    return nil if org.nil?
     org.gsub(/'/, "'+String.fromCharCode(39)+'")
   end
 
