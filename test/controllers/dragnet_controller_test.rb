@@ -71,7 +71,7 @@ class DragnetControllerTest < ActionController::TestCase
               Rails.logger.debug errmsg
 
               # Check if error may be suppressed for certain selections
-              if errmsg[full_entry[:suppress_error_for_code]]
+              if full_entry[:suppress_error_for_code] && errmsg[full_entry[:suppress_error_for_code]]
                 Rails.logger.info('DragnetControllerTest.execute_tree') {"Ignore error #{errmsg} for this selection because of suppress_error_for_code #{full_entry[:suppress_error_for_code]}" }
               else
                 Rails.logger.info('DragnetControllerTest.execute_tree') {"Raise error #{errmsg} for this selection because suppress_error_for_code does not fit '#{full_entry[:suppress_error_for_code]}'" }
