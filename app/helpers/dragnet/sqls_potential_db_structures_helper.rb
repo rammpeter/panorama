@@ -498,18 +498,21 @@ ORDER BY DECODE(ic.Index_Name, NULL, 1, 0), t.Num_Rows DESC
 Activation requires recreation of table a'la CREATE TABLE NewTab LOB(ColName) STORE AS SECUREFILE (COMPRESS HIGH) AS SELECT * FROM OrgTab;
 Licensing of Advanced Compression Option is required for usage of LOB-Compression."),
             :sql=> "
-SELECT /*+ ORDERED */ l.Owner, l.Table_name, l.Column_Name, tc.Data_Type, l.Segment_Name, l.Tablespace_Name, s.MBytes,
+WITH MBytes AS (SELECT /*+ MATERIALIZE */ Owner, Segment_Name, Segment_Type, ROUND(SUM(Bytes)/(1024*1024),1) MBytes
+                FROM   DBA_Segments
+                GROUP BY Owner, Segment_Name, Segment_Type
+               )
+SELECT /*+ ORDERED */ l.Owner, l.Table_name, l.Column_Name, tc.Data_Type, l.Segment_Name, l.Tablespace_Name,
+       s.MBytes MBytes_Lob, st.MBytes MBytes_Table,
        l.Encrypt, l.Compression, l.Deduplication, l.In_Row, l.Partitioned, l.Securefile, t.Num_Rows, tc.Num_Nulls, tc.Avg_Col_Len Avg_Col_Len_In_Row
 FROM   DBA_Lobs l
 LEFT OUTER JOIN DBA_All_Tables t       ON t.Owner = l.Owner AND t.Table_Name = l.Table_Name
 LEFT OUTER JOIN DBA_Tab_Columns tc ON tc.Owner = l.Owner AND tc.Table_Name = l.Table_Name AND tc.Column_Name = l.Column_Name
-JOIN   (SELECT /*+ NO_MERGE */ Owner, Segment_Name, Segment_Type, SUM(Bytes)/(1024*1024) MBytes
-        FROM   DBA_Segments
-        GROUP BY Owner, Segment_Name, Segment_Type
-       ) s ON s.Owner = l.Owner AND s.Segment_Name = l.Segment_Name
+JOIN   MBytes s ON s.Owner = l.Owner AND s.Segment_Name = l.Segment_Name
+JOIN   MBytes st ON st.Owner = t.Owner AND st.Segment_Name = t.Table_Name
 WHERE  l.Owner NOT IN (#{system_schema_subselect})
 AND    l.Compression LIKE 'NO%'
-ORDER BY s.MBytes DESC
+ORDER BY s.MBytes + st.MBytes DESC
             ",
         },
         {

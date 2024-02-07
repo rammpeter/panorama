@@ -1723,7 +1723,7 @@
     Wenn die Partition-Keys eindeutig oder selektiv genug für effizientes Partition-Pruning sind, dann gibt es of keinen Grund, die Spalten noch zusätzlich im Index zu halten.
     Partition-Pruning z.B. bei List-Partitions ist effizienter als B-Baum-Zugriff im Index.
     Die Entfernung dieser Spalten aus dem Index reduziert die Größe des Index und den Aufwand beim Index-Scan.
-    Ausnahme: Für Unique-Indizes müssen die Spalten trotzdem Bestandteil des Index sein.
+    Ausnahme: Für Unique-Indizes und Absicherung von Foriegn Key Constraints müssen die Spalten trotzdem Bestandteil des Index sein.
   dragnet_helper_163_name:  Möglicherweise unnötige Spalten von Indizes die gleichzeitig auch Partition-Keys sind
 
   dragnet_helper_164_desc: |-
