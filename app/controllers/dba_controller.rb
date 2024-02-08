@@ -203,7 +203,7 @@ class DbaController < ApplicationController
                              AND PRIOR Inst_ID  = blocking_instance_number
                              AND PRIOR serial_no = blocking_serial_no
              )
-      SELECT l.*, NULL Waiting_App_Desc, NULL Blocking_App_Desc
+      SELECT l.*
       FROM   HLocks l
       -- Jede Zeile nur einmal unter der Root-Hierarchie erscheinen lassen, nicht als eigenen Knoten
       WHERE NOT EXISTS (SELECT 1 FROM HLocks t
@@ -213,14 +213,6 @@ class DbaController < ApplicationController
                         AND    t.HLevel   > l.HLevel
                        )
        ORDER BY Row_Num"
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @locks.each {|l|
-      l.waiting_app_desc = explain_application_info(l.module)
-      l.blocking_app_desc = explain_application_info(l.blocking_module)
-    }
-
     render_partial :list_blocking_dml_locks
   end
 
@@ -1446,13 +1438,6 @@ oradebug setorapname diag
   end
 
   def show_blocking_sessions
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    record_modifier = proc{|rec|
-      rec['waiting_app_desc']  = explain_application_info(rec.module)
-      rec['blocking_app_desc'] = explain_application_info(rec.blocking_module)
-    }
-
     @blocking_waits = sql_select_iterator("\
       WITH Locks AS (
               SELECT /* Panorama-Tool Ramm */
@@ -1512,7 +1497,7 @@ oradebug setorapname diag
                              AND PRIOR Inst_ID  = blocking_instance_number
                              AND PRIOR serial_no = blocking_serial_no
              )
-      SELECT l.*, NULL Waiting_App_Desc, NULL Blocking_App_Desc
+      SELECT l.*
       FROM   HLocks l
       -- Jede Zeile nur einmal unter der Root-Hierarchie erscheinen lassen, nicht als eigenen Knoten
       WHERE NOT EXISTS (SELECT 1 FROM HLocks t

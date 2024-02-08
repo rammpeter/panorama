@@ -85,7 +85,7 @@
     {:caption=>"SQL-ID Prev.SQL-ID", :data=>link_column_sql_id,                                               :title=>"Current and previous SQL of blocked session"},
     {:caption=>"Event",           :data=>proc{|rec| rec.event},                                               :title=>"Wait event of blocked session", data_title: proc{|rec| "%t\n\n#{explain_wait_event(rec.event)}"}},
     {:caption=>"Status",          :data=>proc{|rec| rec.status},                                              :title=>"Status of blocked session"},
-    {:caption=>"Client-Info / Module / Action",:data=>proc{|rec| "#{rec.client_info} #{rec.module} #{rec.action}"}, :title=>"Client-Info, module and action of blocked session", :data_title=>proc{|rec| "%t\n#{rec.waiting_app_desc}"}},
+    {:caption=>"Client-Info / Module / Action",:data=>proc{|rec| "#{rec.client_info} #{rec.module} #{rec.action}"}, :title=>"Client-Info, module and action of blocked session"},
     {:caption=>"User",            :data=>proc{|rec| rec.user_name},                                           :title=>"User of blocked session", :data_title=>proc{|rec| "%t\nMachine=#{rec.machine}\nOS-User=#{rec.os_user}\nProcess=#{rec.process}"}},
     {:caption=>"Program",         :data=>proc{|rec| rec.program},                                             :title=>"Program of blocked session", :data_title=>proc{|rec| "%t\nMachine=#{rec.machine}\nOS-User=#{rec.os_user}\nProcess=#{rec.process}"}},
     {:caption=>"Object name",     :data=>proc{|rec| rec.object_name},                                         :title=>"Name of object session is waiting for"},

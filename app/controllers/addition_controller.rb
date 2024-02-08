@@ -269,96 +269,117 @@ class AdditionController < ApplicationController
                       WHERE  l.Snapshot_Timestamp BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
                       AND    l.Blocking_SID IS NOT NULL  -- keine langdauernden Locks beruecksichtigen
                     )
-      SELECT Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
-             COUNT(DISTINCT SID) Blocked_Sessions_Total,
-             COUNT(DISTINCT CASE WHEN cLevel=1 THEN SID ELSE NULL END) Blocked_Sessions_Direct,
-             SUM(Seconds_In_Wait)                                      Seconds_in_wait_Total,
-             CASE WHEN COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name) > 1 THEN   -- Nur anzeigen wenn eindeutig
-               '< '||COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name)||' >'
-             ELSE
-               MIN(Root_Blocking_Object_Owner||'.'||
-                 CASE
-                   WHEN Root_Blocking_Object_Name LIKE 'SYS_LOB%%' THEN
-                     Root_Blocking_Object_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Root_Blocking_Object_Name, 8, 10)) )||')'
-                   WHEN Root_Blocking_Object_Name LIKE 'SYS_IL%%' THEN
-                    Root_Blocking_Object_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Root_Blocking_Object_Name, 7, 10)) )||')'
-                   ELSE Root_Blocking_Object_Name
-                 END)
-             END Root_Blocking_Object,
-             CASE WHEN COUNT(DISTINCT Root_Blocking_RowID) > 1 THEN   -- Nur anzeigen wenn eindeutig
-               '< '||COUNT(DISTINCT Root_Blocking_ROWID)||' >'
-             ELSE
-               MIN(CAST(Root_Blocking_RowID AS VARCHAR2(18)))
-             END Root_Blocking_RowID,
-             Root_Blocking_SQL_ID, Root_Blocking_SQL_Child_Number, Root_Blocking_Prev_SQL_ID, Root_Block_Prev_Child_Number,
-             CASE WHEN COUNT(DISTINCT Root_Wait_For_PK_Column_Name) > 1 THEN   -- Nur anzeigen wenn eindeutig
-               '< '||COUNT(DISTINCT Root_Wait_For_PK_Column_Name)||' >'
-             ELSE
-               MIN(Root_Wait_For_PK_Column_Name)
-             END Root_Wait_For_PK_Column_Name,
-             CASE WHEN COUNT(DISTINCT Root_Waiting_For_PK_Value) > 1 THEN   -- Nur anzeigen wenn eindeutig
-               '< '||COUNT(DISTINCT Root_Waiting_For_PK_Value)||' >'
-             ELSE
-               MIN(Root_Waiting_For_PK_Value)
-             END Root_Waiting_For_PK_Value,
-             Root_Blocking_Event,
-             Root_Blocking_Status, Root_Blocking_Client_Info,
-             Root_Blocking_Module, Root_Blocking_Action, Root_Blocking_User_Name, Root_Blocking_Machine, Root_Blocking_OS_User,
-             Root_Blocking_Process, Root_Blocking_Program,
-             NULL Blocking_App_Desc
+      SELECT x.*,
+             w.Event        Waiting_Event,
+             w.Client_Info  Waiting_Client_Info,
+             w.Module       Waiting_Module,
+             w.Action       Waiting_Action,
+             w.User_Name    Waiting_UserName,
+             w.Program      Waiting_Program,
+             w.Machine      Waiting_Machine,
+             w.OS_User      Waiting_OS_User,
+             w.Process      Waiting_Process
       FROM   (
-              SELECT CONNECT_BY_ROOT Snapshot_Timestamp       Root_Snapshot_Timestamp,
-                     CONNECT_BY_ROOT Blocking_Instance_Number Root_Blocking_Instance_Number,
-                     CONNECT_BY_ROOT Blocking_SID             Root_Blocking_SID,
-                     CONNECT_BY_ROOT Blocking_Serial_No        Root_Blocking_Serial_No,
-                     CONNECT_BY_ROOT Blocking_Object_Owner    Root_Blocking_Object_Owner,
-                     CONNECT_BY_ROOT Blocking_Object_Name     Root_Blocking_Object_Name,
-                     CONNECT_BY_ROOT Blocking_RowID           Root_Blocking_RowID,
-                     CONNECT_BY_ROOT Blocking_SQL_ID          Root_Blocking_SQL_ID,
-                     CONNECT_BY_ROOT Blocking_SQL_Child_Number Root_Blocking_SQL_Child_Number,
-                     CONNECT_BY_ROOT Blocking_Prev_SQL_ID     Root_Blocking_Prev_SQL_ID,
-                     CONNECT_BY_ROOT Blocking_Prev_Child_Number Root_Block_Prev_Child_Number,
-                     CONNECT_BY_ROOT Blocking_Event           Root_Blocking_Event,
-                     CONNECT_BY_ROOT Waiting_For_PK_Column_Name Root_Wait_For_PK_Column_Name,
-                     CONNECT_BY_ROOT Waiting_For_PK_Value     Root_Waiting_For_PK_Value,
-                     CONNECT_BY_ROOT Blocking_Status          Root_Blocking_Status,
-                     CONNECT_BY_ROOT Blocking_Client_Info     Root_Blocking_Client_Info,
-                     CONNECT_BY_ROOT Blocking_Module          Root_Blocking_Module,
-                     CONNECT_BY_ROOT Blocking_Action          Root_Blocking_Action,
-                     CONNECT_BY_ROOT Blocking_User_Name       Root_Blocking_User_Name,
-                     CONNECT_BY_ROOT Blocking_Machine         Root_Blocking_Machine,
-                     CONNECT_BY_ROOT Blocking_OS_User         Root_Blocking_OS_User,
-                     CONNECT_BY_ROOT Blocking_Process         Root_Blocking_Process,
-                     CONNECT_BY_ROOT Blocking_Program         Root_Blocking_Program,
-                     l.*,
-                     Level cLevel
-              FROM   TSSel l
-              CONNECT BY NOCYCLE PRIOR Snapshot_Timestamp   = Snapshot_Timestamp
-                     AND PRIOR sid                          = blocking_sid
-                     AND PRIOR instance_number              = blocking_instance_number
-                     AND PRIOR serial_no                     = blocking_serial_no
-             ) l
-
-      WHERE NOT EXISTS (SELECT 1 FROM TSSel i -- Nur die Knoten ohne Parent-Blocker darstellen
-                        WHERE  i.Snapshot_Timestamp = l.Snapshot_Timestamp
-                        AND    i.Instance_Number    = l.Root_Blocking_Instance_Number
-                        AND    i.SID                = l.Root_Blocking_SID
-                        AND    i.Serial_No           = l.Root_Blocking_Serial_No
-                       )
-      GROUP BY Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
-               Root_Blocking_SQL_ID, Root_Blocking_SQL_Child_Number, Root_Blocking_Prev_SQL_ID, Root_Block_Prev_Child_Number,
-               Root_Blocking_Event, Root_Blocking_Status, Root_Blocking_Client_Info,
-               Root_Blocking_Module, Root_Blocking_Action, Root_Blocking_User_Name, Root_Blocking_Machine, Root_Blocking_OS_User,
-             Root_Blocking_Process, Root_Blocking_Program
-      HAVING SUM(Seconds_In_Wait)*1000 > ?
-      ORDER BY SUM(Seconds_In_Wait) DESC",
+              SELECT Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
+                     COUNT(DISTINCT SID) Blocked_Sessions_Total,
+                     COUNT(DISTINCT CASE WHEN cLevel=1 THEN SID ELSE NULL END) Blocked_Sessions_Direct,
+                     SUM(Seconds_In_Wait)                                      Seconds_in_wait_Total,
+                     CASE WHEN COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name) > 1 THEN   -- Nur anzeigen wenn eindeutig
+                       '< '||COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name)||' >'
+                     ELSE
+                       MIN(Root_Blocking_Object_Owner||'.'||
+                         CASE
+                           WHEN Root_Blocking_Object_Name LIKE 'SYS_LOB%%' THEN
+                             Root_Blocking_Object_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Root_Blocking_Object_Name, 8, 10)) )||')'
+                           WHEN Root_Blocking_Object_Name LIKE 'SYS_IL%%' THEN
+                            Root_Blocking_Object_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Root_Blocking_Object_Name, 7, 10)) )||')'
+                           ELSE Root_Blocking_Object_Name
+                         END)
+                     END Root_Blocking_Object,
+                     CASE WHEN COUNT(DISTINCT Root_Blocking_RowID) > 1 THEN   -- Nur anzeigen wenn eindeutig
+                       '< '||COUNT(DISTINCT Root_Blocking_ROWID)||' >'
+                     ELSE
+                       MIN(CAST(Root_Blocking_RowID AS VARCHAR2(18)))
+                     END Root_Blocking_RowID,
+                     Root_Blocking_SQL_ID, Root_Blocking_SQL_Child_Number, Root_Blocking_Prev_SQL_ID, Root_Block_Prev_Child_Number,
+                     CASE WHEN COUNT(DISTINCT Root_Wait_For_PK_Column_Name) > 1 THEN   -- Nur anzeigen wenn eindeutig
+                       '< '||COUNT(DISTINCT Root_Wait_For_PK_Column_Name)||' >'
+                     ELSE
+                       MIN(Root_Wait_For_PK_Column_Name)
+                     END Root_Wait_For_PK_Column_Name,
+                     CASE WHEN COUNT(DISTINCT Root_Waiting_For_PK_Value) > 1 THEN   -- Nur anzeigen wenn eindeutig
+                       '< '||COUNT(DISTINCT Root_Waiting_For_PK_Value)||' >'
+                     ELSE
+                       MIN(Root_Waiting_For_PK_Value)
+                     END Root_Waiting_For_PK_Value,
+                     Root_Blocking_Event,
+                     Root_Blocking_Status, Root_Blocking_Client_Info,
+                     Root_Blocking_Module, Root_Blocking_Action, Root_Blocking_User_Name, Root_Blocking_Machine, Root_Blocking_OS_User,
+                     Root_Blocking_Process, Root_Blocking_Program,
+                     COUNT(*) waiting_event --
+              FROM   (
+                      SELECT CONNECT_BY_ROOT Snapshot_Timestamp       Root_Snapshot_Timestamp,
+                             CONNECT_BY_ROOT Blocking_Instance_Number Root_Blocking_Instance_Number,
+                             CONNECT_BY_ROOT Blocking_SID             Root_Blocking_SID,
+                             CONNECT_BY_ROOT Blocking_Serial_No        Root_Blocking_Serial_No,
+                             CONNECT_BY_ROOT Blocking_Object_Owner    Root_Blocking_Object_Owner,
+                             CONNECT_BY_ROOT Blocking_Object_Name     Root_Blocking_Object_Name,
+                             CONNECT_BY_ROOT Blocking_RowID           Root_Blocking_RowID,
+                             CONNECT_BY_ROOT Blocking_SQL_ID          Root_Blocking_SQL_ID,
+                             CONNECT_BY_ROOT Blocking_SQL_Child_Number Root_Blocking_SQL_Child_Number,
+                             CONNECT_BY_ROOT Blocking_Prev_SQL_ID     Root_Blocking_Prev_SQL_ID,
+                             CONNECT_BY_ROOT Blocking_Prev_Child_Number Root_Block_Prev_Child_Number,
+                             CONNECT_BY_ROOT Blocking_Event           Root_Blocking_Event,
+                             CONNECT_BY_ROOT Waiting_For_PK_Column_Name Root_Wait_For_PK_Column_Name,
+                             CONNECT_BY_ROOT Waiting_For_PK_Value     Root_Waiting_For_PK_Value,
+                             CONNECT_BY_ROOT Blocking_Status          Root_Blocking_Status,
+                             CONNECT_BY_ROOT Blocking_Client_Info     Root_Blocking_Client_Info,
+                             CONNECT_BY_ROOT Blocking_Module          Root_Blocking_Module,
+                             CONNECT_BY_ROOT Blocking_Action          Root_Blocking_Action,
+                             CONNECT_BY_ROOT Blocking_User_Name       Root_Blocking_User_Name,
+                             CONNECT_BY_ROOT Blocking_Machine         Root_Blocking_Machine,
+                             CONNECT_BY_ROOT Blocking_OS_User         Root_Blocking_OS_User,
+                             CONNECT_BY_ROOT Blocking_Process         Root_Blocking_Process,
+                             CONNECT_BY_ROOT Blocking_Program         Root_Blocking_Program,
+                             l.*,
+                             Level cLevel
+                      FROM   TSSel l
+                      CONNECT BY NOCYCLE PRIOR Snapshot_Timestamp   = Snapshot_Timestamp
+                             AND PRIOR sid                          = blocking_sid
+                             AND PRIOR instance_number              = blocking_instance_number
+                             AND PRIOR serial_no                     = blocking_serial_no
+                     ) l
+              WHERE NOT EXISTS (SELECT 1 FROM TSSel i -- Nur die Knoten ohne Parent-Blocker darstellen
+                                WHERE  i.Snapshot_Timestamp = l.Snapshot_Timestamp
+                                AND    i.Instance_Number    = l.Root_Blocking_Instance_Number
+                                AND    i.SID                = l.Root_Blocking_SID
+                                AND    i.Serial_No           = l.Root_Blocking_Serial_No
+                               )
+              GROUP BY Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
+                       Root_Blocking_SQL_ID, Root_Blocking_SQL_Child_Number, Root_Blocking_Prev_SQL_ID, Root_Block_Prev_Child_Number,
+                       Root_Blocking_Event, Root_Blocking_Status, Root_Blocking_Client_Info,
+                       Root_Blocking_Module, Root_Blocking_Action, Root_Blocking_User_Name, Root_Blocking_Machine, Root_Blocking_OS_User,
+                     Root_Blocking_Process, Root_Blocking_Program
+              HAVING SUM(Seconds_In_Wait)*1000 > ?
+             ) x
+      LEFT OUTER JOIN (SELECT Snapshot_Timestamp, Blocking_Instance_Number, Blocking_SID, Blocking_Serial_No,
+                              CASE WHEN COUNT(DISTINCT Event) > 1        THEN '< '||COUNT(DISTINCT Event)||' >'       ELSE MIN(Event)       END Event,
+                              CASE WHEN COUNT(DISTINCT Client_Info) > 1  THEN '< '||COUNT(DISTINCT Client_Info)||' >' ELSE MIN(Client_Info) END Client_Info,
+                              CASE WHEN COUNT(DISTINCT Module) > 1       THEN '< '||COUNT(DISTINCT Module)||' >'      ELSE MIN(Module)      END Module,
+                              CASE WHEN COUNT(DISTINCT Action) > 1       THEN '< '||COUNT(DISTINCT Action)||' >'      ELSE MIN(Action)      END Action,
+                              CASE WHEN COUNT(DISTINCT User_Name) > 1    THEN '< '||COUNT(DISTINCT User_Name)||' >'   ELSE MIN(User_Name)   END User_Name,
+                              CASE WHEN COUNT(DISTINCT Program) > 1      THEN '< '||COUNT(DISTINCT Program)||' >'     ELSE MIN(Program)     END Program,
+                              CASE WHEN COUNT(DISTINCT Machine) > 1      THEN '< '||COUNT(DISTINCT Machine)||' >'     ELSE MIN(Machine)     END Machine,
+                              CASE WHEN COUNT(DISTINCT OS_User) > 1      THEN '< '||COUNT(DISTINCT OS_User)||' >'     ELSE MIN(OS_User)     END OS_User,
+                              CASE WHEN COUNT(DISTINCT Process) > 1      THEN '< '||COUNT(DISTINCT Process)||' >'     ELSE MIN(Process)     END Process
+                       FROM   TSSel
+                       GROUP BY Snapshot_Timestamp, Blocking_Instance_Number, Blocking_SID, Blocking_Serial_No
+                      ) w ON  w.Snapshot_Timestamp = x.Root_Snapshot_Timestamp
+                          AND w.Blocking_Instance_Number  = x.Root_Blocking_Instance_Number
+                          AND w.Blocking_SID              = x.Root_Blocking_SID
+                          AND w.Blocking_Serial_No        = x.Root_Blocking_Serial_No
+      ORDER BY Seconds_in_wait_Total DESC",
                             @time_selection_start, @time_selection_end, @min_wait_ms]
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @locks.each {|l|
-      l.blocking_app_desc =  explain_application_info(l.root_blocking_module)
-    }
 
     render_partial :list_blocking_locks_history_hierarchy
   end
@@ -388,7 +409,6 @@ class AdditionController < ApplicationController
              END Object_Name,
              o.Lock_Type, o.ID1, o.ID2, o.request, o.lock_mode, o.Blocking_Object_Owner, o.Blocking_Object_Name,
              CAST(o.Blocking_RowID AS VARCHAR2(18)) Blocking_RowID, o.Waiting_For_PK_Column_Name, o.Waiting_For_PK_Value,
-             NULL Waiting_App_Desc,
              cs.*,
              (SELECT COUNT(*) FROM TSel li
               WHERE li.Instance_Number=o.Instance_Number AND li.SID=o.SID AND li.Serial_No=o.Serial_No
@@ -418,12 +438,6 @@ class AdditionController < ApplicationController
       AND    o.Blocking_Serial_No        = ?
       ORDER BY o.Seconds_In_Wait+cs.Seconds_In_Wait_Blocked_Total DESC",
                             @snapshot_timestamp, @blocking_instance, @blocking_sid, @blocking_serial_no, @blocking_instance, @blocking_sid, @blocking_serial_no]
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @locks.each {|l|
-      l.waiting_app_desc = explain_application_info(l.module)
-    }
 
     render_partial
   end
@@ -464,22 +478,11 @@ class AdditionController < ApplicationController
              Blocking_Prev_SQL_ID, Blocking_Prev_Child_Number,
              Blocking_Event, Blocking_Status,
              Blocking_Client_Info, Blocking_Module, Blocking_Action,
-             Blocking_User_Name, Blocking_Machine, Blocking_OS_User, Blocking_Process, Blocking_Program,
-             NULL Waiting_App_Desc,
-             NULL Blocking_App_Desc
+             Blocking_User_Name, Blocking_Machine, Blocking_OS_User, Blocking_Process, Blocking_Program
       FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks l
       WHERE  1 = 1 -- Dummy um nachfolgend mit AND fortzusetzen
       #{@where_string}
       ORDER BY Snapshot_Timestamp"].concat(@where_values)
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @locks.each {|l|
-      l.waiting_app_desc = explain_application_info(l.module)
-      l.blocking_app_desc = explain_application_info(l.blocking_module)
-    }
-
-
     render_partial
   end
 
@@ -528,21 +531,13 @@ class AdditionController < ApplicationController
              END  Blocking_Object, CAST(Blocking_RowID AS VARCHAR2(18)) Blocking_RowID, Blocking_instance_Number, Blocking_SID, Blocking_Serial_No,
              Blocking_SQL_ID, Blocking_SQL_Child_Number, Blocking_Prev_SQL_ID, Blocking_Prev_Child_Number, Blocking_Status,
              Blocking_Client_Info, Blocking_Module, Blocking_Action, Blocking_User_Name, Blocking_Machine, Blocking_OS_User, Blocking_Process, Blocking_Program,
-             Waiting_For_PK_Column_Name, Waiting_For_PK_Value,
-             NULL Blocking_App_Desc
+             Waiting_For_PK_Column_Name, Waiting_For_PK_Value
       FROM   TSel l
       CONNECT BY NOCYCLE PRIOR blocking_sid             = sid
                      AND PRIOR blocking_instance_number = instance_number
                      AND PRIOR blocking_serial_no        = serial_no
       START WITH Instance_Number=? AND SID=? AND Serial_No=?",
                             @snapshot_timestamp, @instance, @sid,@serial_no]
-
-    # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
-    # da die Tabellen nicht auf allen DB zur Verfügung stehen
-    @locks.each {|l|
-      l.blocking_app_desc = explain_application_info(l.blocking_module)
-    }
-
     render_partial
   end
 
