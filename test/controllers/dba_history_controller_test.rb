@@ -414,7 +414,8 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
 
   test "list_awr_sql_monitor_report_html with xhr: true" do
     instance = PanoramaConnection.instance_number
-    if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack
+    # 18.4 xe raises ORA-13988: Ungültige Eingabe für variable Argumentlisten-Berichtfunktion.
+    if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !get_db_version['18.4']
       origins = ['GV$SQL_MONITOR']
 
       # DBA_Hist_Reports available beginning with 12.1
