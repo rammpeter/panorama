@@ -14,10 +14,11 @@ module Dragnet::ForeignKeyConstraintHelper
                                          FROM   DBA_Constraints
                                          WHERE  Owner NOT IN (#{system_schema_subselect})
                                         ),
-                         Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_name, Column_Name, Position
-                                         FROM   DBA_Cons_Columns
-                                         WHERE  Owner NOT IN (#{system_schema_subselect})
-                                        ),
+                         Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_name, Column_Name, Position,
+                                                 COUNT(*) OVER (PARTITION BY Owner, Constraint_Name) Column_Count
+                                          FROM   DBA_Cons_Columns
+                                          WHERE  Owner NOT IN (#{system_schema_subselect})
+                                         ),
                          Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name
                                      FROM   DBA_Indexes
                                      WHERE  Owner NOT IN (#{system_schema_subselect})
@@ -26,13 +27,18 @@ module Dragnet::ForeignKeyConstraintHelper
                                          FROM   DBA_Ind_Columns
                                          WHERE  Index_Owner NOT IN (#{system_schema_subselect})
                                         ),
+                         All_Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows, Last_Analyzed
+                                        FROM   DBA_All_Tables
+                                        WHERE  Owner NOT IN (#{system_schema_subselect})
+                                       ),
                          Protected_Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ cc.Owner, cc.Constraint_Name
-                                              FROM   DBA_Cons_Columns cc
-                                              LEFT OUTER JOIN DBA_Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_Name = cc.Column_Name
+                                              FROM   Cons_Columns cc
+                                              LEFT OUTER JOIN Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_Name = cc.Column_Name
                                               GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                               HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                               AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                               AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
+                                              AND MIN(cc.Column_Count) = COUNT(*) /* All columns of the constraint are contained in index */
                                              )
                     SELECT /* DB-Tools Ramm  Index fehlt fuer Foreign Key*/
                            LOWER(Ref.Owner)||'.'||Ref.Table_Name Table_name,
@@ -50,9 +56,9 @@ module Dragnet::ForeignKeyConstraintHelper
                            targett.Last_Analyzed Last_Analyzed_Target,
                            target_mod.Deletes \"Target Deletes since analyze\"
                     FROM   Constraints Ref
-                    JOIN   Constraints target       ON target.Owner = ref.R_Owner AND target.Constraint_Name = ref.R_Constraint_Name
-                    JOIN   DBA_All_Tables reft      ON reft.Owner = ref.Owner AND reft.Table_Name = ref.Table_Name
-                    JOIN   DBA_All_Tables targett   ON targett.Owner = target.Owner AND targett.Table_Name = target.Table_Name
+                    JOIN   Constraints target   ON target.Owner = ref.R_Owner AND target.Constraint_Name = ref.R_Constraint_Name
+                    JOIN   All_Tables reft      ON reft.Owner = ref.Owner AND reft.Table_Name = ref.Table_Name
+                    JOIN   All_Tables targett   ON targett.Owner = target.Owner AND targett.Table_Name = target.Table_Name
                     LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Table_Owner, Table_Name, SUM(Deletes) Deletes
                                      FROM   DBA_Tab_Modifications
                                      GROUP BY Table_Owner, Table_Name

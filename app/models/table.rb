@@ -26,6 +26,7 @@ class Table
                                                  HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                                  AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                                  AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
+                                                 AND MIN(cc.Column_Count) = COUNT(*) /* All columns of the constraint are contained in index */
                                                 )"
       where_values << index_owner
       where_values << index_name
@@ -34,7 +35,9 @@ class Table
     end
 
     PanoramaConnection.sql_select_all ["\
-      WITH Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, Column_Name, Position FROM DBA_Cons_Columns WHERE Owner = ? AND Table_Name = ?),
+      WITH Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, Column_Name, Position,
+                                   COUNT(*) OVER (PARTITION BY Constraint_Name) Column_Count
+                            FROM   DBA_Cons_Columns WHERE Owner = ? AND Table_Name = ?),
            Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Table_Owner, Table_Name, Column_Name, Column_Position FROM DBA_Ind_Columns WHERE Table_Owner = ? AND Table_Name = ?)
       SELECT c.*, r.Table_Name R_Table_Name, rt.Num_Rows r_Num_Rows, pi.Min_Index_Owner, pi.Min_Index_Name, pi.Index_Number, rt.Last_Analyzed, m.Inserts, m.Updates, m.Deletes,
              #{PanoramaConnection.db_version >= "11.2" ?
@@ -60,6 +63,7 @@ class Table
                                 HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                 AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                 AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
+                                AND MIN(cc.Column_Count) = COUNT(*) /* All columns of the constraint are contained in index */
                                )
                         GROUP BY Owner, Constraint_Name
                        ) pi ON pi.Owner = c.Owner AND pi.Constraint_Name = c.Constraint_Name
@@ -74,6 +78,10 @@ class Table
   # @return [Array<Reference>]
   def references_to
     PanoramaConnection.sql_select_all ["\
+      WITH Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, Column_Name, Position,
+                                   COUNT(*) OVER (PARTITION BY Owner, Constraint_Name) Column_Count
+                            FROM   DBA_Cons_Columns
+                           )
       SELECT c.*, ct.Num_Rows,  pi.Min_Index_Owner, pi.Min_Index_Name, pi.Index_Number, rt.Num_rows r_Num_Rows,
              #{PanoramaConnection.db_version >= "11.2" ?
                                                       "(SELECT  LISTAGG(column_name, ', ') WITHIN GROUP (ORDER BY Position) FROM DBA_Cons_Columns cc WHERE cc.Owner = r.Owner AND cc.Constraint_Name = r.Constraint_Name) R_Columns,
@@ -92,12 +100,13 @@ class Table
                                COUNT(*) Index_Number
                         FROM   (
                                 SELECT /*+ NO_MERGE */ cc.Owner, cc.Constraint_Name, ic.Index_Owner, ic.Index_Name
-                                FROM   DBA_Cons_Columns cc
+                                FROM   Cons_Columns cc
                                 LEFT OUTER JOIN DBA_Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name AND ic.Column_Name = cc.Column_Name
                                 GROUP BY ic.Index_Owner, ic.Index_Name, cc.Owner, cc.Constraint_Name
                                 HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                 AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                 AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
+                                AND MIN(cc.Column_Count) = COUNT(*) /* All columns of the constraint are contained in index */
                                )
                         GROUP BY Owner, Constraint_Name
                        ) pi ON pi.Owner = c.Owner AND pi.Constraint_Name = c.Constraint_Name

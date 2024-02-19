@@ -280,6 +280,7 @@ If none of the four reasons really requires the existence, the index can be remo
                                               HAVING COUNT(*) = COUNT(DISTINCT ic.Column_Name) /* First columns of index match constraint columns */
                                               AND MAX(cc.Position) = MAX(ic.Column_Position)  /* all matching columns of an index are starting from left without gaps */
                                               AND MIN(cc.Position) = 1 /* Consider all constraint columns starting with the first */
+                                              AND MIN(cc.Column_Count) = COUNT(*) /* All columns of the constraint are contained in index */
                                              ) fk
                                       JOIN   Constraints c     ON c.Owner = fk.Constraint_Owner AND c.Constraint_Name = fk.Constraint_Name AND c.Constraint_Type = 'R'
                                       JOIN   Constraints rc    ON rc.Owner = c.R_Owner AND rc.Constraint_Name = c.R_Constraint_Name
