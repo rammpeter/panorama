@@ -7,7 +7,7 @@
 
 ID=$1
 TOKEN=$2
-RELEASE=2.295.0
+RELEASE=2.313.0
 FILE=actions-runner-linux-x64-$RELEASE.tar.gz
 
 mkdir runner$ID

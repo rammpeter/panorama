@@ -34,6 +34,7 @@
           - nodejs
           - npm
           - chromium
+          - git
         state: latest
 
     - name: Apply updates by dnf-automatic
@@ -204,15 +205,4 @@
 
 ##### config self hosted GitHub runner
 #  Follow instructions at github.com
-#  create /etc/system/system/gitlab_runner.service
-  #  [Unit]
-  #  Description=Github runner
-  #  After=local-fs.target network-online.target
-
-  #  [Service]
-  #  User=pramm
-  #  ExecStart=/bin/bash -c "cd /home/pramm/actions-runner && /home/pramm/actions-runner/run.sh"
-
-  #    [Install]
-  #  WantedBy=multi-user.target
-# systemctl enable gitlab_runner
+#  Use /home/pramm/github_runner/create_runner.sh to create runner instances with credentials from github
