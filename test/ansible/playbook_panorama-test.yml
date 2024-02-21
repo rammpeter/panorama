@@ -206,3 +206,21 @@
 ##### config self hosted GitHub runner
 #  Follow instructions at github.com
 #  Use /home/pramm/github_runner/create_runner.sh to create runner instances with credentials from github
+
+
+##### Install rvm and jRuby
+
+
+#### Update nodejs
+# dnf remove nodejs
+# dnf config-manager --set-enabled ol8_appstream
+# dnf module list --all nodejs
+# dnf module reset nodejs
+# dnf module enable nodejs:20
+# dnf install nodejs
+
+
+##### Resize root file system
+# Edit the root block device, increase size and save
+# follow instructions
+# /usr/libexec/oci-growfs 
