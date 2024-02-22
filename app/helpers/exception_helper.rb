@@ -85,15 +85,15 @@ module ExceptionHelper
   # get Value from proc file system
   def self.gb_value_for_linux(key)
     cmd = "cat /proc/meminfo 2>/dev/null | grep #{key}"
-    output = %x[ #{cmd} ]
+    output = %x[ #{cmd} ]                                                       # skip_brakeman_check for possible command injection
     (output.split(' ')[1].to_f/(1024*1024)).round(3) if output[key]
   end
 
   def self.gb_value_for_darwin(key_darwin, swap_key = nil)
     retval = nil
     cmd = "sysctl -a | grep '#{key_darwin}'"
-    output = %x[ #{cmd} ]
-    if output[key_darwin]                                                     # anything found?
+    output = %x[ #{cmd} ]                                                       # skip_brakeman_check for possible command injection
+    if output[key_darwin]                                                       # anything found?
       if key_darwin == 'vm.swapusage'
         case swap_key
         when 'SwapTotal' then

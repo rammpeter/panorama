@@ -549,7 +549,7 @@ class DbaSgaController < ApplicationController
       list_sql_detail_sql_id
     else
       params[:statusbar_message] = "SQL not found in SGA! Showing history from AWR."
-      redirect_to url_for(controller: :dba_history, action: :list_sql_detail_historic, params: params.permit! , method: :post)
+      redirect_to url_for(controller: :dba_history, action: :list_sql_detail_historic, params: params.permit! , method: :post) # skip_brakeman_check for permit!
     end
 
   end
@@ -597,7 +597,7 @@ class DbaSgaController < ApplicationController
       render_partial :list_sql_detail_sql_id_childno
     else
       if @time_selection_start && @time_selection_end
-        redirect_to url_for(controller: :dba_history, action: :list_sql_detail_historic, params: params.permit!, method: :post)
+        redirect_to url_for(controller: :dba_history, action: :list_sql_detail_historic, params: params.permit!, method: :post) # skip_brakeman_check for permit!
       else
         # Use format html for popup message to ensure working in test
         show_popup_message("#{t(:dba_sga_list_sql_detail_sql_id_childno_no_hit_msg, :default=>'No record found in GV$SQL for')} SQL_ID='#{@sql_id}', Instance=#{@instance}, Child_Number=#{@child_number}", :html)

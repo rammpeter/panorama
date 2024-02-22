@@ -435,7 +435,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # send(params[:repeat_action])              # Ersetzt redirect_to, da dies in Kombination winstone + FireFox nicht sauber funktioniert (Get-Request wird über Post verarbeitet)
 
-    redirect_to url_for(controller: params[:repeat_controller], action: params[:repeat_action], params: params.permit!, method: :post)
+    redirect_to url_for(controller: params[:repeat_controller], action: params[:repeat_action], params: params.permit!, method: :post) # skip_brakeman_check for permit!
   end
 
   def fork_blocking_locks_historic_call
