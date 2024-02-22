@@ -110,10 +110,13 @@
     - name: Create /home/pramm/github_runner
       become: true
       ansible.builtin.file:
-        path: /home/pramm/github_runner
+        path: "{{ item }}"
         state: directory
         owner: pramm
         mode: '0755'
+      loop:
+        - /home/pramm/github_runner
+        - /home/pramm/github_runner/log
 
     - name: Copy shell scripts
       become: true
