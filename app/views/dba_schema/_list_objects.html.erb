@@ -102,19 +102,51 @@
   blocksize = PanoramaConnection.db_blocksize                                   # call only once
 
   link_pct_unused = proc do |rec|
-    link_space_usage.call(rec, fn(calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)))
+    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    link_space_usage.call(rec, fn(pct_unused)) if pct_unused&.> 0
   end
 
   data_title_pct_unused = proc do |rec|
-    "%t\n\nDetailled Value = #{fn(calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks), 3)}"
+    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    "%t\n\nDetailled Value = #{fn(pct_unused, 3)}"
   end
 
   link_mb_unused  = proc do |rec|
-    link_space_usage.call(rec, fn(calc_free_space_mb_by_avg_row_len( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)))
+    mb_unusded = calc_free_space_mb_by_avg_row_len( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    link_space_usage.call(rec, fn(mb_unusded)) if mb_unusded&.> 0
   end
 
   data_title_mb_unused = proc do |rec|
     "%t\n#{size_explain(calc_free_space_mb_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks))}"
+  end
+
+  link_compr_ratio = proc do |rec|
+    compr_ratio = calc_compression_ratio(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    if compr_ratio&.> 1.0
+      if rec.segment_type['TABLE']
+        ajax_link(fn(compr_ratio, 1),
+                  {controller:   :dba_schema,
+                   action:       :show_compression_check,
+                   owner:        rec.owner,
+                   table_name:   rec.segment_name,
+                   update_area:  @update_area,
+                   avg_row_len:  rec.avg_rowlen,
+                  },
+                  :title=>"Check real compression state of blocks of this object"
+        )
+      else
+        link_space_usage.call(rec, fn(compr_ratio, 1))
+      end
+    end
+  end
+
+  link_mb_uncompr = proc do |rec|
+    mbytes_uncompressed = calc_mbytes_uncompressed( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    link_space_usage.call(rec, fn(mbytes_uncompressed)) if mbytes_uncompressed&.> rec.mbytes
+  end
+
+  data_title_mb_uncompr = proc do |rec|
+    "%t\n#{size_explain(calc_mbytes_uncompressed(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks))}"
   end
 
   column_options =
@@ -135,7 +167,9 @@
     {:caption=> 'No. of rows',       :data=>link_real_num_rows,                                                       :align=>:right, :title=> t(:dba_schema_list_objects_num_rows_hint, :default=>'Number of rows acording to last analysis')},
     {:caption=> 'Avg. row len.',     :data=>proc{|rec| fn(rec.avg_rowlen)},                                           :align=>:right, :title=> t(:dba_schema_list_objects_row_len_hint, :default=>'Average size of record according to last analysis (Avg_Row_Len for Tables, Sum of Avg_Col_Len for indexes)')  },
     {:caption=> '% unused',          data: link_pct_unused,                                       :align=>:right, :title=> "Unused storage within the allocated extents in %.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_pct_unused},
-    {:caption=> 'MBytes unused ARL', data: link_mb_unused,                                        :align=>:right, :title=> "Unused storage within extents in MBytes.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_mb_unused },
+    {:caption=> 'MBytes unused',     data: link_mb_unused,                                        :align=>:right, :title=> "Unused storage within extents in MBytes.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_mb_unused },
+    {:caption=> 'Comp. ratio',       data: link_compr_ratio,                                        :align=>:right, :title=> "Compression ratio of object by uncompressed net size / current size.#{explain_calc_free_space_by_avg_row_len}" },
+    {:caption=> 'MBytes uncompr.',   data: link_mb_uncompr,                                        :align=>:right, :title=> "Theoretical net size of object in MBytes if it would be uncompressed.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_mb_uncompr },
     {:caption=> 'Blocks empty',      :data=>proc{|rec| fn(rec.empty_blocks)},                                         :align=>:right, :title=> t(:dba_schema_list_objects_empty_blocks_hint, :default=>'Unused blocks according to empty_blocks')},
     {:caption=> 'Avg. Space',        :data=>proc{|rec| fn(rec.avg_space)},                                            :align=>:right, :title=> t(:dba_schema_list_objects_avg_space_hint, :default=>'Average unused bytes per block according to avg_space') },
     {:caption=> 'Created',           :data=>proc{|rec| localeDateTime(rec.created)},             :title=> "Timestamp of object creation.\nIf grouped over partitions this is the creation timestamp of the oldest partition" },

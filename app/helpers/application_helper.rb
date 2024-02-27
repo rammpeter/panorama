@@ -806,10 +806,10 @@ module ApplicationHelper
     fmbytes = mbytes.to_f
     return nil if fmbytes == 0
     retval = ''
-    retval << "\n= #{fn(fmbytes * 1024 * 1024)} Bytes"      if fmbytes < 0.01
-    retval << "\n= #{fn(fmbytes * 1024, 1)    } Kilobytes"  if fmbytes < 10     && fmbytes > 0.0001
-    retval << "\n= #{fn(fmbytes, 1 )          } Megabytes"  if fmbytes < 10000  && fmbytes > 0.1
-    retval << "\n= #{fn(fmbytes / 1024, 1 ) } Gigabytes"  if fmbytes > 1000
+    retval << "\n= #{fn(fmbytes * 1024 * 1024)} Bytes"      if fmbytes < 0.01 && fmbytes > -0.01
+    retval << "\n= #{fn(fmbytes * 1024, 1)    } Kilobytes"  if (fmbytes < 10     && fmbytes > 0.0001) || (fmbytes > -10 && fmbytes < -0.0001)
+    retval << "\n= #{fn(fmbytes, 1 )          } Megabytes"  if (fmbytes < 10000  && fmbytes > 0.1) || (fmbytes > -10000 && fmbytes < -0.1)
+    retval << "\n= #{fn(fmbytes / 1024, 1 ) } Gigabytes"  if fmbytes > 1000 || fmbytes < 1000000
     retval << "\n= #{fn(fmbytes / (1024 * 1024), 1 ) } Terabytes"  if fmbytes > 1000000
     retval
   end

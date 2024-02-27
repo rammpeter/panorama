@@ -352,7 +352,7 @@ class DbaSchemaController < ApplicationController
         SUM(Blocks * PCT_Free)  / SUM(Blocks) Pct_Free,     /* weighted value by number of blocks of partition */
         SUM(Blocks * Ini_Trans) / SUM(Blocks) Ini_Trans,    /* weighted value by number of blocks of partition */
         CASE WHEN COUNT(DISTINCT Compression) <= 1 THEN MIN(Compression) ELSE '<several>' END Compression,
-        AVG(Avg_Row_Len)                Avg_RowLen,
+        SUM(Avg_Row_Len*Num_Rows)/DECODE(SUM(Num_Rows), 0, 1, SUM(Num_Rows)) Avg_RowLen,
         SUM(Empty_Blocks)               Empty_Blocks,
         AVG(Avg_Space)                  Avg_Space,
         MIN(Last_Analyzed)              Last_Analyzed,
