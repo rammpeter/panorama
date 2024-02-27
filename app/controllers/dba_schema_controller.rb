@@ -955,7 +955,11 @@ class DbaSchemaController < ApplicationController
     @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @partitions = sql_select_all ["\
-      WITH Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Data_Object_ID, SubObject_Name, Created, Last_DDL_Time, Timestamp
+      WITH Tab_Partitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+                              FROM   DBA_Tab_Partitions
+                              WHERE  Table_Owner = ? AND Table_Name = ?
+                             ),
+           Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Data_Object_ID, SubObject_Name, Created, Last_DDL_Time, Timestamp
                        FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE PARTITION'
                       ),
            Storage AS (SELECT /*+ NO_MERGE MATERIALIZE */   NVL(sp.Partition_Name, s.Partition_Name) Partition_Name, SUM(Bytes)/(1024*1024) MB,
@@ -964,7 +968,14 @@ class DbaSchemaController < ApplicationController
                       LEFT OUTER JOIN DBA_Tab_SubPartitions sp ON sp.Table_Owner = s.Owner AND sp.Table_Name = s.Segment_Name AND sp.SubPartition_Name = s.Partition_Name
                       WHERE s.Owner = ? AND s.Segment_Name = ?
                       GROUP BY NVL(sp.Partition_Name, s.Partition_Name)
-                      )
+                      ),
+           Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, SubPartition_Name, Inserts, Updates, Deletes, Timestamp, Truncated, Drop_Segments
+                                 FROM DBA_Tab_Modifications WHERE Table_Owner = ? AND Table_Name = ?  AND SubPartition_Name IS NULL
+                                ),
+            Tab_SubPartitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, Compression, Tablespace_Name, Pct_Free, Ini_Trans, Max_Trans,
+                                         Initial_Extent#{", Compress_For, InMemory" if get_db_version >= '12.1'}
+                                  FROM DBA_Tab_SubPartitions WHERE Table_Owner = ? AND Table_Name = ?
+                                 )
       SELECT  st.MB Size_MB, p.Partition_Name, p.Partition_Position, p.Tablespace_Name, p.Pct_Free, p.Ini_Trans, p.Max_Trans, p.Num_rows,
               p.Blocks, p.Compression, p.Compress_For, p.Avg_Row_Len, p.Last_Analyzed, p.Logging, p.Interval,
               #{"p.InMemory, p.Flash_Cache, p.Cell_Flash_Cache, " if get_db_version >= '12.1'}
@@ -982,10 +993,10 @@ class DbaSchemaController < ApplicationController
          #{", SP_Compress_For_Count,    SP_Compress_For,
               SP_InMemory_Count,        SP_InMemory" if get_db_version >= '12.1'}
          #{", mi.GC_Mastering_Policy,  mi.Current_Master + 1  Current_Master,  mi.Previous_Master + 1  Previous_Master, mi.Remaster_Cnt" if PanoramaConnection.rac?}
-      FROM DBA_Tab_Partitions p
+      FROM Tab_Partitions p
       LEFT OUTER JOIN Objects o ON o.SubObject_Name = p.Partition_Name
       LEFT OUTER JOIN Storage st ON st.Partition_Name = p.Partition_Name
-      LEFT OUTER JOIN DBA_Tab_Modifications m ON  m.Table_Owner = p.Table_Owner AND m.Table_Name = p.Table_Name AND m.Partition_Name = p.Partition_Name AND m.SubPartition_Name IS NULL
+      LEFT OUTER JOIN Tab_Modifications m ON m.Partition_Name = p.Partition_Name
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Partition_Name, COUNT(*) SubPartition_Count,
                               COUNT(DISTINCT Compression)     SP_Compression_Count,     MIN(Compression)      SP_Compression,
                               COUNT(DISTINCT Tablespace_Name) SP_Tablespace_Count,      MIN(Tablespace_Name)  SP_Tablespace_Name,
@@ -995,12 +1006,11 @@ class DbaSchemaController < ApplicationController
                               COUNT(DISTINCT Initial_Extent)  SP_Initial_Extent_Count,  MIN(Initial_Extent)   SP_Initial_Extent
                          #{", COUNT(DISTINCT Compress_For)    SP_Compress_For_Count,    MIN(Compress_For)     SP_Compress_For,
                               COUNT(DISTINCT InMemory)        SP_InMemory_Count,        MIN(InMemory)         SP_InMemory" if get_db_version >= '12.1'}
-                       FROM   DBA_Tab_SubPartitions WHERE  Table_Owner = ? AND Table_Name = ?
+                       FROM   Tab_SubPartitions
                        GROUP BY Partition_Name
                       ) sp ON sp.Partition_Name = p.Partition_Name
       #{"LEFT OUTER JOIN V$GCSPFMASTER_INFO mi ON mi.Data_Object_ID = o.Data_Object_ID" if PanoramaConnection.rac?}
-      WHERE p.Table_Owner = ? AND p.Table_Name = ?
-      ", @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name]
+      ", @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name]
 
     # avoid single row fetches due to LONG data type in main select
     high_values = sql_select_all  "\
