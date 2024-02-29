@@ -14,7 +14,7 @@ if @res.count > 0
           caption:      key.gsub('_', ' '),                                     # allow wrap of column header in slickgrid
           col_ref:      key,                                                    # Reference in result set because original caption is modified
           title:        key,
-          data_title:   proc{|rec| "%t\n\n#{rec[key]}"},                        # Tooltip
+          data_title:   proc{|rec| "%t\n\n#{my_html_escape(rec[key])}"},                        # Tooltip
         }
         raise "Problem with column #{i} of SQL result! Column header is empty.\nSQL columns identifier may not be processable by ActiveRecord." if key.nil?
       end
@@ -158,10 +158,12 @@ if @res.count > 0
               chart_x_axis_found = true
             end
         else
-          col[:data] = proc{|rec| my_html_escape(rec[col[:col_ref]]) }
+            col[:data] = proc{|rec| my_html_escape(rec[col[:col_ref]]) }
         end
       end
 %>
+
+
 
 <%= gen_slickgrid(@res, @column_options, {:caption => @caption, :plot_area_id => "exec_dragnet_sql_detail_area", :max_height=>450, show_pin_icon: 1}) %>
 
