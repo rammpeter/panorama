@@ -739,7 +739,7 @@ class DbaSchemaController < ApplicationController
                                                  COUNT(DISTINCT Compression)      Compression_Count,    MIN(Compression)     Compression,
                                                  COUNT(DISTINCT Tablespace_Name)  Tablespace_Count,     MIN(Tablespace_Name) Tablespace_Name,
                                                  COUNT(DISTINCT Pct_Free)         Pct_Free_Count,       MIN(Pct_Free)        Pct_Free,
-                                                 SUM(PCT_Free*Blocks) / SUM(Blocks) Avg_Pct_Free,  /* weighted value by number of blocks of partition */
+                                                 SUM(PCT_Free*Blocks) / DECODE(SUM(Blocks), 0, 1, SUM(Blocks))  Avg_Pct_Free,  /* weighted value by number of blocks of partition */
                                                  COUNT(DISTINCT Ini_Trans)        Ini_Trans_Count,      MIN(Ini_Trans)       Ini_Trans,
                                                  COUNT(DISTINCT Max_Trans)        Max_Trans_Count,      MIN(Max_Trans)       Max_Trans,
                                                  COUNT(DISTINCT Initial_Extent)   Initial_Extent_Count, MIN(Initial_Extent)  Initial_Extent,
@@ -755,7 +755,7 @@ class DbaSchemaController < ApplicationController
                                                     COUNT(DISTINCT Compression)     Compression_Count,    MIN(Compression)      Compression,
                                                     COUNT(DISTINCT Tablespace_Name) Tablespace_Count,     MIN(Tablespace_Name)  Tablespace_Name,
                                                     COUNT(DISTINCT Pct_Free)        Pct_Free_Count,       MIN(Pct_Free)         Pct_Free,
-                                                    SUM(PCT_Free*Blocks) / SUM(Blocks) Avg_Pct_Free,  /* weighted value by number of blocks of partition */
+                                                    SUM(PCT_Free*Blocks) / DECODE(SUM(Blocks), 0, 1, SUM(Blocks)) Avg_Pct_Free,  /* weighted value by number of blocks of partition */
                                                     COUNT(DISTINCT Ini_Trans)       Ini_Trans_Count,      MIN(Ini_Trans)        Ini_Trans,
                                                     COUNT(DISTINCT Max_Trans)       Max_Trans_Count,      MIN(Max_Trans)        Max_Trans,
                                                     COUNT(DISTINCT Initial_Extent)  Initial_Extent_Count, MIN(Initial_Extent)   Initial_Extent,
