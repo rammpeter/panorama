@@ -44,8 +44,8 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
         (size_mb - calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks)) / size_mb
       end
     end
-  rescue
-    nil
+  rescue Exception => e
+      nil
   end
 
   def calc_mbytes_uncompressed(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, leaf_blocks)

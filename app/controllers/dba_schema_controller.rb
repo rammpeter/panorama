@@ -739,6 +739,7 @@ class DbaSchemaController < ApplicationController
                                                  COUNT(DISTINCT Compression)      Compression_Count,    MIN(Compression)     Compression,
                                                  COUNT(DISTINCT Tablespace_Name)  Tablespace_Count,     MIN(Tablespace_Name) Tablespace_Name,
                                                  COUNT(DISTINCT Pct_Free)         Pct_Free_Count,       MIN(Pct_Free)        Pct_Free,
+                                                 SUM(PCT_Free*Blocks) / SUM(Blocks) Avg_Pct_Free,  /* weighted value by number of blocks of partition */
                                                  COUNT(DISTINCT Ini_Trans)        Ini_Trans_Count,      MIN(Ini_Trans)       Ini_Trans,
                                                  COUNT(DISTINCT Max_Trans)        Max_Trans_Count,      MIN(Max_Trans)       Max_Trans,
                                                  COUNT(DISTINCT Initial_Extent)   Initial_Extent_Count, MIN(Initial_Extent)  Initial_Extent,
@@ -754,6 +755,7 @@ class DbaSchemaController < ApplicationController
                                                     COUNT(DISTINCT Compression)     Compression_Count,    MIN(Compression)      Compression,
                                                     COUNT(DISTINCT Tablespace_Name) Tablespace_Count,     MIN(Tablespace_Name)  Tablespace_Name,
                                                     COUNT(DISTINCT Pct_Free)        Pct_Free_Count,       MIN(Pct_Free)         Pct_Free,
+                                                    SUM(PCT_Free*Blocks) / SUM(Blocks) Avg_Pct_Free,  /* weighted value by number of blocks of partition */
                                                     COUNT(DISTINCT Ini_Trans)       Ini_Trans_Count,      MIN(Ini_Trans)        Ini_Trans,
                                                     COUNT(DISTINCT Max_Trans)       Max_Trans_Count,      MIN(Max_Trans)        Max_Trans,
                                                     COUNT(DISTINCT Initial_Extent)  Initial_Extent_Count, MIN(Initial_Extent)   Initial_Extent,
@@ -782,6 +784,7 @@ class DbaSchemaController < ApplicationController
         a.compress_for      = partitions.compress_for_count == 1 ? partitions.compress_for    : "< #{partitions.compress_for_count} different >"          if partitions.compression_count > 0
         a.tablespace_name   = partitions.tablespace_count   == 1 ? partitions.tablespace_name : "< #{partitions.tablespace_count} different >"            if partitions.tablespace_count > 0
         a.pct_free          = partitions.pct_free_count     == 1 ? partitions.pct_free        : "< #{partitions.pct_free_count} different >"              if partitions.pct_free_count > 0
+        a.avg_pct_free      = partitions.avg_pct_free if partitions.pct_free_count > 0
         a.ini_trans         = partitions.ini_trans_count    == 1 ? partitions.ini_trans       : "< #{partitions.ini_trans_count} different >"             if partitions.ini_trans_count > 0
         a.max_trans         = partitions.max_trans_count    == 1 ? partitions.max_trans       : "< #{partitions.max_trans_count} different >"             if partitions.max_trans_count > 0
         a.initial_extent    = partitions.initial_extent_count == 1 ? fn(partitions.initial_extent/1024) : "< #{partitions.initial_extent_count} different >" if partitions.initial_extent_count > 0
@@ -795,6 +798,7 @@ class DbaSchemaController < ApplicationController
         a.compress_for      = subpartitions.compress_for_count == 1 ? subpartitions.compress_for    : "< #{subpartitions.compress_for_count} different >"  if subpartitions.compression_count > 0
         a.tablespace_name   = subpartitions.tablespace_count   == 1 ? subpartitions.tablespace_name : "< #{subpartitions.tablespace_count} different >"    if subpartitions.tablespace_count > 0
         a.pct_free          = subpartitions.pct_free_count     == 1 ? subpartitions.pct_free        : "< #{subpartitions.pct_free_count} different >"      if subpartitions.pct_free_count > 0
+        a.avg_pct_free      = subpartitions.avg_pct_free if subpartitions.pct_free_count > 0
         a.ini_trans         = subpartitions.ini_trans_count    == 1 ? subpartitions.ini_trans       : "< #{subpartitions.ini_trans_count} different >"     if subpartitions.ini_trans_count > 0
         a.max_trans         = subpartitions.max_trans_count    == 1 ? subpartitions.max_trans       : "< #{subpartitions.max_trans_count} different >"     if subpartitions.max_trans_count > 0
         a.initial_extent    = subpartitions.initial_extent_count == 1 ? fn(subpartitions.initial_extent/1024) : "< #{subpartitions.initial_extent_count} different >" if subpartitions.initial_extent_count > 0
@@ -1197,7 +1201,37 @@ class DbaSchemaController < ApplicationController
                                        JOIN   DBA_Users u ON u.User_ID = o.Owner#
                                       "
                                     end
-                                })
+                                }),
+                 Partition_Sums AS (SELECT /*+ NO_MERGE MATERIALIZE */ ip.Index_Name, COUNT(*) Partition_Number,
+                                           COUNT(DISTINCT ip.Status)          P_Status_Count,          MIN(ip.Status)           P_Status,
+                                           COUNT(DISTINCT ip.Compression)     P_Compression_Count,     MIN(ip.Compression)      P_Compression,
+                                           COUNT(DISTINCT ip.Tablespace_Name) P_Tablespace_Count,      MIN(ip.Tablespace_Name)  P_Tablespace_Name,
+                                           COUNT(DISTINCT ip.Pct_Free)        P_Pct_Free_Count,        MIN(ip.Pct_Free)         P_Pct_Free,
+                                           COUNT(DISTINCT ip.Ini_Trans)       P_Ini_Trans_Count,       MIN(ip.Ini_Trans)        P_Ini_Trans,
+                                           COUNT(DISTINCT ip.Max_Trans)       P_Max_Trans_Count,       MIN(ip.Max_Trans)        P_Max_Trans,
+                                           COUNT(DISTINCT ip.Initial_Extent)  P_Initial_Extent_Count,  MIN(ip.Initial_Extent)   P_Initial_Extent,
+                                           COUNT(DISTINCT ip.Next_Extent)     P_Next_Extent_Count,     MIN(ip.Next_Extent)      P_Next_Extent,
+                                           COUNT(DISTINCT ip.Min_Extent)      P_Min_Extents_Count,     MIN(ip.Min_Extent)       P_Min_Extents,
+                                           COUNT(DISTINCT ip.Max_Extent)      P_Max_Extents_Count,     MIN(ip.Max_Extent)       P_Max_Extents
+                                    FROM   DBA_Ind_Partitions ip
+                                           WHERE  (ip.Index_Owner, ip.Index_Name) IN (SELECT Owner, Index_Name FROM Indexes)
+                                           GROUP BY ip.Index_Name
+                                   ),
+                 SubPartition_Sums AS (SELECT /*+ NO_MERGE MATERIALIZE */  ip.Index_Name, COUNT(*) SubPartition_Number,
+                                              COUNT(DISTINCT ip.Status)          SP_Status_Count,         MIN(ip.Status)          SP_Status,
+                                              COUNT(DISTINCT ip.Compression)     SP_Compression_Count,    MIN(ip.Compression)     SP_Compression,
+                                              COUNT(DISTINCT ip.Tablespace_Name) SP_Tablespace_Count,     MIN(ip.Tablespace_Name) SP_Tablespace_Name,
+                                              COUNT(DISTINCT ip.Pct_Free)        SP_Pct_Free_Count,       MIN(ip.Pct_Free)        SP_Pct_Free,
+                                              COUNT(DISTINCT ip.Ini_Trans)       SP_Ini_Trans_Count,      MIN(ip.Ini_Trans)       SP_Ini_Trans,
+                                              COUNT(DISTINCT ip.Max_Trans)       SP_Max_Trans_Count,      MIN(ip.Max_Trans)       SP_Max_Trans,
+                                              COUNT(DISTINCT ip.Initial_Extent)  SP_Initial_Extent_Count, MIN(ip.Initial_Extent)  SP_Initial_Extent,
+                                              COUNT(DISTINCT ip.Next_Extent)     SP_Next_Extent_Count,    MIN(ip.Next_Extent)     SP_Next_Extent,
+                                              COUNT(DISTINCT ip.Min_Extent)      SP_Min_Extents_Count,    MIN(ip.Min_Extent)      SP_Min_Extents,
+                                              COUNT(DISTINCT ip.Max_Extent)      SP_Max_Extents_Count,    MIN(ip.Max_Extent)      SP_Max_Extents
+                                       FROM   DBA_Ind_SubPartitions ip
+                                       WHERE  (ip.Index_Owner, ip.Index_Name) IN (SELECT Owner, Index_Name FROM Indexes)
+                                       GROUP BY ip.Index_Name
+                                      )
                  SELECT /*+ Panorama Ramm */ i.*,
                         p.Partition_Number, sp.SubPartition_Number,
                         NULL Size_MB, NULL Extents, NULL Segment_Blocks, /* this columns are selected separately */
@@ -1255,38 +1289,10 @@ class DbaSchemaController < ApplicationController
                                          )
                                   GROUP BY Index_Name
                                  ) c ON c.Index_Name = i.Index_Name
-                 LEFT OUTER JOIN ObjectUsage ou ON ou.Owner = i.Owner AND ou.Index_Name = i.Index_Name
-                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ii.Index_Name, COUNT(*) Partition_Number,
-                                  COUNT(DISTINCT ip.Status)          P_Status_Count,          MIN(ip.Status)           P_Status,
-                                  COUNT(DISTINCT ip.Compression)     P_Compression_Count,     MIN(ip.Compression)      P_Compression,
-                                  COUNT(DISTINCT ip.Tablespace_Name) P_Tablespace_Count,      MIN(ip.Tablespace_Name)  P_Tablespace_Name,
-                                  COUNT(DISTINCT ip.Pct_Free)        P_Pct_Free_Count,        MIN(ip.Pct_Free)         P_Pct_Free,
-                                  COUNT(DISTINCT ip.Ini_Trans)       P_Ini_Trans_Count,       MIN(ip.Ini_Trans)        P_Ini_Trans,
-                                  COUNT(DISTINCT ip.Max_Trans)       P_Max_Trans_Count,       MIN(ip.Max_Trans)        P_Max_Trans,
-                                  COUNT(DISTINCT ip.Initial_Extent)  P_Initial_Extent_Count,  MIN(ip.Initial_Extent)   P_Initial_Extent,
-                                  COUNT(DISTINCT ip.Next_Extent)     P_Next_Extent_Count,     MIN(ip.Next_Extent)      P_Next_Extent,
-                                  COUNT(DISTINCT ip.Min_Extent)      P_Min_Extents_Count,     MIN(ip.Min_Extent)       P_Min_Extents,
-                                  COUNT(DISTINCT ip.Max_Extent)      P_Max_Extents_Count,     MIN(ip.Max_Extent)       P_Max_Extents
-                                  FROM   Indexes ii
-                                  JOIN   DBA_Ind_Partitions ip ON ip.Index_Owner=ii.Owner AND ip.Index_Name =ii.Index_Name
-                                  GROUP BY ii.Index_Name
-                                 ) p ON p.Index_Name = i.Index_Name
-                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ii.Index_Name, COUNT(*) SubPartition_Number,
-                                  COUNT(DISTINCT ip.Status)          SP_Status_Count,         MIN(ip.Status)          SP_Status,
-                                  COUNT(DISTINCT ip.Compression)     SP_Compression_Count,    MIN(ip.Compression)     SP_Compression,
-                                  COUNT(DISTINCT ip.Tablespace_Name) SP_Tablespace_Count,     MIN(ip.Tablespace_Name) SP_Tablespace_Name,
-                                  COUNT(DISTINCT ip.Pct_Free)        SP_Pct_Free_Count,       MIN(ip.Pct_Free)        SP_Pct_Free,
-                                  COUNT(DISTINCT ip.Ini_Trans)       SP_Ini_Trans_Count,      MIN(ip.Ini_Trans)       SP_Ini_Trans,
-                                  COUNT(DISTINCT ip.Max_Trans)       SP_Max_Trans_Count,      MIN(ip.Max_Trans)       SP_Max_Trans,
-                                  COUNT(DISTINCT ip.Initial_Extent)  SP_Initial_Extent_Count, MIN(ip.Initial_Extent)  SP_Initial_Extent,
-                                  COUNT(DISTINCT ip.Next_Extent)     SP_Next_Extent_Count,    MIN(ip.Next_Extent)     SP_Next_Extent,
-                                  COUNT(DISTINCT ip.Min_Extent)      SP_Min_Extents_Count,    MIN(ip.Min_Extent)      SP_Min_Extents,
-                                  COUNT(DISTINCT ip.Max_Extent)      SP_Max_Extents_Count,    MIN(ip.Max_Extent)      SP_Max_Extents
-                                  FROM   Indexes ii
-                                  JOIN   DBA_Ind_SubPartitions ip ON ip.Index_Owner=ii.Owner AND ip.Index_Name =ii.Index_Name
-                                  GROUP BY ii.Index_Name
-                                 ) sp ON sp.Index_Name = i.Index_Name
-                 LEFT OUTER JOIN DBA_Part_Indexes pi ON pi.Owner = i.Owner AND pi.Index_Name = i.Index_Name
+                 LEFT OUTER JOIN ObjectUsage ou       ON ou.Owner = i.Owner AND ou.Index_Name = i.Index_Name
+                 LEFT OUTER JOIN Partition_Sums p     ON p.Index_Name = i.Index_Name
+                 LEFT OUTER JOIN SubPartition_Sums sp ON sp.Index_Name = i.Index_Name
+                 LEFT OUTER JOIN DBA_Part_Indexes pi  ON pi.Owner = i.Owner AND pi.Index_Name = i.Index_Name
               #{"LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ii.Index_Name, MIN(i.GC_Mastering_Policy) GC_Mastering_Policy,  COUNT(DISTINCT i.GC_Mastering_Policy) GC_Mastering_Policy_Cnt,
                                   MIN(i.Current_Master) + 1  Current_Master,       COUNT(DISTINCT i.Current_Master)      Current_Master_Cnt,
                                   MIN(i.Previous_Master) + 1  Previous_Master,     COUNT(DISTINCT DECODE(i.Previous_Master, 32767, NULL, i.Previous_Master)) Previous_Master_Cnt,

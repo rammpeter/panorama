@@ -247,7 +247,7 @@
    blocksize = PanoramaConnection.db_blocksize                                   # call only once
 
   data_title_unused = proc do |rec|
-    "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb, rec.leaf_blocks), 3)}\nCalculated based on avg. row len in index = #{fn(rec.avg_row_len)}"
+    "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.leaf_blocks), 3)}\nCalculated based on avg. row len in index = #{fn(rec.avg_row_len)}"
   end
 
    blocks_data_title = proc do |rec|
