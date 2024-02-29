@@ -959,7 +959,8 @@ class DbaSchemaController < ApplicationController
     @partition_expression = get_table_partition_expression(@owner, @table_name)
 
     @partitions = sql_select_all ["\
-      WITH Tab_Partitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+      WITH Tab_Partitions AS (SELECT /*+ NO_MERGE MATERIALIZE */ Partition_Name, Partition_Position, Tablespace_Name, Pct_Free, Initial_Extent, Ini_Trans, Max_Trans, Num_Rows, Blocks,
+                                     Compression, Compress_For, Avg_Row_Len, Last_Analyzed, Logging, Interval #{", InMemory, Flash_Cache, Cell_Flash_Cache" if get_db_version >= '12.1'}
                               FROM   DBA_Tab_Partitions
                               WHERE  Table_Owner = ? AND Table_Name = ?
                              ),
