@@ -8,6 +8,8 @@ fi
 echo "Remove the assets at public"
 rm -rf public/assets/*
 rm -rf public/assets/.sprockets*
+# Remove mini profile files
+find . -name mp_views* -exec rm -f {} \;
 
 if [ "$1" != "without_assets" ]
 then
