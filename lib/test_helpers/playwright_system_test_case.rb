@@ -13,6 +13,9 @@ npx playwright install
 class PlaywrightSystemTestCase < ActiveSupport::TestCase
 
   def setup
+    @test_start_time = Time.now
+    Rails.logger.info('PlaywrightSystemTestCase::setup') { "#{@test_start_time} : start of test #{self.class}.#{self.name}" } # set timestamp in test.logs
+
     set_session_test_db_context
     set_I18n_locale('en')
     initialize_min_max_snap_id_and_times(:minutes)
@@ -33,6 +36,10 @@ class PlaywrightSystemTestCase < ActiveSupport::TestCase
       else
         Rails.logger.error(PlaywrightSystemTestCase.teardown){"Screenshot not possible because @@pw_page not initialized"}
       end
+      @test_end_time = Time.now
+      Rails.logger.info('PlaywrightSystemTestCase::teardown') { "#{@test_end_time} : end of test #{self.class}.#{self.name}" } # set timestamp in test.logs
+      Rails.logger.info('PlaywrightSystemTestCase::teardown') { "#{(@test_end_time-@test_start_time).round(2)} seconds for test #{self.class}.#{self.name}" } # set timestamp in test.logs
+      Rails.logger.info('PlaywrightSystemTestCase::teardown') { '' }
     end
     super
   end
