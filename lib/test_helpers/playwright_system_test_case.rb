@@ -2,6 +2,7 @@
 require 'puma'
 require 'playwright'
 require 'rack/handler/puma'
+require 'minitest/unit'
 
 =begin
 Precondition for using playwright
@@ -44,7 +45,7 @@ class PlaywrightSystemTestCase < ActiveSupport::TestCase
     if @@pw_browser.nil?
       Rails.logger.debug('PlaywrightSystemTestCase.ensure_playwright_is_up') { "@@pw_browser == nil, starting puma" }
       #      pw_puma_server = Puma::Server.new(Rails.application, Puma::Events.stdio, max_threads:100)
-      pw_puma_server = Puma::Server.new(Rails.application, nil, max_threads:100)
+      pw_puma_server = Puma::Server.new(Rails.application, Puma::Events.stdio, max_threads:100)
       @@host = '127.0.0.1'
       @@port = pw_puma_server.add_tcp_listener(@@host, 0).addr[1]
       pw_puma_server.run
