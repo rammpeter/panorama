@@ -15,6 +15,10 @@ class GlobalMenuTest < PlaywrightSystemTestCase
         curr_sub_menu_list << "menu_#{entry[:controller]}_#{entry[:action]}"
         begin
           menu_call(curr_sub_menu_list, entry_with_condition: !entry[:condition].nil?)
+          if page.visible?('#error_dialog')
+            error_content = page.text_content('#error_dialog')
+            raise error_content
+          end
           close_possible_popup_message                                            # close potential popup message from call
         rescue Exception => e
           log_exception_backtrace(e)
