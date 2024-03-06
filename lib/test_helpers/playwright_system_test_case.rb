@@ -59,7 +59,8 @@ class PlaywrightSystemTestCase < ActiveSupport::TestCase
       Rails.logger.debug('PlaywrightSystemTestCase.ensure_playwright_is_up') { "Playwright.create" }
       playwright = Playwright.create(playwright_cli_executable_path: 'npx playwright')
       Rails.logger.debug('PlaywrightSystemTestCase.ensure_playwright_is_up') { "playwright.playwright.chromium.launch" }
-      @@pw_browser  = playwright.playwright.chromium.launch(
+      # @@pw_browser  = playwright.playwright.chromium.launch(
+      @@pw_browser  = playwright.playwright.firefox.launch(
         headless: RbConfig::CONFIG['host_os'] != 'darwin',
         args: ['--no-sandbox']                                                  # allow running chrome as root
       )

@@ -1506,7 +1506,7 @@ oradebug setorapname diag
                         AND    t.Serial_No = l.Serial_No
                         AND    t.HLevel   > l.HLevel
                        )
-       ORDER BY Row_Num", record_modifier)
+       ORDER BY Row_Num")
 
     render_partial
   end
