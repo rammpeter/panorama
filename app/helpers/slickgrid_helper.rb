@@ -26,7 +26,9 @@ module SlickgridHelper
     return nil unless input
     input = input.dup  if input.frozen?                                         # Kopie des Objektes verwenden für Umgehung runtime-Error, wenn object frozen
 
-    input.gsub("'", '&#39;')                                                      # ' im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+    input
+      .gsub("'", '&#39;')                                                       # ' im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+      .gsub("\\", '&#92;')                                                      # Escape backslash
   end
 
   def ecape_js_chars_without_br(input)
