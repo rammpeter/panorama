@@ -1,0 +1,6 @@
+<%=
+  gen_slickgrid(@profiles, @columns, {
+  :caption => "User profiles from DBA_Profiles#{", Profile = '#{@profile}'" if @profile}",
+  :max_height => 450, show_pin_icon: 1, update_area: @update_area
+})
+%>

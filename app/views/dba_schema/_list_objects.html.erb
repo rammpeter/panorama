@@ -180,10 +180,17 @@
   ]
 
   column_options << {:caption=> 'InMemory', :data=>proc{|rec| rec.inmemory}, :title=> "Indicates whether the In-Memory Column Store (IM column store) is enabled (ENABLED) or disabled (DISABLED) for this segment" } if get_db_version >= '12.1.0.2'
+  caption = "#{t(:dba_schema_list_objects_caption, :default=>'Objects for')}"
+  caption << " Tablespace='#{@tablespace_name}'"  if @tablespace_name
+  caption << " Schema='#{@schema_name}'"          if @schema_name
+  caption << " SQL_ID='#{@sql_id}'"               if @sql_id
+  caption << " Instance='#{@instance}'"           if @instance
+  caption << " Filter='#{@filter}'"               if @filter
+  caption << " Segment='#{@segment_name}'"        if @segment_name
 %>
 
 <%= gen_slickgrid(@objects, column_options, {
-        :caption => "#{t(:dba_schema_list_objects_caption, :default=>'Objects for')}#{" Tablespace='#{@tablespace_name}'" if @tablespace_name}#{" Schema='#{@schema_name}'" if @schema_name}#{" SQL_ID='#{@sql_id}'" if @sql_id}#{" Instance=#{@instance}" if @instance}",
+        :caption => caption,
         :max_height => 450, show_pin_icon: 1, update_area: @update_area
 })
 %>

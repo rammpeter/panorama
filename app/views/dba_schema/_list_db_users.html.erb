@@ -11,6 +11,16 @@
     )
   end
 
+  link_profile = proc do |rec|
+    ajax_link(rec.profile,
+              {action:      :list_user_profiles,
+               profile:     rec.profile,
+               update_area: @update_area,
+              },
+              title: "Show settings for profile '#{rec.profile}'"
+    )
+  end
+
   link_obj_grants = proc do |rec|
     ajax_link(fn(rec.obj_grants),
               {action:      :list_obj_grants,
@@ -50,7 +60,7 @@
   column_options << {caption: 'Expiry date',  data: proc{|rec| localeDateTime(rec.expiry_date)},title: 'Date of expiration of the account'}
   column_options << {caption: 'Default TS',   data: proc{|rec| rec.default_tablespace},       title: 'Default tablespace for data'}
   column_options << {caption: 'Temp. TS',     data: proc{|rec| rec.temporary_tablespace},     title: 'Name of the default tablespace for temporary tables or the name of a tablespace group'}
-  column_options << {caption: 'Profile',      data: proc{|rec| rec.profile},                  title: '	User resource profile name'}
+  column_options << {caption: 'Profile',      data: link_profile,                             title: '	User resource profile name'}
   column_options << {caption: 'Init. resrc. cons. group', data: proc{|rec| rec.initial_rsrc_consumer_group}, title: 'Initial resource consumer group for the user'}
   column_options << {caption: 'Ext. name',    data: proc{|rec| rec.external_name},            title: 'User external name'}
   column_options << {caption: 'Passw. versions', data: proc{|rec| rec.password_versions},     title: 'Database version in which the password was created or changed'}
@@ -71,4 +81,4 @@
   column_options << {caption: 'Granted object privs', data: link_granted_obj_privs,           title: 'Number of object privileges granted to others by this user', align: :right}
 %>
 
-<%= gen_slickgrid(@users, column_options, {caption: "Database users from DBA_Users#{" filtered for user='#{@username}'" if @username}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>
+<%= gen_slickgrid(@users, column_options, {caption: "Database users from DBA_Users#{", user='#{@username}'" if @username}#{", profile='#{@profile}'" if @profile}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>

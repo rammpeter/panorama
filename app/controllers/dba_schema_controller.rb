@@ -21,6 +21,8 @@ class DbaSchemaController < ApplicationController
 
   def list_db_users
     @username     = prepare_param :username
+    @profile      = prepare_param :profile
+
     where_string = ''
     where_values = []
 
@@ -30,6 +32,11 @@ class DbaSchemaController < ApplicationController
       where_values << @username
     end
 
+    if @profile
+      where_string << (where_string == '' ? "WHERE " : "AND ")
+      where_string << "Profile = ?"
+      where_values << @profile
+    end
 
     @users = sql_select_iterator ["WITH Users AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Users #{where_string}),
                                        Role_Privs AS (SELECT /*+ NO_MERGE MATERIALIZE */ Grantee, COUNT(*) Granted_Roles
@@ -188,6 +195,72 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_user_profiles
+    @profile = prepare_param :profile
+    where_string = ''
+    where_values = []
+
+    if @profile
+      where_string << (where_string == '' ? "WHERE " : "AND ")
+      where_string << "p.Profile = ?"
+      where_values << @profile
+    end
+
+    profiles = sql_select_all ["SELECT p.*, u.User_Count
+                                FROM   DBA_Profiles p
+                                JOIN   (SELECT /*+ NO_MERGE */ Profile, COUNT(*) User_Count
+                                        FROM   DBA_Users
+                                        GROUP BY Profile
+                                       ) u ON u.Profile = p.Profile
+                                #{where_string}
+                                ORDER BY p.Profile, p.Resource_Name
+                               "].concat(where_values)
+    profiles_hash = {}
+    pivot_columns = {}
+    profiles.each do |p|
+      profiles_hash[p.profile] ||= { user_count: p.user_count}
+      profiles_hash[p.profile][p.resource_name] ||= {}
+      profiles_hash[p.profile][p.resource_name][:resource_type] = p.resource_type
+      profiles_hash[p.profile][p.resource_name][:limit]         = p.limit
+      profiles_hash[p.profile][p.resource_name][:common]        = (get_db_version >= '12.2' ? p.common    : '')
+      profiles_hash[p.profile][p.resource_name][:inherited]     = (get_db_version >= '12.2' ? p.inherited : '')
+      profiles_hash[p.profile][p.resource_name][:implicit]      = (get_db_version >= '12.2' ? p.implicit  : '')
+      pivot_columns[p.resource_name] = true
+    end
+    @profiles = profiles_hash.map do |key, value|
+      value[:profile] = key
+      value
+    end
+
+    @update_area = get_unique_area_id
+
+    link_users = proc do |rec|
+      ajax_link(fn(rec[:user_count]),
+                {
+                  action:      :list_db_users,
+                  profile:     rec[:profile],
+                  update_area: @update_area,
+                },
+                title: "Show users using this profile",
+      )
+    end
+
+    @columns = [
+      {:caption=> 'Profile',  data: proc{|rec| rec[:profile]}, title: 'Profile name'},
+      {:caption=> 'Users',    data: link_users, title: 'Number of users using this profile', align: :right},
+    ]
+    @columns.concat(pivot_columns.map do |key, value|
+      { caption: key.gsub('_', ' '),
+        data: proc{|rec| rec[key][:limit]},
+        title: 'Limit for resource name',
+        data_title: proc{|rec| "%t\nResource type = '#{rec[key][:resource_type]}'\nCommon = '#{rec[key][:common]}'\nInherited = '#{rec[key][:inherited]}'\nImplicit = '#{rec[key][:implicit]}'"}
+      }
+
+    end)
+
+    render_partial
+  end
+
   def list_obj_grants
     @privilege  = prepare_param :privilege
     @grantee    = prepare_param :grantee
@@ -253,7 +326,9 @@ class DbaSchemaController < ApplicationController
   # Anlistung der Objekte
   def list_objects
     @tablespace_name = params[:tablespace][:name]   if params[:tablespace]
+    @tablespace_name = nil if  @tablespace_name == ''
     @schema_name     = params[:schema][:name]       if params[:schema]
+    @schema_name     = nil if  @schema_name == ''
     @show_partitions = params[:showPartitions] == '1'
 
     @instance       = prepare_param_instance
@@ -261,8 +336,8 @@ class DbaSchemaController < ApplicationController
     @child_number   = prepare_param(:child_number)
     @child_address  = prepare_param(:child_address)
 
-    filter           = prepare_param(:filter)
-    segment_name     = prepare_param(:segment_name)
+    @filter           = prepare_param(:filter)
+    @segment_name     = prepare_param(:segment_name)
 
     where_string = ""
     where_values = []
@@ -277,14 +352,14 @@ class DbaSchemaController < ApplicationController
       where_values << @schema_name
     end
 
-    if filter
-      where_string << " AND UPPER(s.Segment_Name) LIKE UPPER(?)"
-      where_values << filter
+    if @filter
+      where_string << " AND UPPER(s.Segment_Name) LIKE '%'||UPPER(?)||'%'"
+      where_values << @filter
     end
 
-    if segment_name
+    if @segment_name
       where_string << " AND UPPER(s.Segment_Name) = UPPER(?)"
-      where_values << segment_name
+      where_values << @segment_name
     end
 
     # block for SQL_ID-conditions
