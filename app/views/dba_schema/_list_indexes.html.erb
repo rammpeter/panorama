@@ -56,7 +56,7 @@
 
    list_states = proc do |rec|
      result = ''
-     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree.to_i != 1
+     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree != '0' && rec.degree.to_i != '1' && rec.degree != 'DEFAULT'
      result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
      result << "#{'<br/>' if result.length > 0}Func.idx-Status =  #{rec.funcidx_status}"                                                   if !(rec.funcidx_status.nil? || rec.funcidx_status == 'ENABLED')
      result << "#{'<br/>' if result.length > 0}Compression =  #{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"  if !(rec.compression == 'DISABLED')

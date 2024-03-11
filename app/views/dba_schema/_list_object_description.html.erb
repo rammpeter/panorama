@@ -191,13 +191,13 @@ column_options =
     result = ''
     result << "#{'<br/>' if result.length > 0}IOT-Type = #{rec.iot_type}"                                                                 if rec.iot_type
     result << "#{'<br/>' if result.length > 0}TEMPORARY (#{rec.duration.gsub(/SYS\$/, '')})"                                              if rec.temporary == 'Y'
-    result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree.to_i != 1
+    result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree != '0' && rec.degree.to_i != '1' && rec.degree != 'DEFAULT'
     result << "#{'<br/>' if result.length > 0}Cached =  #{rec.cache}"                                                                     if rec.cache.strip != 'N'
-    if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A')
+    if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
       result << '<br/>' if result.length > 0
       result << link_compression_check.call(rec, "Compression = #{rec.compression} (#{rec.compress_for})")
     end
-    result << "#{'<br/>' if result.length > 0}Partition default for compression = #{rec.def_compression} (#{rec.def_compress_for})"       if !(rec.def_compression.nil? || rec.def_compression == 'DISABLED' || rec.def_compression == 'N/A')
+    result << "#{'<br/>' if result.length > 0}Partition default for compression = #{rec.def_compression} (#{rec.def_compress_for})"       if !(rec.def_compression.nil? || rec.def_compression == 'DISABLED' || rec.def_compression == 'N/A' || rec.def_compression == 'NONE')
     result << "#{'<br/>' if result.length > 0}InMemory = #{rec.inmemory}"                                                                 if get_db_version >= '12.1.0.2' && !(rec.inmemory == 'DISABLED' || rec.inmemory == 'N/A')
     result << "#{'<br/>' if result.length > 0}Partition default for InMemory = #{rec.def_inmemory}"                                       if get_db_version >= '12.1.0.2' && !(rec.def_inmemory.nil? || rec.def_inmemory == 'DISABLED' || rec.def_inmemory == 'N/A' || rec.def_inmemory == 'NONE')
     result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1.0.2' && rec.flash_cache != 'DEFAULT'
