@@ -56,13 +56,14 @@
 
    list_states = proc do |rec|
      result = ''
-     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree != '0' && rec.degree.to_i != '1' && rec.degree != 'DEFAULT'
+     result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree != '0' && rec.degree.to_i != 1
      result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
      result << "#{'<br/>' if result.length > 0}Func.idx-Status =  #{rec.funcidx_status}"                                                   if !(rec.funcidx_status.nil? || rec.funcidx_status == 'ENABLED')
      result << "#{'<br/>' if result.length > 0}Compression =  #{rec.compression}#{" (#{rec.prefix_length})" if rec.prefix_length}"  if !(rec.compression == 'DISABLED')
      result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')
      result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1' && !(rec.cell_flash_cache.nil? || rec.cell_flash_cache == 'DEFAULT')
      result << "#{'<br/>' if result.length > 0}Visibility = #{rec.visibility}"                                                             if !(rec.visibility.nil? || rec.visibility == 'VISIBLE')
+     result << "#{'<br/>' if result.length > 0}Orphaned Entries = #{rec.orphaned_entries}"                                                 if !(rec.orphaned_entries.nil? || rec.orphaned_entries == 'NO')
      result.html_safe
    end
 
@@ -74,6 +75,7 @@
 - Visibility
 - Smart flash cache
 - Cell flash cache
+- Orphaned entries in index
 "
 
 

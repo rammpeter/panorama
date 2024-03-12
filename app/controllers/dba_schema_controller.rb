@@ -1347,7 +1347,7 @@ class DbaSchemaController < ApplicationController
                         #{", mi.GC_Mastering_Policy, mi.GC_Mastering_Policy_Cnt, mi.Current_Master, mi.Current_Master, mi.Current_Master_Cnt, mi.Previous_Master, mi.Previous_Master_Cnt, mi.Remaster_Cnt" if PanoramaConnection.rac?}
                         #{get_db_version >= '12.2' ? ", iu.Total_Access_Count" : ", NULL Total_Access_Count"}
                         #{get_db_version >= '12.2' ? ", DECODE(iu.Total_Access_Count, NULL, 'NO', 'YES')" : ", NULL"} DBA_Index_Usage
-                        #{get_db_version >= '12.2' ? ", iu.last_used" : ", NULL Last_Used"}
+                        #{get_db_version >= '12.2' ? ", iu.last_used, i.Orphaned_Entries" : ", NULL Last_Used, NULL Orphaned_Entries"}
                  FROM   Indexes i
                  LEFT OUTER JOIN DBA_Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len) Sum_Col_Len
@@ -2035,6 +2035,7 @@ class DbaSchemaController < ApplicationController
       SELECT p.Partition_Name, p.Partition_Position, p.Tablespace_Name, p.Pct_Free, p.Ini_Trans, p.Max_Trans, p.Num_rows,
               p.Compression, p.Last_Analyzed, p.Logging, p.Interval, p.BLevel, p.Leaf_blocks, p.Distinct_Keys, p.Avg_Leaf_Blocks_Per_Key, p.Avg_Data_Blocks_Per_Key,
               p.Clustering_Factor, p.Status,
+              #{get_db_version >= '12.2' ? "p.Orphaned_Entries, " : "NULL Orphaned_Entries, "}
               #{"p.Flash_Cache, p.Cell_Flash_Cache, " if get_db_version >= '12.1'}
              st.MB Size_MB, st.Segment_Blocks, st.Extents,
              o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS,

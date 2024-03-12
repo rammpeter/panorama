@@ -24,6 +24,7 @@
     result << "#{'<br/>' if result.length > 0}Compression =  #{rec.compression}"  if !(rec.compression == 'DISABLED')
     result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')
     result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1' && !(rec.cell_flash_cache.nil? || rec.cell_flash_cache == 'DEFAULT')
+    result << "#{'<br/>' if result.length > 0}Orphaned Entries = #{rec.orphaned_entries}"                                                 if !(rec.orphaned_entries.nil? || rec.orphaned_entries == 'NO')
     result.html_safe
   end
 
@@ -32,6 +33,7 @@
 - Index compression with number of compressed columns in parentheses
 - Smart flash cache
 - Cell flash cache
+- Orphaned entries in index
 "
 
   list_rac_master = proc do |rec|
