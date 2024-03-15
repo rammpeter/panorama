@@ -68,7 +68,7 @@ SELECT s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value, COUNT(*) Child_Curso
 FROM   gv$SQL s
 WHERE  Plan_Hash_Value > 0
 GROUP BY s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value
-HAVING COUNT(*) > 10
+HAVING COUNT(*) > ?
 ORDER BY Child_Cursors DESC",
             :parameter=>[
                 {:name=> t(:dragnet_helper_148_param_1_name, :default=>'Minimum number of different SQL-IDs'), :size=>8, :default=>10, :title=>t(:dragnet_helper_148_param_1_hint, :default=>'Minimum number of different SQL-IDs per plan-hash-value for consideration in selection') }
@@ -168,12 +168,15 @@ The length of the compared substring may be varied."),
                                       COUNT(DISTINCT Parsing_Schema_Name) \"Different pars. schema names\"
                                FROM   gv$SQLArea s, Len
                                GROUP BY Inst_ID, SUBSTR(s.SQL_Text, 1, Len.Substr_Len)
-                               HAVING COUNT(*) > 10
+                               HAVING COUNT(*) > ?
                               ) g
                        JOIN gv$SQLArea s ON s.Inst_ID = g.Inst_ID AND s.SQL_ID = g.SQL_ID
                        ORDER BY \"Memory (MB)\" DESC NULLS LAST
              ",
-            :parameter=>[{:name=> t(:dragnet_helper_114_param_1_name, :default=>'Number of characters for comparison of SQLs'), :size=>8, :default=>60, :title=>t(:dragnet_helper_114_param_1_hint, :default=>'Number of characters for comparison of SQLs (beginning at left side of statement)') }]
+            :parameter=>[
+              {:name=> t(:dragnet_helper_114_param_1_name, :default=>'Number of characters for comparison of SQLs'), :size=>8, :default=>60, :title=>t(:dragnet_helper_114_param_1_hint, :default=>'Number of characters for comparison of SQLs (beginning at left side of statement)') },
+              {:name=> t(:dragnet_helper_148_param_1_name, :default=>'Minimum number of different SQL-IDs'), :size=>8, :default=>10, :title=>t(:dragnet_helper_148_param_1_hint, :default=>'Minimum number of different SQL-IDs per plan-hash-value for consideration in selection') }
+            ]
         },
         {
             :name  => t(:dragnet_helper_125_name, :default=>'Number of distinct SQL-IDs per time in time line'),
