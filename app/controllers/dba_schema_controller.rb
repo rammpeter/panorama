@@ -1289,6 +1289,7 @@ class DbaSchemaController < ApplicationController
                                            COUNT(DISTINCT ip.Next_Extent)     P_Next_Extent_Count,     MIN(ip.Next_Extent)      P_Next_Extent,
                                            COUNT(DISTINCT ip.Min_Extent)      P_Min_Extents_Count,     MIN(ip.Min_Extent)       P_Min_Extents,
                                            COUNT(DISTINCT ip.Max_Extent)      P_Max_Extents_Count,     MIN(ip.Max_Extent)       P_Max_Extents
+                                           #{ ", COUNT(DISTINCT ip.Orphaned_Entries) P_Orphaned_Entries_Count, MIN(ip.Orphaned_Entries) P_Orphaned_Entries" if get_db_version >= '12.2'}
                                     FROM   DBA_Ind_Partitions ip
                                            WHERE  (ip.Index_Owner, ip.Index_Name) IN (SELECT Owner, Index_Name FROM Indexes)
                                            GROUP BY ip.Index_Name
@@ -1334,6 +1335,7 @@ class DbaSchemaController < ApplicationController
                         p.P_Next_Extent_Count,    p.P_Next_Extent,
                         p.P_Min_Extents_Count,    p.P_Min_Extents,
                         p.P_Max_Extents_Count,    p.P_Max_Extents,
+                        #{ "p.P_Orphaned_Entries_Count, p.P_Orphaned_Entries, " if get_db_version >= '12.2'}
                         sp.SP_Status_Count,       sp.SP_Status,
                         sp.SP_Compression_Count,  sp.SP_Compression,
                         sp.SP_Tablespace_Count,   sp.SP_Tablespace_Name,
@@ -1449,16 +1451,17 @@ class DbaSchemaController < ApplicationController
 
       # Set values of partitions if they exist
       if !i.partition_number.nil? && i.partition_number > 0
-        i.status            = i.p_status_count          == 1 ? i.p_status          : "< #{i.p_status_count} different >"                if i.p_status_count      > 0
-        i.compression       = i.p_compression_count     == 1 ? i.p_compression     : "< #{i.p_compression_count} different >"           if i.p_compression_count > 0
-        i.tablespace_name   = i.p_tablespace_count      == 1 ? i.p_tablespace_name : "< #{i.p_tablespace_count} different >"            if i.p_tablespace_count  > 0
-        i.pct_free          = i.p_pct_free_count        == 1 ? i.p_pct_free        : "< #{i.p_pct_free_count} different >"              if i.p_pct_free_count    > 0
-        i.ini_trans         = i.p_ini_trans_count       == 1 ? i.p_ini_trans       : "< #{i.p_ini_trans_count} different >"             if i.p_ini_trans_count   > 0
-        i.max_trans         = i.p_max_trans_count       == 1 ? i.p_max_trans       : "< #{i.p_max_trans_count} different >"             if i.p_max_trans_count   > 0
-        i.initial_extent    = i.p_initial_extent_count  == 1 ? fn(i.p_initial_extent/1024) : "< #{i.p_initial_extent_count} different >" if i.p_initial_extent_count > 0
-        i.next_extent       = i.p_next_extent_count     == 1 ? fn(i.p_next_extent/1024) : "< #{i.p_next_extent_count} different >"      if i.p_next_extent_count > 0
-        i.min_extents       = i.p_min_extents_count     == 1 ? i.p_min_extents     : "< #{i.p_min_extents_count} different >"           if i.p_min_extents_count   > 0
-        i.max_extents       = i.p_max_extents_count     == 1 ? i.p_max_extents     : "< #{i.p_max_extents_count} different >"           if i.p_max_extents_count   > 0
+        i.status            = i.p_status_count            == 1 ? i.p_status           : "< #{i.p_status_count} different >"                if i.p_status_count      > 0
+        i.compression       = i.p_compression_count       == 1 ? i.p_compression      : "< #{i.p_compression_count} different >"           if i.p_compression_count > 0
+        i.tablespace_name   = i.p_tablespace_count        == 1 ? i.p_tablespace_name  : "< #{i.p_tablespace_count} different >"            if i.p_tablespace_count  > 0
+        i.pct_free          = i.p_pct_free_count          == 1 ? i.p_pct_free         : "< #{i.p_pct_free_count} different >"              if i.p_pct_free_count    > 0
+        i.ini_trans         = i.p_ini_trans_count         == 1 ? i.p_ini_trans        : "< #{i.p_ini_trans_count} different >"             if i.p_ini_trans_count   > 0
+        i.max_trans         = i.p_max_trans_count         == 1 ? i.p_max_trans        : "< #{i.p_max_trans_count} different >"             if i.p_max_trans_count   > 0
+        i.initial_extent    = i.p_initial_extent_count    == 1 ? fn(i.p_initial_extent/1024) : "< #{i.p_initial_extent_count} different >" if i.p_initial_extent_count > 0
+        i.next_extent       = i.p_next_extent_count       == 1 ? fn(i.p_next_extent/1024) : "< #{i.p_next_extent_count} different >"       if i.p_next_extent_count > 0
+        i.min_extents       = i.p_min_extents_count       == 1 ? i.p_min_extents      : "< #{i.p_min_extents_count} different >"           if i.p_min_extents_count   > 0
+        i.max_extents       = i.p_max_extents_count       == 1 ? i.p_max_extents      : "< #{i.p_max_extents_count} different >"           if i.p_max_extents_count   > 0
+        i.orphaned_entries  = i.p_orphaned_entries_count  == 1 ? i.p_orphaned_entries : "< #{i.p_orphaned_entries_count} different >"      if i['p_orphaned_entries_count']&.> 0
 
         if !i.subpartition_number.nil? && i.subpartition_number > 0
           # Set values of subpartitions if they exist
