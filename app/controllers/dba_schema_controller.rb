@@ -261,6 +261,33 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_gradual_password_rollover
+    @user_info = sql_select_all("\
+      SELECT u.Account_Status, u.Password_Change_Date, u.Profile,
+             a.*
+      FROM   DBA_Users u
+      LEFT OUTER JOIN (
+                       SELECT NVL(DBProxy_Username, DBUserName) UserName, DBUserName, COUNT(*) Logon_Count,
+                              MIN(Event_Timestamp) Min_TS, MAX(Event_Timestamp) Max_TS,
+                              COUNT(DISTINCT OS_UserName         ) OS_UserName_Cnt,          MIN(OS_UserName         ) Min_OS_UserName,
+                              COUNT(DISTINCT UserHost            ) UserHost_Cnt,             MIN(UserHost            ) Min_UserHost,
+                              COUNT(DISTINCT Terminal            ) Terminal_Cnt,             MIN(Terminal            ) Min_Terminal,
+                              COUNT(DISTINCT Instance_ID         ) Instance_ID_Cnt,          MIN(Instance_ID         ) Min_Instance_ID,
+                              COUNT(DISTINCT External_UserID     ) External_UserID_Cnt,      MIN(External_UserID     ) Min_External_UserID,
+                              COUNT(DISTINCT Global_UserID       ) Global_UserID_Cnt,        MIN(Global_UserID       ) Min_Global_UserID,
+                              COUNT(DISTINCT Client_Program_Name ) Client_Program_Name_Cnt,  MIN(Client_Program_Name ) Min_Client_Program_Name,
+                              COUNT(DISTINCT DBLink_Info         ) DBLink_Info_Cnt,          MIN(DBLink_Info         ) Min_DBLink_Info
+                       FROM   Unified_Audit_Trail
+                       WHERE  Action_Name = 'LOGON'
+                       AND    Authentication_Type LIKE '%VERIFIER=12C-OLD%'
+                       GROUP BY DBUserName, DBProxy_Username
+                      ) a ON a.UserName = u.UserName
+      WHERE  u.Account_Status LIKE '%ROLLOVER%'
+    ")
+
+    render_partial
+  end
+
   def list_obj_grants
     @privilege  = prepare_param :privilege
     @grantee    = prepare_param :grantee
@@ -2473,6 +2500,9 @@ class DbaSchemaController < ApplicationController
     @machine        = prepare_param :machine
     @object_name    = prepare_param :object_name
     @action_name    = prepare_param :action_name
+    @auth_user      = prepare_param :auth_user
+    @filter         = prepare_param :filter
+
     where_string = ""
     where_values = []
 
@@ -2526,6 +2556,15 @@ class DbaSchemaController < ApplicationController
     if @action_name
       where_string << " AND UPPER(Action_name) LIKE UPPER('%'||?||'%')"
       where_values << @action_name
+    end
+
+    if @auth_user
+      where_string << " AND NVL(DBProxy_Username, DBUserName) = ?"
+      where_values << @auth_user
+    end
+
+    if @filter
+      where_string << " AND #{@filter}"
     end
 
     if params[:grouping] && params[:grouping] != "none"

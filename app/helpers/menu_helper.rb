@@ -38,6 +38,7 @@ module MenuHelper
               {:class => 'item', :caption => 'System privileges', :controller => :dba_schema, :action => :list_sys_privileges, :hint => t(:menu_dba_schema_list_sys_privs_hint, :default => 'Show system privileges (DBA_Sys_Privs)')},
               {:class => 'item', :caption => 'Object privileges', :controller => :dba_schema, :action => :list_obj_privileges, :hint => t(:menu_dba_schema_list_obj_privs_hint, :default => 'Show object privileges (DBA_Tab_Privs)')},
               {:class => 'item', :caption => 'User profiles', :controller => :dba_schema, :action => :list_user_profiles, :hint => t(:menu_dba_schema_list_profiles_hint, :default => 'Show user profile settings (DBA_Profiles)')},
+              {:class => 'item', :caption => 'Gradual password rollover', :controller => :dba_schema, :action => :list_gradual_password_rollover, :hint => t(:menu_dba_schema_list_profiles_hint, :default => "Show users in password rollover interval\nMay last longer because it scans Unified_Audit_Trail"), min_db_version: '19.12'},
             ]
             },
             {:class => 'menu', :caption => 'Audit Trail', :content => [

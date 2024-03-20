@@ -1999,6 +1999,9 @@
   menu_dba_patch_hint:                                      Historie der Upgrades/ Downgrades / Patches
   menu_dba_schema_audit_rules_hint:                         Anzeige der Regeln für Standard  und Fine Grain Auditing
   menu_dba_schema_audit_trail_hint:                         Anzeige von per Standard Audit Trail und Fine Grain Auditing geloggten Aktivitäten (DBA_Common_Audit_Trail)
+  menu_dba_schema_gradual_password_rollover_hint: |-
+    Anzeige der User innerhalb des Password-Rollover-Intervalls
+    Kann länger dauern da Unified_Audit_Trail gescannt wird
   menu_dba_schema_list_obj_privs_hint:                      Anzeige der Object Privileges (DBA_Tab_Privs)
   menu_dba_schema_list_profiles_hint:                       Anzeige der User-Profil Einstellungen (DBA_Profiles)
   menu_dba_schema_list_roles_hint:                          Anzeige der DB-Rollen (DBA_Roles)
