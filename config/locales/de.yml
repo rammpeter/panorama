@@ -832,8 +832,8 @@
 
   dragnet_helper_52_desc: |-
     Sie sollten ein minimales Auditing (Aufzeichen) von Login- und DDL-Operationen vornehmen für die Nachvollziehbarkeit problematischer DDL-Aktionen.
-    Bitte denken Sie auch an das Etablieren eiens Housekeepings der Audit-Daten z.B. auf Tabelle sys.AUD$.
-  dragnet_helper_52_name:                                   Fehlende vorgeschlagene Audit-Optionen
+    Bitte denken Sie auch an das Etablieren eines Housekeepings der Audit-Daten auf Tabelle sys.AUD$ bzw. sys.FGA_LOG$.
+  dragnet_helper_52_name:                                   Fehlende empfohlene Audit-Regeln für Standard-Auditing
 
   dragnet_helper_53_desc: |-
     Lang laufende offene Transaktionen bergen die Gefahr von Lock-Eskalationen in OLTP-Systemen.
@@ -1865,6 +1865,12 @@
     Die gweünschte parallele Ausführung von DML wird angenommen, wenn PARALLEL DML in der Session enabled ist.
   dragnet_helper_174_name: |-
     Unterdrückte Nutzung von möglicherweise erwartetem parallelem DML oder direct load
+
+  dragnet_helper_175_desc: |-
+    Sie sollten ein minimales Auditing (Aufzeichen) von Login- und DDL-Operationen vornehmen für die Nachvollziehbarkeit problematischer DDL-Aktionen.
+    Bitte denken Sie auch an das Etablieren eines Housekeepings der Audit-Daten.
+  dragnet_helper_175_name:                                   Fehlende empfohlene Audit-Regeln für Unified Auditing
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
