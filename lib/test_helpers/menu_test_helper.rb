@@ -11,8 +11,9 @@ class ActiveSupport::TestCase
       menu_entry[:content].each do |m|
         call_menu_entry_test_helper(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
         if m[:class] == "item" &&
-            controller_action_defined?(m[:controller], m[:action]) &&           # Controller hat eine Action-Methode für diesen Menü-Eintrag
-            "#{m[:controller]}_controller".camelize == @controller.class.name   # Nur Menues des aktuellen Controllers testen
+          controller_action_defined?(m[:controller], m[:action]) &&             # Controller hat eine Action-Methode für diesen Menü-Eintrag
+          "#{m[:controller]}_controller".camelize == @controller.class.name &&  # Nur Menues des aktuellen Controllers testen
+          (!m.has_key?(:min_db_version) || m[:min_db_version] <= PanoramaConnection.db_version)
 
           @request.accept = "text/html, */*; q=0.01"
 
