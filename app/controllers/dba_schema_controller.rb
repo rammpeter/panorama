@@ -208,17 +208,17 @@ class DbaSchemaController < ApplicationController
 
     profiles = sql_select_all ["SELECT p.*, u.User_Count
                                 FROM   DBA_Profiles p
-                                JOIN   (SELECT /*+ NO_MERGE */ Profile, COUNT(*) User_Count
-                                        FROM   DBA_Users
-                                        GROUP BY Profile
-                                       ) u ON u.Profile = p.Profile
+                                LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ Profile, COUNT(*) User_Count
+                                                   FROM   DBA_Users
+                                                   GROUP BY Profile
+                                                  ) u ON u.Profile = p.Profile
                                 #{where_string}
                                 ORDER BY p.Profile, p.Resource_Name
                                "].concat(where_values)
     profiles_hash = {}
     pivot_columns = {}
     profiles.each do |p|
-      profiles_hash[p.profile] ||= { user_count: p.user_count}
+      profiles_hash[p.profile] ||= { user_count: p.user_count || 0 }
       profiles_hash[p.profile][p.resource_name] ||= {}
       profiles_hash[p.profile][p.resource_name][:resource_type] = p.resource_type
       profiles_hash[p.profile][p.resource_name][:limit]         = p.limit
@@ -250,12 +250,31 @@ class DbaSchemaController < ApplicationController
       {:caption=> 'Users',    data: link_users, title: 'Number of users using this profile', align: :right},
     ]
     @columns.concat(pivot_columns.map do |key, value|
+      title_addition = case key
+                       when 'SESSIONS_PER_USER'         then 'Limited number of concurrent sessions per user.'
+                       when 'CPU_PER_SESSION'           then 'The CPU time limit for a call (a parse, execute, or fetch), expressed in hundredths of seconds.'
+                       when 'CONNECT_TIME'              then 'The total elapsed time limit for a session, expressed in minutes.'
+                       when 'IDLE_TIME'                 then 'The permitted periods of continuous inactive time during a session, expressed in minutes. Long-running queries and other operations are not subject to this limit. When you set an idle timeout of X minutes, note that the session will take a couple of additional minutes to be terminated. On the client application side, the error message shows up only the next time, when the idle client attempts to issue a new command.'
+                       when 'LOGICAL_READS_PER_SESSION' then 'The permitted number of data blocks read in a session, including blocks read from memory and disk.'
+                       when 'LOGICAL_READS_PER_CALL'    then 'The permitted number of data blocks read for a call to process a SQL statement (a parse, execute, or fetch).'
+                       when 'PRIVATE_SGA'               then 'The amount of private space a session can allocate in the shared pool of the system global area (SGA). '
+                       when 'COMPOSITE_LIMIT'           then 'The total resource cost for a session, expressed in service units. Oracle Database calculates the total service units as a weighted sum of CPU_PER_SESSION, CONNECT_TIME, LOGICAL_READS_PER_SESSION, and PRIVATE_SGA.'
+                       when 'FAILED_LOGIN_ATTEMPTS'     then 'The number of consecutive failed attempts to log in to the user account before the account is locked. If you omit this clause, then the default is 10 times.'
+                       when 'PASSWORD_LIFE_TIME'        then 'The number of days the same password can be used for authentication. If you also set a value for PASSWORD_GRACE_TIME, then the password expires if it is not changed within the grace period, and further connections are rejected. If you omit this clause, then the default is 180 days.'
+                       when 'PASSWORD_REUSE_TIME'       then 'PASSWORD_REUSE_TIME specifies the number of days before which a password cannot be reused. PASSWORD_REUSE_MAX specifies the number of password changes required before the current password can be reused. For these parameter to have any effect, you must specify a value for both of them.'
+                       when 'PASSWORD_REUSE_MAX'        then 'PASSWORD_REUSE_TIME specifies the number of days before which a password cannot be reused. PASSWORD_REUSE_MAX specifies the number of password changes required before the current password can be reused. For these parameter to have any effect, you must specify a value for both of them.'
+                       when 'PASSWORD_LOCK_TIME'        then 'The number of days an account will be locked after the specified number of consecutive failed login attempts. If you omit this clause, then the default is 1 day.'
+                       when 'PASSWORD_GRACE_TIME'       then 'The number of days after the grace period begins during which a warning is issued and login is allowed. If you omit this clause, then the default is 7 days.'
+                       when 'INACTIVE_ACCOUNT_TIME'     then 'The permitted number of consecutive days of no logins to the user account, after which the account will be locked. The minimum value is 15 days. The maximum value is 24855. If you omit this clause, then the default is UNLIMITED.'
+                       when 'PASSWORD_VERIFY_FUNCTION'  then 'You can pass a PL/SQL password complexity verification script as an argument to CREATE PROFILE by specifying PASSWORD_VERIFY_FUNCTION.'
+                       when 'PASSWORD_ROLLOVER_TIME'    then 'Time for gradual database password rollover in seconds.'
+                       end
+      title = "Limit for resource name #{key}\n\n#{title_addition}\n"
       { caption: key.gsub('_', ' '),
         data: proc{|rec| rec[key][:limit]},
-        title: 'Limit for resource name',
-        data_title: proc{|rec| "%t\nResource type = '#{rec[key][:resource_type]}'\nCommon = '#{rec[key][:common]}'\nInherited = '#{rec[key][:inherited]}'\nImplicit = '#{rec[key][:implicit]}'"}
+        title: title,
+        data_title: proc{|rec| "#{title}\nResource type = '#{rec[key][:resource_type]}'\nCommon = '#{rec[key][:common]}'\nInherited = '#{rec[key][:inherited]}'\nImplicit = '#{rec[key][:implicit]}'"}
       }
-
     end)
 
     render_partial
@@ -264,8 +283,11 @@ class DbaSchemaController < ApplicationController
   def list_gradual_password_rollover
     @user_info = sql_select_all("\
       SELECT u.Account_Status, u.Password_Change_Date, u.Profile,
-             a.*
+             a.*,
+             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'SECOND') Rollover_Expiration_Date,
+             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'SECOND')-SYSDATE Remaining_Days_for_Rollover
       FROM   DBA_Users u
+      LEFT OUTER JOIN DBA_Profiles pr ON pr.Profile = u.Profile and pr.Resource_Name = 'PASSWORD_ROLLOVER_TIME'
       LEFT OUTER JOIN (
                        SELECT NVL(DBProxy_Username, DBUserName) UserName, DBUserName, COUNT(*) Logon_Count,
                               MIN(Event_Timestamp) Min_TS, MAX(Event_Timestamp) Max_TS,
