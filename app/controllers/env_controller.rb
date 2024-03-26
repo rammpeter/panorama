@@ -242,7 +242,6 @@ class EnvController < ApplicationController
     end
 
     @dictionary_access_problem = true unless select_any_dictionary?(@dictionary_access_msg)
-
     render_partial :start_page, {additional_javascript_string: build_main_menu_js_code }  # Wait until all loogon jobs are processed before showing menu
   end
 
@@ -505,6 +504,10 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
 
     set_cached_dbid(PanoramaConnection.select_initial_dbid)
 
+    connection_warnings = PanoramaConnection.get_connection_warnings
+    if connection_warnings
+      add_statusbar_message("\nWarnings from JDBC connection:\n#{connection_warnings}\n")
+    end
 
     timepicker_regional = ""
     if get_locale == "de"  # Deutsche Texte für DateTimePicker

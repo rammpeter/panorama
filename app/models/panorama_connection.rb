@@ -488,6 +488,19 @@ class PanoramaConnection
     e.message                                                                   # return Exception message instead of raising exeption
   end
 
+  # Get the warnings of the current JDBC connection
+  # @return [String] the warnings of the current JDBC connection
+  def self.get_connection_warnings
+    retval = ''
+    warning = get_jdbc_raw_connection.get_warnings
+    while warning
+      retval << "#{warning.get_message}\n"
+      warning = warning.get_next_warning
+    end
+    retval.length == 0 ? nil : retval
+  rescue Exception => e
+    e.message                                                                   # return Exception message instead of raising exeption
+  end
 
   def self.sql_prepare_binds(sql)
     binds = []
