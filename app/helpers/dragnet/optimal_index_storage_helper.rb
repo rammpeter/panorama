@@ -33,28 +33,36 @@ It is recommended to have at least 10% free space in the index blocks to avoid f
             :desc  => t(:dragnet_helper_2_desc, :default=> 'Index-compression (COMPRESS) is usefull by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
   For poor selective indexes reduction of size by 1/4 to 1/3 is possible.'),
             :sql=> "\
-WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes FROM DBA_Segments WHERE Owner NOT IN (#{system_schema_subselect}) GROUP BY Owner, Segment_Name)
+WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
+                  FROM   DBA_Segments
+                  WHERE Owner NOT IN (#{system_schema_subselect})
+                  GROUP BY Owner, Segment_Name
+                 ),
+     Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name, Num_Rows, Distinct_Keys, Index_Type, Compression
+                 FROM   DBA_Indexes
+                 WHERE Owner NOT IN (#{system_schema_subselect}) AND Index_Type NOT IN ('BITMAP')
+                ),
+     Tab_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Column_Name, Avg_Col_Len FROM DBA_Tab_Columns),
+     Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Column_Name, Column_Position FROM DBA_Ind_Columns),
+     All_Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, IOT_Type FROM DBA_All_Tables)
 SELECT /* DB-Tools Ramm Komprimierung Indizes */  *
 FROM (
             SELECT ROUND(i.Num_Rows/i.Distinct_Keys) Rows_Per_Key, i.Num_Rows, i.Owner, i.Index_Name, i.Index_Type, i.Table_Owner, i.Table_Name,
-                   t.IOT_Type, seg.MBytes, Distinct_Keys,
-            (SELECT SUM(tc.Avg_Col_Len)
-             FROM   DBA_Ind_Columns ic,
-                    DBA_Tab_Columns tc
-             WHERE  ic.Index_Owner      = i.Owner
-             AND    ic.Index_Name = i.Index_Name
-             AND tc.Owner = i.Table_Owner AND tc.Table_Name = i.Table_Name AND tc.Column_Name = ic.Column_Name
-            ) Avg_Col_Len
-            FROM   DBA_Indexes i
-            JOIN   DBA_All_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
+                   t.IOT_Type, seg.MBytes, Distinct_Keys, Col_Lens.Avg_Col_Len
+            FROM   Indexes i
+            JOIN   All_Tables t ON t.Owner = i.Table_Owner AND t.Table_Name = i.Table_Name
             JOIN   Segments seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
+            JOIN   (SELECT ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len) Avg_Col_Len
+                    FROM   Ind_Columns ic
+                    JOIN   Indexes i      ON i.Owner = ic.Index_Owner AND i.Index_Name = ic.Index_Name
+                    JOIN   Tab_Columns tc ON tc.Owner = i.Table_Owner AND tc.Table_Name = i.Table_Name AND tc.Column_Name = ic.Column_Name
+                    GROUP BY ic.Index_Owner, ic.Index_Name
+                   ) Col_Lens ON Col_Lens.Index_Owner = i.Owner AND Col_Lens.Index_Name = i.Index_Name
             WHERE  i.Compression='DISABLED'
             AND    i.Distinct_Keys > 0
-            AND    i.Table_Owner NOT IN (#{system_schema_subselect})
             AND i.Num_Rows/DECODE(i.Distinct_Keys,0,1,i.Distinct_Keys) > ?
           ) i
 WHERE MBytes > ?
-AND   Index_Type NOT IN ('BITMAP')
 ORDER BY NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/Distinct_Keys DESC NULLS LAST",
             :parameter=>[{:name=> 'Min. rows/key', :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_1_hint, :default=> 'Minimum number of index rows per DISTINCT Key') },
             {:name=>t(:dragnet_helper_2_param_2_name, :default=> 'Threshold for index size (MB)'), :size=>8, :default=>10, :title=>t(:dragnet_helper_2_param_2_hint, :default=> 'Selection of indexes excessing given size limit in MB') },

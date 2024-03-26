@@ -119,14 +119,18 @@ Please remind also to establish housekeeping on audit data e.g. table sys.AUD$.'
           :desc  => t(:dragnet_helper_175_desc, :default=> 'You should have some minimal audit of logon and DDL operations for traceability of problematic DDL.
 Please remind also to establish housekeeping on audit data.'),
           :sql=>  "
-WITH Active_Options AS (SELECT Audit_option
-                        FROM   Audit_Unified_Policies p
-                        JOIN   Audit_Unified_Enabled_Policies ep ON ep.Policy_Name = p.Policy_Name
-                        WHERE  ep.Enabled_Option = 'BY USER' AND ep.Entity_Name = 'ALL USERS' /* global enabled */
-                        AND    p.Object_Schema = 'NONE' AND p.Object_Name = 'NONE' /* enabled for all objects */
-                        AND    p.Audit_Condition = 'NONE'
-                        AND    p.COndition_Eval_Opt = 'NONE'
-                       ),
+WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Policies),
+     Enabled_Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Enabled_Policies),
+     Current_Options AS (SELECT p.Audit_option, p.Policy_Name, 'YES' Enabled, ep.Enabled_Option, ep.Entity_Name,
+                                p.Object_Schema, p.Object_Name, p.Audit_Condition, p.Condition_Eval_Opt
+                         FROM   Policies p
+                         JOIN   Enabled_Policies ep ON ep.Policy_Name = p.Policy_Name
+                         UNION ALL
+                         SELECT Audit_Option, p.Policy_Name, 'NO' Enabled, NULL Enabled_Option, NULL Entity_Name,
+                                NULL Object_Schema, NULL Object_Name, NULL Audit_Condition, NULL Condition_Eval_Opt
+                         FROM   Policies p
+                         WHERE  p.Policy_Name NOT IN (SELECT Policy_Name FROM Enabled_Policies)
+                        ),
      Expected_Options AS (SELECT 'LOGON' Audit_Option FROM DUAL UNION ALL
                           SELECT 'LOGOFF' FROM DUAL UNION ALL
                           SELECT 'BECOME USER' FROM DUAL UNION ALL
@@ -260,9 +264,28 @@ WITH Active_Options AS (SELECT Audit_option
                           SELECT 'TRUNCATE CLUSTER' FROM DUAL UNION ALL
                           SELECT 'TRUNCATE TABLE' FROM DUAL
                          )
-SELECT Audit_Option Suggested_Audit_Action
+SELECT eo.Audit_Option Suggested_Audit_Action,
+       CASE WHEN COUNT(DISTINCT co.Policy_Name)         > 1 THEN '< '||COUNT(DISTINCT co.Policy_Name)         ||' >' ELSE MIN(co.Policy_Name)         END Existing_Policy,
+       CASE WHEN COUNT(DISTINCT co.Enabled)             > 1 THEN '< '||COUNT(DISTINCT co.Enabled)             ||' >' ELSE MIN(co.Enabled)             END Policy_Enabled,
+       CASE WHEN COUNT(DISTINCT co.Enabled_Option)      > 1 THEN '< '||COUNT(DISTINCT co.Enabled_Option)      ||' >' ELSE MIN(co.Enabled_Option)      END Enabled_Option,
+       CASE WHEN COUNT(DISTINCT co.Entity_Name)         > 1 THEN '< '||COUNT(DISTINCT co.Entity_Name)         ||' >' ELSE MIN(co.Entity_Name)         END Entity_Name,
+       CASE WHEN COUNT(DISTINCT co.Object_Schema)       > 1 THEN '< '||COUNT(DISTINCT co.Object_Schema)       ||' >' ELSE MIN(co.Object_Schema)       END Object_Schema,
+       CASE WHEN COUNT(DISTINCT co.Object_Name)         > 1 THEN '< '||COUNT(DISTINCT co.Object_Name)         ||' >' ELSE MIN(co.Object_Name)         END Object_Name,
+       CASE WHEN COUNT(DISTINCT co.Audit_Condition)     > 1 THEN '< '||COUNT(DISTINCT co.Audit_Condition)     ||' >' ELSE MIN(co.Audit_Condition)     END Audit_Condition,
+       CASE WHEN COUNT(DISTINCT co.Condition_Eval_Opt)  > 1 THEN '< '||COUNT(DISTINCT co.Condition_Eval_Opt)  ||' >' ELSE MIN(co.Condition_Eval_Opt)  END Condition_Eval_Opt
 FROM   Expected_Options eo
-WHERE  Audit_Option NOT IN (SELECT Audit_option FROM Active_Options)
+LEFT OUTER JOIN Current_Options co ON co.Audit_Option = eo.Audit_Option
+WHERE co.Audit_Option IS NULL
+OR    co.Enabled = 'NO'                                   /* Policy should be enabled */
+OR    NVL(co.Enabled_Option,     'BY USER')   != 'BY USER'    /* Option should not be restricted */
+OR    NVL(co.Entity_Name,        'ALL USERS') != 'ALL USERS'  /* global enabled should not be restricted */
+OR    NVL(co.Object_Schema,      'NONE')      != 'NONE'       /* Should be enabled for all schemas */
+OR    NVL(co.Object_Name,        'NONE')      != 'NONE'       /* should be enabled for all objects */
+OR    NVL(co.Audit_Condition,    'NONE')      != 'NONE'       /* there should be no filter */
+OR    NVL(co.Condition_Eval_Opt, 'NONE')      != 'NONE'       /* there should be no filter */
+
+GROUP BY eo.Audit_Option
+ORDER BY eo.Audit_Option
            ",
           :parameter=>[
           ]
