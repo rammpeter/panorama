@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'test_helper'
 
-class DbaSchemaControllerTest < ActionController::TestCase
+class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     #@routes = Engine.routes         # Suppress routing error if only routes for dummy application are active
@@ -83,19 +83,19 @@ class DbaSchemaControllerTest < ActionController::TestCase
     call_controllers_menu_entries_with_actions
   end
 
-  test "show_object_size with xhr: true"       do get  :show_object_size, :params => {:format=>:html, :update_area=>:hugo };   assert_response :success; end
+  test "show_object_size with xhr: true"       do get '/dba_schema/show_object_size', :params => {:format=>:html, :update_area=>:hugo };   assert_response :success; end
 
   test "list_objects with xhr: true"  do
-    post :list_objects, :params => {format: :html, tablespace: {name: "USERS"}, schema: {name: @object_owner}, update_area: :hugo };
+    post '/dba_schema/list_objects', :params => {format: :html, tablespace: {name: "USERS"}, schema: {name: @object_owner}, update_area: :hugo };
     assert_response :success;
 
-    post :list_objects, :params => {:format=>:html, sql_id: 'abcd', :update_area=>:hugo };
+    post '/dba_schema/list_objects', :params => {:format=>:html, sql_id: 'abcd', :update_area=>:hugo };
     assert_response :success;
 
-    post :list_objects, :params => {:format=>:html, sql_id: 'abcd', child_number: 1, :update_area=>:hugo };
+    post '/dba_schema/list_objects', :params => {:format=>:html, sql_id: 'abcd', child_number: 1, :update_area=>:hugo };
     assert_response :success;
 
-    post :list_objects, :params => {:format=>:html, sql_id: 'abcd', child_address: 'ABCD16', :update_area=>:hugo };
+    post '/dba_schema/list_objects', :params => {:format=>:html, sql_id: 'abcd', child_address: 'ABCD16', :update_area=>:hugo };
     assert_response :success;
   end
 
@@ -113,183 +113,183 @@ class DbaSchemaControllerTest < ActionController::TestCase
     ]
         .concat(get_db_version >= '12.1' ? [{owner: 'XDB',      segment_name: 'XDB$XTAB'}] :  [])    # XML-Table instead of relational table
         .each do |object|
-      get :list_object_description, :params => {format: :html, owner: object[:owner], segment_name: object[:segment_name], :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {format: :html, owner: object[:owner], segment_name: object[:segment_name], :update_area=>:hugo }
       assert_response :success
     end
 
     [nil, 1].each do |show_line_numbers|
-      get :list_object_description, :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE', show_line_numbers: show_line_numbers, :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE', show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
 
-      get :list_object_description, :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', show_line_numbers: show_line_numbers, :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
     end
 
-    post :list_indexes, :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
+    post '/dba_schema/list_indexes', :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
-    post :list_indexes, params: {format: :html, owner: @object_owner, table_name: @lob_table_name, index_name: @index_name, :update_area=>:hugo }
+    post '/dba_schema/list_indexes', params: {format: :html, owner: @object_owner, table_name: @lob_table_name, index_name: @index_name, :update_area=>:hugo }
     assert_response :success
 
     if get_db_version >= '12.2'
-      post :list_index_usage, :params => {:format=>:html, owner: @object_owner, index_name: @index_name, :update_area=>:hugo }
+      post '/dba_schema/list_index_usage', :params => {:format=>:html, owner: @object_owner, index_name: @index_name, :update_area=>:hugo }
       assert_response :success
     end
 
-    post :list_current_index_stats, :params => {:format=>:html, table_owner: @object_owner, table_name: @lob_table_name, index_owner: @object_owner, index_name: @index_name, :leaf_blocks=>1, :update_area=>:hugo }
+    post '/dba_schema/list_current_index_stats', :params => {:format=>:html, table_owner: @object_owner, table_name: @lob_table_name, index_owner: @object_owner, index_name: @index_name, :leaf_blocks=>1, :update_area=>:hugo }
     assert_response :success
 
-    post :list_primary_key, params: {format: :html, owner: @object_owner, table_name: @lob_table_name, :update_area=>:hugo }
+    post '/dba_schema/list_primary_key', params: {format: :html, owner: @object_owner, table_name: @lob_table_name, :update_area=>:hugo }
     assert_response :success
 
-    post :list_check_constraints, :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
+    post '/dba_schema/list_check_constraints', :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
     assert_response :success
 
-    post :list_references_from, :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
+    post '/dba_schema/list_references_from', :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
     assert_response :success
 
-    post :list_references_from, :params => {:format=>:html, :owner=>@object_owner, :table_name=>@lob_table_name, index_owner: @object_owner, index_name: @index_name, :update_area=>:hugo }
+    post '/dba_schema/list_references_from', :params => {:format=>:html, :owner=>@object_owner, :table_name=>@lob_table_name, index_owner: @object_owner, index_name: @index_name, :update_area=>:hugo }
     assert_response :success
 
-    post :list_references_from, :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
+    post '/dba_schema/list_references_from', :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_INST_DD", :update_area=>:hugo }
     assert_response :success
 
-    post :list_references_to, :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_PARALLEL_SAMPLE_DATA", :update_area=>:hugo }
+    post '/dba_schema/list_references_to', :params => {:format=>:html, :owner=>"SYS", :table_name=>"HS$_PARALLEL_SAMPLE_DATA", :update_area=>:hugo }
     assert_response :success
 
-    post :list_triggers, :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
+    post '/dba_schema/list_triggers', :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
     [nil, 1].each do |show_line_numbers|
-      post :list_trigger_body, :params => {:format=>:html, :owner=>"SYS", :trigger_name=>"LOGMNRGGC_TRIGGER", show_line_numbers: show_line_numbers, :update_area=>:hugo }
+      post '/dba_schema/list_trigger_body', :params => {:format=>:html, :owner=>"SYS", :trigger_name=>"LOGMNRGGC_TRIGGER", show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
     end
 
-    post :list_lobs, :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
+    post '/dba_schema/list_lobs', :params => {:format=>:html, :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
     if defined? @part_table_table_name                                                          # if lob partitions exists in this database
-      get :list_lob_partitions, :params => {:format=>:html, :owner=>@object_owner, :table_name=>@part_table_table_name, :lob_name=>@lob_part_lob_name, :update_area=>:hugo }
+      get '/dba_schema/list_lob_partitions', :params => {:format=>:html, :owner=>@object_owner, :table_name=>@part_table_table_name, :lob_name=>@lob_part_lob_name, :update_area=>:hugo }
       assert_response :success
     end
 
-    get :list_table_partitions, :params => {:format=>:html, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT", :update_area=>:hugo }
+    get '/dba_schema/list_table_partitions', :params => {:format=>:html, :owner=>"SYS", :table_name=>"WRH$_SQLSTAT", :update_area=>:hugo }
     assert_response :success
 
     if defined? @subpart_table_table_name
-      get :list_table_subpartitions, :params => {:format=>:html, :owner=>@object_owner, :table_name=>@subpart_table_table_name, :update_area=>:hugo }
+      get '/dba_schema/list_table_subpartitions', :params => {:format=>:html, :owner=>@object_owner, :table_name=>@subpart_table_table_name, :update_area=>:hugo }
       assert_response :success
 
-      get :list_table_subpartitions, :params => {:format=>:html, :owner=>@object_owner, :table_name=>@subpart_table_table_name, :partition_name => @subpart_table_partition_name, :update_area=>:hugo }
+      get '/dba_schema/list_table_subpartitions', :params => {:format=>:html, :owner=>@object_owner, :table_name=>@subpart_table_table_name, :partition_name => @subpart_table_partition_name, :update_area=>:hugo }
       assert_response :success
     end
 
-    get :list_index_partitions, :params => {:format=>:html, :owner=>"SYS", :index_name=>"WRH$_SQLSTAT_PK", :update_area=>:hugo }
+    get '/dba_schema/list_index_partitions', :params => {:format=>:html, :owner=>"SYS", :index_name=>"WRH$_SQLSTAT_PK", :update_area=>:hugo }
     assert_response :success
 
     if defined? @part_index_index_name
-      get :list_index_partitions, :params => {:format=>:html, :owner=>@object_owner, :index_name=>@part_index_index_name, :update_area=>:hugo }
+      get '/dba_schema/list_index_partitions', :params => {:format=>:html, :owner=>@object_owner, :index_name=>@part_index_index_name, :update_area=>:hugo }
       assert_response :success
 
-      get :list_index_partitions, :params => {:format=>:html, :owner=>@object_owner, :index_name=>@part_index_index_name, :partition_name => @part_index_partition_name, :update_area=>:hugo }
+      get '/dba_schema/list_index_partitions', :params => {:format=>:html, :owner=>@object_owner, :index_name=>@part_index_index_name, :partition_name => @part_index_partition_name, :update_area=>:hugo }
       assert_response :success
     end
 
 
     if defined? @subpart_index_index_name
-      get :list_index_subpartitions, :params => {:format=>:html, :owner=>@object_owner, :index_name=>@subpart_index_index_name, :update_area=>:hugo }
+      get '/dba_schema/list_index_subpartitions', :params => {:format=>:html, :owner=>@object_owner, :index_name=>@subpart_index_index_name, :update_area=>:hugo }
       assert_response :success
 
-      get :list_index_subpartitions, :params => {:format=>:html, :owner=>@object_owner, :index_name=>@subpart_index_index_name, :partition_name => @subpart_index_partition_name, :update_area=>:hugo }
+      get '/dba_schema/list_index_subpartitions', :params => {:format=>:html, :owner=>@object_owner, :index_name=>@subpart_index_index_name, :partition_name => @subpart_index_partition_name, :update_area=>:hugo }
       assert_response :success
     end
 
-    post :list_dbms_metadata_get_ddl, :params => {:format=>:html, :object_type=>'TABLE', :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
+    post '/dba_schema/list_dbms_metadata_get_ddl', :params => {:format=>:html, :object_type=>'TABLE', :owner=>"SYS", :table_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
-    post :list_dependencies, :params => {:format=>:html, :owner=>"SYS", :object_name=>"AUD$", :object_type=>'TABLE', :update_area=>:hugo }
+    post '/dba_schema/list_dependencies', :params => {:format=>:html, :owner=>"SYS", :object_name=>"AUD$", :object_type=>'TABLE', :update_area=>:hugo }
     assert_response :success
-    post :list_dependencies, :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBA_AUDIT_TRAIL", :object_type=>'VIEW', :update_area=>:hugo }
+    post '/dba_schema/list_dependencies', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBA_AUDIT_TRAIL", :object_type=>'VIEW', :update_area=>:hugo }
     assert_response :success
-    post :list_dependencies, :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE', :update_area=>:hugo }
+    post '/dba_schema/list_dependencies', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE', :update_area=>:hugo }
     assert_response :success
-    post :list_dependencies, :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
-    assert_response :success
-
-    post :list_dependencies_from_me_tree, :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
+    post '/dba_schema/list_dependencies', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
     assert_response :success
 
-    post :list_dependencies_im_from_tree, :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
+    post '/dba_schema/list_dependencies_from_me_tree', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
     assert_response :success
 
-    post :list_grants, :params => {:format=>:html, :owner=>"SYS", :object_name=>"AUD$", :update_area=>:hugo }
+    post '/dba_schema/list_dependencies_im_from_tree', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_schema/list_grants', :params => {:format=>:html, :owner=>"SYS", :object_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
   end
 
   test "list_audit_trail with xhr: true" do
-    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
         :machine=>"Hugo", :object_name=>"Hugo", :statement_type=>"Hugo", :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :session_id=>12345, :grouping=>"none", :update_area=>:hugo }
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :session_id=>12345, :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
         :machine=>"Hugo", :object_name=>"Hugo", :statement_type=>"Hugo", :grouping=>"MI", :top_x=>"5", :update_area=>:hugo }
     assert_response :success
 
-    get :list_audit_trail, :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
+    get '/dba_schema/list_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
     assert_response :success
   end
 
   test "list_unified_audit_trail with xhr: true" do
     if get_db_version >= '12.1'
-      get :list_unified_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
       assert_response :success
 
-      get :list_unified_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
                                                  :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"none", :update_area=>:hugo }
       assert_response :success
 
-      get :list_unified_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none", :update_area=>:hugo }
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none", :update_area=>:hugo }
       assert_response :success
 
-      get :list_unified_audit_trail, :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
       assert_response :success
 
-      get :list_unified_audit_trail, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
                                                  :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"MI", :top_x=>"5", :update_area=>:hugo }
       assert_response :success
 
-      get :list_unified_audit_trail, :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
+      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
       assert_response :success
     end
   end
 
   test "list_object_nach_file_und_block with xhr: true" do
-    get :list_object_nach_file_und_block, :params => {:format=>:html, :fileno=>1, :blockno=>1, :update_area=>:hugo }
+    get '/dba_schema/list_object_nach_file_und_block', :params => {:format=>:html, :fileno=>1, :blockno=>1, :update_area=>:hugo }
     assert_response :success
   end
 
   test "list_space_usage with xhr: true" do
-    get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @lob_segment_name , update_area: :hugo }
+    get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @lob_segment_name , update_area: :hugo }
     assert_response :success
 
     if defined?(@lob_part_lob_name)
       # all partitions
-      get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @lob_part_lob_name , update_area: :hugo }
+      get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @lob_part_lob_name , update_area: :hugo }
       assert_response :success
 
       if defined?(@lob_part_lob_partition_name)
         # one partition
-        get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @lob_part_lob_name, partition_name: @lob_part_lob_partition_name , update_area: :hugo }
+        get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @lob_part_lob_name, partition_name: @lob_part_lob_partition_name , update_area: :hugo }
         assert_response :success
       end
     end
@@ -297,104 +297,104 @@ class DbaSchemaControllerTest < ActionController::TestCase
 
     if defined?(@part_table_table_name)
       # all partitions
-      get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @part_table_table_name , update_area: :hugo }
+      get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @part_table_table_name , update_area: :hugo }
       assert_response :success
 
       if defined?(@lob_part_partition_name)
         # one partition
-        get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @part_table_table_name, partition_name: @lob_part_partition_name , update_area: :hugo }
+        get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @part_table_table_name, partition_name: @lob_part_partition_name , update_area: :hugo }
         assert_response :success
       end
     end
 
     if defined?(@part_index_index_name)
       # all partitions
-      get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @part_index_index_name , update_area: :hugo }
+      get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @part_index_index_name , update_area: :hugo }
       assert_response :success
 
       if defined?(@part_index_partition_name)
         # one partition
-        get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @part_index_index_name, partition_name: @part_index_partition_name , update_area: :hugo }
+        get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @part_index_index_name, partition_name: @part_index_partition_name , update_area: :hugo }
         assert_response :success
       end
     end
 
     if defined?(@subpart_table_table_name)
       # all partitions
-      get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @subpart_table_table_name , update_area: :hugo }
+      get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @subpart_table_table_name , update_area: :hugo }
       assert_response :success
 
       if defined?(@subpart_table_subpartition_name)
         # one partition
-        get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name , update_area: :hugo }
+        get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name , update_area: :hugo }
         assert_response :success
       end
     end
 
     if defined?(@subpart_index_index_name)
       # all partitions
-      get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @subpart_index_index_name , update_area: :hugo }
+      get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @subpart_index_index_name , update_area: :hugo }
       assert_response :success
 
       if defined?(@subpart_index_subpartition_name)
         # one partition
-        get :list_space_usage, params: {format: :html, owner: @object_owner, segment_name: @subpart_index_index_name, partition_name: @subpart_index_subpartition_name , update_area: :hugo }
+        get '/dba_schema/list_space_usage', params: {format: :html, owner: @object_owner, segment_name: @subpart_index_index_name, partition_name: @subpart_index_subpartition_name , update_area: :hugo }
         assert_response :success
       end
     end
   end
 
   test 'list stored settings' do
-    get :list_stored_settings, params: {format: :html, owner: 'SYS', object_name: 'DBMS_STATS', object_type: 'PACKAGE BODY' }
+    get '/dba_schema/list_stored_settings', params: {format: :html, owner: 'SYS', object_name: 'DBMS_STATS', object_type: 'PACKAGE BODY' }
     assert_response :success
   end
 
   test 'list role grants' do
-    post :list_role_grants, params: {format: :html, role: 'CONNECT' }
+    post '/dba_schema/list_role_grants', params: {format: :html, role: 'CONNECT' }
     assert_response :success
 
-    post :list_role_grants, params: {format: :html, grantee: 'SYS' }
+    post '/dba_schema/list_role_grants', params: {format: :html, grantee: 'SYS' }
     assert_response :success
   end
 
   test 'list granted sys privileges' do
-    post :list_granted_sys_privileges, params: {format: :html, privilege: 'SELECT ANY TABLE' }
+    post '/dba_schema/list_granted_sys_privileges', params: {format: :html, privilege: 'SELECT ANY TABLE' }
     assert_response :success
 
-    post :list_granted_sys_privileges, params: {format: :html, grantee: 'SYS' }
+    post '/dba_schema/list_granted_sys_privileges', params: {format: :html, grantee: 'SYS' }
     assert_response :success
   end
 
   test 'list granted obj privileges' do
-    post :list_obj_grants, params: {format: :html, privilege: 'SELECT' }
+    post '/dba_schema/list_obj_grants', params: {format: :html, privilege: 'SELECT' }
     assert_response :success
 
-    post :list_obj_grants, params: {format: :html, grantee: 'SYS' }
+    post '/dba_schema/list_obj_grants', params: {format: :html, grantee: 'SYS' }
     assert_response :success
 
-    post :list_obj_grants, params: {format: :html, grantor: 'SYS' }
+    post '/dba_schema/list_obj_grants', params: {format: :html, grantor: 'SYS' }
     assert_response :success
   end
 
   test 'list db users' do
     # call without parameters is tested as first level menu entry
-    post :list_db_users, params: {format: :html, username: 'SYS' }
+    post '/dba_schema/list_db_users', params: {format: :html, username: 'SYS' }
     assert_response :success
   end
 
   test 'list roles' do
     # call without parameters is tested as first level menu entry
-    post :list_roles, params: {format: :html, role: 'CONNECT' }
+    post '/dba_schema/list_roles', params: {format: :html, role: 'CONNECT' }
     assert_response :success
   end
 
   test "compression_check with xhr: true" do
-    post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+    post '/dba_schema/list_compression_check', :params => {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
     assert_response :success
     if @edition == :enterprise
-      post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+      post '/dba_schema/list_compression_check', :params => {format: :html, owner: @object_owner, table_name: @part_table_table_name, partition_name: @part_table_partition_name, avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
       assert_response :success
-      post :list_compression_check, :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
+      post '/dba_schema/list_compression_check', :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
       assert_response :success
     end
   end
