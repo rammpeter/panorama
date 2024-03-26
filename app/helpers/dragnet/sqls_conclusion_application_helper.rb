@@ -118,6 +118,7 @@ Please remind also to establish housekeeping on audit data e.g. table sys.AUD$.'
           :name  => t(:dragnet_helper_175_name, :default=> 'Missing suggested AUDIT rules for unified auditing'),
           :desc  => t(:dragnet_helper_175_desc, :default=> 'You should have some minimal audit of logon and DDL operations for traceability of problematic DDL.
 Please remind also to establish housekeeping on audit data.'),
+          min_db_version: '12.1',
           :sql=>  "
 WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Policies),
      Enabled_Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Enabled_Policies),
