@@ -87,7 +87,7 @@ ORDER BY NVL(Avg_Col_Len, 5) * Num_Rows * Num_Rows/Distinct_Keys DESC NULLS LAST
         {
             :name  => t(:dragnet_helper_130_name, :default=> 'Recommendations for index-compression, test by selectivity of single columns from multicolumn index'),
             :desc  => t(:dragnet_helper_130_desc, :default=> 'For multicolumn-indexes compression of single index columns (beginning from left) may be useful even if this multicolumn-index has overall Num_Rows=Distinct_Keys (selectivity=1).
-Partial index-compression (COMPRESS x) assumes that index-column to be compressed has position 1 in index or all columns before are also compressed.
+Partial index-compression (COMPRESS x or COMPRESS ADVANCED LOW) assumes that index-column to be compressed has position 1 in index or all columns before are also compressed.
 This selections shows recommendations for compression of single columns of multicolumn indexes beginning with column-position 1.'),
             :sql=> "WITH Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Owner, Table_Name, Index_Name, Compression, Prefix_Length,
                                             Num_Rows, Last_Analyzed, Partitioned, Index_Type
@@ -132,6 +132,7 @@ This selections shows recommendations for compression of single columns of multi
                             JOIN   Segments  seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
                             WHERE  i.Num_Rows/DECODE(tc.Num_Distinct,0,1,tc.Num_Distinct) > ?
                             AND    (i.Compression = 'DISABLED' OR i.Prefix_Length < ic.Column_Position)
+                            AND    i.Compression NOT LIKE 'ADVANCED%'
                            )
                     ORDER BY \"Column Pos.\", NVL(\"Avg Col Len\", 5) * NVL(\"Avg Col Len\", 5) * Num_Rows * Num_Rows/CASE WHEN \"Num. Distinct\" > 0 AND \"Num. Distinct\" < 1000 THEN \"Num. Distinct\" ELSE 1000 END/DECODE(Partitions, 0, 1, Partitions) DESC NULLS LAST",
             :parameter=>[{:name=> t(:dragnet_helper_130_param_1_name, :default=>'Min. number of rows of index'), :size=>10, :default=>1000000, :title=>t(:dragnet_helper_130_param_1_hint, :default=> 'Minimum number of rows of index to be considered in this selection') },

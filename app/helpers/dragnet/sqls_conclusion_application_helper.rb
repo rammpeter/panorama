@@ -122,15 +122,30 @@ Please remind also to establish housekeeping on audit data.'),
           :sql=>  "
 WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Policies),
      Enabled_Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Enabled_Policies),
-     Current_Options AS (SELECT p.Audit_option, p.Policy_Name, 'YES' Enabled, ep.Enabled_Option, ep.Entity_Name,
-                                p.Object_Schema, p.Object_Name, p.Audit_Condition, p.Condition_Eval_Opt
-                         FROM   Policies p
-                         JOIN   Enabled_Policies ep ON ep.Policy_Name = p.Policy_Name
-                         UNION ALL
-                         SELECT Audit_Option, p.Policy_Name, 'NO' Enabled, NULL Enabled_Option, NULL Entity_Name,
-                                NULL Object_Schema, NULL Object_Name, NULL Audit_Condition, NULL Condition_Eval_Opt
-                         FROM   Policies p
-                         WHERE  p.Policy_Name NOT IN (SELECT Policy_Name FROM Enabled_Policies)
+     Current_Options AS (SELECT x.*,
+                                CASE WHEN Enabled       = 'YES'        /* Policy should be enabled */
+                                AND  Enabled_Option     = 'BY USER'    /* Option should not be restricted */
+                                AND  Entity_Name        = 'ALL USERS'  /* global enabled should not be restricted */
+                                AND  Object_Schema      = 'NONE'       /* Should be enabled for all schemas */
+                                AND  Object_Name        = 'NONE'       /* should be enabled for all objects */
+                                AND  Audit_Condition    = 'NONE'       /* there should be no filter */
+                                AND  Condition_Eval_Opt = 'NONE'       /* there should be no filter */
+                                AND  Success            = 'YES'        /* should be logged for success */
+                                AND  Failure            = 'YES'        /* should be logged for failure */
+                                THEN 'YES' ELSE 'NO' END Accepted
+                         FROM   (
+                                 SELECT p.Audit_option, p.Policy_Name, 'YES' Enabled, ep.Enabled_Option, ep.Entity_Name,
+                                        p.Object_Schema, p.Object_Name, p.Audit_Condition, p.Condition_Eval_Opt,
+                                        ep.Success, ep.Failure
+                                 FROM   Policies p
+                                 JOIN   Enabled_Policies ep ON ep.Policy_Name = p.Policy_Name
+                                 UNION ALL
+                                 SELECT Audit_Option, p.Policy_Name, 'NO' Enabled, NULL Enabled_Option, NULL Entity_Name,
+                                        NULL Object_Schema, NULL Object_Name, NULL Audit_Condition, NULL Condition_Eval_Opt,
+                                        NULL Success, NULL Failure
+                                 FROM   Policies p
+                                 WHERE  p.Policy_Name NOT IN (SELECT Policy_Name FROM Enabled_Policies)
+                                ) x
                         ),
      Expected_Options AS (SELECT 'LOGON' Audit_Option FROM DUAL UNION ALL
                           SELECT 'LOGOFF' FROM DUAL UNION ALL
@@ -252,7 +267,7 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'DROP VIEW' FROM DUAL UNION ALL
                           SELECT 'FLASHBACK TABLE' FROM DUAL UNION ALL
                           SELECT 'GRANT' FROM DUAL UNION ALL
-                          SELECT 'LOCK TABLE' FROM DUAL UNION ALL
+                          --SELECT 'LOCK TABLE' FROM DUAL UNION ALL
                           SELECT 'NOAUDIT' FROM DUAL UNION ALL
                           SELECT 'PURGE DBA_RECYCLEBIN' FROM DUAL UNION ALL
                           SELECT 'PURGE INDEX' FROM DUAL UNION ALL
@@ -273,19 +288,13 @@ SELECT eo.Audit_Option Suggested_Audit_Action,
        CASE WHEN COUNT(DISTINCT co.Object_Schema)       > 1 THEN '< '||COUNT(DISTINCT co.Object_Schema)       ||' >' ELSE MIN(co.Object_Schema)       END Object_Schema,
        CASE WHEN COUNT(DISTINCT co.Object_Name)         > 1 THEN '< '||COUNT(DISTINCT co.Object_Name)         ||' >' ELSE MIN(co.Object_Name)         END Object_Name,
        CASE WHEN COUNT(DISTINCT co.Audit_Condition)     > 1 THEN '< '||COUNT(DISTINCT co.Audit_Condition)     ||' >' ELSE MIN(co.Audit_Condition)     END Audit_Condition,
-       CASE WHEN COUNT(DISTINCT co.Condition_Eval_Opt)  > 1 THEN '< '||COUNT(DISTINCT co.Condition_Eval_Opt)  ||' >' ELSE MIN(co.Condition_Eval_Opt)  END Condition_Eval_Opt
+       CASE WHEN COUNT(DISTINCT co.Condition_Eval_Opt)  > 1 THEN '< '||COUNT(DISTINCT co.Condition_Eval_Opt)  ||' >' ELSE MIN(co.Condition_Eval_Opt)  END Condition_Eval_Opt,
+       CASE WHEN COUNT(DISTINCT co.Success)             > 1 THEN '< '||COUNT(DISTINCT co.Success)             ||' >' ELSE MIN(co.Success)  END        Success,
+       CASE WHEN COUNT(DISTINCT co.Failure)             > 1 THEN '< '||COUNT(DISTINCT co.Failure)             ||' >' ELSE MIN(co.Failure)  END        Failure
 FROM   Expected_Options eo
 LEFT OUTER JOIN Current_Options co ON co.Audit_Option = eo.Audit_Option
-WHERE co.Audit_Option IS NULL
-OR    co.Enabled = 'NO'                                   /* Policy should be enabled */
-OR    NVL(co.Enabled_Option,     'BY USER')   != 'BY USER'    /* Option should not be restricted */
-OR    NVL(co.Entity_Name,        'ALL USERS') != 'ALL USERS'  /* global enabled should not be restricted */
-OR    NVL(co.Object_Schema,      'NONE')      != 'NONE'       /* Should be enabled for all schemas */
-OR    NVL(co.Object_Name,        'NONE')      != 'NONE'       /* should be enabled for all objects */
-OR    NVL(co.Audit_Condition,    'NONE')      != 'NONE'       /* there should be no filter */
-OR    NVL(co.Condition_Eval_Opt, 'NONE')      != 'NONE'       /* there should be no filter */
-
 GROUP BY eo.Audit_Option
+HAVING SUM(CASE WHEN NVL(co.Accepted, 'NO') = 'YES' THEN 1 ELSE 0 END) = 0 /* No record with accepted = 'YES' among the results */
 ORDER BY eo.Audit_Option
            ",
           :parameter=>[

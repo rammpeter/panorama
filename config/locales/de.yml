@@ -1415,7 +1415,7 @@
 
   dragnet_helper_130_desc: |-
     Für Mehrspaltenindizes kann auch die Komprimierung einer einzelnen Spalte (von links beginnend) hilfreich sein, selbst wenn der Mehrspaltenindex im Ganzen  Num_Rows=Distinct_Keys hat (Selectivität=1).
-    Spaltenweise Index-Komprimierung (COMPRESS x) erwartet dass die zu komprimierende Spalte an Position 1 steht oder alle vorherigen Spalten ebenfalls komprimiert sind.
+    Spaltenweise Index-Komprimierung (COMPRESS x oder COMPRESS ADVANCED LOW) erwartet dass die zu komprimierende Spalte an Position 1 steht oder alle vorherigen Spalten ebenfalls komprimiert sind.
     Diese Selektion zeigt Empfehlungen für die Komprimierung einzelner Spalten von Mehrspaltenindizes beginnend mit Spalten an Position 1.
   dragnet_helper_130_name: |-
     Empfehlungen für Index-Komprimierung, Test auf Selektivität einer einzelnen Spalte eines Mehrspaltenindex
