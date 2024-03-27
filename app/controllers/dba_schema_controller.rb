@@ -2998,7 +2998,7 @@ class DbaSchemaController < ApplicationController
       when 5000 then 'Maximum number of LOBs used to compute the LOB compression ratio'
       when 1000000 then 'Minimum required number of rows in the object for which HCC ratio is to be estimated'
       when -1 then 'To indicate the use of all the rows in the object to estimate HCC ratio'
-      ELSE "Unknown Compression Type #{compression_type}"
+      else "Unknown Compression Type #{compression_type}"
       end
     end
 

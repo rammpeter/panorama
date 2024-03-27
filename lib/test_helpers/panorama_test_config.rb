@@ -10,7 +10,7 @@ class PanoramaTestConfig
     test_username     = ENV['TEST_USERNAME']    || 'panorama_test'
     test_password     = ENV['TEST_PASSWORD']    || 'panorama_test'
     test_syspassword  = ENV['TEST_SYSPASSWORD'] || 'oracle'
-    test_tns          = (ENV['TEST_TNS'] && ENV['TEST_TNS'].length > 0) ? ENV['TEST_TNS'] :"#{test_host}:#{test_port}/#{test_servicename}"
+    test_tns          = (ENV['TEST_TNS'] && ENV['TEST_TNS'].length > 0) ? ENV['TEST_TNS'] : "#{test_host}:#{test_port}/#{test_servicename}"
 
     config = {
         adapter:                  'nulldb',
