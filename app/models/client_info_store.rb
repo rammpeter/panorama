@@ -72,9 +72,8 @@ class ClientInfoStore
 
   # write the content for particular key
   # @param [String] key
-  # @param [String] value
-  # @param [Hash] options
-  def write(key, value, options = nil)
+  # @param [Hash, Array] value
+  def write(key, value)
     @@mutex.synchronize do
       @store.write(key, value)
     end
@@ -83,6 +82,12 @@ class ClientInfoStore
   def exist?(key)
     @@mutex.synchronize do
       @store.exist?(key)
+    end
+  end
+
+  def delete(key)
+    @@mutex.synchronize do
+      @store.delete(key)
     end
   end
 
@@ -108,9 +113,10 @@ class ClientInfoStore
     client_data = read(client_key)                                              # Read the whole content Hash from cache
     client_data = {} if client_data.nil? || client_data.class != Hash           # Neustart wenn Struktur nicht passt
     client_data[key] = value                                                    # Wert in Hash verankern
+    client_data[:last_used] = Time.now                                          # Update last_used
 
     begin
-      write(client_key, client_data, expires_in: 3.months )  # Überschreiben des kompletten Hashes im Cache
+      write(client_key, client_data)  # Überschreiben des kompletten Hashes im Cache
     rescue Exception =>e
       # Especially for test environments, reread the store content if something goes wrong, content has changed etc.
       if retries < 2
@@ -128,12 +134,15 @@ class ClientInfoStore
     result = {
       cached_keys: 0,
       second_level_entries: 0,
-      all_entries: 0
+      all_entries: 0,
+      classes: {}           # Hash with class names and counts  { 'Hash' => 123, 'Array' => 456 }
     }.extend(SelectHashHelper)
     cached_keys.each do |key|
       element = read(key)
+      result[:cached_keys] += 1
+      result[:classes][element.class.name] = 0 unless result[:classes].has_key?(element.class.name)
+      result[:classes][element.class.name] += 1
       if [Hash, Array].include?(element.class)
-        result[:cached_keys] += 1
         result[:second_level_entries] += element.count
         result[:all_entries] += get_total_elements_no(element) - 1              # Do not count the first element
       end
@@ -178,6 +187,7 @@ class ClientInfoStore
   # Remove expired entries from cache
   def cleanup
     @@mutex.synchronize do
+      # Should be inactive because expiration is handled by ClientInfoStore itself
       @store.cleanup                                                              # Remove expired entries from cache by cache API
     end
 
@@ -188,11 +198,31 @@ class ClientInfoStore
         value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
           if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
             value[:browser_tab_ids].delete(browser_tab_id)                      # Remove expired browser tab id
+            write(key, value)                                                   # Write back to cache
           end
         end
+        if value.count == 1 && value[:browser_tab_ids]&.count == 0               # Only empty browser_tab_ids left
+          delete(key)                                                            # Remove entry without real content
+        end
+        if value.count == 2 && value[:last_logins]&.count == 0                  # Only empty browser_tab_ids and empty last_logins left
+          delete(key)                                                           # Remove entry without real content
+        end
+        unless value.has_key?(:last_used)                                       # Add last_used to all Hash entries without it
+          value[:last_used] = Time.now
+          write(key, value)                                                     # Write back to cache
+        end
+        if value[:last_used] < Time.now - 12.months                             # Remove entries after 1 year of inactivity
+          delete(key)                                                           # Remove entry
+        end
       end
-      write(key, value)                                                  # Write back to cache
+      if value.nil?
+        delete(key)                                                             # Remove entry without real content
+      end
     end
+  rescue Exception => e
+    Rails.logger.error('ClientInfoStore.cleanup') { "Exception #{e.class}\n#{e.message}" }
+    ExceptionHelper.log_exception_backtrace(e, 40)
+    raise e
   end
 
   private

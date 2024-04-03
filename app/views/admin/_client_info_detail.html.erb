@@ -8,6 +8,9 @@
            {:caption=>'2nd level elements',      :data=>proc{|rec| fn(rec.second_level_entries)},   :title=>"Number of elements stored directly inside cached values (Hashes or Arrays)", align: :right},
            {:caption=>'Total elements',          :data=>proc{|rec| fn(rec.all_entries) },           :title=>"Total number of elements including subelements stored in cached values", align: :right},
          ]
+     @global_result[0].classes.each do |c, _value|
+       column_options << {:caption=>c, :data=>proc{|rec| fn(rec.classes[c])}, :title=>"Number of first level elements stored in #{c} class", align: :right}
+     end
    %>
    <%= gen_slickgrid(@global_result, column_options, {:caption=>'Total number of stored elements for all browser sessions', :max_height=>450}) %>
 <% end %>
