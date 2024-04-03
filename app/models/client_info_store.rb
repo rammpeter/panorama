@@ -194,29 +194,28 @@ class ClientInfoStore
     # Remove expired entries from cache by file system
     cached_keys.each do |key|
       value = read(key)
-      if value.class == Hash && value[:browser_tab_ids]
-        value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
-          if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
-            value[:browser_tab_ids].delete(browser_tab_id)                      # Remove expired browser tab id
-            write(key, value)                                                   # Write back to cache
-          end
-        end
-        if value.count == 1 && value[:browser_tab_ids]&.count == 0               # Only empty browser_tab_ids left
-          delete(key)                                                            # Remove entry without real content
-        end
-        if value.count == 2 && value[:last_logins]&.count == 0                  # Only empty browser_tab_ids and empty last_logins left
-          delete(key)                                                           # Remove entry without real content
-        end
-        unless value.has_key?(:last_used)                                       # Add last_used to all Hash entries without it
-          value[:last_used] = Time.now
-          write(key, value)                                                     # Write back to cache
-        end
-        if value[:last_used] < Time.now - 12.months                             # Remove entries after 1 year of inactivity
-          delete(key)                                                           # Remove entry
-        end
-      end
       if value.nil?
         delete(key)                                                             # Remove entry without real content
+      else
+        if value.class == Hash
+          if value.count == 1 && value[:browser_tab_ids]&.count == 0            # Only empty browser_tab_ids left
+            delete(key)                                                         # Remove entry without real content
+          elsif value.count == 2 && value[:browser_tab_ids]&.count == 0 && value[:last_logins]&.count == 0
+            delete(key)                                                         # Remove entry without real content
+          elsif !value.has_key?(:last_used)                                     # Add last_used to all Hash entries without it
+            value[:last_used] = Time.now
+            write(key, value)                                                   # Write back to cache
+          elsif value[:last_used] < Time.now - 12.months                        # Remove entries after 1 year of inactivity
+            delete(key)                                                         # Remove entry
+          elsif value[:browser_tab_ids]
+            value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
+              if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
+                value[:browser_tab_ids].delete(browser_tab_id)                  # Remove expired browser tab id
+                write(key, value)                                               # Write back to cache
+              end
+            end
+          end
+        end
       end
     end
   rescue Exception => e
