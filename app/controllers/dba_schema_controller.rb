@@ -3096,7 +3096,7 @@ class DbaSchemaController < ApplicationController
     if e.message['ORA-01031']
       show_popup_message "You need the ANALYZE privilege on #{@owner}.#{@segment_name} to call DBMS_SPACE.SPACE_USAGE\n\n#{e.message}"
     else
-      log_exception_backtrace(e)
+      ExceptionHelper.log_exception_backtrace(e)
       raise e
     end
   end
@@ -3166,7 +3166,7 @@ class DbaSchemaController < ApplicationController
     if e.message['ORA-01031']
       show_popup_message "You need the ANALYZE privilege on #{@owner}.#{@segment_name} to call DBMS_SPACE.SPACE_USAGE\n\n#{e.message}"
     else
-      log_exception_backtrace(e)
+      ExceptionHelper.log_exception_backtrace(e)
       raise e
     end
   end

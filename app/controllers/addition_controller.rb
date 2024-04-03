@@ -1122,7 +1122,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
       Rails.logger.debug('AdditionController.read_session_stats') { "Connection released" }
     rescue Exception => e
       Rails.logger.error('AdditionController.read_session_stats') { "#{e.class} #{e.message}" }
-      log_exception_backtrace(e)
+      ExceptionHelper.log_exception_backtrace(e)
     end
     thread.join
     result = {}

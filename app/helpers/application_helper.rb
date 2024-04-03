@@ -18,7 +18,6 @@ require 'jwt'
 
 # Methods added to this helper will be available to all templates in the application.
 module ApplicationHelper
-  include ExceptionHelper
   include KeyExplanationHelper
   include AjaxHelper
   include DiagramHelper
@@ -161,7 +160,7 @@ module ApplicationHelper
     output = '-'+output if number < 0
     output
   rescue Exception => e
-    log_exception_backtrace(e, 20)
+    ExceptionHelper.log_exception_backtrace(e, 20)
     msg = e.message
     msg << " unsupported datatype #{number.class}" if !(number.instance_of?(Float)  || number.class.name == 'Integer' || number.class.name == 'Fixnum' || number.class.name == 'Bignum')
     raise "formattedNumber: #{msg} evaluating number=#{number} (#{number.class}), decimalCount=#{decimalCount} (#{decimalCount.class}), supress_0_value=#{supress_0_value} (#{supress_0_value.class})"
@@ -217,7 +216,7 @@ module ApplicationHelper
       retval = ERB::Util.html_escape(org_value)                                          # Standard-Escape kann kein NewLine-><BR>
     rescue Encoding::CompatibilityError => e
       Rails.logger.error('ApplicationHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
-      log_exception_backtrace(e)
+      ExceptionHelper.log_exception_backtrace(e)
 
       # force encoding to UTF-8 before
       retval = ERB::Util.html_escape(org_value.force_encoding('UTF-8'))   # Standard-Escape kann kein NewLine-><BR>
@@ -723,7 +722,7 @@ module ApplicationHelper
     @buffered_client_key
   rescue ActiveSupport::MessageVerifier::InvalidSignature => e
     Rails.logger.error('ApplicationHelper.get_decrypted_client_key') { "Exception '#{e.message}' raised while decrypting cookies[:client_key] (#{cookies[:client_key]})" }
-    #log_exception_backtrace(e, 20)
+    #ExceptionHelper.log_exception_backtrace(e, 20)
     if cookies[:client_key].nil?
       raise("Your browser does not allow cookies for this URL!\nPlease enable usage of browser cookies for this URL and reload the page.")
     else

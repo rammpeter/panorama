@@ -236,7 +236,7 @@ class EnvController < ApplicationController
       check_awr_for_time_drift
     rescue Exception => e
       Rails.logger.error('EnvController.start_page') { "#{e.class} #{e.message}" }
-      log_exception_backtrace(e, 20)
+      ExceptionHelper.log_exception_backtrace(e, 20)
       PanoramaConnection.destroy_connection                                     # Remove connection from pool. Ensure using new connection with next retry
       raise PopupMessageException.new("Your user is possibly missing SELECT-right on gv$Instance, gv$Database.<br/>Please ensure that your user has granted SELECT ANY DICTIONARY or SELECT_CATALOG_ROLE.<br/>Panorama is not usable with this user account!\n\n".html_safe, e)
     end
@@ -425,7 +425,7 @@ class EnvController < ApplicationController
       PanoramaConnection.check_for_open_connection
     rescue Exception => e
       Rails.logger.debug('EnvController.set_database') { "Error connecting to database: #{e.class.name}: #{e.message}" }
-      log_exception_backtrace(e, 20, log_mode: :debug)                          # Don't log each wrong connection credentials as error
+      ExceptionHelper.log_exception_backtrace(e, 20, log_mode: :debug)                          # Don't log each wrong connection credentials as error
 
       respond_to do |format|
         format.js {render :js => "show_status_bar_message('#{

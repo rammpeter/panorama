@@ -36,7 +36,7 @@ class ApplicationController < ActionController::Base
 
     location = @request.parameters['controller'] ? "#{@request.parameters['controller'].camelize}Controller#{"##{@request.parameters['action']}" if @request.parameters['action']} " : ''
     Rails.logger.error('ApplicationController.global_exception_handler') { "#{location}#{@exception.class.name} : #{@exception.message}" }
-    log_exception_backtrace(@exception, Rails.env.test? ? nil : 40)
+    ExceptionHelper.log_exception_backtrace(@exception, Rails.env.test? ? nil : 40)
 
     if performed?                                                               # Render already called in action?, Suppress DoubleRenderError
       Rails.logger.error('ApplicationController.global_exception_handler') { "#{@exception.class} #{@exception.message} raised!\nAction has already rendered, so error cannot be shown as HTML-result with status 500" }
@@ -88,7 +88,7 @@ class ApplicationController < ActionController::Base
       set_connection_info_for_request(current_database)
     rescue StandardError => e                                                   # Problem bei Zugriff auf verschlüsselte Cookies
       Rails.logger.error('ApplicationController.begin_request') { "Error '#{e.message}' occured" }
-      log_exception_backtrace(e)
+      ExceptionHelper.log_exception_backtrace(e)
       raise "Error '#{e.message}' occured. Please close browser session and start again!"
     end
 
@@ -125,7 +125,7 @@ class ApplicationController < ActionController::Base
   def alert_exception(exception, header = '', format = :js)
     if exception
       logger.error exception.message
-      log_exception_backtrace(exception)
+      ExceptionHelper.log_exception_backtrace(exception)
       message = exception.message
       message << "\n\n"
       exception.backtrace.each do |bt|

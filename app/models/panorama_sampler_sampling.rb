@@ -2,7 +2,6 @@ class PanoramaSamplerSampling
   include PanoramaSampler::PackagePanoramaSamplerAsh
   include PanoramaSampler::PackagePanoramaSamplerSnapshot
   include PanoramaSampler::PackagePanoramaSamplerBlockingLocks
-  include ExceptionHelper
 
 
   # call sampling method a'a do_object_size_sampling(snapshot_time)

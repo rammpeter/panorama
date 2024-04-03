@@ -17,7 +17,7 @@ class GlobalMenuTest < PlaywrightSystemTestCase
           menu_call(curr_sub_menu_list, entry_with_condition: !entry[:condition].nil?)
           close_possible_popup_message                                            # close potential popup message from call
         rescue Exception => e
-          log_exception_backtrace(e)
+          ExceptionHelper.log_exception_backtrace(e)
           msg = "Exception #{e.class}: #{e.message}\nProcessing menu entry #{curr_sub_menu_list}"
           Rails.logger.error("#{self.class}.exec_menu_array"){ msg }
           raise msg

@@ -3,7 +3,6 @@ require 'application_job'
 require_relative '../helpers/exception_helper'
 
 class PanoramaSamplerJob < ApplicationJob
-  include ExceptionHelper
 
   queue_as :default
 
@@ -69,7 +68,7 @@ class PanoramaSamplerJob < ApplicationJob
     @@first_call_after_startup = false                                          # regular operation now
   rescue Exception => e
     Rails.logger.error('PanoramaSamplerJob.perform') { "Exception in PanoramaSamplerJob.perform:\n#{e.message}" }
-    log_exception_backtrace(e, 40)
+    ExceptionHelper.log_exception_backtrace(e, 40)
     raise e
   end
 

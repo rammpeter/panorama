@@ -1,5 +1,4 @@
 class PanoramaSamplerStructureCheck
-  include ExceptionHelper
   include PanoramaSampler::PackagePanoramaSamplerAsh
   include PanoramaSampler::PackageConDbidFromConId
   include PanoramaSampler::PackagePanoramaSamplerSnapshot
@@ -1717,7 +1716,7 @@ ORDER BY Column_ID
           log "Table #{table[:table_name]} dropped"
         rescue Exception => e
           Rails.logger.error('PanoramaSamplerStructureCheck.remove_tables_internal') { "Error #{e.message} dropping table #{@sampler_config.get_owner}.#{table[:table_name]}" }
-          log_exception_backtrace(e, 40)
+          ExceptionHelper.log_exception_backtrace(e, 40)
           raise e
         end
       end

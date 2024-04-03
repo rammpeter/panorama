@@ -3,7 +3,6 @@
 require 'panorama_sampler_sampling'
 
 class WorkerThread
-  include ExceptionHelper
 
   ############################### class methods as public interface ###############################
   # Check if connection may function and return DBID of database
@@ -134,7 +133,7 @@ class WorkerThread
   rescue Exception => e
     @sampler_config.set_error_message("Error #{e.message} during WorkerThread.create_ash_sampler_daemon")
     Rails.logger.error('WorkerThread.create_ash_sampler_daemon') {"Error for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name})\n#{e.class}:#{e.message} " }
-    log_exception_backtrace(e, 40)
+    ExceptionHelper.log_exception_backtrace(e, 40)
     PanoramaConnection.destroy_connection                                     # Ensure this connection with errors will not be reused
     PanoramaSamplerStructureCheck.do_check(@sampler_config, :ASH, force_repeated_execution: true) # check data structure again after error
     PanoramaSamplerSampling.new(@sampler_config).exec_shrink_space('Internal_V$Active_Sess_History')   # try to shrink the size of object
@@ -185,7 +184,7 @@ class WorkerThread
     rescue Exception => e
       begin
         Rails.logger.error('WorkerThread.create_snapshot_internal') { "Error in first try for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name}) and domain=#{domain}\n#{e.message}" }
-        log_exception_backtrace(e, 30) if !Rails.env.test?
+        ExceptionHelper.log_exception_backtrace(e, 30) if !Rails.env.test?
         PanoramaConnection.destroy_connection                                   # Ensure this connection with errors will not be reused for next steps
         PanoramaSamplerStructureCheck.do_check(@sampler_config, domain, force_repeated_execution: true) # Check data structure preconditions first in case of error
         PanoramaSamplerSampling.do_housekeeping(@sampler_config, true, domain)  # Do housekeeping also in case of exception to clear full tablespace quota etc. + shrink space
@@ -195,7 +194,7 @@ class WorkerThread
         Rails.logger.info('WorkerThread.create_snapshot_internal') { "#{Time.now}: Finished creating new #{domain} snapshot in second try for ID=#{@sampler_config.get_id}, Name='#{@sampler_config.get_name}' and domain=#{domain}" }
       rescue Exception => x
         Rails.logger.error('WorkerThread.create_snapshot_internal') { "#{x.class} in exception handler for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name}) and domain=#{domain}\n#{x.message}" }
-        log_exception_backtrace(x, 40)
+        ExceptionHelper.log_exception_backtrace(x, 40)
         @sampler_config.set_error_message("Error #{e.message} during WorkerThread.create_snapshot_internal for domain=#{domain}")
         PanoramaConnection.destroy_connection                                   # Ensure this connection with errors will not be reused
         raise x
@@ -230,7 +229,7 @@ class WorkerThread
     end
   rescue Exception => e
     Rails.logger.error('WorkerThread.check_analyze_internal') { "Exception #{e.class} for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name})" }
-    log_exception_backtrace(e, 40)
+    ExceptionHelper.log_exception_backtrace(e, 40)
     raise e
   ensure
     PanoramaConnection.release_connection                                       # Free DB connection in Pool

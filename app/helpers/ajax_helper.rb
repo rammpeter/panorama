@@ -4,7 +4,6 @@ require 'resolv'
 
 # Diverse Ajax-Aufrufe und fachliche Code-Schnipsel
 module AjaxHelper
-  include ExceptionHelper
 
   # call action and render result
   # @param [String] controller
@@ -218,7 +217,7 @@ module AjaxHelper
          " #{quick_wait_params_info(event, p1, p1text, p1raw, p2, p2text, p2raw, p3, p3text, p3raw)}" +
          "<span id=\"#{unique_div_identifier}\"></span>").html_safe
   rescue Exception => e
-    log_exception_backtrace(e)
+    ExceptionHelper.log_exception_backtrace(e)
     "Exception #{e.class} #{e.message} during evaluation of parameters in link_wait_params"
   end
 

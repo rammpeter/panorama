@@ -13,6 +13,7 @@ require 'active_record/connection_adapters/oracle_enhanced/quoting'
 require 'encryption'
 require 'pack_license'
 require 'select_hash_helper'
+require 'exception_helper'
 require 'java'
 
 # Helper-class to allow usage of method "type_cast"
@@ -402,7 +403,7 @@ class PanoramaConnection
     end
   rescue Exception => e
     Rails.logger.error('PanoramaConnection.disconnect_aged_connections') { "Exception #{e.class}:\n#{e.message}" }
-    log_exception_backtrace(e, 40)
+    ExceptionHelper.log_exception_backtrace(e, 40)
     raise e
   end
 
@@ -767,7 +768,7 @@ class PanoramaConnection
           rescue Exception => e                                                   # Switch to host/port/sid instead
             Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in first try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{get_threadlocal_config[:tns]}' User='#{get_threadlocal_config[:user]}'" }
             Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
-            log_exception_backtrace(e, 30)
+            ExceptionHelper.log_exception_backtrace(e, 30)
 
             jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
             get_threadlocal_config[:modus] = 'host'
@@ -783,7 +784,7 @@ class PanoramaConnection
         jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
         Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in second try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{get_threadlocal_config[:tns]}' User='#{get_threadlocal_config[:user]}'" }
         Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
-        log_exception_backtrace(e, 30)
+        ExceptionHelper.log_exception_backtrace(e, 30)
         raise
       end
 
@@ -811,7 +812,7 @@ class PanoramaConnection
       rescue Exception => e
         jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
         Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
-        log_exception_backtrace(e, 20)
+        ExceptionHelper.log_exception_backtrace(e, 20)
         raise "Your user needs SELECT ANY DICTIONARY or equivalent rights to login to Panorama!\n\n\n#{e.class.name} #{e.message}"
       end
 
@@ -906,17 +907,6 @@ class PanoramaConnection
   def self.translate_sql(stmt)
     stmt.gsub!(/\n[ \n]*\n/, "\n")                                                  # Remove empty lines in SQL-text
     stmt
-  end
-
-  def self.log_exception_backtrace(exception, line_number_limit=nil)
-    curr_line_no=0
-    output = ''
-    exception.backtrace.each do |bt|
-      output << "#{bt}\n" if line_number_limit.nil? || curr_line_no < line_number_limit # report First x lines of stacktrace in log
-      curr_line_no += 1
-    end
-
-    Rails.logger.error('PanoramaConnection.log_exception_backtrace') { "Stack-Trace for #{exception.class}:\n#{output}" }
   end
 
   # Execute select direct on JDBC-Connection with logging

@@ -6,7 +6,6 @@ require 'json'
 require_relative '../helpers/application_helper'
 
 class PanoramaSamplerConfig
-  include ExceptionHelper
 
   @@config_array = nil                                                          # First access loads it from session store
   @@config_access_mutex = Mutex.new
