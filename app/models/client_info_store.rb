@@ -198,9 +198,9 @@ class ClientInfoStore
         delete(key)                                                             # Remove entry without real content
       else
         if value.class == Hash
-          if value.count == 1 && value[:browser_tab_ids]&.count == 0            # Only empty browser_tab_ids left
+          if value.count <= 2 && value[:browser_tab_ids]&.count == 0            # Only empty browser_tab_ids and last_used left
             delete(key)                                                         # Remove entry without real content
-          elsif value.count == 2 && value[:browser_tab_ids]&.count == 0 && value[:last_logins]&.count == 0
+          elsif value.count <= 3 && value[:browser_tab_ids]&.count == 0 && value[:last_logins]&.count == 0 # Only empty browser_tab_ids, last_logins and last_used left
             delete(key)                                                         # Remove entry without real content
           elsif !value.has_key?(:last_used)                                     # Add last_used to all Hash entries without it
             value[:last_used] = Time.now
