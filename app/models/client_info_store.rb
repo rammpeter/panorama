@@ -186,11 +186,6 @@ class ClientInfoStore
 
   # Remove expired entries from cache
   def cleanup
-    @@mutex.synchronize do
-      # Should be inactive because expiration is handled by ClientInfoStore itself
-      @store.cleanup                                                              # Remove expired entries from cache by cache API
-    end
-
     # Remove expired entries from cache by file system
     cached_keys.each do |key|
       value = read(key)
