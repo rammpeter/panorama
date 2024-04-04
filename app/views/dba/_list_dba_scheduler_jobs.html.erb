@@ -31,7 +31,9 @@
       {caption: 'Program owner / name',  data: proc{|rec| shown.call(rec.program_owner, rec.program_name)}, title: "Owner and name of the program associated with the job"},
       {caption: 'Job type',              data: proc{|rec| rec.job_or_program_type},             title: "Inline job action type\nFrom DBA_Scheduler_Programs if program used"},
       {caption: 'Action',                data: proc{|rec| rec.job_or_program_action},           title: "Inline job action\nFrom DBA_Scheduler_Programs if program used" },
-      {caption: 'Arg. #',                data: proc{|rec| rec.number_of_arguments},             title: "Inline number of job arguments", align: :right},
+      # number_of_arguments is not set with valid values
+      # {caption: 'Arg. #',                data: proc{|rec| rec.number_of_arguments},             title: "Inline number of job arguments", align: :right},
+      {caption: 'Arguments',             data: proc{|rec| rec.arguments},                       title: "Job arguments from DBA_SCHEDULER_JOB_ARGS"},
       {caption: 'Schedule owner / name', data: proc{|rec| shown.call(rec.schedule_owner, rec.schedule_name)},                        title: "Owner of the schedule that the job uses (can be a window or a window group)"},
       {caption: 'Schedule type',         data: proc{|rec| rec.schedule_type},                   title: "Type of the schedule that the job uses"},
       {caption: 'Start date',            data: proc{|rec| localeDateTime(rec.start_date)},      title: "Original scheduled start date of the job (for an inline schedule)"},

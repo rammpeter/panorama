@@ -2270,9 +2270,14 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
                                         #{DatabaseHelper.extract_seconds_from_interval('j.Schedule_Limit')}     Schedule_Limit_Seconds,
                                         #{DatabaseHelper.extract_seconds_from_interval('j.Max_Run_Duration')}   Max_Run_Duration_Seconds,
                                         NVL(j.Job_Type, p.Program_Type)     Job_or_Program_Type,
-                                        NVL(j.Job_Action, p.Program_Action) Job_or_Program_Action
+                                        NVL(j.Job_Action, p.Program_Action) Job_or_Program_Action,
+                                        a.Arguments
                                  FROM   DBA_Scheduler_Jobs j
                                  LEFT OUTER JOIN DBA_Scheduler_Programs p ON p.Owner = j.Program_Owner AND p.Program_Name = j.Program_Name
+                                 LEFT OUTER JOIN (SELECT Owner, Job_Name, LISTAGG(Argument_Name||'='||Value, ', ')  Arguments
+                                                  FROM   DBA_Scheduler_Job_Args
+                                                  GROUP BY Owner, Job_Name
+                                                ) a ON a.Owner = j.Owner AND a.Job_Name = j.Job_Name
                                 "
     render_partial
   end
