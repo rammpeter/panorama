@@ -1818,6 +1818,7 @@ ORDER BY Column_ID
     @ora_tables       = PanoramaConnection.sql_select_all ["SELECT Table_Name FROM All_Tables WHERE Owner = ?",  @sampler_config.get_owner.upcase] unless @ora_tables
     @ora_tab_privs    = PanoramaConnection.sql_select_all ["SELECT Table_Name FROM ALL_TAB_PRIVS WHERE Table_Schema = ?  AND Privilege = 'SELECT'  AND Grantee = 'PUBLIC'",  @sampler_config.get_owner.upcase] unless @ora_tab_privs
 
+    Rails.logger.debug('PanoramaSamplerStructureCheck.check_table_existence') { "Check existence of table #{table[:table_name]}" }
     if !@ora_tables.include?({'table_name' => table[:table_name].upcase})
       ############# Check Table existence
       log "Table #{table[:table_name]} does not exist"
