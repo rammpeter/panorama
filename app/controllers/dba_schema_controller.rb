@@ -54,13 +54,23 @@ class DbaSchemaController < ApplicationController
                                        Sys_Privs AS  (SELECT /*+ NO_MERGE MATERIALIZE */ Grantee, COUNT(*) Privilege_Cnt
                                                       FROM   DBA_Sys_Privs
                                                       GROUP BY Grantee
-                                                     )
-                                  SELECT u.*, p.Granted_Roles, s.Privilege_Cnt, t.Obj_Grants, gt.Granted_Obj_Grants
+                                                     ),
+                                       Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, COUNT(*) Object_Cnt
+                                                   FROM   DBA_Objects
+                                                   GROUP BY Owner
+                                                  )
+                                  SELECT u.*,
+                                         NVL(p.Granted_Roles, 0)      Granted_Roles,
+                                         NVL(s.Privilege_Cnt,0)       Privilege_Cnt,
+                                         NVL(t.Obj_Grants,0)          Obj_Grants,
+                                         NVL(gt.Granted_Obj_Grants,0) Granted_Obj_Grants,
+                                         NVL(o.Object_Cnt, 0)         Object_Cnt
                                   FROM   Users u
                                   LEFT OUTER JOIN Role_Privs p ON p.Grantee = u.UserName
                                   LEFT OUTER JOIN Tab_Privs t ON t.Grantee = u.UserName
                                   LEFT OUTER JOIN Granted_Tab_Privs gt ON gt.Grantor = u.UserName
                                   LEFT OUTER JOIN Sys_Privs s ON s.Grantee = u.UserName
+                                  LEFT OUTER JOIN Objects o ON o.Owner = u.UserName
                                   ORDER BY u.UserName
                                  "].concat(where_values)
     render_partial
@@ -632,29 +642,67 @@ class DbaSchemaController < ApplicationController
   end
 
   public
+
+  # Ger a list of all objects in the database
+  def list_db_objects
+    @owner        = prepare_param(:owner)
+    @object_name  = prepare_param(:object_name)
+    @object_type  = prepare_param(:object_type)
+
+    where_string = ''
+    where_values = []
+
+    if @owner
+      where_string << " AND UPPER(Owner) LIKE UPPER(?)"
+      where_values << @owner
+    end
+
+    if @object_name
+      where_string << " AND UPPER(Object_Name) LIKE UPPER(?)"
+      where_values << @object_name
+    end
+
+    if @object_type
+      where_string << " AND Object_Type LIKE UPPER(?)"
+      where_values << @object_type
+    end
+
+    @objects = sql_select_all ["SELECT o.*, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS
+                                FROM   DBA_Objects o
+                                WHERE SubObject_Name IS NULL #{where_string}
+                                ORDER BY Owner, Object_Name, Object_Type
+                               "].concat(where_values)
+    render_partial :list_db_objects
+  end
+
   def list_object_description
     @owner = prepare_param(:owner)
-    @owner       = @owner.upcase                  if @owner
-
-    @object_name = prepare_param(:segment_name)
-    @object_name = @object_name.upcase            if @object_name
-
+    @object_name = prepare_param(:object_name)
     @object_type = prepare_param(:object_type)
-    @object_type = @object_type.upcase            if @object_type
 
-    show_popup_message "Object name must be set! At least with wildcard character (%, _)." if @object_name == ''
+    show_popup_message "Object name or schema name should be set! At least with wildcard character (%, _)." if @object_name.nil? && @owner.nil?
+
+    where_string = ''
+    where_values = []
+
+    if @owner
+      where_string << " AND UPPER(Owner) LIKE UPPER(?)"
+      where_values << @owner
+    end
+
+    if @object_name
+      where_string << " AND UPPER(Object_Name) LIKE UPPER(?)"
+      where_values << @object_name
+    end
+
+    if @object_type
+      where_string << " AND UPPER(Object_Type) LIKE UPPER(?)"
+      where_values << @object_type
+    end
+
     repeat_check_forced = false
     loop do
-      case
-      when @owner.nil? && @object_type.nil? then
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ?", @object_name]
-      when @owner.nil?
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ? AND Object_Type = ?", @object_name, @object_type]
-      when @object_type.nil?
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ? AND Owner LIKE ?", @object_name, @owner]
-      else
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL AND Object_Name LIKE ? AND Owner LIKE ? AND Object_Type = ?", @object_name, @owner, @object_type]
-      end
+      @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE SubObject_Name IS NULL #{where_string}"].concat(where_values)
       break if @objects.count > 0 || repeat_check_forced
 
       if @objects.count == 0
@@ -669,7 +717,7 @@ class DbaSchemaController < ApplicationController
     end
 
     if @objects.count > 1
-      render_partial :list_table_description_owner_choice
+      list_db_objects
       return
     end
 

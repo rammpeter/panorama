@@ -101,27 +101,27 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
 
   test "list_object_description with xhr: true" do
     [
-        {owner: 'SYS',      segment_name: 'AUD$'},                              # Table
-        {owner: 'SYS',      segment_name: 'AUD$%'},                             # Table (Wildcard with one hit)
-        {owner: 'SYS',      segment_name: 'A%'},                                # (Wildcard with multiple hit)
-        {owner: 'SYS',      segment_name: 'TAB$'},                              # Table
-        {owner: 'SYS',      segment_name: 'COL$'},                              # Table
-        {owner: nil,        segment_name: 'ALL_TABLES'},                        # View
-        {owner: 'SYS',      segment_name: 'WRH$_ACTIVE_SESSION_HISTORY'},       # partitioned Table
-        {owner: 'PUBLIC',   segment_name: 'V$ARCHIVE'},                         # Synonym
-        {owner: 'SYS',      segment_name: 'DBMS_SESSION'},                      # Package oder Body
+        {owner: 'SYS',      object_name: 'AUD$'},                              # Table
+        {owner: 'SYS',      object_name: 'AUD$%'},                             # Table (Wildcard with one hit)
+        {owner: 'SYS',      object_name: 'A%'},                                # (Wildcard with multiple hit)
+        {owner: 'SYS',      object_name: 'TAB$'},                              # Table
+        {owner: 'SYS',      object_name: 'COL$'},                              # Table
+        {owner: nil,        object_name: 'ALL_TABLES'},                        # View
+        {owner: 'SYS',      object_name: 'WRH$_ACTIVE_SESSION_HISTORY'},       # partitioned Table
+        {owner: 'PUBLIC',   object_name: 'V$ARCHIVE'},                         # Synonym
+        {owner: 'SYS',      object_name: 'DBMS_SESSION'},                      # Package oder Body
     ]
-        .concat(get_db_version >= '12.1' ? [{owner: 'XDB',      segment_name: 'XDB$XTAB'}] :  [])    # XML-Table instead of relational table
+        .concat(get_db_version >= '12.1' ? [{owner: 'XDB',      object_name: 'XDB$XTAB'}] :  [])    # XML-Table instead of relational table
         .each do |object|
-      get '/dba_schema/list_object_description', :params => {format: :html, owner: object[:owner], segment_name: object[:segment_name], :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {format: :html, owner: object[:owner], object_name: object[:object_name], :update_area=>:hugo }
       assert_response :success
     end
 
     [nil, 1].each do |show_line_numbers|
-      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE', show_line_numbers: show_line_numbers, :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE', show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
 
-      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :segment_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', show_line_numbers: show_line_numbers, :update_area=>:hugo }
+      get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE BODY', show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
     end
 
@@ -397,5 +397,16 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
       post '/dba_schema/list_compression_check', :params => {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, partition_name: @subpart_table_subpartition_name,  is_subpartition: 'true', avg_row_len: 32, gap_number: 1, :update_area=>:hugo }
       assert_response :success
     end
+  end
+
+  test 'list_db_objects with xhr: true' do
+    post '/dba_schema/list_db_objects', params: {format: :html, owner: 'SYS', update_area: :hugo }
+    assert_response :success
+    post '/dba_schema/list_db_objects', params: {format: :html, object_name: 'DBMS_SESSION', update_area: :hugo }
+    assert_response :success
+    post '/dba_schema/list_db_objects', params: {format: :html, object_type: 'PACKAGE BODY', update_area: :hugo }
+    assert_response :success
+    post '/dba_schema/list_db_objects', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE BODY', update_area: :hugo }
+    assert_response :success
   end
 end

@@ -339,18 +339,17 @@ module AjaxHelper
   # @param [String] print_value the text to print in the link
   # @param [String] object_type the type of the object
   # @return [String] the link
-  def link_object_description(update_area, owner, segment_name, print_value=nil, object_type=nil, additional_tooltip: nil)
+  def link_object_description(update_area, owner, object_name, print_value=nil, object_type=nil, additional_tooltip: nil)
     owner         = owner.upcase        if owner
-    segment_name  = segment_name.upcase if segment_name
-    print_value = "#{owner}#{'.&#8203;' if owner && owner != ''}#{segment_name}" unless print_value
+    print_value = "#{owner}#{'.&#8203;' if owner && owner != ''}#{object_name}" unless print_value
     ajax_link(print_value, {
                :controller   => :dba_schema,
                :action       => :list_object_description,
                :owner        => owner,
-               :segment_name => segment_name,
+               :object_name  => object_name,
                :object_type  => object_type,
                :update_area  => update_area  # TODO: Ensure additional_tooltip is shown with linefeeds
-    }, :title=>"#{"#{additional_tooltip}\n\nClick link to: " if additional_tooltip}#{t(:ajax_helper_link_object_description_hint, :default=>"Show object structure and details for")} #{owner}.#{segment_name}"
+    }, :title=>"#{"#{additional_tooltip}\n\nClick link to: " if additional_tooltip}#{t(:ajax_helper_link_object_description_hint, :default=>"Show object structure and details for")} #{owner}.#{object_name}"
     )
   end
 

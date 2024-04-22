@@ -103,7 +103,7 @@ end
                   :controller    => :dba_schema,
                   :action        => :list_object_description,
                   :owner         => @sql.program_owner,
-                  :segment_name  => @sql.program_name,
+                  :object_name  => @sql.program_name,
                   :update_area  => @update_area
                 }, :title=>"Show PL/SQL details at lower bound of browser page")
               %></td>

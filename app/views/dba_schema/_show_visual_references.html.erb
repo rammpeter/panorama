@@ -89,7 +89,7 @@
     }
 
     function show_table_details(owner, name){
-        ajax_html('<%= @update_area %>', 'dba_schema', 'list_object_description', {update_area:'<%= @update_area %>', owner: owner, segment_name: name, object_type: 'TABLE' });
+        ajax_html('<%= @update_area %>', 'dba_schema', 'list_object_description', {update_area:'<%= @update_area %>', owner: owner, object_name: name, object_type: 'TABLE' });
     }
 </script>
 

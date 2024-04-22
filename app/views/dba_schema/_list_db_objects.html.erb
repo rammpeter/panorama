@@ -1,0 +1,46 @@
+<%
+  @update_area = get_unique_area_id
+
+  def link_owner(value, rec)
+    link_object_description(@update_area, rec.owner, rec.object_name, value, object_type=rec.object_type)
+  end
+
+  column_options =
+    [
+      {:caption=> 'Object type',         :data=>proc{|rec| rec.object_type},                    :title=> 'Object_Type of object'},
+      {:caption=> 'Owner',               :data=>proc{|rec| rec.owner},                          :title=> 'Owner of object'},
+      {:caption=> 'Object name',         :data=>proc{|rec| link_owner(rec.object_name, rec)},   :title=> 'Name of object'},
+      {caption: 'Creation date',          data: proc{|rec| localeDateTime(rec.created)},        title: 'Timestamp for the creation of the object'},
+      {caption: 'Last DDL time',          data: proc{|rec| localeDateTime(rec.last_ddl_time)},  title: 'Timestamp for the last modification of the object and dependent objects resulting from a DDL statement (including grants and revokes)'},
+      {caption: 'Last spec. change',      data: proc{|rec| localeDateTime(rec.spec_ts)},        title: 'Timestamp of last specification change of the object'},
+      {caption: 'Status',                 data: proc{|rec| rec.status},                         title: 'Status of the object'},
+      {caption: 'Temp.',                  data: proc{|rec| rec.temporary},                      title: 'Indicates whether the object is temporary (the current session can see only data that it placed in this object itself) (Y) or not (N)'},
+      {caption: 'Gen.',                   data: proc{|rec| rec.generated},                      title: 'Indicates whether the name of this object was system-generated (Y) or not (N)'},
+      {caption: 'Sec.',                   data: proc{|rec| rec.secondary},                      title: 'Indicates whether this is a secondary object created by the ODCIIndexCreate method of the Oracle Data Cartridge (Y) or not (N)'},
+      {caption: 'Name space',             data: proc{|rec| rec.namespace},                      title: 'Namespace for the object'},
+      {caption: 'Edition',                data: proc{|rec| rec.edition_name},                   title: 'Name of the edition in which the object is actual'},
+    ]
+  if get_db_version >= '12.2'
+    column_options << {caption: 'Sharing',      data: proc{|rec| rec.sharing},            title: 'Sharing state of the object'}
+    column_options << {caption: 'Edit.',        data: proc{|rec| rec.editionable},        title: 'Editionable state of the object'}
+    column_options << {caption: 'Orcl.',        data: proc{|rec| rec.oracle_maintained},  title: 'Denotes whether the object was created, and is maintained, by Oracle-supplied scripts (such as catalog.sql or catproc.sql). An object for which this column has the value Y must not be changed in any way except by running an Oracle-supplied script.'}
+    column_options << {caption: 'Appl.',        data: proc{|rec| rec.editionable},        title: 'Indicates whether the object is an Application common object (Y) or not (N)'}
+    column_options << {caption: 'Def. coll.',   data: proc{|rec| rec.default_collation},  title: 'Default collation for the object'}
+    column_options << {caption: 'Dupl.',        data: proc{|rec| rec.duplicated},         title: 'Indicates whether this object is duplicated on this shard (Y) or not (N)'}
+    column_options << {caption: 'Shard.',       data: proc{|rec| rec.sharded},            title: 'Indicates whether this object is sharded (Y) or not (N)'}
+    column_options << {caption: 'Shard.',       data: proc{|rec| rec.sharded},            title: 'Indicates whether this object is sharded (Y) or not (N)'}
+  end
+
+
+%>
+
+<%=
+  filter = []
+  filter << "owner = '#{params[:owner]}'" if params[:owner]
+  filter << "object name = '#{params[:object_name]}'" if params[:object_name]
+  filter << "object type = '#{params[:object_type]}'" if params[:object_type]
+  gen_slickgrid(@objects, column_options, {
+  :caption => "DB objects from DBA_Objects #{"for " if filter.count > 0}#{filter.join(', ')}",
+  :max_height=>450, update_area: @update_area
+})
+%>
