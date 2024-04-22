@@ -674,7 +674,7 @@ class PanoramaConnection
 
   private
   # ensure that Oracle-Connection exists and DBMS__Application_Info is executed
-  def self.check_for_open_connection(register_module_action = true)
+  def self.check_for_open_connection(register_module_action = true, retry_count: 0)
     if Thread.current[:panorama_connection_connection_object].nil?                # No JDBC-Connection allocated for thread
       Thread.current[:panorama_connection_connection_object] = retrieve_from_pool_or_create_new_connection
     end
@@ -683,10 +683,15 @@ class PanoramaConnection
       begin
         set_application_info
       rescue Exception => e
-        Rails.logger.error('PanoramaConnection.check_for_open_connection') { "Error #{e.class}:'#{e.message}'! Drop connection and look for next one from pool" }
-        destroy_connection                                                      # Remove erroneous connection from pool
-        Thread.current[:panorama_connection_connection_object] = retrieve_from_pool_or_create_new_connection  # get new connection from pool or create
-        set_application_info                                                    # Set application info again and throw exception if error persists
+        destroy_connection
+        Thread.current[:panorama_connection_connection_object] = nil
+        if retry_count < 1 || (e.class == Java::JavaSql::SQLRecoverableException && retry_count < 50)
+          Rails.logger.warn('PanoramaConnection.check_for_open_connection') { "Error #{e.class}:'#{e.message}'! Drop connection and look for next one from pool" }
+          check_for_open_connection(register_module_action, retry_count: retry_count + 1)
+        else
+          Rails.logger.error('PanoramaConnection.check_for_open_connection') { "Error #{e.class}:'#{e.message}'! Cancel getting new connection from pool after #{retry_count} retries" }
+          raise e
+        end
       end
       Thread.current[:panorama_connection_app_info_set] = true
     end
