@@ -497,10 +497,21 @@ class DbaSgaController < ApplicationController
       hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 
-    @additional_ash_message = nil
+    @additional_ash_message = ''
     if !@child_number.nil?
       child_count = sql_select_one ["SELECT COUNT(*) FROM gv$SQL WHERE Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
-      @additional_ash_message = "ASH-values are for child_number=#{@child_number} only but #{child_count} children exists for this SQL-ID and Instance" if child_count > 1
+      @additional_ash_message << "\nASH-values are for child_number=#{@child_number} only but #{child_count} children exists for this SQL-ID and Instance" if child_count > 1
+    end
+
+    # If no ASH records are found, then show a message
+    if PackLicense.diagnostics_pack_licensed? && all_plans.reduce(0) { |total, elem| total + (elem.db_time_seconds||0) } == 0
+      last_active_time = sql_select_one ["SELECT MAX(Last_Active_Time) Last_Active_Time FROM gv$SQL WHERE Inst_ID = ? AND SQL_ID = ? #{where_string}",  @instance, @sql_id].concat(where_values)
+      min_ash_time = sql_select_one ["SELECT MIN(Sample_Time) Min_Sample_Time FROM gv$Active_Session_History WHERE Inst_ID = ?",  @instance]
+      if last_active_time && (min_ash_time.nil? || last_active_time < min_ash_time)
+        @additional_ash_message << "\nNo ASH records found before last active time of this SQL (#{localeDateTime(last_active_time)})."
+        @additional_ash_message << "\nFirst ASH record is of #{localeDateTime(min_ash_time)}."
+        @additional_ash_message << "\nPlease use historic AWR view (Button 'Full history') to evaluate the DB time at operation level."
+      end
     end
 
     if @multiplans.count > 0

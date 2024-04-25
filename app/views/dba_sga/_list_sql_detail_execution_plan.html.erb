@@ -215,7 +215,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
         end
        @caption << " parsed at #{localeDateTime(mp[:plans][0].timestamp)}, Plan_Hash_Value = #{mp.plan_hash_value}, Optimizer-Mode=#{mp[:plans][0].optimizer}"
        @caption << "\n#{fn(mp[:plans][0].executions)} executions, #{fn(mp.elapsed_secs_per_exec, 6)} seconds elapsed / execution" if @multiplans.length > 1
-       @caption << "\n#{@additional_ash_message}" if @additional_ash_message
+       @caption << @additional_ash_message
      end
      @caption_title = ''
      @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on Active Session History.\\n"
