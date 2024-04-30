@@ -2002,7 +2002,8 @@ class DbaSchemaController < ApplicationController
     @attribs = sql_select_all ["\
       SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status,
               s.PLSQL_Optimize_Level, s.PLSQL_Code_Type, s.PLSQL_Debug, s.PLSQL_Warnings, s.NLS_Length_Semantics, s.PLSQL_CCFlags, PLScope_Settings,
-              s.Origin_Con_ID, p.Aggregate, p.Pipelined, p.ImplTypeOwner, p.ImplTypeName, p.Parallel
+              s.Origin_Con_ID, p.Aggregate, p.Pipelined, p.ImplTypeOwner, p.ImplTypeName, p.Parallel, p.Interface, p.Deterministic,
+              p.AuthID, p.Result_Cache
               #{", s.Origin_Con_ID" if get_db_version >= '12.1' }
       FROM   DBA_Objects o
       LEFT OUTER JOIN DBA_PLSQL_Object_Settings s ON s.Owner = o.Owner AND s.Name = o.Object_Name AND s.Type = o.Object_Type
@@ -2017,7 +2018,29 @@ class DbaSchemaController < ApplicationController
       @source << r.text
     end
 
+    @method_count = sql_select_one ["SELECT COUNT(*) FROM DBA_PROCEDURES
+                                     WHERE Owner = ? AND Object_Name = ? AND Object_Type = ?
+                                    ", @owner, @object_name, @object_type == 'PACKAGE BODY' ? 'PACKAGE' : @object_type]
+
     render_partial :list_plsql_description
+  end
+
+  def list_plsql_description_methods
+    @owner                = params[:owner]
+    @object_name          = params[:object_name]
+    @object_type          = params[:object_type]
+
+    @methods = sql_select_all ["\
+      SELECT p.*, DECODE(a.Object_Name, NULL, 'PROCEDURE', 'FUNCTION') Method_Type
+      FROM   DBA_Procedures p
+      LEFT OUTER JOIN DBA_Arguments a ON a.Owner = p.Owner AND a.Object_Name = p.Procedure_Name AND a.Package_Name = p.Object_Name
+                                      AND a.Subprogram_ID = p.Subprogram_ID AND a.Argument_Name IS NULL
+      WHERE  p.Owner = ? AND p.Object_Name = ? AND p.Object_Type = ?
+      AND    p.Procedure_Name IS NOT NULL
+      ORDER BY p.Procedure_Name
+    ", @owner, @object_name, @object_type == 'PACKAGE BODY' ? 'PACKAGE' : @object_type]
+
+    render_partial
   end
 
   def list_synonym

@@ -20,6 +20,10 @@
   column_options << { caption: 'Pipelined',   data: proc{|rec| rec.pipelined},                title: "Indicates whether the procedure is a pipelined table function (YES) or not (NO)"} if @object_type == 'FUNCTION'
   column_options << { caption: 'Impl. type',  data: proc{|rec| link_object_description(@update_area, rec.impltypeowner, rec.impltypename)}, title: "Owner and name of the implementation type, if any"} if @object_type == 'FUNCTION'
   column_options << { caption: 'Parallel enabled',  data: proc{|rec| rec.parallel},           title: "Indicates whether the procedure or function is parallel-enabled (YES) or not (NO)"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Interface',   data: proc{|rec| rec.interface},                title: "YES, if the procedure/function is a table function implemented using the ODCI interface; otherwise NO"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Determ.',     data: proc{|rec| rec.deterministic},            title: "YES, if the procedure/function is declared to be deterministic; otherwise NO"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Auth. ID',    data: proc{|rec| rec.authid},                   title: "Indicates whether the procedure/function is declared to execute as DEFINER or CURRENT_USER (invoker)"}
+  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"} if @object_type == 'FUNCTION'
 
 %>
 
@@ -50,6 +54,19 @@
           :object_name  => @object_name,
           :object_type  => 'PACKAGE'
       }, :title => "Show description of package spec for #{@owner}.#{@table_name}")
+      %>
+    </div>
+  <% end %>
+
+  <% if @method_count > 0 %>
+    <div class="flex-row-element">
+      <%= ajax_submit("#{@method_count } Methods", {
+        :update_area  => @update_area,
+        :action       => :list_plsql_description_methods,
+        :owner        => @owner,
+        :object_name  => @object_name,
+        :object_type  => @object_type
+      }, :title => "Show description of public  methods (procedures, functions, ...) for #{@owner}.#{@table_name}")
       %>
     </div>
   <% end %>

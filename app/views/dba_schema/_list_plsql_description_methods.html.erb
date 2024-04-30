@@ -1,0 +1,25 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  column_options = []
+  column_options << { caption: 'Procedure name',  data: proc{|rec| rec.procedure_name},       title: "Name of the procedure or function"}
+  column_options << { caption: 'Method type',  data: proc{|rec| rec.method_type},             title: "Type of method"}
+  column_options << { caption: 'Aggregate',   data: proc{|rec| rec.aggregate},                title: "Indicates whether the procedure is an aggregate function (YES) or not (NO)"}
+  column_options << { caption: 'Pipelined',   data: proc{|rec| rec.pipelined},                title: "Indicates whether the procedure is a pipelined table function (YES) or not (NO)"}
+  column_options << { caption: 'Impl. type',  data: proc{|rec| link_object_description(@update_area, rec.impltypeowner, rec.impltypename)}, title: "Owner and name of the implementation type, if any"}
+  column_options << { caption: 'Parallel enabled',  data: proc{|rec| rec.parallel},           title: "Indicates whether the procedure or function is parallel-enabled (YES) or not (NO)"}
+  column_options << { caption: 'Interface',   data: proc{|rec| rec.interface},                title: "YES, if the procedure/function is a table function implemented using the ODCI interface; otherwise NO"}
+  column_options << { caption: 'Determ.',     data: proc{|rec| rec.deterministic},            title: "YES, if the procedure/function is declared to be deterministic; otherwise NO"}
+  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"}
+  column_options << { caption: 'Overload',    data: proc{|rec| rec.overload},                 title: "Overload unique identifier", align: :right}
+
+%>
+
+<%=
+  gen_slickgrid(@methods, column_options, {
+    caption: "Public methods of #{@object_type == 'PACKAGE BODY' ? 'PACKAGE' : @object_type} #{@owner}.#{@object_name}",
+    height: :auto,
+    update_area: @update_area
+  })
+%>
+
