@@ -1,0 +1,42 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  arg_name = proc do |rec|
+if rec.argument_name.nil?
+      "[return value]"
+    else
+      rec.argument_name
+    end
+  end
+
+  column_options = []
+  column_options << { caption: 'Argument name',   data: arg_name,                             title: "Name of the argument"}
+  column_options << { caption: 'Position',        data: proc{|rec| fn(rec.position)},         title: "This column holds the position of this item in the argument list, or 0 for a function return value.", align: :right}
+  column_options << { caption: 'Data type',       data: proc{|rec| rec.data_type},            title: "Datatype of the argument"}
+  column_options << { caption: 'Defaulted',       data: proc{|rec| rec.defaulted},            title: "Specifies whether or not the argument is defaulted"}
+  column_options << { caption: 'Direction',       data: proc{|rec| rec.in_out},               title: "Direction of the argument"}
+  column_options << { caption: 'Data length',     data: proc{|rec| fn(rec.data_length)},      title: "Length of the column (in bytes)", align: :right}
+  column_options << { caption: 'Data precision',  data: proc{|rec| fn(rec.data_precision)},   title: "Length in decimal digits (NUMBER) or binary digits (FLOAT)", align: :right}
+  column_options << { caption: 'Data scale',      data: proc{|rec| fn(rec.data_scale)},       title: "Digits to the right of the decimal point in a number", align: :right}
+  column_options << { caption: 'Radix',           data: proc{|rec| fn(rec.radix)},            title: "Argument radix for a number", align: :right}
+  column_options << { caption: 'Char. set',       data: proc{|rec| rec.character_set_name},   title: "Character set name for the argument"}
+  column_options << { caption: 'PLS type',        data: proc{|rec| rec.pls_type},             title: "For numeric arguments, the name of the PL/SQL type of the argument. Null otherwise."}
+  column_options << { caption: 'Char length',     data: proc{|rec| fn(rec.char_length)},      title: "Character limit for string datatypes", align: :right}
+  column_options << { caption: 'Char used',       data: proc{|rec| rec.char_used},            title: "Indicates whether the byte limit (B) or char limit (C) is official for the string"}
+
+
+  column_options << { caption: 'Type',            data: proc{|rec| link_object_description(@update_area, rec.type_owner, rec.type_name)},   title: "Owner and name of the type of the argument.\nIf the type is a package local type (that is, it is declared in a package specification), then this column displays the name of the package."}
+  column_options << { caption: 'Type subname',    data: proc{|rec| rec.type_subname},         title: "Relevant only for package local types. Displays the name of the type declared in the package identified in the TYPE_NAME column."}
+  column_options << { caption: 'Type link',       data: proc{|rec| rec.type_link},            title: "Relevant only for package local types when the package identified in the TYPE_NAME column is a remote package. This column displays the database link used to refer to the remote package."}
+  column_options << { caption: 'Type object',     data: proc{|rec| rec.type_object_type},     title: "Displays the type of the type described by the TYPE_OWNER, TYPE_NAME, and TYPE_SUBNAME columns."}
+
+%>
+
+<%=
+  gen_slickgrid(@arguments, column_options, {
+    caption: "Arguments for #{@owner}.#{@object_name}.#{@procedure_name}",
+    height: :auto,
+    update_area: @update_area
+  })
+%>
+

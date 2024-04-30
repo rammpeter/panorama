@@ -2031,15 +2031,34 @@ class DbaSchemaController < ApplicationController
     @object_type          = params[:object_type]
 
     @methods = sql_select_all ["\
-      SELECT p.*, DECODE(a.Object_Name, NULL, 'PROCEDURE', 'FUNCTION') Method_Type
+      SELECT p.*, DECODE(a.Object_Name, NULL, 'PROCEDURE', 'FUNCTION') Method_Type, ac.Arguments
       FROM   DBA_Procedures p
       LEFT OUTER JOIN DBA_Arguments a ON a.Owner = p.Owner AND a.Object_Name = p.Procedure_Name AND a.Package_Name = p.Object_Name
                                       AND a.Subprogram_ID = p.Subprogram_ID AND a.Argument_Name IS NULL
+      LEFT OUTER JOIN (SELECT Owner, Object_Name, Package_Name, SubProgram_ID, COUNT(*) Arguments
+                       FROM   DBA_Arguments
+                       GROUP BY Owner, Object_Name, Package_Name, SubProgram_ID
+                      ) ac ON ac.Owner = p.Owner AND ac.Object_Name = p.Procedure_Name AND ac.Package_Name = p.Object_Name AND ac.SubProgram_ID = p.SubProgram_ID
       WHERE  p.Owner = ? AND p.Object_Name = ? AND p.Object_Type = ?
       AND    p.Procedure_Name IS NOT NULL
       ORDER BY p.Procedure_Name
     ", @owner, @object_name, @object_type == 'PACKAGE BODY' ? 'PACKAGE' : @object_type]
 
+    render_partial
+  end
+
+  def list_plsql_arguments
+    @owner                = params[:owner]
+    @object_name          = params[:object_name]
+    @procedure_name       = params[:procedure_name]
+    @subprogram_id        = params[:subprogram_id]
+
+    @arguments = sql_select_all ["\
+      SELECT a.*
+      FROM   DBA_Arguments a
+      WHERE  a.Owner = ? AND a.Package_Name = ? AND a.Object_Name = ? AND a.SubProgram_ID = ?
+      ORDER BY DECODE(a.Position, 0, 1000, a.Position)
+    ", @owner, @object_name, @procedure_name, @subprogram_id]
     render_partial
   end
 

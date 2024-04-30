@@ -1,9 +1,25 @@
 <% @update_area = get_unique_area_id %>
 
 <%
+  link_argumens = proc do |rec|
+    ajax_link(fn(rec.arguments),
+              {action:          :list_plsql_arguments,
+               owner:           @owner,
+               object_name:     @object_name,
+               procedure_name:  rec.procedure_name,
+               subprogram_id:   rec.subprogram_id,
+               update_area:     @update_area,
+              },
+              :title=>"Show arguments and return values for #{rec.method_type} #{@owner}.#{@object_name}-#{rec.procedure_name}"
+    )
+
+  end
+
   column_options = []
   column_options << { caption: 'Procedure name',  data: proc{|rec| rec.procedure_name},       title: "Name of the procedure or function"}
   column_options << { caption: 'Method type',  data: proc{|rec| rec.method_type},             title: "Type of method"}
+  column_options << { caption: 'Arguments',   data: link_argumens,                            title: "Number of arguments and return values", align: :right}
+  column_options << { caption: 'Sub. prog. ID', data: proc{|rec| fn(rec.subprogram_id)},      title: "Unique subprogram identifier", align: :right}
   column_options << { caption: 'Aggregate',   data: proc{|rec| rec.aggregate},                title: "Indicates whether the procedure is an aggregate function (YES) or not (NO)"}
   column_options << { caption: 'Pipelined',   data: proc{|rec| rec.pipelined},                title: "Indicates whether the procedure is a pipelined table function (YES) or not (NO)"}
   column_options << { caption: 'Impl. type',  data: proc{|rec| link_object_description(@update_area, rec.impltypeowner, rec.impltypename)}, title: "Owner and name of the implementation type, if any"}
