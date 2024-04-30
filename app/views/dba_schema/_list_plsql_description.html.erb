@@ -2,12 +2,24 @@
 
 <%
   column_options =
-      [
-          {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
-          {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
-          { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
-          {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
-      ]
+    [
+      {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
+      {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
+      { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
+      {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
+      { caption: 'Opt. level',        data: proc{|rec| rec.plsql_optimize_level},             title: 'Optimization level that was used to compile the object'},
+      { caption: 'Code type',         data: proc{|rec| rec.plsql_code_type},                  title: 'Compilation mode for the object'},
+      { caption: 'Debug',             data: proc{|rec| rec.plsql_debug},                      title: 'Indicates whether the object was compiled with debug information or not'},
+      { caption: 'Warnings',          data: proc{|rec| rec.plsql_warnings},                   title: 'Compiler warning settings that were used to compile the object'},
+      { caption: 'NLS length sem.',   data: proc{|rec| rec.nls_length_semantics},             title: 'NLS length semantics that were used to compile the object'},
+      { caption: 'CC flags',          data: proc{|rec| rec.plsql_ccflags},                    title: 'Conditional compilation flag settings that were used to compile the object'},
+      { caption: 'PL scope settings', data: proc{|rec| rec.plscope_settings},                 title: 'Settings for using PL/Scope'},
+    ]
+  column_options << { caption: 'Org. con-ID', data: proc{|rec| rec.origin_con_id},            title: "The ID of the container where the data originates. Possible values include:\n0: This value is used for rows in non-CDBs. This value is not used for CDBs.\nn: This value is used for rows containing data that originate in the container with container ID n (n = 1 if the row originates in root)"} if get_db_version >= '12.1'
+  column_options << { caption: 'Aggregate',   data: proc{|rec| rec.aggregate},                title: "Indicates whether the procedure is an aggregate function (YES) or not (NO)"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Pipelined',   data: proc{|rec| rec.pipelined},                title: "Indicates whether the procedure is a pipelined table function (YES) or not (NO)"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Impl. type',  data: proc{|rec| link_object_description(@update_area, rec.impltypeowner, rec.impltypename)}, title: "Owner and name of the implementation type, if any"} if @object_type == 'FUNCTION'
+  column_options << { caption: 'Parallel enabled',  data: proc{|rec| rec.parallel},           title: "Indicates whether the procedure or function is parallel-enabled (YES) or not (NO)"} if @object_type == 'FUNCTION'
 
 %>
 

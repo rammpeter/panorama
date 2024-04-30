@@ -1999,7 +1999,18 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
-    @attribs = sql_select_all ["SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status FROM DBA_Objects o WHERE o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?", @owner, @object_name, @object_type]
+    @attribs = sql_select_all ["\
+      SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status,
+              s.PLSQL_Optimize_Level, s.PLSQL_Code_Type, s.PLSQL_Debug, s.PLSQL_Warnings, s.NLS_Length_Semantics, s.PLSQL_CCFlags, PLScope_Settings,
+              s.Origin_Con_ID, p.Aggregate, p.Pipelined, p.ImplTypeOwner, p.ImplTypeName, p.Parallel
+              #{", s.Origin_Con_ID" if get_db_version >= '12.1' }
+      FROM   DBA_Objects o
+      LEFT OUTER JOIN DBA_PLSQL_Object_Settings s ON s.Owner = o.Owner AND s.Name = o.Object_Name AND s.Type = o.Object_Type
+      LEFT OUTER JOIN DBA_Procedures p ON p.Owner = o.Owner AND p.Object_Name = o.Object_Name
+                                       AND p.Object_Type = DECODE(o.Object_Type, 'PACKAGE BODY', 'PACKAGE', o.Object_Type)
+                                       AND p.Procedure_Name IS NULL
+      WHERE  o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?
+    ", @owner, @object_name, @object_type]
 
     @source = "CREATE OR REPLACE "
     sql_select_iterator(["SELECT Text FROM DBA_Source WHERE Owner=? AND Name=? AND Type = ? ORDER BY Line", @owner, @object_name, @object_type]).each do |r|

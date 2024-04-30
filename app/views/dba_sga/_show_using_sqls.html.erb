@@ -54,7 +54,7 @@ column_options =
              ) do
 %>
   <div class="flex-row-container">
-    <%= include_start_end_timepicker(id_suffix: 'show_using_sqls') %>
+    <%= include_start_end_timepicker %>
 
     <div class="flex-row-element">
       <%= submit_tag('Show historic SQLs', :title => "Search AWR history between timestamps for SQLs accessing #{@object_owner}.#{@object_name} (by #{PanoramaConnection.adjust_table_name('DBA_Hist_SQL_Plan')})") %>

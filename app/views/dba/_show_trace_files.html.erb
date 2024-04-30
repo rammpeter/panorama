@@ -5,7 +5,7 @@
 
 <%= ajax_form(:controller => :dba, :action => :list_trace_files, :update_area => @update_area) do %>
   <div class="flex-row-container">
-    <%= include_start_end_timepicker(id_suffix: 'default', additional_title: "Caution: For client and database in different timezones:\nThis value is interpreted in local client time zone") %>
+    <%= include_start_end_timepicker(additional_title: "Caution: For client and database in different timezones:\nThis value is interpreted in local client time zone") %>
     <!--
     Nicht sinnvoll so lange Daten nur von aktueller Instance gezogen werden
     <%= instance_tag %>

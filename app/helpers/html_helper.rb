@@ -4,9 +4,10 @@
 module HtmlHelper
 
   # Anzeige eines start und ende-datetimepickers (neue Variante für display:flex)
-  def include_start_end_timepicker(id_suffix: "default", additional_title:  nil, line_feed_after_lable: false)
-    start_id = "time_selection_start_#{id_suffix}"
-    end_id   = "time_selection_end_#{id_suffix}"
+  def include_start_end_timepicker(additional_title:  nil, line_feed_after_lable: false)
+    unique_id = get_unique_area_id
+    start_id = "time_selection_start_#{unique_id}"
+    end_id   = "time_selection_end_#{unique_id}"
 
     additional_title = "\n#{additional_title}" unless additional_title.nil?
 
