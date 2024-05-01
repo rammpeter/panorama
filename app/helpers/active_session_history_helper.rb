@@ -221,6 +221,13 @@ module ActiveSessionHistoryHelper
           @dba_hist_where_values << 0                    # Wenn kein valides Alter festgestellt über DBA_Hist_Snapshot, dann reicht gv$Active_Session_History aus für Zugriff,
           @dba_hist_where_string << "/* Zugriff auf DBA_Hist_Active_Sess_History ausblenden, da kein Wert für #{key} gefunden wurde (alle Daten kommen aus gv$Active_Session_History)*/"
         end
+      when :time_selection_start, :time_selection_end                           # Ensure that gv$Active_Session_History and DBA_Hist_Active_Sess_History is filtered by time as early as possible
+        @dba_hist_where_string << " AND "  if @dba_hist_where_string != ''      # suppress leading AND
+        @dba_hist_where_string << sql
+        @dba_hist_where_values << value
+        @sga_ash_where_string << ' AND ' if @sga_ash_where_string != ''         # suppress leading AND
+        @sga_ash_where_string << sql
+        @sga_ash_where_values << value
       when :con_id
         @sga_ash_where_string << ' AND ' if @sga_ash_where_string != ''          # suppress leading AND
         @sga_ash_where_string << sql
@@ -353,7 +360,7 @@ module ActiveSessionHistoryHelper
              UNION ALL
              SELECT 1 Sample_Cycle,  Inst_ID Instance_Number, NULL Snap_ID, #{sga_columns}#{", #{dbid}" if dbid}
                     #{", #{rounded_sample_time_sql(1)} Rounded_Sample_Time /* auf eine Sekunde genau gerundete Zeit */" if select_rounded_sample_time}
-             FROM gv$Active_Session_History
+             FROM gv$Active_Session_History s
              #{sga_filter.nil? ? '' : " WHERE #{sga_filter}"}
             )
      #{global_filter.nil? ? '' : " WHERE #{global_filter}"}
