@@ -398,13 +398,14 @@ oradebug setorapname diag
       pkey_cols << s.column_name
     end
 
+    pkey_sql = "SELECT #{pkey_cols} FROM #{object_rec.owner}.#{table_name} WHERE RowID=?"
     begin
-      pkey_vals = sql_select_first_row ["SELECT #{pkey_cols} FROM #{object_rec.owner}.#{table_name} WHERE RowID=?", rowid]
+      pkey_vals = sql_select_first_row [pkey_sql, rowid]
     rescue Exception => e
       show_popup_message "Error accessing data for RowID='#{rowid}'\n\n#{e.message}"
       return
     end
-    raise PopupMessageException.new("No data found for SQL:\n\n#{pkey_sql}\n\nParameter RowID = '#{rowid}'") if pkey_vals.length == 0
+    raise PopupMessageException.new("No data found for SQL:\n\n#{pkey_sql}\n\nParameter RowID = '#{rowid}'") if pkey_vals.nil? || pkey_vals.length == 0
 
     result = "#{t(:table, :default=>'table')} #{table_name}, PKey (#{pkey_cols}) = "
 
