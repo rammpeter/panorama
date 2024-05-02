@@ -23,8 +23,7 @@
   column_options << { caption: 'Interface',   data: proc{|rec| rec.interface},                title: "YES, if the procedure/function is a table function implemented using the ODCI interface; otherwise NO"} if @object_type == 'FUNCTION'
   column_options << { caption: 'Determ.',     data: proc{|rec| rec.deterministic},            title: "YES, if the procedure/function is declared to be deterministic; otherwise NO"} if @object_type == 'FUNCTION'
   column_options << { caption: 'Auth. ID',    data: proc{|rec| rec.authid},                   title: "Indicates whether the procedure/function is declared to execute as DEFINER or CURRENT_USER (invoker)"}
-  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"} if @object_type == 'FUNCTION'
-
+  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"} if get_db_version >= '12.1' && @object_type == 'FUNCTION'
 %>
 
 <%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto}) %>

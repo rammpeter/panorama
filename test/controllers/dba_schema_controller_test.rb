@@ -110,6 +110,8 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
         {owner: 'SYS',      object_name: 'WRH$_ACTIVE_SESSION_HISTORY'},       # partitioned Table
         {owner: 'PUBLIC',   object_name: 'V$ARCHIVE'},                         # Synonym
         {owner: 'SYS',      object_name: 'DBMS_SESSION'},                      # Package oder Body
+        {owner: 'SYS',      object_name: 'INSTANCE_NUM'},                      # Function
+        {owner: 'SYS',      object_name: 'LOAD_UNDO_STAT'},                    # Procedure
     ]
         .concat(get_db_version >= '12.1' ? [{owner: 'XDB',      object_name: 'XDB$XTAB'}] :  [])    # XML-Table instead of relational table
         .each do |object|
@@ -225,6 +227,14 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     post '/dba_schema/list_grants', :params => {:format=>:html, :owner=>"SYS", :object_name=>"AUD$", :update_area=>:hugo }
     assert_response :success
 
+  end
+
+  test "list_plsql_methods with xhr: true" do
+    post '/dba_schema/list_plsql_description_methods', params: {format: :html, owner: "SYS", object_name: "DBMS_SESSION", object_type: 'PACKAGE', :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_schema/list_plsql_arguments', params: {format: :html, owner: "SYS", object_name: "DBMS_SESSION", procedure_name: 'SET_ROLE', subprogram_id: 1, :update_area=>:hugo }
+    assert_response :success
   end
 
   test "list_audit_trail with xhr: true" do
