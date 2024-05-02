@@ -2020,7 +2020,12 @@ class DbaSchemaController < ApplicationController
 
     @method_count = sql_select_one ["SELECT COUNT(*) FROM DBA_PROCEDURES
                                      WHERE Owner = ? AND Object_Name = ? AND Object_Type = ?
+                                     AND   Procedure_Name IS NOT NULL
                                     ", @owner, @object_name, @object_type == 'PACKAGE BODY' ? 'PACKAGE' : @object_type]
+
+    @arg_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Arguments
+                                  WHERE  Owner = ? AND Object_Name = ? AND Package_Name IS NULL
+                                 ", @owner, @object_name]        # Package_Name is NULL for standalone procedures/functions
 
     render_partial :list_plsql_description
   end
@@ -2053,12 +2058,21 @@ class DbaSchemaController < ApplicationController
     @procedure_name       = params[:procedure_name]
     @subprogram_id        = params[:subprogram_id]
 
-    @arguments = sql_select_all ["\
-      SELECT a.*
-      FROM   DBA_Arguments a
-      WHERE  a.Owner = ? AND a.Package_Name = ? AND a.Object_Name = ? AND a.SubProgram_ID = ?
-      ORDER BY DECODE(a.Position, 0, 1000, a.Position)
-    ", @owner, @object_name, @procedure_name, @subprogram_id]
+    @arguments = if @procedure_name.nil?                                        # Standalone procedure/function (no package), subprogram_id should be 1
+                   sql_select_all ["\
+                     SELECT a.*
+                     FROM   DBA_Arguments a
+                     WHERE  a.Owner = ? AND a.Package_Name is NULL AND a.Object_Name = ? AND a.SubProgram_ID = ?
+                     ORDER BY DECODE(a.Position, 0, 1000, a.Position)
+                   ", @owner, @object_name, @subprogram_id]
+                 else                                                           # Package or Type
+                   sql_select_all ["\
+                     SELECT a.*
+                     FROM   DBA_Arguments a
+                     WHERE  a.Owner = ? AND a.Package_Name = ? AND a.Object_Name = ? AND a.SubProgram_ID = ?
+                     ORDER BY DECODE(a.Position, 0, 1000, a.Position)
+                   ", @owner, @object_name, @procedure_name, @subprogram_id]
+                 end
     render_partial
   end
 
