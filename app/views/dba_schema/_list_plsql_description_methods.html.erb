@@ -26,7 +26,7 @@
   column_options << { caption: 'Parallel enabled',  data: proc{|rec| rec.parallel},           title: "Indicates whether the procedure or function is parallel-enabled (YES) or not (NO)"}
   column_options << { caption: 'Interface',   data: proc{|rec| rec.interface},                title: "YES, if the procedure/function is a table function implemented using the ODCI interface; otherwise NO"}
   column_options << { caption: 'Determ.',     data: proc{|rec| rec.deterministic},            title: "YES, if the procedure/function is declared to be deterministic; otherwise NO"}
-  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"}
+  column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"} if get_db_version >= '12.2'
   column_options << { caption: 'Overload',    data: proc{|rec| rec.overload},                 title: "Overload unique identifier", align: :right}
 
 %>

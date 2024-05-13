@@ -1,10 +1,20 @@
 <%
   @update_area = get_unique_area_id
+
+  link_target = proc do |rec|
+    if rec.target && rec.target['.']
+      link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])
+    else
+      rec.target
+    end
+  end
+
+
   column_options = []
   column_options << { caption: 'I',                   data: proc{|rec| rec.inst_id}, title: 'RAC instance', align: :right} if PanoramaConnection.rac?
   column_options << { caption: 'SID/SN',              data: proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)}, title: 'Session ID / Serial no.'}
   column_options << { caption: 'Operation',           data: proc{|rec| rec.opname}, title: 'Brief description of the operation'}
-  column_options << { caption: 'Target',              data: proc{|rec| link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])}, title: 'Object on which the operation is carried out'}
+  column_options << { caption: 'Target',              data: link_target, title: 'Object on which the operation is carried out'}
   column_options << { caption: 'Target desc.',        data: proc{|rec| rec.target_desc}, title: 'Description of the target'}
   column_options << { caption: 'So far',              data: proc{|rec| fn(rec.sofar)}, title: 'Units of work done so far for the operation specified in the OPNAME column', align: :right}
   column_options << { caption: 'Total work',          data: proc{|rec| fn(rec.totalwork)}, title: 'Total units of work for the operation specified in the OPNAME column', align: :right}

@@ -833,8 +833,7 @@ oradebug setorapname diag
         i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
         temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
         (       SELECT MIN(Start_Time) FROM GV$Session_LongOps o
-                WHERE   o.SID                   = s.SID                 /* Referenz auf Session */                                        
-                AND     o.Serial#               = s.Serial#             /* Referenz auf Session */                                        
+                WHERE   ( (o.SID = s.SID AND o.Serial# = s.Serial# ) OR o.QCSID = s.SID)  /* Referenz auf Session */
                 AND     o.SQL_Address           = s.SQL_Address         /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */ 
                 AND     o.SQL_Hash_Value        = s.SQL_Hash_Value      /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */
                 AND     o.SQL_Exec_ID           = s.SQL_Exec_ID

@@ -2248,13 +2248,12 @@ END;
     @sql_exec_id  = prepare_param(:sql_exec_id)
     @sid          = prepare_param(:sid)
     @serial_no    = prepare_param(:serial_no)
-    @qc_sid       = prepare_param(:qc_sid)
 
     where_string = ''
     where_values = []
 
     if @instance
-      where_string << " AND l.Instance_Number = ?"
+      where_string << " AND l.Inst_ID = ?"
       where_values << @instance
     end
 
@@ -2269,13 +2268,14 @@ END;
     end
 
     if @sid
-      where_string << " AND NVL(DECODE(l.QCSID, 0, NULL, l.QCSID), l.SID) = ?"  # look for all PQ sessions of a SID if is the coordinator
+      where_string << " AND (l.SID = ? OR l.QCSID = ?)"  # look for all PQ sessions of a SID if is the coordinator
       where_values << @sid
-    end
-
-    if @serial_no
-      where_string << " AND l.Serial# = ?"
-      where_values << @serial_no
+      where_values << @sid
+      if @serial_no
+        where_string << " AND (l.QCSID = ? OR l.Serial# = ?)"
+        where_values << @sid
+        where_values << @serial_no
+      end
     end
 
     if @qc_sid
