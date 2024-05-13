@@ -278,6 +278,23 @@
     %>
   </div>
 
+  <% if @dbsessions.first&.long_ops_cnt&.> 0 %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit("#{@dbsessions.first&.long_ops_cnt} Long ops.", {
+          :controller   => :dba_sga,
+          :action       => :list_session_longops,
+          :sid          => @sid,
+          serial_no:     @serial_no,
+          sql_id:       @dbsessions.first&.sql_id,
+          sql_exec_id:  @dbsessions.first&.sql_exec_id,
+          :update_area  => @update_area
+        }, :title=> "Show long operations for this session from gV$Session_LongOps"
+        )
+      %>
+    </div>
+  <% end %>
+
   <div class="flex-row-element">
     <%=
       render_async(:dba, :render_session_detail_sql_monitor, {

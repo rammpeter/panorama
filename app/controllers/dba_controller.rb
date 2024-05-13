@@ -940,7 +940,13 @@ oradebug setorapname diag
                   c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver,
                   s.SQL_Exec_Start, s.SQL_Exec_ID, s.Prev_Exec_Start, s.Prev_Exec_ID,
                   s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session, b.Serial# Blocking_Serial_No,
-                  s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session, fb.Serial# Final_Blocking_Serial_No
+                  s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session, fb.Serial# Final_Blocking_Serial_No,
+                  (SELECT COUNT(*)
+                   FROM   gv$Session_Longops l
+                   WHERE  (l.SID=s.SID OR l.QCSID=s.SID)
+                   AND    l.SQL_ID = s.SQL_ID
+                   AND    l.SQL_Exec_ID = s.SQL_Exec_ID
+                  ) Long_Ops_Cnt
            FROM   GV$Session s
            LEFT OUTER JOIN GV$process p  ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID /* gv$Process sometimes not visible for active sessions in autonomous DB */
            LEFT OUTER JOIN GV$Session b  ON b.Inst_ID = s.Blocking_Instance AND b.SID = s.Blocking_Session
