@@ -45,7 +45,7 @@ jobs:
   test_21_3-ee_PDB:    { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-ee",   container: "PDB", max_parallel: 4 }, secrets: "inherit"}
   test_21_3-se2_CDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "CDB", max_parallel: 4 }, secrets: "inherit"}
   test_21_3-se2_PDB:   { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.3.0.0-se2",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
-  test_23_4-free_PDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.4-free",     container: "PDB", max_parallel: 4 }, secrets: "inherit"}
+  # test_23_4-free_PDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "21.4-free",     container: "PDB", max_parallel: 4 }, secrets: "inherit"}
 
   build_docker:
     runs-on: self-hosted

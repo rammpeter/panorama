@@ -28,7 +28,7 @@ if rec.argument_name.nil?
   column_options << { caption: 'Type',            data: proc{|rec| link_object_description(@update_area, rec.type_owner, rec.type_name)},   title: "Owner and name of the type of the argument.\nIf the type is a package local type (that is, it is declared in a package specification), then this column displays the name of the package."}
   column_options << { caption: 'Type subname',    data: proc{|rec| rec.type_subname},         title: "Relevant only for package local types. Displays the name of the type declared in the package identified in the TYPE_NAME column."}
   column_options << { caption: 'Type link',       data: proc{|rec| rec.type_link},            title: "Relevant only for package local types when the package identified in the TYPE_NAME column is a remote package. This column displays the database link used to refer to the remote package."}
-  column_options << { caption: 'Type object',     data: proc{|rec| rec.type_object_type},     title: "Displays the type of the type described by the TYPE_OWNER, TYPE_NAME, and TYPE_SUBNAME columns."}
+  column_options << { caption: 'Type object',     data: proc{|rec| rec.type_object_type},     title: "Displays the type of the type described by the TYPE_OWNER, TYPE_NAME, and TYPE_SUBNAME columns."} if get_db_version >= "19.0"
 
 %>
 
