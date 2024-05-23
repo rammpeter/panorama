@@ -14,7 +14,7 @@ find . -name mp_views* -exec rm -f {} \;
 if [ "$1" != "without_assets" ]
 then
   echo "Compile assets"
-  rake assets:precompile
+  bundle exec rake assets:precompile
   if [ $? -ne 0 ]
   then
     echo "######### Error running rake assets:precompile"
