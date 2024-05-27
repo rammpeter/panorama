@@ -218,7 +218,7 @@ class PanoramaConnection
 
     @db_version = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Version_Full FROM v$Instance")['version_full'] if @db_version >= '19'
 
-    session_info = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT s.Serial# Serial_No #{", s.Con_ID" if @db_version >= '12.1'},
+    session_info = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT /*+ CARDINALITY(p 1000) CARDINALITY(s 1000) */ s.Serial# Serial_No #{", s.Con_ID" if @db_version >= '12.1'},
                                                                                   RawToHex(s.Saddr) Saddr, p.PID
                                                                            FROM   v$Session s
                                                                            JOIN   v$Process p ON p.Addr = s.pAddr
