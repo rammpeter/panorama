@@ -149,7 +149,7 @@ This selection considers indexes with < x seconds in wait at SQLs accessing this
           min_db_version: '12.2',
           :sql=> "\
 WITH Days_Back AS (SELECT SYSDATE - ? Datum FROM DUAL),
-     SQLs AS (SELECT /*+ NO_MERGE MATERIALIZE */ sqls.Object_Owner, sqls.Object_Name, COUNT(*) SQLs, SUM(Executions) Executions
+     SQLs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(s) USE_HASH(sqls) */ sqls.Object_Owner, sqls.Object_Name, COUNT(*) SQLs, SUM(Executions) Executions
               FROM   (SELECT /*+ NO_MERGE */ SQL_ID, SUM(Executions) Executions
                       FROM   (
                               SELECT /*+ NO_MERGE */ s.SQL_ID, SUM(Executions_Delta) Executions
