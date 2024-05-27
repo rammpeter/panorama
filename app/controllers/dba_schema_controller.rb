@@ -232,6 +232,10 @@ class DbaSchemaController < ApplicationController
       profiles_hash[p.profile][p.resource_name] ||= {}
       profiles_hash[p.profile][p.resource_name][:resource_type] = p.resource_type
       profiles_hash[p.profile][p.resource_name][:limit]         = p.limit
+      # Password rollover timme is sometimes stored in seconds instead of days ( Doc ID 2815172.1 )
+      if p.resource_name == 'PASSWORD_ROLLOVER_TIME' && p.limit.to_i > 60
+        profiles_hash[p.profile][p.resource_name][:limit] = (p.limit.to_i / 86400.0).round(3)
+      end
       profiles_hash[p.profile][p.resource_name][:common]        = (get_db_version >= '12.2' ? p.common    : '')
       profiles_hash[p.profile][p.resource_name][:inherited]     = (get_db_version >= '12.2' ? p.inherited : '')
       profiles_hash[p.profile][p.resource_name][:implicit]      = (get_db_version >= '12.2' ? p.implicit  : '')
@@ -277,7 +281,7 @@ class DbaSchemaController < ApplicationController
                        when 'PASSWORD_GRACE_TIME'       then 'The number of days after the grace period begins during which a warning is issued and login is allowed. If you omit this clause, then the default is 7 days.'
                        when 'INACTIVE_ACCOUNT_TIME'     then 'The permitted number of consecutive days of no logins to the user account, after which the account will be locked. The minimum value is 15 days. The maximum value is 24855. If you omit this clause, then the default is UNLIMITED.'
                        when 'PASSWORD_VERIFY_FUNCTION'  then 'You can pass a PL/SQL password complexity verification script as an argument to CREATE PROFILE by specifying PASSWORD_VERIFY_FUNCTION.'
-                       when 'PASSWORD_ROLLOVER_TIME'    then 'Time for gradual database password rollover in seconds.'
+                       when 'PASSWORD_ROLLOVER_TIME'    then 'Time for gradual database password rollover in days.'
                        end
       title = "Limit for resource name #{key}\n\n#{title_addition}\n"
       { caption: key.gsub('_', ' '),
@@ -292,12 +296,23 @@ class DbaSchemaController < ApplicationController
 
   def list_gradual_password_rollover
     @user_info = sql_select_all("\
-      SELECT u.Account_Status, u.Password_Change_Date, u.Profile,
-             a.*,
-             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'SECOND') Rollover_Expiration_Date,
-             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'SECOND')-SYSDATE Remaining_Days_for_Rollover
+      SELECT u.Account_Status, u.Password_Change_Date, u.Profile, u.UserName, u.Last_Login,
+             a.DBUserName, a.Logon_Count, a.Min_TS, a.Max_TS, a.OS_UserName_Cnt, a.Min_OS_UserName,
+             a.UserHost_Cnt, a.Min_UserHost, a.Terminal_Cnt, a.Min_Terminal,
+             a.Instance_ID_Cnt, a.Min_Instance_ID, a.External_UserID_Cnt, a.Min_External_UserID,
+             a.Global_UserID_Cnt, a.Min_Global_UserID, a.Client_Program_Name_Cnt, a.Min_Client_Program_Name,
+             a.DBLink_Info_Cnt, a.Min_DBLink_Info,
+             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'DAY') Rollover_Expiration_Date,
+             u.Password_Change_Date + NUMTODSINTERVAL(pr.Limit, 'DAY')-SYSDATE Remaining_Days_for_Rollover
       FROM   DBA_Users u
-      LEFT OUTER JOIN DBA_Profiles pr ON pr.Profile = u.Profile and pr.Resource_Name = 'PASSWORD_ROLLOVER_TIME'
+      LEFT OUTER JOIN (SELECT Profile,
+                              /* support both seconds and days representation, Doc ID 2815172.1 */
+                              CASE WHEN REGEXP_LIKE(Limit, '^[0-9]+$') AND TO_NUMBER(Limit) > 60 THEN
+                                TO_CHAR(TO_NUMBER(Limit)/86400)
+                              ELSE Limit END AS Limit
+                       FROM   DBA_Profiles
+                       WHERE Resource_Name = 'PASSWORD_ROLLOVER_TIME'
+                      ) pr ON pr.Profile = u.Profile
       LEFT OUTER JOIN (
                        SELECT NVL(DBProxy_Username, DBUserName) UserName, DBUserName, COUNT(*) Logon_Count,
                               MIN(Event_Timestamp) Min_TS, MAX(Event_Timestamp) Max_TS,
