@@ -713,13 +713,14 @@ class StorageController < ApplicationController
                      s.SSOldErrCnt, s.NoSpaceErrCnt, s.ActiveBlks, s.UnexpiredBlks, s.ExpiredBlks, s.Tuned_UndoRetention,
                      t.BlockSize
               FROM   gv$UndoStat s
-              JOIN   (SELECT /*+ NO_MERGE */ Instance_Number, MAX(Begin_Time) Max_Begin_Time
-                      FROM   DBA_Hist_UndoStat
-                      WHERE  DBID = ?
-                      GROUP BY Instance_Number
-                     ) MaxAWR ON MaxAWR.Instance_Number = s.Inst_ID AND MaxAWR.Max_Begin_Time < s.Begin_Time
+              LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Instance_Number, MAX(Begin_Time) Max_Begin_Time
+                               FROM   DBA_Hist_UndoStat
+                               WHERE  DBID = ?
+                               GROUP BY Instance_Number
+                              ) MaxAWR ON MaxAWR.Instance_Number = s.Inst_ID
               LEFT OUTER JOIN sys.TS$ t ON t.ts# = s.UndoTSn
               WHERE  s.Begin_Time BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+              AND    (MaxAWR.Max_Begin_Time IS NULL OR MaxAWR.Max_Begin_Time < s.Begin_Time)
              )
       #{'WHERE Instance_Number = ?' if @instance}
       ORDER BY Begin_Time
