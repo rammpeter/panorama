@@ -1,0 +1,26 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {caption: 'Owner',        data: proc{|rec| rec.owner},              title: 'Owner of the DB link'}
+  column_options << {caption: 'DB link name', data: proc{|rec| rec.db_link},            title: 'Name of the DB link'}
+  column_options << {caption: 'User name',    data: proc{|rec| rec.username},           title: 'Username at the remote DB'}
+  column_options << {caption: 'Host',         data: proc{|rec| rec.host},               title: 'TNS alias or connect string'}
+  column_options << {caption: 'Created',      data: proc{|rec| localeDateTime(rec.created)}, title: 'Timestamp of DB link creation'}
+  column_options << {caption: 'Hidden',       data: proc{|rec| rec.hidden},             title: 'Hidden?'} if get_db_version >= '12.2'
+  column_options << {caption: 'Shard internal', data: proc{|rec| rec.shard_internal},   title: "Indicates whether the database link is used to support operations across sharded databases. Possible values:\nYES: The database link is used and managed for to support sharded databases\nNO: The database link is not used and managed to support sharded databases\nUsers should not alter or delete database links that are used and managed to support sharded databases."} if get_db_version >= '19.0'
+  column_options << {caption: 'Valid',        data: proc{|rec| rec.valid},              title: "Indicates whether the database link is valid and usable. Possible values:\nYES: The database link is valid and usable.\nNO: The database link is invalid and unusable."} if get_db_version >= '19.0'
+  column_options << {caption: 'Intra CDB',    data: proc{|rec| rec.intra_cdb},          title: 'For internal use only'}
+%>
+
+<%=
+  gen_slickgrid(@db_links, column_options, {
+    :caption => "Outgoing DB links from DBA_DB_Links",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+  })
+%>
+
+
+

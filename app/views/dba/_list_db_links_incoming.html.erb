@@ -1,0 +1,29 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {caption: 'Source ID',    data: proc{|rec| fn(rec.source_id)},      title: 'Unique ID that identifies an incoming database link', align: :right}
+  column_options << {caption: 'DB name',      data: proc{|rec| rec.db_name},            title: 'Global name of the source database'}
+  column_options << {caption: 'DBID',         data: proc{|rec| fn(rec.dbid)},           title: 'Database identifier of the source database. Maps to the DBID of the source database in V$DATABASE.', align: :right}
+  column_options << {caption: 'DB unique name', data: proc{|rec| rec.db_unique_name},   title: 'Unique database name of the source database. Maps to the DB_UNIQUE_NAME of the source database in V$DATABASE. Null for source databases that do not provide this information.'}
+  column_options << {caption: 'Host name',    data: proc{|rec| rec.host_name},          title: 'Resolved host name. Null if not available.'}
+  column_options << {caption: 'IP address',   data: proc{|rec| rec.ip_address},         title: 'IP address of source machine. Null if not available.'}
+  column_options << {caption: 'Protocol',     data: proc{|rec| rec.protocol},           title: 'One of supported protocols such as ipc, sdp, tcp, or tcps. Null if not available.'}
+  column_options << {caption: 'User name',    data: proc{|rec| rec.username},           title: 'Oracle username of the user who logged into the local database. Maps to the USERNAME column in V$SESSION.'}
+  column_options << {caption: 'User ID',      data: proc{|rec| fn(rec['user#'])},       title: 'Oracle user id of the user who logged into the local database. Maps to the USER# column in V$SESSION.', align: :right}
+  column_options << {caption: 'First logon UTC', data: proc{|rec| localeDateTime(rec.first_logon_time)}, title: 'The timestamp of the first connection on this database link in UTC'}
+  column_options << {caption: 'Last logon UTC',  data: proc{|rec| localeDateTime(rec.last_logon_time)}, title: 'The timestamp of the last connection on this database link in UTC'}
+  column_options << {caption: 'Logon count',  data: proc{|rec| fn(rec.logon_count)},    title: 'Number of times connection has been established through this database link', align: :right}
+%>
+
+<%=
+  gen_slickgrid(@db_links, column_options, {
+    :caption => "Incoming DB links from DBA_DB_Link_Sources",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+  })
+%>
+
+
+
