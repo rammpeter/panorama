@@ -929,7 +929,7 @@ oradebug setorapname diag
                   s.SQL_Child_Number, s.Prev_Child_Number,
                   CASE WHEN s.State = 'WAITING' THEN s.Event ELSE 'ON CPU' END Wait_Event,
                   s.Status, s.Client_Info, s.Module, s.Action, s.AudSID,
-                  s.UserName, s.Machine, s.OSUser, s.Process, s.Program,
+                  s.UserName, s.Machine, s.OSUser, s.Process, s.Program, s.Service_Name,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
                   s.Logon_Time,
                   sci.Network_Encryption, sci.Network_Checksumming,

@@ -46,6 +46,11 @@
   column_options << {caption: 'Hierarchy',    data: proc{|rec| rec.hierarchy},                title: "Indicates whether the privilege was granted with the HIERARCHY OPTION (YES) or not (NO)"}
   column_options << {caption: 'Common',       data: proc{|rec| rec.common},                   title: "Indicates whether a given role is common. Possible values:\nYES if the role is common\nNO if the role is local (not common)"} if get_db_version >= '12.1'
   column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
+
+  caption = "Granted object privileges from DBA_Tab_Privs for "
+  caption << "Privilege='#{@privilege}'"  if @privilege
+  caption << "Grantee='#{@grantee}'"      if @grantee
+  caption << "Grantor='#{@grantor}'"      if @grantor
 %>
 
-<%= gen_slickgrid(@privileges, column_options, {caption: "Granted object privileges from DBA_Tab_Privs for #{"Privilege='#{@privilege}'" if @privilege}#{"Grantee='#{@grantee}'" if @grantee}", max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>
+<%= gen_slickgrid(@privileges, column_options, {caption: caption, max_height: 450, show_pin_icon: 1, update_area: @update_area}) %>
