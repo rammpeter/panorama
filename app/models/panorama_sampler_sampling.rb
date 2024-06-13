@@ -1,3 +1,7 @@
+require 'panorama_sampler/package_panorama_sampler_ash'
+require 'panorama_sampler/package_panorama_sampler_snapshot'
+require 'panorama_sampler/package_panorama_sampler_blocking_locks'
+
 class PanoramaSamplerSampling
   include PanoramaSampler::PackagePanoramaSamplerAsh
   include PanoramaSampler::PackagePanoramaSamplerSnapshot

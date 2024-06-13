@@ -11,7 +11,7 @@ ruby '3.1.4'
 # Alternative instead of complete rails including actioncable etc., prev. version was 6.0.4
 # rails_version = "7.0.0" # requires ruby >= 2.7.0 but jRuby 9.3.2.0 is compatible with ruby 2.6 only
 # see: https://rubygems.org/gems/rails/versions
-rails_version = "6.1.7.7"
+rails_version = "6.1.7.8"
 # rails_version = "7.0.4"
 #gem 'rails', rails_version
 gem 'activerecord', rails_version
@@ -65,6 +65,7 @@ group :development do
   # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
   #gem 'date'
 
+  # gem 'jarbler', :git => 'https://github.com/rammpeter/jarbler.git', branch: 'pramm'
   gem 'jarbler'
   gem 'brakeman'
 
