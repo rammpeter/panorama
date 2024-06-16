@@ -381,7 +381,8 @@ module ExplainPlanHelper
                              when 'OU' then "This hint is supplied internally by Oracle (OU)\n"
                              when 'PE' then "Syntax parsing error (PE)!\n"
                              when 'SH' then "related to MMON stats advisor auto task (SH)\n"
-                             when 'SR' then "Hint is supplied by a SQL profile (SR)\n"
+                             when 'SP' then "Hint is supplied by a SQL profile (SP)\n"
+                             when 'SR' then "Hint is supplied by a SQL profile (SR)\n"  # really? possibly SR is only a typo
                              when 'UR' then "This hint is unresolved (UR)!\n"
                              else "Unknown attribute for hint usage (#{attr[:value]})\n"
                              end
