@@ -394,13 +394,15 @@ class ActiveSessionHistoryController < ApplicationController
     @groupfilter['SQL-ID'.to_sym]               =  params[:sql_id]                              if params[:sql_id]
     @groupfilter[:SQL_Child_Number]             =  params[:child_number]                        if params[:child_number]
     @groupfilter[:SQL_ID_or_Top_Level_SQL_ID]   =  params[:SQL_ID_or_Top_Level_SQL_ID]          if params[:SQL_ID_or_Top_Level_SQL_ID]
-    @groupfilter['Session/Sn.'.to_sym]          =  "#{params[:sid]}, #{params[:serial_no]}"      if params[:sid] &&  params[:serial_no]
+    @groupfilter['Session/Sn.'.to_sym]          =  "#{params[:sid]}, #{params[:serial_no]}"     if params[:sid] &&  params[:serial_no]
+    @groupfilter[:Module]                       =  params[:module]                              if params[:module]
     @groupfilter[:Action]                       =  params[:module_action]                       if params[:module_action]
     @groupfilter['DB Object']                   =  params[:db_object]                           if params[:db_object]
 
     @groupby = 'Hugo' # Default
     @groupby = 'SQL-ID'       if params[:sql_id] || params[:SQL_ID_or_Top_Level_SQL_ID]
     @groupby = 'Session/Sn.'  if params[:sid] &&  params[:serial_no]
+    @groupby = 'Module'       if params[:module]
     @groupby = 'Action'       if params[:module_action]
     @groupby = 'DB Object'    if params[:db_object]
 
