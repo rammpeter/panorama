@@ -167,7 +167,11 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_db_cache_content with xhr: true" do
-    post '/dba_sga/list_db_cache_content', :params => {:format=>:html, :instance=>PanoramaConnection.instance_number, :update_area=>:hugo }
+    instance = PanoramaConnection.instance_number                               # PanoramaConnection is valid only before first request
+    post '/dba_sga/list_db_cache_content', :params => {:format=>:html, :instance=>instance, :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/list_db_cache_content', :params => {:format=>:html, :instance=>instance, show_partitions: 1, :update_area=>:hugo }
     assert_response :success
   end
 
