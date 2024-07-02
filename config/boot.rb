@@ -10,7 +10,8 @@ require "bundler/setup" # Set up gems listed in the Gemfile.
 # Peter Ramm, 2024-06-18
 # See also: https://github.com/rsim/oracle-enhanced/pull/2360
 
-file_path = File.join(Dir.pwd, 'vendor', 'bundle', 'jruby', '3.1.0', 'gems', 'activerecord-oracle_enhanced-adapter-6.1.6', 'lib', 'active_record', 'connection_adapters', 'oracle_enhanced_adapter.rb')
+gem_path = Gem::Specification.find_by_name('activerecord-oracle_enhanced-adapter').gem_dir
+file_path = File.join(gem_path, 'lib', 'active_record', 'connection_adapters', 'oracle_enhanced_adapter.rb')
 content = File.read(file_path)
 new_content = content.gsub("if RUBY_ENGINE == \"jruby\"", "if RUBY_ENGINE == \"xjruby\"")
 File.open(file_path, 'w') { |file| file.write(new_content) }
