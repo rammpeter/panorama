@@ -28,6 +28,8 @@ done
 if [ $LOOPS -eq $MAX_WAIT ]; then
   echo "InitializationJob not finished after $MAX_WAIT seconds"
   echo "retval = $retval"
+  echo "===== log output from Panorama.jar ====="
+  cat panorama.log
   exit 1
 else
   echo "InitializationJob finished after $LOOPS seconds"
@@ -47,6 +49,8 @@ if [ $LOOPS -eq $MAX_WAIT ]; then
   echo "No access to port 8080 after $MAX_WAIT seconds"
   echo "retval = $retval"
   curl http://localhost:8080/
+  echo "===== log output from Panorama.jar ====="
+  cat panorama.log
   exit 1
 else
   echo "Access to port 8080 after $LOOPS seconds"
