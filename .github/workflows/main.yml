@@ -131,6 +131,7 @@ jobs:
       - name: Test Panorama.jar
         run: |
           echo "Test Panorama.jar"
+          test/test_panorama_jar.sh
 
       - name: Final deploy Panorama.jar
         run: |

@@ -1,5 +1,8 @@
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
+# Suppress warnings from JRuby in production mode
+$VERBOSE = nil if ENV['RAILS_ENV'] &.== 'production'
+
 require "bundler/setup" # Set up gems listed in the Gemfile.
 
 
