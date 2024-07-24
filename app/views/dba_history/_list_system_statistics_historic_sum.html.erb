@@ -20,7 +20,7 @@
 column_options =
 [
   {:caption=>"Instance",      :data=>proc{|rec| rec.instance_number},                 :title=>"RAC-Instance"},
-  {:caption=>"Name",          :data=>proc{|rec| rec.stat_name},                       :title=>"Statistics name" },
+  {:caption=>"Name",          :data=>proc{|rec| rec.stat_name},                       :title=>"Statistics name", data_title: proc{|rec| "%t\n\n#{statistic_desc(rec.stat_name)}"} },
   {:caption=>"Class",         :data=>proc{|rec| statistic_class(rec.class_id)},       :title=>"Statistics class(es)" },
   {:caption=>"Snapshots",     :data=>proc{|rec| link_column(rec, fn(rec.snapshots))}, :title=>"Number of AWR-snapshots in period", :align=>:right },
   {:caption=>'Value',         :data=>proc{|rec| fn(rec.value)},                       :title=>"Value of statistic cumulated between start and end of considered period", :align=>:right },
