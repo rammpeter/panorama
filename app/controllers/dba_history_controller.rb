@@ -1282,8 +1282,13 @@ FROM (
       {:caption=>"Intervall",   :data=>"localeDateTime(rec[:begin_interval_time])", :title=>"Beginn des Zeitintervalls", :plot_master_time=>true }
     ]
     statnames.each do |sn|
-      if columns[sn.stat_id]              # Statisik kommt auch im Result vor
-        column_options << {:caption=>sn.stat_name, :data=>"formattedNumber(rec[#{sn.stat_id}] ? rec[#{sn.stat_id}] : 0)", :title=>"#{sn.stat_name} : class=\"#{statistic_class(sn.class_id)}\"", :align=>"right" }
+      if columns[sn.stat_id]              # Statistik kommt auch im Result vor
+        column_options << {
+          :caption=>sn.stat_name,
+          :data=>"formattedNumber(rec[#{sn.stat_id}] ? rec[#{sn.stat_id}] : 0)",
+          title: "#{sn.stat_name} : class=\"#{statistic_class(sn.class_id)}\"\n\n#{statistic_desc(sn.stat_name)}",
+          :align=>"right"
+        }
       end
     end
 
