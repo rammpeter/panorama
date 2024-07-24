@@ -4,7 +4,7 @@
 
 <%= ajax_form(:controller=>:dba_sga, :action=>:list_db_cache_content, :update_area=>@update_area) do %>
   <div class="flex-row-container">
-    <%= instance_tag(required: true) %>
+    <%= instance_tag(required: true) if PanoramaConnection.rac? %>
     <div class="flex-row-element" title="Show details at partition level for partitoned tables or indexes?">
       Partitions
       <%= check_box_tag(:show_partitions, 1, false, :title=>t(:dba_sga_db_cache_content_partition_hint, :default=>'Show partition details?') ) %>
