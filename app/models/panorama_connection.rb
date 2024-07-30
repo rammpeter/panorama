@@ -266,8 +266,9 @@ class PanoramaConnection
 
   #### Lazy cached values
 
-  # nil if no autonomous DB
-  def autonomous_database
+  # is DB an autonoumous DB
+  # @return [Boolean] true if DB is an autonomous DB
+  def autonomous_database?
     if !defined?(@autonomous_database) || @autonomous_database.nil?
       @autonomous_database = false                                              # assume autonomous if next selection fails
       begin
@@ -414,7 +415,7 @@ class PanoramaConnection
 
 
   def self.all_awr_dbids;                   check_for_open_connection;        Thread.current[:panorama_connection_connection_object].all_awr_dbids;                     end
-  def self.autonomous_database?;            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].autonomous_database;               end
+  def self.autonomous_database?;            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].autonomous_database?;               end
   def self.block_common_header_size;        check_for_open_connection;        Thread.current[:panorama_connection_connection_object].block_common_header_size;          end
   def self.con_id;                          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].con_id;                            end  # Container-ID for PDBs or 0
   def self.data_header_size;                check_for_open_connection;        Thread.current[:panorama_connection_connection_object].data_header_size;                  end

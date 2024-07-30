@@ -241,7 +241,7 @@ JOIN   (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len
        ) cs ON cs.Index_Owner = i.Owner AND cs.Index_Name = i.Index_Name
 LEFT OUTER JOIN ash ON ash.Owner = i.Owner AND ash.Object_Name = i.Index_Name
 LEFT OUTER JOIN sqls ON sqls.Object_Owner = i.Owner AND sqls.Object_Name = i.Index_Name
-LEFT OUTER JOIN DBA_Objects io ON io.Owner = i.Owner AND io.Object_Name = i.Index_Name
+LEFT OUTER JOIN DBA_Objects io ON io.Owner = i.Owner AND io.Object_Name = i.Index_Name AND io.SubObject_Name IS NULL
 WHERE  i.Compression != 'ADVANCED HIGH'
 AND    seg.MBytes > ?
 AND    NVL(ash.Seconds_In_Wait, 0) < ?

@@ -414,6 +414,7 @@ class ActiveSessionHistoryController < ApplicationController
     save_session_time_selection
     params[:groupfilter][:time_selection_start] = @time_selection_start
     params[:groupfilter][:time_selection_end]   = @time_selection_end
+    params[:groupfilter][:DBID]                 = prepare_param_dbid            # possible change of DBID selection in show_prepared_active_session_history
 
     list_session_statistic_historic_grouping  # Weiterleiten
   end
