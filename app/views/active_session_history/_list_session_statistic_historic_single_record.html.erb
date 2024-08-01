@@ -90,7 +90,6 @@
                                 :controller       => :dba,
                                 :action           => :convert_to_rowid,
                                 :update_area      => update_area,
-                                :waitingforobject => "#{rec.owner}.#{rec.object_name}",
                                 :data_object_id   => rec.data_object_id,
                                 :row_wait_file_no => rec.current_file_no,
                                 :row_wait_block_no => rec.current_block_no,

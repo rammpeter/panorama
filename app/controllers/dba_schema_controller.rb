@@ -695,6 +695,9 @@ class DbaSchemaController < ApplicationController
     @object_name = prepare_param(:object_name)
     @object_type = prepare_param(:object_type)
 
+    @object_type&.gsub!(/ PARTITION$/, '')                                      # Look only for the base object type, not for partitions
+
+
     show_popup_message "Object name or schema name should be set! At least with wildcard character (%, _)." if @object_name.nil? && @owner.nil?
 
     where_string = ''

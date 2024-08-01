@@ -50,7 +50,25 @@
      "background-color: coral;" if rec.blocking_session && rec.wait_class != 'Idle'
    end
 
-  column_options = []
+   link_entry_plsql = proc do |rec|
+     link_object_description(@update_area,
+                             rec.peo_owner,
+                             rec.peo_object_name,
+                             "#{rec.peo_object_type} #{rec.peo_owner}#{'.' if rec.peo_owner}#{rec.peo_object_name}#{'.' if rec.peo_procedure_name}#{rec.peo_procedure_name}",
+                             rec.peo_object_type
+     )
+   end
+
+   link_plsql = proc do |rec|
+     link_object_description(@update_area,
+                             rec.po_owner,
+                             rec.po_object_name,
+                             "#{rec.po_object_type} #{rec.po_owner}#{'.' if rec.po_owner}#{rec.po_object_name}#{'.' if rec.po_procedure_name}#{rec.po_procedure_name}",
+                             rec.po_object_type
+     )
+   end
+
+   column_options = []
 
   column_options << {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                    :title=>'RAC instance ID'} if PanoramaConnection.rac?
   column_options << {:caption=>'Con. ID',           :data=>proc{|rec| fn(rec.con_id)},                 :title=>"Container-ID for pluggable database", :data_title=>proc{|rec| "%t\nContainer name = '#{rec.container_name}'"}} if get_current_database[:cdb]
@@ -100,6 +118,8 @@
     {:caption=>"OCI Client Lib",   :data=>proc{|rec| rec.client_oci_library},         :title=>"Client OCI Library"},
     {:caption=>"Client version",   :data=>proc{|rec| rec.client_version},             :title=>"Client library version number"},
     {:caption=>"Client driver",    :data=>proc{|rec| rec.client_driver},              :title=>"Client driver name"},
+    {caption: "Entry PL/SQL",       data: link_entry_plsql,                           title: "Top-most PL/SQL subprogram on the stack"},
+    {caption: "PL/SQL",             data: link_plsql,                                 title: "Currently executing PL/SQL subprogram"},
   ])
 
 %>

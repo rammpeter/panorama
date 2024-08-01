@@ -38,7 +38,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       when "SQL-ID"       then '123456789'
       when "Session/Sn."  then '1,2'
       when "Operation"    then 'FULL SCAN'
-      when "Entry-PL/SQL" then 'Hugo<>%&'
+      when "Entry PL/SQL" then 'Hugo<>%&'
       when "PL/SQL"       then 'Hugo<>%&'
       when "Module"       then 'Module1<>%&'
       when 'Mode'         then 'SQL exec'

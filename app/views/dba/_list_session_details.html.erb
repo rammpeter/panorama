@@ -6,7 +6,7 @@
 
    tx_id_data_title = proc do |rec|
      if rec.tx_id
-       "%t\nStart time of transaction = #{rec.start_time}"
+       "%t\nStart time of transaction = #{localeDateTime(rec.tx_start_time)}"
      else
        "%t"
      end
@@ -51,7 +51,6 @@
    column_options << {:caption=>'Client OCI lib',      :data=>proc{|rec| rec.client_oci_library}, :title=>'OCI client library'} if get_db_version >= '11.2'
    column_options << {:caption=>'Client version',      :data=>proc{|rec| rec.client_version},     :title=>'Client library version number'} if get_db_version >= '11.2'
    column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client_driver},      :title=>'Client driver name'} if get_db_version >= '11.2'
-
 %>
 <%= gen_slickgrid(@dbsessions, column_options) %>
 
@@ -94,14 +93,34 @@
 <% end %>
 
 <%
+
+  link_entry_plsql = proc do |rec|
+    link_object_description(@update_area,
+                            rec.peo_owner,
+                            rec.peo_object_name,
+                            "#{rec.peo_object_type} #{rec.peo_owner}#{'.' if rec.peo_owner}#{rec.peo_object_name}#{'.' if rec.peo_procedure_name}#{rec.peo_procedure_name}",
+                            rec.peo_object_type
+    )
+  end
+
+  link_plsql = proc do |rec|
+    link_object_description(@update_area,
+                            rec.po_owner,
+                            rec.po_object_name,
+                            "#{rec.po_object_type} #{rec.po_owner}#{'.' if rec.po_owner}#{rec.po_object_name}#{'.' if rec.po_procedure_name}#{rec.po_procedure_name}",
+                            rec.po_object_type
+    )
+  end
+
   column_options = []
   column_options << {:caption=>"",                :data=>proc{|rec| rec[:caption]} }
   column_options << {:caption=>"SQL-ID",          :data=>proc{|rec| link_sql_id(@update_area, @instance, rec[:sql_id], childno: rec[:sql_child_number])}, :title=>"Currently or previously executed SQL-ID"  }
   column_options << {:caption=>"C.",              :data=>proc{|rec| rec[:sql_child_number]}, :title=>"Child number of SQL", align: :right  }
   column_options << {:caption=>'SQL exec start',  :data=>proc{|rec| localeDateTime(rec[:sql_exec_start])},  :title=>"Start of current SQL execution"  }                         if get_db_version >= '11.1'
   column_options << {:caption=>'SQL exec ID',     :data=>proc{|rec| fn(rec[:sql_exec_id])},                 :title=>"ID / sequence of current SQL execution", :align=>:right  } if get_db_version >= '11.1'
-  column_options << {:caption=>"SQL-Text", :data=>proc{|rec| "<pre class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</pre>" }    }
-
+  column_options << {caption: "Entry PL/SQL",       data: link_entry_plsql,                                 title: "Top-most PL/SQL subprogram on the stack"}
+  column_options << {caption: "PL/SQL",             data: link_plsql,                                       title: "Currently executing PL/SQL subprogram"}
+  column_options << {:caption=>"SQL-Text", :data=>proc{|rec| "<pre class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</pre>" }, title: "Text of SQL statement" }
 %>
 <div style="padding: 5px;"></div>
 

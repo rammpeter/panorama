@@ -83,7 +83,7 @@
       case @groupby
         when "DB Object"      then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1], rec.group_value); else rec.group_value; end
         when "DB Subobject"  then if rec.group_value['[Unknown]'].nil?; link_object_description(@update_area, rec.group_value.split(".")[0], rec.group_value.split(".")[1].split(" ")[0], rec.group_value); else rec.group_value; end
-        when "Entry-PL/SQL", "PL/SQL"   then if rec.group_value['[Unknown]'].nil?
+        when "Entry PL/SQL", "PL/SQL"   then if rec.group_value['[Unknown]'].nil?
                                      full_obj = rec.group_value.split(" ")[1]
                                      link_object_description(@update_area, full_obj.split(".")[0], full_obj.split(".")[1], rec.group_value);
                                    else

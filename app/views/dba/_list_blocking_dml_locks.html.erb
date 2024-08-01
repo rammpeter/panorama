@@ -27,7 +27,6 @@ def link_column_blocking_object(rec)
     ajax_link("Row_Wait_File#=#{rec.row_wait_file_no}, Row_Wait_Block#=#{rec.row_wait_block_no}, Row_Wait_Row#=#{rec.row_wait_row_no}", {
                           :action           => :convert_to_rowid,
                           :update_area      => "lockdetail_#{rec.row_num}",
-                          :waitingforobject => "#{rec.blocking_object_schema}.#{rec.blocking_object_name}",
                           :data_object_id   => rec.data_object_id,
                           :row_wait_file_no => rec.row_wait_file_no,
                           :row_wait_block_no => rec.row_wait_block_no,

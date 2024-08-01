@@ -52,7 +52,12 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     singles= sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+                     FROM   DBA_Procedures p
+                     /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
+                        gv$Session shows the Object_ID used in DBA_Objects */
+                     JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
+                    )
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              -- Beginn eines zu betrachtenden Zeitabschnittes
              TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400 Start_Sample,
@@ -182,7 +187,12 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures),
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+                     FROM   DBA_Procedures p
+                     /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
+                        gv$Session shows the Object_ID used in DBA_Objects */
+                     JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
+                    ),
       #{ash_select(awr_filter:                  @dba_hist_where_string,
                    sga_filter:                  @sga_ash_where_string,
                    select_rounded_sample_time:  true,
@@ -318,7 +328,12 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= PanoramaConnection.sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures)
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+                     FROM   DBA_Procedures p
+                     /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
+                        gv$Session shows the Object_ID used in DBA_Objects */
+                     JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
+                    )
       SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,
              #{if session_statistics_key_rule(@groupby)[:info_sql]
@@ -1037,7 +1052,12 @@ class ActiveSessionHistoryController < ApplicationController
     }
 
     @thread = sql_select_all(["\
-      WITH procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures),
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+                     FROM   DBA_Procedures p
+                     /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
+                        gv$Session shows the Object_ID used in DBA_Objects */
+                     JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
+                    ),
       #{ash_select(awr_filter: "DBID = ? AND Snap_ID BETWEEN ? AND ?
                                 AND #{rounded_sample_time_sql(10)} = #{rounded_sample_time_sql(10, "TO_DATE(?, '#{sql_datetime_second_mask}')")} /* compare rounded to 10 seconds */",
                    sga_filter: "#{rounded_sample_time_sql(1)} = TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */",

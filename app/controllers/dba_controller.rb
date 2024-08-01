@@ -805,53 +805,61 @@ oradebug setorapname diag
     end
 
     @sessions = sql_select_iterator ["\
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+                     FROM   DBA_Procedures p
+                     /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
+                        gv$Session shows the Object_ID used in DBA_Objects */
+                     JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
+                    )
       SELECT /* Panorama-Tool Ramm */
-        s.SID,
-        s.Serial# Serial_No,
-        s.Status,
-        s.SQL_ID,
-        s.SQL_Child_Number, s.SQL_Exec_ID,
-        s.Inst_ID,
-        #{"s.Con_ID, con.Name Container_Name, " if get_current_database[:cdb]}
-        s.UserName,                 
-        s.Client_Info,
-        s.Module, s.Action,
-        s.Client_Identifier,
-        p.spID,
-        p.PID,
-        s.machine,                                                                                                                        
-        s.OSUser,                                                                                                                         
-        s.Process,                                                                                                                        
-        s.program,
-        s.Service_Name,
-        SYSDATE - (s.Last_Call_Et/86400) Last_Call,
-        s.Logon_Time,
-        s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session,
-        #{"s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session," if get_db_version >= '12.1' }
-        sci.Network_Encryption, sci.Network_Checksumming,
-        sci.Client_Version, sci.Client_Driver, sci.Client_OCI_Library,
-        i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
-        temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
-        (       SELECT MIN(Start_Time) FROM GV$Session_LongOps o
-                WHERE   ( (o.SID = s.SID AND o.Serial# = s.Serial# ) OR o.QCSID = s.SID)  /* Referenz auf Session */
-                AND     o.SQL_Address           = s.SQL_Address         /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */ 
-                AND     o.SQL_Hash_Value        = s.SQL_Hash_Value      /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */
-                AND     o.SQL_Exec_ID           = s.SQL_Exec_ID
-        )       LongSQL_StartTime,
-        px.Anzahl PQCount,
-        pqc.QCInst_ID, pqc.QCSID, pqc.QCSerial# QCSerial_No,
-        p.PGA_Used_Mem     + NVL(pq_mem.PQ_PGA_Used_Mem,0)     PGA_Used_Mem,
-        p.PGA_Alloc_Mem    + NVL(pq_mem.PQ_PGA_Alloc_Mem,0)    PGA_Alloc_Mem,
-        p.PGA_Freeable_Mem + NVL(pq_mem.PQ_PGA_Freeable_Mem,0) PGA_Freeable_Mem,
-        p.PGA_Max_Mem      + NVL(pq_mem.PQ_PGA_Max_Mem,0)      PGA_Max_Mem,
-        Open_Cursor, Open_Cursor_SQL,
-        wa.Operation_Type, wa.Policy, wa.Active_Time_Secs, wa.Work_Area_Size_MB,
-        wa.Expected_Size_MB, wa.Actual_Mem_Used_MB, wa.Max_Mem_Used_MB, wa.Number_Passes,
-        wa.WA_TempSeg_Size_MB,
-        CASE WHEN w.State = 'WAITING' THEN w.Event ELSE 'ON CPU' END Wait_Event,
-        w.Wait_Class,
-        RawToHex(tx.XID) XID,
-        #{get_db_version < '11.1' ? "w.Seconds_In_Wait" : "DECODE(w.State, 'WAITING', w.Wait_Time_Micro, w.Time_Since_Last_Wait_Micro)/1000000"} Seconds_Waiting
+            s.SID,
+            s.Serial# Serial_No,
+            s.Status,
+            s.SQL_ID,
+            s.SQL_Child_Number, s.SQL_Exec_ID,
+            s.Inst_ID,
+            #{"s.Con_ID, con.Name Container_Name, " if get_current_database[:cdb]}
+            s.UserName,
+            s.Client_Info,
+            s.Module, s.Action,
+            s.Client_Identifier,
+            p.spID,
+            p.PID,
+            s.machine,
+            s.OSUser,
+            s.Process,
+            s.program,
+            s.Service_Name,
+            SYSDATE - (s.Last_Call_Et/86400) Last_Call,
+            s.Logon_Time,
+            s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session,
+            #{"s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session," if get_db_version >= '12.1' }
+            sci.Network_Encryption, sci.Network_Checksumming,
+            sci.Client_Version, sci.Client_Driver, sci.Client_OCI_Library,
+            i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
+            temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
+            (       SELECT MIN(Start_Time) FROM GV$Session_LongOps o
+                    WHERE   ( (o.SID = s.SID AND o.Serial# = s.Serial# ) OR o.QCSID = s.SID)  /* Referenz auf Session */
+                    AND     o.SQL_Address           = s.SQL_Address         /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */
+                    AND     o.SQL_Hash_Value        = s.SQL_Hash_Value      /* Referenz auf aktuelles Stmt, kann mehrfach ausgefuert worden sein */
+                    AND     o.SQL_Exec_ID           = s.SQL_Exec_ID
+            )       LongSQL_StartTime,
+            px.Anzahl PQCount,
+            pqc.QCInst_ID, pqc.QCSID, pqc.QCSerial# QCSerial_No,
+            p.PGA_Used_Mem     + NVL(pq_mem.PQ_PGA_Used_Mem,0)     PGA_Used_Mem,
+            p.PGA_Alloc_Mem    + NVL(pq_mem.PQ_PGA_Alloc_Mem,0)    PGA_Alloc_Mem,
+            p.PGA_Freeable_Mem + NVL(pq_mem.PQ_PGA_Freeable_Mem,0) PGA_Freeable_Mem,
+            p.PGA_Max_Mem      + NVL(pq_mem.PQ_PGA_Max_Mem,0)      PGA_Max_Mem,
+            Open_Cursor, Open_Cursor_SQL,
+            wa.Operation_Type, wa.Policy, wa.Active_Time_Secs, wa.Work_Area_Size_MB,
+            wa.Expected_Size_MB, wa.Actual_Mem_Used_MB, wa.Max_Mem_Used_MB, wa.Number_Passes,
+            wa.WA_TempSeg_Size_MB,
+            CASE WHEN w.State = 'WAITING' THEN w.Event ELSE 'ON CPU' END Wait_Event,
+            w.Wait_Class,
+            RawToHex(tx.XID) XID,
+            peo.Owner peo_Owner, peo.Object_Name peo_Object_Name, peo.Procedure_Name peo_Procedure_Name, peo.Object_Type peo_Object_Type,
+            po.Owner po_Owner, po.Object_Name po_Object_Name, po.Procedure_Name po_Procedure_Name, po.Object_Type po_Object_Type,
+            #{get_db_version < '11.1' ? "w.Seconds_In_Wait" : "DECODE(w.State, 'WAITING', w.Wait_Time_Micro, w.Time_Since_Last_Wait_Micro)/1000000"} Seconds_Waiting
       FROM    GV$session s
       LEFT OUTER JOIN (SELECT Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
                        FROM   gv$Open_Cursor
@@ -911,6 +919,8 @@ oradebug setorapname diag
                        FROM   gV$SESSION_CONNECT_INFO
                        GROUP BY Inst_ID, SID, Serial#
                       )sci ON sci.Inst_ID = s.Inst_ID AND sci.SID = s.SID AND sci.Serial# = s.Serial#
+      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       WHERE 1=1 #{where_string}
       ORDER BY 1 ASC"].concat(where_values)
 
@@ -935,7 +945,7 @@ oradebug setorapname diag
                   sci.Network_Encryption, sci.Network_Checksumming,
                   p.spID, p.PID,
                   RawToHex(tx.XID) Tx_ID,
-                  tx.Start_Time,
+                  TO_DATE(tx.Start_Time, 'MM/DD/YY HH24:MI:SS') TX_Start_Time,
                   c.AUTHENTICATION_TYPE,
                   c.Client_CharSet, c.Client_Connection, c.Client_OCI_Library, c.Client_Version, c.Client_Driver,
                   s.SQL_Exec_Start, s.SQL_Exec_ID, s.Prev_Exec_Start, s.Prev_Exec_ID,
@@ -946,7 +956,9 @@ oradebug setorapname diag
                    WHERE  (l.SID=s.SID OR l.QCSID=s.SID)
                    AND    l.SQL_ID = s.SQL_ID
                    AND    l.SQL_Exec_ID = s.SQL_Exec_ID
-                  ) Long_Ops_Cnt
+                  ) Long_Ops_Cnt,
+                  peo.Owner peo_Owner, peo.Object_Name peo_Object_Name, peo.Procedure_Name peo_Procedure_Name, peo.Object_Type peo_Object_Type,
+                  po.Owner po_Owner, po.Object_Name po_Object_Name, po.Procedure_Name po_Procedure_Name, po.Object_Type po_Object_Type
            FROM   GV$Session s
            LEFT OUTER JOIN GV$process p  ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID /* gv$Process sometimes not visible for active sessions in autonomous DB */
            LEFT OUTER JOIN GV$Session b  ON b.Inst_ID = s.Blocking_Instance AND b.SID = s.Blocking_Session
@@ -965,6 +977,10 @@ oradebug setorapname diag
                             FROM   gV$SESSION_CONNECT_INFO
                             WHERE  Inst_ID=? AND SID=? AND Serial#=?
                            )sci
+           LEFT OUTER JOIN DBA_Objects pdeo           ON pdeo.Object_ID = s.PLSQL_Entry_Object_ID
+           LEFT OUTER JOIN DBA_Procedures peo         ON peo.Owner = pdeo.Owner AND peo.Object_Name = pdeo.Object_Name AND peo.Object_Type = pdeo.Object_Type AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+           LEFT OUTER JOIN DBA_Objects pdo            ON pdo.Object_ID = s.PLSQL_Object_ID
+           LEFT OUTER JOIN DBA_Procedures po          ON po.Owner = pdo.Owner AND po.Object_Name = pdo.Object_Name AND po.Object_Type = pdo.Object_Type AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
            #{"LEFT OUTER JOIN gv$Containers con ON con.Inst_ID=s.Inst_ID AND con.Con_ID=s.Con_ID" if get_current_database[:cdb]}
            WHERE  s.Inst_ID=? AND s.SID=? AND s.Serial#=?",
            @instance, @sid].concat( get_db_version >= "11.2" ? [@serial_no] : [] ).concat([@instance, @sid, @serial_no, @instance, @sid, @serial_no])
@@ -975,16 +991,32 @@ oradebug setorapname diag
       previous_sql = get_sga_sql_statement(@instance, @dbsession.prev_sql_id)  if @dbsession.prev_sql_id
 
       @sql_data = [
-          {:caption           => "Aktuelles SQL-Statement",
-           :sql_id            => @dbsession.sql_id,
-           :sql_child_number  => @dbsession.sql_child_number,
-           :sql_text          => (current_sql.html_safe if current_sql)
-          },
-          {:caption           => "Vorheriges SQL-Statement",
-           :sql_id            => @dbsession.prev_sql_id,
-           :sql_child_number  => @dbsession.prev_child_number,
-           :sql_text          => (previous_sql.html_safe if previous_sql)
-          }
+        { caption:            "Aktuelles SQL-Statement",
+          sql_id:             @dbsession.sql_id,
+          sql_child_number:   @dbsession.sql_child_number,
+          sql_text:           (current_sql.html_safe if current_sql),
+          peo_owner:          @dbsession.peo_owner,
+          peo_object_name:    @dbsession.peo_object_name,
+          peo_object_type:    @dbsession.peo_object_type,
+          peo_procedure_name: @dbsession.peo_procedure_name,
+          po_owner:           @dbsession.po_owner,
+          po_object_name:     @dbsession.po_object_name,
+          po_object_type:     @dbsession.po_object_type,
+          po_procedure_name:  @dbsession.po_procedure_name
+        }.extend(SelectHashHelper),
+        { caption:            "Vorheriges SQL-Statement",
+          sql_id:             @dbsession.prev_sql_id,
+          sql_child_number:   @dbsession.prev_child_number,
+          sql_text:           (previous_sql.html_safe if previous_sql),
+          peo_owner:          nil,
+          peo_object_name:    nil,
+          peo_object_type:    nil,
+          peo_procedure_name: nil,
+          po_owner:           nil,
+          po_object_name:     nil,
+          po_object_type:     nil,
+          po_procedure_name:  nil
+        }.extend(SelectHashHelper)
       ]
 
       if get_db_version >= '11.1'
@@ -1156,14 +1188,27 @@ oradebug setorapname diag
              s.P1Text, s.P1, s.P1Raw,
              s.P2Text, s.P2, s.P2Raw,
              s.P3Text, s.P3, s.P3Raw,
-             s.wait_Class,
+             s.Module, s.Action,
+             o.Data_Object_ID,
+             s.Row_Wait_File# Row_Wait_File_No, s.Row_Wait_Block# Row_Wait_Block_No, s.Row_Wait_Row# Row_Wait_Row_No,
+             s.wait_Class, s.SQL_ID, s.SQL_Child_Number, s.SQL_Exec_ID, s.SQL_Exec_Start,
              #{get_db_version >= '11.2' ? 's.Wait_Time_Micro/1000' : 's.Seconds_in_Wait*1000'} Wait_Time_ms,
-             s.State,
+             s.State, RawToHex(tx.XID) Tx_ID, TO_DATE(tx.Start_Time, 'MM/DD/YY HH24:MI:SS') TX_Start_Time,
              s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session, b.Serial# Blocking_Serial_No,
-             s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session, fb.Serial# Final_Blocking_Serial_No
+             s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session, fb.Serial# Final_Blocking_Serial_No,
+             peo.Owner peo_Owner, peo.Object_Name peo_Object_Name, peo.Procedure_Name peo_Procedure_Name, peo.Object_Type peo_Object_Type,
+             po.Owner po_Owner, po.Object_Name po_Object_Name, po.Procedure_Name po_Procedure_Name, po.Object_Type po_Object_Type,
+             o.Owner, o.Object_Name, o.SubObject_Name, o.Object_Type
       FROM   GV$Session s
-      LEFT OUTER JOIN GV$Session b  ON b.Inst_ID = s.Blocking_Instance AND b.SID = s.Blocking_Session
-      LEFT OUTER JOIN GV$Session fb ON fb.Inst_ID = s.Final_Blocking_Instance AND fb.SID = s.Final_Blocking_Session
+      LEFT OUTER JOIN gv$Transaction tx          ON tx.Inst_ID = s.Inst_ID AND tx.Addr = s.TAddr
+      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects. gv$Session shows the Object_ID used in DBA_Objects */
+      LEFT OUTER JOIN DBA_Objects pdeo           ON pdeo.Object_ID = s.PLSQL_Entry_Object_ID
+      LEFT OUTER JOIN DBA_Procedures peo         ON peo.Owner = pdeo.Owner AND peo.Object_Name = pdeo.Object_Name AND peo.Object_Type = pdeo.Object_Type AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN DBA_Objects pdo            ON pdo.Object_ID = s.PLSQL_Object_ID
+      LEFT OUTER JOIN DBA_Procedures po          ON po.Owner = pdo.Owner AND po.Object_Name = pdo.Object_Name AND po.Object_Type = pdo.Object_Type AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN GV$Session b               ON b.Inst_ID = s.Blocking_Instance AND b.SID = s.Blocking_Session
+      LEFT OUTER JOIN GV$Session fb              ON fb.Inst_ID = s.Final_Blocking_Instance AND fb.SID = s.Final_Blocking_Session
+      LEFT OUTER JOIN DBA_Objects o              ON o.Object_ID = DECODE(s.Row_Wait_Obj#, -1, DECODE(s.P2Text, 'object #', s.P2, NULL), s.Row_Wait_Obj#)
       WHERE  s.Inst_ID = ?
       AND    s.SID     = ?
       ", @instance, @sid]
@@ -2054,7 +2099,7 @@ oradebug setorapname diag
                           .gsub(/Remote_Instance_No/i, 'Remote_Instance#')
 
     with_sql = nil
-    if ['Entry-PL/SQL', 'PL/SQL'].include?(@groupby)
+    if ['Entry PL/SQL', 'PL/SQL'].include?(@groupby)
       with_sql = "procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures),"
     end
 

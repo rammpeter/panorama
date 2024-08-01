@@ -47,8 +47,8 @@ module ActiveSessionHistoryHelper
                                                                :info_sql   => "MIN(o.Object_Type)", :info_caption => "Object-Type",
                                                                :join => "LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Current_Obj# LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File#"
       }
-      @session_statistics_key_rules_hash["Entry-PL/SQL"]    = {:sql => "peo.Object_Type||CASE WHEN peo.Owner IS NOT NULL THEN ' ' END||peo.Owner||CASE WHEN peo.Object_Name IS NOT NULL THEN '.' END||peo.Object_Name||CASE WHEN peo.Procedure_Name IS NOT NULL THEN '.' END||peo.Procedure_Name",
-                                                               :sql_alias => "entry_plsql_module", :Name => 'Entry-PL/SQL',      :Title => 'outermost PL/SQL module',
+      @session_statistics_key_rules_hash["Entry PL/SQL"]    = {:sql => "peo.Object_Type||CASE WHEN peo.Owner IS NOT NULL THEN ' ' END||peo.Owner||CASE WHEN peo.Object_Name IS NOT NULL THEN '.' END||peo.Object_Name||CASE WHEN peo.Procedure_Name IS NOT NULL THEN '.' END||peo.Procedure_Name",
+                                                               :sql_alias => "entry_plsql_module", :Name => 'Entry PL/SQL',      :Title => 'outermost PL/SQL module',
                                                                join: "LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID"
       }
       @session_statistics_key_rules_hash["PL/SQL"]          = {:sql => "po.Object_Type||CASE WHEN po.Owner IS NOT NULL THEN ' ' END||po.Owner||CASE WHEN po.Object_Name IS NOT NULL THEN '.' END||po.Object_Name||CASE WHEN po.Procedure_Name IS NOT NULL THEN '.' END||po.Procedure_Name",
