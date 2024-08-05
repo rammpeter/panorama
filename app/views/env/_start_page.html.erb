@@ -130,6 +130,7 @@
       link_services_pdb = proc do |rec|
         ajax_link(fn(rec.service_count),
                   {action:      :list_services,
+                   instance:    rec.inst_id,
                    pdb_name:    rec.name,
                    update_area: @update_area,
                   },
@@ -137,10 +138,18 @@
         )
       end
 
+      features_hint = "\
+Additional feature info for the PDB
+Shows one of the following settings:
+
+DV_APP_PROTECTION shows whether Database Vault operations control has been configured or not configured
+DV_CONFIGURE_STATUS shows whether Oracle Database Vault has been configured, that is, with the CONFIGURE_DV procedure.
+DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, with the DBMS_MACADM.ENABLE_DV procedure."
+
       column_options =
            [
                {:caption=>'Inst.',            :data=>proc{|rec| rec.inst_id},                         :title=>"Instance number"},
-               {:caption=>'Con-ID',           :data=>proc{|rec| "#{rec.con_id}#{" (*)" if rec.con_id == rec.connected_con_id}" },   :title=>"The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data\n(*) for the container-ID you are connected on"},
+               {:caption=>'Con-ID',           :data=>proc{|rec| "#{rec.con_id}#{" (*)" if rec.con_id == PanoramaConnection.con_id && rec.inst_id == PanoramaConnection.instance_number}" },   :title=>"The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data\n(*) for the container and instance you are connected on"},
                {:caption=>'DBID',             :data=>proc{|rec| rec.dbid },                           :title=>"PDB identifier calculated when the PDB is created and stored in all file headers associated with the PDB"},
                {:caption=>'Con-UID',          :data=>proc{|rec| fn rec.con_uid },                     :title=>"Unique identifier associated with the PDB"},
                {:caption=>'Name',             :data=>proc{|rec| rec.name },                           :title=>"Name of the PDB"},
@@ -166,10 +175,11 @@
        column_options << {:caption=>'Max. size',                :data=>proc{|rec| fn rec.max_size},                     :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
        column_options << {:caption=>'Max. diag. size',          :data=>proc{|rec| fn rec.max_diagnostics_size},         :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
        column_options << {:caption=>'Max. audit size',          :data=>proc{|rec| fn rec.max_audit_size},               :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+      column_options << {:caption=>'Features',          :data=>proc{|rec| rec.features},               title: features_hint} if get_db_version >= '12.2'
     %>
   <div>
     <%= gen_slickgrid(@containers, column_options, {
-        :caption => "Pluggable database info from gv$Containers", :max_height=>200, :width => :auto, show_pin_icon: 2
+        :caption => "Pluggable database info from gv$Containers", :max_height=>400, :width => :auto, show_pin_icon: 2
     })
     %>
   </div>

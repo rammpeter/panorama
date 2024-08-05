@@ -216,6 +216,7 @@ class EnvController < ApplicationController
                                                         GROUP BY Inst_ID
                                                        ) s ON s.Inst_ID = gi.Inst_ID
                                        LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, COUNT(*) Service_Count FROM gv$Services GROUP BY Inst_ID) srv ON srv.Inst_ID = gi.Inst_ID
+                                       ORDER BY gi.Inst_ID
                                        "
       @instance_data.each do |i|
         if i.inst_id == @instance_number
@@ -225,12 +226,35 @@ class EnvController < ApplicationController
         end
       end
       if get_current_database[:cdb]
-        @containers = sql_select_all "SELECT c.*, s.Con_ID Connected_Con_ID, srv.Service_Count
+        @containers = sql_select_all "SELECT c.*, srv.Service_Count, NULL Features
                                       FROM   gv$Containers c
-                                      JOIN   v$session s ON SID = SYS_CONTEXT('userenv', 'sid')
-                                      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ PDB, COUNT(*) Service_Count FROM gv$Services GROUP BY PDB) srv ON srv.PDB = c.name
+                                      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, PDB, COUNT(*) Service_Count FROM gv$Services GROUP BY Inst_ID, PDB) srv ON srv.Inst_ID = c.Inst_ID AND srv.PDB = c.name
+                                      ORDER BY c.Con_ID, c.Inst_ID
                                      "
+        # Get features for each container
+        begin
+          dv_status = sql_select_all "SELECT Name, Status, Con_ID FROM CDB_DV_STATUS"
+        rescue Exception => e
+          Rails.logger.warn('EnvController.start_page') { "#{e.class} #{e.message} while accessing CDB_DV_Status" }
+          begin
+            dv_status = sql_select_all "SELECT Name, Status FROM DBA_DV_STATUS"
+          rescue Exception => e
+            Rails.logger.warn('EnvController.start_page') { "#{e.class} #{e.message} while accessing DBA_DV_Status" }
+            dv_status = []
+          end
+        end
+        unless dv_status.empty?
+          dv_status.each do |dv|
+            @containers.each do |c|
+              if c.con_id == dv.con_id
+                c.features = '' if c.features.nil?
+                c.features << "#{dv.name}: #{dv.status}\n"
+              end
+            end
+          end
+        end
       end
+
       @traces = sql_select_all "SELECT * from DBA_ENABLED_TRACES"
 
       check_awr_for_time_drift
