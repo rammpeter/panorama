@@ -145,6 +145,25 @@ ORDER BY x.MBytes DESC NULLS LAST
             {:name=>t(:dragnet_helper_104_param_2_name, :default=>'Minimum size (MB) if Num_Rows = 0'), :size=>8, :default=>100, :title=>t(:dragnet_helper_104_param_2_hint, :default=>'Minimum size of object in MB for check if num_rows=0 matches with size of object')}
           ]
         },
+      {
+        :name  => t(:dragnet_helper_176_name, :default=>'TNS service usage by sessions'),
+        :desc  => t(:dragnet_helper_176_desc, :default=>'Overview over TNS services and their usage by connected sessions'),
+        :sql=> "\
+SELECT sv.Name, sv.Creation_Date, sv.PDB, sv.Con_ID, sess.Sessions, sess.Users
+FROM   (SELECT Name, PDB, Con_ID, MIN(Creation_Date) Creation_Date
+        FROM   gv$Services
+        GROUP BY Name, PDB, Con_ID
+       ) sv
+LEFT OUTER JOIN (SELECT Service_Name, SUM(Sessions) Sessions, LISTAGG(UserName, ', ') WITHIN GROUP (ORDER BY UserName) Users
+                 FROM   (SELECT Service_Name, UserName, COUNT(*) Sessions
+                         FROM   gv$Session
+                         GROUP BY Service_Name, UserName
+                        )
+                 GROUP BY Service_Name
+                ) sess ON sess.Service_Name = sv.Name
+ORDER BY sv.Name
+"
+      },
 
     ]
   end # instance_setup_tuning

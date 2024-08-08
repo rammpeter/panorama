@@ -1871,6 +1871,10 @@
     Bitte denken Sie auch an das Etablieren eines Housekeepings der Audit-Daten.
   dragnet_helper_175_name:                                   Fehlende empfohlene Audit-Regeln für Unified Auditing
 
+  dragnet_helper_176_desc: |-
+    Überblick über die TNS-Services und ihre Nutzung durch verbundene Sessions.
+  dragnet_helper_176_name:                                  TNS-Service Nutzung nach Sessions
+
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
