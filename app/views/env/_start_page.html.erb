@@ -34,23 +34,39 @@
         retval
       end
 
+      fs_failover_status_data_title = proc do |rec|
+        retval = "%t\n"
+        retval << "\nFast-start failover mode = '#{rec.fs_failover_mode}'" if get_db_version >= '19'
+        retval << "\nFast-start failover current target = '#{rec.fs_failover_current_target}'"
+        retval << "\nFast-start failover threshold = '#{fn(rec.fs_failover_threshold)}'"
+        retval << "\nFast-start failover observer present = '#{rec.fs_failover_observer_present}'"
+        retval << "\nFast-start failover observer host = '#{rec.fs_failover_observer_host}'"
+        retval
+      end
+
       column_options = []
-      column_options << { caption: 'DBID',              data: proc{|rec| rec.dbid },                        title: 'Unique identifier for this database' }
+      column_options << { caption: 'DBID',              data: proc{|rec| rec.dbid },                        title: 'Unique identifier for this database', data_title: proc{|rec| "%t\n\nPDB DIBD = #{rec.con_dbid}"} }
       column_options << { caption: 'Name',              data: proc{|rec| rec.name },                        title: 'Name of this database' }
+      column_options << { caption: 'Unique name',       data: proc{|rec| rec.db_unique_name },              title: 'Unique name of this database', data_title: proc{|rec| "%t\n\nPrimary DB unique name = '#{rec.primary_db_unique_name}'"} }
       column_options << { caption: 'Created',           data: proc{|rec| localeDateTime(rec.created) },     title: 'Creation date of this database' }
       column_options << { caption: 'Open mode',         data: proc{|rec| rec.open_mode },                   title: 'Open mode of this database' }
       column_options << { caption: 'DB role',           data: proc{|rec| rec.database_role },               title: "Database role for data guard\nCan be one of the following:\n- SNAPSHOT STANDBY\n- LOGICAL STANDBY\n- PHYSICAL STANDBY\n- PRIMARY\n- FAR SYNC"}
+      column_options << { caption: 'Log mode',          data: proc{|rec| rec.log_mode },                    title: "Archive log mode", data_title: proc{|rec| "%t\n\nArchive log compression = #{rec.archivelog_compression}"} }
       column_options << { caption: "Protection mode",   data: proc{|rec| rec.protection_mode },             title: "Protection mode currently in effect for the database.\nLook at DB-parameter \"log_archive_dest_n\" to recognize what sync-mode is used for standby configuration (SYNC or NOSYNC, AFFIRM or NOAFFIRM).",  data_title: proc{|rec| "%t\n\nProtection level = #{rec.protection_level}"}}
       column_options << { caption: "Switchover status", data: proc{|rec| rec.switchover_status },           title: "Indicates whether switchover is allowed", data_title: proc{|rec| "%t\n\n#{explain_switchover_status(rec.switchover_status)}"}  }
-      column_options << { caption: "DG broker",         data: proc{|rec| rec.dataguard_broker },            title: "Indicates whether the Data Guard configuration is being managed by the broker (ENABLED) or not (DISABLED)"}
+      column_options << { caption: "DG broker",         data: proc{|rec| rec.dataguard_broker },            title: "Indicates whether the Data Guard configuration is being managed by the broker (ENABLED) or not (DISABLED)", data_title: proc{|rec| "%t\n\nDG broker status = #{rec.guard_status}"} }
       column_options << { caption: "Force log.",        data: proc{|rec| rec.force_logging },               title: "Indicates whether the database is under force logging mode (YES) or not (NO)"}
       column_options << { caption: "S. L.",             data: supplemental_logging_data,                    title: "Supplemental logging settings for Log Miner, Golden Gate etc., table-specific config is shown by DBA_LOG_GROUPS", data_title: supplemental_logging_data_title}
+      column_options << { caption: "Flash back",        data: proc{|rec| rec.flashback_on },                title: "Is Flashback Database available for this database"}
+      column_options << { caption: "Fast start failover status", data: proc{|rec| rec.fs_failover_status }, title: "Current fast-start failover status of this database", data_title: fs_failover_status_data_title}
+      column_options << { caption: "Force log.",        data: proc{|rec| rec.force_logging },               title: "Indicates whether the database is under force logging mode (YES) or not (NO)"}
       column_options << { caption: "AWR interval",      data: proc{|rec| fn(rec.snap_interval_minutes) },   title: "Interval in minutes for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
       column_options << { caption: "AWR retention",     data: proc{|rec| fn(rec.snap_retention_days) },     title: "Retention in days for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
       column_options << { caption: 'CDB',               data: proc{|rec| rec.cdb },                         title: 'Is this database a container DB (PDB)?', :align=>:right}  if get_db_version >= '12.1'
+      column_options << { caption: 'Con ID',            data: proc{|rec| fn(rec.con_id)},                   title: "Container ID\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data", :align=>:right}  if get_db_version >= '12.1'
 
     %>
-    <%= gen_slickgrid(@database_data, column_options, { caption: "Database info", width: :auto}) %>
+    <%= gen_slickgrid(@database_data, column_options, { caption: "Database info from v$Database", width: :auto}) %>
 
   </div>
 
@@ -126,7 +142,7 @@
 
     %>
     <%= gen_slickgrid(@instance_data, column_options, {
-      :caption => "Instance info", :width => :auto, show_pin_icon: 2
+      :caption => "Instance info from gv$Instance", :width => :auto, show_pin_icon: 2
     })
     %>
   </div>
