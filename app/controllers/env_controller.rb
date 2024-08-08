@@ -108,6 +108,7 @@ class EnvController < ApplicationController
     @dictionary_access_problem = false    # Default, keine Fehler bei Zugriff auf Dictionary
     begin
       @banners       = []   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
+      @database_data = []   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
       @instance_data = []   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
       @version_info  = []   # Vorbelegung,damit bei Exception trotzdem valider Wert in Variable
       # Einlesen der DBID der Database, gleichzeitig Test auf Zugriffsrecht auf DataDictionary
@@ -188,6 +189,16 @@ class EnvController < ApplicationController
                            else
                              "SELECT #{@instance_number} Inst_ID, Parameter, Value FROM NLS_Database_Parameters"
                            end
+
+      @database_data = sql_select_all "SELECT /* NO_CDB_TRANSFORMATION */
+                                              #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM 24*60*w.Snap_Interval) FROM DBA_Hist_WR_Control w WHERE w.DBID = d.DBID)" : "NULL" } Snap_Interval_Minutes,
+                                              #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM w.Retention)           FROM DBA_Hist_WR_Control w WHERE w.DBID = d.DBID)" : "NULL" } Snap_Retention_Days,
+                                              d.*
+                                       FROM  v$Database d
+      "
+
+      set_current_database(get_current_database.merge({:cdb => true})) if get_db_version >= '12.1' && @database_data[0].cdb == 'YES'  # Merken ob DB eine CDP/PDB ist
+
       @instance_data = sql_select_all "WITH System_Parameter AS (#{system_parameter_sql}),
                                             NLS_Parameters   AS (#{nls_parameters_sql})
                                        SELECT /* NO_CDB_TRANSFORMATION */ gi.*,
@@ -197,14 +208,8 @@ class EnvController < ApplicationController
                                               (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'resource_manager_plan')     Resource_Manager_Plan,
                                               (SELECT p.Value FROM System_Parameter p WHERE p.Inst_ID = gi.Inst_ID AND LOWER(p.Name) = 'compatible')                Compatible,
                                               s.Num_CPUs, s.Num_CPU_Cores, s.Num_CPU_Sockets, s.Phys_Mem_GB, s.Free_Mem_GB, s.Inactive_Mem_GB,
-                                              d.DBID, d.Open_Mode, d.Protection_Mode, d.Protection_Level, d.Switchover_Status, d.Dataguard_Broker, d.Force_Logging, d.Database_Role,
-                                              d.Supplemental_Log_Data_Min, d.Supplemental_Log_Data_PK, d.Supplemental_Log_Data_UI, d.Supplemental_Log_Data_FK, d.Supplemental_Log_Data_All, d.Supplemental_Log_Data_PL,
-                                              #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM 24*60*w.Snap_Interval) FROM DBA_Hist_WR_Control w WHERE w.DBID = d.DBID)" : "NULL" } Snap_Interval_Minutes,
-                                              #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM w.Retention)           FROM DBA_Hist_WR_Control w WHERE w.DBID = d.DBID)" : "NULL" } Snap_Retention_Days,
                                               srv.Service_Count
-                                              #{", CDB" if get_db_version >= '12.1'}
                                        FROM  GV$Instance gi
-                                       CROSS JOIN  v$Database d
                                        LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID,
                                                                MAX(DECODE(Stat_Name, 'NUM_CPUS',              Comments||': '||Value))     Num_CPUs,
                                                                MAX(DECODE(Stat_Name, 'NUM_CPU_CORES',         Comments||': '||Value))     Num_CPU_Cores,
@@ -222,7 +227,6 @@ class EnvController < ApplicationController
         if i.inst_id == @instance_number
           @instance_name = i.instance_name
           @host_name     = i.host_name
-          set_current_database(get_current_database.merge({:cdb => true})) if get_db_version >= '12.1' && i.cdb == 'YES'  # Merken ob DB eine CDP/PDB ist
         end
       end
       if get_current_database[:cdb]

@@ -1,144 +1,159 @@
 <% @update_area = get_unique_area_id %>
 <%= render_page_caption("#{t :env_current_database, :default=>"Current database"} '#{@database_info.name}' #{t(:created, :default=>'created')} #{localeDateTime(@database_info.created)}") %>
 
-<% column_options =
-       [
+<div class="flex-row-container">
+  <div class="flex-row-element">
+    <% column_options =
+         [
            {:caption=>"Server versions",      :data=>proc{|rec| rec.banner },         :title=>"Version info for database server", data_title: proc{|rec| "%t\n#{rec[:banner_title]}"} },
            {:caption=>"Client versions",      :data=>proc{|rec| rec.client_info },    :title=>"Version info for client machine (machine where Panorama's server instance is running)", data_title: proc{|rec| "%t\n#{rec[:client_info_title]}"}},
-       ]
-%>
-<%= gen_slickgrid(@version_info, column_options, {:width => :auto}) %>
+         ]
+    %>
+    <%= gen_slickgrid(@version_info, column_options, {:width => :auto}) %>
+  </div>
 
-
-
-<%
-  cpu_count_data_title = proc do |rec|
-    "%t\n#{rec.num_cpus}\n#{rec.num_cpu_cores}\n#{rec.num_cpu_sockets}"
-  end
-
-  phys_mem_data_title = proc do |rec|
-    "%t#{"\nPhysical free memory = #{fn(rec.free_mem_gb, 3)} GB" unless rec.free_mem_gb.nil?}#{"\nPhysical inactive memory = #{fn(rec.inactive_mem_gb, 3)} GB" unless rec.inactive_mem_gb.nil?}"
-  end
-
-  show_compatible = proc do |rec|
-    if rec.compatible                                                           # some times empty for autonomous DBs
-      if rec.compatible == rec.version[0, rec.compatible.length]
-        "<span class=\"cui-thumb-up\"></span>".html_safe
-      else
-        "<span style=\"background-color:lightyellow;\">#{rec.compatible}</span>".html_safe
-      end
-    end
-  end
-
-  data_title_compatible = proc do |rec|
-    retval = "%t\ncompatible = #{rec.compatible}"
-    if rec.compatible                                                           # some times empty for autonomous DBs
-      if rec.compatible == rec.version[0, rec.compatible.length]
-        retval << "\n\nNo difference between major instance version (#{rec.version}) and compatible value.\nInstance uses all optimizer features of DB version."
-      else
-        retval << "\n\nDifference between major instance version (#{rec.version}) and compatible value!\nInstance restricts optimizer features of DB version to compatible version."
-      end
-    end
-    retval
-  end
-
-  supplemental_logging_data = proc do |rec|
-    rec.supplemental_log_data_min   == 'NO' ||
-      rec.supplemental_log_data_pk  == 'NO' ||
-      rec.supplemental_log_data_ui  == 'NO' ||
-      rec.supplemental_log_data_fk  == 'NO' ||
-      rec.supplemental_log_data_all == 'NO' ||
-      rec.supplemental_log_data_pl  == 'NO' ? 'N' : 'Y'
-  end
-
-  supplemental_logging_data_title = proc do |rec|
-    retval = "%t\n"
-    retval << "\nMinimum supplemental logging = '#{rec.supplemental_log_data_min}'"
-    retval << "\nPrimary key supplemental logging = '#{rec.supplemental_log_data_pk}'"
-    retval << "\nUnique key supplemental logging = '#{rec.supplemental_log_data_ui}'"
-    retval << "\nForeign key supplemental logging = '#{rec.supplemental_log_data_fk}'"
-    retval << "\nAll columns supplemental logging = '#{rec.supplemental_log_data_all}'"
-    retval << "\nPL/SQL supplemental logging = '#{rec.supplemental_log_data_pl}'"
-    retval
-  end
-
-  link_services = proc do |rec|
-    ajax_link(fn(rec.service_count),
-              {action:      :list_services,
-               instance:    rec.inst_id,
-               update_area: @update_area,
-              },
-              title: "Show TNS services for instance #{rec.inst_id}"
-    )
-  end
-
-  link_host_name = proc do |rec|
-    ajax_link(rec.host_name,
-              {action:      :list_diag_info,
-               instance:    rec.inst_id,
-               update_area: @update_area,
-              },
-              title: "Show diag location paths etc. from v$Diag_Info for instance #{rec.inst_id}"
-    )
-  end
-
-  column_options =
-       [
-           {:caption=>'DBID',          :data=>proc{|rec| rec.dbid },                           :title=>"Unique identifier for this database", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
-           {:caption=>"I.",            :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_number == @instance_number && @instance_data.length >1}" },       :title=>"Instance number, (*) for connecting instance", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
-           {:caption=>'Version',       :data=>proc{|rec| rec.version >= '19' ? rec.version_full : rec.version }, :title=>"Instance version / full version" },
-           {:caption=>"Name",          :data=>proc{|rec| rec.instance_name },                  :title=>"Instance name", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
-           {:caption=>"Host name",     :data=>link_host_name,                                  :title=>"Host name of instance"},
-           {:caption=>"Startup",       :data=>proc{|rec| localeDateTime(rec.startup_time) },   :title=>"Startup der DB", :data_title=>proc{|rec| "%t, open mode = #{rec.open_mode}"}},
-           {:caption=>"Archiver",      :data=>proc{|rec| rec.archiver },                       :title=>"Archiver mode of instance"},
-           {:caption=>"Character-set", :data=>proc{|rec| rec.nls_characterset },               :title=>"Character set of database", :data_title=>proc{|rec| "%t: NChar_Character_Set=#{rec.nls_nchar_characterset}"}},
-           {:caption=>"Cp.",           :data=>show_compatible,                                 :title=>"Optimizer compatible mode of instance (from v$System_Parameter)", data_title: data_title_compatible},
-           {:caption=>'Database role', :data=>proc{|rec| rec.database_role },                  :title=>"Database role for data guard\nCan be one of the following:\n- SNAPSHOT STANDBY\n- LOGICAL STANDBY\n- PHYSICAL STANDBY\n- PRIMARY\n- FAR SYNC"},
-           {:caption=>"Instance role", :data=>proc{|rec| rec["instance_role"] },               :title=>"Instance role for data guard"},
-           {:caption=>"CPU cnt.",      :data=>proc{|rec| rec.cpu_count },                      :title=>"Number of CPUs counted for instance (from gv$System_Parameter)", data_title: cpu_count_data_title, align: :right},
-           {:caption=>"Phys. memory (GB)", :data=>proc{|rec| fn(rec.phys_mem_gb, 3) },         :title=>"Physical server memory in Gigabyte (from gv$OSStat)", data_title: phys_mem_data_title, align: :right},
-           {:caption=>"Resource manager plan", :data=>proc{|rec| rec.resource_manager_plan },  :title=>"Resource manager plan that is currently active.\nEmpty if resource manager is deactivated."},
-           {:caption=>"Protection mode", :data=>proc{|rec| rec.protection_mode },              :title=>"Protection mode currently in effect for the database.\nLook at DB-parameter \"log_archive_dest_n\" to recognize what sync-mode is used for standby configuration (SYNC or NOSYNC, AFFIRM or NOAFFIRM).",  :data_title=>proc{|rec| "%t\nProtection level = #{rec.protection_level}"}},
-           {:caption=>"Switchover status", :data=>proc{|rec| rec.switchover_status },          :title=>"Indicates whether switchover is allowed", :data_title=>proc{|rec| "%t\n#{explain_switchover_status(rec.switchover_status)}"}  },
-           {:caption=>"DG broker",     :data=>proc{|rec| rec.dataguard_broker },               :title=>"Indicates whether the Data Guard configuration is being managed by the broker (ENABLED) or not (DISABLED)"},
-           {:caption=>"Force log.",    :data=>proc{|rec| rec.force_logging },                  :title=>"Indicates whether the database is under force logging mode (YES) or not (NO)"},
-           {:caption=>"S. L.",         :data=>supplemental_logging_data,                       :title=>"Supplemental logging settings for Log Miner, Golden Gate etc., table-specific config is shown by DBA_LOG_GROUPS", data_title: supplemental_logging_data_title},
-           {:caption=>"AWR interval",  :data=>proc{|rec| rec.snap_interval_minutes },          :title=>"Interval in minutes for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right},
-           {:caption=>"AWR retention", :data=>proc{|rec| rec.snap_retention_days },            :title=>"Retention in days for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right},
-           {:caption=>"Srv.",          :data=>link_services,                                   :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
-       ]
-   column_options << {:caption=>'CDB',           :data=>proc{|rec| rec.cdb },            :title=>'Is this database a container DB (PDB)?', :align=>:right}  if get_db_version >= '12.1'
-
-
-%>
-<div>
-<%= gen_slickgrid(@instance_data, column_options, {
-    :caption => "Instance data", :width => :auto, show_pin_icon: 2
-})
-%>
-</div>
-
-<% @update_area_dbids = get_unique_area_id %>
-<script type="text/javascript">
-    ajax_html('<%= @update_area_dbids %>', 'env', 'list_dbids', {update_area: "<%= @update_area_dbids %>"}, {retain_status_message: true});
-</script>
-<div id="<%= @update_area_dbids %>"></div>
-
-
-<% if get_current_database[:cdb] %>
+  <div class="flex-row-element">
     <%
-      link_services_pdb = proc do |rec|
+      supplemental_logging_data = proc do |rec|
+        rec.supplemental_log_data_min   == 'NO' ||
+          rec.supplemental_log_data_pk  == 'NO' ||
+          rec.supplemental_log_data_ui  == 'NO' ||
+          rec.supplemental_log_data_fk  == 'NO' ||
+          rec.supplemental_log_data_all == 'NO' ||
+          rec.supplemental_log_data_pl  == 'NO' ? 'N' : 'Y'
+      end
+
+      supplemental_logging_data_title = proc do |rec|
+        retval = "%t\n"
+        retval << "\nMinimum supplemental logging = '#{rec.supplemental_log_data_min}'"
+        retval << "\nPrimary key supplemental logging = '#{rec.supplemental_log_data_pk}'"
+        retval << "\nUnique key supplemental logging = '#{rec.supplemental_log_data_ui}'"
+        retval << "\nForeign key supplemental logging = '#{rec.supplemental_log_data_fk}'"
+        retval << "\nAll columns supplemental logging = '#{rec.supplemental_log_data_all}'"
+        retval << "\nPL/SQL supplemental logging = '#{rec.supplemental_log_data_pl}'"
+        retval
+      end
+
+      column_options = []
+      column_options << { caption: 'DBID',              data: proc{|rec| rec.dbid },                        title: 'Unique identifier for this database' }
+      column_options << { caption: 'Name',              data: proc{|rec| rec.name },                        title: 'Name of this database' }
+      column_options << { caption: 'Created',           data: proc{|rec| localeDateTime(rec.created) },     title: 'Creation date of this database' }
+      column_options << { caption: 'Open mode',         data: proc{|rec| rec.open_mode },                   title: 'Open mode of this database' }
+      column_options << { caption: 'DB role',           data: proc{|rec| rec.database_role },               title: "Database role for data guard\nCan be one of the following:\n- SNAPSHOT STANDBY\n- LOGICAL STANDBY\n- PHYSICAL STANDBY\n- PRIMARY\n- FAR SYNC"}
+      column_options << { caption: "Protection mode",   data: proc{|rec| rec.protection_mode },             title: "Protection mode currently in effect for the database.\nLook at DB-parameter \"log_archive_dest_n\" to recognize what sync-mode is used for standby configuration (SYNC or NOSYNC, AFFIRM or NOAFFIRM).",  data_title: proc{|rec| "%t\n\nProtection level = #{rec.protection_level}"}}
+      column_options << { caption: "Switchover status", data: proc{|rec| rec.switchover_status },           title: "Indicates whether switchover is allowed", data_title: proc{|rec| "%t\n\n#{explain_switchover_status(rec.switchover_status)}"}  }
+      column_options << { caption: "DG broker",         data: proc{|rec| rec.dataguard_broker },            title: "Indicates whether the Data Guard configuration is being managed by the broker (ENABLED) or not (DISABLED)"}
+      column_options << { caption: "Force log.",        data: proc{|rec| rec.force_logging },               title: "Indicates whether the database is under force logging mode (YES) or not (NO)"}
+      column_options << { caption: "S. L.",             data: supplemental_logging_data,                    title: "Supplemental logging settings for Log Miner, Golden Gate etc., table-specific config is shown by DBA_LOG_GROUPS", data_title: supplemental_logging_data_title}
+      column_options << { caption: "AWR interval",      data: proc{|rec| fn(rec.snap_interval_minutes) },   title: "Interval in minutes for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
+      column_options << { caption: "AWR retention",     data: proc{|rec| fn(rec.snap_retention_days) },     title: "Retention in days for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
+      column_options << { caption: 'CDB',               data: proc{|rec| rec.cdb },                         title: 'Is this database a container DB (PDB)?', :align=>:right}  if get_db_version >= '12.1'
+
+    %>
+    <%= gen_slickgrid(@database_data, column_options, { caption: "Database info", width: :auto}) %>
+
+  </div>
+
+  <div class="flex-row-element">
+    <%
+      cpu_count_data_title = proc do |rec|
+        "%t\n#{rec.num_cpus}\n#{rec.num_cpu_cores}\n#{rec.num_cpu_sockets}"
+      end
+
+      phys_mem_data_title = proc do |rec|
+        "%t#{"\nPhysical free memory = #{fn(rec.free_mem_gb, 3)} GB" unless rec.free_mem_gb.nil?}#{"\nPhysical inactive memory = #{fn(rec.inactive_mem_gb, 3)} GB" unless rec.inactive_mem_gb.nil?}"
+      end
+
+      show_compatible = proc do |rec|
+        if rec.compatible                                                           # some times empty for autonomous DBs
+          if rec.compatible == rec.version[0, rec.compatible.length]
+            "<span class=\"cui-thumb-up\"></span>".html_safe
+          else
+            "<span style=\"background-color:lightyellow;\">#{rec.compatible}</span>".html_safe
+          end
+        end
+      end
+
+      data_title_compatible = proc do |rec|
+        retval = "%t\ncompatible = #{rec.compatible}"
+        if rec.compatible                                                           # some times empty for autonomous DBs
+          if rec.compatible == rec.version[0, rec.compatible.length]
+            retval << "\n\nNo difference between major instance version (#{rec.version}) and compatible value.\nInstance uses all optimizer features of DB version."
+          else
+            retval << "\n\nDifference between major instance version (#{rec.version}) and compatible value!\nInstance restricts optimizer features of DB version to compatible version."
+          end
+        end
+        retval
+      end
+
+      link_services = proc do |rec|
         ajax_link(fn(rec.service_count),
                   {action:      :list_services,
                    instance:    rec.inst_id,
-                   pdb_name:    rec.name,
                    update_area: @update_area,
                   },
-                  title: "Show TNS services for PDB #{rec.name}"
+                  title: "Show TNS services for instance #{rec.inst_id}"
         )
       end
 
-      features_hint = "\
+      link_host_name = proc do |rec|
+        ajax_link(rec.host_name,
+                  {action:      :list_diag_info,
+                   instance:    rec.inst_id,
+                   update_area: @update_area,
+                  },
+                  title: "Show diag location paths etc. from v$Diag_Info for instance #{rec.inst_id}"
+        )
+      end
+
+      column_options =
+        [
+          {:caption=>"I.",            :data=>proc{|rec| "#{rec.instance_number}#{" (*)" if rec.instance_number == @instance_number && @instance_data.length >1}" },       :title=>"Instance number, (*) for connecting instance", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
+          {:caption=>'Version',       :data=>proc{|rec| rec.version >= '19' ? rec.version_full : rec.version }, :title=>"Instance version / full version" },
+          {:caption=>"Name",          :data=>proc{|rec| rec.instance_name },                  :title=>"Instance name", data_title: proc{|rec| "%t\nDB version = #{rec.version}"} },
+          {:caption=>"Host name",     :data=>link_host_name,                                  :title=>"Host name of instance"},
+          {:caption=>"Startup",       :data=>proc{|rec| localeDateTime(rec.startup_time) },   :title=>"Startup der DB" },
+          {:caption=>"Archiver",      :data=>proc{|rec| rec.archiver },                       :title=>"Archiver mode of instance"},
+          {:caption=>"Character-set", :data=>proc{|rec| rec.nls_characterset },               :title=>"Character set of database", :data_title=>proc{|rec| "%t: NChar_Character_Set=#{rec.nls_nchar_characterset}"}},
+          {:caption=>"Cp.",           :data=>show_compatible,                                 :title=>"Optimizer compatible mode of instance (from v$System_Parameter)", data_title: data_title_compatible},
+          {:caption=>"Instance role", :data=>proc{|rec| rec["instance_role"] },               :title=>"Instance role for data guard"},
+          {:caption=>"CPU cnt.",      :data=>proc{|rec| rec.cpu_count },                      :title=>"Number of CPUs counted for instance (from gv$System_Parameter)", data_title: cpu_count_data_title, align: :right},
+          {:caption=>"Phys. memory (GB)", :data=>proc{|rec| fn(rec.phys_mem_gb, 3) },         :title=>"Physical server memory in Gigabyte (from gv$OSStat)", data_title: phys_mem_data_title, align: :right},
+          {:caption=>"Resource manager plan", :data=>proc{|rec| rec.resource_manager_plan },  :title=>"Resource manager plan that is currently active.\nEmpty if resource manager is deactivated."},
+          {:caption=>"Srv.",          :data=>link_services,                                   :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
+        ]
+
+
+    %>
+    <%= gen_slickgrid(@instance_data, column_options, {
+      :caption => "Instance info", :width => :auto, show_pin_icon: 2
+    })
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <% @update_area_dbids = get_unique_area_id %>
+    <script type="text/javascript">
+        ajax_html('<%= @update_area_dbids %>', 'env', 'list_dbids', {update_area: "<%= @update_area_dbids %>"}, {retain_status_message: true});
+    </script>
+    <div id="<%= @update_area_dbids %>"></div>
+  </div>
+
+  <% if get_current_database[:cdb] %>
+    <div class="flex-row-element">
+      <%
+        link_services_pdb = proc do |rec|
+          ajax_link(fn(rec.service_count),
+                    {action:      :list_services,
+                     instance:    rec.inst_id,
+                     pdb_name:    rec.name,
+                     update_area: @update_area,
+                    },
+                    title: "Show TNS services for PDB #{rec.name}"
+          )
+        end
+
+        features_hint = "\
 Additional feature info for the PDB
 Shows one of the following settings:
 
@@ -146,49 +161,49 @@ DV_APP_PROTECTION shows whether Database Vault operations control has been confi
 DV_CONFIGURE_STATUS shows whether Oracle Database Vault has been configured, that is, with the CONFIGURE_DV procedure.
 DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, with the DBMS_MACADM.ENABLE_DV procedure."
 
-      column_options =
-           [
-               {:caption=>'Inst.',            :data=>proc{|rec| rec.inst_id},                         :title=>"Instance number"},
-               {:caption=>'Con-ID',           :data=>proc{|rec| "#{rec.con_id}#{" (*)" if rec.con_id == PanoramaConnection.con_id && rec.inst_id == PanoramaConnection.instance_number}" },   :title=>"The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data\n(*) for the container and instance you are connected on"},
-               {:caption=>'DBID',             :data=>proc{|rec| rec.dbid },                           :title=>"PDB identifier calculated when the PDB is created and stored in all file headers associated with the PDB"},
-               {:caption=>'Con-UID',          :data=>proc{|rec| fn rec.con_uid },                     :title=>"Unique identifier associated with the PDB"},
-               {:caption=>'Name',             :data=>proc{|rec| rec.name },                           :title=>"Name of the PDB"},
-               {:caption=>'Open mode',        :data=>proc{|rec| rec.open_mode},                       :title=>"Open mode info"},
-               {:caption=>'Restricted',       :data=>proc{|rec| rec.restricted},                      :title=>"Indicates whether only users possessing RESTRICTED SESSION privilege can connect to the PDB"},
-               {:caption=>'Open time',        :data=>proc{|rec| localeDateTime(rec.open_time)},       :title=>"Date and time when the database was last opened"},
-               {:caption=>'Total size',       :data=>proc{|rec| fn(rec.total_size/(1024*1024))},      :title=>"If a PDB is opened, disk space (in MBytes) used by the container,\nincluding both data and temp files.\nIf a PDB is closed, will be set to 0.", data_title: proc{|rec| "%t\n#{size_explain((rec.total_size.to_f / (1024*1024) rescue nil))}"}, align: :right },
-               {:caption=>'Block size',       :data=>proc{|rec| fn(rec.block_size)},                  :title=>"The current block size for the PDB", align: :right},
-               {:caption=>'Recovery status',  :data=>proc{|rec| rec.recovery_status},                 :title=>"Shows whether recovery is enabled or disabled for the PDB."},
-               {:caption=>'Snapshot parent',  :data=>proc{|rec| rec.snapshot_parent_con_id },         :title=>"This column shows the container ID of the master PDB that this PDB is a snapshot clone of.\nThis column shows a non-zero value only if the PDB is a snapshot clone.\nFor all other cases, it shows a value of 0."},
-               {:caption=>"Srv.",             :data=>link_services_pdb,                               :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
-           ]
-       column_options << {:caption=>'Appl. root',         :data=>proc{|rec| rec.application_root},                :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Appl. PDB',          :data=>proc{|rec| rec.application_pdb},                 :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Appl. seed',         :data=>proc{|rec| rec.application_seed},                :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Appl. root con-ID',  :data=>proc{|rec| rec.application_root_con_id},         :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Appl. root clone',   :data=>proc{|rec| rec.application_root_clone},          :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Proxy PDB',                :data=>proc{|rec| rec.proxy_pdb},                       :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Local UNDO',               :data=>proc{|rec| rec.local_undo},                      :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Creation time',            :data=>proc{|rec| localeDateTime(rec.creation_time)},   :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'PDB count',                :data=>proc{|rec| fn rec.pdb_count},                    :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Audit files size',         :data=>proc{|rec| fn rec.audit_files_size},             :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Max. size',                :data=>proc{|rec| fn rec.max_size},                     :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Max. diag. size',          :data=>proc{|rec| fn rec.max_diagnostics_size},         :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-       column_options << {:caption=>'Max. audit size',          :data=>proc{|rec| fn rec.max_audit_size},               :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
-      column_options << {:caption=>'Features',          :data=>proc{|rec| rec.features},               title: features_hint} if get_db_version >= '12.2'
-    %>
-  <div>
-    <%= gen_slickgrid(@containers, column_options, {
+        column_options =
+          [
+            {:caption=>'Inst.',            :data=>proc{|rec| rec.inst_id},                         :title=>"Instance number"},
+            {:caption=>'Con-ID',           :data=>proc{|rec| "#{rec.con_id}#{" (*)" if rec.con_id == PanoramaConnection.con_id && rec.inst_id == PanoramaConnection.instance_number}" },   :title=>"The ID of the container to which the data pertains. Possible values include:\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data\n(*) for the container and instance you are connected on"},
+            {:caption=>'DBID',             :data=>proc{|rec| rec.dbid },                           :title=>"PDB identifier calculated when the PDB is created and stored in all file headers associated with the PDB"},
+            {:caption=>'Con-UID',          :data=>proc{|rec| fn rec.con_uid },                     :title=>"Unique identifier associated with the PDB"},
+            {:caption=>'Name',             :data=>proc{|rec| rec.name },                           :title=>"Name of the PDB"},
+            {:caption=>'Open mode',        :data=>proc{|rec| rec.open_mode},                       :title=>"Open mode info"},
+            {:caption=>'Restricted',       :data=>proc{|rec| rec.restricted},                      :title=>"Indicates whether only users possessing RESTRICTED SESSION privilege can connect to the PDB"},
+            {:caption=>'Open time',        :data=>proc{|rec| localeDateTime(rec.open_time)},       :title=>"Date and time when the database was last opened"},
+            {:caption=>'Total size',       :data=>proc{|rec| fn(rec.total_size/(1024*1024))},      :title=>"If a PDB is opened, disk space (in MBytes) used by the container,\nincluding both data and temp files.\nIf a PDB is closed, will be set to 0.", data_title: proc{|rec| "%t\n#{size_explain((rec.total_size.to_f / (1024*1024) rescue nil))}"}, align: :right },
+            {:caption=>'Block size',       :data=>proc{|rec| fn(rec.block_size)},                  :title=>"The current block size for the PDB", align: :right},
+            {:caption=>'Recovery status',  :data=>proc{|rec| rec.recovery_status},                 :title=>"Shows whether recovery is enabled or disabled for the PDB."},
+            {:caption=>'Snapshot parent',  :data=>proc{|rec| rec.snapshot_parent_con_id },         :title=>"This column shows the container ID of the master PDB that this PDB is a snapshot clone of.\nThis column shows a non-zero value only if the PDB is a snapshot clone.\nFor all other cases, it shows a value of 0."},
+            {:caption=>"Srv.",             :data=>link_services_pdb,                               :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
+          ]
+        column_options << {:caption=>'Appl. root',         :data=>proc{|rec| rec.application_root},                :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Appl. PDB',          :data=>proc{|rec| rec.application_pdb},                 :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Appl. seed',         :data=>proc{|rec| rec.application_seed},                :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Appl. root con-ID',  :data=>proc{|rec| rec.application_root_con_id},         :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Appl. root clone',   :data=>proc{|rec| rec.application_root_clone},          :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Proxy PDB',                :data=>proc{|rec| rec.proxy_pdb},                       :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Local UNDO',               :data=>proc{|rec| rec.local_undo},                      :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Creation time',            :data=>proc{|rec| localeDateTime(rec.creation_time)},   :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'PDB count',                :data=>proc{|rec| fn rec.pdb_count},                    :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Audit files size',         :data=>proc{|rec| fn rec.audit_files_size},             :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. size',                :data=>proc{|rec| fn rec.max_size},                     :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. diag. size',          :data=>proc{|rec| fn rec.max_diagnostics_size},         :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. audit size',          :data=>proc{|rec| fn rec.max_audit_size},               :title=>"Docu. for 12.2 not yet available"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Features',          :data=>proc{|rec| rec.features},               title: features_hint} if get_db_version >= '12.2'
+      %>
+      <%= gen_slickgrid(@containers, column_options, {
         :caption => "Pluggable database info from gv$Containers", :max_height=>400, :width => :auto, show_pin_icon: 2
-    })
-    %>
-  </div>
-<% end %>
+      })
+      %>
+    </div>
+  <% end %>
 
-<% if @traces.length > 0 %>
-  <%
-    column_options =
-        [
+  <% if @traces.length > 0 %>
+    <div class="flex-row-element">
+      <%
+        column_options =
+          [
             {caption: 'Trace type',                       data: proc{|rec| rec.trace_type},       title: 'Type of the trace'},
             {caption: 'Primary ID',                       data: proc{|rec| rec.primary_id},       title: 'Primary qualifier (specific client identifier or service name)'},
             {caption: 'Qualifier ID1',                    data: proc{|rec| rec.qualifier_id1},    title: 'Secondary qualifier (specific module name)'},
@@ -196,29 +211,40 @@ DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, 
             {caption: 'Waits',                            data: proc{|rec| rec.waits},            title: 'Indicates whether waits are traced (TRUE) or not (FALSE)'},
             {caption: 'Binds',                            data: proc{|rec| rec.binds},            title: 'Indicates whether binds are traced (TRUE) or not (FALSE)'},
             {caption: 'Instance name',                    data: proc{|rec| rec.instance_name},    title: 'Instance name for tracing restricted to named instances'},
-        ]
-  %>
-  <%=
-    gen_slickgrid(@traces, column_options, {
-        :caption    => "Active SQL traces from DBA_Enabled_Traces",
-        :width      => :auto,
-        :max_height => 200
-    })
-  %>
-<% end %>
-
-<div id="<%= @update_area %>">
-  <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
-  <% @show_management_pack_choice = true %>
-  <%= render :partial => 'licensing' %>
-
-  <%= render_async(:env, :panorama_sampler_data) %>
-
-  <% if @dictionary_access_problem %>
-    <h2><%= "Dictionary Access-Problem"   %></h2>
-    <div style='color:red;'>
-      <%= @dictionary_access_msg.html_safe %>
+          ]
+      %>
+      <%=
+        gen_slickgrid(@traces, column_options, {
+          :caption    => "Active SQL traces from DBA_Enabled_Traces",
+          :width      => :auto,
+          :max_height => 200
+        })
+      %>
     </div>
   <% end %>
+
+  <div id="<%= @update_area %>">
+    <div class="flex-row-element" >
+      <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
+      <% @show_management_pack_choice = true %>
+      <%= render :partial => 'licensing' %>
+    </div>
+
+    <div class="flex-row-element" id="<%= @update_area %>">
+      <%= render_async(:env, :panorama_sampler_data) %>
+    </div>
+
+    <div class="flex-row-element" id="<%= @update_area %>">
+      <% if @dictionary_access_problem %>
+        <h2><%= "Dictionary Access-Problem"   %></h2>
+        <div style='color:red;'>
+          <%= @dictionary_access_msg.html_safe %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+
 </div>
+
 
