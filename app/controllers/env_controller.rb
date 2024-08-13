@@ -230,7 +230,9 @@ class EnvController < ApplicationController
         end
       end
       if get_current_database[:cdb]
-        @containers = sql_select_all "SELECT c.*, srv.Service_Count, NULL Features
+        @containers = sql_select_all "SELECT c.*, srv.Service_Count, NULL Features,
+                                             #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM 24*60*w.Snap_Interval) FROM DBA_Hist_WR_Control w WHERE w.DBID = c.DBID AND w.Con_ID = c.Con_ID)" : "NULL" } Snap_Interval_Minutes,
+                                             #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM w.Retention)           FROM DBA_Hist_WR_Control w WHERE w.DBID = c.DBID AND w.Con_ID = c.Con_ID)" : "NULL" } Snap_Retention_Days
                                       FROM   gv$Containers c
                                       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, PDB, COUNT(*) Service_Count FROM gv$Services GROUP BY Inst_ID, PDB) srv ON srv.Inst_ID = c.Inst_ID AND srv.PDB = c.name
                                       ORDER BY c.Con_ID, c.Inst_ID
