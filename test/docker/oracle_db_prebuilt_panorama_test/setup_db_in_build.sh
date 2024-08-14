@@ -2,7 +2,7 @@
 # Terminates install process after finishing
 
 # Start database in background, use script that at first links data files to /opt/oradata
-$ORACLE_BASE/run_db_in_container.sh &
+$ORACLE_BASE/$DB_RUN_SCRIPT &
 
 sleep 1                                                                         # ensure that $ORACLE_BASE/$RUN_FILE has started
 # Wait until tail -f on alert.log occurs

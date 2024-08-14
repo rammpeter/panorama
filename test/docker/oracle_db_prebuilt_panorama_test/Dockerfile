@@ -7,6 +7,11 @@
 
 # Default if no argument is given from docker build
 ARG BASE_IMAGE=registry:0.0.0.0-ee
+# can be overwritten with microdnf
+ARG YUM=yum
+ARG DB_RUN_SCRIPT=run_db_in_container.sh
+ENV DB_RUN_SCRIPT ${DB_RUN_SCRIPT}
+ENV ORACLE_PASSWORD oracle
 
 FROM ${BASE_IMAGE} as base
 MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
@@ -22,14 +27,16 @@ USER    root
 RUN     rm -rf /var/log/*
 
 # Update OS to current patch state
-RUN     yum -y update && yum clean all
+RUN     ${YUM} -y update && ${YUM} clean all
 
 FROM scratch
 
 ARG CDB_SERVICE=ORCLCDB
 ARG PDB_SERVICE=orclpdb1
+ARG DB_RUN_SCRIPT=run_db_in_container.sh
 ENV CDB_SERVICE ${CDB_SERVICE}
 ENV PDB_SERVICE ${PDB_SERVICE}
+ENV ORACLE_PASSWORD oracle
 
 BASE_ENV
 
@@ -41,7 +48,7 @@ WORKDIR /home/oracle
 
 EXPOSE  1521 5500
 # use bracket syntax to ensure that run_db_in_container.sh runs with PID 1 and receives SIGTERM signal
-CMD ["/bin/sh", "-c", "$ORACLE_BASE/run_db_in_container.sh"]
+CMD ["/bin/sh", "-c", "$ORACLE_BASE/$DB_RUN_SCRIPT"]
 
 # Ensure that both services are active in listener and original health check is successful
 HEALTHCHECK --interval=30s --start-period=10s --retries=5 \

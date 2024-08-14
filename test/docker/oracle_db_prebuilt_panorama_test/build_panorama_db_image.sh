@@ -22,6 +22,17 @@ if [[ $BASE_IMAGE =~ "xe" ]]; then
   export PDB_SERVICE=xepdb1
 fi
 
+if [[ $BASE_IMAGE =~ "23" ]]; then
+  # Settings for Docker-Image of gvenzl/oracle-free:23-full
+  export YUM=microdnf
+  export DB_RUN_SCRIPT=container-entrypoint.sh
+else
+  # Settings for Docker-Images pre 23
+  export YUM=yum
+  export DB_RUN_SCRIPT=run_db_in_container.sh
+fi
+
+
 # Ensure that image is loaded before docker inspect
 # Supressed to ensure using local image instead of possibly older image in registry
 # docker pull $BASE_IMAGE
@@ -41,6 +52,8 @@ DOCKER_BUILDKIT=0 docker build --no-cache \
 --build-arg BASE_IMAGE=$BASE_IMAGE \
 --build-arg CDB_SERVICE=$CDB_SERVICE \
 --build-arg PDB_SERVICE=$PDB_SERVICE \
+--build-arg YUM=$YUM \
+--build-arg DB_RUN_SCRIPT=$DB_RUN_SCRIPT \
 -f Dockerfile.modified \
 -t $TARGET_IMAGE -m 3g .
 
