@@ -30,7 +30,7 @@ COPY    setup_db_in_build.sh create_panorama_test_user.sql analyze_sys_schemas.s
 # Files are executed at instance startup
 COPY    create_awr_snapshots.sql $ORACLE_BASE/scripts/startup/
 
-RUN     /bin/sh -c "$ORACLE_BASE/setup_db_in_build.sh"
+RUN     /bin/sh -c "cd $ORACLE_BASE && $ORACLE_BASE/setup_db_in_build.sh"
 
 FROM scratch
 
@@ -47,7 +47,7 @@ COPY --from=base / /
 
 USER    oracle
 
-WORKDIR /home/oracle
+WORKDIR $ORACLE_BASE
 
 EXPOSE  1521 5500
 # use bracket syntax to ensure that run_db_in_container.sh runs with PID 1 and receives SIGTERM signal
