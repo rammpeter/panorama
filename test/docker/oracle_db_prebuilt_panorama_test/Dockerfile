@@ -28,7 +28,7 @@ USER    root
 RUN     rm -rf /var/log/*
 
 # Update OS to current patch state
-RUN     ${YUM} -y update && ${YUM} clean all
+RUN     ${YUM} -y update && ${YUM} -y install procps && ${YUM} clean all
 
 FROM scratch
 
