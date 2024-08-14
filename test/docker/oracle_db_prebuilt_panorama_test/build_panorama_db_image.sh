@@ -33,7 +33,7 @@ if [[ $BASE_IMAGE =~ "23" ]]; then
   export DB_RUN_SCRIPT=container-entrypoint.sh
 else
   # Settings for Docker-Images pre 23
-  export YUM=yum
+  export YUM=yum -y
   export DB_RUN_SCRIPT=run_db_in_container.sh
 fi
 
