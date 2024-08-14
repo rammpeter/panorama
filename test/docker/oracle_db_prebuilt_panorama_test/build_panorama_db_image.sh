@@ -22,6 +22,11 @@ if [[ $BASE_IMAGE =~ "xe" ]]; then
   export PDB_SERVICE=xepdb1
 fi
 
+if [[ $BASE_IMAGE =~ "free" ]]; then
+  export CDB_SERVICE=FREE
+  export PDB_SERVICE=freepdb1
+fi
+
 if [[ $BASE_IMAGE =~ "23" ]]; then
   # Settings for Docker-Image of gvenzl/oracle-free:23-full
   export YUM=microdnf
