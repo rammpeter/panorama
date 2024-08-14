@@ -8,13 +8,14 @@
 # Default if no argument is given from docker build
 ARG BASE_IMAGE=registry:0.0.0.0-ee
 # can be overwritten with microdnf
+
+FROM ${BASE_IMAGE} as base
+MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
+
 ARG YUM=yum
 ARG DB_RUN_SCRIPT=run_db_in_container.sh
 ENV DB_RUN_SCRIPT ${DB_RUN_SCRIPT}
 ENV ORACLE_PASSWORD oracle
-
-FROM ${BASE_IMAGE} as base
-MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
 
 COPY    setup_db_in_build.sh create_panorama_test_user.sql analyze_sys_schemas.sql modify_instance_settings.sql $ORACLE_BASE/
 
