@@ -12,6 +12,14 @@ ARG BASE_IMAGE=registry:0.0.0.0-ee
 FROM ${BASE_IMAGE} as base
 MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
 
+USER    root
+RUN     rm -rf /var/log/*
+
+# Update OS to current patch state
+RUN     ${YUM} -y update && ${YUM} -y install procps && ${YUM} clean all
+
+
+USER   oracle
 ARG YUM=yum
 ARG DB_RUN_SCRIPT=run_db_in_container.sh
 ENV DB_RUN_SCRIPT ${DB_RUN_SCRIPT}
@@ -23,12 +31,6 @@ COPY    setup_db_in_build.sh create_panorama_test_user.sql analyze_sys_schemas.s
 COPY    create_awr_snapshots.sql $ORACLE_BASE/scripts/startup/
 
 RUN     /bin/sh -c "$ORACLE_BASE/setup_db_in_build.sh"
-
-USER    root
-RUN     rm -rf /var/log/*
-
-# Update OS to current patch state
-RUN     ${YUM} -y update && ${YUM} -y install procps && ${YUM} clean all
 
 FROM scratch
 
