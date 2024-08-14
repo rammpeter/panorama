@@ -1,6 +1,9 @@
 # Setup database instance during "docker build" by wrapping runOracle.sh
 # Terminates install process after finishing
 
+# Modify run script to start database in background
+sed -i '2i set -x' $ORACLE_BASE/$DB_RUN_SCRIPT
+
 # Start database in background, use script that at first links data files to /opt/oradata
 $ORACLE_BASE/$DB_RUN_SCRIPT &
 
