@@ -53,12 +53,29 @@
 
   <% if get_db_version >= '11.1' %>
     <%
+      link_histogram = proc do |value, rec|
+        ajax_link(value, {
+          :update_area => @update_area,
+          :action      => :list_histogram,
+          :owner       => @owner,
+          :table_name  => @table_name,
+          :data_type   => 'EXTENSION',      # can't be used to identify the content type for extension
+          :num_rows    => (@attribs[0].num_rows - rec.num_nulls rescue 0),
+          :column_name => rec.extension_name,
+          histogram:      rec.histogram
+        },
+                  :title => 'Show histogram data for column')
+      end
+
       column_options =
         [
-            {:caption=> 'Extension name',       :data=>proc{|rec| rec.extension_name},              :title=> 'Name of the statistics extension'},
-            {:caption=> 'Extension',            :data=>proc{|rec| rec.extension },                  :title=> 'Extension (the expression or column group)'},
-            {:caption=> 'Creator',              :data=>proc{|rec| rec.creator},                     :title=> 'Creator of the extension'},
-            {:caption=> 'Droppable',            :data=>proc{|rec| rec.droppable},                   :title=> 'Indicates whether the extension is droppable using DBMS_STATS.DROP_EXTENDED_STATS (YES) or not (NO)'},
+            {:caption=> 'Extension name',    :data=>proc{|rec| rec.extension_name},              :title=> 'Name of the statistics extension'},
+            {:caption=> 'Extension',         :data=>proc{|rec| rec.extension },                  :title=> 'Extension (the expression or column group)'},
+            {:caption=> 'Creator',           :data=>proc{|rec| rec.creator},                     :title=> 'Creator of the extension'},
+            {:caption=> 'Droppable',         :data=>proc{|rec| rec.droppable},                   :title=> 'Indicates whether the extension is droppable using DBMS_STATS.DROP_EXTENDED_STATS (YES) or not (NO)'},
+            {:caption=> 'Density',           :data=>proc{|rec| fn(rec.density, 4)},                      :title=> 'If a histogram is available on EXTENSION_NAME, then this column displays the selectivity of a value that spans fewer than 2 endpoints in the histogram. It does not represent the selectivity of values that span 2 or more endpoints. If a histogram is not available on COLUMN_NAME, then the value of this column is 1/NUM_DISTINCT.',     :align=>:right},
+            {:caption=> 'Buckets',           :data=>proc{|rec| link_histogram.call(fn(rec.num_buckets), rec)},:title=> 'Number of buckets in histogram for the extension',     :align=>:right},
+            {:caption=> 'Histogram',         :data=>proc{|rec| link_histogram.call(rec.histogram, rec)},      :title=> 'Indicates existence/type of histogram'},
         ]
     %>
 

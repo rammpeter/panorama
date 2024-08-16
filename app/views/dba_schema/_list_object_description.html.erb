@@ -128,6 +128,19 @@ column_options =
     )
    end
 
+   last_analyzed_data_title = proc do |rec|
+     result = "%t"
+     result << "\n\nPreferences: #{@stat_prefs.join(' ')}" unless @stat_prefs.empty?
+     result << "\n\nMarked orange because analyze info is missing for #{fn(rec.missing_extension_stats)} extended statistic(s)!" if rec.missing_extension_stats > 0
+     result
+   end
+
+   last_analyzed_data_style = proc do |rec|
+     if rec.missing_extension_stats > 0
+       'background-color: orange;'
+     end
+   end
+
    link_real_num_rows = proc do |rec|
      update_area = "#{@update_area}_num_rows"
      ajax_link(rec.num_rows ? fn(rec.num_rows) : "[No analyze]", {
@@ -330,7 +343,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    column_options << {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of table creation', data_title: create_data_title}
    column_options << {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on table', data_title: last_ddl_data_title}
    column_options << { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the table", data_title: spec_ts_data_title }
-   column_options << {:caption=> 'Last analyzed',    :data=>proc{|rec| link_last_analyzed(rec)},              :title=> "The date of the most recent time this table was analyzed, Prefs: #{@stat_prefs.join(' ')}" }
+   column_options << {:caption=> 'Last analyzed',    :data=>proc{|rec| link_last_analyzed(rec)},              :title=> "The date of the most recent time this table was analyzed", data_title: last_analyzed_data_title, data_style: last_analyzed_data_style }
    column_options << {:caption=> 'Log.',             :data=>proc{|rec| rec.logging},                          :title=> "Indicates whether or not changes to the table are logged in Redo-Log.\nNULL for partitioned tables" }
    column_options << {:caption=> 'Mon.',             :data=>proc{|rec| rec.monitoring},                       :title=> "Indicates whether the table has the MONITORING attribute set (YES) or not (NO).\nIf YES then the DML activities of this table are monitored in XXX_Tab_Modifications." }
    column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                       :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }

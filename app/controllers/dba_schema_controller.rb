@@ -851,6 +851,11 @@ class DbaSchemaController < ApplicationController
                                        o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Object_ID Table_Object_ID,
                                        m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
                                        s.Size_MB_Table, s.Blocks Segment_Blocks, s.Extents,
+                                       (SELECT COUNT(*)
+                                        FROM   DBA_Stat_Extensions e
+                                        WHERE  e.Owner = t.Owner AND e.Table_Name = t.Table_Name
+                                        AND    NOT EXISTS (SELECT 1 FROM DBA_Tab_Col_Statistics s WHERE s.Owner = e.Owner AND s.Table_Name = e.Table_Name AND s.Column_Name = e.Extension_Name)
+                                       ) Missing_Extension_Stats,
                                        pt.Def_Tablespace_Name, pt.Def_PCT_Free, pt.Def_Ini_Trans, pt.Def_Max_Trans, pt.Def_Initial_extent, pt.Def_Next_Extent, pt.Def_Min_Extents, pt.Def_Max_Extents,
                                        pt.Def_Compression, pt.Def_Compress_For#{", pt.Def_InMemory" if get_db_version >= '12.1'}
                                        #{", ct.Clustering_Type, ct.On_Load CT_On_Load, ct.On_DataMovement CT_On_DataMovement, ct.Valid CT_Valid, ct.With_ZoneMap CT_With_Zonemap, ck.Clustering_Keys" if get_db_version >= '12.1.0.2'}
@@ -2908,7 +2913,11 @@ class DbaSchemaController < ApplicationController
                                    ", @owner, @table_name].concat(where_values)
 
     if get_db_version >= '11.1'
-      @extensions     = sql_select_all ["SELECT * FROM DBA_Stat_Extensions WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
+      @extensions     = sql_select_all ["\
+        SELECT e.*, s.Density, s.Num_Buckets, s.Histogram
+        FROM   DBA_Stat_Extensions e
+        LEFT OUTER JOIN DBA_Tab_Col_Statistics s ON s.Owner = e.Owner AND s.Table_Name = e.Table_Name AND s.Column_Name = e.Extension_Name
+        WHERE  e.Owner = ? AND e.Table_Name = ?", @owner, @table_name]
 
       @prefs = sql_select_all ["\
         WITH prefs AS (SELECT 'APPROXIMATE_NDV_ALGORITHM' Name, 'REPEAT OR HYPERLOGLOG' Default_Value FROM DUAL UNION ALL
