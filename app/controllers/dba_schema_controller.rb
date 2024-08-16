@@ -1359,6 +1359,11 @@ class DbaSchemaController < ApplicationController
                                   FROM   DBA_Indexes
                                   WHERE  Table_Owner = ? AND Table_Name = ? #{where_string}
                                  ),
+                 Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Object_Name, Object_Type, Timestamp, Last_DDL_Time, Created, Data_Object_ID
+                             FROM   DBA_Objects
+                             WHERE  (Owner, Object_Name) IN (SELECT Owner, Index_Name FROM Indexes)
+                             AND    Object_Type LIKE 'INDEX%'
+                            ),
                  Tab_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Column_Name, Avg_Col_Len FROM DBA_Tab_Columns WHERE Owner = ? AND Table_Name = ?),
                  Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Column_Name, Column_Position
                                  FROM   DBA_Ind_Columns
@@ -1466,7 +1471,7 @@ class DbaSchemaController < ApplicationController
                         #{get_db_version >= '12.2' ? ", DECODE(iu.Total_Access_Count, NULL, 'NO', 'YES')" : ", NULL"} DBA_Index_Usage
                         #{get_db_version >= '12.2' ? ", iu.last_used, i.Orphaned_Entries" : ", NULL Last_Used, NULL Orphaned_Entries"}
                  FROM   Indexes i
-                 LEFT OUTER JOIN DBA_Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
+                 LEFT OUTER JOIN Objects do ON do.Owner = i.Owner AND do.Object_Name = i.Index_Name AND do.Object_Type = 'INDEX'
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ ic.Index_Owner, ic.Index_Name, SUM(tc.Avg_Col_Len) Sum_Col_Len
                                   FROM Ind_Columns ic
                                   JOIN Tab_Columns tc ON tc.Column_Name = ic.Column_Name
@@ -1491,7 +1496,7 @@ class DbaSchemaController < ApplicationController
                                   MIN(i.Previous_Master) + 1  Previous_Master,     COUNT(DISTINCT DECODE(i.Previous_Master, 32767, NULL, i.Previous_Master)) Previous_Master_Cnt,
                                   SUM(i.Remaster_Cnt) Remaster_Cnt
                                   FROM   Indexes ii
-                                  JOIN   DBA_Objects o ON o.Owner = ii.Owner AND o.Object_Name = ii.Index_Name
+                                  JOIN   Objects o ON o.Owner = ii.Owner AND o.Object_Name = ii.Index_Name
                                   JOIN   V$GCSPFMASTER_INFO i ON i.Data_Object_ID = o.Data_Object_ID
                                   GROUP BY ii.Index_Name
                                  ) mi ON mi.Index_Name = i.Index_Name" if PanoramaConnection.rac?}

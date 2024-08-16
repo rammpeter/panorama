@@ -1,5 +1,6 @@
 -- Setup Oracle always free autonomous DB for Panorama tests
 -- connect as 'admin'
+-- add a direct route outside VPN to ADB ( adb.eu-frankfurt-1.oraclecloud.com ): > route add 138.1.3.227 192.168.178.1
 
 purge dba_recyclebin;
 alter profile DEFAULT limit password_life_time UNLIMITED;
