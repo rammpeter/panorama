@@ -252,7 +252,7 @@ class EnvController < ApplicationController
         unless dv_status.empty?
           dv_status.each do |dv|
             @containers.each do |c|
-              if c.con_id == dv.con_id
+              if dv['con_id'] && c.con_id == dv.con_id  # check if CDB_DV_STATUS has a column con_id, has not in 12.1
                 c.features = '' if c.features.nil?
                 c.features << "#{dv.name}: #{dv.status}\n"
               end
