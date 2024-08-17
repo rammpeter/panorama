@@ -45,7 +45,7 @@
       end
 
       column_options = []
-      column_options << { caption: 'DBID',              data: proc{|rec| rec.dbid },                        title: 'Unique identifier for this database', data_title: proc{|rec| "%t\n\nPDB DIBD = #{rec.con_dbid}"} }
+      column_options << { caption: 'DBID',              data: proc{|rec| rec.dbid },                        title: 'Unique identifier for this database', data_title: proc{|rec| "%t#{"\n\nPDB DIBD = #{rec.con_dbid}" if get_db_version >= '12.1'}"} }
       column_options << { caption: 'Name',              data: proc{|rec| rec.name },                        title: 'Name of this database' }
       column_options << { caption: 'Unique name',       data: proc{|rec| rec.db_unique_name },              title: 'Unique name of this database', data_title: proc{|rec| "%t\n\nPrimary DB unique name = '#{rec.primary_db_unique_name}'"} }
       column_options << { caption: 'Created',           data: proc{|rec| localeDateTime(rec.created) },     title: 'Creation date of this database' }
