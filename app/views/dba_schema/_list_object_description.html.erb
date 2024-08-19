@@ -131,7 +131,7 @@ column_options =
    last_analyzed_data_title = proc do |rec|
      result = "%t"
      result << "\n\nPreferences: #{@stat_prefs.join(' ')}" unless @stat_prefs.empty?
-     result << "\n\nMarked orange because analyze info is missing for #{fn(rec.missing_extension_stats)} extended statistic(s)!" if rec.missing_extension_stats > 0
+     result << "\n\nMarked orange because analyze info is missing for #{fn(rec.missing_extension_stats)} extended statistic(s)!\n\nExecution of DBMS_STATS.GATHER_TABLE_STATS is needed to fix this." if rec.missing_extension_stats > 0
      result
    end
 

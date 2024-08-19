@@ -92,7 +92,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
 
     # Access on gv$Diag_Trace_File in autonomous DB leads cancels the connection
     if get_db_version >= '12.2' && !@autonomous
-      post  '/dba/render_session_detail_tracefile_button', :params => {:format=>:html, :instance=>instance, pid: pid, sid: sid, :update_area=>:hugo }
+      post  '/dba/render_session_detail_tracefile_button', :params => {:format=>:html, :instance=>instance, tracefile: 'hugo', logon_time: localeDateTime(Time.now-1000), now_time: localeDateTime(Time.now), :update_area=>:hugo }
       assert_response :success
     end
 

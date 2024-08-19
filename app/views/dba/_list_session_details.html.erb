@@ -334,8 +334,9 @@
       <%=
         render_async(:dba, :render_session_detail_tracefile_button, {
             instance:             @instance,
-            pid:                  @dbsessions[0].pid,
-            sid:                  @sid,
+            logon_time:           localeDateTime(@dbsessions[0].logon_time),
+            now_time:             localeDateTime(@dbsessions[0].now_time),
+            tracefile:            @dbsessions[0].tracefile,
             update_area:          @update_area
         })
       %>

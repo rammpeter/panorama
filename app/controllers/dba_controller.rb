@@ -941,9 +941,9 @@ oradebug setorapname diag
                   s.Status, s.Client_Info, s.Module, s.Action, s.AudSID,
                   s.UserName, s.Machine, s.OSUser, s.Process, s.Program, s.Service_Name,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
-                  s.Logon_Time,
+                  s.Logon_Time, SYSDATE now_time /* needed for tracefile search */,
                   sci.Network_Encryption, sci.Network_Checksumming,
-                  p.spID, p.PID,
+                  p.spID, p.PID, p.TraceFile,
                   RawToHex(tx.XID) Tx_ID,
                   TO_DATE(tx.Start_Time, 'MM/DD/YY HH24:MI:SS') TX_Start_Time,
                   c.AUTHENTICATION_TYPE,
@@ -1085,26 +1085,26 @@ oradebug setorapname diag
   end
 
   def render_session_detail_tracefile_button
-    @instance     = prepare_param_instance
-    @pid          = prepare_param :pid
-    @sid          = prepare_param :sid
-    @update_area  = prepare_param :update_area
+    instance     = prepare_param_instance
+    tracefile    = prepare_param :tracefile
+    logon_time   = prepare_param :logon_time
+    now_time     = prepare_param :now_time
+
+    update_area  = prepare_param :update_area
     result = sql_select_first_row ["SELECT f.Inst_ID, f.Adr_Home, f.Trace_FileName, f.Con_ID
-                                    FROM   gv$Process p
-                                    JOIN   gv$Diag_Trace_File f ON f.Inst_ID = p.Inst_ID AND p.tracefile LIKE '%'||f.trace_filename
-                                    WHERE  p.Inst_ID = ?
-                                    AND    p.PID = ?", @instance, @pid]
+                                    FROM   gv$Diag_Trace_File f
+                                    WHERE  f.Inst_ID = ? AND ? LIKE '%'||f.trace_filename
+                                   ", instance, tracefile]
     if result
-      times= sql_select_first_row ["SELECT Logon_Time start_time, SYSDATE End_Time FROM gv$Session WHERE Inst_ID = ? AND SID = ?", @instance, @sid]
       render_button("Show trace file", {
           action:               :list_trace_file_content,
-          instance:             @instance,
+          instance:             instance,
           adr_home:             result.adr_home,
           trace_filename:       result.trace_filename,
           con_id:               result.con_id,
-          time_selection_start: localeDateTime(times.start_time),
-          time_selection_end:   localeDateTime(times.end_time),
-          update_area:          @update_area
+          time_selection_start: logon_time,
+          time_selection_end:   now_time,
+          update_area:          update_area
       }, title: 'Show content of existing trace file for this session'
       )
     else
