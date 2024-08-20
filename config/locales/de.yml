@@ -1772,7 +1772,9 @@
     Wenn diese Transformation funktioniert, dann wird aus dem HASH JOIN BUFFERED ein HASH JOIN SHARED im Ausführungsplan.
   
     In Anbetracht des inoffiziellen Status dieser Funktion sollte sie in RAC-Umgebung nicht verwendet werden, wenn PQ-Operationen auf mehrere Instanzen verteilt sind (parallel_force_local=FALSE).
-  
+
+    Leider kann HASH JOIN OUTER BUFFERED nicht nach HASH JOIN OUTER SHARED transformiert werden (zumindest is Rel. 19.24).
+    
     Vielen Dank an Randolf Eberle-Geist, der die Hintergründe zu diesem Feature geteilt hat.
     Siehe auch: https://chinaraliyev.wordpress.com/2019/04/29/parallel-shared-hash-join/
   dragnet_helper_166_name:                                  Mögliche Eliminierung von HASH JOIN BUFFERED durch Parallel Shared Hash Join

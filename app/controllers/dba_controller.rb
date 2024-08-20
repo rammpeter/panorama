@@ -603,7 +603,7 @@ oradebug setorapname diag
                        NVL(v.Name,          i.Name)          Name,
                        NVL(v.Description,   i.Description)   Description,
                        NVL(v.Value,         i.Value)         Value,
-                       NVL(v.Display_Value, i.Display_Value) Display_Value,
+                       NVL(v.Display_Value, NVL(i.Display_Value, i.Value)) Display_Value,
                        NVL(v.IsDefault,     i.IsDefault)     IsDefault,
                        v.ISSES_MODIFIABLE, v.IsSys_Modifiable, v.IsInstance_Modifiable, v.IsModified, v.IsAdjusted, v.IsDeprecated, v.Update_Comment#{", v.IsBasic" if get_db_version >= '11.1'}#{", v.Con_ID" if get_db_version >= '12.1'}
                 FROM   (SELECT /*+ NO_MERGE */

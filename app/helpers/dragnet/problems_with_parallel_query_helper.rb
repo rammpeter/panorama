@@ -390,6 +390,7 @@ The latter option by OPT_PARAM fits best for me because behaviour can be control
 If this transformation works, then the HASH JOIN BUFFERED turns into HASH JOIN SHARED in the execution plan.
 
 Respecting the unofficial state of this feature it should not be used in RAC environment if PQ operations are spread over several instances (parallel_force_local=FALSE).
+Unfortunately, HASH JOIN OUTER BUFFERED cannot be transformed to HASH JOIN OUTER SHARED (at least until rel. 19.24).
 
 Many thanks to Randolf Eberle-Geist, who shared backgrounds of this feature.
 See also: https://chinaraliyev.wordpress.com/2019/04/29/parallel-shared-hash-join/
