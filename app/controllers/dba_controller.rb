@@ -2078,6 +2078,7 @@ oradebug setorapname diag
     render_partial
   end
 
+  # Get the data for the dashboard graph
   def refresh_dashboard_ash
     instance                  = prepare_param_instance
     @groupby                  = prepare_param :groupby
@@ -2142,7 +2143,7 @@ oradebug setorapname diag
                            SELECT Grouping,
                                   #{groupby_rules[:sql_alias]},
                                   TO_CHAR(MAX(Sample_Time_Date), 'YYYY/MM/DD HH24:MI:SS') Sample_Time_String,
-                                  ROUND(AVG(Sessions), 2) Sessions
+                                  ROUND(SUM(Sessions)/?, 2) Sessions
                            FROM   (SELECT Sample_Time_Date,
                                           #{groupby_rules[:sql_alias]},
                                           COUNT(*) Sessions,
@@ -2172,7 +2173,7 @@ oradebug setorapname diag
       LEFT OUTER JOIN TopX_Groups topx ON topx.Group_Name = ash.#{groupby_rules[:sql_alias]}
       GROUP BY Sample_Time_String, DECODE(topx.Group_Name, NULL, '[ Others ]', topx.Group_Name)
       ORDER BY Sample_Time_String, DECODE(topx.Group_Name, NULL, '[ Others ]', topx.Group_Name)
-    ", grouping_secs].concat(where_values).concat([@topx])
+    ", grouping_secs, grouping_secs].concat(where_values).concat([@topx])
 
 
 

@@ -400,13 +400,13 @@ WITH Min_Ash_Sample_ID AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, MIN(Sampl
                            FROM   gv$Active_Session_History
                            GROUP BY Inst_ID
                           )
-SELECT Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID,
+SELECT Instance_Number, SQL_ID, u.UserName User_Name, SQL_Plan_Hash_Value, SQL_Plan_Line_ID,
        SUM(Seconds_Waiting) Seconds_Waiting, MAX(Max_Temp_MB) Max_Temp_MB,
        MIN(Min_Sample_Time) First_Occurrence, MAX(Max_Sample_Time) Last__Occurrence
 FROM   (
         SELECT h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID,
                COUNT(*) * 10 Seconds_Waiting, MAX(h.Temp_Space_Allocated)/(1024*1024) Max_Temp_MB,
-               MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time
+               MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time, h.User_ID
         FROM   DBA_Hist_Active_Sess_History h
         JOIN   Min_Ash_Sample_ID m ON m.Inst_ID = h.Instance_Number
         WHERE  SQL_Plan_Operation = 'HASH JOIN'
@@ -414,17 +414,18 @@ FROM   (
         AND    h.Sample_ID < m.Min_Sample_ID
         AND    h.Sample_Time > SYSDATE - ?
         AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
-        GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
+        GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID, h.User_ID
         UNION ALL
         SELECT h.Inst_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID,
                COUNT(*) Seconds_Waiting, MAX(h.Temp_Space_Allocated)/(1024*1024) Max_Temp_MB,
-               MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time
+               MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time, h.User_ID
         FROM   gv$Active_Session_History h
         WHERE  SQL_Plan_Operation = 'HASH JOIN'
         AND    SQL_Plan_Options = 'BUFFERED'
-        GROUP BY h.Inst_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
-       )
-GROUP BY Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+        GROUP BY h.Inst_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID, h.User_ID
+       ) x
+LEFT OUTER JOIN All_Users u ON u.User_ID = x.User_ID
+GROUP BY Instance_Number, SQL_ID, u.UserName, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
 HAVING SUM(Seconds_Waiting) > ?
 ORDER BY Seconds_Waiting DESC
           ",

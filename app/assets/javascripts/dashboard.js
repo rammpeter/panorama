@@ -144,7 +144,7 @@ class DashboardData {
 
         // add missing timestamps where no values exist for any wait class but values would be expected
         let previous_ts = null;
-        if (this.ash_data_array[0] && this.ash_data_array[0].data.length > 0){       // pevious data exists, then use this to check the delay to next record
+        if (this.ash_data_array[0] && this.ash_data_array[0].data.length > 0){       // previous data exists, then use this to check the delay to next record
             previous_ts = this.ash_data_array[0].data[this.ash_data_array[0].data.length - 1][0];
         }
         let date_to_add = new Date(Date.UTC());
