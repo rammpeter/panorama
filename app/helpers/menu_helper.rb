@@ -160,6 +160,11 @@ module MenuHelper
                 {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
               ]
             },
+            { :class=> 'menu', :caption=> t(:menu_storage_asm_caption, :default=>'ASM grid infrastructure'), condition: isASM?,  :content=>[
+              {:class=> 'item', :caption=>'ASM disk groups',            :controller=>:storage,     :action=>:list_asm_disk_groups,        :hint=>'Disk groups of ASM grid infrastructure' },
+              {:class=> 'item', :caption=>'ASM disks',                  :controller=>:storage,     :action=>:list_asm_disks,              :hint=>'Disks of ASM grid infrastructure' },
+            ]
+            },
             {:class=> 'item', :caption=>t(:menu_sga_pga_object_by_file_and_block_caption, :default=> 'Object by file and block no.'),      :controller=> 'dba_schema',     :action=> 'show_object_nach_file_und_block',  :hint=>t(:menu_sga_pga_object_by_file_and_block_hint, :default=> 'Determine object-name by file- and block-no.') },
           ]
         },
@@ -248,6 +253,10 @@ module MenuHelper
 
   def isExadata?
     get_db_version >= '11.2' && sql_select_one("SELECT COUNT(*) FROM (SELECT cellname FROM v$Cell_Config GROUP BY CellName)") > 0
+  end
+
+  def isASM?
+    sql_select_one("SELECT COUNT(*) FROM v$asm_diskgroup") > 0
   end
 
   # Test ob Controller die Aktion definiert hat, Controller-Name mit _ statt CamelCase

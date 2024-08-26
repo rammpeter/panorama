@@ -1083,8 +1083,29 @@ class StorageController < ApplicationController
 
     @disks = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */ pd.*, cd.*, gd.*
-      FROM   (SELECT /*+ NO_MERGE */
-                      c.cellname
+      FROM (
+            SELECT /*+ NO_MERGE */
+                    c.cellname
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/name/text()')                              AS VARCHAR2(100)) cd_name
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/comment        /text()')                   AS VARCHAR2(100)) cd_disk_comment
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/creationTime   /text()')                   AS VARCHAR2(100)) cd_creationTime
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/deviceName     /text()')                   AS VARCHAR2(100)) cd_deviceName
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/devicePartition/text()')                   AS VARCHAR2(100)) cd_devicePartition
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/diskType       /text()')                   AS VARCHAR2(100)) cd_diskType
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/errorCount     /text()')                   AS VARCHAR2(100)) cd_errorCount
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/freeSpace      /text()')                   AS VARCHAR2(100)) cd_freeSpace
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/id             /text()')                   AS VARCHAR2(100)) cd_id
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/interleaving   /text()')                   AS VARCHAR2(100)) cd_interleaving
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/lun            /text()')                   AS VARCHAR2(100)) cd_lun
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/physicalDisk   /text()')                   AS VARCHAR2(100)) cd_physicalDisk
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/size           /text()')                   AS VARCHAR2(100)) cd_disk_size
+                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/status         /text()')                   AS VARCHAR2(100)) cd_status
+            FROM   v$cell_config c,
+                   TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/celldisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
+            WHERE  c.conftype = 'CELLDISKS'
+          ) cd
+      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */
+                      c.cellname pd_CellName
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/name/text()')                          AS VARCHAR2(20)) diskname
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/diskType/text()')                      AS VARCHAR2(20)) diskType
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/luns/text()')                          AS VARCHAR2(20)) luns
@@ -1112,28 +1133,7 @@ class StorageController < ApplicationController
               FROM   v$cell_config c,
                      TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/physicaldisk'))) v
               WHERE  c.conftype = 'PHYSICALDISKS'
-             ) pd
-      JOIN (
-            SELECT /*+ NO_MERGE */
-                    c.cellname cd_cellname
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/name/text()')                              AS VARCHAR2(100)) cd_name
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/comment        /text()')                   AS VARCHAR2(100)) cd_disk_comment
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/creationTime   /text()')                   AS VARCHAR2(100)) cd_creationTime
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/deviceName     /text()')                   AS VARCHAR2(100)) cd_deviceName
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/devicePartition/text()')                   AS VARCHAR2(100)) cd_devicePartition
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/diskType       /text()')                   AS VARCHAR2(100)) cd_diskType
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/errorCount     /text()')                   AS VARCHAR2(100)) cd_errorCount
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/freeSpace      /text()')                   AS VARCHAR2(100)) cd_freeSpace
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/id             /text()')                   AS VARCHAR2(100)) cd_id
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/interleaving   /text()')                   AS VARCHAR2(100)) cd_interleaving
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/lun            /text()')                   AS VARCHAR2(100)) cd_lun
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/physicalDisk   /text()')                   AS VARCHAR2(100)) cd_physicalDisk
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/size           /text()')                   AS VARCHAR2(100)) cd_disk_size
-                  , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/status         /text()')                   AS VARCHAR2(100)) cd_status
-            FROM   v$cell_config c,
-                   TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/celldisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
-            WHERE  c.conftype = 'CELLDISKS'
-          ) cd ON cd.cd_CellName = pd.CellName AND cd.cd_physicalDisk = pd.ID
+             ) pd ON pd.pd_CellName = cd.CellName AND pd.ID = cd.cd_physicalDisk
       LEFT OUTER JOIN ( SELECT gd_CellName, gd_CellDisk,
                                COUNT(*)             gd_Grid_Disk_Count,
                                SUM(gd.gd_disk_size) gd_disk_size
@@ -1148,7 +1148,7 @@ class StorageController < ApplicationController
                                 WHERE  c.conftype = 'GRIDDISKS'
                                )gd
                         GROUP BY gd_CellName, gd_CellDisk
-                      ) gd ON gd.gd_cellName = cd.cd_CellName AND gd.gd_CellDisk = cd.cd_Name
+                      ) gd ON gd.gd_cellName = cd.CellName AND gd.gd_CellDisk = cd.cd_Name
       WHERE 1=1
       #{where_string}
     "].concat(where_values)
@@ -1162,7 +1162,7 @@ class StorageController < ApplicationController
     @filter      = ''
 
     if params[:cellname]
-      where_string << " AND pd.CellName = ?"
+      where_string << " AND cd.CellName = ?"
       where_values << params[:cellname]
       @filter << " cell='#{params[:cellname]}'"
     end
@@ -1187,8 +1187,52 @@ class StorageController < ApplicationController
 
     @disks = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */ pd.*, cd.*, gd.*, adg.Name ASM_Disk_Group_Name
-      FROM   (SELECT /*+ NO_MERGE */
-                      c.cellname
+      FROM (
+                        SELECT /*+ NO_MERGE */
+                                c.cellname
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/name/text()')                              AS VARCHAR2(100)) cd_name
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/comment        /text()')                   AS VARCHAR2(100)) cd_disk_comment
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/creationTime   /text()')                   AS VARCHAR2(100)) cd_creationTime
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/deviceName     /text()')                   AS VARCHAR2(100)) cd_deviceName
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/devicePartition/text()')                   AS VARCHAR2(100)) cd_devicePartition
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/diskType       /text()')                   AS VARCHAR2(100)) cd_diskType
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/errorCount     /text()')                   AS VARCHAR2(100)) cd_errorCount
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/freeSpace      /text()')                   AS VARCHAR2(100)) cd_freeSpace
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/id             /text()')                   AS VARCHAR2(100)) cd_id
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/interleaving   /text()')                   AS VARCHAR2(100)) cd_interleaving
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/lun            /text()')                   AS VARCHAR2(100)) cd_lun
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/physicalDisk   /text()')                   AS VARCHAR2(100)) cd_physicalDisk
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/size           /text()')                   AS VARCHAR2(100)) cd_disk_size
+                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/status         /text()')                   AS VARCHAR2(100)) cd_status
+                        FROM   v$cell_config c,
+                               TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/celldisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
+                        WHERE  c.conftype = 'CELLDISKS'
+                      ) cd
+      JOIN (
+                        SELECT /*+ NO_MERGE */
+                            c.cellname gd_CellName
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/name/text()')                               AS VARCHAR2(100)) gd_name
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmDiskgroupName/text()')                   AS VARCHAR2(100)) gd_asmDiskgroupName
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmDiskName     /text()')                   AS VARCHAR2(100)) gd_asmDiskName
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmFailGroupName/text()')                   AS VARCHAR2(100)) gd_asmFailGroupName
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/availableTo     /text()')                   AS VARCHAR2(100)) gd_availableTo
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/cachingPolicy   /text()')                   AS VARCHAR2(100)) gd_cachingPolicy
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/cellDisk        /text()')                   AS VARCHAR2(100)) gd_cellDisk
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/comment         /text()')                   AS VARCHAR2(100)) gd_disk_comment
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/creationTime    /text()')                   AS VARCHAR2(100)) gd_creationTime
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/diskType        /text()')                   AS VARCHAR2(100)) gd_diskType
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/errorCount      /text()')                   AS VARCHAR2(100)) gd_errorCount
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/id              /text()')                   AS VARCHAR2(100)) gd_id
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/offset          /text()')                   AS VARCHAR2(100)) gd_offset
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/size            /text()')                   AS VARCHAR2(100)) gd_disk_size
+                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/status          /text()')                   AS VARCHAR2(100)) gd_status
+                        FROM
+                            v$cell_config c
+                          , TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/griddisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
+                        WHERE  c.conftype = 'GRIDDISKS'
+                      ) gd ON gd.gd_cellName = cd.CellName AND gd.gd_CellDisk = cd.cd_Name
+      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */
+                      c.cellname pd_cellName
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/name/text()')                          AS VARCHAR2(20)) diskname
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/diskType/text()')                      AS VARCHAR2(20)) diskType
                     , CAST(EXTRACTVALUE(VALUE(v), '/physicaldisk/luns/text()')                          AS VARCHAR2(20)) luns
@@ -1216,51 +1260,7 @@ class StorageController < ApplicationController
               FROM   v$cell_config c,
                      TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/physicaldisk'))) v
               WHERE  c.conftype = 'PHYSICALDISKS'
-             ) pd
-      JOIN (
-                        SELECT /*+ NO_MERGE */
-                                c.cellname cd_cellname
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/name/text()')                              AS VARCHAR2(100)) cd_name
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/comment        /text()')                   AS VARCHAR2(100)) cd_disk_comment
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/creationTime   /text()')                   AS VARCHAR2(100)) cd_creationTime
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/deviceName     /text()')                   AS VARCHAR2(100)) cd_deviceName
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/devicePartition/text()')                   AS VARCHAR2(100)) cd_devicePartition
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/diskType       /text()')                   AS VARCHAR2(100)) cd_diskType
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/errorCount     /text()')                   AS VARCHAR2(100)) cd_errorCount
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/freeSpace      /text()')                   AS VARCHAR2(100)) cd_freeSpace
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/id             /text()')                   AS VARCHAR2(100)) cd_id
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/interleaving   /text()')                   AS VARCHAR2(100)) cd_interleaving
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/lun            /text()')                   AS VARCHAR2(100)) cd_lun
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/physicalDisk   /text()')                   AS VARCHAR2(100)) cd_physicalDisk
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/size           /text()')                   AS VARCHAR2(100)) cd_disk_size
-                              , CAST(EXTRACTVALUE(VALUE(v), '/celldisk/status         /text()')                   AS VARCHAR2(100)) cd_status
-                        FROM   v$cell_config c,
-                               TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/celldisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
-                        WHERE  c.conftype = 'CELLDISKS'
-                      ) cd ON cd.cd_CellName = pd.CellName AND cd.cd_physicalDisk = pd.ID
-      JOIN (
-                        SELECT /*+ NO_MERGE */
-                            c.cellname gd_CellName
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/name/text()')                               AS VARCHAR2(100)) gd_name
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmDiskgroupName/text()')                   AS VARCHAR2(100)) gd_asmDiskgroupName
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmDiskName     /text()')                   AS VARCHAR2(100)) gd_asmDiskName
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/asmFailGroupName/text()')                   AS VARCHAR2(100)) gd_asmFailGroupName
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/availableTo     /text()')                   AS VARCHAR2(100)) gd_availableTo
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/cachingPolicy   /text()')                   AS VARCHAR2(100)) gd_cachingPolicy
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/cellDisk        /text()')                   AS VARCHAR2(100)) gd_cellDisk
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/comment         /text()')                   AS VARCHAR2(100)) gd_disk_comment
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/creationTime    /text()')                   AS VARCHAR2(100)) gd_creationTime
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/diskType        /text()')                   AS VARCHAR2(100)) gd_diskType
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/errorCount      /text()')                   AS VARCHAR2(100)) gd_errorCount
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/id              /text()')                   AS VARCHAR2(100)) gd_id
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/offset          /text()')                   AS VARCHAR2(100)) gd_offset
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/size            /text()')                   AS VARCHAR2(100)) gd_disk_size
-                          , CAST(EXTRACTVALUE(VALUE(v), '/griddisk/status          /text()')                   AS VARCHAR2(100)) gd_status
-                        FROM
-                            v$cell_config c
-                          , TABLE(XMLSEQUENCE(EXTRACT(XMLTYPE(c.confval), '/cli-output/griddisk'))) v  -- gv$ isn't needed, all cells should be visible in all instances
-                        WHERE  c.conftype = 'GRIDDISKS'
-                      ) gd ON gd.gd_cellName = pd.CellName AND gd.gd_CellDisk = cd.cd_Name
+             ) pd ON pd.pd_CellName = cd.CellName AND pd.ID = cd.cd_physicalDisk
       LEFT OUTER JOIN v$ASM_Disk ad       ON ad.Name = gd.gd_ASMDiskName
       LEFT OUTER JOIN v$ASM_DiskGroup adg ON adg.Group_Number = ad.Group_Number
       WHERE 1=1
@@ -1506,6 +1506,52 @@ class StorageController < ApplicationController
                                         LEFT OUTER JOIN DBA_Tablespaces ts ON ts.Tablespace_Name = b.TS_Name
                                         ORDER BY b.Space DESC NULLS LAST
                                        "
+    render_partial
+  end
+
+  def list_asm_disk_groups
+    @group_number = prepare_param :group_number
+
+    where_string = ''
+    where_values = []
+
+    if @group_number
+      where_string << " AND d.GROUP_NUMBER = ?"
+      where_values << @group_number
+    end
+
+    @asm_disk_groups = sql_select_iterator ["\
+      SELECT g.*, d.Disks
+      FROM   V$ASM_DiskGroup g
+      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Group_Number, COUNT(*) Disks
+                       FROM   V$ASM_DISK
+                       GROUP BY Group_Number
+                      ) d ON d.Group_Number = g.Group_Number
+      WHERE  1=1#{where_string}
+      ORDER BY g.GROUP_NUMBER"].concat(where_values)
+    render_partial
+  end
+
+  def list_asm_disks
+    @group_number = prepare_param :group_number
+
+    where_string = ''
+    where_values = []
+
+    if @group_number
+      where_string << " AND d.GROUP_NUMBER = ?"
+      where_values << @group_number
+    end
+
+    @asm_disks = sql_select_iterator ["\
+      WITH Disks AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM V$ASM_Disk),
+           Groups AS (SELECT /*+ NO_MERGE MATERIALIZE */ Group_Number, Name FROM V$ASM_DiskGroup)
+      SELECT d.*, g.Name Disk_Group_Name
+      FROM   Disks d
+      LEFT OUTER JOIN Groups g ON g.Group_Number = d.Group_Number
+      WHERE  1=1#{where_string}
+      ORDER BY d.GROUP_NUMBER, d.Disk_Number
+    "].concat(where_values)
     render_partial
   end
 

@@ -2089,6 +2089,7 @@
     erzeugt durch  SQL-Translation-Framework (DBMS_SQL_TRANSLATOR)
   menu_sga_pga_stored_outlines_hint:                        Anzeige der gespeicherten Stored Outlines der Datenbank
 
+  menu_storage_asm_caption:                                 ASM Grid Infrastruktur
   menu_storage_datafile_caption:                            Datafile-Nutzung
   menu_storage_datafile_hint:                               Anlistung der Datafiles der DB
   menu_storage_matview_hint:                                Auswertung Strukturen von Materialized Views und MV-Logs

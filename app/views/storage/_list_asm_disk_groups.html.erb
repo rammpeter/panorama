@@ -1,0 +1,40 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_disks = proc do |rec|
+    ajax_link(fn(rec.disks), {
+                              controller:     :storage,
+                              action:         :list_asm_disks,
+                              group_number:   rec.group_number,
+                              update_area:    @update_area
+                    },
+                    title: "Show disks of disk group")
+  end
+
+  column_options = []
+  column_options << { caption: 'Group no.',             data: proc{|rec| fn(rec.group_number)},                   title: "Cluster-wide number assigned to the disk group (primary key)", align: :right}
+  column_options << { caption: 'Name',                  data: proc{|rec| rec.name},                               title: "Name of the disk group"}
+  column_options << { caption: 'Sector size',           data: proc{|rec| fn rec.sector_size},                     title: "Physical block size (in bytes)", align: :right}
+  column_options << { caption: 'Block size',            data: proc{|rec| fn rec.block_size},                      title: "Oracle ASM metadata block size (in bytes)", align: :right}
+  column_options << { caption: 'Alloc. unit size (MB)', data: proc{|rec| fn(rec.allocation_unit_size.to_f/(1024*1024), 1)}, title: "Size of the allocation unit (in MB)", data_title: proc{|rec| "%t\n\n#{size_explain(rec.allocation_unit_size.to_f/(1024*1024))}"}, align: :right}
+  column_options << { caption: 'State',                 data: proc{|rec| rec.state},                              title: "State of the disk group relative to the instance:\n- CONNECTED - Disk group is in use by the database instance\n- BROKEN - Database instance lost connectivity to the Oracle ASM instance that mounted the disk group\n- UNKNOWN - Oracle ASM instance has never attempted to mount the disk group\n- DISMOUNTED - Disk group was cleanly dismounted by the Oracle ASM instance following a successful mount\n- MOUNTED - Instance is successfully serving the disk group to its database clients\n- QUIESCING - CRSCTL utility attempted to dismount a disk group that contains the Oracle Cluster Registry (OCR). The disk group cannot be dismounted until Cluster Ready Services (CRS) exits, because the disk group contains the OCR."}
+  column_options << { caption: 'Type',                  data: proc{|rec| rec.type},                               title: "Redundancy type for the disk group"}
+  column_options << { caption: 'Total size (GB)',       data: proc{|rec| fn(rec.total_mb.to_f/1024)},             title: "Total capacity of the disk group (in gigabytes)", data_title: proc{|rec| "%t\n\n#{size_explain(rec.total_mb)}"}, align: :right}
+  column_options << { caption: 'Free size (GB)',        data: proc{|rec| fn(rec.free_mb.to_f/1024)},              title: "Unused capacity of the disk group (in gigabytes)", data_title: proc{|rec| "%t\n\n#{size_explain(rec.free_mb)}"}, align: :right}
+  column_options << { caption: 'Hot used (GB)',         data: proc{|rec| fn(rec.hot_used_mb.to_f/1024)},          title: "Number of used gigabytes in the hot region", data_title: proc{|rec| "%t\n\n#{size_explain(rec.hot_used_mb)}"}, align: :right}
+  column_options << { caption: 'Cold used (GB)',        data: proc{|rec| fn(rec.cold_used_mb.to_f/1024)},         title: "Number of used gigabytes in the cold region", data_title: proc{|rec| "%t\n\n#{size_explain(rec.cold_used_mb)}"}, align: :right}
+  column_options << { caption: 'Required mirror free (GB)',  data: proc{|rec| fn(rec.required_mirror_free_mb.to_f/1024)},  title: "Amount of space that is required to be available in a given disk group in order to restore redundancy after one or more disk failures. The amount of space displayed in this column takes mirroring effects into account.", data_title: proc{|rec| "%t\n\n#{size_explain(rec.required_mirror_free_mb)}"}, align: :right}
+  column_options << { caption: 'Usable file (GB)',      data: proc{|rec| fn(rec.usable_file_mb.to_f/1024)},       title: "Amount of free space that can be safely utilized taking mirroring into account and yet be able to restore redundancy after a disk failure", data_title: proc{|rec| "%t\n\n#{size_explain(rec.usable_file_mb)}"}, align: :right}
+  column_options << { caption: 'Offline disks',         data: proc{|rec| fn(rec.offline_disks)},                  title: "Number of disks in the disk group that are currently offline", align: :right}
+  column_options << { caption: 'Compatibility',         data: proc{|rec| rec.compatibility},                      title: "Minimum software version required for an ASM instance to mount this disk group"}
+  column_options << { caption: 'DB compatibility',      data: proc{|rec| rec.database_compatibility},             title: "Minimum software version required for a database instance to use files in this disk group"}
+  column_options << { caption: 'Voting files',          data: proc{|rec| rec.voting_files},                       title: "Indicates whether the disk contains voting files (Y) or not (N)"}
+  column_options << { caption: 'Disks',                 data: link_disks,                                         title: "Number of disks for disk group in v$ASM_Disk", align: :right}
+  column_options << { caption: 'Con. ID',               data: proc{|rec| fn rec.con_id},                          title: "The ID of the container to which the data pertains", align: :right} if get_db_version >= '12.2'
+
+%>
+
+<%= gen_slickgrid(@asm_disk_groups, column_options, {
+    max_height: 450, caption: "ASM disk groups from v$ASM_DiskGroup#{" for group number = #{@group_number}" if @group_number}", show_pin_icon: 1,
+    update_area:   @update_area
+}) %>
