@@ -4,10 +4,12 @@ class DbaController < ApplicationController
   include DbaHelper
 
   def show_locks
-    @dml_count = sql_select_first_row "
+    @dml_count = sql_select_first_row "\
+      WITH Locks AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, Request, Type FROM gv$Lock),
+           Sessions AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, Type, LockWait FROM gv$Session)
       SELECT COUNT(*) DML_Count, SUM(CASE WHEN s.LockWait IS NOT NULL AND l.Request != 0 THEN 1 ELSE 0 END) Blocking_DML_Count
-      FROM   gv$Lock l
-      JOIN   gv$session s ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID
+      FROM   Locks l
+      JOIN   Sessions s ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID
       WHERE  s.type          = 'USER'
       AND    l.Type NOT IN ('AE', 'PS')
     "

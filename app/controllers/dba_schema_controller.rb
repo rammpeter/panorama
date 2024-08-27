@@ -1562,11 +1562,8 @@ class DbaSchemaController < ApplicationController
         end
       end
 
-      names = ''
-      columns.each do |c|
-        names << ", #{c.column_expression ? c.column_expression : c.column_name}" if i.index_name == c.index_name
-      end
-      i[:column_names] = names[2,names.length]
+      i[:column_names] = columns.select { |c| c.index_name == i.index_name }.map { |c| c.column_expression || c.column_name }.join(', ')
+      i[:expression_aliases] = columns.select { |c| c.index_name == i.index_name && c.column_expression }.map { |c| c.column_name }.join(', ')
 
       if i.partition_number&.> 0
         i['partition_expression'] = get_index_partition_expression(i.owner, i.index_name)
