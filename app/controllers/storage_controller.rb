@@ -1057,7 +1057,7 @@ class StorageController < ApplicationController
     @filter      = ''
 
     if params[:cellname]
-      where_string << " AND pd.CellName = ?"
+      where_string << " AND pd.pd_CellName = ?"
       where_values << params[:cellname]
       @filter << " cell='#{params[:cellname]}'"
     end
