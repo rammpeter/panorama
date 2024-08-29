@@ -2178,6 +2178,10 @@ oradebug setorapname diag
     ", grouping_secs, grouping_secs].concat(where_values).concat([@topx])
 
 
+    if ash_data.empty?                                                          # Ensure that at least one data point is returned to set the graph to 0
+      now_string = sql_select_one "SELECT TO_CHAR(SYSDATE, 'YYYY/MM/DD HH24:MI:SS') FROM DUAL"
+      ash_data << { sample_time_string: now_string, wait_class: 'Other', sessions: 0}.extend(SelectHashHelper)
+    end
 
     #ash_data << { Sample_Time_String: db_time_now.strftime("%Y/%m/%d %H:%M:%S"), 'wait_class': "END #{db_time_now.strftime("%H:%M:%S")}", 'sessions': 20}.extend(SelectHashHelper) # add end marker for chart
     # Calculate sums for grouping categories
