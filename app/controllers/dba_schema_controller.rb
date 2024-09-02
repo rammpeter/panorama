@@ -76,6 +76,48 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def show_db_user_ddl
+    @username = prepare_param :username
+
+    @output = ''
+    @output << sql_select_one(["SELECT DBMS_METADATA.GET_DDL('USER', ?) FROM DUAL", @username]) + ";\n"
+    quotas = sql_select_one(["SELECT DBMS_METADATA.GET_GRANTED_DDL('TABLESPACE_QUOTA', tq.UserName) FROM DBA_TS_Quotas tq   WHERE tq.UserName = ?", @username])
+    @output << quotas.gsub(/END;/, "END;\n/") + "\n" unless quotas.nil?
+    role_privs = sql_select_one(["SELECT DBMS_METADATA.GET_GRANTED_DDL('ROLE_GRANT', rp.Grantee) FROM DBA_Role_Privs rp  WHERE rp.Grantee = ?", @username])
+    @output << role_privs.gsub(/(\S.*)$/, '\1;') + "\n" unless role_privs.nil?
+    sys_privs = sql_select_one(["SELECT DBMS_METADATA.GET_GRANTED_DDL('SYSTEM_GRANT', sp.Grantee) FROM DBA_Sys_Privs sp   WHERE sp.Grantee = ?", @username])
+    @output << sys_privs.gsub(/(\S.*)$/, '\1  ;') + "\n" unless sys_privs.nil?
+    if sql_select_one(["SELECT COUNT(*) FROM DBA_Tab_Privs tp WHERE tp.Grantee = ?", @username]) > 0
+      @output << "-- Object privileges are not evaluated due to possible large amount and runtime\n"
+      @output << "-- generate the if needed by:\n"
+      @output << "-- SELECT DBMS_METADATA.GET_GRANTED_DDL('OBJECT_GRANT', tp.Grantee) FROM DBA_Tab_Privs tp   WHERE tp.Grantee = '#{@username}';\n"
+    end
+
+    default_role = sql_select_one(["SELECT DBMS_METADATA.GET_GRANTED_DDL('DEFAULT_ROLE', rp.Grantee) FROM DBA_Role_Privs rp  WHERE rp.Grantee = ? AND rp.default_role = 'YES'", @username])
+    @output << default_role.gsub(/(\S.*)$/, '\1;') + "\n" unless default_role.nil?
+
+
+=begin
+    select to_clob('/* Start profile creation script in case they are missing') AS ddl
+    from   dba_users u
+    where  u.username = :v_username
+    and    u.profile <> 'DEFAULT'
+    and    rownum = 1
+    union all
+    select dbms_metadata.get_ddl('PROFILE', u.profile) AS ddl
+    from   dba_users u
+    where  u.username = :v_username
+    and    u.profile <> 'DEFAULT'
+    union all
+    select to_clob('End profile creation script */') AS ddl
+    from   dba_users u
+    where  u.username = :v_username
+    and    u.profile <> 'DEFAULT'
+    and    rownum = 1
+=end
+    render_partial
+  end
+
   def list_roles
     @role     = prepare_param :role
     where_string = ''
