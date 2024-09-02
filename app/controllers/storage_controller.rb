@@ -1270,6 +1270,11 @@ class StorageController < ApplicationController
     render_partial
   end
 
+  def list_exadata_cell_open_alerts
+    @alerts = sql_select_iterator "SELECT * FROM V$CELL_OPEN_ALERTS ORDER BY Begin_Time DESC"
+    render_partial
+  end
+
   def list_temp_usage_sysmetric_historic
     save_session_time_selection
 

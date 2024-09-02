@@ -1,0 +1,12 @@
+<%
+  column_options = []
+  column_options << {caption: 'Cell name',    data: proc{|rec| rec.cell_name},                  title: 'Cell name'}
+  column_options << {caption: 'Cell hash',    data: proc{|rec| fn rec.cell_hash},               title: 'Cell hash', align: :right}
+  column_options << {caption: 'Begin time',   data: proc{|rec| localeDateTime rec.begin_time},  title: 'Begin time of alert'}
+  column_options << {caption: 'Seq.',         data: proc{|rec| fn rec.seq_no},                  title: 'Sequence number', align: :right}
+  column_options << {caption: 'Stateful',     data: proc{|rec| rec.stateful},                   title: 'Stateful?'}
+  column_options << {caption: 'Severity',     data: proc{|rec| rec.severity},                   title: 'Severity?'}
+  column_options << {caption: 'Message',      data: proc{|rec| rec.message},                    title: 'The alert message', max_wrap_width: 300}
+%>
+
+<%= gen_slickgrid(@alerts, column_options, {caption: "Exadata cell server alerts from V$CELL_OPEN_ALERTS", max_height: 450, show_pin_icon: 1}) %>

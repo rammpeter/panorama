@@ -158,6 +158,7 @@ module MenuHelper
                 {:class=> 'item', :caption=>'Cell server physical disks',    :controller=>:storage,     :action=>:list_exadata_cell_physical_disk,  :hint=>'List physical disks of exadata cell server' },
                 {:class=> 'item', :caption=>'Cell server cell disks',        :controller=>:storage,     :action=>:list_exadata_cell_cell_disk,      :hint=>'List configured cell disks of exadata cell server' },
                 {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
+                {:class=> 'item', :caption=>'Cell server open alerts',       :controller=>:storage,     :action=>:list_exadata_cell_open_alerts,    :hint=>'List open alerts of exadata cell server' },
               ]
             },
             { :class=> 'menu', :caption=> t(:menu_storage_asm_caption, :default=>'ASM grid infrastructure'), condition: isASM?,  :content=>[
