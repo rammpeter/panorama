@@ -1,0 +1,10 @@
+<% update_area = get_unique_area_id %>
+
+<%=
+  gen_slickgrid(@stats, @column_options, {
+    caption: "SysMetric von #{@time_selection_start} bis #{@time_selection_end} aus #{@caption_add}",
+    max_height: 450, update_area: update_area
+  })
+%>
+<div id="<%= update_area %>"></div>
+

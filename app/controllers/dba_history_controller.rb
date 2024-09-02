@@ -1422,7 +1422,7 @@ FROM (
 
     case
       when params["detail"] then
-        caption_add = "SysMetric_History"
+        @caption_add = "SysMetric_History"
         stmt = "      WITH MinTS AS (SELECT /*+ MATERIALIZE */ Inst_ID, MIN(Begin_Time) Min_Begin_Time
                                      FROM   gv$SysMetric_History
                                      GROUP BY Inst_ID)
@@ -1452,7 +1452,7 @@ FROM (
                       GROUP BY #{time_expression} , Metric_ID, Metric_Name, Metric_Unit
                       ORDER BY 1, Metric_ID"
       when params["summary"] then
-        caption_add = "SysMetric_Summary"
+        @caption_add = "SysMetric_Summary"
         stmt = "      WITH MinTS AS (SELECT Inst_ID, MIN(Begin_Time) Min_Begin_Time
                                      FROM   gv$SysMetric_Summary
                                      GROUP BY Inst_ID)
@@ -1505,25 +1505,16 @@ FROM (
     end
     @stats << record  unless empty                                              # letzten Record wegschreiben, wenn Result exitierte
 
-    column_options =
+    @column_options =
     [
       {:caption=>"Intervall",   :data=>proc{|rec| localeDateTime(rec[:begin_time]) }, :title=>"Beginn des Zeitintervalls", :plot_master_time=>true }
     ]
     columns.each do |key, value|
-      column_options << {:caption=>value[:metric_name], :data=>proc{|rec| formattedNumber(rec[key] ? rec[key][:value] : 0, 2) }, :title=>"#{value[:metric_name]}: #{value[:metric_unit]}", :data_title=>proc{|rec| rec[key] ? "#{value[:metric_name]}: #{value[:metric_unit]}: min.value=#{formattedNumber(rec[key][:minvalue],2)}, max.value=#{formattedNumber(rec[key][:maxvalue],2)}" : ""}, :align=>"right" }
+      @column_options << {:caption=>value[:metric_name], :data=>proc{|rec| formattedNumber(rec[key] ? rec[key][:value] : 0, 2) }, :title=>"#{value[:metric_name]}: #{value[:metric_unit]}", :data_title=>proc{|rec| rec[key] ? "#{value[:metric_name]}: #{value[:metric_unit]}: min.value=#{formattedNumber(rec[key][:minvalue],2)}, max.value=#{formattedNumber(rec[key][:maxvalue],2)}" : ""}, :align=>"right" }
     end
 
-    output = gen_slickgrid(@stats, column_options,
-                     {:plot_area_id => "list_sysmetric_historic_plot_area",
-                      :caption      => "SysMetric von #{@time_selection_start} bis #{@time_selection_end} aus #{caption_add}",
-                      :max_height   => 450
-                     }
-      )
-    output << "<div id='list_sysmetric_historic_plot_area' style='float:left; width:100%;'></div>".html_safe
-
-    respond_to do |format|
-      format.html {render :html => output }
-    end
+    add_statusbar_message("If connected to a PDB: You need to be connected at CDB level to evaluate system metrics!") if @stats.empty?
+    render_partial
   end
 
   def list_latch_statistics_historic
