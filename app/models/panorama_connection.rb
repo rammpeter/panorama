@@ -129,6 +129,7 @@ class PanoramaConnection
   attr_accessor :sql_errors_count
   attr_reader :block_common_header_size
   attr_reader :cdb
+  attr_reader :cluster_database                                                 # 'TRUE' if DB is a RAC
   attr_reader :con_id
   attr_reader :database_name
   attr_reader :data_header_size
@@ -137,7 +138,6 @@ class PanoramaConnection
   attr_reader :db_wordsize
   attr_reader :db_version
   attr_reader :edition
-  attr_reader :instance_count
   attr_reader :instance_number
   attr_reader :jdbc_connection
   attr_reader :last_used_action_name
@@ -180,11 +180,11 @@ class PanoramaConnection
   def read_initial_attributes
     db_config   = PanoramaConnection.direct_select_one(@jdbc_connection,
                   "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID,
-                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$System_Parameter WHERE UPPER(Name) = 'DB_BLOCK_SIZE'), 8192)                         db_blocksize,
+                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$System_Parameter WHERE Name = 'db_block_size'), 8192)                         db_blocksize,
+                          NVL((SELECT /*+ NO_MERGE */ Value FROM v$System_Parameter WHERE Name = 'cluster_database'), 'FALSE')                              cluster_database,
                           (SELECT /*+ NO_MERGE */ DECODE (INSTR (banner, '64bit'), 0, 4, 8) Word_Size FROM v$version WHERE Banner LIKE '%Oracle Database%') db_wordsize,
                           (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Enterprise Edition%' OR Banner LIKE '%EE%')                   enterprise_edition_count,
                           (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Express Edition%')                                            express_edition_count,
-                          (SELECT /*+ NO_MERGE */ COUNT(*) FROM gv$Instance)                                                                                instance_count,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KCBH')                                                                           Block_Common_Header_Size,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'UB4')                                                                            Unsigned_Byte_4_Size,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBBH')                                                                          Transaction_Fixed_Header_Size,
@@ -197,6 +197,7 @@ class PanoramaConnection
                    CROSS JOIN v$Database d
                   ")
     @block_common_header_size         = db_config['block_common_header_size']
+    @cluster_database                 = db_config['cluster_database']
     @data_header_size                 = db_config['data_header_size']
     @db_version                       = db_config['version']
     @dbid                             = db_config['dbid']
@@ -204,7 +205,6 @@ class PanoramaConnection
     @db_blocksize                     = db_config['db_blocksize']
     @db_wordsize                      = db_config['db_wordsize']
     @edition                          = (db_config['enterprise_edition_count'] > 0  ? :enterprise : (db_config['express_edition_count'] > 0 ?  :express : :standard) )
-    @instance_count                   = db_config['instance_count']
     @instance_number                  = db_config['instance_number']
     @login_container_dbid             = db_config['dbid']                       # Default is DB's DBID, specified later for CDBs
     @logon_time                       = db_config['logon_time']
@@ -431,7 +431,7 @@ class PanoramaConnection
   def self.login_container_dbid;            check_for_open_connection(false); Thread.current[:panorama_connection_connection_object].login_container_dbid;              end
   def self.pdbs;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pdbs;                              end
   def self.pid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pid;                               end
-  def self.rac?;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].instance_count > 1;                end
+  def self.rac?;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].cluster_database.upcase == 'TRUE'; end
   def self.rowid_size;                      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].rowid_size;                        end
   def self.saddr;                           check_for_open_connection;        Thread.current[:panorama_connection_connection_object].saddr;                             end
   def self.serial_no;                       check_for_open_connection;        Thread.current[:panorama_connection_connection_object].serial_no;                         end
