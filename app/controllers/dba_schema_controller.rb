@@ -984,7 +984,8 @@ class DbaSchemaController < ApplicationController
                                                  COUNT(DISTINCT Min_Extent)       Min_Extents_Count,    MIN(Min_Extent)      Min_Extents,
                                                  COUNT(DISTINCT Max_Extent)       Max_Extents_Count,    MIN(Max_Extent)      Max_Extents,
                                                  COUNT(DISTINCT Compress_For)     Compress_For_Count,   MIN(Compress_For)    Compress_For
-                                            #{", COUNT(DISTINCT InMemory)         InMemory_Count,       MIN(InMemory)        InMemory" if get_db_version >= '12.1'}
+                                            #{", COUNT(DISTINCT InMemory)         InMemory_Count,       MIN(InMemory)        InMemory,
+                                                 COUNT(DISTINCT Cell_Flash_Cache) Cell_Flash_Cache_Count, MIN(Cell_Flash_Cache) Cell_Flash_Cache" if get_db_version >= '12.1'}
                                           FROM DBA_Tab_Partitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
       @partition_count = partitions.anzahl
 
@@ -1000,7 +1001,8 @@ class DbaSchemaController < ApplicationController
                                                     COUNT(DISTINCT Min_Extent)      Min_Extents_Count,    MIN(Min_Extent)       Min_Extents,
                                                     COUNT(DISTINCT Max_Extent)      Max_Extents_Count,    MIN(Max_Extent)       Max_Extents,
                                                     COUNT(DISTINCT Compress_For)    Compress_For_Count,   MIN(Compress_For)     Compress_For
-                                               #{", COUNT(DISTINCT InMemory)        InMemory_Count,       MIN(InMemory)         InMemory" if get_db_version >= '12.1'}
+                                               #{", COUNT(DISTINCT InMemory)        InMemory_Count,       MIN(InMemory)         InMemory,
+                                                    COUNT(DISTINCT Cell_Flash_Cache) Cell_Flash_Cache_Count, MIN(Cell_Flash_Cache) Cell_Flash_Cache" if get_db_version >= '12.1'}
                                              FROM DBA_Tab_SubPartitions WHERE  Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
       @subpartition_count = subpartitions.anzahl
 
@@ -1029,6 +1031,7 @@ class DbaSchemaController < ApplicationController
         a.min_extents       = partitions.min_extents_count  == 1 ? partitions.min_extents     : "< #{partitions.min_extents_count} different >"           if partitions.min_extents_count > 0
         a.max_extents       = partitions.max_extents_count  == 1 ? partitions.max_extents     : "< #{partitions.max_extents_count} different >"           if partitions.max_extents_count > 0
         a.inmemory          = partitions.inmemory_count     == 1 ? partitions.inmemory        : "< #{partitions.inmemory_count} different >"              if get_db_version >= '12.1' && partitions.inmemory_count > 0
+        a.cell_flash_cache  = partitions.cell_flash_cache_count == 1 ? partitions.cell_flash_cache : "< #{partitions.cell_flash_cache_count} different >" if get_db_version >= '12.1' && partitions.cell_flash_cache_count > 0
 
         # Subpartition-Werte überschreiben evtl. die Partition-Werte wieder
         a.compression       = subpartitions.compression_count  == 1 ? subpartitions.compression     : "< #{subpartitions.compression_count} different >"   if subpartitions.compression_count > 0
@@ -1043,6 +1046,7 @@ class DbaSchemaController < ApplicationController
         a.min_extents       = subpartitions.min_extents_count  == 1 ? subpartitions.min_extents     : "< #{subpartitions.min_extents_count} different >"   if subpartitions.min_extents_count > 0
         a.max_extents       = subpartitions.max_extents_count  == 1 ? subpartitions.max_extents     : "< #{subpartitions.max_extents_count} different >"   if subpartitions.max_extents_count > 0
         a.inmemory          = subpartitions.inmemory_count     == 1 ? subpartitions.inmemory        : "< #{subpartitions.inmemory_count} different >"      if get_db_version >= '12.1' && subpartitions.inmemory_count > 0
+        a.cell_flash_cache  = subpartitions.cell_flash_cache_count == 1 ? subpartitions.cell_flash_cache : "< #{subpartitions.cell_flash_cache_count} different >" if get_db_version >= '12.1' && subpartitions.cell_flash_cache_count > 0
       end
 
       @partition_expression = get_table_partition_expression(@owner, @table_name)
