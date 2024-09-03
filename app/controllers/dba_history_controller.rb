@@ -2008,6 +2008,7 @@ FROM (
   def list_performance_hub_report
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
     @realtime  = params[:realtime] == '1'
     @top_n     = params[:top_n].to_i
 
@@ -2030,7 +2031,7 @@ FROM (
                                       Selected_End_Time => TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')" if !@realtime}
                                 )
         FROM DUAL
-        ", @time_selection_start, @time_selection_start, get_dbid, @top_n, @top_n]
+        ", @time_selection_start, @time_selection_start, @dbid, @top_n, @top_n]
                                    .concat(@instance ? [@instance] : [])
                                    .concat(@realtime ? [] : [@time_selection_end, @time_selection_end])
     end
@@ -2043,11 +2044,12 @@ FROM (
   def list_awr_report_html
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
 
     get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(?, ?, ?, ?))",
-                                   get_dbid, @instance, @min_snap_id, @max_snap_id]
+                                   @dbid, @instance, @min_snap_id, @max_snap_id]
     res_array = []
     @report.each do |r|
       res_array << r.output
@@ -2058,11 +2060,12 @@ FROM (
   def list_awr_global_report_html
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
 
     get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_GLOBAL_REPORT_HTML(?, #{@instance ? '?' : 'CAST(NULL AS VARCHAR2(20))'}, ?, ?))",
-                                   get_dbid].concat(@instance ? [@instance] : []).concat([@min_snap_id, @max_snap_id])
+                                   @dbid].concat(@instance ? [@instance] : []).concat([@min_snap_id, @max_snap_id])
     res_array = []
     @report.each do |r|
       res_array << r.output
@@ -2089,12 +2092,13 @@ FROM (
   def list_ash_global_report_html
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.ASH_GLOBAL_REPORT_HTML(?, #{@instance ? '?' : 'NULL'},
                                                                 TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}'),
                                                                 TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
                                                             ))",
-                                   get_dbid].concat(@instance ? [@instance] : []).concat([@time_selection_start, @time_selection_end])
+                                   @dbid].concat(@instance ? [@instance] : []).concat([@time_selection_start, @time_selection_end])
     res_array = []
     @report.each do |r|
       res_array << r.output

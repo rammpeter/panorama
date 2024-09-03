@@ -1,0 +1,47 @@
+<%
+  @update_area = get_unique_area_id
+
+  calc_flash_cache_limit = proc do |flash_cache_limit|
+    if flash_cache_limit.nil? || flash_cache_limit[flash_cache_limit.length-1] != 'G'
+      nil
+    else
+      flash_cache_limit[0..flash_cache_limit.length-2].to_f
+    end
+  end
+
+  show_flash_cache_limit = proc do |rec|
+    num_val = calc_flash_cache_limit.call(rec.flash_cache_limit)
+    if num_val.nil?
+      rec.flash_cache_limit
+    else
+      formattedNumber(num_val)
+    end
+  end
+
+  flash_cache_limit_data_title = proc do |rec|
+    num_val = calc_flash_cache_limit.call(rec.flash_cache_limit)
+    if num_val.nil?
+      "%t"
+    else
+      "%t\n\n#{size_explain(num_val * 1024)}"
+    end
+  end
+
+  column_options =
+    [
+      {:caption=>'Cell server name',      :data=>proc{|rec| rec.cell_name},                               :title=>"Name of cell server"},
+      {:caption=>'Res. mgr. plan name',   :data=>proc{|rec| rec.iorm_plan_name},                          :title=>"Name of I/O resource manager plan"},
+      {:caption=>'Directive name',        :data=>proc{|rec| rec.directive_name},                          :title=>"Name of I/O resource manager plan directive"},
+      {:caption=>'Share name',            :data=>proc{|rec| rec.share_name},                              :title=>"Name of I/O resource manager share"},
+      {:caption=>'Flash cache limit (GB)',:data=>show_flash_cache_limit,                                  :title=>"Limit of flash cache for directive in GB", data_title: flash_cache_limit_data_title, align: :right },
+      {:caption=>'ASM cluster',           :data=>proc{|rec| rec.asm_cluster},                             :title=>"Name of associated ASM cluster"},
+    ]
+
+%>
+
+<%= gen_slickgrid(@config, column_options, {
+  :max_height => 450,
+  :caption => "EXADATA I/O resource manager configuration",
+  update_area:   @update_area
+
+}) %>

@@ -1270,6 +1270,33 @@ class StorageController < ApplicationController
     render_partial
   end
 
+  def list_exadata_io_res_mgr_config
+    @config = sql_select_all "\
+      SELECT
+          cell_name,
+          iorm_plan_name,
+          directive_name,
+          share_name,
+          flash_cache_limit,
+          asm_cluster
+      FROM
+          (SELECT EXTRACTVALUE(EXTRACT(XMLTYPE(confval), '/cli-output'), '/cli-output/context/@cell') AS cell_name,
+                  EXTRACTVALUE(EXTRACT(XMLTYPE(confval), '/cli-output/iormplan'), '/iormplan/name') AS iorm_plan_name,
+                  EXTRACT(XMLTYPE(confval), '/cli-output/iormplan') xml_val
+           FROM   v$Cell_Config WHERE conftype = 'IORM') iorm,
+          XMLTABLE(
+              'iormplan/dbPlan/directive'
+              PASSING iorm.xml_val
+              COLUMNS
+                  directive_name    VARCHAR2(50) PATH '@name',
+                  share_name        VARCHAR2(10) PATH '@share',
+                  flash_cache_limit VARCHAR2(50) PATH '@flashcachelimit',
+                  asm_cluster       VARCHAR2(50) PATH '@asmcluster'
+          ) directives
+    "
+
+    render_partial
+  end
   def list_exadata_cell_open_alerts
     @alerts = sql_select_iterator "SELECT * FROM V$CELL_OPEN_ALERTS ORDER BY Begin_Time DESC"
     render_partial
