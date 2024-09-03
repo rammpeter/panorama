@@ -2110,6 +2110,7 @@ FROM (
   def list_awr_sql_report_html
     save_session_time_selection   # werte in session puffern
     @instance  = prepare_param_instance
+    @dbid      = prepare_param_dbid
     @sql_id    = params[:sql_id]
 
     get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)

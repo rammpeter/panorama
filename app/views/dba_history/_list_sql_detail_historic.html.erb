@@ -268,6 +268,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
                            :time_selection_start  => @time_selection_start,
                            :time_selection_end    => @time_selection_end,
                            :sql_id                => @sql_id,
+                           dbid:                  @dbid,
                            browser_tab_id:        @browser_tab_id
                    ), {:method => 'post', :target=>'_blank'}) do %>
         <%= submit_tag('SQL report', :title =>t(:dba_history_list_sql_detail_historic_sql_report_hint, :default=>"Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML.\n\nLoading the new page may last some seconds, don't worry.")) %>
