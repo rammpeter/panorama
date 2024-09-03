@@ -32,7 +32,10 @@ class ClientInfoStore
 
   def self.read_from_browser_tab_client_info_store(client_key, browser_tab_id, key)
     browser_tab_ids = ClientInfoStore.read_for_client_key(client_key,:browser_tab_ids) # read full tree with all browser-tab-specific connections
-    raise "No session state available at Panorama-Server: Please restart app in browser" if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
+    if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
+      Rails.logger.error('ClientInfoStore.read_from_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids}"}
+      raise "No session state available at Panorama-Server: Please restart app in browser"
+    end
     browser_tab_ids[browser_tab_id][key]                                        # get current value for current browser tab
   end
 
@@ -43,7 +46,10 @@ class ClientInfoStore
   # @param [Hash] values The values to be written for browser tab
   def self.write_to_browser_tab_client_info_store(client_key, browser_tab_id, values)
     browser_tab_ids = self.read_for_client_key(client_key,:browser_tab_ids)             # read full tree with all browser-tab-specific connections
-    raise "No session state available at Panorama-Server: Please restart app in browser" if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
+    if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
+      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids}"}
+      raise "No session state available at Panorama-Server: Please restart app in browser"
+    end
     values.each do |key, value|
       browser_tab_ids[browser_tab_id][key] = value                               # set current values for current browser tab
     end
