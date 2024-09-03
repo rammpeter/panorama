@@ -1275,14 +1275,20 @@ class StorageController < ApplicationController
       SELECT
           cell_name,
           iorm_plan_name,
+          objective,
+          Status,
           directive_name,
           share_name,
           flash_cache_limit,
-          asm_cluster
+          asm_cluster,
+          confval
       FROM
-          (SELECT EXTRACTVALUE(EXTRACT(XMLTYPE(confval), '/cli-output'), '/cli-output/context/@cell') AS cell_name,
-                  EXTRACTVALUE(EXTRACT(XMLTYPE(confval), '/cli-output/iormplan'), '/iormplan/name') AS iorm_plan_name,
-                  EXTRACT(XMLTYPE(confval), '/cli-output/iormplan') xml_val
+          (SELECT EXTRACTVALUE(XMLTYPE(confval), '/cli-output/context/@cell') AS cell_name,
+                  EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/name') AS iorm_plan_name,
+                  EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/objective') AS objective,
+                  EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/status') AS Status,
+                  EXTRACT(XMLTYPE(confval), '/cli-output/iormplan') xml_val,
+                  confval
            FROM   v$Cell_Config WHERE conftype = 'IORM') iorm,
           XMLTABLE(
               'iormplan/dbPlan/directive'

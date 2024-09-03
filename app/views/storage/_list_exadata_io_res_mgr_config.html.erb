@@ -31,17 +31,20 @@
     [
       {:caption=>'Cell server name',      :data=>proc{|rec| rec.cell_name},                               :title=>"Name of cell server"},
       {:caption=>'Res. mgr. plan name',   :data=>proc{|rec| rec.iorm_plan_name},                          :title=>"Name of I/O resource manager plan"},
+      {:caption=>'Objective',             :data=>proc{|rec| rec.objective},                               :title=>"Objective of I/O resource manager plan"},
+      {:caption=>'Status',                :data=>proc{|rec| rec.status},                                  :title=>"Status of I/O resource manager plan"},
       {:caption=>'Directive name',        :data=>proc{|rec| rec.directive_name},                          :title=>"Name of I/O resource manager plan directive"},
       {:caption=>'Share name',            :data=>proc{|rec| rec.share_name},                              :title=>"Name of I/O resource manager share"},
       {:caption=>'Flash cache limit (GB)',:data=>show_flash_cache_limit,                                  :title=>"Limit of flash cache for directive in GB", data_title: flash_cache_limit_data_title, align: :right },
       {:caption=>'ASM cluster',           :data=>proc{|rec| rec.asm_cluster},                             :title=>"Name of associated ASM cluster"},
+      {:caption=>'Native config',         :data=>proc{|rec| my_html_escape rec.confval},                                 :title=>"The native content of V$Cell_Config.confval"},
     ]
 
 %>
 
 <%= gen_slickgrid(@config, column_options, {
   :max_height => 450,
-  :caption => "EXADATA I/O resource manager configuration",
+  :caption => "EXADATA I/O resource manager configuration from v$Cell_Config",
   update_area:   @update_area
 
 }) %>

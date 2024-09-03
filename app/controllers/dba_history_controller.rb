@@ -1968,19 +1968,19 @@ FROM (
   # min und max. Snap_ID für gegebenen Zeitraum und Instance (nullable)
   # get latest snapshot before period and first after period
   # belegt Instanzvariablen
-  def get_min_max_snapshot(instance, time_selection_start, time_selection_end)
+  def get_min_max_snapshot(instance, time_selection_start, time_selection_end, dbid)
     @min_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
                                    FROM   DBA_Hist_Snapshot
                                    WHERE  DBID = ?
                                    AND    End_Interval_Time < TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_start)}')
                                    #{' AND Instance_Number = ?' if instance}
-                                  ", get_dbid, time_selection_start].concat(instance ? [instance] : [])
+                                  ", dbid, time_selection_start].concat(instance ? [instance] : [])
     if @min_snap_id.nil?                                                      # Ersten Snap nehmen wenn keiner zum start gefunden
       @min_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
                                       FROM   DBA_Hist_Snapshot
                                       WHERE  DBID = ?
                                       #{' AND Instance_Number = ?' if instance}
-                                     ", get_dbid].concat(instance ? [instance] : [])
+                                     ", dbid].concat(instance ? [instance] : [])
     end
 
     @max_snap_id = sql_select_one ["SELECT MIN(Snap_ID)
@@ -1988,19 +1988,19 @@ FROM (
                                    WHERE  DBID = ?
                                    AND    End_Interval_Time > TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_end)}')
                                    #{' AND Instance_Number = ?' if instance}
-                                   ", get_dbid, time_selection_end].concat(instance ? [instance] : [])
+                                   ", dbid, time_selection_end].concat(instance ? [instance] : [])
 
     if @max_snap_id.nil?                                                        # Letzten Snap nehmen wenn keiner zum Endezeitpunkt gefunden
       @max_snap_id = sql_select_one ["SELECT MAX(Snap_ID)
                                      FROM   DBA_Hist_Snapshot
                                      WHERE  DBID = ?
                                     #{' AND Instance_Number = ?' if instance}
-                                     ", get_dbid].concat(instance ? [instance] : [])
+                                     ", dbid].concat(instance ? [instance] : [])
 
     end
 
-    raise PopupMessageException.new("No AWR snapshots are found for your DBID = #{get_dbid}#{", instance = #{@instance}" if @instance} in #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')}!") if @min_snap_id.nil? || @max_snap_id.nil?
-    raise PopupMessageException.new("Only one or less AWR snapshots found for DBID = #{get_dbid} in time period '#{time_selection_start}' until '#{time_selection_end}'#{", instance = #{@instance}" if @instance}! Table = #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')}, Min. Snap_ID = #{@min_snap_id}, max. Snap_ID = #{@max_snap_id}\nPlease use larger time period!") if @min_snap_id >= @max_snap_id
+    raise PopupMessageException.new("No AWR snapshots are found for your DBID = #{dbid}#{", instance = #{@instance}" if @instance} in #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')}!") if @min_snap_id.nil? || @max_snap_id.nil?
+    raise PopupMessageException.new("Only one or less AWR snapshots found for DBID = #{dbid} in time period '#{time_selection_start}' until '#{time_selection_end}'#{", instance = #{@instance}" if @instance}! Table = #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')}, Min. Snap_ID = #{@min_snap_id}, max. Snap_ID = #{@max_snap_id}\nPlease use larger time period!") if @min_snap_id >= @max_snap_id
   end
 
   public
@@ -2046,7 +2046,7 @@ FROM (
     @instance  = prepare_param_instance
     @dbid      = prepare_param_dbid
 
-    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(?, ?, ?, ?))",
                                    @dbid, @instance, @min_snap_id, @max_snap_id]
@@ -2062,7 +2062,7 @@ FROM (
     @instance  = prepare_param_instance
     @dbid      = prepare_param_dbid
 
-    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_GLOBAL_REPORT_HTML(?, #{@instance ? '?' : 'CAST(NULL AS VARCHAR2(20))'}, ?, ?))",
                                    @dbid].concat(@instance ? [@instance] : []).concat([@min_snap_id, @max_snap_id])
@@ -2112,7 +2112,7 @@ FROM (
     @instance  = prepare_param_instance
     @sql_id    = params[:sql_id]
 
-    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end)
+    get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)
 
     @report = sql_select_iterator ["SELECT output FROM TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML(?, ?, ?, ?, ?))",
                                    get_dbid, @instance, @min_snap_id, @max_snap_id, @sql_id]
