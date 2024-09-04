@@ -47,9 +47,9 @@
           {:caption=>'CPU count',             :data=>proc{|rec| rec.cpu_count},                               :title=>"Number of CPU threads (incl. hyperthreading)", :align=>:right},
           {:caption=>'Memory (GB)',           :data=>proc{|rec| rec.memorygb},                                :title=>"Memory in GB", :align=>:right},
           {:caption=>'Hard disks',            :data=>proc{|rec| link_harddisks(rec, rec.num_harddisks)},      :title=>"Number of hard disks in storage cell", :align=>:right},
-          {:caption=>'Physical size hard disk (GB)', :data=>proc{|rec| fn rec.total_gb_harddisk},             :title=>"Total physical capacity of hard disks in GB", :align=>:right},
+          {:caption=>'Physical size hard disk (GB)', :data=>proc{|rec| fn rec.total_gb_harddisk},             :title=>"Total physical capacity of hard disks in GB\nThis the gross value.\nThe net value is this value divided by the number of redundancy (typically 2 for normal redundancy or 3 for high redundancy).", :align=>:right},
           {:caption=>'Flash disks',            :data=>proc{|rec| link_flashdisks(rec, rec.num_flashdisks)},   :title=>"Number of hard disks in storage cell", :align=>:right},
-          {:caption=>'Physical size flash disk (GB)', :data=>proc{|rec| fn rec.total_gb_flashdisk},           :title=>"Total physical capacity of flash disks in GB", :align=>:right},
+          {:caption=>'Physical size flash disk (GB)', :data=>proc{|rec| fn rec.total_gb_flashdisk},           :title=>"Total physical capacity of flash disks in GB\nThis the gross value.\nThe net value is this value divided by the number of redundancy (typically 2 for normal redundancy or 3 for high redundancy).", :align=>:right},
           {:caption=>'Cell disk count',       :data=>proc{|rec| link_cell_disk(rec, fn(rec.cd_cell_disk_count))},     :title=>"Number of configured cell disks", :align=>:right},
           {:caption=>'Cell disk size (GB)',   :data=>proc{|rec| fn(rec.cd_disk_size.to_i/(1024*1024*1024),1)},        :title=>"Summarized cell disk size in GB", :align=>:right},
           {:caption=>'Cell disk free space (GB)',   :data=>proc{|rec| fn(rec.cd_freespace.to_i/(1024*1024*1024),1)},  :title=>"Summarized cell disk free space in GB", :align=>:right},
@@ -66,7 +66,7 @@
           {:caption=>'SNMP subscriber',       :data=>proc{|rec| rec.snmpsubscriber},                      },
           {:caption=>'Status',                :data=>proc{|rec| rec.status},                      },
           {:caption=>'Uptime',                :data=>proc{|rec| rec.uptime},                      },
-          {:caption=>'Temp.',                :data=>proc{|rec| rec.temperaturereading},                       :title=>"Temperatur"},
+          {:caption=>'Temp.',                :data=>proc{|rec| rec.temperaturereading},                       :title=>"Temperatur", align: :right},
       ]
 
 %>

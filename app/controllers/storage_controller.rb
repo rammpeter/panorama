@@ -1273,17 +1273,21 @@ class StorageController < ApplicationController
   def list_exadata_io_res_mgr_config
     @config = sql_select_all "\
       SELECT
+          timestamp,
           cell_name,
           iorm_plan_name,
           objective,
           Status,
           directive_name,
           share_name,
+          flash_cache_min,
+          flash_cache_size,
           flash_cache_limit,
           asm_cluster,
           confval
       FROM
-          (SELECT EXTRACTVALUE(XMLTYPE(confval), '/cli-output/context/@cell') AS cell_name,
+          (SELECT EXTRACTVALUE(XMLTYPE(confval), '/cli-output/timestamp') AS timestamp,
+                  EXTRACTVALUE(XMLTYPE(confval), '/cli-output/context/@cell') AS cell_name,
                   EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/name') AS iorm_plan_name,
                   EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/objective') AS objective,
                   EXTRACTVALUE(XMLTYPE(confval), '/cli-output/iormplan/status') AS Status,
@@ -1297,6 +1301,8 @@ class StorageController < ApplicationController
                   directive_name    VARCHAR2(50) PATH '@name',
                   share_name        VARCHAR2(10) PATH '@share',
                   flash_cache_limit VARCHAR2(50) PATH '@flashcachelimit',
+                  flash_cache_size  VARCHAR2(50) PATH '@flashcachesize',
+                  flash_cache_min  VARCHAR2(50) PATH '@flashcachemin',
                   asm_cluster       VARCHAR2(50) PATH '@asmcluster'
           ) directives
     "

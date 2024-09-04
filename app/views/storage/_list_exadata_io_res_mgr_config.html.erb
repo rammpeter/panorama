@@ -1,25 +1,25 @@
 <%
   @update_area = get_unique_area_id
 
-  calc_flash_cache_limit = proc do |flash_cache_limit|
-    if flash_cache_limit.nil? || flash_cache_limit[flash_cache_limit.length-1] != 'G'
+  calc_flash_cache = proc do |value_str|
+    if value_str.nil? || value_str[value_str.length-1] != 'G'
       nil
     else
-      flash_cache_limit[0..flash_cache_limit.length-2].to_f
+      value_str[0..value_str.length-2].to_f
     end
   end
 
-  show_flash_cache_limit = proc do |rec|
-    num_val = calc_flash_cache_limit.call(rec.flash_cache_limit)
+  show_flash_cache = proc do |value_str|
+    num_val = calc_flash_cache.call(value_str)
     if num_val.nil?
-      rec.flash_cache_limit
+      value_str
     else
       formattedNumber(num_val)
     end
   end
 
-  flash_cache_limit_data_title = proc do |rec|
-    num_val = calc_flash_cache_limit.call(rec.flash_cache_limit)
+  flash_cache_data_title = proc do |value_str|
+    num_val = calc_flash_cache.call(value_str)
     if num_val.nil?
       "%t"
     else
@@ -29,22 +29,26 @@
 
   column_options =
     [
+      {:caption=>'Timestamp',             :data=>proc{|rec| localeDateTime(Time.at(rec.timestamp.to_i/1000.0))},                               :title=>"Timestamp of information\nData is not directly read from cell sever.\nThere might be a actualization gap of several minutes"},
       {:caption=>'Cell server name',      :data=>proc{|rec| rec.cell_name},                               :title=>"Name of cell server"},
       {:caption=>'Res. mgr. plan name',   :data=>proc{|rec| rec.iorm_plan_name},                          :title=>"Name of I/O resource manager plan"},
       {:caption=>'Objective',             :data=>proc{|rec| rec.objective},                               :title=>"Objective of I/O resource manager plan"},
       {:caption=>'Status',                :data=>proc{|rec| rec.status},                                  :title=>"Status of I/O resource manager plan"},
-      {:caption=>'Directive name',        :data=>proc{|rec| rec.directive_name},                          :title=>"Name of I/O resource manager plan directive"},
-      {:caption=>'Share name',            :data=>proc{|rec| rec.share_name},                              :title=>"Name of I/O resource manager share"},
-      {:caption=>'Flash cache limit (GB)',:data=>show_flash_cache_limit,                                  :title=>"Limit of flash cache for directive in GB", data_title: flash_cache_limit_data_title, align: :right },
+      {:caption=>'Database name',         :data=>proc{|rec| rec.directive_name},                          :title=>"Name of I/O resource manager plan directive / Database"},
+      {:caption=>'Share count',           :data=>proc{|rec| rec.share_name},                              :title=>"This number defines the number of shares of the flash resource for this DB compared to the shares of the competing", align: :right},
+      {:caption=>'Flash cache min. (GB)', :data=>proc{|rec| show_flash_cache.call(rec.flash_cache_min)},  :title=>"Specifies a minimum guaranteed space allocation for DB in GB in Exadata Smart Flash Cache.", data_title: proc{|rec| flash_cache_data_title.call(rec.flash_cache_min)}, align: :right },
+      {:caption=>'Flash cache size (GB)', :data=>proc{|rec| show_flash_cache.call(rec.flash_cache_size)}, :title=>"Fixed amount of flash cache for DB in GB.\n\nDefines a hard limit for space usage in Exadata Smart Flash Cache.\nThe limit cannot be exceeded, even if the cache is not full.", data_title: proc{|rec| flash_cache_data_title.call(rec.flash_cache_size)}, align: :right },
+      {:caption=>'Flash cache limit (GB)',:data=>proc{|rec| show_flash_cache.call(rec.flash_cache_limit)},:title=>"Upper limit of flash cache for DB in GB.\n\nThe flashcachelimit attribute defines a soft limit for space usage in Exadata Smart Flash Cache.\nIf the cache is not full, the limit can be exceeded.", data_title: proc{|rec| flash_cache_data_title.call(rec.flash_cache_limit)}, align: :right },
       {:caption=>'ASM cluster',           :data=>proc{|rec| rec.asm_cluster},                             :title=>"Name of associated ASM cluster"},
-      {:caption=>'Native config',         :data=>proc{|rec| my_html_escape rec.confval},                                 :title=>"The native content of V$Cell_Config.confval"},
+      {:caption=>'Native config',         :data=>proc{|rec| my_html_escape rec.confval},                  :title=>"The native content of V$Cell_Config.confval for conftype = 'IORM'"},
     ]
 
 %>
 
 <%= gen_slickgrid(@config, column_options, {
   :max_height => 450,
-  :caption => "EXADATA I/O resource manager configuration from v$Cell_Config",
+  :caption => "EXADATA I/O resource manager configuration from v$Cell_Config \n(may need some minutes to refresh after change on cells)",
+  line_height_single: true,
   update_area:   @update_area
 
 }) %>
