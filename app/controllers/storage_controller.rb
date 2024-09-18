@@ -1314,6 +1314,92 @@ class StorageController < ApplicationController
     render_partial
   end
 
+  def show_exadata_io_load_by_cell_db
+    @cells = sql_select_all "\
+      SELECT d.Cell_Hash, c.Cell_Path, c.Cell_Name
+      FROM   (SELECT /*+ NO_MERGE */ DISTINCT Cell_Hash FROM DBA_Hist_Cell_DB) d
+      LEFT OUTER JOIN (SELECT CellHash, CellName Cell_Path,
+                       CAST(extract(xmltype(confval), '/cli-output/cell/name/text()')  AS VARCHAR2(200)) Cell_Name
+                       FROM   v$Cell_Config
+                       WHERE  ConfType = 'CELL'
+                      ) c ON c.CellHash = d.Cell_Hash
+      ORDER BY c.Cell_Name
+    "
+    @dbs = sql_select_all "\
+      SELECT DISTINCT Src_DBID, Src_DBName
+      FROM   DBA_Hist_Cell_DB
+      ORDER BY Src_DBName
+    "
+    render_partial
+  end
+
+  def list_exadata_io_load_by_cell_db
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @dbid = prepare_param_dbid
+    @cell_hash = prepare_param_int :cell_hash
+    @src_dbid = prepare_param_int :src_dbid
+
+    where_string = ''
+    where_values = []
+
+    if @cell_hash > 0
+      where_string << " AND Cell_Hash = ?"
+      where_values << @cell_hash
+    end
+
+    if @src_dbid > 0
+      where_string << " AND Src_DBID = ?"
+      where_values << @src_dbid
+    end
+
+    min_max_snaps = sql_select_first_row ["\
+      SELECT MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
+      FROM   DBA_Hist_Snapshot
+      WHERE  DBID = ?
+      AND    Instance_Number = ?
+      AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+      ", @dbid, PanoramaConnection.instance_number, @time_selection_start, @time_selection_end]
+
+    raise PopupMessageException.new("No AWR snapshots found for DBID = #{@dbid} and interval time between #{@time_selection_start} and #{@time_selection_end}") if min_max_snaps.min_snap_id.nil? || min_max_snaps.max_snap_id.nil?
+    @metrics = sql_select_all ["\
+      WITH   DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
+                      DBID, Snap_ID,
+                      Disk_Requests             - LAG(Disk_Requests, 1)             OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Requests,
+                      Disk_Bytes                - LAG(Disk_Bytes, 1)                OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Bytes,
+                      Flash_Requests            - LAG(Flash_Requests, 1)            OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Requests,
+                      Flash_Bytes               - LAG(Flash_Bytes, 1)               OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Bytes,
+                      Disk_Small_IO_Reqs        - LAG(Disk_Small_IO_Reqs, 1)        OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Small_IO_Reqs,
+                      Disk_Large_IO_Reqs        - LAG(Disk_Large_IO_Reqs, 1)        OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Large_IO_Reqs,
+                      Flash_Small_IO_Reqs       - LAG(Flash_Small_IO_Reqs, 1)       OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Small_IO_Reqs,
+                      Flash_Large_IO_Reqs       - LAG(Flash_Large_IO_Reqs, 1)       OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Large_IO_Reqs
+                    FROM   DBA_Hist_Cell_DB
+                    WHERE  DBID = ?
+                    AND    Snap_ID >= ?-1 AND Snap_ID <= ?
+                    #{where_string}
+                   )
+      SELECT ss.Begin_Interval_Time, ss.End_Interval_Time, db.*
+      FROM   (SELECT DBID, Snap_ID,
+                     SUM(Disk_Requests)                 Disk_Requests,
+                     SUM(Disk_Bytes)/(1024*1024)        Disk_MB,
+                     SUM(Flash_Requests)                Flash_Requests,
+                     SUM(Flash_Bytes)/(1024*1024)       Flash_MB,
+                     SUM(Disk_Small_IO_Reqs)            Disk_Small_IO_Reqs,
+                     SUM(Disk_Large_IO_Reqs)            Disk_Large_IO_Reqs,
+                     SUM(Flash_Small_IO_Reqs)           Flash_Small_IO_Reqs,
+                     SUM(Flash_Large_IO_Reqs)           Flash_Large_IO_Reqs
+              FROM   db
+              WHERE Snap_ID >= ?  /* suppress first line with null values for LAG */
+              GROUP BY DBID, Snap_ID
+             ) db
+      JOIN   DBA_Hist_Snapshot ss ON  ss.DBID = db.DBID
+                                  AND ss.Instance_Number = ? /* Cell server statistics do not contain an instance_number, use the connected instance to avoid duplicates */
+                                  AND ss.Snap_ID = db.Snap_ID
+      ORDER BY ss.Begin_Interval_Time
+    ", @dbid, min_max_snaps.min_snap_id, min_max_snaps.max_snap_id].concat(where_values).concat([min_max_snaps.min_snap_id, PanoramaConnection.instance_number])
+    render_partial
+  end
+
   def list_temp_usage_sysmetric_historic
     save_session_time_selection
 

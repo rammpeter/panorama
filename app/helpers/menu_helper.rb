@@ -155,9 +155,14 @@ module MenuHelper
             },
             { :class=> 'menu', :caption=> t(:menu_storage_exadata_specific_caption, :default=>'EXADATA-specific'), condition: isExadata?,  :content=>[
                 {:class=> 'item', :caption=>'Cell server config',            :controller=>:storage,     :action=>:list_exadata_cell_server,        :hint=>t(:menu_storage_exadata_specific_cell_server_hint, :default=>'Configuration of exadata cell server') },
-                {:class=> 'item', :caption=>'Cell server physical disks',    :controller=>:storage,     :action=>:list_exadata_cell_physical_disk,  :hint=>'List physical disks of exadata cell server' },
-                {:class=> 'item', :caption=>'Cell server cell disks',        :controller=>:storage,     :action=>:list_exadata_cell_cell_disk,      :hint=>'List configured cell disks of exadata cell server' },
-                {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
+                { class: 'menu', caption:  'Cell server disk config', content: [
+                  {:class=> 'item', :caption=>'Cell server physical disks',    :controller=>:storage,     :action=>:list_exadata_cell_physical_disk,  :hint=>'List physical disks of exadata cell server' },
+                  {:class=> 'item', :caption=>'Cell server cell disks',        :controller=>:storage,     :action=>:list_exadata_cell_cell_disk,      :hint=>'List configured cell disks of exadata cell server' },
+                  {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
+                ] },
+                { class: 'menu', caption:  'Cell server load analysis', content: [
+                  { class: 'item', caption: 'I/O by cells and DBs',    controller: :storage,     action: :show_exadata_io_load_by_cell_db,  :hint=>'List I/O load of exadata cell server by cell and DB' },
+                ] },
                 {:class=> 'item', :caption=>'I/O resource mgr. config',      :controller=>:storage,     :action=>:list_exadata_io_res_mgr_config,   :hint=>'List I/O resource manager config' },
                 {:class=> 'item', :caption=>'Cell server open alerts',       :controller=>:storage,     :action=>:list_exadata_cell_open_alerts,    :hint=>'List open alerts of exadata cell server' },
               ]

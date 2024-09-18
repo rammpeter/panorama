@@ -1,0 +1,35 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Exadata cell sever I/O load from #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Cell_DB')}") %>
+
+<%= ajax_form(controller: :storage, action: :list_exadata_io_load_by_cell_db, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= dbid_selection %>
+
+    <div class="flex-row-element" title="Storage cell server">
+      Cell server
+      <select name="cell_hash">
+        <option value='0' selected='selected'>[ <%= t(:all, default: 'All') %> ]</option>
+        <% @cells.each do |cell| %>
+          <option value='<%= cell.cell_hash %>'><%= my_html_escape(cell.cell_name) %> (<%= my_html_escape(cell.cell_path) %>)</option>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="flex-row-element" title="Source database for metric">
+      DB
+      <select name="src_dbid">
+        <option value='0' selected='selected'>[ <%= t(:all, default: 'All') %> ]</option>
+        <% @dbs.each do |db| %>
+          <option value='<%= db.src_dbid %>'><%= my_html_escape(db.src_dbname) %> (<%= my_html_escape(db.src_dbid) %>)</option>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag( 'Show', title: 'Show I/O load for selected conditions') %>
+    </div>
+  </div>
+<% end %>
+<div id="<%= @update_area %>"></div>

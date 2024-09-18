@@ -1,0 +1,32 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options =
+    [
+      { caption: 'Start time',                data: proc{|rec| localeDateTime(rec.begin_interval_time)},    title: 'Start of considered AWR period', data_title: proc{|rec| "%t: End of considered AWR period = #{localeDateTime(rec.end_interval_time)}" }, :plot_master_time=>true },
+      { caption: 'Disk requests',             data: proc{|rec| fn(rec.disk_requests)},                      title: 'Number of disk I/O requests performed by the database.', align: :right },
+      { caption: 'Disk MB',                   data: proc{|rec| fn(rec.disk_mb, 1)},                         title: 'Number of disk I/O Megabytes processed by the database.', data_title: proc{|rec| "%t\n\n#{size_explain(rec.disk_mb)}" },align: :right },
+      { caption: 'Flash requests',            data: proc{|rec| fn(rec.flash_requests)},                     title: 'Number of flash I/O requests performed by the database.', align: :right },
+      { caption: 'Flash MB',                  data: proc{|rec| fn(rec.flash_mb, 1)},                        title: 'Number of flash I/O Megabytes processed by the database.', data_title: proc{|rec| "%t\n\n#{size_explain(rec.flash_mb)}" },align: :right },
+      { caption: 'Disk small requests',       data: proc{|rec| fn(rec.disk_small_io_reqs)},                 title: "Number of small IO requests issued to disks by the database.\nParallel cell metric: DB_IO_RQ_SM", align: :right },
+      { caption: 'Disk large requests',       data: proc{|rec| fn(rec.disk_large_io_reqs)},                 title: "Number of large IO requests issued to disks by the database.\nParallel cell metric: DB_IO_RQ_LG", align: :right },
+      { caption: 'Flash small requests',      data: proc{|rec| fn(rec.flash_small_io_reqs)},                title: "Number of small IO requests issued to flash by the database.\nParallel cell metric: DB_FD_IO_RQ_SM", align: :right },
+      { caption: 'Flash large requests',      data: proc{|rec| fn(rec.flash_large_io_reqs)},                title: "Number of large IO requests issued to flash by the database.\nParallel cell metric: DB_FD_IO_RQ_LG", align: :right },
+    ]
+
+  caption = "Exadata cell server I/O load from #{PanoramaConnection.adjust_table_name('DBA_Hist_Cell_DB')}"
+  filter = []
+  filter << " cell server hash = #{@cell_hash}" if @cell_hash > 0
+  filter << " source DBID = #{@src_dbid}"       if @src_dbid > 0
+  caption << " for" unless filter.empty?
+  caption << filter.join(' and ')
+%>
+
+<%=
+  gen_slickgrid(@metrics, column_options, { caption: caption,
+                                            max_height: 450,
+                                            show_pin_icon: 1,
+                                            update_area:   @update_area
+  })
+%>
+
