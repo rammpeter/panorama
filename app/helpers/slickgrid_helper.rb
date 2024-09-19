@@ -290,7 +290,7 @@ module SlickgridHelper
           rescue Exception => e
             ExceptionHelper.reraise_extended_exception(e, "processing data_title-rule for column #{col[:caption]}")
           end
-          title['%t'] = col[:title] if title['%t'] && col[:title]   # einbetten :title in :data_title, wenn per %t angewiesen
+          title['%t'] = col[:title].gsub('\n', "\n") if title['%t'] && col[:title]   # einbetten :title in :data_title, wenn per %t angewiesen, replace \n with real line feed before
         end
 
         # Style ermitteln

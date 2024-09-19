@@ -6,7 +6,9 @@ Provides easy access to several current and historic state information of Oracle
 
 ![Dashboard](doc/dashboard.jpg)
 
-For more details please see: https://rammpeter.github.io/panorama.html
+For more details please have a look at:
+- a more comprehensive documentation: https://rammpeter.github.io/panorama.html
+- the blog about Oracle performance topics: https://rammpeter.blogspot.com
 
 ## Installation / Usage
 there are two ways to run Panorama:
