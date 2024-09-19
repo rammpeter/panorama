@@ -93,13 +93,13 @@ class StorageControllerTest < ActionController::TestCase
     post :list_exadata_cell_grid_disk, :params => { :format=>:html, :cellname=>'Hugo', :disktype=>'HardDisk', :physical_disk_id=>'Hugo', :cell_disk_name=>'Hugo'}
     assert_response :success
 
-    post :list_exadata_io_load_by_cell_db, params: { format: :html, dbid: get_dbid }
+    post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid }
     assert_response :success
-    post :list_exadata_io_load_by_cell_db, params: { format: :html, dbid: get_dbid, cell_hash: 123 }
+    post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, cell_hash: 123 }
     assert_response :success
-    post :list_exadata_io_load_by_cell_db, params: { format: :html, dbid: get_dbid, src_dbid: 123 }
+    post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, src_dbid: 123 }
     assert_response :success
-    post :list_exadata_io_load_by_cell_db, params: { format: :html, dbid: get_dbid, cell_hash: 123, src_dbid: 123 }
+    post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, cell_hash: 123, src_dbid: 123 }
     assert_response :success
   end
 
