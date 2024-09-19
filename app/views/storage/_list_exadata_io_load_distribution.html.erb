@@ -1,0 +1,26 @@
+<%
+
+  column_options =
+    [
+      { caption: 'Start time',                data: proc{|rec| localeDateTime(rec.begin_interval_time)},    title: 'Start of considered AWR period', data_title: proc{|rec| "%t: End of considered AWR period = #{localeDateTime(rec.end_interval_time)}" }, :plot_master_time=>true },
+    ]
+
+  @pivot_columns.each do |key, caption|
+    column_options << { caption: caption, data: proc{|rec| fn(rec[key], @col_hash[:scale] || 0)}, title: @col_hash[:title], align: :right }
+  end
+
+  caption = "Exadata cell server I/O load from #{PanoramaConnection.adjust_table_name('DBA_Hist_Cell_DB')} values for '#{@col_hash[:caption]}' grouped by '#{@grouping}'"
+  filter = []
+  filter << " cell server hash = #{@cell_hash}" if @cell_hash > 0
+  filter << " source DBID = #{@src_dbid}"       if @src_dbid > 0
+  caption << " for" unless filter.empty?
+  caption << filter.join(' and ')
+%>
+
+<%=
+  gen_slickgrid(@metrics, column_options, { caption: caption,
+                                            max_height: 450,
+                                            show_pin_icon: 1
+  })
+%>
+

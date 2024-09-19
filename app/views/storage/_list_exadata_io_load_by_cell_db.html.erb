@@ -7,17 +7,54 @@
     ]
 
   exadata_cell_db_columns.each do |key, col|
-    column =  { caption: col[:caption], data: proc{|rec| fn(rec[key.to_s], col[:scale] || 0)}, title: col[:title], align: :right }
+    caption = col[:caption].clone
+    if @cell_hash == 0
+      caption << ajax_submit('Cells',
+                             { action:                :list_exadata_io_load_distribution,
+                               update_area:           @update_area,
+                               dbid:                  @dbid,
+                               time_selection_start:  @time_selection_start,
+                               time_selection_end:    @time_selection_end,
+                               grouping:              :cell_hash,
+                               column:                key,
+                               cell_hash:             @cell_hash,
+                               src_dbid:              @src_dbid,
+                             },
+                             {title: "Show distribution of values for '#{col[:caption]}' over cells"},
+                             style: 'display:inline;'
+      )
+    end
+    if @src_dbid == 0
+      caption << ajax_submit('DBs',
+                             { action:                :list_exadata_io_load_distribution,
+                               update_area:           @update_area,
+                               dbid:                  @dbid,
+                               time_selection_start:  @time_selection_start,
+                               time_selection_end:    @time_selection_end,
+                               grouping:              :src_dbid,
+                               column:                key,
+                               cell_hash:             @cell_hash,
+                               src_dbid:              @src_dbid,
+                             },
+                             {title: "Show distribution of values for '#{col[:caption]}' over databases"},
+                             style: 'display:inline;'
+      )
+    end
+
+
+
+    column =  { caption: caption, data: proc{|rec| fn(rec[key.to_s], col[:scale] || 0)}, title: col[:title], align: :right }
     column[:data_title] = proc{|rec| "%t\n\n#{size_explain(rec[key.to_s])}" } if col[:size_explain]
     column[:data_title] = proc{|rec| "%t\n\n#{seconds_explain(rec[key.to_s])}" } if col[:seconds_explain]
     column_options << column
   end
 
-  column_options << { caption: 'Avg. request size (KB)', data: proc{|rec| fn(rec.disk_mb * 1024.to_f / rec.disk_requests ) rescue nil }, title: 'Average size of processed request in kilobytes (small + large)', align: :right }
-  column_options << { caption: 'Avg. disk small service time (µs)', data: proc{|rec| fn(rec.disk_small_io_service_time * 1000000.to_f / rec.disk_small_io_reqs, 2 ) rescue nil }, title: 'Average service time of one small disk I/O request in microseconds', align: :right }
-  column_options << { caption: 'Avg. disk large service time (µs)', data: proc{|rec| fn(rec.disk_large_io_service_time * 1000000.to_f / rec.disk_large_io_reqs, 2 ) rescue nil }, title: 'Average service time of one large disk I/O request in microseconds', align: :right }
-  column_options << { caption: 'Avg. flash small service time (µs)', data: proc{|rec| fn(rec.flash_small_io_service_time * 1000000.to_f / rec.flash_small_io_reqs, 2 ) rescue nil }, title: 'Average service time of one small flash I/O request in microseconds', align: :right }
-  column_options << { caption: 'Avg. flash large service time (µs)', data: proc{|rec| fn(rec.flash_large_io_service_time * 1000000.to_f / rec.flash_large_io_reqs, 2 ) rescue nil }, title: 'Average service time of one large flash I/O request in microseconds', align: :right }
+  column_options << { caption: 'Avg. disk request size (KB)',         data: proc{|rec| fn(rec.disk_mb * 1024.to_f / rec.disk_requests ) rescue nil }, title: 'Average size of processed disk requests in kilobytes (small + large)', align: :right }
+  column_options << { caption: 'Avg. flash request size (KB)',        data: proc{|rec| fn(rec.flash_mb * 1024.to_f / rec.flash_requests ) rescue nil }, title: 'Average size of processed flash requests in kilobytes (small + large)', align: :right }
+  column_options << { caption: 'Avg. disk small service time (µs)',   data: proc{|rec| fn(rec.disk_small_io_service_time * 1000000.to_f / rec.disk_small_io_reqs, 2 ) rescue nil }, title: 'Average service time of one small disk I/O request in microseconds', align: :right }
+  column_options << { caption: 'Avg. disk large service time (µs)',   data: proc{|rec| fn(rec.disk_large_io_service_time * 1000000.to_f / rec.disk_large_io_reqs, 2 ) rescue nil }, title: 'Average service time of one large disk I/O request in microseconds', align: :right }
+  column_options << { caption: 'Avg. flash small service time (µs)',  data: proc{|rec| fn(rec.flash_small_io_service_time * 1000000.to_f / rec.flash_small_io_reqs, 2 ) rescue nil }, title: 'Average service time of one small flash I/O request in microseconds', align: :right }
+  column_options << { caption: 'Avg. flash large service time (µs)',  data: proc{|rec| fn(rec.flash_large_io_service_time * 1000000.to_f / rec.flash_large_io_reqs, 2 ) rescue nil }, title: 'Average service time of one large flash I/O request in microseconds', align: :right }
 
   caption = "Exadata cell server I/O load from #{PanoramaConnection.adjust_table_name('DBA_Hist_Cell_DB')}"
   filter = []

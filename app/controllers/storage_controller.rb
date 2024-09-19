@@ -1337,8 +1337,8 @@ class StorageController < ApplicationController
   def list_exadata_io_load_by_cell_db
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
     @dbid = prepare_param_dbid
-    @cell_hash = prepare_param_int :cell_hash
-    @src_dbid = prepare_param_int :src_dbid
+    @cell_hash = prepare_param_int(:cell_hash) || 0
+    @src_dbid = prepare_param_int( :src_dbid) || 0
 
     where_string = ''
     where_values = []
@@ -1353,18 +1353,15 @@ class StorageController < ApplicationController
       where_values << @src_dbid
     end
 
-    min_max_snaps = sql_select_first_row ["\
-      SELECT MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
-      FROM   DBA_Hist_Snapshot
-      WHERE  DBID = ?
-      AND    Instance_Number = ?
-      AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-      AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
-      ", @dbid, PanoramaConnection.instance_number, @time_selection_start, @time_selection_end]
-
-    raise PopupMessageException.new("No AWR snapshots found for DBID = #{@dbid} and interval time between #{@time_selection_start} and #{@time_selection_end}") if min_max_snaps.min_snap_id.nil? || min_max_snaps.max_snap_id.nil?
-    @metrics = sql_select_all ["\
-      WITH DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
+    @metrics = sql_select_iterator ["\
+      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */  MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
+                     FROM   DBA_Hist_Snapshot
+                     WHERE  DBID = ?
+                     AND    Instance_Number = ?
+                     AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                    ),
+           DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
                          DBID, Snap_ID,
                          #{
                            EXADATA_CELL_DB_COLUMNS.map do |key, col|
@@ -1373,7 +1370,7 @@ class StorageController < ApplicationController
                           }
                   FROM   DBA_Hist_Cell_DB
                   WHERE  DBID = ?
-                  AND    Snap_ID >= ?-1 AND Snap_ID <= ?
+                  AND    Snap_ID >= (SELECT Min_Snap_ID FROM Snaps)-1 AND Snap_ID <= (SELECT Max_Snap_ID FROM Snaps)
                   #{where_string}
                  )
       SELECT ss.Begin_Interval_Time, ss.End_Interval_Time, db.*
@@ -1384,14 +1381,111 @@ class StorageController < ApplicationController
                        end.join(",\n                     ")
                      }
               FROM   db
-              WHERE Snap_ID >= ?  /* suppress first line with null values for LAG */
+              WHERE Snap_ID >= (SELECT Min_Snap_ID FROM Snaps)  /* suppress first line with null values for LAG */
               GROUP BY DBID, Snap_ID
              ) db
       JOIN   DBA_Hist_Snapshot ss ON  ss.DBID = db.DBID
                                   AND ss.Instance_Number = ? /* Cell server statistics do not contain an instance_number, use the connected instance to avoid duplicates */
                                   AND ss.Snap_ID = db.Snap_ID
       ORDER BY ss.Begin_Interval_Time
-    ", @dbid, min_max_snaps.min_snap_id, min_max_snaps.max_snap_id].concat(where_values).concat([min_max_snaps.min_snap_id, PanoramaConnection.instance_number])
+    ", @dbid, PanoramaConnection.instance_number, @time_selection_start, @time_selection_end, @dbid].concat(where_values).concat([PanoramaConnection.instance_number])
+    render_partial
+  end
+
+  def list_exadata_io_load_distribution
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @dbid       = prepare_param_dbid
+    @cell_hash = prepare_param_int(:cell_hash) || 0
+    @src_dbid = prepare_param_int( :src_dbid) || 0
+    @grouping   = prepare_param :grouping
+    @column     = prepare_param :column
+
+    where_string = ''
+    where_values = []
+
+    if @cell_hash > 0
+      where_string << " AND Cell_Hash = ?"
+      where_values << @cell_hash
+    end
+
+    if @src_dbid > 0
+      where_string << " AND Src_DBID = ?"
+      where_values << @src_dbid
+    end
+
+    @col_hash = EXADATA_CELL_DB_COLUMNS[@column.to_sym]
+    raise "Invalid column '#{@column}'" unless @col_hash
+
+    metrics = sql_select_iterator ["\
+      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */  MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
+                     FROM   DBA_Hist_Snapshot
+                     WHERE  DBID = ?
+                     AND    Instance_Number = ?
+                     AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                    ),
+           DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
+                         DBID, Snap_ID, Cell_Hash, Src_DBID,
+                         #{@col_hash[:sql]} - LAG(#{@col_hash[:sql]}, 1) OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) #{@col_hash[:sql]}
+                  FROM   DBA_Hist_Cell_DB
+                  WHERE  DBID = ?
+                  AND    Snap_ID >= (SELECT Min_Snap_ID FROM Snaps)-1 AND Snap_ID <= (SELECT Max_Snap_ID FROM Snaps)
+                  #{where_string}
+                 )
+      SELECT ss.Begin_Interval_Time, ss.End_Interval_Time, db.*
+      FROM   (SELECT DBID, Snap_ID, #{ @grouping  } Grouping,
+                     SUM(#{@col_hash[:sql]})#{" / #{@col_hash[:divide]}" if @col_hash[:divide]} #{@column}
+              FROM   db
+              WHERE Snap_ID >= (SELECT Min_Snap_ID FROM Snaps)  /* suppress first line with null values for LAG */
+              GROUP BY DBID, Snap_ID, #{ @grouping }
+             ) db
+      JOIN   DBA_Hist_Snapshot ss ON  ss.DBID = db.DBID
+                                  AND ss.Instance_Number = ? /* Cell server statistics do not contain an instance_number, use the connected instance to avoid duplicates */
+                                  AND ss.Snap_ID = db.Snap_ID
+      ORDER BY ss.Begin_Interval_Time
+    ", @dbid, PanoramaConnection.instance_number, @time_selection_start, @time_selection_end, @dbid].concat(where_values).concat([PanoramaConnection.instance_number])
+
+    condensed = {}  # Hash to condense the data: key is the snapshot time, value is a hash with the metrics
+    @pivot_columns = {}
+    metrics.each do |m|
+      condensed[m.begin_interval_time] = {
+        begin_interval_time:  m.begin_interval_time,
+        end_interval_time:    m.end_interval_time
+      } unless condensed.has_key?(m.begin_interval_time)
+      @pivot_columns[m.grouping] = m.grouping.to_s
+      condensed[m.begin_interval_time][m.grouping] = 0 unless condensed[m.begin_interval_time].has_key?(m[@pivot])
+      condensed[m.begin_interval_time][m.grouping] += m[@column] || 0
+    end
+
+    @metrics = condensed.map{|key, value| value.extend(SelectHashHelper) }
+
+    # add info for pivot volumns
+    if @grouping == 'src_dbid'
+      sql_select_all("\
+        SELECT DISTINCT Src_DBID, Src_DBName, Is_Current_Src_DB
+        FROM   DBA_Hist_Cell_DB
+        ORDER BY Src_DBName
+      ").each do |db|
+        @pivot_columns[db.src_dbid] << " #{db.src_dbname}#{' *' if db.is_current_src_db == 1}"
+      end
+    end
+
+    if @grouping == 'cell_hash'
+      sql_select_all("\
+        SELECT d.Cell_Hash, c.Cell_Path, c.Cell_Name
+        FROM   (SELECT /*+ NO_MERGE */ DISTINCT Cell_Hash FROM DBA_Hist_Cell_DB) d
+        LEFT OUTER JOIN (SELECT CellHash, CellName Cell_Path,
+                         CAST(extract(xmltype(confval), '/cli-output/cell/name/text()')  AS VARCHAR2(200)) Cell_Name
+                         FROM   v$Cell_Config
+                         WHERE  ConfType = 'CELL'
+                        ) c ON c.CellHash = d.Cell_Hash
+        ORDER BY c.Cell_Name
+      ").each do |cell|
+        @pivot_columns[cell.cell_hash] << " #{cell.cell_name} (#{cell.cell_path})"
+      end
+
+    end
+
     render_partial
   end
 
