@@ -1,5 +1,6 @@
 # encoding: utf-8
 class StorageController < ApplicationController
+  include StorageHelper
 
   def tablespace_usage
     render_partial
@@ -1363,31 +1364,25 @@ class StorageController < ApplicationController
 
     raise PopupMessageException.new("No AWR snapshots found for DBID = #{@dbid} and interval time between #{@time_selection_start} and #{@time_selection_end}") if min_max_snaps.min_snap_id.nil? || min_max_snaps.max_snap_id.nil?
     @metrics = sql_select_all ["\
-      WITH   DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
-                      DBID, Snap_ID,
-                      Disk_Requests             - LAG(Disk_Requests, 1)             OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Requests,
-                      Disk_Bytes                - LAG(Disk_Bytes, 1)                OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Bytes,
-                      Flash_Requests            - LAG(Flash_Requests, 1)            OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Requests,
-                      Flash_Bytes               - LAG(Flash_Bytes, 1)               OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Bytes,
-                      Disk_Small_IO_Reqs        - LAG(Disk_Small_IO_Reqs, 1)        OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Small_IO_Reqs,
-                      Disk_Large_IO_Reqs        - LAG(Disk_Large_IO_Reqs, 1)        OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Disk_Large_IO_Reqs,
-                      Flash_Small_IO_Reqs       - LAG(Flash_Small_IO_Reqs, 1)       OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Small_IO_Reqs,
-                      Flash_Large_IO_Reqs       - LAG(Flash_Large_IO_Reqs, 1)       OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) Flash_Large_IO_Reqs
-                    FROM   DBA_Hist_Cell_DB
-                    WHERE  DBID = ?
-                    AND    Snap_ID >= ?-1 AND Snap_ID <= ?
-                    #{where_string}
-                   )
+      WITH DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
+                         DBID, Snap_ID,
+                         #{
+                           EXADATA_CELL_DB_COLUMNS.map do |key, col|
+                             "#{col[:sql]} - LAG(#{col[:sql]}, 1) OVER (PARTITION BY Cell_Hash, Src_DBID ORDER BY Snap_ID) #{col[:sql]}"
+                           end.join(",\n                         ")
+                          }
+                  FROM   DBA_Hist_Cell_DB
+                  WHERE  DBID = ?
+                  AND    Snap_ID >= ?-1 AND Snap_ID <= ?
+                  #{where_string}
+                 )
       SELECT ss.Begin_Interval_Time, ss.End_Interval_Time, db.*
       FROM   (SELECT DBID, Snap_ID,
-                     SUM(Disk_Requests)                 Disk_Requests,
-                     SUM(Disk_Bytes)/(1024*1024)        Disk_MB,
-                     SUM(Flash_Requests)                Flash_Requests,
-                     SUM(Flash_Bytes)/(1024*1024)       Flash_MB,
-                     SUM(Disk_Small_IO_Reqs)            Disk_Small_IO_Reqs,
-                     SUM(Disk_Large_IO_Reqs)            Disk_Large_IO_Reqs,
-                     SUM(Flash_Small_IO_Reqs)           Flash_Small_IO_Reqs,
-                     SUM(Flash_Large_IO_Reqs)           Flash_Large_IO_Reqs
+                     #{
+                       EXADATA_CELL_DB_COLUMNS.map do |key, col|
+                         "SUM(#{col[:sql]})#{" / #{col[:divide]}" if col[:divide]} #{key}"
+                       end.join(",\n                     ")
+                     }
               FROM   db
               WHERE Snap_ID >= ?  /* suppress first line with null values for LAG */
               GROUP BY DBID, Snap_ID
