@@ -22,7 +22,7 @@
       <select name="src_dbid">
         <option value='0' selected='selected'>[ <%= t(:all, default: 'All') %> ]</option>
         <% @dbs.each do |db| %>
-          <option value='<%= db.src_dbid %>'><%= my_html_escape(db.src_dbname) %> (<%= my_html_escape(db.src_dbid) %>)</option>
+          <option value='<%= db.src_dbid %>'><%= "#{my_html_escape(db.src_dbname)} (#{my_html_escape(db.src_dbid)})#{ " *" if db.is_current_src_db == 1}" %></option>
         <% end %>
       </select>
     </div>

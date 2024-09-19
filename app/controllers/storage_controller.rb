@@ -1327,7 +1327,7 @@ class StorageController < ApplicationController
       ORDER BY c.Cell_Name
     "
     @dbs = sql_select_all "\
-      SELECT DISTINCT Src_DBID, Src_DBName
+      SELECT DISTINCT Src_DBID, Src_DBName, Is_Current_Src_DB
       FROM   DBA_Hist_Cell_DB
       ORDER BY Src_DBName
     "
