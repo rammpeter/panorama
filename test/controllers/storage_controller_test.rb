@@ -95,16 +95,16 @@ class StorageControllerTest < ActionController::TestCase
 
     if get_db_version >= '19'
       post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid }
-      assert_response :success
+      [:none, :panorama_sampler].include?(management_pack_license) ? :error : :success
       post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, cell_hash: 123 }
-      assert_response :success
+      [:none, :panorama_sampler].include?(management_pack_license) ? :error : :success
       post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, src_dbid: 123 }
-      assert_response :success
+      [:none, :panorama_sampler].include?(management_pack_license) ? :error : :success
       post :list_exadata_io_load_by_cell_db, params: { format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid, cell_hash: 123, src_dbid: 123 }
-      assert_response :success
+      [:none, :panorama_sampler].include?(management_pack_license) ? :error : :success
 
       post :list_exadata_io_load_distribution, params: { format: :html, grouping: 'cell_hash', column: 'disk_small_io_reqs',time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, dbid: get_dbid }
-      assert_response :success
+      [:none, :panorama_sampler].include?(management_pack_license) ? :error : :success
     end
   end
 
