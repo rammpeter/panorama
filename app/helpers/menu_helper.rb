@@ -160,7 +160,7 @@ module MenuHelper
                   {:class=> 'item', :caption=>'Cell server cell disks',        :controller=>:storage,     :action=>:list_exadata_cell_cell_disk,      :hint=>'List configured cell disks of exadata cell server' },
                   {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
                 ] },
-                { class: 'menu', caption:  'Cell server load analysis', min_db_version: '19', content: [
+                { class: 'menu', caption:  'Cell server past load analysis', min_db_version: '19', content: [
                   { class: 'item', caption: 'I/O by cells and DBs',    controller: :storage,     action: :show_exadata_io_load_by_cell_db,  :hint=>'List I/O load of exadata cell server by cell and DB', min_db_version: '19' },
                 ] },
                 {:class=> 'item', :caption=>'I/O resource mgr. config',      :controller=>:storage,     :action=>:list_exadata_io_res_mgr_config,   :hint=>'List I/O resource manager config' },
