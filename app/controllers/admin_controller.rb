@@ -1,4 +1,7 @@
 # encoding: utf-8
+
+require 'ipaddr'
+
 class AdminController < ApplicationController
   include AdminHelper
   include MenuHelper
@@ -221,6 +224,9 @@ class AdminController < ApplicationController
   def ip_info
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     ip_address = params[:ip_address]
+
+    # Check if valid IP address to avoid execution of arbitrary commands
+    IPAddr.new(ip_address) rescue raise "Invalid IP address given"
 
     output = "<h3>Info zu IP-Adresse #{ip_address}</h3>
 <h4>nslookup:</h4>

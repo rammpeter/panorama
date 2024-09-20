@@ -572,7 +572,7 @@ module ApplicationHelper
         :caption =>    t(:addition_copy_recall_params_caption, :default=>'Copy request parameters to clipboard'),
         :hint =>       t(:addition_copy_recall_params_hint, :default=>"Copy request parameter to clipboard which allows you to reconstruct/replay this page later\nCall menu 'Spec. additions / Execute with given parameters' and paste this info to reconstruct your page at later time."),
         :icon_class => 'cui-copy',
-        :action =>     "copy_to_clipboard('#{request.parameters.except(:update_area, :browser_tab_id).to_json.gsub("'", '&#39;')}');  alert('#{t(:addition_copy_recall_params_answer, :default=>"Current request parameters are copied to clipboard.\nUse menu \"Spec. additions / Execute with given parameters\" to paste this parameters").sub("\n", '\\n')}');"
+        :action =>     "copy_to_clipboard('#{request.parameters.except(:update_area, :browser_tab_id).to_json.gsub("'", '&#39;')}');  alert('#{t(:addition_copy_recall_params_answer, :default=>"Current request parameters are copied to clipboard.\nUse menu \"Spec. additions / Execute with given parameters\" to paste this parameters").gsub("\n", '\\n')}');"
     }
   end
 

@@ -168,7 +168,7 @@ module EnvHelper
   def read_tnsnames_internal(file_name)
     tnsnames = {}
 
-    fullstring = IO.read(file_name)
+    fullstring = File.read(file_name)
     fullstring.encode!(fullstring.encoding, :universal_newline => true)         # Ensure that Windows-Linefeeds 0D0A are replaced by 0A
     fullstring.upcase!
 

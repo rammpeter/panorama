@@ -14,7 +14,8 @@ class EnvController < ApplicationController
   include LicensingHelper
 
   # Verhindern "ActionController::InvalidAuthenticityToken" bei erstem Aufruf der Seite und im Test
-  protect_from_forgery :except => :index unless Rails.env.test?
+  #protect_from_forgery :except => :index unless Rails.env.test?
+  protect_from_forgery unless Rails.env.test?
 
   def connect_check
 
