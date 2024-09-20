@@ -16,8 +16,8 @@ name: Panorama CI
 on:
   push:
   schedule:
-    # * is a special character in YAML so you have to quote this string, runs on Sunday and Wednesday morning to keep the free autonomous DB alive
-    - cron: '0 0 * * 0,3'
+    # * is a special character in YAML so you have to quote this string, runs each day to keep the free autonomous DB alive
+    - cron: '0 0 * * *'
 
 jobs:
   setup:
