@@ -195,7 +195,6 @@ module AjaxHelper
   def ajax_submit(caption, url, html_options, form_options={})
     ajax_form(url, form_options) do
       #html_options['data-disable-with']=false
-      html_options[:onclick] = "event.stopPropagation()"  # Prevent double execution of onclick event by the underlying element
       submit_tag caption, html_options
     end
   end

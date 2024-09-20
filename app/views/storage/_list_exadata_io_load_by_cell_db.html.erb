@@ -20,7 +20,10 @@
                                cell_hash:             @cell_hash,
                                src_dbid:              @src_dbid,
                              },
-                             {title: "Show distribution of values for '#{col[:caption]}' over cells"},
+                             {
+                               title: "Show distribution of values for '#{col[:caption]}' over cells",
+                               onclick: "event.stopPropagation()"  # Prevent double execution of onclick event by the underlying element
+                             },
                              style: 'display:inline;'
       )
     end
@@ -36,7 +39,10 @@
                                cell_hash:             @cell_hash,
                                src_dbid:              @src_dbid,
                              },
-                             {title: "Show distribution of values for '#{col[:caption]}' over databases"},
+                             {
+                               title: "Show distribution of values for '#{col[:caption]}' over databases",
+                               onclick: "event.stopPropagation()"  # Prevent double execution of onclick event by the underlying element
+                             },
                              style: 'display:inline;'
       )
     end

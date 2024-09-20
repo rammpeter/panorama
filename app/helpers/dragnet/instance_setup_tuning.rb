@@ -149,8 +149,8 @@ ORDER BY x.MBytes DESC NULLS LAST
         :name  => t(:dragnet_helper_176_name, :default=>'TNS service usage by sessions'),
         :desc  => t(:dragnet_helper_176_desc, :default=>'Overview over TNS services and their usage by connected sessions'),
         :sql=> "\
-SELECT sv.Name, sv.Creation_Date, sv.PDB, sv.Con_ID, sess.Sessions, sess.Users
-FROM   (SELECT Name, PDB, Con_ID, MIN(Creation_Date) Creation_Date
+SELECT sv.Name, sv.Creation_Date, #{"sv.PDB, sv.Con_ID, " if get_db_version >= '12'} sess.Sessions, sess.Users
+FROM   (SELECT Name, #{"PDB, Con_ID, " if get_db_version >= '12'}MIN(Creation_Date) Creation_Date
         FROM   gv$Services
         GROUP BY Name, PDB, Con_ID
        ) sv
