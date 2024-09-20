@@ -177,6 +177,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
                                         AND    t.IOT_Name IS NULL
                                         AND    t.Table_Name NOT LIKE '%$%'
                                         AND    t.Table_Name NOT LIKE '%DBMS%'
+                                        AND    t.Table_Name NOT LIKE 'REPL%'
                                         AND    t.Num_Rows > 0
                                         AND    o.Data_Object_ID IS NOT NULL
                                         AND    RowNum < 2

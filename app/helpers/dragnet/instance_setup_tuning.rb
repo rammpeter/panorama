@@ -152,7 +152,7 @@ ORDER BY x.MBytes DESC NULLS LAST
 SELECT sv.Name, sv.Creation_Date, #{"sv.PDB, sv.Con_ID, " if get_db_version >= '12'} sess.Sessions, sess.Users
 FROM   (SELECT Name, #{"PDB, Con_ID, " if get_db_version >= '12'}MIN(Creation_Date) Creation_Date
         FROM   gv$Services
-        GROUP BY Name, PDB, Con_ID
+        GROUP BY Name#{", PDB, Con_ID" if get_db_version >= '12'}
        ) sv
 LEFT OUTER JOIN (SELECT Service_Name, SUM(Sessions) Sessions, LISTAGG(UserName, ', ') WITHIN GROUP (ORDER BY UserName) Users
                  FROM   (SELECT Service_Name, UserName, COUNT(*) Sessions
