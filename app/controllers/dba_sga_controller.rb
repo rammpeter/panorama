@@ -105,6 +105,10 @@ class DbaSgaController < ApplicationController
     where_values << max_result_count
 
     sql_select_all ["\
+      WITH Plans AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, MIN(RAWTOHEX(Child_Address)) Child_Address,
+                            COUNT(DISTINCT Plan_Hash_Value) Plans
+                     FROM   GV$SQL GROUP BY Inst_ID, SQL_ID
+                    )
       SELECT /* Panorama-Tool Ramm */ *
       FROM (SELECT  SUBSTR(LTRIM(SQL_TEXT),1,40) SQL_Text,
                     s.SQL_Text Full_SQL_Text,
@@ -132,10 +136,7 @@ class DbaSgaController < ApplicationController
                     #{modus=="GV$SQL" ? ", s.Child_Number, RAWTOHEX(s.Child_Address) Child_Address" : ", c.Child_Number, c.Child_Address, s.Version_Count" }
             FROM   #{modus} s
             JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
-            JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID, COUNT(*) Child_Count, MIN(Child_Number) Child_Number, MIN(RAWTOHEX(Child_Address)) Child_Address,
-                         COUNT(DISTINCT Plan_Hash_Value) Plans
-                  FROM   GV$SQL GROUP BY Inst_ID, SQL_ID
-                 ) c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
+            JOIN Plans c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
             WHERE 1 = 1 -- damit nachfolgende Klauseln mit AND beginnen können
                 #{where_string}
                 #{" AND Rows_Processed>0" if top_sort == 'BufferGetsPerRow'}
