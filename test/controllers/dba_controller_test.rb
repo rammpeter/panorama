@@ -178,8 +178,10 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
                                         AND    t.Table_Name NOT LIKE '%$%'
                                         AND    t.Table_Name NOT LIKE '%DBMS%'
                                         AND    t.Table_Name NOT LIKE 'REPL%'
+                                        AND    t.Table_Name NOT LIKE 'SYS%'
                                         AND    t.Num_Rows > 0
                                         AND    o.Data_Object_ID IS NOT NULL
+                                        AND   (t.Owner, t.Table_Name) IN (SELECT Table_schema, Table_Name FROM ALl_Tab_Privs WHERE Privilege IN ('READ', 'SELECT') AND Grantee = 'PUBLIC')
                                         AND    RowNum < 2
                                         "
 
