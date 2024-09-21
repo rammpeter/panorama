@@ -142,7 +142,7 @@ class DbaSgaController < ApplicationController
                 #{" AND Rows_Processed>0" if top_sort == 'BufferGetsPerRow'}
             ORDER BY #{sql_area_sort_criteria(modus)[top_sort.to_sym][:sql]}
            )
-      WHERE ROWNUM < ?
+      WHERE ROWNUM <= ?
       ORDER BY #{sql_area_sort_criteria(modus)[top_sort.to_sym][:sql]}
       "
     ].concat(where_values)
