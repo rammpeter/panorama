@@ -83,6 +83,7 @@ This way partition pruning may be used for access on unique indexes plus possibl
                                   ) seg ON seg.Owner = i.Owner AND seg.Segment_Name = i.Index_Name
                       WHERE t.Partitioned = 'YES'
                       AND   i.Partitioned = 'NO'
+                      AND   t.Owner NOT IN (#{system_schema_subselect})
                       ORDER BY t.Num_Rows DESC NULLS LAST",
         },
         {
