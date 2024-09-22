@@ -26,7 +26,21 @@ WITH Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Index_Typ
                             GROUP BY Index_Owner, Index_Name
                            ),
      Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_Name, R_Owner, R_Constraint_Name, Constraint_Type FROM DBA_Constraints WHERE Owner NOT IN (#{system_schema_subselect})),
-     Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Column_Name, Position FROM DBA_Cons_Columns WHERE Owner NOT IN (#{system_schema_subselect}))
+     Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Column_Name, Position FROM DBA_Cons_Columns WHERE Owner NOT IN (#{system_schema_subselect})),
+     Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, SUM(Bytes)/(1024*1024) MBytes FROM DBA_Segments WHERE Owner NOT IN (#{system_schema_subselect}) GROUP BY Owner, Segment_Name),
+     SGA_SQLs_Ex_Analyze AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT SQL_ID
+                              FROM   gv$SQLArea
+                              WHERE  SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
+                             ),
+     AWR_SQLs_Ex_Analyze AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT SQL_ID
+                             FROM   DBA_Hist_SQLText t
+                             WHERE  t.SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
+                            ),
+     Hist_SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT p.Object_Owner, p.Object_Name, p.Plan_Hash_Value
+                       FROM   DBA_Hist_SQL_Plan p
+                       WHERE p.Object_Name IS NOT NULL
+                       AND p.Object_Owner NOT IN (#{system_schema_subselect})
+                      )
 SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
         SELECT i.Owner Index_Owner, i.Index_Name, i.Index_Type, i.Table_Owner, i.Table_Name, sz.MBytes,
                i.Num_Rows, i.Tablespace_Name, i.UniqueNess, i.Distinct_Keys,
@@ -35,23 +49,17 @@ SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
                 FROM   Indexes i
                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ DISTINCT p.Object_Owner, p.Object_Name
                                  FROM   gV$SQL_Plan p
-                                 JOIN   (SELECT /*+ NO_MERGE */ Inst_ID, SQL_ID
-                                         FROM   gv$SQLArea
-                                         WHERE  SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
-                                        ) t ON t.Inst_ID=p.Inst_ID AND t.SQL_ID=p.SQL_ID
                                  WHERE p.Object_Owner NOT IN (#{system_schema_subselect})
+                                 AND   p.SQL_ID IN (SELECT SQL_ID FROM SGA_SQLs_Ex_Analyze)
                                 ) p ON p.Object_Owner=i.Owner AND p.Object_Name=i.Index_Name
                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE USE_HASH(p s t) */ DISTINCT p.Object_Owner, p.Object_Name
-                                 FROM   DBA_Hist_SQL_Plan p
+                                 FROM   Hist_SQL_Plan p
                                  JOIN   (SELECT /*+ NO_MERGE */ DISTINCT s.DBID, s.SQL_ID, s.Plan_Hash_Value
                                          FROM   DBA_Hist_SQLStat s
                                          JOIN   DBA_Hist_SnapShot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
                                          WHERE  ss.Begin_Interval_Time > SYSDATE - ?
                                         ) s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                                 JOIN   (SELECT /*+ NO_MERGE */ t.DBID, t.SQL_ID
-                                         FROM   DBA_Hist_SQLText t
-                                         WHERE  t.SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
-                                        ) t ON  t.DBID = p.DBID AND t.SQL_ID = p.SQL_ID
+                                 WHERE  p.SQL_ID IN (SELECT SQL_ID FROM AWR_SQLs_Ex_Analyze)
                                 ) hp ON hp.Object_Owner=i.Owner AND hp.Object_Name=i.Index_Name
                 WHERE   p.OBJECT_OWNER IS NULL AND p.Object_Name IS NULL  -- keine Treffer im Outer Join
                 AND     hp.OBJECT_OWNER IS NULL AND hp.Object_Name IS NULL  -- keine Treffer im Outer Join
@@ -65,10 +73,7 @@ SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
                           WHERE  f.Constraint_Type = 'R'
                           GROUP BY f.Owner, f.Table_Name, ic.Index_Owner, ic.Index_Name
                          ) rc ON rc.Owner = i.Table_Owner AND rc.Table_Name = i.Table_Name AND rc.Index_owner = i.Owner AND rc.Index_Name = i.Index_name
-         JOIN (SELECT /*+ NO_MERGE */ Owner, Segment_Name, SUM(bytes)/(1024*1024) MBytes
-               FROM   DBA_SEGMENTS s
-               GROUP BY Owner, Segment_Name
-              ) sz ON sz.SEGMENT_NAME = i.Index_Name AND sz.Owner = i.Owner
+         JOIN Segments sz ON sz.SEGMENT_NAME = i.Index_Name AND sz.Owner = i.Owner
         ) ORDER BY MBytes DESC NULLS LAST, Num_Rows
             ",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
