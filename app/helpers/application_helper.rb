@@ -276,8 +276,9 @@ module ApplicationHelper
   end
 
   # use DBID from request parameter or from global session setting
+  # @return [Integer] DBID
   def prepare_param_dbid
-    retval = params[:dbid]
+    retval = prepare_param_int :dbid
     retval = get_dbid unless retval
     raise "Error: Parameter 'dbid' required but not given for '#{controller_name}/#{action_name}'!" if retval.nil?
     retval
@@ -288,10 +289,6 @@ module ApplicationHelper
     retval = params[param_sym]
     raise "Error: Parameter '#{param_sym}' required but not given for '#{controller_name}/#{action_name}'!" if retval.nil?
     retval
-  end
-
-  def require_param_int(param_sym)
-    require_param(param_sym).to_i
   end
 
   # Ermitteln der minimalen und maximalen Snap-ID zu gebenen Zeiten einer Instance
