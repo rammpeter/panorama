@@ -1,6 +1,8 @@
 # encoding: utf-8
 
+require 'cgi'                                           # for unescapeHTML
 require 'exception_helper'
+
 
 class ApplicationController < ActionController::Base
 
@@ -166,24 +168,36 @@ class ApplicationController < ActionController::Base
   end
 
   # Check request parameters for possibly vulnerable content / XSS
-  EVIL_PARAM_CONTENT = ['<SCRIPT', '&lt;SCRIPT']
+  EVIL_PARAM_CONTENT = ['<SCRIPT', '&LT;SCRIPT']
   def check_params_4_vulnerability(parameters)
     raise "ApplicationController.check_params_4_vulnerability: Wrong class '#{parameters.class}' for parameters" unless parameters.is_a?(Hash) || parameters.is_a?(ActionController::Parameters)
 
     check_string = proc do |param_key, param_value|
-      norm_param = param_value.upcase.delete(" \t\r\n")
+      norm_param = CGI.unescapeHTML(param_value)                                # Unescape HTML entities, replace unicode entities like &#x70; or &#112; with characters
+      norm_param = norm_param.gsub(/<!--.*?-->/m, '')                           # Remove HTML comments
+
+      norm_param = norm_param
+                     .upcase
+                     .delete(" \t\r\n")
+      # Own check for evil content
       EVIL_PARAM_CONTENT.each do |evil|
         if norm_param[evil]
           Rails.logger.error('ApplicationController.check_params_4_vulnerability'){ "Evil content detected for parameter '#{param_key}' with content '#{param_value}'"}
-          raise "Not supported parameter content detected"
+          raise "Not supported parameter content detected for paramater '#{param_key}'"
         end
+      end
+      if norm_param.match(/ON\w*=['"]/)  # Check for event handler like onclick, onmouseover, etc.
+        Rails.logger.error('ApplicationController.check_params_4_vulnerability'){ "Event handler detected for parameter '#{param_key}' with content '#{param_value}'"}
+        raise "Not supported parameter content detected for paramater '#{param_key}'"
       end
     end
 
     parameters.keys.each do |k|
       case parameters[k].class.name
       when 'ActionController::Parameters' then check_params_4_vulnerability(parameters[k]) # nested parameters
-      when 'String'                       then check_string.call(k, parameters[k])
+      when 'String'                       then
+        check_string.call('Parameter name', k)                                  # check parameter name for evil content
+        check_string.call(k, parameters[k])                                             # check parameter value for evil content
       when 'NilClass'                     then # nothing
       when 'Array'                        then
         parameters[k].each do |p|
