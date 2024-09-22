@@ -33,10 +33,10 @@ WITH Indexes AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Index_Typ
                               WHERE  SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
                              ),
      AWR_SQLs_Ex_Analyze AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT SQL_ID
-                             FROM   DBA_Hist_SQLText t
-                             WHERE  t.SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
+                             FROM   DBA_Hist_SQLText
+                             WHERE  SQL_Text NOT LIKE '%dbms_stats cursor_sharing_exact%' /* DBMS-Stats-Statement */
                             ),
-     Hist_SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT p.Object_Owner, p.Object_Name, p.Plan_Hash_Value
+     Hist_SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT p.Object_Owner, p.Object_Name, p.Plan_Hash_Value, p.SQL_ID
                        FROM   DBA_Hist_SQL_Plan p
                        WHERE p.Object_Name IS NOT NULL
                        AND p.Object_Owner NOT IN (#{system_schema_subselect})
@@ -54,11 +54,11 @@ SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
                                 ) p ON p.Object_Owner=i.Owner AND p.Object_Name=i.Index_Name
                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE USE_HASH(p s t) */ DISTINCT p.Object_Owner, p.Object_Name
                                  FROM   Hist_SQL_Plan p
-                                 JOIN   (SELECT /*+ NO_MERGE */ DISTINCT s.DBID, s.SQL_ID, s.Plan_Hash_Value
+                                 JOIN   (SELECT /*+ NO_MERGE */ DISTINCT s.SQL_ID, s.Plan_Hash_Value
                                          FROM   DBA_Hist_SQLStat s
                                          JOIN   DBA_Hist_SnapShot ss ON ss.DBID = s.DBID AND ss.Snap_ID = s.Snap_ID AND ss.Instance_Number = s.Instance_Number
                                          WHERE  ss.Begin_Interval_Time > SYSDATE - ?
-                                        ) s ON s.DBID = p.DBID AND s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                                        ) s ON s.SQL_ID = p.SQL_ID AND s.Plan_Hash_Value = p.Plan_Hash_Value
                                  WHERE  p.SQL_ID IN (SELECT SQL_ID FROM AWR_SQLs_Ex_Analyze)
                                 ) hp ON hp.Object_Owner=i.Owner AND hp.Object_Name=i.Index_Name
                 WHERE   p.OBJECT_OWNER IS NULL AND p.Object_Name IS NULL  -- keine Treffer im Outer Join
