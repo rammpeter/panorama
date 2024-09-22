@@ -169,21 +169,25 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   test 'show_rowid_details with xhr: true' do
 
     # Readable table with primary key and records
-    data_object = sql_select_first_row "SELECT o.Data_Object_ID, t.Owner, t.Table_Name
-                                        FROM   All_Tables t
-                                        JOIN   All_Constraints c ON c.Owner = t.Owner AND c.Table_Name = t.Table_Name AND c.Constraint_Type = 'P'
-                                        JOIN   DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
-                                        WHERE  t.Cluster_Name IS NULL
-                                        AND    t.IOT_Name IS NULL
-                                        AND    t.Table_Name NOT LIKE '%$%'
-                                        AND    t.Table_Name NOT LIKE '%DBMS%'
-                                        AND    t.Table_Name NOT LIKE 'REPL%'
-                                        AND    t.Table_Name NOT LIKE 'SYS%'
-                                        AND    t.Num_Rows > 0
-                                        AND    o.Data_Object_ID IS NOT NULL
-                                        AND   (t.Owner, t.Table_Name) IN (SELECT Table_schema, Table_Name FROM ALl_Tab_Privs WHERE Privilege IN ('READ', 'SELECT') AND Grantee = 'PUBLIC')
-                                        AND    RowNum < 2
-                                        "
+    data_object = sql_select_first_row "\
+      SELECT *
+      FROM   (SELECT o.Data_Object_ID, t.Owner, t.Table_Name
+              FROM   All_Tables t
+              JOIN   All_Constraints c ON c.Owner = t.Owner AND c.Table_Name = t.Table_Name AND c.Constraint_Type = 'P'
+              JOIN   DBA_Objects o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
+              WHERE  t.Cluster_Name IS NULL
+              AND    t.IOT_Name IS NULL
+              --AND    t.Table_Name NOT LIKE '%$%'
+              --AND    t.Table_Name NOT LIKE '%DBMS%'
+              --AND    t.Table_Name NOT LIKE 'REPL%'
+              --AND    t.Table_Name NOT LIKE 'SYS%'
+              AND    NVL(t.Num_Rows, 1) > 0 -- Show also tables without analysis, e.g. for 11.2
+              AND    o.Data_Object_ID IS NOT NULL
+              AND   (t.Owner, t.Table_Name) IN (SELECT Table_schema, Table_Name FROM ALl_Tab_Privs WHERE Privilege IN ('READ', 'SELECT') AND Grantee = 'PUBLIC')
+              ORDER BY t.Num_Rows DESC NULLS LAST
+            )
+            WHERE  RowNum < 2
+    "
 
     raise "No readable table with num_rows > 0 found in database" if data_object.nil?
 
