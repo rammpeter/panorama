@@ -1460,6 +1460,7 @@ class DbaSchemaController < ApplicationController
                                            COUNT(DISTINCT ip.Next_Extent)     P_Next_Extent_Count,     MIN(ip.Next_Extent)      P_Next_Extent,
                                            COUNT(DISTINCT ip.Min_Extent)      P_Min_Extents_Count,     MIN(ip.Min_Extent)       P_Min_Extents,
                                            COUNT(DISTINCT ip.Max_Extent)      P_Max_Extents_Count,     MIN(ip.Max_Extent)       P_Max_Extents
+                                           #{ ", COUNT(DISTINCT ip.Cell_Flash_Cache) P_Cell_Flash_Cache_Count, MIN(ip.Cell_Flash_Cache) P_Cell_Flash_Cache" if get_db_version >= '12.1'}
                                            #{ ", COUNT(DISTINCT ip.Orphaned_Entries) P_Orphaned_Entries_Count, MIN(ip.Orphaned_Entries) P_Orphaned_Entries" if get_db_version >= '12.2'}
                                     FROM   DBA_Ind_Partitions ip
                                            WHERE  (ip.Index_Owner, ip.Index_Name) IN (SELECT Owner, Index_Name FROM Indexes)
@@ -1476,6 +1477,7 @@ class DbaSchemaController < ApplicationController
                                               COUNT(DISTINCT ip.Next_Extent)     SP_Next_Extent_Count,    MIN(ip.Next_Extent)     SP_Next_Extent,
                                               COUNT(DISTINCT ip.Min_Extent)      SP_Min_Extents_Count,    MIN(ip.Min_Extent)      SP_Min_Extents,
                                               COUNT(DISTINCT ip.Max_Extent)      SP_Max_Extents_Count,    MIN(ip.Max_Extent)      SP_Max_Extents
+                                              #{ ", COUNT(DISTINCT ip.Cell_Flash_Cache) SP_Cell_Flash_Cache_Count, MIN(ip.Cell_Flash_Cache) SP_Cell_Flash_Cache" if get_db_version >= '12.1'}
                                        FROM   DBA_Ind_SubPartitions ip
                                        WHERE  (ip.Index_Owner, ip.Index_Name) IN (SELECT Owner, Index_Name FROM Indexes)
                                        GROUP BY ip.Index_Name
@@ -1506,6 +1508,7 @@ class DbaSchemaController < ApplicationController
                         p.P_Next_Extent_Count,    p.P_Next_Extent,
                         p.P_Min_Extents_Count,    p.P_Min_Extents,
                         p.P_Max_Extents_Count,    p.P_Max_Extents,
+                        #{ "p.P_Cell_Flash_Cache_Count, p.P_Cell_Flash_Cache, " if get_db_version >= '12.1'}
                         #{ "p.P_Orphaned_Entries_Count, p.P_Orphaned_Entries, " if get_db_version >= '12.2'}
                         sp.SP_Status_Count,       sp.SP_Status,
                         sp.SP_Compression_Count,  sp.SP_Compression,
@@ -1517,6 +1520,7 @@ class DbaSchemaController < ApplicationController
                         sp.SP_Next_Extent_Count,  sp.SP_Next_Extent,
                         sp.SP_Min_Extents_Count,  sp.SP_Min_Extents,
                         sp.SP_Max_Extents_Count,  sp.SP_Max_Extents
+                        #{ ", sp.SP_Cell_Flash_Cache_Count, sp.SP_Cell_Flash_Cache" if get_db_version >= '12.1'}
                         #{", mi.GC_Mastering_Policy, mi.GC_Mastering_Policy_Cnt, mi.Current_Master, mi.Current_Master, mi.Current_Master_Cnt, mi.Previous_Master, mi.Previous_Master_Cnt, mi.Remaster_Cnt" if PanoramaConnection.rac?}
                         #{get_db_version >= '12.2' ? ", iu.Total_Access_Count" : ", NULL Total_Access_Count"}
                         #{get_db_version >= '12.2' ? ", DECODE(iu.Total_Access_Count, NULL, 'NO', 'YES')" : ", NULL"} DBA_Index_Usage
@@ -1630,19 +1634,21 @@ class DbaSchemaController < ApplicationController
         i.min_extents       = i.p_min_extents_count       == 1 ? i.p_min_extents      : "< #{i.p_min_extents_count} different >"           if i.p_min_extents_count   > 0
         i.max_extents       = i.p_max_extents_count       == 1 ? i.p_max_extents      : "< #{i.p_max_extents_count} different >"           if i.p_max_extents_count   > 0
         i.orphaned_entries  = i.p_orphaned_entries_count  == 1 ? i.p_orphaned_entries : "< #{i.p_orphaned_entries_count} different >"      if i['p_orphaned_entries_count']&.> 0
+        i.cell_flash_cache  = i.p_cell_flash_cache_count  == 1 ? i.p_cell_flash_cache : "< #{i.p_cell_flash_cache_count} different >"      if i.p_cell_flash_cache_count > 0 && get_db_version >= '12.1'
 
         if !i.subpartition_number.nil? && i.subpartition_number > 0
           # Set values of subpartitions if they exist
-          i.status            = i.sp_status_count         == 1 ? i.sp_status          : "< #{i.sp_status_count} different >"                if i.sp_status_count      > 0
-          i.compression       = i.sp_compression_count    == 1 ? i.sp_compression     : "< #{i.sp_compression_count} different >"           if i.sp_compression_count > 0
-          i.tablespace_name   = i.sp_tablespace_count     == 1 ? i.sp_tablespace_name : "< #{i.sp_tablespace_count} different >"            if i.sp_tablespace_count  > 0
-          i.pct_free          = i.sp_pct_free_count       == 1 ? i.sp_pct_free        : "< #{i.sp_pct_free_count} different >"              if i.sp_pct_free_count    > 0
-          i.ini_trans         = i.sp_ini_trans_count      == 1 ? i.sp_ini_trans       : "< #{i.sp_ini_trans_count} different >"             if i.sp_ini_trans_count   > 0
-          i.max_trans         = i.sp_max_trans_count      == 1 ? i.sp_max_trans       : "< #{i.sp_max_trans_count} different >"             if i.sp_max_trans_count   > 0
-          i.initial_extent    = i.sp_initial_extent_count == 1 ? fn(i.sp_initial_extent/1024) : "< #{i.sp_initial_extent_count} different >" if i.sp_initial_extent_count > 0
-          i.next_extent       = i.sp_next_extent_count    == 1 ? fn(i.sp_next_extent/1024) : "< #{i.sp_next_extent_count} different >"      if i.sp_next_extent_count > 0
-          i.min_extents       = i.sp_min_extents_count    == 1 ? i.sp_min_extents     : "< #{i.sp_min_extents_count} different >"           if i.sp_min_extents_count   > 0
-          i.max_extents       = i.sp_max_extents_count    == 1 ? i.sp_max_extents     : "< #{i.sp_max_extents_count} different >"           if i.sp_max_extents_count   > 0
+          i.status            = i.sp_status_count           == 1 ? i.sp_status            : "< #{i.sp_status_count} different >"                if i.sp_status_count      > 0
+          i.compression       = i.sp_compression_count      == 1 ? i.sp_compression       : "< #{i.sp_compression_count} different >"           if i.sp_compression_count > 0
+          i.tablespace_name   = i.sp_tablespace_count       == 1 ? i.sp_tablespace_name   : "< #{i.sp_tablespace_count} different >"            if i.sp_tablespace_count  > 0
+          i.pct_free          = i.sp_pct_free_count         == 1 ? i.sp_pct_free          : "< #{i.sp_pct_free_count} different >"              if i.sp_pct_free_count    > 0
+          i.ini_trans         = i.sp_ini_trans_count        == 1 ? i.sp_ini_trans         : "< #{i.sp_ini_trans_count} different >"             if i.sp_ini_trans_count   > 0
+          i.max_trans         = i.sp_max_trans_count        == 1 ? i.sp_max_trans         : "< #{i.sp_max_trans_count} different >"             if i.sp_max_trans_count   > 0
+          i.initial_extent    = i.sp_initial_extent_count   == 1 ? fn(i.sp_initial_extent/1024) : "< #{i.sp_initial_extent_count} different >"  if i.sp_initial_extent_count > 0
+          i.next_extent       = i.sp_next_extent_count      == 1 ? fn(i.sp_next_extent/1024) : "< #{i.sp_next_extent_count} different >"        if i.sp_next_extent_count > 0
+          i.min_extents       = i.sp_min_extents_count      == 1 ? i.sp_min_extents       : "< #{i.sp_min_extents_count} different >"           if i.sp_min_extents_count   > 0
+          i.max_extents       = i.sp_max_extents_count      == 1 ? i.sp_max_extents       : "< #{i.sp_max_extents_count} different >"           if i.sp_max_extents_count   > 0
+          i.cell_flash_cache  = i.sp_cell_flash_cache_count == 1 ? i.sp_cell_flash_cache  : "< #{i.sp_cell_flash_cache_count} different >"      if i.sp_cell_flash_cache_count > 0 && get_db_version >= '12.1'
         end
       end
     end
