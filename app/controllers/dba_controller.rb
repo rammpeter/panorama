@@ -1365,101 +1365,129 @@ oradebug setorapname diag
     end
   end
 
-  def segment_stat   # Anzeige Auswahl-Dialog für Statistiken
-    @stats = sql_select_all "\
-        SELECT /* Panorama-Tool Ramm */
-          DISTINCT Statistic_Name
-        FROM  GV$Segment_Statistics
-        WHERE Value != 0"
+  def list_segment_statistics
+    @instance         = prepare_param_instance
+    @show_partitions  = prepare_param(:show_partition_info) == '1'
+    @sampletime       = prepare_param_int :sample_length
 
-    render_partial
-  end
+    where_string = ''
+    where_values = []
 
-  
-  def show_segment_statistics
-    @show_partitions = params[:show_partition_info] == '1'
-
-    def smaller(obj1, obj2)
-      return true   if obj1.inst_id < obj2.inst_id
-      return false  if obj1.inst_id > obj2.inst_id
-      return true   if obj1.object_type < obj2.object_type
-      return false  if obj1.object_type > obj2.object_type
-      return true   if obj1.owner < obj2.owner
-      return false  if obj1.owner > obj2.owner
-      return true   if obj1.object_name < obj2.object_name
-      return false  if obj1.object_name > obj2.object_name
-      return true   if !obj1.subobject_name && obj2.subobject_name  # NULL < Wert
-      return false  if !obj2.subobject_name  # NULL < Wert
-      return true   if obj1.subobject_name < obj2.subobject_name
-      return false
+    if @instance
+      where_string += "WHERE Inst_ID=?"
+      where_values << @instance
     end
-    
-    def get_values  # ermitteln der Aktuellen Werte
-      # Sortierung des Results muss mit Methode smaller korrelieren
-      sql_select_all ["\
-        SELECT /* Panorama-Tool Ramm */
-          Inst_ID, Owner, Object_Name, SubObject_Name, Object_Type, SUM(Value) Value
-        FROM   (
-                SELECT Inst_ID, Owner, Object_Name, #{@show_partitions ? 'SubObject_Name' : 'NULL SubObject_Name'}, Object_Type, Value
-                FROM  GV$Segment_Statistics
-                WHERE Statistic_Name=?
-                AND   Value != 0
-               )
-        GROUP BY Inst_ID, Object_Type, Owner, Object_Name, SubObject_Name
-        ORDER BY Inst_ID, Object_Type, Owner, Object_Name, SubObject_Name",
-        params[:statistic_name][:statistic_name]
-        ]
-    end # get_values
 
-    # Sicherstellen, dass SQL-Sortierung analog der Sortierung in Ruby erfolgt
-    PanoramaConnection.sql_execute "ALTER SESSION SET NLS_SORT=BINARY"
-
-    @header = params[:statistic_name][:statistic_name]
-
-    data1 = get_values    # Snapshot vor SampleTime
-    sampletime = params[:sample_length].to_i
-    if sampletime == 0    # Kein Sample gewünscht
-      data2 = data1       # selbes Result noch einmal verwenden
-    else
-      sleep sampletime
-      # raw JDBC connection does not cache results
-      # PanoramaConnection.get_connection.clear_query_cache # Result-Caching Ausschalten für wiederholten Zugriff
-      data2 = get_values    # Snapshot nach SampleTime
+    @stat_names = {}
+    sql_select_all("SELECT DISTINCT Name, Sampled FROM gv$SegStat_Name ORDER BY 1").each do |row|
+      @stat_names[row.name] = { sum: 0, sampled: row.sampled}                   # Show as column only if value is != 0
     end
+
+    result_hash = {}                                                            # Hash to build the result
+
+    sql_select_iterator(["\
+      WITH
+        FUNCTION ConcatResult(p_SampleTime NUMBER) RETURN SYS.DBMS_DEBUG_VC2COLL IS
+          mylist SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL();
+
+          Key_Length CONSTANT NUMBER := 500;
+          v_Key             VARCHAR2(Key_Length);
+          v_Diff            NUMBER;
+          v_StartTime       TIMESTAMP;
+          v_EndTime         TIMESTAMP;
+          v_TimeDiff        NUMBER;
+
+          TYPE Stat_Table_Type IS TABLE OF NUMBER INDEX BY VARCHAR2(Key_Length);
+          Stat1             Stat_Table_Type;
+          Stat2             Stat_Table_Type;
+
+          FUNCTION BuildKey(p_Inst_ID         GV$Segment_Statistics.Inst_ID%TYPE,
+                            p_Owner           GV$Segment_Statistics.Owner%TYPE,
+                            p_Object_Name     GV$Segment_Statistics.Object_Name%TYPE,
+                            p_SubObject_Name  GV$Segment_Statistics.SubObject_Name%TYPE,
+                            p_Object_Type     GV$Segment_Statistics.Object_Type%TYPE,
+                            p_Statistic_Name  GV$Segment_Statistics.Statistic_Name%TYPE
+            ) RETURN VARCHAR2 IS
+          BEGIN
+            RETURN p_Inst_ID||'^'||p_Owner||'^'||p_Object_Name||'^'||p_SubObject_Name||'^'||p_Object_Type||'^'||p_Statistic_Name;
+          END BuildKey;
+
+          PROCEDURE CollectStat(p_Table IN OUT Stat_Table_Type) IS
+          BEGIN
+            FOR Rec IN (
+                        SELECT Inst_ID, Owner, Object_Name, SubObject_Name, Object_Type, Statistic_Name, Value
+                        FROM   GV$Segment_Statistics
+                        WHERE  Value != 0
+                        ORDER BY Owner, Object_Name, SubObject_Name, Object_Type, Statistic_Name, Inst_ID
+                       ) LOOP
+              p_Table(BuildKey(Rec.Inst_ID, Rec.Owner, Rec.Object_Name, Rec.SubObject_Name, Rec.Object_Type, Rec.Statistic_Name)) := Rec.Value;
+            END LOOP;
+          END CollectStat;
+        BEGIN
+          v_StartTime := SYSTIMESTAMP;
+          CollectStat(Stat1);
+          v_EndTime := SYSTIMESTAMP;
+          v_TimeDiff := EXTRACT(MINUTE FROM (v_EndTime - v_StartTime)) * 60 + EXTRACT(SECOND FROM (v_EndTime - v_StartTime));
+          IF v_TimeDiff > p_SampleTime THEN
+            RAISE_APPLICATION_ERROR(-20999, 'Select from GV$Segment_Statistics tooks longer ('||v_TimeDiff||' seconds) than expected delay between samples ('||p_SampleTime||' seconds)! Please choose a greater period between samples.');
+          END IF;
+
+          DBMS_Session.Sleep(p_SampleTime - v_TimeDiff);
+          CollectStat(Stat2);
+
+          v_Key := Stat2.FIRST; -- Get the first key
+          WHILE v_Key IS NOT NULL LOOP
+            IF Stat1.EXISTS(v_Key) THEN
+              v_Diff := Stat2(v_Key) - Stat1(v_Key);
+              IF v_Diff > 0 THEN
+                mylist.EXTEND;
+                mylist(mylist.LAST) := v_Key||'^'||v_Diff;
+              END IF;
+            END IF;
+            v_Key := Stat2.NEXT(v_Key); -- Get the next key
+          END LOOP;
+
+          RETURN mylist;
+        END;
+      SELECT Owner, Object_Name, #{@show_partitions ? 'SubObject_Name' : 'NULL'} SubObject_Name, Object_Type, Statistic_Name, SUM(Value) Value
+      FROM   (SELECT SUBSTR(COLUMN_VALUE, 1, INSTR(COLUMN_VALUE, '^')-1) Inst_ID,
+                     SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 1)+1, INSTR(COLUMN_VALUE, '^', 1, 2)-INSTR(COLUMN_VALUE, '^', 1, 1)-1) Owner,
+                     SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 2)+1, INSTR(COLUMN_VALUE, '^', 1, 3)-INSTR(COLUMN_VALUE, '^', 1, 2)-1) Object_Name,
+                     SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 3)+1, INSTR(COLUMN_VALUE, '^', 1, 4)-INSTR(COLUMN_VALUE, '^', 1, 3)-1) SubObject_Name,
+                     SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 4)+1, INSTR(COLUMN_VALUE, '^', 1, 5)-INSTR(COLUMN_VALUE, '^', 1, 4)-1) Object_Type,
+                     SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 5)+1, INSTR(COLUMN_VALUE, '^', 1, 6)-INSTR(COLUMN_VALUE, '^', 1, 5)-1) Statistic_Name,
+                     TO_NumBER(SUBSTR(Column_Value, INSTR(COLUMN_VALUE, '^', 1, 6)+1)) Value
+              FROM TABLE(ConcatResult(?))
+             )
+      #{where_string}
+      GROUP BY Owner, Object_Name, #{'SubObject_Name, ' if @show_partitions}Object_Type, Statistic_Name
+      ORDER BY Owner, Object_Name, #{'SubObject_Name, ' if @show_partitions}Object_Type, Statistic_Name
+    ", @sampletime].concat(where_values)).each do |row|
+      key = "#{row.owner}/#{row.object_name}/#{row.subobject_name}"
+      result_hash[key] ||= { owner: row.owner, object_name: row.object_name, subobject_name: row.subobject_name, object_type: row.object_type }
+      result_hash[key][row.statistic_name] = row.value
+    end
+
     @data = []            # Leeres Array für Result
-    d1_akt_index = 0;     # Vorlesen
-    d2_akt_index = 0;     # Vorlesen
-    while d1_akt_index < data1.length && d2_akt_index < data2.length # not EOF
-      d1 = data1[d1_akt_index];   # Vorlauf Gruppe
-      d2 = data2[d2_akt_index];   # Vorlauf Gruppe
-      # Verarbeitung
-      if d1.inst_id==d2.inst_id && d1.object_type==d2.object_type && d1.owner==d2.owner && d1.object_name==d2.object_name && d1.subobject_name==d2.subobject_name
-        if params[:only_sample_change]!='1' || d2.value != d1.value
-          @data << {
-            "inst_id" => d1.inst_id,
-            "object_type" => d1.object_type,
-            "owner" => d1.owner,
-            "object_name" => d1.object_name,
-            "subobject_name" => d1.subobject_name,
-            "sample" => d2.value - d1.value,
-            "total" => d2.value
-          }
+    result_hash.each do |key, value|                                      # Alle Objekte durchgehen
+      row = {}.extend SelectHashHelper
+      row[:owner]           = value[:owner]
+      row[:object_name]     = value[:object_name]
+      row[:subobject_name]  = value[:subobject_name]
+      row[:object_type]     = value[:object_type]
+      row_sum = 0
+      @stat_names.each do |stat_name, stat_sum|                           # Alle Statistiken durchgehen
+        stat_value =  value[stat_name]                                          # The original value of the statistic
+        if stat_value                                                           # Suppress differences without after value
+          row_sum += stat_value                                                 # Summe der Differenzen der Zeile
+          @stat_names[stat_name][:sum] += stat_value
+          row[stat_name] = stat_value                                           # Wert in Zeile speichern
         end
       end
-      # Nachlesen für den Fall distinct Sätze
-      if smaller(d1,d2)
-        d1_akt_index = d1_akt_index+1
-      else  
-        d2_akt_index = d2_akt_index+1
-      end
+      @data << row if row_sum != 0
     end
 
-    @data.each do |d|
-      d.extend SelectHashHelper   # Hash per Methode zugriffsfaehig machen
-    end
-
-    @data = @data.sort {|x,y| y.sample <=> x.sample }
-
+    # if #{@show_partitions
     render_partial
   end
 

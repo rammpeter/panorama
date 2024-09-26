@@ -535,9 +535,6 @@
   dba_show_locks_submit_ddl_hint:                           Blockierende DDL-Locks (Data Definition Locks) anzeigen
   dba_show_locks_submit_pending_2phase_hint:                Pending two-phase commits anzeigen (aus DBA_2PC_Pending)
 
-  dba_show_segment_statistics_sample_hint:                  Statistik-Wert innerhalb der Sample-Dauer
-  dba_show_segment_statistics_total_hint:                   Statistik-Wert global sei Instance-Start
-
   dba_show_sessions_caption:                                Anzeige Sessions
   dba_show_sessions_filter_hint: |-
     Optionaler LIKE-Filter für  Client/Shadow-Process auf: Session-ID, Process-ID, Username, Client-Info, Client-ID, Module, Action, Maschine, Programm

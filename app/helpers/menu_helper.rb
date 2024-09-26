@@ -76,7 +76,7 @@ module MenuHelper
               ]
             },
             { :class=> 'menu', :caption=> 'Segment Statistics', :content=>[
-                {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),         :controller=>:dba,          :action=> 'segment_stat',             :hint=>t(:menu_wait_segment_current_hint, :default=> 'Current waits by DB-objects') },
+                {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),         :controller=>:dba,          :action=> 'segment_stat',             :hint=>t(:menu_wait_segment_current_hint, :default=> 'Current waits by DB-objects'), min_db_version: '12.2' },
                 {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=> 'dba_history',  :action=> 'segment_stat_historic',    :hint=>t(:menu_wait_segment_historic_hint, :default=> 'Historic values (waits etc.) by DB-objects')  },
                 ]
             },
@@ -160,8 +160,8 @@ module MenuHelper
                   {:class=> 'item', :caption=>'Cell server cell disks',        :controller=>:storage,     :action=>:list_exadata_cell_cell_disk,      :hint=>'List configured cell disks of exadata cell server' },
                   {:class=> 'item', :caption=>'Cell server grid disks',        :controller=>:storage,     :action=>:list_exadata_cell_grid_disk,      :hint=>'List configured grid disks of exadata cell server' },
                 ] },
-                { class: 'menu', caption:  'Cell server past load analysis', min_db_version: '19', content: [
-                  { class: 'item', caption: 'I/O by cells and DBs',    controller: :storage,     action: :show_exadata_io_load_by_cell_db,  :hint=>'List I/O load of exadata cell server by cell and DB', min_db_version: '19' },
+                { class: 'menu', caption:  'Cell server load analysis', min_db_version: '19', content: [
+                  { class: 'item', caption: 'Past I/O by cells and DBs',    controller: :storage,     action: :show_exadata_io_load_by_cell_db,  :hint=>'List I/O load of exadata cell servers in the past by cell and DB', min_db_version: '19' },
                 ] },
                 {:class=> 'item', :caption=>'I/O resource mgr. config',      :controller=>:storage,     :action=>:list_exadata_io_res_mgr_config,   :hint=>'List I/O resource manager config' },
                 {:class=> 'item', :caption=>'Cell server open alerts',       :controller=>:storage,     :action=>:list_exadata_cell_open_alerts,    :hint=>'List open alerts of exadata cell server' },

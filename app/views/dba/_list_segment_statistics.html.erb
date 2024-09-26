@@ -1,0 +1,20 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  # TODO: Number of instances is not known yet
+  column_options << { caption: "Type",        data: proc{|rec| rec.object_type },           title: "Object-Type"}
+  column_options << { caption: "Object",      data: proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name)},  title: "Owner and name of object"}
+  column_options << { caption: "Subobject name", data: proc{|rec| rec.subobject_name },     title: "Sub-Object-Name"} if @show_partitions
+  @stat_names.each do |stat_name, stat_attr|
+    column_options << { caption:  stat_name,
+                        data:     proc{|rec| formattedNumber(rec[stat_name])},
+                        title:    "Statistics-value for '#{stat_name}'#{"\n\nThis statistic was collected by sampling only, therefore may not have recorded all events!" if stat_attr[:sampled] == 'YES'}\n\n#{seg_statistic_desc(stat_name)}",
+                        align:    :right
+    } if stat_attr[:sum] != 0
+  end
+
+  caption = "Object-specific statistics from V$Segment_Statistics#{" for instance = #{@instnce}" if @instance}"
+%>
+
+<%= gen_slickgrid(@data, column_options, {:caption=>caption,  :max_height=>450, update_area: @update_area}) %>

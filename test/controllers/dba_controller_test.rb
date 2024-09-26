@@ -128,7 +128,6 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
     get  '/dba/show_session_waits', :params => {:format=>:html, :update_area=>:hugo }
     assert_response :success
     #test "show_application" do get  :show_application, :applexec_id => "0";  assert_response :success; end
-    #test "show_segment_statistics" do get  :show_segment_statistics;  assert_response :success; end
   end
 
   test "list_waits_per_event with xhr: true" do
@@ -138,8 +137,20 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "segment_stat with xhr: true"       do
+    if get_db_version >= '12.2'
+      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5 }
+      assert_response :success
+
+      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, instance: 1 }
+      assert_response :success
+
+      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, show_partition_info: 1 }
+      assert_response :success
+    end
+
     get  '/dba/segment_stat', :params => {:format=>:html, :update_area=>:hugo }
     assert_response :success
+
   end
 
   test "list_server_logs with xhr: true" do

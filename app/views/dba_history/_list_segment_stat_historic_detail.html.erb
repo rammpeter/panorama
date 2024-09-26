@@ -2,9 +2,9 @@
 column_options =
   [
     {:caption=>"Time",                      :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},               :title=>"Start of snapshot", :plot_master_time=>true },
-    {:caption=>"Logical reads",             :data=>proc{|rec| formattedNumber(rec.logical_reads_delta)},              :title=>"Logical Reads",       :align=>'right'},
+    {:caption=>"Logical reads",             :data=>proc{|rec| formattedNumber(rec.logical_reads_delta)},              :title=>"Logical Reads\n\n#{seg_statistic_desc('logical reads')}",       :align=>'right'},
     {:caption=>"Buffer busy waits",         :data=>proc{|rec| formattedNumber(rec.buffer_busy_waits_delta)},          :title=>"Buffer Busy Waits",   :align=>'right'},
-    {:caption=>"Block changes",             :data=>proc{|rec| formattedNumber(rec.db_block_changes_delta)},           :title=>"DB Block Changes",    :align=>'right'},
+    {:caption=>"Block changes",             :data=>proc{|rec| formattedNumber(rec.db_block_changes_delta)},           :title=>"DB Block Changes\n\n#{seg_statistic_desc('db block changes')}",    :align=>'right'},
     {:caption=>"Physical reads nondirect",  :data=>proc{|rec| formattedNumber(rec.physical_reads_delta-rec.physical_reads_direct_delta)},     :title=>"Physical Reads Non-Direct",    :align=>'right'},
     {:caption=>"Physical reads direct",     :data=>proc{|rec| formattedNumber(rec.physical_reads_direct_delta)},      :title=>"Physical Reads Direct",    :align=>'right'},
     {:caption=>"Physical writes nondirect", :data=>proc{|rec| formattedNumber(rec.physical_writes_delta-rec.physical_writes_direct_delta)},      :title=>"Physical Writes",     :align=>'right'},

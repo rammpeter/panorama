@@ -1343,4 +1343,37 @@ module KeyExplanationHelper
     desc ? desc : "No description available for statistic \"#{stat_name}\""
   end
 
+  SEG_STATISTIC_DESC = {
+    'buffer busy waits' => "",
+    'db block changes' => "Number of DML operations against a DB block in DB cache",
+    'gc buffer busy' => "",
+    'gc cr blocks received' => "",
+    'gc current blocks received' => "",
+    'gc remote grants' => "",
+    'IM db block changes' => "",
+    'IM non local db block changes' => "",
+    'IM populate CUs' => "",
+    'IM prepopulate CUs' => "",
+    'IM repopulate CUs' => "",
+    'IM repopulate (trickle) CUs' => "",
+    'IM scans' => "",
+    'ITL waits' => "",
+    'logical reads' => "",
+    'optimized physical reads' => "This statistic records the number of read requests for objects that are read from Exadata Smart Flash Cache or reads that are avoided through the use of storage index or columnar cache.",
+    'optimized physical writes' => "This statistic records the number of write requests for an object that first went to Exadata Smart Flash Cache.\nSuch write requests can be synchronized to the disk later in a lazy manner to free up cache space.",
+    'physical read requests' => "",
+    'physical reads' => "",
+    'physical reads direct' => "A direct read is a physical I/O from a data file that bypasses the buffer cache and reads the data block directly into process-private memory.",
+    'physical write requests' => "",
+    'physical writes' => "",
+    'physical writes direct' => "Direct path writes caused by CTAS, direct load, insert /*+ APPEND */ and other operations that bypass the buffer cache",
+    'row lock waits' => "",
+    'segment scans' => "",
+    'space allocated' => "",
+    'space used' => "",
+  }
+  def seg_statistic_desc(stat_name)
+    desc = SEG_STATISTIC_DESC[stat_name]
+    desc ? desc : "No description available for segment statistic \"#{stat_name}\""
+  end
 end
