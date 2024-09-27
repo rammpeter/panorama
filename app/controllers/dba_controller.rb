@@ -1384,6 +1384,7 @@ oradebug setorapname diag
     end
 
     result_hash = {}                                                            # Hash to build the result
+    @start_time = sql_select_one "SELECT SYSDATE FROM DUAL"
 
     sql_select_iterator(["\
       WITH

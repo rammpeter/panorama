@@ -14,7 +14,7 @@
     } if stat_attr[:sum] != 0
   end
 
-  caption = "Object-specific statistics from V$Segment_Statistics#{" for instance = #{@instnce}" if @instance}"
+  caption = "Object-specific statistics from V$Segment_Statistics for #{@sampletime} seconds since   #{localeDateTime(@start_time)}#{", instance = #{@instance}" if @instance}"
 %>
 
 <%= gen_slickgrid(@data, column_options, {:caption=>caption,  :max_height=>450, update_area: @update_area}) %>
