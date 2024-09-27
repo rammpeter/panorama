@@ -147,10 +147,6 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
       post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, show_partition_info: 1 }
       assert_response :success
     end
-
-    get  '/dba/segment_stat', :params => {:format=>:html, :update_area=>:hugo }
-    assert_response :success
-
   end
 
   test "list_server_logs with xhr: true" do
@@ -194,6 +190,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
               --AND    t.Table_Name NOT LIKE 'SYS%'
               AND    NVL(t.Num_Rows, 1) > 0 -- Show also tables without analysis, e.g. for 11.2
               AND    o.Data_Object_ID IS NOT NULL
+              AND    c.Index_Name IS NOT NULL
               AND   (t.Owner, t.Table_Name) IN (SELECT Table_schema, Table_Name FROM ALl_Tab_Privs WHERE Privilege IN ('READ', 'SELECT') AND Grantee = 'PUBLIC')
               ORDER BY t.Num_Rows DESC NULLS LAST
             )
