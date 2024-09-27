@@ -1201,6 +1201,7 @@ module KeyExplanationHelper
     "parse time elapsed" => "Total elapsed time for parsing, in 10s of milliseconds. Subtract \"parse time cpu\" from this statistic to determine the total waiting time for parse resources.",
     "physical maps pmem" => "Number of direct-mapped references acquired from FsDirect. Note that in steady state this is approximately the same as the number of unmaps, because each map requires an unmap (e.g. reuses a PMEM buffer).",
     "physical read bytes" => "Total size in bytes of all disk reads by application activity (and not other instance activity) only.",
+    'physical read total bytes optimized' => "Total number of bytes read from Exadata Smart Flash Cache, and bytes avoided by using storage index or columnar cache.",
     "physical read flash cache hits" => "Total number of reads from flash cache instead of disk",
     "physical read IO requests" => "Number of read requests for application activity (mainly buffer cache and direct load operation) which read one or more database blocks per request. This is a subset of \"physical read total IO requests\" statistic.",
     "physical read requests optimized" => "Number of read requests that read one or more database blocks from the Database Smart Flash Cache or the Exadata Smart Flash Cache.",

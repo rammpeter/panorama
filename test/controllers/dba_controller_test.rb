@@ -137,7 +137,7 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "segment_stat with xhr: true"       do
-    if get_db_version >= '12.2'
+    if get_db_version >= '18'
       post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5 }
       assert_response :success
 
