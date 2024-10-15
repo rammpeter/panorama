@@ -1314,7 +1314,7 @@ class DbaSchemaController < ApplicationController
                         FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE SUBPARTITION'
                       )
       SELECT sp.Partition_Name, sp.Subpartition_Name, sp.Subpartition_Position, sp.Compression, sp.Compress_For, sp.Last_Analyzed,
-             sp.Tablespace_Name, sp.Pct_Free, sp.Ini_Trans, sp.Max_Trans, sp.Num_Rows, sp.Blocks, sp.Empty_Blocks, sp.Avg_Row_Len,
+             sp.Tablespace_Name, sp.Pct_Free, sp.Ini_Trans, sp.Max_Trans, sp.Initial_Extent, sp.Num_Rows, sp.Blocks, sp.Empty_Blocks, sp.Avg_Row_Len,
              sp.Logging, #{"sp.InMemory, sp.Flash_Cache, sp.Cell_Flash_Cache, " if get_db_version >= '12.1'}
              s.Size_MB, s.Blocks segment_blocks, s.extents,
              m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, m.Truncated, m.Drop_Segments,

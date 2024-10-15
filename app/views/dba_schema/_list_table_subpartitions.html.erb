@@ -154,7 +154,7 @@
                     {:caption=> 'Tablespace',             :data=>proc{|rec| rec.tablespace_name},              :title=> 'Name of the tablespace containing the partition'},
                     {:caption=> 'Pct. free',              :data=>proc{|rec| fn rec.pct_free},                  :title=> 'Minimum percentage of free space in a block', :align=>:right},
                     {:caption=> 'Ini. trans',             :data=>proc{|rec| fn rec.ini_trans},                 :title=> 'Initial number of transactions', :align=>:right},
-                    {:caption=> 'Ini. ext. (KB)',         :data=>proc{|rec| fn rec.initial_extent/1024 rescue nil}, :title=> 'Initial extent size in kByte', :align=>:right},
+                    {:caption=> 'Ini. ext. (KB)',         :data=>proc{|rec| fn rec.initial_extent/1024 rescue nil}, :title=> 'Initial extent size in kByte', data_title: proc{|rec| "%t\n\n#{size_explain(rec.initial_extent/(1024*1024) ) rescue nil}"}, :align=>:right},
             ]
 
     column_options.concat [
