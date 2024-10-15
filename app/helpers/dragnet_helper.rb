@@ -62,7 +62,7 @@ module DragnetHelper
 
   def dragnet_sql_list
     dragnet_internal_list = [
-        {   :name     => t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential in DB-structures'),
+        {   :name     => t(:dragnet_helper_group_potential_db_structures,  :default=> 'Potential for improvement in DB-structures'),
             :entries  => [{  :name    => t(:dragnet_helper_group_optimal_index_storage, :default => 'Ensure optimal storage parameter for indexes'),
                              :entries => optimal_index_storage
                           },
@@ -128,7 +128,7 @@ module DragnetHelper
         },
         {
             :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'),
-            :entries  => [ {   :name    => t(:dragnet_helper_group_view_issues, :default=>'Potential in DB-Views'),
+            :entries  => [ {   :name    => t(:dragnet_helper_group_view_issues, :default=>'Potential for improvement in DB-Views'),
                                :entries => [{
                                                 :name    => t(:dragnet_helper_group_cascading_views, :default=>'Views with cascading dependiencies (multiple hierarchy)'),
                                                 :entries => cascading_views

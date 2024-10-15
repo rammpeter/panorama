@@ -15,12 +15,12 @@ class SpecAdditionsTest < PlaywrightSystemTestCase
 =begin
     # Wait until content/list becomes visible
     loop_count = 0
-    while loop_count < 100 && !page.has_text?(:visible, '1. Potential in DB-structures')
-      Rails.logger.info "Waiting #{loop_count} seconds for '1. Potential in DB-structures'"
+    while loop_count < 100 && !page.has_text?(:visible, '1. Potential for improvement in DB-structures')
+      Rails.logger.info "Waiting #{loop_count} seconds for '1. Potential for improvement in DB-structures'"
       sleep 1
       loop_count += 1
     end
-    assert_text '1. Potential in DB-structures'
+    assert_text '1. Potential for improvement in DB-structures'
 
     # click first node
     page.first(:xpath, "//i[contains(@class, 'jstree-icon') and contains(@class, 'jstree-ocl') and contains(@role, 'presentation')]").click

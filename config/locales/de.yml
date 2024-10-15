@@ -596,7 +596,7 @@
   dragnet_helper_group_parallel_query_usage:                Nutzung von Parallel Query
   dragnet_helper_group_partitioning:                        Empfehlungen für Partitionierung
   dragnet_helper_group_pl_sql_usage:                        Hinweise zur Nutzung von PL/SQL
-  dragnet_helper_group_potential_db_structures:             Potential in DB-Strukturen
+  dragnet_helper_group_potential_db_structures:             Potential zur Verbesserung in DB-Strukturen
   dragnet_helper_group_problems_with_parallel_query:        Potential für Verbesserungen bei Nutzung von Parallel Query
   dragnet_helper_group_soft_parses_cursor_caching:          Soft-Parse-Aktivitäten / Cachen von SQL-Statement Cursoren
   dragnet_helper_group_suboptimal_index_index:              Suboptimale Nutzung von Indizes in SQL-Statements
@@ -606,7 +606,7 @@
   dragnet_helper_group_unnecessary_indexes:                 Identifikation eventuell unnötiger Indizes
   dragnet_helper_group_unnecessary_index_columns:           Identifikation eventuell unnötiger Index-Spalten
   dragnet_helper_group_unused_tables:                       Ermittlung ungenutzter Tabellen oder Spalten
-  dragnet_helper_group_view_issues:                         Potential in DB-Views
+  dragnet_helper_group_view_issues:                         Potential für Verbesserung in DB-Views
   dragnet_helper_group_wrong_execution_plan:                Ermittlung von SQL-Statements mit suboptimalem Ausführungsplan
 
   dragnet_helper_param_executions_hint:                     Minimale Anzahl Executions im Zeitraum für Aufnahme in Selektion
