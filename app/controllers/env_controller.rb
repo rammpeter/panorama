@@ -577,6 +577,10 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
     render_internal('content_for_layout', params[:redirect_controller], params[:redirect_action])
   end
 
+   def list_options
+     @options = sql_select_all "SELECT * FROM v$Option ORDER BY Parameter"
+     render_partial
+   end
 
 private
   # Schreiben der aktuellen Connection in last logins, wenn neue dabei
