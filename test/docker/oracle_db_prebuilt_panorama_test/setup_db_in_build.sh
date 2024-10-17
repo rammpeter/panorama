@@ -49,7 +49,7 @@ echo "Execute setup script create_panorama_test_user.sql"
 cat $ORACLE_BASE/create_panorama_test_user.sql | $EXEC_CMD "sqlplus -s / as sysdba"
 
 echo "Execute create_awr_snapshots.sql to ensure filled AWR tables before analyze"
-# cat $ORACLE_BASE/scripts/startup/create_awr_snapshots.sql | $EXEC_CMD "sqlplus -s / as sysdba"
+cat $ORACLE_BASE/scripts/startup/create_awr_snapshots.sql | $EXEC_CMD "sqlplus -s / as sysdba"
 
 echo "Execute setup script analyze_sys_schemas.sql"
 cat $ORACLE_BASE/analyze_sys_schemas.sql       | $EXEC_CMD "sqlplus -s / as sysdba"
