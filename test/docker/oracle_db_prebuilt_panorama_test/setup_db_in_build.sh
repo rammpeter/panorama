@@ -7,6 +7,11 @@ sed -i '2i set -x' $ORACLE_BASE/$DB_RUN_SCRIPT
 # Start database in background, use script that at first links data files to /opt/oradata
 cd $ORACLE_BASE && env && $ORACLE_BASE/$DB_RUN_SCRIPT &
 
+# The container entrypoint used for ghcr.io/gvenzl/oracle-free etc.
+if [ -z "$RUN_FILE" ]; then
+  export RUN_FILE=container-entrypoint.sh
+fi
+
 sleep 1                                                                         # ensure that $ORACLE_BASE/$RUN_FILE has started
 # Wait until tail -f on alert.log occurs
 while [ true ]
