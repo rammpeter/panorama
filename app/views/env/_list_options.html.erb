@@ -1,0 +1,16 @@
+<%
+  column_options =
+    [
+      { caption: 'Parameter',     data: proc{|rec| rec.parameter},            title: 'The name of the option'},
+      { caption: 'Value',         data: proc{|rec| rec.value},                title: 'Indicates whether the option (or feature) is installed (TRUE) or not (FALSE)'},
+    ]
+  column_options << {caption: 'Con-ID',   data: proc{|rec| fn(rec.con_id)},   title: "Container ID to which the data pertains. Possible values include:\n0: The entire CDB. This value is also used for rows in non-CDBs.\n1: Data that pertain to only the root-CDB\nn: Application PDB", :align=>:right} if get_db_version >= '12.1'
+%>
+
+<%=
+    gen_slickgrid(@options, column_options, {
+      caption: 'Option info from V$Option',
+      width: :auto,
+      max_height: 450
+    })
+%>

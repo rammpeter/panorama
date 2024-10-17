@@ -297,10 +297,10 @@ Number of maximum transactions (MAX_TRANS) = #{rec.max_trans} #{data_title_part_
    end
 
    data_title_initial_extent = proc do |rec|
-     "%t#{                                data_title_part_def.call(rec.def_initial_extent   == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_initial_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for initial extent')}
-Next extent = #{rec.next_extent} kBytes #{data_title_part_def.call(rec.def_next_extent      == 'DEFAULT' ? 'DEFAULT' : fn((rec.def_next_extent*PanoramaConnection.db_blocksize/1024 rescue nil)), 'Partition default for next extent')}
-Min. extents = #{rec.min_extents}  #{     data_title_part_def.call(rec.def_min_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_min_extents), 'Partition default for min. extents')}
-Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_max_extents), 'Partition default for max. extents')}"
+     "%t#{                                data_title_part_def.call(rec.def_initial_extent   == 'DEFAULT' ? 'DEFAULT' : "#{fn((rec.def_initial_extent.to_i*PanoramaConnection.db_blocksize/1024 rescue nil))} kBytes", 'Partition default for initial extent')}
+Next extent = #{rec.next_extent} kBytes #{data_title_part_def.call(rec.def_next_extent      == 'DEFAULT' ? 'DEFAULT' : "#{fn((rec.def_next_extent.to_i*PanoramaConnection.db_blocksize/1024 rescue nil))} kBytes", 'Partition default for next extent')}
+Min. extents = #{rec.min_extents}  #{     data_title_part_def.call(rec.def_min_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_min_extents.to_i), 'Partition default for min. extents')}
+Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_extents      == 'DEFAULT' ? 'DEFAULT' : fn(rec.def_max_extents.to_i), 'Partition default for max. extents')}"
    end
 
    data_title_distinct_keys = proc do |rec|
