@@ -246,7 +246,7 @@ class StorageController < ApplicationController
              f.AutoExtensible, f.Max_Size_MB, f.File_Count, t.Retention
              #{ ", t.Encrypted, t.Compress_For" if get_db_version >= '11.2'}
              #{ ", t.Index_Compress_For" if get_db_version >= '18.0'}
-             #{ ", t.Def_InMemory, t.Def_InMemory_Compression" if get_db_version >= '12.1.0.2' && PanoramaConnection.edition == :enterprise}
+             #{ ", t.Def_InMemory, t.Def_InMemory_Compression" if get_db_version >= '12.1.0.2' && [:enterprise, :free].include?(PanoramaConnection.edition)}
              #{", t.Con_ID" if PanoramaConnection.is_cdb?}
       FROM  #{dba_or_cdb('DBA_Tablespaces')} t
       LEFT OUTER JOIN free ON free.Tablespace_Name = t.Tablespace_Name #{" AND free.Con_ID = t.Con_ID" if PanoramaConnection.is_cdb?}
@@ -276,7 +276,7 @@ class StorageController < ApplicationController
              f.AutoExtensible, f.Max_Size_MB, f.File_Count, NULL Retention
              #{ ", t.Encrypted, t.Compress_For" if get_db_version >= '11.2'}
              #{ ", t.Index_Compress_For" if get_db_version >= '18.0'}
-             #{ ", t.Def_InMemory, t.Def_InMemory_Compression" if get_db_version >= '12.1.0.2' && PanoramaConnection.edition == :enterprise}
+             #{ ", t.Def_InMemory, t.Def_InMemory_Compression" if get_db_version >= '12.1.0.2' && [:enterprise, :free].include?(PanoramaConnection.edition)}
              #{", t.Con_ID" if PanoramaConnection.is_cdb?}
       FROM  #{dba_or_cdb('DBA_Tablespaces')} t
       LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Tablespace_Name, #{"Con_ID," if PanoramaConnection.is_cdb?} SUM(Bytes)/1048576 MBTotal,
@@ -321,7 +321,7 @@ class StorageController < ApplicationController
              NULL                       Retention
              #{ ", NULL Encrypted, NULL Compress_For" if get_db_version >= '11.2'}
              #{ ", NULL Index_Compress_For" if get_db_version >= '18.0'}
-             #{ ", NULL Def_InMemory, NULL Def_InMemory_Compression" if get_db_version >= '12.1.0.2'  && PanoramaConnection.edition == :enterprise}
+             #{ ", NULL Def_InMemory, NULL Def_InMemory_Compression" if get_db_version >= '12.1.0.2'  && [:enterprise, :free].include?(PanoramaConnection.edition)}
              #{", l.Con_ID" if PanoramaConnection.is_cdb?}
       FROM   gv$Log l
       JOIN   gv$LogFile lf ON lf.Inst_ID = l.Inst_ID AND lf.Group# = l.Group#

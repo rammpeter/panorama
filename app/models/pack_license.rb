@@ -32,9 +32,9 @@ class PackLicense
   def self.management_pack_selectable(management_pack_license, control_management_pack_access)
     case management_pack_license
     when :diagnostics_pack then
-      return (PanoramaConnection.edition == :enterprise && control_management_pack_access['DIAGNOSTIC']) || PanoramaConnection.edition == :express
+      return ([:enterprise, :free].include?(PanoramaConnection.edition) && control_management_pack_access['DIAGNOSTIC']) || PanoramaConnection.edition == :express
     when :diagnostics_and_tuning_pack then
-      return (PanoramaConnection.edition == :enterprise && control_management_pack_access['TUNING']) || PanoramaConnection.edition == :express
+      return ([:enterprise, :free].include?(PanoramaConnection.edition) && control_management_pack_access['TUNING']) || PanoramaConnection.edition == :express
     when :panorama_sampler then
       # check if AWR/ASH-Sampling is really active for existing Panorama-Sampler-schema
       return false if PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].nil?

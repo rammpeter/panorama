@@ -179,22 +179,28 @@ class PanoramaConnection
 
   def read_initial_attributes
     db_config   = PanoramaConnection.direct_select_one(@jdbc_connection,
-                  "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID,
-                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$System_Parameter WHERE Name = 'db_block_size'), 8192)                         db_blocksize,
-                          NVL((SELECT /*+ NO_MERGE */ Value FROM v$System_Parameter WHERE Name = 'cluster_database'), 'FALSE')                              cluster_database,
-                          (SELECT /*+ NO_MERGE */ DECODE (INSTR (banner, '64bit'), 0, 4, 8) Word_Size FROM v$version WHERE Banner LIKE '%Oracle Database%') db_wordsize,
-                          (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Enterprise Edition%' OR Banner LIKE '%EE%')                   enterprise_edition_count,
-                          (SELECT /*+ NO_MERGE */ COUNT(*) FROM v$version WHERE Banner LIKE '%Express Edition%')                                            express_edition_count,
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KCBH')                                                                           Block_Common_Header_Size,
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'UB4')                                                                            Unsigned_Byte_4_Size,
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBBH')                                                                          Transaction_Fixed_Header_Size,
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBIT')                                                                          Transaction_Var_Header_Size, /* Size of ITL entry */
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBH')                                                                           Data_Header_Size,
-                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBT')                                                                           Table_Directory_Entry_Size,
-                          (SELECT VSIZE(rowid) FROM Dual)                                                                                                   RowID_Size,
-                          SYSDATE                                                                                                                           Logon_time
+                  "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID, v.Edition,
+                          CASE WHEN d.Platform_Name LIKE '%64%' THEN 8 ELSE 4 END                                                              db_wordsize,
+                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$System_Parameter WHERE Name = 'db_block_size'), 8192)       db_blocksize,
+                          NVL((SELECT /*+ NO_MERGE */ Value FROM v$System_Parameter WHERE Name = 'cluster_database'), 'FALSE')            cluster_database,
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KCBH')                                                         Block_Common_Header_Size,
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'UB4')                                                          Unsigned_Byte_4_Size,
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBBH')                                                        Transaction_Fixed_Header_Size,
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBIT')                                                        Transaction_Var_Header_Size, /* Size of ITL entry */
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBH')                                                         Data_Header_Size,
+                          (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBT')                                                         Table_Directory_Entry_Size,
+                          (SELECT VSIZE(rowid) FROM Dual)                                                                                 RowID_Size,
+                          SYSDATE                                                                                                         Logon_time
                    FROM   v$Instance i
                    CROSS JOIN v$Database d
+                   CROSS JOIN (SELECT CASE
+                                      WHEN SUM(CASE WHEN Banner LIKE '%Enterprise Edition%' OR Banner LIKE '%EE%' THEN 1 ELSE 0 END) > 0 THEN 'enterprise'
+                                      WHEN SUM(CASE WHEN Banner LIKE '%Express Edition%' THEN 1 ELSE 0 END) > 0 THEN 'express'
+                                      WHEN SUM(CASE WHEN Banner LIKE '%Free Release%' THEN 1 ELSE 0 END) > 0 THEN 'free'
+                                      ELSE 'standard'
+                                      END edition
+                               FROM   v$version
+                              ) v
                   ")
     @block_common_header_size         = db_config['block_common_header_size']
     @cluster_database                 = db_config['cluster_database']
@@ -204,7 +210,7 @@ class PanoramaConnection
     @database_name                    = db_config['database_name']
     @db_blocksize                     = db_config['db_blocksize']
     @db_wordsize                      = db_config['db_wordsize']
-    @edition                          = (db_config['enterprise_edition_count'] > 0  ? :enterprise : (db_config['express_edition_count'] > 0 ?  :express : :standard) )
+    @edition                          = (db_config['edition'] || 'standard').to_sym
     @instance_number                  = db_config['instance_number']
     @login_container_dbid             = db_config['dbid']                       # Default is DB's DBID, specified later for CDBs
     @logon_time                       = db_config['logon_time']

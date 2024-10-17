@@ -293,9 +293,9 @@ Hash-value over total optimizer environment + Number of different optimizer envi
   <% if get_db_version >= '11.1' %>
     <div class="flex-row-element">
       <%=
-        disabled = @sql.plan_hash_value_count < 1 || PanoramaConnection.edition != :enterprise || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+        disabled = @sql.plan_hash_value_count < 1 || PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
         title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
-        title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition != :enterprise || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+        title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
 
         ajax_submit('SQL plan baseline', {
             :controller                 => :dba_history,

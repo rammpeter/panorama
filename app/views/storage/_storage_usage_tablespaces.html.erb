@@ -167,7 +167,7 @@
   column_options << {:caption=>'Default compr.',      :data=>data_default_compression,                    :title=>'Default compression for tables, indexes or inmemory'}
   column_options << {:caption=>'Big file',            :data=>proc{|rec| rec.bigfile},                     :title=>'Indicates whether the tablespace is a bigfile tablespace (YES) or a smallfile tablespace (NO)'}
   column_options << {:caption=>'Encrypt.',            :data=>proc{|rec| rec.encrypted},                   :title=>"Indicates whether the tablespace is encrypted"} if get_db_version >= '11.2'
-  column_options << {:caption=>'Def. in memory',      :data=>proc{|rec| rec.def_inmemory},                :title=>"Indicates whether the In-Memory Column Store (IM column store) is by default enabled (ENABLED) or disabled (DISABLED) for tables in this tablespace"} if get_db_version >= '12.1.0.2' && PanoramaConnection.edition == :enterprise
+  column_options << {:caption=>'Def. in memory',      :data=>proc{|rec| rec.def_inmemory},                :title=>"Indicates whether the In-Memory Column Store (IM column store) is by default enabled (ENABLED) or disabled (DISABLED) for tables in this tablespace"} if get_db_version >= '12.1.0.2' && PanoramaConnection.edition != :standard
   column_options << {:caption=>'Details',             :data=>link_ts_details,                             :title=>"Tablespace-specific details"}
 
 
