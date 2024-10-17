@@ -2,10 +2,10 @@
 # Terminates install process after finishing
 
 # Modify run script to start database in background
-sed -i '2i set -x' $ORACLE_BASE/$DB_RUN_SCRIPT
+sed -i '2i set -x' $ORACLE_BASE/run_db_in_container.sh
 
 # Start database in background, use script that at first links data files to /opt/oradata
-cd $ORACLE_BASE && env && $ORACLE_BASE/$DB_RUN_SCRIPT &
+cd $ORACLE_BASE && env && $ORACLE_BASE/run_db_in_container.sh &
 
 # The container entrypoint used for ghcr.io/gvenzl/oracle-free etc.
 if [ -z "$RUN_FILE" ]; then
@@ -49,7 +49,7 @@ echo "Execute setup script create_panorama_test_user.sql"
 cat $ORACLE_BASE/create_panorama_test_user.sql | $EXEC_CMD "sqlplus -s / as sysdba"
 
 echo "Execute create_awr_snapshots.sql to ensure filled AWR tables before analyze"
-cat $ORACLE_BASE/scripts/startup/create_awr_snapshots.sql | $EXEC_CMD "sqlplus -s / as sysdba"
+# cat $ORACLE_BASE/scripts/startup/create_awr_snapshots.sql | $EXEC_CMD "sqlplus -s / as sysdba"
 
 echo "Execute setup script analyze_sys_schemas.sql"
 cat $ORACLE_BASE/analyze_sys_schemas.sql       | $EXEC_CMD "sqlplus -s / as sysdba"

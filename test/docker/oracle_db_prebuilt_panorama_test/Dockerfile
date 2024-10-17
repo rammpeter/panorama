@@ -21,8 +21,6 @@ RUN     ${YUM} update && ${YUM} install procps && ${YUM} clean all
 
 
 USER   oracle
-ARG DB_RUN_SCRIPT=run_db_in_container.sh
-ENV DB_RUN_SCRIPT ${DB_RUN_SCRIPT}
 ENV ORACLE_PASSWORD oracle
 
 COPY    setup_db_in_build.sh create_panorama_test_user.sql analyze_sys_schemas.sql modify_instance_settings.sql $ORACLE_BASE/
@@ -36,7 +34,6 @@ FROM scratch
 
 ARG CDB_SERVICE=ORCLCDB
 ARG PDB_SERVICE=orclpdb1
-ARG DB_RUN_SCRIPT=run_db_in_container.sh
 ENV CDB_SERVICE ${CDB_SERVICE}
 ENV PDB_SERVICE ${PDB_SERVICE}
 ENV ORACLE_PASSWORD oracle
@@ -51,7 +48,7 @@ WORKDIR $ORACLE_BASE
 
 EXPOSE  1521 5500
 # use bracket syntax to ensure that run_db_in_container.sh runs with PID 1 and receives SIGTERM signal
-CMD ["/bin/sh", "-c", "$ORACLE_BASE/$DB_RUN_SCRIPT"]
+CMD ["/bin/sh", "-c", "$ORACLE_BASE/run_db_in_container.sh"]
 
 # Ensure that both services are active in listener and original health check is successful
 HEALTHCHECK --interval=30s --start-period=10s --retries=5 \
