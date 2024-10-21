@@ -32,3 +32,5 @@ mycert.key
 /Panorama.jar
 /.github/Wallet_panoramatest.zip
 /panorama.log
+/test/docker/oracle_db_prebuilt_panorama_test/Dockerfile.modified
+/test/docker/oracle_db_prebuilt_panorama_test/base.env

@@ -161,6 +161,7 @@ Especially implicit conversion by TO_NUMBER while accessing VARCHAR2-columns wit
 For this cases data type according to column type should be used for bind variable.
 Conversion by INTERNAL_FUNCTION may be suboptimal e.g. for IN-lists if efficient usage of existing index with inlist iteration is not choosen.'),
             :sql=>  "\
+WITH Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Ind_Columns)
 SELECT p.Inst_ID, p.SQL_ID,
        p.Plan_Hash_Value             \"Plan hash value\",
        h.SQL_Plan_Line_ID            \"Plan line ID\",
@@ -209,10 +210,10 @@ JOIN   (SELECT h.*, SUM(Seconds) OVER (PARTITION BY SQL_ID, UserName, SQL_Plan_H
                ) h
         WHERE  h.Seconds > ?
        ) h ON h.SQL_ID = p.SQL_ID AND h.SQL_Plan_Hash_Value = P.Plan_Hash_Value AND h.SQL_Plan_Line_ID = p.ID
-LEFT OUTER JOIN DBA_Ind_Columns ic ON (   (p.Object_Type LIKE 'INDEX%' AND ic.Index_Owner = p.Object_Owner AND ic.Index_Name = p.Object_Name)
-                                       OR (p.Object_Type LIKE 'TABLE%' AND ic.Table_Owner = p.Object_Owner AND ic.Table_Name = p.Object_Name) /* IOT */
-                                      )
-                                      AND ic.Column_Name = p.Column_Name
+LEFT OUTER JOIN Ind_Columns ic ON (   (p.Object_Type LIKE 'INDEX%' AND ic.Index_Owner = p.Object_Owner AND ic.Index_Name = p.Object_Name)
+                                   OR (p.Object_Type LIKE 'TABLE%' AND ic.Table_Owner = p.Object_Owner AND ic.Table_Name = p.Object_Name) /* IOT */
+                                  )
+                                  AND ic.Column_Name = p.Column_Name
 LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = ic.Table_Owner AND t.Table_Name = ic.Table_Name
 LEFT OUTER JOIN DBA_Tab_Columns tc ON tc.Owner = ic.Table_Owner AND tc.Table_Name = ic.Table_Name AND tc.Column_Name = p.Column_Name
 WHERE  (p.Reason = 'TO_NUMBER' OR ic.Index_Name IS NOT NULL) /* Show internal_function only if alternative index exists for column */
