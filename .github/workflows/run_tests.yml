@@ -105,6 +105,12 @@ jobs:
                 TEST_SERVICENAME=XE
               fi
             fi
+            if [[ "$DB_VERSION" == *"free" ]]; then
+              TEST_SERVICENAME=FREEPDB1
+              if [[ "$CONTAINER" == "CDB" ]]; then
+                TEST_SERVICENAME=FREE
+              fi
+            fi
             echo "TEST_SERVICENAME=$TEST_SERVICENAME" >> $GITHUB_ENV
           fi
           # Ensure that each run uses it's own config without previous artifacts
