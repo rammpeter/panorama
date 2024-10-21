@@ -21,11 +21,12 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
     # Test with new login parameters
     database[:save_login] = '1'                                                 # String insted of bool like for connect with saved credentials
-    post '/env/set_database_by_params', :params => {:format=>:html, :database => database }
+    # accept both return formats :html and :js, depending on the use of existing TNS alias in database[:tns] or string 'host:port/service'
+    post '/env/set_database_by_params', :params => { :database => database }, headers: { 'Accept' => 'text/html, application/javascript' }
     assert_response :success
 
     # test with stored login from previous connect (0 = first position in list of stored connections)
-    post '/env/set_database_by_id', :params => {:saved_logins_id=>'0' }
+    post '/env/set_database_by_id', :params => {format: [:html, :js], :saved_logins_id=>'0' }
     assert_response :success
 
   end
