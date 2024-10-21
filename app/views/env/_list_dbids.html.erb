@@ -17,7 +17,7 @@
   column_options =
     [
         {:caption=> 'S',                :data=>proc{|rec| selected(rec)},                 :title=> 'The selected DBID is used for statistics'},
-        {:caption=> 'DBID',             :data=>proc{|rec| link_select(rec)},              :title=> 'Database ID\nOnly the selected DBID is used for statistics'},
+        {:caption=> 'DBID',             :data=>proc{|rec| link_select(rec)},              :title=> "Database ID\nOnly the selected DBID is used for statistics"},
         {:caption=> 'Name',             :data=>proc{|rec| rec.db_name},                   :title=> 'Name of database'},
         {:caption=> 'First usage',      :data=>proc{|rec| localeDateTime(rec.min_ts)},    :title=> 'First usage of database with this name and DBID'},
         {:caption=> 'Last usage',       :data=>proc{|rec| localeDateTime(rec.max_ts)},    :title=> 'Last usage of database with this name and DBID'},
@@ -34,7 +34,7 @@
 <%=
   if !@dbids.nil? && @dbids.count > 1
     gen_slickgrid(@dbids, column_options, {
-      :caption => '<span style="color: red">Data for multiple database IDs is recorded in AWR history. Please select your preferred DBID</span>'.html_safe,
+      :caption => '<span style="color: red" title="Most considerations in the AWR recordings always refer to a specific DBID.&#10;So be careful to select the DBID which represents the desired data.">Data for multiple database IDs is recorded in AWR history. Please select your preferred DBID</span>'.html_safe,
       :width => :auto,
       :max_height => 200
     })

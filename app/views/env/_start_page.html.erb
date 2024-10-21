@@ -242,28 +242,24 @@ DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, 
     </div>
   <% end %>
 
-  <div id="<%= @update_area %>">
-    <div class="flex-row-element" >
-      <h2><%= t :env_licensing_header, :default=>"Licensing" %></h2>
-      <% @show_management_pack_choice = true %>
-      <%= render :partial => 'licensing' %>
-    </div>
-
-    <div class="flex-row-element" id="<%= @update_area %>">
-      <%= render_async(:env, :panorama_sampler_data) %>
-    </div>
-
-    <div class="flex-row-element" id="<%= @update_area %>">
-      <% if @dictionary_access_problem %>
-        <h2><%= "Dictionary Access-Problem"   %></h2>
-        <div style='color:red;'>
-          <%= @dictionary_access_msg.html_safe %>
-        </div>
-      <% end %>
-    </div>
-
+  <div class="flex-row-element" >
+    <% @show_management_pack_choice = true %>
+    <%= render :partial => 'licensing' %>
   </div>
 
+  <div class="flex-row-element">
+    <%= render_async(:env, :panorama_sampler_data) %>
+  </div>
+
+  <div class="flex-row-element" >
+    <% if @dictionary_access_problem %>
+      <h2><%= "Dictionary Access-Problem"   %></h2>
+      <div style='color:red;'>
+        <%= @dictionary_access_msg.html_safe %>
+      </div>
+    <% end %>
+  </div>
 </div>
+<div id="<%= @update_area %>"></div>
 
 
