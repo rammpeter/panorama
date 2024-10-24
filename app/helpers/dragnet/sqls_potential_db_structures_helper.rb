@@ -345,33 +345,42 @@ END;
             :name  => t(:dragnet_helper_117_name, :default=>'Table access by rowid replaceable by index lookup (from current SGA)'),
             :desc  => t(:dragnet_helper_117_desc, :default=>'For smaller tables with less columns and excessive access it can be worth to substitute index range scan + table access by rowid with single index range scan via special index with all accessed columns.
 Usable with Oracle 11g and above only.'),
-            :sql=> "SELECT x.*
-                    FROM   (
-                            SELECT /*+ USE_HASH(t) */
-                                   p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, h.SQL_Plan_Line_ID, p.Object_Owner, p.Object_Name,
-                                   t.Num_Rows, t.Avg_Row_Len,
-                                   h.Samples Seconds_per_SQL,
-                                   SUM(Samples) OVER (PARTITION BY p.Object_Owner, p.Object_Name) Seconds_per_Object
-                            FROM   (
-                                    SELECT DISTINCT Inst_ID, ID, Operation, Options, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name
-                                    FROM   gv$SQL_Plan
-                                   ) p
-                            JOIN   (
-                                    SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time, SQL_ID,
-                                           SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Samples
-                                    FROM   gv$Active_Session_History
-                                    WHERE  SQL_Plan_Line_ID IS NOT NULL
-                                    GROUP BY Inst_ID, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
-                                   ) h ON h.Inst_ID=p.Inst_ID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
-                            LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
-                            WHERE  p.Operation = 'TABLE ACCESS' AND p.Options LIKE 'BY INDEX ROWID%'
-                            AND    p.Object_Owner NOT IN (#{system_schema_subselect})
-                            AND    NVL(t.Num_Rows, 0) < ?
-                           ) x
-                    WHERE  Seconds_Per_Object  > ?
-                    ORDER BY Seconds_Per_Object DESC, Seconds_Per_SQL DESC",
-            :parameter=>[{:name=> 'Maximum number of rows in table', :size=>14, :default=>100000, :title=> 'Maximum number of rows in table. For smaller table it is mostly no matter to have additional indexes.'},
-                         {:name=> 'Minimum number of seconds in wait', :size=>8, :default=>10, :title=> 'Mimimum number of seconds in wait for table access by rowid on this table to be worth to consider.'}]
+            :sql=> "\
+              WITH All_Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Avg_Row_Len, Num_Rows FROM DBA_All_Tables WHERE NVL(Num_Rows, 0) < ?),
+                   SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DISTINCT ID, Operation, Options, SQL_ID, Plan_Hash_Value, Object_Owner, Object_Name
+                                FROM   gv$SQL_Plan
+                                WHERE  Operation = 'TABLE ACCESS' AND Options LIKE 'BY INDEX ROWID'
+                                AND    Object_Owner NOT IN (#{system_schema_subselect})
+                               )
+              SELECT x.*
+              FROM   (
+                      SELECT /*+ USE_HASH(t) */
+                             p.SQL_ID, p.Plan_Hash_Value, h.SQL_Plan_Line_ID, p.Object_Owner, p.Object_Name,
+                             t.Num_Rows, t.Avg_Row_Len,
+                             h.Samples Seconds_per_Table_in_SQL,
+                             h.Total_Samples Total_Seconds_of_SQL,
+                             h.Min_Sample_Time, h.Max_Sample_Time
+                      FROM   SQL_Plan p
+                      JOIN   (
+                              SELECT /*+ NO_MERGE */ MIN(Sample_Time) Min_Sample_Time, MAX(Sample_Time) Max_Sample_Time, SQL_ID,
+                                     SQL_Plan_Hash_Value, SQL_Plan_Line_ID, COUNT(*) Samples,
+                                     MIN(Total_Samples) Total_Samples
+                              FROM   (SELECT h.*,
+                                             COUNT(*) OVER (PARTITION BY SQL_ID, SQL_Plan_Hash_Value) Total_Samples /* The sample count for the whole SQL statement */
+                                      FROM gv$Active_Session_History h
+                                     )
+                              WHERE  SQL_Plan_Line_ID IS NOT NULL
+                              GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
+                             ) h ON h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
+                      JOIN All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+                     ) x
+              WHERE  Seconds_per_Table_in_SQL  > ?
+              ORDER BY Seconds_per_Table_in_SQL DESC
+            ",
+            :parameter=>[
+              {:name=> 'Maximum number of rows in table', :size=>14, :default=>100000, :title=> 'Maximum number of rows in table. For smaller table it is mostly no matter to have additional indexes.'},
+              {:name=> 'Minimum number of seconds in wait', :size=>8, :default=>10, :title=> 'Mimimum number of seconds in wait for table access by rowid on this table to be worth to consider.'}
+            ]
         },
         {
             :name  => t(:dragnet_helper_118_name, :default=>'Table access by rowid replaceable by index lookup (from AWR history)'),
