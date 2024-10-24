@@ -17,6 +17,7 @@
   column_options << {caption: 'ID',               data: proc{|rec| fn(rec.service_id)},                 title: "Unique ID for the service", align: :right}
   column_options << {caption: 'Name',             data: proc{|rec| rec.name},                           title: "Name of the service"}
   column_options << {caption: 'Network name',     data: proc{|rec| rec.network_name},                   title: "Network name used to connect to the service"}
+  column_options << {caption: 'Active instances', data: proc{|rec| rec.active_instances},               title: "RAC instances where the service is active"} if PanoramaConnection.rac?
   column_options << {caption: 'Sessions',         data: link_sessions,                                  title: "Number of currently connected sessions", align: :right}
   column_options << {caption: 'Creation',         data: proc{|rec| localeDateTime(rec.creation_date)},  title: "Date the service was created"}
   column_options << {caption: 'Failover method',  data: proc{|rec| rec.failover_method},                title: "Failover method (BASIC or NONE) for the service"}

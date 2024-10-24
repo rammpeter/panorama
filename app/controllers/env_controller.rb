@@ -338,13 +338,17 @@ class EnvController < ApplicationController
       session_where_values << @pdb_name
     end
 
-    @services = sql_select_all ["SELECT v.*, s.Sessions
-                                 FROM   DBA_Services v
+    @services = sql_select_all ["SELECT v.*, s.Sessions, a.Active_Instances
+                                 FROM     DBA_Services v
                                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Service_Name, COUNT(*) Sessions
                                                   FROM gv$Session s
                                                   #{session_where_string}
                                                   GROUP BY Service_Name
                                                  ) s ON s.Service_Name = v.Name
+                                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Name, LISTAGG(Inst_ID, ', ') WITHIN GROUP (ORDER BY Inst_ID) Active_Instances
+                                                  FROM   gv$Active_Services
+                                                  GROUP BY Name
+                                                 ) a ON a.Name = v.Name
                                  #{where_string}
                                 "].concat(session_where_values).concat(where_values)
     render_partial
