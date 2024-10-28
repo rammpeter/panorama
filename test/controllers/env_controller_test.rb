@@ -7,6 +7,7 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
   setup do
     set_session_test_db_context
+    initialize_min_max_snap_id_and_times
     @instance = PanoramaConnection.instance_number
   end
 
@@ -45,6 +46,21 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
       post '/env/list_services', :params => {:format=>:html, instance: @instance, pdb_name: 'ORCLPDB1' }
       assert_response :success
     end
+
+    post '/env/list_service_stats_current', :params => {:format=>:html, service_name: 'ORCLPDB1' }
+    assert_response :success
+
+    post '/env/show_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1' }
+    assert_response :success
+
+    post '/env/show_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1'}
+    assert_response :success
+
+    post '/env/list_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1', instance: @instance, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end }
+    assert_response :success
+
+    post '/env/list_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1', instance: nil, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end }
+    assert_response :success
   end
 
   test "list_diag_info with xhr: true" do

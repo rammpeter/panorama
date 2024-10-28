@@ -354,7 +354,110 @@ class EnvController < ApplicationController
     render_partial
   end
 
-  def list_diag_info
+  def list_service_stats_current
+    @service_name = prepare_param :service_name
+
+    @stats = sql_select_all ["SELECT * FROM gv$Service_Stats WHERE Service_Name = ? ORDER BY Stat_Name, Inst_ID", @service_name]
+    render_partial
+  end
+
+  def show_service_stats_historic
+    @service_name = prepare_param :service_name
+    render_partial
+  end
+
+  def list_service_stats_historic
+    @service_name = prepare_param :service_name
+    @instance     = prepare_param_instance
+    @dbid         = prepare_param_dbid
+    save_session_time_selection
+
+    where_string = ''
+    where_values = []
+
+    if @instance
+      where_string << " AND st.Instance_Number = ?"
+      where_values << @instance
+    end
+
+    single_stats = sql_select_iterator ["
+      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Begin_Interval_Time,
+                            Min(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Min_Snap_ID,
+                            MAX(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Max_Snap_ID
+                     FROM   DBA_Hist_Snapshot ss
+                     WHERE  DBID = ?
+                     AND    Begin_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_Time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+             ),
+      All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time
+                    FROM   Snaps
+                    UNION ALL
+                    SELECT DBID, Instance_Number, MIN(Snap_ID-1) Snap_ID, /* Vorgänger des ersten mit auswerten für Differenz per LAG */
+                           MIN(Min_Snap_ID) Min_Snap_ID,  MAX(Max_Snap_ID) Max_Snap_ID, MIN(Begin_Interval_time)
+                    FROM   Snaps
+                    GROUP BY DBID, Instance_Number
+                   )
+      SELECT Rounded_Begin_Interval_Time, Stat_Name, SUM(VALUE) Value
+      FROM   (
+              SELECT /*+ NO_MERGE */ ROUND(Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time, st.Instance_Number, ss.Snap_ID, ss.Min_Snap_ID, st.Stat_Name,
+                     Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
+              FROM   All_Snaps ss
+              JOIN   DBA_Hist_Service_Stat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
+              WHERE  st.Service_Name = ?
+              #{where_string}
+             )
+      WHERE  Value >= 0    /* Ersten Snap nach Reboot ausblenden */
+      AND    Snap_ID >= Min_Snap_ID /* Vorgaenger des ersten Snap fuer LAG wieder ausblenden */
+      GROUP BY Rounded_Begin_Interval_Time, Stat_Name
+      ORDER BY Rounded_Begin_Interval_Time, Stat_Name", @dbid, @time_selection_start, @time_selection_end, @service_name].concat(where_values)
+
+    @stats = []      # Komplettes Result
+    rec = {}        # einzelner Record des Results
+    columns = {}    # Verwendete Statistiken mit Value != 0
+    ts = nil
+    empty = true
+    single_stats.each do |s|
+      empty = false
+      if ts != s.rounded_begin_interval_time
+        @stats << rec if ts    # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
+        rec = {:rounded_begin_interval_time => s.rounded_begin_interval_time }              # Neuer Record
+        ts = s.rounded_begin_interval_time                                          # Vergleichswert fur naechsten Record
+      end
+      rec[s.stat_name] = s.value if s.value != 0      # 0-Values nicht speichern
+      columns[s.stat_name] = true if s.value != 0     # Statistik als verwendet kennzeichnen
+    end
+    @stats << rec  unless empty         # letzten Record wegschreiben, wenn Result exitierte
+
+    column_options =
+      [
+        { caption: "Interval",  data: proc{|rec| localeDateTime(rec[:rounded_begin_interval_time])}, title: "Start of AWR snapshot period", plot_master_time: true }
+      ]
+    columns.each do |col, _value|
+      column_options << {
+        caption: col,
+        data: proc{|rec| fn(rec[col])},
+        title: "#{col}\n\n#{statistic_desc(col, 'microseconds')}",
+        align: :right
+      }
+    end
+
+    update_area = get_unique_area_id
+    output = gen_slickgrid(@stats, column_options,
+                           {
+                             caption:   "Service statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Service_Stat')} for '#{@service_name}' from #{@time_selection_start} until #{@time_selection_end}#{", Instance= #{@instance}" if @instance}",
+                             max_height: 450,
+                             update_area: update_area
+                           }
+    )
+    output << "<div id='#{update_area}'></div>".html_safe
+
+    respond_to do |format|
+      format.html {render :html => output }
+    end
+
+  end
+
+   def list_diag_info
     @instance = prepare_param_instance
     @diag_info = sql_select_all ["SELECT * FROM gv$Diag_Info WHERE Inst_ID = ?", @instance]
     render_partial

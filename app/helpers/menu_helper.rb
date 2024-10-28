@@ -31,6 +31,7 @@ module MenuHelper
               {:class => 'item', :caption => 'Resource limits', :controller => :dba, :action => :resource_limits, :hint => t(:menu_dba_resource_limit_hint, :default => 'Show resource limits from gv$Resource_Limit')},
               {:class => 'item', :caption => 'Optimizer hints', :controller => :dba, :action => :optimizer_hints, :hint => t(:menu_dba_optimizer_hints_hint, :default => 'Show supported optimizer hints for this database')},
               {:class => 'item', :caption => 'DB options', :controller => :env, :action => :list_options, :hint => 'Show DB options from V$Option'},
+              {:class => 'item', :caption => 'TNS services', :controller => :env, :action => :list_services, :hint => 'Show TNS services from DBA_Services'},
             ]
             },
             {:class => 'menu', :caption => 'User management', :content => [

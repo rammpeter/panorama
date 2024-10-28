@@ -1,0 +1,18 @@
+<% @update_area = get_unique_area_id %>
+<%= render_page_caption("Past service statistics for service '#{@service_name}'") %>
+
+<%= ajax_form(controller: :env, action: :list_service_stats_historic, update_area: @update_area, service_name: @service_name) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker %>
+    <%= instance_tag %>
+    <%= dbid_selection %>
+    <div class="flex-row-element">
+      <%= submit_tag('Show',
+                     title: "Show past statistics from AWR for this service")
+      %>
+    </div>
+  </div>
+<% end %>
+
+<div id='<%= @update_area %>'></div>
+

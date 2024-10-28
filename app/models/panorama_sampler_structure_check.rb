@@ -1014,6 +1014,23 @@ class PanoramaSamplerStructureCheck
           primary_key: { columns: ['DBID', 'Service_Name', 'Con_DBID'] },
       },
       {
+        table_name: 'Panorama_Service_Stat',
+        domain: :AWR,
+        columns: [
+          { column_name:  'Snap_ID',                        column_type:   'NUMBER',    not_null: true },
+          { column_name:  'DBID',                           column_type:   'NUMBER',    not_null: true },
+          { column_name:  'Instance_Number',                column_type:   'NUMBER',    not_null: true },
+          { column_name:  'SERVICE_NAME_HASH',              column_type:   'NUMBER',    not_null: true },
+          { column_name:  'SERVICE_NAME',                   column_type:   'VARCHAR2',  not_null: true, precision: 128 },
+          { column_name:  'Stat_ID',                        column_type:   'NUMBER',    not_null: true },
+          { column_name:  'Stat_Name',                      column_type:   'VARCHAR2',  not_null: true, precision: 128 },
+          { column_name:  'Value',                          column_type:   'NUMBER',    not_null: false },
+          { column_name:  'CON_DBID',                       column_type:   'NUMBER',    not_null: true },
+          { column_name:  'CON_ID',                         column_type:   'NUMBER',    not_null: true },
+        ],
+        primary_key: { columns: ['DBID', 'SNAP_ID', 'INSTANCE_NUMBER', 'SERVICE_NAME_HASH', 'STAT_ID', 'CON_DBID'] },
+      },
+      {
         table_name: 'Panorama_SGAStat',
         domain: :AWR,
         columns: [

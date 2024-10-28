@@ -1283,14 +1283,14 @@ FROM (
 
     column_options =
     [
-      {:caption=>"Intervall",   :data=>"localeDateTime(rec[:begin_interval_time])", :title=>"Beginn des Zeitintervalls", :plot_master_time=>true }
+      {caption: "Interval", data: proc{|rec| localeDateTime(rec[:begin_interval_time])}, :title=>"Start of AWR snapshot period", :plot_master_time=>true }
     ]
     statnames.each do |sn|
       if columns[sn.stat_id]              # Statistik kommt auch im Result vor
         column_options << {
           :caption=>sn.stat_name,
-          :data=>"formattedNumber(rec[#{sn.stat_id}] ? rec[#{sn.stat_id}] : 0)",
-          title: "#{sn.stat_name} : class=\"#{statistic_class(sn.class_id)}\"\n\n#{statistic_desc(sn.stat_name)}",
+          :data=>proc{|rec| fn(rec[sn.stat_id] ? rec[sn.stat_id] : 0)},
+          title: "#{sn.stat_name} : class=\"#{statistic_class(sn.class_id)}\"\n\n#{statistic_desc(sn.stat_name, 'centiseconds')}",
           :align=>"right"
         }
       end

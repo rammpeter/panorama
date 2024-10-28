@@ -3,7 +3,7 @@
 
     column_options =
     [
-      {:caption=>"Name",   :data=>proc{|rec| rec.name}, :title=>"Name of statistic", data_title: proc{|rec| "%t\n\n#{statistic_desc(rec.name)}"} },
+      {:caption=>"Name",   :data=>proc{|rec| rec.name}, :title=>"Name of statistic", data_title: proc{|rec| "%t\n\n#{statistic_desc(rec.name, 'centiseconds')}"} },
       {:caption=>"Value",  :data=>proc{|rec| formattedNumber(rec.value) }, :align=>"right", :title=>"Statistic value cumulated since logon of session"        },
     ]
 

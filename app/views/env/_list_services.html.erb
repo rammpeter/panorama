@@ -13,6 +13,27 @@
     )
   end
 
+  render_action_buttons = proc do |rec|
+    retval =
+      "<div style=\"float:left\">#{
+        ajax_submit('Current stats.', {
+          controller:   :env,
+          action:       :list_service_stats_current,
+          service_name:  rec.name,
+          update_area: @update_area,
+        }, :title => 'Show current statistics for this service (cumulated values since instance start)'
+        )}</div><div style=\"float:left\">#{
+        ajax_submit('Past stats.', {
+          controller:   :env,
+          action:       :show_service_stats_historic,
+          service_name:  rec.name,
+          update_area:  @update_area,
+        }, :title => 'Show past statistics from AWR for this service'
+        )}</div>"
+
+    retval
+  end
+
   column_options = []
   column_options << {caption: 'ID',               data: proc{|rec| fn(rec.service_id)},                 title: "Unique ID for the service", align: :right}
   column_options << {caption: 'Name',             data: proc{|rec| rec.name},                           title: "Name of the service"}
@@ -44,6 +65,7 @@
   column_options << {caption: 'Drain timeout',    data: proc{|rec| fn rec.drain_timeout},               title: "Number of seconds to wait for sessions to be drained", align: :right} if get_db_version >= '12.2'
   column_options << {caption: 'Table family ID',  data: proc{|rec| fn rec.table_family_id},             title: "Sharded table family ID associated with the service", align: :right} if get_db_version >= '19.0'
   column_options << {caption: 'Placement policy', data: proc{|rec| fn rec.placement_policy},            title: "Placement policy for the service. Possible values:\n0: PDB-NONE\n1: PDB-SINGLETON\n2: PDB-UNIFORM", align: :right} if get_db_version >= '19.0'
+  column_options << {caption: 'Action',           data: render_action_buttons,                          title: 'Call action for this service'}
 %>
 
 <%= gen_slickgrid(@services, column_options, {

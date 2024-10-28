@@ -437,6 +437,15 @@ END Panorama_Sampler_Snapshot;
     COMMIT;
   END Snap_Service_Name;
 
+  PROCEDURE Snap_Service_Stat(p_Snap_ID IN NUMBER, p_DBID IN NUMBER, p_Instance IN NUMBER) IS
+  BEGIN
+    INSERT INTO panorama_owner.Panorama_Service_Stat (Snap_ID, DBID, Instance_Number, Service_Name_Hash, Service_Name, Stat_ID, Stat_Name, Value, Con_DBID, Con_ID)
+    SELECT p_Snap_ID, p_DBID, p_Instance, Service_Name_Hash, Service_Name, Stat_ID, Stat_Name, Value, #{PanoramaConnection.db_version >= '12.1' ? "panorama_owner.Con_DBID_From_Con_ID.Get(Con_ID) Con_DBID, Con_ID" : "p_DBID Con_DBID, 0"}
+    FROM   v$Service_Stats
+    ;
+    COMMIT;
+  END Snap_Service_Stat;
+
   PROCEDURE Snap_SGAStat(p_Snap_ID IN NUMBER, p_DBID IN NUMBER, p_Instance IN NUMBER) IS
   BEGIN
     -- Grouped to ensure PK uniqueness because for CDB there are often duplicates for name='KKKI consumer', pool='shared pool' in Con_ID 0 and 1 with same Con_DBID
@@ -835,6 +844,7 @@ END Panorama_Sampler_Snapshot;
     CATCH_START Snap_Resource_Limit       (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     CATCH_START Snap_Seg_Stat             (p_Snap_ID,   p_DBID,     p_Instance,   p_Con_ID); CATCH_END
     CATCH_START Snap_Service_Name         (p_DBID); CATCH_END
+    CATCH_START Snap_Service_Stat         (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     CATCH_START Snap_SGAStat              (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     -- call Snap_SQLStat before any dependent statistic, because dependents record only for SQLs already in SQLStat
     CATCH_START Snap_SQLStat              (p_Snap_ID,   p_DBID,     p_Instance,   p_Begin_Interval_Time,     p_SQL_Min_No_of_Execs,      p_SQL_Min_Runtime_MilliSecs); CATCH_END

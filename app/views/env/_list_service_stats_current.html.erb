@@ -1,0 +1,13 @@
+<%
+  @update_area = get_unique_area_id
+  column_options = []
+  column_options << {caption: 'I',                data: proc{|rec| fn(rec.inst_id)},            title: "RAC instance", align: :right} if PanoramaConnection.rac?
+  column_options << {caption: 'Statistic name',   data: proc{|rec| rec.stat_name},              title: "Statistic name", data_title: proc{|rec| "%t\n\n#{statistic_desc(rec.stat_name, 'microseconds')}"}}
+  column_options << {caption: 'Value',            data: proc{|rec| fn rec.value},               title: "Numeric value of statistic", align: :right}
+  column_options << {caption: 'Con ID',           data: proc{|rec| fn rec.con_id},              title: "Container ID"} if get_db_version >= '12.2'
+%>
+
+<%= gen_slickgrid(@stats, column_options, {
+  caption: "Statistics from gv$Service_Stats for service #{@service_name}",
+  max_height: 450, show_pin_icon: 1, update_area:   @update_area })
+%>
