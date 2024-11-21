@@ -298,9 +298,11 @@ module ExplainPlanHelper
     qb_names_in_plan = {}
     qb_plus_object_aliases_in_plan = {}
     plan_array.each do |p|
-      other_xml = p.other_xml if !p.other_xml.nil?
-      qb_names_in_plan[p.qblock_name] = true if !p.qblock_name.nil?             # remember the used query block names
-      qb_plus_object_aliases_in_plan["#{p.qblock_name}:#{p.object_alias}"]  = true if !p.object_alias.nil?    # remember the used combination of qb name and  object aliases
+      p['hint_usage'] = ''                                                      # Ensure this hash element is defined if further prcessing is cancelled due to empty other_xml
+      p['wrong_hint_usage'] = false                                             # Ensure this hash element is defined if further prcessing is cancelled due to empty other_xml
+      other_xml = p.other_xml unless p.other_xml.nil?
+      qb_names_in_plan[p.qblock_name] = true unless p.qblock_name.nil?          # remember the used query block names
+      qb_plus_object_aliases_in_plan["#{p.qblock_name}:#{p.object_alias}"]  = true unless p.object_alias.nil?    # remember the used combination of qb name and  object aliases
     end
 
     if other_xml.nil?
@@ -393,8 +395,6 @@ module ExplainPlanHelper
 
     # Add the hint usage to the plan lines
     plan_array.each do |p|
-      p['hint_usage'] = ''
-      p['wrong_hint_usage'] = false
       if !p.qblock_name.nil? || p.id == 0                                       # Only process plan lines with a query block name or the first line
         # process hints for query block only (no object alias)
         hint_usage = hint_usages["#{p.qblock_name}:"]                           # Look for hints that are not related to an object alias

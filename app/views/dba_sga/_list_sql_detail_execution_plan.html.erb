@@ -200,7 +200,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
             if rec.version_orange_count < @multiplans.count
               'background-color:orange;'
             else
-              'background-color:#FFE8D6;' if  rec.wrong_hint_usage && ((c[:caption] == 'Object name' && !explain_plan_col_setting['Optimizer hint usage']) || c[:caption] == 'Optimizer hint usage')
+              'background-color:#FFE8D6;' if rec.wrong_hint_usage && ((c[:caption] == 'Object name' && !explain_plan_col_setting['Optimizer hint usage']) || c[:caption] == 'Optimizer hint usage')
             end
          end
        end
