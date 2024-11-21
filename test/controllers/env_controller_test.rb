@@ -57,10 +57,10 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
     assert_response :success
 
     post '/env/list_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1', instance: @instance, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end }
-    assert_response :success
+    assert_response_success_or_management_pack_violation('list_service_stats_historic')
 
     post '/env/list_service_stats_historic', :params => {:format=>:html, service_name: 'ORCLPDB1', instance: nil, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end }
-    assert_response :success
+    assert_response_success_or_management_pack_violation('list_service_stats_historic')
   end
 
   test "list_diag_info with xhr: true" do
