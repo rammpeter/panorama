@@ -132,6 +132,7 @@ class ActiveSupport::TestCase
   # @param [String] user - user for which the config is prepared
   # @return [PanoramaSamplerConfig]
   def prepare_panorama_sampler_thread_db_config(user = nil)
+    PanoramaConnection.release_connection                                       # Free previous DB connection to ensure current config really works
     Panorama::Application.config.panorama_master_password = 'hugo'
 
     sampler_config = PanoramaTestConfig.test_config
