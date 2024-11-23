@@ -54,6 +54,19 @@ class PanoramaSamplerController < ApplicationController
 
     existing_config = PanoramaSamplerConfig.get_config_entry_by_id_or_nil(config_entry[:id])  # Check if config already exists
 
+    unless Panorama::Application.config.panorama_var_home_user_defined
+      add_popup_message("There's no storage location defined for persistent config data!
+That means, this config data will be lost at next restart of Panorama backend application!
+To fix this, set environment variable PANORAMA_VAR_HOME to the desired location before starting the backend application.")
+    end
+
+    # warn if ASH is activated first time
+    if (existing_config.nil? || !existing_config.get_config_value(:awr_ash_active)) && config_entry[:awr_ash_active]
+      add_popup_message("You've activated ASH sampling for the first time.
+Sampling of ASH data now only starts at the next configured AWR snapshot.
+If you want to start ASH sampling immediately, please restart the Panorama backend application once.")
+    end
+
     if existing_config.nil?
       PanoramaSamplerConfig.add_config_entry(config_entry)
     else
@@ -63,7 +76,9 @@ class PanoramaSamplerController < ApplicationController
     new_min_snapshot_cycle = PanoramaSamplerConfig.min_snapshot_cycle
 
     if new_min_snapshot_cycle < old_min_snapshot_cycle
-      add_statusbar_message("Sampling currently starts each #{old_min_snapshot_cycle} minutes, but you've requested sampling each #{new_min_snapshot_cycle} minutes now.\nIf you don't restart Panorama's server now then your setting starts working only after next full #{old_min_snapshot_cycle} minutes")
+      add_popup_message("Sampling currently starts each #{old_min_snapshot_cycle} minutes, but you've requested sampling each #{new_min_snapshot_cycle} minutes now.
+That means, your configured action will be executed now only after next full #{old_min_snapshot_cycle} minutes.
+If you want it executed in the configured cycle, please restart the Panorama backend application once.")
     end
 
     list_config

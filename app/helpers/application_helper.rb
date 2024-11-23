@@ -470,11 +470,20 @@ module ApplicationHelper
   end
 
   # Add string to status-bar-message
+  # @param [String] message
   def add_statusbar_message(message)
     @statusbar_message = '' if !defined?(@statusbar_message) || @statusbar_message.nil?
     @statusbar_message << "\n" if @statusbar_message.length > 0
     @statusbar_message << message
   end
+
+  # Add an message that is shown in addition after rendering the regular result
+  # @param [String] message
+  def add_popup_message(message)
+    @popup_message = '' if !defined?(@popup_message) || @popup_message.nil?
+    @popup_message << "\n\n" if @popup_message.length > 0
+    @popup_message << message
+   end
 
 
   # Rendern des Templates für Action, optionale mit Angabe des Partial-Namens wenn von Action abweicht
@@ -497,6 +506,7 @@ module ApplicationHelper
     additional_javascript_string = options[:additional_javascript_string]
     additional_javascript_string = "hide_status_bar(); #{additional_javascript_string}" if options[:hide_status_bar]
     additional_javascript_string = "show_status_bar_message('#{my_html_escape(@statusbar_message)}'); #{additional_javascript_string}" if defined?(@statusbar_message) && !@statusbar_message.nil? && @statusbar_message.length > 0
+    additional_javascript_string = "show_popup_message('#{my_html_escape(@popup_message)}'); #{additional_javascript_string}" if defined?(@popup_message) && !@popup_message.nil? && @popup_message.length > 0
 
     respond_to do |format|
       format.js {

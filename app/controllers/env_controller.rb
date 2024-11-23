@@ -523,6 +523,12 @@ class EnvController < ApplicationController
       current_database[:save_login] = current_database[:save_login] == '1' # Store as bool instead of number fist time after login
       ClientInfoStore.write_for_client_key(get_decrypted_client_key,:save_login, current_database[:save_login])   # Merken, ob Login-Info gespeichert werden soll
       current_database[:management_pack_license] = :none                        # No license violation possible until the user decides the license to use
+
+      if current_database[:save_login] && !Panorama::Application.config.panorama_var_home_user_defined
+        add_popup_message("There's no storage location defined for for persistent data!
+That means, this saved login data will be lost at next restart of Panorama backend application!
+To fix this, set environment variable PANORAMA_VAR_HOME to the desired location before starting the backend application")
+      end
     end
 
     @show_management_pack_choice =  called_from_set_database_by_params          # show choice for management pack if first login to database or stored login does not contain the choice
@@ -531,13 +537,14 @@ class EnvController < ApplicationController
       tns_records = read_tnsnames                                               # Hash mit Attributen aus tnsnames.ora für gesuchte DB
       tns_record = tns_records[current_database[:tns]&.upcase]                  # TNS aliases from tnsnames.ora are stored in upcase now
       unless tns_record
-        respond_to do |format|
-          format.js {render :js => "show_status_bar_message('Entry for DB \"#{current_database[:tns]}\" not found in tnsnames.ora');
-                                    jQuery('#login_dialog').effect('shake', { times:3 }, 100);
-                                   "
-          }
-        end
-        return
+        show_popup_message("Entry for DB \"#{current_database[:tns]}\" not found in tnsnames.ora")
+        #respond_to do |format|
+        #  format.js {render :js => "show_status_bar_message('Entry for DB \"#{current_database[:tns]}\" not found in tnsnames.ora');
+        #                            jQuery('#login_dialog').effect('shake', { times:3 }, 100);
+        #                           "
+        #  }
+        #end
+        #return
       end
       # Alternative settings for connection if connect with current_database[:modus] == 'tns' does not work
       current_database[:host]       = tns_record[:hostName]
