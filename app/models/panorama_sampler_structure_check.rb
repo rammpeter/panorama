@@ -1391,6 +1391,18 @@ class PanoramaSamplerStructureCheck
           ],
           primary_key: { columns: ['DBID', 'Top_Level_Call#', 'Con_DBID'] },
       },
+      {   # Table used for both domains ASH and AWR, therefore duplicated. Structure must be identical !!!
+          table_name: 'Panorama_TopLevelCall_Name',
+          domain: :AWR,
+          columns: [
+              { column_name:  'DBID',                           column_type:   'NUMBER',    not_null: true },
+              { column_name:  'Top_Level_Call#',                column_type:   'NUMBER',    not_null: true},
+              { column_name:  'Top_Level_Call_Name',            column_type:   'VARCHAR2',  precision: 128 },
+              { column_name:  'CON_DBID',                       column_type:   'NUMBER',    not_null: true },
+              { column_name:  'CON_ID',                         column_type:   'NUMBER',    not_null: true },
+          ],
+          primary_key: { columns: ['DBID', 'Top_Level_Call#', 'Con_DBID'] },
+      },
       {
           table_name: 'Panorama_UndoStat',
           domain: :AWR,
@@ -1653,9 +1665,15 @@ ORDER BY Column_ID
       @ora_indexes[c.index_name][:columns] << c if @ora_indexes[c.index_name]  # All_Ind_Columns also contains columns of dropped tables (BIN$) but All_Indexes does not
     end
 
-
     TABLES.each do |table|
-      check_table_pkey(table) if table[:domain] == domain
+      if table[:domain] == domain
+        begin
+          check_table_pkey(table)
+        rescue Exception => e
+          Rails.logger.warn('PanoramaSamplerStructureCheck.do_check_internal') { "Exception #{e.class}:#{e.message}: retry without USING INDEX" }
+          check_table_pkey(table, use_using_index: false)                       # try repeat without USING INDEX
+        end
+      end
     end
 
     TABLES.each do |table|
@@ -1830,10 +1848,15 @@ ORDER BY Column_ID
       sql = "CREATE #{'GLOBAL TEMPORARY ' if table[:temporary]}TABLE #{@sampler_config.get_owner}.#{table[:table_name]} ("
       sql << table[:columns].map { |column| column_type_expr(column) }.join(",\n")
       sql << ") #{'PCTFREE 0' if table[:temporary].nil?} #{table[:temporary]}"                                 # pctfree 0 because there's no need for updates on this tables
-      log(sql)
-      PanoramaConnection.sql_execute(sql)
+
+      if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", @sampler_config.get_owner.upcase, table[:table_name].upcase]) == 0
+        log(sql)
+        PanoramaConnection.sql_execute(sql)
+        log "Table #{table[:table_name]} created"
+      else
+        Rails.logger.warn('PanoramaSamplerStructureCheck') {"Creation of table #{@sampler_config.get_owner}.#{table[:table_name]} suppressed because it already exists"}
+      end
       PanoramaConnection.sql_execute("ALTER TABLE #{@sampler_config.get_owner}.#{table[:table_name]} ENABLE ROW MOVEMENT")
-      log "Table #{table[:table_name]} created"
     end
 
     ############ Check table privileges
@@ -1893,7 +1916,10 @@ ORDER BY Column_ID
     end
   end
 
-  def check_table_pkey(table)
+  # Check table for existing primary key index and PK constraint
+  # @param [Hash] table Table definitiion
+  # @param [Boolean] use_using_index Should the USING INDEX clause be used, sometimes ORA-01735 is raised using this clause
+  def check_table_pkey(table, use_using_index: true)
     ############ Check Primary Key
     if table[:primary_key]
       pk_name = "#{table[:table_name][0,27]}_PK"
@@ -1920,7 +1946,6 @@ ORDER BY Column_ID
         end
       end
 
-
       ########### Check PK-Index existence
       check_index(table[:table_name], pk_name, table[:primary_key][:columns], table[:primary_key][:compress], true)
 
@@ -1936,7 +1961,9 @@ ORDER BY Column_ID
           PanoramaConnection.sql_execute(del_sql)
         end
         sql[(sql.length) - 1] = ' '                                               # remove last ,
-        sql << ") USING INDEX #{@sampler_config.get_owner}.#{pk_name}"
+        sql << ")"
+        sql << " USING INDEX #{@sampler_config.get_owner}.#{pk_name}" if use_using_index
+
         log(sql)
         PanoramaConnection.sql_execute(sql)
       end
@@ -1991,7 +2018,6 @@ ORDER BY Column_ID
 
     ########### Check existence of index
     if @ora_indexes[index_name.upcase].nil? || @ora_indexes[index_name.upcase].table_name != table_name.upcase
-    #if !@ora_indexes.include?({'table_name' => table_name.upcase, 'index_name' => index_name.upcase}) # Index does not exists
       sql = "CREATE #{'UNIQUE ' if uniqueness}INDEX #{@sampler_config.get_owner}.#{index_name} ON #{@sampler_config.get_owner}.#{table_name}("
       columns.each do |column|
         sql << "#{column},"
@@ -2001,8 +2027,13 @@ ORDER BY Column_ID
       unless compress.nil?
         sql << " COMPRESS #{compress}"
       end
-      log(sql)
-      PanoramaConnection.sql_execute(sql)
+
+      if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Indexes WHERE Owner = ? AND Index_Name = ?", @sampler_config.get_owner.upcase, index_name.upcase]) == 0
+        log(sql)
+        PanoramaConnection.sql_execute(sql)
+      else
+        Rails.logger.warn('PanoramaSamplerStructureCheck') {"Creation of index #{@sampler_config.get_owner}.#{index_name} suppressed because it already exists"}
+      end
     end
 
     # Check compress state for already existing indexes
@@ -2043,9 +2074,14 @@ ORDER BY Column_ID
   end
 
   def create_view(view)
-    sql = "CREATE VIEW #{@sampler_config.get_owner}.#{view[:view_name]} AS\n#{view[:view_select].call}"
-    log(sql)
-    PanoramaConnection.sql_execute(sql)
+    if PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM DBA_Views WHERE Owner = ? AND View_Name = ?", @sampler_config.get_owner.upcase, view[:view_name].upcase]) == 0
+      sql = "CREATE VIEW #{@sampler_config.get_owner}.#{view[:view_name]} AS\n#{view[:view_select].call}"
+      log(sql)
+      PanoramaConnection.sql_execute(sql)
+      log "View #{@sampler_config.get_owner}.#{view[:view_name]} created"
+    else
+      Rails.logger.warn('PanoramaSamplerStructureCheck') {"Creation of view #{@sampler_config.get_owner}.#{view[:view_name]} suppressed because it already exists"}
+    end
   end
 
   def check_object_privs(object_name)
