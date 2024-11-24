@@ -44,6 +44,8 @@ class ActiveSupport::TestCase
 
   # Method shared with Panorama children
   def connect_oracle_db_internal(current_database)
+    PanoramaConnection.release_connection                                       # Free previous DB connection
+
     # Config im Cachestore ablegen
     # Sicherstellen, dass ApplicationHelper.get_cached_client_key nicht erneut den client_key entschlüsseln will
     initialize_client_key_cookie
