@@ -812,7 +812,56 @@ oradebug setorapname diag
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
                      JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
-                    )
+                    ),
+           Open_Cursor AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
+                           FROM   gv$Open_Cursor
+                           GROUP BY Inst_ID, SID
+                          ),
+           PX_Session AS (SELECT /*+ NO_MERGE MATERIALIZE */ QCInst_ID, QCSID, QCSerial#, Count(*) Anzahl
+                          FROM   GV$PX_Session
+                          GROUP BY QCInst_ID, QCSID, QCSerial#
+                         ),
+           SQL_Workarea_Active AS (SELECT /*+ NO_MERGE MATERIALIZE */  DECODE(QCInst_ID, NULL, Inst_ID, QCinst_ID) Inst_ID,
+                                          DECODE(QCSID,NULL, SID, QCSID)  SID,
+                                          MIN(Operation_Type)             Operation_Type,
+                                          MIN(Policy)                     Policy,
+                                          MAX(Active_Time)/1000000        Active_Time_Secs,
+                                          SUM(Work_Area_Size)/(1024*1024) Work_Area_Size_MB,
+                                          SUM(Expected_Size)/(1024*1024)  Expected_Size_MB,
+                                          SUM(Actual_Mem_Used)/(1024*1024) Actual_Mem_Used_MB,
+                                          SUM(Max_Mem_Used)/(1024*1024)   Max_Mem_Used_MB,
+                                          MAX(Number_Passes)              Number_Passes,
+                                          SUM(TempSeg_Size)/(1024*1024)   WA_TempSeg_Size_MB,
+                                          COUNT(*)                        Anzahl
+                                   FROM   gv$sql_workarea_active
+                                   GROUP BY DECODE(QCInst_ID, NULL, Inst_ID, QCinst_ID),
+                                           DECODE(QCSID,NULL, SID, QCSID)
+                                  ),
+           PQ_Mem AS (-- PGA-Speicher möglicher PQ-Server. für die akt. Session Query-Coordinator ist
+                      SELECT /*+ NO_MERGE MATERIALIZE */
+                             px.QCInst_ID, px.QCSID, px.QCSerial#,
+                             SUM(PGA_Used_Mem)     PQ_PGA_Used_Mem,
+                             SUM(PGA_Alloc_Mem)    PQ_PGA_Alloc_Mem,
+                             SUM(PGA_Freeable_Mem) PQ_PGA_Freeable_Mem,
+                             SUM(PGA_Max_Mem)      PQ_PGA_Max_Mem
+                      FROM GV$PX_Session px
+                      JOIN GV$Session pqs ON pqs.Inst_ID = px.Inst_ID AND pqs.SID = px.SID
+                      JOIN gv$process pqp ON pqp.Inst_ID = px.inst_ID AND pqp.Addr = pqs.pAddr
+                      GROUP BY px.QCInst_ID, px.QCSID, px.QCSerial#
+                     ),
+           Sort_Usage AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, Session_Addr, SUM(Extents) Temp_Extents, SUM(Blocks) Temp_Blocks, SUM(Blocks)*#{PanoramaConnection.db_blocksize}/(1024*1024) Temp_MB
+                          FROM   gv$Sort_Usage
+                          GROUP BY Inst_ID, Session_Addr
+                         ),
+           Session_Connect_Info AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, Serial#,
+                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
+                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
+                                           MIN(Client_OCI_Library) Client_OCI_Library,
+                                           MIN(Client_Version) Client_Version,
+                                           MIN(Client_Driver) Client_Driver
+                                    FROM   gV$SESSION_CONNECT_INFO
+                                    GROUP BY Inst_ID, SID, Serial#
+                                   )
       SELECT /* Panorama-Tool Ramm */
             s.SID,
             s.Serial# Serial_No,
@@ -863,66 +912,20 @@ oradebug setorapname diag
             po.Owner po_Owner, po.Object_Name po_Object_Name, po.Procedure_Name po_Procedure_Name, po.Object_Type po_Object_Type,
             #{get_db_version < '11.1' ? "w.Seconds_In_Wait" : "DECODE(w.State, 'WAITING', w.Wait_Time_Micro, w.Time_Since_Last_Wait_Micro)/1000000"} Seconds_Waiting
       FROM    GV$session s
-      LEFT OUTER JOIN (SELECT Inst_ID, SID, count(*) Open_Cursor, count(distinct sql_id) Open_Cursor_SQL
-                       FROM   gv$Open_Cursor
-                       GROUP BY Inst_ID, SID
-                      ) oc ON oc.Inst_ID = s.Inst_ID AND oc.SID = s.SID
-      LEFT OUTER JOIN ( SELECT px.QCInst_ID, px.QCSID, px.QCSerial#, Count(*) Anzahl FROM GV$PX_Session px
-                       GROUP BY px.QCInst_ID, px.QCSID, px.QCSerial#
-                      ) px ON  px.QCInst_ID = s.Inst_ID
-                           AND px.QCSID     = s.SID
-                           AND px.QCSerial# = s.Serial#
-      LEFT OUTER JOIN GV$PX_Session pqc ON pqc.Inst_ID = s.Inst_ID AND pqc.SID=s.SID --AND pqc.Serial#=s.Serial#    -- PQ Coordinator, Serial_No stimmt in Oracle 12c nicht mehr überein zwischen v$Session und v$px_session
-      LEFT OUTER JOIN    GV$sess_io i ON i.Inst_ID = s.Inst_ID AND i.SID = s.SID
-      LEFT OUTER JOIN    GV$process p ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
-      LEFT OUTER JOIN
-              ( SELECT  DECODE(QCInst_ID, NULL, Inst_ID, QCinst_ID) Inst_ID,
-                        DECODE(QCSID,NULL, SID, QCSID)  SID,
-                        MIN(Operation_Type)             Operation_Type,
-                        MIN(Policy)                     Policy,
-                        MAX(Active_Time)/1000000        Active_Time_Secs,
-                        SUM(Work_Area_Size)/(1024*1024) Work_Area_Size_MB,
-                        SUM(Expected_Size)/(1024*1024)  Expected_Size_MB,
-                        SUM(Actual_Mem_Used)/(1024*1024) Actual_Mem_Used_MB,
-                        SUM(Max_Mem_Used)/(1024*1024)   Max_Mem_Used_MB,
-                        MAX(Number_Passes)              Number_Passes,
-                        SUM(TempSeg_Size)/(1024*1024)   WA_TempSeg_Size_MB,
-                        COUNT(*)                        Anzahl
-                FROM    gv$sql_workarea_active
-                GROUP BY DECODE(QCInst_ID, NULL, Inst_ID, QCinst_ID),
-                         DECODE(QCSID,NULL, SID, QCSID)
-              ) wa ON wa.Inst_ID = s.Inst_ID AND wa.SID = s.SID
-      LEFT OUTER JOIN
-             (        -- PGA-Speicher möglicher PQ-Server. für die akt. Session Query-Coordinator ist
-             SELECT px.QCInst_ID, px.QCSID, px.QCSerial#,
-                    SUM(PGA_Used_Mem)     PQ_PGA_Used_Mem,
-                    SUM(PGA_Alloc_Mem)    PQ_PGA_Alloc_Mem,
-                    SUM(PGA_Freeable_Mem) PQ_PGA_Freeable_Mem,
-                    SUM(PGA_Max_Mem)      PQ_PGA_Max_Mem
-             FROM GV$PX_Session px
-             JOIN GV$Session pqs ON pqs.Inst_ID = px.Inst_ID AND pqs.SID = px.SID
-             JOIN gv$process pqp ON pqp.Inst_ID = px.inst_ID AND pqp.Addr = pqs.pAddr
-             GROUP BY px.QCInst_ID, px.QCSID, px.QCSerial#
-             ) pq_mem ON pq_mem.qcinst_id = s.Inst_ID AND pq_mem.QCSID = s.SID AND pq_mem.QCSerial# = s.Serial#
-      LEFT OUTER JOIN
-             (SELECT Inst_ID, Session_Addr, SUM(Extents) Temp_Extents, SUM(Blocks) Temp_Blocks, SUM(Blocks)*#{PanoramaConnection.db_blocksize}/(1024*1024) Temp_MB
-              FROM   gv$Sort_Usage
-              GROUP BY Inst_ID, Session_Addr
-             ) temp ON temp.Inst_ID = s.Inst_ID AND temp.Session_Addr = s.sAddr
-      #{"LEFT OUTER JOIN gv$Containers con ON con.Inst_ID=s.Inst_ID AND con.Con_ID=s.Con_ID" if get_current_database[:cdb]}
-      LEFT OUTER JOIN gv$Session_Wait w ON w.Inst_ID = s.Inst_ID AND w.SID = s.SID
-      LEFT OUTER JOIN gv$Transaction tx ON tx.Inst_ID = s.Inst_ID AND tx.Addr = s.TAddr
-      LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Inst_ID, SID, Serial#,
-                              DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
-                              DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
-                              MIN(Client_OCI_Library) Client_OCI_Library,
-                              MIN(Client_Version) Client_Version,
-                              MIN(Client_Driver) Client_Driver
-                       FROM   gV$SESSION_CONNECT_INFO
-                       GROUP BY Inst_ID, SID, Serial#
-                      )sci ON sci.Inst_ID = s.Inst_ID AND sci.SID = s.SID AND sci.Serial# = s.Serial#
-      LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
-      LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
+      LEFT OUTER JOIN Open_Cursor oc            ON oc.Inst_ID = s.Inst_ID AND oc.SID = s.SID
+      LEFT OUTER JOIN PX_Session px             ON  px.QCInst_ID = s.Inst_ID AND px.QCSID = s.SID AND px.QCSerial# = s.Serial#
+      LEFT OUTER JOIN GV$PX_Session pqc         ON pqc.Inst_ID = s.Inst_ID AND pqc.SID=s.SID --AND pqc.Serial#=s.Serial#    -- PQ Coordinator, Serial_No stimmt in Oracle 12c nicht mehr überein zwischen v$Session und v$px_session
+      LEFT OUTER JOIN GV$sess_io i              ON i.Inst_ID = s.Inst_ID AND i.SID = s.SID
+      LEFT OUTER JOIN GV$process p              ON p.Addr = s.pAddr AND p.Inst_ID = s.Inst_ID
+      LEFT OUTER JOIN Sql_Workarea_active wa    ON wa.Inst_ID = s.Inst_ID AND wa.SID = s.SID
+      LEFT OUTER JOIN pq_mem                    ON pq_mem.qcinst_id = s.Inst_ID AND pq_mem.QCSID = s.SID AND pq_mem.QCSerial# = s.Serial#
+      LEFT OUTER JOIN Sort_Usage temp           ON temp.Inst_ID = s.Inst_ID AND temp.Session_Addr = s.sAddr
+      #{"LEFT OUTER JOIN gv$Containers con      ON con.Inst_ID=s.Inst_ID AND con.Con_ID=s.Con_ID" if get_current_database[:cdb]}
+      LEFT OUTER JOIN gv$Session_Wait w         ON w.Inst_ID = s.Inst_ID AND w.SID = s.SID
+      LEFT OUTER JOIN gv$Transaction tx         ON tx.Inst_ID = s.Inst_ID AND tx.Addr = s.TAddr
+      LEFT OUTER JOIN SESSION_CONNECT_INFO sci  ON sci.Inst_ID = s.Inst_ID AND sci.SID = s.SID AND sci.Serial# = s.Serial#
+      LEFT OUTER JOIN procs peo                 ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
+      LEFT OUTER JOIN procs po                  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       WHERE 1=1 #{where_string}
       ORDER BY 1 ASC"].concat(where_values)
 
