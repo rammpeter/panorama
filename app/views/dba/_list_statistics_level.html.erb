@@ -1,0 +1,34 @@
+<%
+  @update_area = get_unique_area_id
+%>
+
+<div class="flex-row-container">
+  <div id="<%= @update_area %>" class="flex-row-element">
+    <%=
+      render_async(:dba, :oracle_parameter, {
+        option:              :statistics_level,
+        reduced_columns:      false,
+        update_area:          @update_area
+      })
+    %>
+  </div>
+
+  <%
+    column_options = []
+    column_options << { caption: "I",                     data: proc{|rec| rec.inst_id},              title: "Instance"} if PanoramaConnection.rac?
+    column_options << { caption: "Name",                  data:proc{|rec| rec.statistics_name},       title: "Name of statistics"}
+    column_options << { caption: "Description",           data:proc{|rec| rec.description},           title: "Description of statistics"}
+    column_options << { caption: "System status",         data:proc{|rec| rec.system_status},         title: "System-wide status of the statistic/advisory"}
+    column_options << { caption: "Session status",        data:proc{|rec| rec.session_status},        title: "Status of the statistic/advisory for the current session"}
+    column_options << { caption: "Activation level",      data:proc{|rec| rec.activation_level},      title: "Indicates the level of STATISTICS_LEVEL that enables the statistic/advisory"}
+    column_options << { caption: "Statistics view name",  data:proc{|rec| rec.statistics_view_name},  title: "If there is a single view externalizing the statistic/advisory, then this column contains the name of that view. If there is no such view, then this column is null. If there are multiple views involved, then the DESCRIPTION column mentions the view names."}
+    column_options << { caption: "Session settable",      data:proc{|rec| rec.session_settable},      title: "Indicates whether the statistic/advisory can be set at the session leve"}
+    column_options << { caption: "Con. ID",               data:proc{|rec| fn rec.con_id},             title: "Container ID"}
+  %>
+  <div class="flex-row-element">
+    <%= gen_slickgrid(@statistics_levels, column_options, {
+      :caption => "System defaults for statistics level from gv$Statistics_level",
+      :max_height => 450, width: :auto, show_pin_icon: 1
+    }) %>
+  </div>
+</div>

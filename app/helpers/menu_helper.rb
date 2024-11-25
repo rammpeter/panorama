@@ -32,6 +32,7 @@ module MenuHelper
               {:class => 'item', :caption => 'Optimizer hints', :controller => :dba, :action => :optimizer_hints, :hint => t(:menu_dba_optimizer_hints_hint, :default => 'Show supported optimizer hints for this database')},
               {:class => 'item', :caption => 'DB options', :controller => :env, :action => :list_options, :hint => 'Show DB options from V$Option'},
               {:class => 'item', :caption => 'TNS services', :controller => :env, :action => :list_services, :hint => 'Show TNS services from DBA_Services'},
+              {:class => 'item', :caption => 'Statistics level', :controller => :dba, :action => :list_statistics_level, :hint => 'Show system defaults for statistics level from gv$Statistics_Level'},
             ]
             },
             {:class => 'menu', :caption => 'User management', :content => [

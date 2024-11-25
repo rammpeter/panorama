@@ -567,14 +567,15 @@ oradebug setorapname diag
     # Limited amount of values to show if filtering option is given
     option_names = {
       auditing: ["audit_sys_operations", "unified_audit_sga_queue_size", "audit_file_dest", "audit_syslog_level", "audit_trail"],
-      memory:   ['memory_target', 'memory_max_target', 'pga_aggregate_limit', 'pga_aggregate_target', 'sga_max_size', 'sga_target']
+      memory:   ['memory_target', 'memory_max_target', 'pga_aggregate_limit', 'pga_aggregate_target', 'sga_max_size', 'sga_target'],
+      statistics_level: ['statistics_level']
     }
 
     raise "Unsupported option #{@option}" if !@option.nil? && !option_names.has_key?(@option)
 
     @caption = "#{t(:dba_oracle_parameter_caption, :default=>'Init-parameter of database')}#{" relevant for #{@option}" if @option}"
 
-    @reduced_columns = params[:reduced_columns]
+    @reduced_columns = params[:reduced_columns] == 'true'
 
     where_string = ''
     where_values = []
@@ -2428,5 +2429,10 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
   def list_db_links_incoming
     @db_links = sql_select_all "SELECT * FROM DBA_DB_Link_Sources ORDER BY Last_Logon_Time DESC"
     render_partial
+  end
+
+  def list_statistics_level
+   @statistics_levels = sql_select_all "SELECT * FROM gv$Statistics_Level"
+   render_partial
   end
 end # Class
