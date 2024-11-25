@@ -11,7 +11,12 @@ module SelectHashHelper
       if has_key?(key_value.to_sym)
         self[key_value.to_sym]
       else
-        raise "column '#{key_value}' does not exist in result-Hash with key-class 'String' or 'Symbol'"
+        if Rails.env.production?
+          Rails.logger.warn('SelectHashHelper.get_hash_value') {"column '#{key_value}' does not exist in result-Hash with key-class 'String' or 'Symbol'"}
+          nil                                                                   # Raise this exception only at development or test, else return nil to proceed in application
+        else
+          raise "column '#{key_value}' does not exist in result-Hash with key-class 'String' or 'Symbol'"
+        end
       end
     end
   end

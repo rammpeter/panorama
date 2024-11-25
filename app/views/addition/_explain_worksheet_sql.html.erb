@@ -40,20 +40,20 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
     output << "\nType = #{rec.object_type}"
     output << "\nAlias = #{rec.object_alias}"
     output << "\nQuery block name in plan_table = #{rec.qblock_name}" if rec.qblock_name
-    output << "\nAlternative query block name = #{rec.qblock_name_short}"
+    output << "\nAlternative query block name = #{rec['qblock_name_short']}"
     output << "\n#Other = #{rec.other}" if rec.other
     output << analyzed_spec_title.call(rec)
-    output << "\n\nOptimizer hint usage:\n#{rec.hint_usage.gsub(/<\/?s>/, '')}" if rec.hint_usage
+    output << "\n\nOptimizer hint usage:\n#{rec['hint_usage'].gsub(/<\/?s>/, '')}" if rec['hint_usage']
     output
   end
 
   column_options = []
   column_options << { caption: "Operation",     data: proc{|rec| list_tree_column_operation(rec, @indent_vector, @plans) }, :no_wrap=>true,                         title: 'Kind of data access', data_title: proc{|rec| "%t:\nOperation = #{rec.operation}\nOptions = #{rec.options}\n\n#{explain_data_access("#{rec.operation} #{rec.options}")}#{"\n\nOther = #{rec.other}" if rec.other }"}}
-  column_options << { caption: "Query block",   data: proc{|rec| rec.qblock_name_short || rec.qblock_name},    :title=>'Name of the query block of this operation', data_title: proc{|rec| "%t\n\nQuery block name in plan table = '#{rec.qblock_name}'\nAlternative query block name = '#{rec.qblock_name_short}'"} } if explain_plan_col_setting['Query block']
+  column_options << { caption: "Query block",   data: proc{|rec| rec['qblock_name_short'] || rec.qblock_name},    :title=>'Name of the query block of this operation', data_title: proc{|rec| "%t\n\nQuery block name in plan table = '#{rec.qblock_name}'\nAlternative query block name = '#{rec['qblock_name_short']}'"} } if explain_plan_col_setting['Query block']
   column_options << { caption: "ID",            data: proc{|rec| rec.id },  :align=>:right,                    :title=>'ID of operation',             :data_title=>proc{|rec| "%t: Parent_ID=#{rec.parent_id}"} }
   column_options << { caption: "R.",            data: proc{|rec| rec.execorder },  :align=>:right,             :title=>'Execution order of operation',    :data_title=>proc{|rec| "%t: ID=#{rec.id}\nParent_ID=#{rec.parent_id}"} }
   column_options << { caption: "Object-name",   data: proc{|rec| link_object_description(@update_area, rec.object_owner, rec.object_name, additional_tooltip: nil)}, :title=>'Name of accessed object', data_title: data_title_object_name, no_wrap: true }
-  column_options << { caption: "Optimizer hint usage", data: proc{|rec| rec.hint_usage }, title: 'Optimizer hint usage', data_title: proc{|rec| "%t\n\n#{rec.hint_usage&.gsub(/<\/?s>/, '')   }"}}  if explain_plan_col_setting['Optimizer hint usage']
+  column_options << { caption: "Optimizer hint usage", data: proc{|rec| rec['hint_usage'] },                    title: 'Optimizer hint usage', data_title: proc{|rec| "%t\n\n#{rec['hint_usage']&.gsub(/<\/?s>/, '')   }"}}  if explain_plan_col_setting['Optimizer hint usage']
   column_options << { caption: "Rows",          data: link_real_num_rows,                                       title: "Number of rows of object (from analyze info)",     align: :right, data_title: proc{|rec| "%t\n#{analyzed_spec_title.call(rec)}"}  }
   column_options << { caption: "MB",            data: proc{|rec| fn(rec.mbytes) },                              title: "Size of object in MBytes",     align: :right }
   column_options << { caption: "Cost",          data: proc{|rec| fn(rec.cost) }, title: "Costs calculated by optimizer + additional optimizer calculations", align: :right, data_title: proc { |rec| cost_card_data_title(rec) } }
