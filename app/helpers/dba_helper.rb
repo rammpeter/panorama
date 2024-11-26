@@ -68,7 +68,7 @@ module DbaHelper
         p1raw ]
         result = "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}" unless result
       rescue Exception=>e
-        alert_exception(e, x_dollar_bh_solution_text, :html)
+        alert_exception(e, x_dollar_bh_solution_text)
       end
       result
     when p1text == "idn" && p2text == "value" && p3text == "where"

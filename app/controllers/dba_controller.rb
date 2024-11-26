@@ -709,8 +709,7 @@ oradebug setorapname diag
 
     render_partial
   rescue Exception => ex
-    # render as html because format=>:html was requested, otherwhise test will fail
-    alert_exception(ex, x_dollar_bh_solution_text, :html)
+    alert_exception(ex, x_dollar_bh_solution_text)
   end
 
   # Waits wegen db_file_sequential_read

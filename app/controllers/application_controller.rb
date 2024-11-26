@@ -124,7 +124,7 @@ class ApplicationController < ActionController::Base
   protected
 
   # Ausgabe der Meldungen einer Exception
-  def alert_exception(exception, header = '', format = :js)
+  def alert_exception(exception, header = '')
     if exception
       logger.error exception.message
       ExceptionHelper.log_exception_backtrace(exception)
@@ -137,26 +137,26 @@ class ApplicationController < ActionController::Base
       message = 'ApplicationController.alert: Exception = nil'
     end
 
-    show_popup_message("#{header}\n\n#{message}", format)
+    show_popup_message("#{header}\n\n#{message}")
   end
 
   # Ausgabe einer Popup-Message,
   # Nach Aufruf von show_popup_message muss mittels return die Verarbeitung der Controller-Methode abgebrochen werden (Vermeiden doppeltes rendern)
-  def show_popup_message(message, response_format = :js)
-    Rails.logger.info('ApplicationController.show_popup_message') { "called with format #{response_format}: #{message}" }
+  def show_popup_message(message)
+    Rails.logger.info('ApplicationController.show_popup_message') { "called with format #{request.format}: #{message}" }
     Rails.logger.debug('ApplicationController.show_popup_message') { "called from #{caller.select{|c| c['app/']}[1]}" }
 
-    case response_format.to_sym
-    when :js
+    case request.format.to_s
+    when 'test/javascript'
       respond_to do |format|
         format.js { render js: "show_popup_message('#{my_html_escape(message)}');" }
       end
-    when :html
+    when 'text/html'
       respond_to do |format|
         format.html { render html: "<script type='text/javascript'>show_popup_message('#{my_html_escape(message)}');</script>".html_safe }
       end
     else
-      raise "show_popup_message: unsupported format #{response_format}"
+      raise "show_popup_message: unsupported format #{request.format}"
     end
   end
 
