@@ -518,7 +518,7 @@ class DbaSgaController < ApplicationController
     if @multiplans.count > 0
       render_partial :list_sql_detail_execution_plan
     else
-      show_popup_message("No execution plan found for SQL ID = '#{@sql_id}'#{", instance = #{@instance}" if @instance}#{", child number = #{@child_number}" if @child_number}#{", child address = '#{@child_address}'" if @child_address}", :html)
+      show_popup_message("No execution plan found for SQL ID = '#{@sql_id}'#{", instance = #{@instance}" if @instance}#{", child number = #{@child_number}" if @child_number}#{", child address = '#{@child_address}'" if @child_address}")
     end
   end
 
@@ -612,7 +612,7 @@ class DbaSgaController < ApplicationController
         redirect_to url_for(controller: :dba_history, action: :list_sql_detail_historic, params: params.permit!, method: :post) # skip_brakeman_check for permit!
       else
         # Use format html for popup message to ensure working in test
-        show_popup_message("#{t(:dba_sga_list_sql_detail_sql_id_childno_no_hit_msg, :default=>'No record found in GV$SQL for')} SQL_ID='#{@sql_id}', Instance=#{@instance}, Child_Number=#{@child_number}", :html)
+        show_popup_message("#{t(:dba_sga_list_sql_detail_sql_id_childno_no_hit_msg, :default=>'No record found in GV$SQL for')} SQL_ID='#{@sql_id}', Instance=#{@instance}, Child_Number=#{@child_number}")
       end
     end
   end

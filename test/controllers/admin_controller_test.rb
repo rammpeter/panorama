@@ -52,7 +52,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
     # Set a valid JWT with cookie
     post '/admin/admin_logon',  :params => {:format=>:html, origin_controller: :admin, origin_action: :master_login, master_password: 'false'}
-    assert_response :error, log_on_failure('Should raise popup dialog due to wrong passworf')
+    assert response.body['show_popup_message'], log_on_failure('Should raise popup dialog due to wrong passworf')
   end
 
   test "admin_logout with xhr: true" do
