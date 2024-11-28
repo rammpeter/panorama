@@ -4,7 +4,6 @@
 
 Jarbler::Config.new do |config|
   config.compile_ruby_files = false
-  config.include_gems_to_compile = false
 
   # Name of the generated jar file 
   config.jar_name = 'Panorama.jar'

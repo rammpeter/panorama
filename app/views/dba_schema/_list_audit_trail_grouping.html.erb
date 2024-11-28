@@ -49,19 +49,22 @@
    column_options << {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.begin_timestamp)},     :title=> 'Begin of time period', :plot_master_time=>true}
    column_options << {:caption=> 'Audits Total',      :data=>proc{|rec| link_audits_total(rec)},                           :title=> 'Total number of audit records'}
    @machines.each do |m|
-     column_options << {:caption=> "Machine: #{m[:machine]}", :data=>proc{|rec| link_group(rec, rec[:machines][m[:machine]], :machine, m[:machine])},     :title=> 'Number of audit records for machine'}
+     column_options << {:caption=> "Machine: #{m[:machine]}", :data=>proc{|rec| link_group(rec, rec[:machines][m[:machine]], :machine, m[:machine])},     :title=> 'Number of audit records for machine', align: :right}
    end
    @os_users.each do |m|
-     column_options << {:caption=> "OS-User: #{m[:os_user]}", :data=>proc{|rec| link_group(rec, rec[:os_users][m[:os_user]], :os_user, m[:os_user])},     :title=> 'Number of audit records for operating system user'}
+     column_options << {:caption=> "OS-User: #{m[:os_user]}", :data=>proc{|rec| link_group(rec, rec[:os_users][m[:os_user]], :os_user, m[:os_user])},     :title=> 'Number of audit records for operating system user', align: :right}
    end
    @db_users.each do |m|
-     column_options << {:caption=> "DB-User: #{m[:db_user]}", :data=>proc{|rec| link_group(rec, rec[:db_users][m[:db_user]], :db_user, m[:db_user])},     :title=> 'Number of audit records for database user'}
+     column_options << {:caption=> "DB-User: #{m[:db_user]}", :data=>proc{|rec| link_group(rec, rec[:db_users][m[:db_user]], :db_user, m[:db_user])},     :title=> 'Number of audit records for database user', align: :right}
    end
    @actions.each do |m|
-     column_options << {:caption=> "Action: #{m[:statement_type]}", :data=>proc{|rec| link_group(rec, rec[:actions][m[:statement_type]], :statement_type, m[:statement_type])},     :title=> 'Number of audit records for action'}
+     column_options << {:caption=> "Action: #{m[:statement_type]}", :data=>proc{|rec| link_group(rec, rec[:actions][m[:statement_type]], :statement_type, m[:statement_type])},     :title=> 'Number of audit records for action', align: :right}
    end
-
-
+   if PanoramaConnection.rac?
+     @instances.each do |m|
+       column_options << {:caption=> "Instance: #{m[:instance_number]}", :data=>proc{|rec| link_group(rec, rec[:instances][m[:instance_number]], :instance, m[:instance_number])},     :title=> 'Number of audit records for RAC instance', align: :right}
+     end
+   end
 %>
 
 <%=
