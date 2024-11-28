@@ -47,7 +47,7 @@
 
    column_options = []
    column_options << {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.begin_timestamp)},     :title=> 'Begin of time period', :plot_master_time=>true}
-   column_options << {:caption=> 'Audits Total',      :data=>proc{|rec| link_audits_total(rec)},                           :title=> 'Total number of audit records'}
+   column_options << {:caption=> 'Audits Total',      :data=>proc{|rec| link_audits_total(rec)},                           :title=> 'Total number of audit records', align: :right}
    @machines.each do |m|
      column_options << {:caption=> "Machine: #{m[:machine]}", :data=>proc{|rec| link_group(rec, rec[:machines][m[:machine]], :machine, m[:machine])},     :title=> 'Number of audit records for machine', align: :right}
    end
@@ -62,7 +62,7 @@
    end
    if PanoramaConnection.rac?
      @instances.each do |m|
-       column_options << {:caption=> "Instance: #{m[:instance_number]}", :data=>proc{|rec| link_group(rec, rec[:instances][m[:instance_number]], :instance, m[:instance_number])},     :title=> 'Number of audit records for RAC instance', align: :right}
+       column_options << {:caption=> "Inst.: #{m[:instance_number]}", :data=>proc{|rec| link_group(rec, rec[:instances][m[:instance_number]], :instance, m[:instance_number])},     :title=> 'Number of audit records for RAC instance', align: :right}
      end
    end
 %>

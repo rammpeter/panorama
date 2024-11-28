@@ -2827,11 +2827,11 @@ class DbaSchemaController < ApplicationController
                    SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                    FROM   (SELECT #{group_time_sql} Begin_Timestamp,
                                   MAX(Event_Timestamp)+1/1440 Max_Timestamp,  -- auf naechste ganze Minute aufgerundet
-                                  UserHost, OS_UserName, DBUserName, Action_Name,
+                                  UserHost, OS_UserName, DBUserName, Action_Name, Instance_ID,
                                   COUNT(*)         Audits
                                   FROM   Unified_Audit_Trail
                                   WHERE  1=1 #{where_string}
-                                  GROUP BY #{group_time_sql}, UserHost, OS_UserName, DBUserName, Action_Name
+                                  GROUP BY #{group_time_sql}, UserHost, OS_UserName, DBUserName, Action_Name, Instance_ID
                           )
                    ORDER BY Begin_Timestamp, Audits
                   "].concat(where_values)
@@ -2844,12 +2844,13 @@ class DbaSchemaController < ApplicationController
         :machines => {},
         :os_users  => {},
         :db_users  =>{},
-        :actions  => {}
+        :actions  => {},
+        :instances  => {}
       }
     end
 
     @audits = []
-    machines = {}; os_users={}; db_users={}; actions={}
+    machines = {}; os_users={}; db_users={}; actions={}; instances={}
     if audits.count > 0
       ts = audits[0].begin_timestamp
       rec = create_new_audit_result_record.call(audits[0])
@@ -2876,6 +2877,8 @@ class DbaSchemaController < ApplicationController
         rec[:actions][a.action_name] = (rec[:actions][a.action_name] ||=0) + a.audits
         actions[a.action_name] = (actions[a.action_name] ||= 0) + a.audits
 
+        rec[:instances][a.instance_id] = (rec[:instances][a.instance_id] ||=0) + a.audits
+        instances[a.instance_id] = (instances[a.instance_id] ||= 0) + a.audits
       end
     end
 
@@ -2917,6 +2920,15 @@ class DbaSchemaController < ApplicationController
     @actions.sort!{ |x,y| y[:audits] <=> x[:audits] }
     while @actions.count > top_x
       @actions.delete_at(@actions.count-1)
+    end
+
+    @instances = []
+    instances.each do |key, value|
+      @instances << { :instance=>key, :audits=>value}
+    end
+    @instances.sort!{ |x,y| y[:audits] <=> x[:audits] }
+    while @instances.count > top_x
+      @instances.delete_at(@instances.count-1)
     end
 
     render_partial :list_unified_audit_trail_grouping
