@@ -165,7 +165,7 @@ class ActiveSupport::TestCase
     end
 
     PanoramaConnection.set_connection_info_for_request(sampler_config)
-    shrink_table_size_for_always_free_autonomous_db # Reduce size of table for always free autonomous DB
+    shrink_table_size_for_always_free_autonomous_db(sampler_config) # Reduce size of table for always free autonomous DB
     PanoramaSamplerConfig.get_config_entry_by_id(sampler_config[:id])
   end
 
@@ -189,10 +189,10 @@ class ActiveSupport::TestCase
   end
 
   # Shrink table size for always free autonomous DB to not reach the size limit
-  def shrink_table_size_for_always_free_autonomous_db
+  def shrink_table_size_for_always_free_autonomous_db(sample_config)
     if PanoramaConnection.autonomous_database?
       ['PANORAMA_SQL_PLAN', 'PANORAMA_SQL_BIND', 'PANORAMA_SQLTEXT'].each do |table_name|
-        PanoramaConnection.sql_execute("TRUNCATE TABLE #{table_name}") if PanoramaConnection.table_exists?(table_name)
+        PanoramaConnection.sql_execute("TRUNCATE TABLE #{sampler_config[:owner]}.#{table_name}") if PanoramaConnection.table_exists?(table_name)
       end
     end
   end
