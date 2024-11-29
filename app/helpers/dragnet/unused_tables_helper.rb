@@ -115,32 +115,40 @@ Stated here are inserts and updates since last GATHER_TABLE_STATS for tables wit
 For master data this behaviour may be default, but for transaction data this may be a hint that this table are not used no more and therefore possibly may be deleted.
 For valid function of this selection table analysis should only be done if there has been DML on this table (stale-analysis).
 '),
-            :sql=> "SELECT Owner, Table_Name, Max_Created \"Creation time\", ROUND(SYSDATE-Max_Created) \"Age in days\",Max_Last_DDL_Time \"Last DDL Time\", Last_Analyzed \"Last analyze time\",
+            :sql=> "WITH All_Tables AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Last_Analyzed, Num_Rows
+                                        FROM   DBA_All_Tables
+                                        WHERE  Owner NOT IN (#{system_schema_subselect})
+                                       ),
+                         Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, MAX(Timestamp) Timestamp
+                                               FROM   DBA_Tab_Modifications
+                                               WHERE  Table_Owner NOT IN (#{system_schema_subselect})
+                                               GROUP BY Table_Owner, Table_Name
+                                               HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0  OR MAX(Truncated) = 'YES' OR SUM(Drop_Segments) != 0
+                                              ),
+                         Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024),1) Size_MB
+                                      FROM DBA_Segments s
+                                      WHERE Owner NOT IN (#{system_schema_subselect})
+                                      GROUP BY Owner, Segment_Name
+                                     ),
+                         Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Object_Name, MAX(Created) Max_Created, MAX(Last_DDL_Time) Max_Last_DDL_Time
+                                             FROM   DBA_Objects
+                                             WHERE  Object_Type LIKE 'TABLE%'
+                                             AND    Owner NOT IN (#{system_schema_subselect})
+                                             GROUP BY Owner, Object_Name
+                                            )
+                    SELECT Owner, Table_Name, Max_Created \"Creation time\", ROUND(SYSDATE-Max_Created) \"Age in days\",Max_Last_DDL_Time \"Last DDL Time\", Last_Analyzed \"Last analyze time\",
                                    Days_After_Analyze \"Days after last analyze\",
                                    Num_Rows, Size_MB
                     FROM   (
                             SELECT t.Owner, t.Table_Name, o.Max_Created, o.Max_Last_DDL_Time, t.Last_Analyzed,
                                    ROUND(SYSDATE - t.Last_Analyzed, 2) Days_After_Analyze,
                                    t.Num_Rows, s.Size_MB
-                            FROM   DBA_All_Tables t
-                            LEFT OUTER JOIN (SELECT Table_Owner, Table_Name, MAX(Timestamp) Timestamp
-                                             FROM sys.DBA_Tab_Modifications
-                                             GROUP BY Table_Owner, Table_Name
-                                             HAVING SUM(Inserts) != 0 OR SUM(Updates) != 0 OR SUM(Deletes) != 0  OR MAX(Truncated) = 'YES' OR SUM(Drop_Segments) != 0
-                                            ) m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
-                            LEFT OUTER JOIN (SELECT Owner, Segment_Name, ROUND(SUM(Bytes)/(1024*1024),1) Size_MB
-                                             FROM DBA_Segments s
-                                             WHERE Owner NOT IN (#{system_schema_subselect})
-                                             GROUP BY Owner, Segment_Name
-                                            ) s ON s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
-                            LEFT OUTER JOIN (SELECT Owner, Object_Name, MAX(Created) Max_Created, MAX(Last_DDL_Time) Max_Last_DDL_Time
-                                             FROM   DBA_Objects
-                                             WHERE  Object_Type LIKE 'TABLE%'
-                                             GROUP BY Owner, Object_Name
-                                            ) o ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
+                            FROM   All_Tables t
+                            LEFT OUTER JOIN Tab_Modifications m ON m.Table_Owner = t.Owner AND m.Table_Name = t.Table_Name
+                            LEFT OUTER JOIN Segments s          ON s.Owner = t.Owner AND s.Segment_Name = t.Table_Name
+                            LEFT OUTER JOIN Objects o           ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
                             CROSS JOIN (SELECT UPPER(?) Name FROM DUAL) schema
-                            WHERE  m.Table_Owner IS NULL AND m.Table_Name IS NULL
-                            AND    t.Owner NOT IN (#{system_schema_subselect})
+                            WHERE  m.Table_Owner IS NULL AND m.Table_Name IS NULL /* no hits in Tab_Modifications */
                             AND    (schema.name IS NULL OR schema.Name = t.Owner)
                            )
                     WHERE  Days_After_Analyze > ?
