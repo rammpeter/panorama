@@ -192,7 +192,7 @@ class ActiveSupport::TestCase
   def shrink_table_size_for_always_free_autonomous_db(sample_config)
     if PanoramaConnection.autonomous_database?
       ['PANORAMA_SQL_PLAN', 'PANORAMA_SQL_BIND', 'PANORAMA_SQLTEXT'].each do |table_name|
-        PanoramaConnection.sql_execute("TRUNCATE TABLE #{sampler_config[:owner]}.#{table_name}") if PanoramaConnection.table_exists?(table_name)
+        PanoramaConnection.sql_execute("TRUNCATE TABLE #{sample_config[:owner]}.#{table_name}") if PanoramaConnection.table_exists?(table_name)
       end
     end
   end
