@@ -1900,16 +1900,16 @@ oradebug setorapname diag
     @instance                     = prepare_param_instance
     @adr_home                     = prepare_param(:adr_home)
     @trace_filename               = prepare_param(:trace_filename)
-    @con_id                       = prepare_param(:con_id)
+    @con_id                       = prepare_param_int(:con_id)
     @dont_show_sys                = prepare_param(:dont_show_sys)
     @dont_show_stat               = prepare_param(:dont_show_stat)
     @org_update_area              = prepare_param(:update_area)
     @max_trace_file_lines_to_show = prepare_param_int(:max_trace_file_lines_to_show, default: 10000)
     @first_or_last_lines          = prepare_param(:first_or_last_lines, default: 'first')
 
-    @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp,
-                                           NVL(SUM(CASE WHEN Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                                                    AND  Timestamp <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+    @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(CAST(Timestamp AS TIMESTAMP)) Min_Timestamp, MAX(CAST(Timestamp AS TIMESTAMP)) Max_Timestamp,
+                                           NVL(SUM(CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
+                                                        AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
                                                THEN 1 ELSE 0 END
                                               ), 0) Lines_in_Period
                                     FROM   gv$Diag_Trace_File_Contents c
@@ -1930,16 +1930,17 @@ oradebug setorapname diag
       end
     }.call
 
-    content_iter = sql_select_iterator ["SELECT x.*, NULL elapsed_ms, Null delay_ms, NULL parse_line_no, NULL SQL_ID
+    content_iter = sql_select_iterator ["SELECT x.*, CAST(x.Timestamp AS TIMESTAMP) Timestamp_wo_zone,
+                                                NULL elapsed_ms, Null delay_ms, NULL parse_line_no, NULL SQL_ID
                                          FROM   (SELECT /*+ NO_MERGE */ c.*, c.Serial# Serial_No, RowNum Row_Num
                                                  FROM   gv$Diag_Trace_File_Contents c
                                                  WHERE  c.Inst_ID        = ?
                                                  AND    c.ADR_Home       = ?
                                                  AND    c.Trace_FileName = ?
                                                  AND    c.Con_ID         = ?
-                                                 AND    Timestamp        >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                                                 AND     Timestamp       <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
-                                                 ORDER BY c.Line_Number
+                                                 AND    Timestamp        >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
+                                                 AND     Timestamp       <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
+                                                 /* Do not ORDER BY c.Line_Number because the original order within on line_number should be retained */
                                                 ) x
                                          WHERE  #{rownum_condition}
                                       ", @instance, @adr_home, @trace_filename, @con_id, @time_selection_start, @time_selection_end, row_num_value]
@@ -1950,13 +1951,10 @@ oradebug setorapname diag
     sys_sql_lines = false                                                       # mark the lines between PARSING IN CURSOR # and END OF STMT
     sys_binds     = false                                                       # mark the following lines as binds of SYS SQL
     last_tim      = nil                                                         # last timestamp mark
+    full_line     = nil                                                         # Full line with all content of multiple line_id
 
     content_iter.each do |line|
-      if line.payload.nil?
-        line.payload = ''                                                       # Ensure line.payload is valid
-      else
-        line.payload = line.payload.strip                                       # remove leading and trailing blanks or line feeds
-      end
+      line.payload = '' if line.payload.nil?                                    # Ensure line.payload is valid
 
       # calculate elapsed time
       pattern = ',e='
@@ -2004,7 +2002,12 @@ oradebug setorapname diag
           line['parse_line_no'] = all_cursors[cursor_id][:parse_line_no]
           line['sql_id']        = all_cursors[cursor_id][:sql_id]
         end
-        @content << line
+        if  full_line.nil? || full_line.line_number != line.line_number # First record for next line number
+          @content << full_line unless full_line.nil?                           # add the previous line_number to result except first loop
+          full_line = line                                                      # remember the first occurrence of line_number and store values
+        else
+          full_line['payload'] << line.payload
+        end
       end
 
       # suppress known sys cursor actions
@@ -2014,6 +2017,7 @@ oradebug setorapname diag
       all_cursors.delete(cursor_id) if line.payload['CLOSE #'] && all_cursors.has_key?(cursor_id)    # forget all about this cursor
 
     end
+    @content << full_line unless full_line.nil?                                 # Add last line to result
 
     render_partial
   end

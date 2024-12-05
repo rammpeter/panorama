@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   show_payload = proc do |rec|
-    payload = rec.payload.gsub("\n", ' ') if !rec.payload.nil?
+    payload = rec.payload.strip.gsub("\n", ' ') if !rec.payload.nil?
 
     if !rec.payload.nil? && (payload['PARSE #'] || payload['EXEC #'] || payload['FETCH #'] || payload['WAIT #'] || payload['BIND #']  || payload['STAT #'] || payload['CLOSE #'] || payload['ERROR #'])
 
@@ -92,7 +92,7 @@ Times are in microseconds
   column_options =
       [
           {caption: 'Line',             data: proc{|rec| rec.line_number},                    title: 'Line number in the code file which produced this trace record', align: :right},
-          {caption: 'Timestamp',        data: proc{|rec| localeDateTime(rec.timestamp, :fractions3)}, title: 'Timestamp when the trace record was produced in client time zone'},
+          {caption: 'Timestamp',        data: proc{|rec| localeDateTime(rec.timestamp_wo_zone, :fractions3)}, title: 'Timestamp when the trace record was produced in DB server system time zone'},
           {caption: 'Payload',          data: show_payload,                                   title: payload_title, max_wrap_width: 400 },
           {caption: 'Elapsed (ms)',     data: proc{|rec| fn(rec.elapsed_ms, 3)},              title: "Elapsed time in milliseconds according to \"e=x\"", align: :right},
           {caption: 'Delay (ms)',       data: proc{|rec| fn(rec.delay_ms, 3)},                title: "Time in milliseconds between end of last operation and end of current operation.\nDifference between previous record and this record if \"tim=x\" provided", align: :right},
@@ -114,7 +114,7 @@ Times are in microseconds
   caption = "Trace file content for #{@adr_home}/trace/#{@trace_filename}, Con-ID = #{@con_id} (from GV$Diag_Trace_File_Contents)\n"
 
   caption << "<div style=\"font-weight: normal; text-align: center;\">"
-  caption << "This trace file contails #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
+  caption << "This trace file contains #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
   caption << "  </div>"
 
   caption << "<div style=\"font-weight: normal;\" class=\"flex-row-container\">"
