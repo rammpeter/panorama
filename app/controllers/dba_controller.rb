@@ -1911,7 +1911,8 @@ oradebug setorapname diag
                                            NVL(SUM(CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
                                                         AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
                                                THEN 1 ELSE 0 END
-                                              ), 0) Lines_in_Period
+                                              ), 0) Lines_in_Period,
+                                           MIN(Line_Number) Min_Line_Number, MAX(Line_Number) Max_Line_Number, COUNT(DISTINCT Line_Number) Distinct_Line_Numbers
                                     FROM   gv$Diag_Trace_File_Contents c
                                     WHERE  c.Inst_ID        = ?
                                     AND    c.ADR_Home       = ?
@@ -1924,15 +1925,15 @@ oradebug setorapname diag
 
     rownum_condition, row_num_value = lambda{
       if @first_or_last_lines == 'first'
-        return "Row_Num < ?", @max_trace_file_lines_to_show + 1
+        return "Line_Number < ?", @counts.min_line_number + @max_trace_file_lines_to_show
       else
-        return "Row_Num > ?", @counts.lines_in_period - @max_trace_file_lines_to_show
+        return "Line_Number > ?", @counts.max_line_number - @max_trace_file_lines_to_show
       end
     }.call
 
     content_iter = sql_select_iterator ["SELECT x.*, CAST(x.Timestamp AS TIMESTAMP) Timestamp_wo_zone,
                                                 NULL elapsed_ms, Null delay_ms, NULL parse_line_no, NULL SQL_ID
-                                         FROM   (SELECT /*+ NO_MERGE */ c.*, c.Serial# Serial_No, RowNum Row_Num
+                                         FROM   (SELECT /*+ NO_MERGE */ c.*, c.Serial# Serial_No
                                                  FROM   gv$Diag_Trace_File_Contents c
                                                  WHERE  c.Inst_ID        = ?
                                                  AND    c.ADR_Home       = ?

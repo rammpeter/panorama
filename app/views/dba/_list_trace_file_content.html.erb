@@ -114,7 +114,8 @@ Times are in microseconds
   caption = "Trace file content for #{@adr_home}/trace/#{@trace_filename}, Con-ID = #{@con_id} (from GV$Diag_Trace_File_Contents)\n"
 
   caption << "<div style=\"font-weight: normal; text-align: center;\">"
-  caption << "This trace file contains #{fn(@counts.lines_total)} events in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}"
+  caption << "This trace file contains #{fn(@counts.lines_total)} records in total from #{localeDateTime(@counts.min_timestamp)} until #{localeDateTime(@counts.max_timestamp)}."
+  caption << "<br/>Only #{fn(@counts.lines_in_period)} records of this are shown here for the time period #{@time_selection_start} until #{@time_selection_end}." if @counts.lines_in_period < @counts.lines_total
   caption << "  </div>"
 
   caption << "<div style=\"font-weight: normal;\" class=\"flex-row-container\">"
