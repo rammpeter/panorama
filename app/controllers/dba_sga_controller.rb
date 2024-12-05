@@ -151,6 +151,12 @@ class DbaSgaController < ApplicationController
   private
   # Modus enthält GV$SQL oder GV$SQLArea
   def fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number=nil, parsing_schema_name=nil, child_address=nil, con_id=nil)
+    stats_join = if modus == 'GV$SQL'
+                   "JOIN gv$SQLStats_Plan_Hash st ON st.Inst_ID = s.Inst_ID AND st.SQL_ID = s.SQL_ID AND st.Plan_Hash_Value = s.Plan_Hash_Value"
+                 else
+                   "JOIN gv$SQLStats st ON st.Inst_ID = s.Inst_ID AND st.SQL_ID = s.SQL_ID"
+                 end
+
     where_string = ""
     where_values = []
 
@@ -190,7 +196,7 @@ class DbaSgaController < ApplicationController
                 s.Inst_ID, s.Object_Status,
                 s.DISK_READS,
                 s.BUFFER_GETS,
-                s.EXECUTIONS, Fetches,
+                s.EXECUTIONS, s.Fetches,
                 s.PARSE_CALLS, s.SORTS,
                 s.Loads, s.Locked_Total, s.Pinned_Total,
                 s.ROWS_PROCESSED, s.Invalidations,
@@ -214,8 +220,10 @@ class DbaSgaController < ApplicationController
                 o.Owner Program_Owner, o.Object_Name Program_Name, o.Object_Type Program_Type, o.Last_DDL_Time Program_Last_DDL_Time,
                 s.Program_Line# Program_LineNo, #{'SQL_Plan_Baseline, ' if get_db_version >= '11.2'}
                 s.Exact_Matching_Signature /* DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 0) */ Exact_Signature,
-                s.Force_Matching_Signature /* DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 1) */ Force_Signature
+                s.Force_Matching_Signature /* DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_FullText, 1) */ Force_Signature,
+                st.Avg_Hard_Parse_Time/1000 Avg_Hard_Parse_Time_ms
            FROM #{modus} s
+           #{stats_join} /* alias st */
            LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Programm
            WHERE s.SQL_ID  = ? #{where_string}
            ", sql_id].concat where_values

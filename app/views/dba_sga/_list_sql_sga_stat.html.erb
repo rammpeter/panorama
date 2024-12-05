@@ -42,7 +42,8 @@ end
 
   parse_title_addition = proc do |sql|
     title = "\
-#{fn(sql.loads)} hard parses (invalidations = #{fn(sql.invalidations)}, loads = #{fn(sql.loads)})
+#{fn(sql.loads)} hard parses (invalidations = #{fn(sql.invalidations)}, loads = #{fn(sql.loads)}).
+Total hard pare time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg. hard parse time = #{fn(sql.avg_hard_parse_time_ms, 2)} ms.
 #{fn(sql.locked_total-sql.loads)} soft parses, found in library cache of SGA (locked_total = #{fn(sql.locked_total)})
 "
     if sql.parse_calls > sql.locked_total
@@ -134,7 +135,7 @@ end
           <%= show_both_values("Rows processed", @sql.rows_processed,0, "Number of rows processed") %>
           <%= show_both_values("Buffer gets", @sql.buffer_gets,0, t(:dba_sga_list_sql_sga_stat_buffer_gets_hint, :default=>'Number of DB blocks read total'), true) %>
           <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of db blocks read from disk\nAvg. time per db block read from disk = #{fn((@sql.disk_reads>0 ? @sql.user_io_wait_time_secs*1000.0/@sql.disk_reads : 0),2)} ms\nAvg. disk transfer speed = #{fn((@sql.user_io_wait_time_secs>0 ? @sql.disk_reads * PanoramaConnection.db_blocksize / (1024*1024) / @sql.user_io_wait_time_secs : 0),2)} MB/sec. (per single session if using PQ) ", true) %>
-          <%= show_both_values("Elapsed Time (sec), incl. parallel Query Slaves", @sql.elapsed_time_secs, 0, t(:dba_sga_list_sql_sga_stat_elapsed_hint, :default=>'Total elapsed time in seconds, sum over all PQ-slaves if executed in parallel'), true, true)%>
+          <%= show_both_values("Elapsed Time (sec), incl. PQ Slaves", @sql.elapsed_time_secs, 0, t(:dba_sga_list_sql_sga_stat_elapsed_hint, :default=>'Total elapsed time in seconds, sum over all parallel query slaves if executed in parallel'), true, true)%>
           <%= show_both_values("CPU-Time (sec)", @sql.cpu_time_secs, 0, t(:dba_sga_list_sql_sga_stat_cpu_hint, :default=>'CPU time in seconds, sum over all PQ-slaves if executed in parallel'), true, true) %>
           <%= show_both_values("Application Wait Time (sec)", @sql.application_wait_time_secs, 0, "Application wait time total, includes row lock waits", true, true) %>
           <%= show_both_values("Concurrency Wait Time (sec)", @sql.concurrency_wait_time_secs, 0, "Concurrency wait time", true, true) %>

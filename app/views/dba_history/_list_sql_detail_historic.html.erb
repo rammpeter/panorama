@@ -96,7 +96,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
           </tr>
           <%= show_both_values('Buffer gets', @sql.buffer_gets,0, 'Number of total DB-blocks read', true) %>
           <%= show_both_values("Disk reads", @sql.disk_reads,0, "Number of db blocks read from disk\nAvg. time per db block read from disk = #{fn((@sql.disk_reads && @sql.disk_reads>0 ? @sql.user_io_wait_time_secs*1000/@sql.disk_reads : 0),2)} ms\nAvg. disk transfer speed = #{fn((@sql.user_io_wait_time_secs && @sql.user_io_wait_time_secs>0 ? @sql.disk_reads * PanoramaConnection.db_blocksize / (1024*1024) / @sql.user_io_wait_time_secs : 0),2)} MB/sec. (per single session if using PQ) ", true) %>
-          <%= show_both_values("Elapsed time (sec), incl. parallel query slaves", @sql.elapsed_time_secs,0, "Runtime total in Seconds, sum over all PQ-processes", true, true)%>
+          <%= show_both_values("Elapsed time (sec), incl. PQ slaves", @sql.elapsed_time_secs,0, "Runtime total in Seconds, sum over all parallel query slave processes", true, true)%>
           <%= show_both_values("CPU-time (sec)", @sql.cpu_time_secs, 0, "CPU-time total in seconds, sum over all PQ-processes", true, true) %>
           <%= show_both_values("Application wait time (sec)", @sql.application_wait_time_secs, 0, "Application wait-time total in seconds, incl. row lock waits", true, true) %>
           <%= show_both_values("Concurrency wait time (sec)", @sql.concurrency_wait_time_secs, 0, "Concurrency wait-time total in seconds", true, true) %>
