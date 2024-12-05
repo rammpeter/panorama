@@ -1910,8 +1910,8 @@ oradebug setorapname diag
 
     @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(CAST(Timestamp AS TIMESTAMP)) Min_Timestamp, MAX(CAST(Timestamp AS TIMESTAMP)) Max_Timestamp,
                                            NVL(SUM(In_Period), 0) Lines_in_Period,
-                                           MIN(DECODE(In_Period, 1, Line_Number, 0)) Min_Line_Number,
-                                           MAX(DECODE(In_Period, 1, Line_Number, 0)) Max_Line_Number
+                                           NVL(MIN(DECODE(In_Period, 1, Line_Number, 0)), 0) Min_Line_Number,
+                                           NVL(MAX(DECODE(In_Period, 1, Line_Number, 0)), 0) Max_Line_Number
                                     FROM   (SELECT c.*,
                                                    CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
                                                         AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
