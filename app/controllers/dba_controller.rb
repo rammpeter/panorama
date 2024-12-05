@@ -1876,11 +1876,12 @@ oradebug setorapname diag
     end
 
     @files = sql_select_all ["\
-      SELECT Inst_ID, ADR_Home, Trace_Filename, MIN(Timestamp) Min_Timestamp, MAX(Timestamp) Max_Timestamp, Con_ID,
-             COUNT(*) Num_Rows_In_Period
+      SELECT Inst_ID, ADR_Home, Trace_Filename,
+             MIN(CAST(Timestamp AS TIMESTAMP)) Min_Timestamp, MAX(CAST(Timestamp AS TIMESTAMP)) Max_Timestamp /* use system time zone */,
+             Con_ID, COUNT(*) Num_Rows_In_Period
       FROM   GV$Diag_Trace_File_Contents
-      WHERE   Timestamp >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-      AND     Timestamp <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+      WHERE   Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
+      AND     Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
       #{where_string}
       GROUP BY Inst_ID, ADR_Home, Trace_Filename, CON_ID
       ORDER BY Max(Timestamp)
@@ -1908,16 +1909,19 @@ oradebug setorapname diag
     @first_or_last_lines          = prepare_param(:first_or_last_lines, default: 'first')
 
     @counts = sql_select_first_row ["SELECT COUNT(*) Lines_Total, MIN(CAST(Timestamp AS TIMESTAMP)) Min_Timestamp, MAX(CAST(Timestamp AS TIMESTAMP)) Max_Timestamp,
-                                           NVL(SUM(CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
+                                           NVL(SUM(In_Period), 0) Lines_in_Period,
+                                           MIN(DECODE(In_Period, 1, Line_Number, 0)) Min_Line_Number,
+                                           MAX(DECODE(In_Period, 1, Line_Number, 0)) Max_Line_Number
+                                    FROM   (SELECT c.*,
+                                                   CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
                                                         AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
-                                               THEN 1 ELSE 0 END
-                                              ), 0) Lines_in_Period,
-                                           MIN(Line_Number) Min_Line_Number, MAX(Line_Number) Max_Line_Number, COUNT(DISTINCT Line_Number) Distinct_Line_Numbers
-                                    FROM   gv$Diag_Trace_File_Contents c
-                                    WHERE  c.Inst_ID        = ?
-                                    AND    c.ADR_Home       = ?
-                                    AND    c.Trace_FileName = ?
-                                    AND    c.Con_ID         = ?
+                                                   THEN 1 ELSE 0 END In_Period
+                                            FROM   gv$Diag_Trace_File_Contents c
+                                            WHERE  c.Inst_ID        = ?
+                                            AND    c.ADR_Home       = ?
+                                            AND    c.Trace_FileName = ?
+                                            AND    c.Con_ID         = ?
+                                           )
                                    ",  @time_selection_start, @time_selection_end, @instance, @adr_home, @trace_filename, @con_id]
     if @counts.lines_in_period > @max_trace_file_lines_to_show
       add_statusbar_message("Trace file #{@trace_filename} contains #{fn(@counts.lines_in_period)} rows!\nEvaluating only the #{@first_or_last_lines} #{fn(@max_trace_file_lines_to_show)} rows of the file.")
