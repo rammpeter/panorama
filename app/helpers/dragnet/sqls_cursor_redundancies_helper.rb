@@ -61,12 +61,17 @@ So strong suggestion is: Use bind variables!
 This selection looks for statements with identical execution plans by plan-hash-value from gv$SQL.
 "),
             :sql=>  "\
-SELECT s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value, COUNT(*) Child_Cursors, COUNT(DISTINCT SQL_ID) Different_SQLs, MAX(Last_Active_Time) Max_Last_Active_Time,
-       ROUND(SUM(Elapsed_Time)/1000000, 2) Elapsed_Time_Secs,
-       MAX(SQL_ID) KEEP (DENSE_RANK LAST ORDER BY Last_Active_Time) Last_Used_SQL_ID,
-       COUNT(DISTINCT force_matching_signature) Different_Force_Matching_Signs
+SELECT s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value, COUNT(*) Child_Cursors, COUNT(DISTINCT s.SQL_ID) Different_SQLs, MAX(s.Last_Active_Time) Max_Last_Active_Time,
+       ROUND(SUM(s.Elapsed_Time)/1000000, 2) Elapsed_Time_Secs,
+       MAX(s.SQL_ID) KEEP (DENSE_RANK LAST ORDER BY s.Last_Active_Time) Last_Used_SQL_ID,
+       COUNT(DISTINCT s.force_matching_signature) Different_Force_Matching_Signs,
+       SUM(s.Executions) Executions,
+       SUM(s.Loads) Loads,
+       ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/1000000 , 2) Sum_Hard_Parse_Times_Secs,
+       ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/SUM(s.Loads)/1000 , 2) Avg_Hard_Parse_Time_ms
 FROM   gv$SQL s
-WHERE  Plan_Hash_Value > 0
+JOIN   gv$SQLStats_Plan_Hash t ON t.Inst_ID = s.Inst_ID AND t.SQL_ID = s.SQL_ID AND t.Plan_Hash_Value = s.Plan_Hash_Value
+WHERE  s.Plan_Hash_Value > 0
 GROUP BY s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value
 HAVING COUNT(*) > ?
 ORDER BY Child_Cursors DESC",

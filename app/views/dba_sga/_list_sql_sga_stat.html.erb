@@ -43,7 +43,7 @@ end
   parse_title_addition = proc do |sql|
     title = "\
 #{fn(sql.loads)} hard parses (invalidations = #{fn(sql.invalidations)}, loads = #{fn(sql.loads)}).
-Total hard pare time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg. hard parse time = #{fn(sql.avg_hard_parse_time_ms, 2)} ms.
+Total hard parse time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg. hard parse time = #{fn(sql.avg_hard_parse_time_ms, 2)} ms.
 #{fn(sql.locked_total-sql.loads)} soft parses, found in library cache of SGA (locked_total = #{fn(sql.locked_total)})
 "
     if sql.parse_calls > sql.locked_total

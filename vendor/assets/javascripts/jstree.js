@@ -609,6 +609,8 @@
 						e.preventDefault();
 						if(e.currentTarget !== document.activeElement) { $(e.currentTarget).focus(); }
 						this.activate_node(e.currentTarget, e);
+						// 2024-12-06 Peter Ramm; this.toggle_node(e.target); added to open close at single click
+					    this.toggle_node(e.target);
 					}, this))
 				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
 						if(e.target.tagName === "INPUT") { return true; }
