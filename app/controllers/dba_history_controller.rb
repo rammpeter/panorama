@@ -2130,10 +2130,23 @@ FROM (
 
   def select_plan_hash_value_for_baseline
     @sql_id                     = params[:sql_id]
-    @min_snap_id                = params[:min_snap_id]
-    @max_snap_id                = params[:max_snap_id]
+    @min_snap_id                = params[:min_snap_id]                          # only set if called from DBA_Hist_SQLStat view
+    @max_snap_id                = params[:max_snap_id]                          # only set if called from DBA_Hist_SQLStat view
     @force_matching_signature   = params[:force_matching_signature]
     @exact_matching_signature   = params[:exact_matching_signature]
+
+    where_string = ''
+    where_values = []
+
+    if @min_snap_id
+      where_string << " AND s.Snap_ID >= ?"
+      where_values << @min_snap_id
+    end
+
+    if @max_snap_id
+      where_string << " AND s.Snap_ID <= ?"
+      where_values << @max_snap_id
+    end
 
     @plans = sql_select_all ["SELECT s.Plan_Hash_Value,
                                     MIN(ss.Begin_Interval_Time) First_Occurrence,
@@ -2145,10 +2158,19 @@ FROM (
                              JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
                              WHERE  s.DBID   = ?
                              AND    S.SQL_ID = ?
-                             AND    s.Snap_ID BETWEEN ? AND ?
+                             #{where_string}
                              GROUP BY s.Plan_Hash_Value
-                            ", get_dbid, @sql_id, @min_snap_id, @max_snap_id]
-      render_partial
+                            ", get_dbid, @sql_id].concat(where_values)
+
+    raise PopupMessageException.new("No history as source for baseline found in #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')} for SQL-ID = '#{@sql_id}'") if @plans.empty?
+    raise PopupMessageException.new("No Plan Hash Value != 0 found  in #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')} for SQL-ID = '#{@sql_id}'") if @plans.count == 1 && @plans[0].plan_hash_value == 0
+
+    if @min_snap_id && @max_snap_id && @plans.count == 1
+      params[:plan_hash_value] = @plans[0].plan_hash_value
+      generate_baseline_creation                                              # direct call the baseline generation
+    else
+      render_partial                                                          # show selection
+    end
   end
 
   def generate_baseline_creation

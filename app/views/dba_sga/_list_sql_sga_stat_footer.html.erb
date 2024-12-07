@@ -175,31 +175,18 @@
     </div>
   <% end %>
 
-  <% if get_db_version >= '12.1' %>
-    <div class="flex-row-element">
-      <%=
-        ajax_submit('SQL-Translation', {
-            :controller           => :dba_sga,
-            :action               => :generate_sql_translation,
-            :update_area          => @update_area,
-            :sql_id               => @sql_id,
-            :user_name            => @sql.parsing_schema_name
-        }, :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate script to create profile for SQL-translation-framework for this SQL."))
-      %>
-    </div>
-  <% end %>
-
-  <% if get_db_version >= '11.1' %>
-    <div class="flex-row-element">
-      <%=
-        ajax_submit('SQL-Patch', {
-            :controller           => :dba_sga,
-            :action               => :generate_sql_patch,
-            :update_area          => @update_area,
-            :sql_id               => @sql_id,
-        }, :title=> t(:dba_history_list_sql_detail_historic_create_sql_patch_hint, :default=>"Generate script to create SQL patch for this SQL."))
-      %>
-    </div>
-  <% end %>
+  <div class="flex-row-element">
+    <%=
+      ajax_submit('SQL plan mgmt.', {
+          controller:           :dba_sga,
+          action:               :influence_sql_plan,
+          update_area:          @update_area,
+          sql_id:               @sql_id,
+          user_name:            @sql.parsing_schema_name,
+          force_signature:      @sql.force_signature.to_s,
+          exact_signature:      @sql.exact_signature.to_s,
+      },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")
+    %>
+  </div>
 </div>
 

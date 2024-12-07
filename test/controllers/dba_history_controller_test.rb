@@ -380,6 +380,9 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
     else
       post '/dba_history/select_plan_hash_value_for_baseline', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :update_area=>:hugo }
       assert_response [:diagnostics_pack, :diagnostics_and_tuning_pack, :panorama_sampler].include?(management_pack_license) ? :success : :error
+
+      post '/dba_history/select_plan_hash_value_for_baseline', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :update_area=>:hugo }
+      assert_response [:diagnostics_pack, :diagnostics_and_tuning_pack, :panorama_sampler].include?(management_pack_license) ? :success : :error
     end
   end
 

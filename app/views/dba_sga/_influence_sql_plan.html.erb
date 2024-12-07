@@ -1,0 +1,63 @@
+<%
+  @update_area = get_unique_area_id
+
+  show_action = proc do |rec|
+    case rec.type
+    when :plan_baseline then
+      disabled = PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
+      title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+
+      ajax_submit('SQL plan baseline', {
+        :controller                 => :dba_history,
+        :action                     => :select_plan_hash_value_for_baseline,
+        :update_area                => @update_area,
+        :sql_id                     => @sql_id,
+        :min_snap_id                => @min_snap_id,
+        :max_snap_id                => @max_snap_id,
+        :force_matching_signature   => @force_matching_signature.to_s,
+        :exact_matching_signature   => @exact_matching_signature.to_s
+      }, :disabled => disabled, :title=> title)
+    when :sql_profile then
+      ajax_submit('SQL Profile', {
+        :controller           => :dba_sga,
+        :action               => :generate_sql_profile,
+        :update_area          => @update_area,
+        :sql_id               => @sql_id,
+      }, :title=> "Generate script to create SQL profile for this SQL.")
+    when :sql_patch then
+      ajax_submit('SQL Patch', {
+        :controller           => :dba_sga,
+        :action               => :generate_sql_patch,
+        :update_area          => @update_area,
+        :sql_id               => @sql_id,
+      }, :title=> t(:dba_history_list_sql_detail_historic_create_sql_patch_hint, :default=>"Generate script to create SQL patch for this SQL."))
+    when :sql_translation then
+      ajax_submit('SQL Translation', {
+        :controller           => :dba_sga,
+        :action               => :generate_sql_translation,
+        :update_area          => @update_area,
+        :sql_id               => @sql_id,
+        :user_name            => @user_name,
+      }, :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate script to create profile for SQL-translation-framework for this SQL."))
+    else "Unsupported type #{rec.type}"
+    end
+  end
+
+  column_options =
+    [
+      { caption: "Action",              data: show_action,            title: "Action to generate the script snippet to execute"},
+      { caption: "Description",         data: proc{|rec| rec.description },        title: "Description of influencing activity"},
+      { caption: "Option pack needed",  data: proc{|rec| rec.option_pack_needed }, title: "Needed licensing of option pack to use this function"},
+    ]
+%>
+<%= gen_slickgrid(@methods,
+                  column_options,
+                  { caption:       "Methods to influence the execution plan of SQL ID = '#{@sql_id}' without changing the SQL syntax in application",
+                    max_height:    450,
+                    show_pin_icon: 1,
+                    update_area:   @update_area
+                  }
+    )
+%>
+

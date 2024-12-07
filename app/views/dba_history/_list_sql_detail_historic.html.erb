@@ -131,15 +131,13 @@ Hash-value over total optimizer environment + Number of different optimizer envi
 %>
 
 
-<% if get_db_version >= '11.1' &&  (@sql.force_matching_signature || @exact_matching_signature) %>
+<% if (@sql.force_matching_signature || @exact_matching_signature) %>
   <%=
-    if @sql.force_matching_signature || @exact_matching_signature
-      render_async(:dba_sga, :show_plan_baselines, {
-          force_matching_signature: @sql.force_matching_signature,
-          exact_matching_signature: @exact_matching_signature,
-          update_area_for_target:   @update_area
-      })
-    end
+    render_async(:dba_sga, :show_plan_baselines, {
+        force_matching_signature: @sql.force_matching_signature,
+        exact_matching_signature: @exact_matching_signature,
+        update_area_for_target:   @update_area
+    })
   %>
 <% end %>
 
@@ -290,56 +288,21 @@ Hash-value over total optimizer environment + Number of different optimizer envi
     </div>
   <% end %>
 
-  <% if get_db_version >= '11.1' %>
-    <div class="flex-row-element">
-      <%=
-        disabled = @sql.plan_hash_value_count < 1 || PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
-        title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
-        title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
-
-        ajax_submit('SQL plan baseline', {
-            :controller                 => :dba_history,
-            :action                     => (@sql.plan_hash_value_count > 1 ? :select_plan_hash_value_for_baseline : :generate_baseline_creation),
-            :update_area                => @update_area,
-            :sql_id                     => @sql_id,
-            :plan_hash_value            => @sql.last_plan_hash_value,
-            :min_snap_id                => @sql.min_snap_id,
-            :max_snap_id                => @sql.max_snap_id,
-            :force_matching_signature   => @sql.force_matching_signature.to_s,
-            :exact_matching_signature   => @exact_matching_signature.to_s
-        }, :disabled => disabled, :title=> title)
-
-      %>
-    </div>
-  <% end %>
-
-  <% if get_db_version >= '12.1' %>
-    <div class="flex-row-element">
-      <%=
-        ajax_submit('SQL-Translation', {
-            :controller           => :dba_sga,
-            :action               => :generate_sql_translation,
-            :update_area          => @update_area,
-            :sql_id               => @sql_id,
-            :user_name            => @sql.min_parsing_schema_name
-        }, :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate script to create profile for SQL-translation-framework for this SQL."))
-      %>
-    </div>
-  <% end %>
-
-  <% if get_db_version >= '11.1' %>
-    <div class="flex-row-element">
-      <%=
-        ajax_submit('SQL-Patch', {
-            :controller           => :dba_sga,
-            :action               => :generate_sql_patch,
-            :update_area          => @update_area,
-            :sql_id               => @sql_id,
-        }, :title=> t(:dba_history_list_sql_detail_historic_create_sql_patch_hint, :default=>"Generate script to create SQL patch for this SQL."))
-      %>
-    </div>
-  <% end %>
-
+  <div class="flex-row-element">
+    <%=
+      ajax_submit('SQL plan mgmt.', {
+          :controller                 => :dba_sga,
+          :action                     => :influence_sql_plan,
+          :update_area                => @update_area,
+          :sql_id                     => @sql_id,
+          :user_name                  => @sql.min_parsing_schema_name,
+          :min_snap_id                => @sql.min_snap_id,
+          :max_snap_id                => @sql.max_snap_id,
+          :force_matching_signature   => @sql.force_matching_signature.to_s,
+          :exact_matching_signature   => @exact_matching_signature.to_s
+      },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")
+    %>
+  </div>
 </div>
 
 <div id="<%= @update_area %>" style="clear:both; width:100%;">

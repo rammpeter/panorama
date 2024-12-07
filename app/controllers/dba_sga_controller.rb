@@ -1537,7 +1537,7 @@ class DbaSgaController < ApplicationController
     @single_sql = false                                                         # look for whole DB
 
     if @force_matching_signature && @exact_matching_signature
-      where_string << "WHERE  p.Signature = TO_NUMBER(?) OR  p.Signature = TO_NUMBER(?) "
+      where_string << "WHERE  (p.Force_Matching = 'NO' AND p.Signature = TO_NUMBER(?)) OR  (p.Force_Matching = 'YES' AND p.Signature = TO_NUMBER(?)) "
       where_values << @exact_matching_signature.to_s                            # dont show real numeriv value, not xEy
       where_values << @force_matching_signature.to_s                            # dont show real numeriv value, not xEy
       @single_sql = true
@@ -1804,6 +1804,43 @@ class DbaSgaController < ApplicationController
     list_sql_child_cursors
   end
 
+  # Show possibilities to influence the sql plan
+  def influence_sql_plan
+    @sql_id                     = params[:sql_id]
+    @user_name                  = params[:user_name]
+    @min_snap_id                = params[:min_snap_id]                          # only set if called from DBA_Hist_SQLStat view
+    @max_snap_id                = params[:max_snap_id]                          # only set if called from DBA_Hist_SQLStat view
+    @force_matching_signature   = params[:force_matching_signature]
+    @exact_matching_signature   = params[:exact_matching_signature]
+
+    @methods = []
+
+    @methods << { type:               :plan_baseline,
+                  description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{"\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack}",
+                  option_pack_needed: "Enterprise Edition + #{ get_db_version < '18' ? "Tuning Pack" : "Diagnostics Pack"}"
+    }
+
+    @methods << { type:               :sql_profile,
+                  description:        "Generates commands for creating a SQL profile.\nThis allows to inject optimizer hints to the SQL.",
+                  option_pack_needed: "Enterprise Edition + Tuning Pack"
+    }
+
+    @methods << { type:               :sql_patch,
+                  description:        "Generates commands for creating a SQL patch.\nThis allows to inject optimizer hints to the SQL.\nSimilar to SQL profile, but without the need for licensed Tuning Pack.",
+                  option_pack_needed: "None"
+    }
+
+    if get_db_version >= '12.1'
+      @methods << { type:               :sql_translation,
+                    description:        "Generates a script for using SQL translation framework.\nThis allows to replace all parts of the SQL statement as long as the number and types of bind variables remain the same,",
+                    option_pack_needed: "Enterprise Edition"
+      }
+    end
+
+    @methods.each {|m| m.extend(SelectHashHelper) }
+    render_partial
+  end
+
   def generate_sql_translation
     @sql_id              = params[:sql_id]
     user_name            = params[:user_name]
@@ -1916,12 +1953,87 @@ END;
     end
   end
 
+  def generate_sql_profile
+    @sql_id              = params[:sql_id]
+
+    profile_name     = "Panorama-Profile #{@sql_id}"
+
+    sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLStats WHERE SQL_ID = ?", @sql_id]
+    if sql_text.nil?
+      if PackLicense.none_licensed?
+        raise "No SQL text found for SQL-ID='#{@sql_id}' in gv$SQLArea"
+      else
+        sql_text = sql_select_one ["SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?", get_dbid, @sql_id]
+        raise "No SQL text found for SQL-ID='#{@sql_id}' in gv$SQLArea or DBA_Hist_SQLText" if sql_text.nil?
+      end
+    end
+
+    existing_profile_for_sql = sql_select_one ["SELECT Name
+                                              FROM   DBA_SQL_Profiles p
+                                              CROSS JOIN (SELECT /*+ NO_MERGE */ SQL_Text, SQL_Profile
+                                                          FROM   (
+                                                                  SELECT SQL_Fulltext SQL_Text, SQL_Profile FROM gv$SQL WHERE SQL_ID = ?
+                                                                  #{"UNION ALL
+                                                                  SELECT SQL_Text, NULL SQL_Profile FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?" if !PackLicense.none_licensed?
+    }
+                                                                 )
+                                                          WHERE  RowNum < 2
+                                                         ) s
+                                              WHERE  (   DBMS_LOB.Compare(p.SQL_Text, s.SQL_Text) = 0
+                                                      OR s.SQL_Profile = p.Name
+                                                     )
+                                             ", @sql_id].concat(!PackLicense.none_licensed? ? [get_dbid, @sql_id] : [])
+
+    result = "
+-- Script for establishing SQL profile for SQL-ID='#{@sql_id}'
+-- Generated by Panorama at #{Time.now}
+-- Executing this script allows you to add optimizer hints that are used for execution of this SQL.
+-- This allows you to transparently influence execution plan without any change of the calling application.
+-- Existing SQL-profiles for SQLs are shown by Panorama in SQL-details view.
+-- All existing SQL-profiles are listed in Panorama via menu 'SGA/PGA-details' / 'SQL plan management' / 'SQL profiles'
+
+-- Attributes that must be adjusted by you in this script for parameters:
+--   - 'hint_text'   Place your optimizer hints here.
+--                   Be aware that query block names and table-aliases must be used in optimizer hints
+--                   with same values as they appear in columns QBLOCK_NAME and OBJECT_ALIAS of v$SQL_PLAN!
+--                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\".
+--                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
+--   - 'decription'  describe purpose of SQL profile
+
+-- ############# To establish SQL profile execute this as SYSDBA #############
+-- on Pluggable database execute it connected to PDB, not CDB
+
+#{ "-- Drop already existing SQL profile for this SQL before applying new patch
+EXEC DBMS_SQLTUNE.Drop_SQL_Profile('#{existing_profile_for_sql}');
+" if !existing_profile_for_sql.nil?}
+
+BEGIN
+  DBMS_SQLTUNE.Import_SQL_Profile(
+    sql_text    => '#{sql_escape(sql_text)}',
+    name        => '#{profile_name}',
+    profile     => SQLPROF_ATTR('< my personal hint>'),
+    description => 'My personal description for profile',
+    force_match => TRUE
+  );
+END;
+/
+
+-- ############# To remove the SQL-profile if not needed anymore execute this as SYSDBA #############
+-- EXEC DBMS_SQLTUNE.Drop_SQL_Profile('#{existing_profile_for_sql}');
+"
+
+    respond_to do |format|
+      format.html {render :html => render_code_mirror(result) }
+    end
+  end
+
+
   def generate_sql_patch
     @sql_id              = params[:sql_id]
 
     patch_name     = "Panorama-Patch #{@sql_id}"
 
-    sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ?", @sql_id]
+    sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLStats WHERE SQL_ID = ?", @sql_id]
     if sql_text.nil?
       if PackLicense.none_licensed?
         raise "No SQL text found for SQL-ID='#{@sql_id}' in gv$SQLArea"
@@ -1933,16 +2045,18 @@ END;
 
     existing_patch_for_sql = sql_select_one ["SELECT Name
                                               FROM   DBA_SQL_Patches p
-                                              CROSS JOIN (SELECT /*+ NO_MERGE */ SQL_Text
+                                              CROSS JOIN (SELECT /*+ NO_MERGE */ SQL_Text, SQL_Patch
                                                           FROM   (
-                                                                  SELECT SQL_FullText SQL_Text FROM gv$SQLArea WHERE SQL_ID = ?
+                                                                  SELECT SQL_FullText SQL_Text, SQL_Patch FROM gv$SQL WHERE SQL_ID = ?
                                                                   #{"UNION ALL
-                                                                  SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?" if !PackLicense.none_licensed?
+                                                                  SELECT SQL_Text, NULL SQL_Patch FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?" if !PackLicense.none_licensed?
                                                                   }
                                                                  )
                                                           WHERE  RowNum < 2
                                                          ) s
-                                              WHERE  DBMS_LOB.Compare(p.SQL_Text, s.SQL_Text) = 0
+                                              WHERE  (   DBMS_LOB.Compare(p.SQL_Text, s.SQL_Text) = 0
+                                                      OR s.SQL_Patch = p.Name
+                                                     )
                                              ", @sql_id].concat(!PackLicense.none_licensed? ? [get_dbid, @sql_id] : [])
 
     result = "
@@ -1973,12 +2087,13 @@ EXEC DBMS_SQLDiag.Drop_SQL_Patch('#{existing_patch_for_sql}');
 DECLARE
   patch_name VARCHAR2(32767);
 BEGIN
-  patch_name := sys.DBMS_SQLDiag.create_SQL_patch(" :
+  patch_name := sys.DBMS_SQLDiag.create_SQL_patch(
+    sql_id      => '#{@sql_id}'," :
       "
 BEGIN
-  sys.DBMS_SQLDiag_Internal.i_create_patch("
+  sys.DBMS_SQLDiag_Internal.i_create_patch(
+    sql_text    => '#{sql_escape(sql_text)}',"
 }
-    sql_text    => '#{sql_escape(sql_text)}',
     hint_text   => '< my personal hint>',
     name        => '#{patch_name}',
     description => 'My personal description for patch'

@@ -42,7 +42,7 @@
 %>
 
 <%= gen_slickgrid(@plans, column_options, {
-    :caption => "Multiple plans exists for SQL-ID='#{@sql_id}' in this period! Please select.",
+    :caption => "This plans exists in #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')} for SQL-ID='#{@sql_id}'#{" in considered period" if @min_snap_id}! Please select.",
     :max_height => 450
     })
 %>
