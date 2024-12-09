@@ -786,6 +786,35 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
+  def list_sql_optimizer_env
+    @instance                 = prepare_param_instance
+    @sql_id                   = params[:sql_id]
+    @child_number             = prepare_param_int :child_number
+    @show_defaults            = prepare_param_boolean :show_defaults
+    @update_area              = prepare_param :update_area
+
+    where_string = ''
+    where_values = []
+
+    if @child_number
+      where_string << " AND Child_Number = ?"
+      where_values << @child_number
+    end
+
+    where_string << " AND IsDefault = 'NO'" unless @show_defaults
+
+    @envs        = sql_select_all ["\
+      SELECT *
+      FROM   gv$SQL_Optimizer_Env
+      WHERE  Inst_ID = ?
+      AND    SQL_ID = ?
+      #{where_string}
+      ORDER BY ID, Child_Number
+      ", @instance, @sql_id].concat(where_values)
+
+    render_partial
+  end
+
   # SGA-Komponenten 
   def list_sga_components
     @instance        = prepare_param_instance

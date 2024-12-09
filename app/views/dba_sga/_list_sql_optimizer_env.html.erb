@@ -1,0 +1,33 @@
+<%
+
+
+  column_options = []
+  column_options << { caption: 'Hash value',          data: proc{|rec| fn rec.hash_value},    title: 'Optimizer environment hsh value', align: :right}
+  column_options << { caption: 'Child number',        data: proc{|rec| fn rec.child_number},  title: 'Child number of SQL cursor', align: :right}
+  column_options << { caption: 'Name',                data: proc{|rec| rec.name},             title: 'Name of setting'}
+  column_options << { caption: 'Default',             data: proc{|rec| rec.isdefault},        title: 'Was this setting value the default at parse time or has been set to a non-default value at instance or session level'}
+  column_options << { caption: 'Value',               data: proc{|rec| rec.value},            title: 'Value of setting'}
+  column_options << { caption: 'Con. ID',             data: proc{|rec| fn rec.con_id},        title: 'Container ID'} if get_db_version >= '12.1'
+
+  caption = "Optimizer environment from gv$SQL_Optimizer_Env for instance = #{@instance}, SQL ID = '#{@sql_id}'"
+  caption << ", child_number = #{@child_number}" if @child_number
+  caption << ", IsDefault = 'NO'" unless @show_defaults
+
+  command_menu_entries = [
+    {
+      name:                  :toggle_default,
+      caption:               'Toggle filter for defaults',
+      :hint                  => "Toggle view between all settings and non-default settings",
+      :icon_class            => @show_defaults ? 'cui-filter' : 'cuis-filter',
+      :show_icon_in_caption  => true,
+      :action                => "ajax_html('#{@update_area}', 'dba_sga', 'list_sql_optimizer_env', { update_area: '#{@update_area}', instance: #{@instance}, sql_id: '#{@sql_id}'#{", child_number: #{@child_number}" if @child_number}, show_defaults: '#{!@show_defaults}' });"
+    }
+  ]
+
+
+%>
+<%= gen_slickgrid(@envs, column_options, {
+  caption: caption,
+  max_height: 450, show_pin_icon: 1,
+  command_menu_entries: command_menu_entries
+}) %>
