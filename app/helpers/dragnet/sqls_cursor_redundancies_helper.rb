@@ -66,11 +66,11 @@ SELECT s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value, COUNT(*) Child_Curso
        MAX(s.SQL_ID) KEEP (DENSE_RANK LAST ORDER BY s.Last_Active_Time) Last_Used_SQL_ID,
        COUNT(DISTINCT s.force_matching_signature) Different_Force_Matching_Signs,
        SUM(s.Executions) Executions,
-       SUM(s.Loads) Loads,
+       SUM(s.Loads) \"Loads (hard parses)\",
        ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/1000000 , 2) Sum_Hard_Parse_Times_Secs,
        ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/SUM(s.Loads)/1000 , 2) Avg_Hard_Parse_Time_ms
 FROM   gv$SQL s
-JOIN   gv$SQLStats_Plan_Hash t ON t.Inst_ID = s.Inst_ID AND t.SQL_ID = s.SQL_ID AND t.Plan_Hash_Value = s.Plan_Hash_Value
+LEFT OUTER JOIN   gv$SQLStats_Plan_Hash t ON t.Inst_ID = s.Inst_ID AND t.SQL_ID = s.SQL_ID AND t.Plan_Hash_Value = s.Plan_Hash_Value
 WHERE  s.Plan_Hash_Value > 0
 GROUP BY s.Inst_ID, s.Parsing_Schema_Name, s.Plan_Hash_Value
 HAVING COUNT(*) > ?
@@ -95,12 +95,16 @@ This selection looks for statements with identical execution plans by force-matc
                             MAX(a.Last_Active_Time)                                           \"Youngest active time\",
                             MIN(TO_DATE(a.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS'))          \"First load time\",
                             ROUND(SUM(a.Elapsed_Time)/1000000)                                \"Elapsed time (seconds)\",
-                            MAX(a.SQL_ID) KEEP (DENSE_RANK LAST ORDER BY Last_Active_Time)    \"SQL_ID\",
+                            MAX(a.SQL_ID) KEEP (DENSE_RANK LAST ORDER BY a.Last_Active_Time)  \"SQL_ID\",
                             ROUND(SUM(a.Sharable_Mem)  /(1024*1024), 2)                       \"Sharable memory (MB)\",
                             ROUND(SUM(a.Persistent_Mem)/(1024*1024), 2)                       \"Persistent memory (MB)\",
                             ROUND(SUM(a.Runtime_Mem)   /(1024*1024), 2)                       \"Runtime memory (MB)\",
-                            SUBSTR(MAX(a.SQL_Text) KEEP (DENSE_RANK LAST ORDER BY Last_Active_Time), 1, 400)  \"SQL text\"
+                            SUM(a.Loads)                                                      \"Loads (hard parses)\",
+                            ROUND(SUM(t.Avg_Hard_Parse_Time * a.Loads)/1000000 , 2)           Sum_Hard_Parse_Times_Secs,
+                            ROUND(SUM(t.Avg_Hard_Parse_Time * a.Loads)/SUM(a.Loads)/1000 , 2) Avg_Hard_Parse_Time_ms,
+                            SUBSTR(MAX(a.SQL_Text) KEEP (DENSE_RANK LAST ORDER BY a.Last_Active_Time), 1, 400)  \"SQL text\"
                      FROM   gv$SQLArea a
+                     LEFT OUTER JOIN   gv$SQLStats t ON t.Inst_ID = a.Inst_ID AND t.SQL_ID = a.SQL_ID
                      WHERE DECODE(a.Force_Matching_Signature, 0, a.Plan_Hash_Value, a.Force_Matching_Signature) != 0   /* Include INSERTs with Force_Matching_Signature = 0 via Plan_Hash_Value */
                      GROUP BY a.Inst_ID, DECODE(a.Force_Matching_Signature, 0, a.Plan_Hash_Value, a.Force_Matching_Signature), a.Parsing_Schema_Name
                      HAVING COUNT(*) > ?
@@ -161,18 +165,23 @@ The length of the compared substring may be varied."),
             :sql=>  "WITH Len AS (SELECT ? Substr_Len FROM DUAL)
                        SELECT g.*, s.SQL_Text \"Beispiel SQL-Text\"
                        FROM   (
-                               SELECT COUNT(*) Variationen, Inst_ID, MIN(Parsing_Schema_Name) UserName, COUNT(DISTINCT Parsing_Schema_Name) Anzahl_User,
-                                      SUBSTR(s.SQL_Text, 1, Len.Substr_Len) SubSQL_Text,
-                                      ROUND(SUM(Sharable_Mem+Persistent_Mem+Runtime_Mem)/(1024*1024),3) \"Memory (MB)\",
-                                      MIN(s.SQL_ID) SQL_ID,
-                                      MIN(TO_DATE(s.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS')) Min_First_Load,
-                                      MIN(Last_Load_Time) Min_Last_Load,
-                                      MAX(Last_Load_Time) Max_Last_Load,
-                                      MAX(Last_Active_Time) Max_Last_Active,
-                                      MIN(Parsing_Schema_Name) Parsing_Schema_Name,
-                                      COUNT(DISTINCT Parsing_Schema_Name) \"Different pars. schema names\"
-                               FROM   gv$SQLArea s, Len
-                               GROUP BY Inst_ID, SUBSTR(s.SQL_Text, 1, Len.Substr_Len)
+                               SELECT COUNT(*) Variationen, s.Inst_ID, MIN(s.Parsing_Schema_Name) UserName, COUNT(DISTINCT s.Parsing_Schema_Name) Anzahl_User,
+                                      SUBSTR(s.SQL_Text, 1, Len.Substr_Len)                             SubSQL_Text,
+                                      ROUND(SUM(s.Sharable_Mem+s.Persistent_Mem+s.Runtime_Mem)/(1024*1024),3) \"Memory (MB)\",
+                                      MIN(s.SQL_ID)                                                     SQL_ID,
+                                      MIN(TO_DATE(s.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS'))          Min_First_Load,
+                                      MIN(s.Last_Load_Time)                                             Min_Last_Load,
+                                      MAX(s.Last_Load_Time)                                             Max_Last_Load,
+                                      MAX(s.Last_Active_Time)                                           Max_Last_Active,
+                                      MIN(s.Parsing_Schema_Name)                                        Parsing_Schema_Name,
+                                      COUNT(DISTINCT s.Parsing_Schema_Name)                             \"Different pars. schema names\",
+                                      SUM(s.Loads)                                                      \"Loads (hard parses)\",
+                                      ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/1000000 , 2)           Sum_Hard_Parse_Times_Secs,
+                                      ROUND(SUM(t.Avg_Hard_Parse_Time * s.Loads)/SUM(s.Loads)/1000 , 2) Avg_Hard_Parse_Time_ms
+                               FROM   gv$SQLArea s
+                               CROSS JOIN Len
+                               LEFT OUTER JOIN   gv$SQLStats t ON t.Inst_ID = s.Inst_ID AND t.SQL_ID = s.SQL_ID
+                               GROUP BY s.Inst_ID, SUBSTR(s.SQL_Text, 1, Len.Substr_Len)
                                HAVING COUNT(*) > ?
                               ) g
                        JOIN gv$SQLArea s ON s.Inst_ID = g.Inst_ID AND s.SQL_ID = g.SQL_ID
