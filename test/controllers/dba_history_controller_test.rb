@@ -29,15 +29,16 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
         raise "No SQL-ID found in SGA" if @@sga_sql_id_without_history.nil?
 
         # Find a SQL_ID that surely exists in History
-        sql_row = sql_select_first_row "SELECT MAX(SQL_ID)              KEEP (DENSE_RANK LAST ORDER BY Occurs) SQL_ID,
+        sql_row = sql_select_first_row ["SELECT MAX(SQL_ID)              KEEP (DENSE_RANK LAST ORDER BY Occurs) SQL_ID,
                                              MAX(Parsing_Schema_Name) KEEP (DENSE_RANK LAST ORDER BY Occurs) Parsing_Schema_Name
                                       FROM   (
                                               SELECT SQL_ID, Parsing_Schema_Name, COUNT(*) Occurs
                                               FROM   DBA_Hist_SQLStat s
-                                              WHERE  s.Snap_ID > (SELECT MAX(Snap_ID) FROM DBA_Hist_Snapshot) - 20
+                                              -- WHERE  s.Snap_ID > (SELECT MAX(Snap_ID) FROM DBA_Hist_Snapshot) - 20
+                                              WHERE  s.Snap_ID BETWEEN ? AND ?
                                               GROUP BY SQL_ID, Parsing_Schema_Name
                                              )
-                                     "
+                                     ", @min_snap_id, @max_snap_id]
 
         @@hist_sql_id = sql_row.sql_id
         @@hist_parsing_schema_name = sql_row.parsing_schema_name
