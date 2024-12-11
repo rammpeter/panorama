@@ -1815,14 +1815,33 @@ class DbaSgaController < ApplicationController
   end
 
   def list_sql_tuning_advisor_tasks
-    @tasks = sql_select_iterator "SELECT * FROM DBA_Advisor_Tasks WHERE Advisor_Name = 'SQL Tuning Advisor' ORDER BY Created DESC"
+    @tasks = sql_select_iterator "SELECT t.*, o.SQL_Count
+                                  FROM   DBA_Advisor_Tasks t
+                                  LEFT OUTER JOIN  (SELECT /*+ NO_MERGE */ Task_ID, COUNT(*) SQL_Count
+                                                    FROM   DBA_Advisor_Objects
+                                                    WHERE  Adv_SQL_ID IS NOT NULL
+                                                    GROUP BY Task_ID
+                                                   ) o ON o.Task_ID = t.Task_ID
+                                  WHERE t.Advisor_Name = 'SQL Tuning Advisor'
+                                  ORDER BY t.Created DESC
+                                 "
     render_partial
   end
 
   def sql_tuning_advisor_task_report
-    task_name = params[:task_name]
+    task_name = prepare_param :task_name
     @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL' )
                                FROM DUAL", task_name]
+    render_partial
+  end
+
+  def sql_tuning_advisor_task_sqls
+    @task_id = prepare_param_int :task_id
+    @sqls = sql_select_iterator ["SELECT Adv_SQL_ID SQL_ID,  Attr4 SQL_Text
+                                  FROM   DBA_Advisor_Objects
+                                  WHERE  Task_ID = ?
+                                  AND    Adv_SQL_ID IS NOT NULL
+                                 ", @task_id]
     render_partial
   end
 

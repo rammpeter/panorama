@@ -1,0 +1,18 @@
+<%
+  @update_area = get_unique_area_id
+  column_options = [
+    { caption: 'SQL ID',          data: proc{|rec| link_sql_id(@update_area, nil, rec.sql_id)},   title: "SQL ID of related statement"},
+    { caption: 'SQL text',        data: proc{|rec| my_html_escape(rec.sql_text[0,60])},           title: "SQL text"},
+  ]
+
+%>
+
+<%=
+  gen_slickgrid(@sqls,
+                column_options,
+                caption: "SQLs from DBA_Advisor_Objects for task ID #{fn @task_id}",
+                :max_height=>450,
+                show_pin_icon: 1,
+                update_area: @update_area
+  )
+%>

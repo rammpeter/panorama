@@ -9,7 +9,16 @@
       update_area:    @update_area,
     }, title: 'Show findings and recommendation report for this task'
     )
+  end
 
+  link_sqls = proc do|rec|
+    ajax_link(fn(rec.sql_count), {
+      controller:     :dba_sga,
+      action:         :sql_tuning_advisor_task_sqls,
+      task_id:        rec.task_id,
+      update_area:    @update_area,
+    }, title: 'Show SQL statements related to this task'
+    )
   end
 
   # no target div given, create my own
@@ -28,6 +37,7 @@
     { caption: 'Exec. start',     data: proc{|rec| localeDateTime rec.execution_start}, title: "Execution start date and time of the task"},
     { caption: 'Exec. end',       data: proc{|rec| localeDateTime rec.execution_end},   title: "Execution end date and time of the task"},
     { caption: 'Status',          data: proc{|rec| rec.status},                         title: "Current operational status of the task"},
+    { caption: 'SQL cnt.',        data: link_sqls,                                      title: "Number of SQL statements related to this task", align: :right},
     { caption: 'Status message',  data: proc{|rec| rec.status_message},                 title: "Informational message provided by the advisor regarding the status"},
     { caption: 'Pct. compl. time',data: proc{|rec| fn rec.pct_completion_time},         title: "Percent completion, in terms of time, of the task when it is executing", align: :right},
     { caption: 'Act. cnt.',       data: proc{|rec| fn rec.activity_counter},            title: "Counter that is updated frequently by the advisor, denoting that useful work is being performed", align: :right},
@@ -45,7 +55,7 @@
 <%=
   gen_slickgrid(@tasks,
                 column_options,
-                caption: "SQL Tuning Advisor tasks from DBA_Advisor_Tasks with advior name = 'SQL Tuning Advisor'",
+                caption: "SQL Tuning Advisor tasks from DBA_Advisor_Tasks with advisor name = 'SQL Tuning Advisor'",
                 :max_height=>450,
                 show_pin_icon: 1,
                 update_area: @update_area
