@@ -1,10 +1,23 @@
 <%
-  @update_area = get_unique_area_id                                           # no target div given, create my own
+  @update_area = get_unique_area_id
+
+  link_task_report = proc do|rec|
+    ajax_link(rec.task_name, {
+      controller:     :dba_sga,
+      action:         :sql_tuning_advisor_task_report,
+      task_name:      rec.task_name,
+      update_area:    @update_area,
+    }, title: 'Show findings and recommendation report for this task'
+    )
+
+  end
+
+  # no target div given, create my own
 
   column_options = [
     { caption: 'Owner',           data: proc{|rec| rec.owner},                          title: "Owner of the task"},
     { caption: 'Task ID',         data: proc{|rec| fn rec.task_id},                     title: "Unique identifier of the task", align: :right},
-    { caption: 'Task name',       data: proc{|rec| rec.task_name},                      title: "Name of the task"},
+    { caption: 'Task name',       data: link_task_report,                               title: "Name of the task"},
     { caption: 'Description',     data: proc{|rec| rec.description},                    title: "User-supplied description of the task"},
     { caption: 'Created',         data: proc{|rec| localeDateTime rec.created},         title: "Creation date of the task"},
     { caption: 'Last modified',   data: proc{|rec| localeDateTime rec.last_modified},   title: "Date on which the task was last modified"},

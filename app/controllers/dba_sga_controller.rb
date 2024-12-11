@@ -1819,6 +1819,13 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
+  def sql_tuning_advisor_task_report
+    task_name = params[:task_name]
+    @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL' )
+                               FROM DUAL", task_name]
+    render_partial
+  end
+
   def list_dbms_xplan_display
     instance        = params[:instance]
     sql_id          = params[:sql_id]
