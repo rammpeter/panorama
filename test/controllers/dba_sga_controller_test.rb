@@ -228,10 +228,22 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "plan_management with xhr: true" do
+    post '/dba_sga/list_sql_management_config', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/show_profiles', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
     post '/dba_sga/list_sql_profile_sqltext', :params => {:format=>:html, :profile_name=>'Hugo', :update_area=>:hugo }
     assert_response :success
 
+    post '/dba_sga/show_plan_baselines', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
     post '/dba_sga/list_sql_plan_baseline_sqltext', :params => {:format=>:html, :plan_name=>'Hugo', :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/show_stored_outlines', :params => {:format=>:html, :update_area=>:hugo }
     assert_response :success
 
     if get_db_version >= '12.1'
@@ -240,6 +252,12 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
         assert_response :success
       end
     end
+
+    post '/dba_sga/show_sql_patches', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/list_sql_tuning_advisor_tasks', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
   end
 
   test "influence_sql_plan with xhr: true" do

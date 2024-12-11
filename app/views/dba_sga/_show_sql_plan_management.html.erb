@@ -3,6 +3,16 @@
 <%= render_page_caption("SQL plan management directives") %>
 
 <div class="flex-row-container">
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("Config attributes", {
+        :update_area => @update_area,
+        :action      => :list_sql_management_config,
+      }, :title =>'Show configuration settings relevant for SQL plan management'
+      )
+    %>
+  </div>
+
   <% unless @profile_count.nil? %>
     <div class="flex-row-element">
       <%=
@@ -60,8 +70,18 @@
       %>
     </div>
   <% end %>
+
+  <div class="flex-row-element">
+    <%=
+      ajax_submit("SQL Tuning Advisor tasks (#{@tuning_advisor_tasks_count})", {
+        :update_area => @update_area,
+        :action      => :list_sql_tuning_advisor_tasks,
+      }, :title =>"Show all SQL Tuning Advisor tasks for this database"
+      )
+    %>
+  </div>
+
 </div>
 
 <div id="<%= @update_area %>">
-  <%= @sql_management_config %>
 </div>

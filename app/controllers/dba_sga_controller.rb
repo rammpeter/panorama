@@ -1537,6 +1537,12 @@ class DbaSgaController < ApplicationController
     @patches_count = nil
     @patches_count = sql_select_one "SELECT COUNT(*) FROM DBA_SQL_Patches" if get_db_version >= '11.1'
 
+    @tuning_advisor_tasks_count = sql_select_one "SELECT COUNT(*) FROM DBA_Advisor_Tasks WHERE Advisor_Name = 'SQL Tuning Advisor'"
+
+    render_partial
+  end
+
+  def list_sql_management_config
     sql_management_config = sql_select_all "SELECT * FROM DBA_SQL_Management_Config"
 
     column_options = []
@@ -1550,7 +1556,7 @@ class DbaSgaController < ApplicationController
 
     @sql_management_config = gen_slickgrid([record], column_options, :caption => "Config data from DBA_SQL_Management_Config", width: :auto)
 
-    render_partial
+    render html: gen_slickgrid([record], column_options, :caption => "Config data from DBA_SQL_Management_Config", width: :auto)
   end
 
   # Existierende SQL-Profiles
@@ -1808,6 +1814,10 @@ class DbaSgaController < ApplicationController
     end
   end
 
+  def list_sql_tuning_advisor_tasks
+    @tasks = sql_select_iterator "SELECT * FROM DBA_Advisor_Tasks WHERE Advisor_Name = 'SQL Tuning Advisor' ORDER BY Created DESC"
+    render_partial
+  end
 
   def list_dbms_xplan_display
     instance        = params[:instance]

@@ -1,0 +1,41 @@
+<%
+  @update_area = get_unique_area_id                                           # no target div given, create my own
+
+  column_options = [
+    { caption: 'Owner',           data: proc{|rec| rec.owner},                          title: "Owner of the task"},
+    { caption: 'Task ID',         data: proc{|rec| fn rec.task_id},                     title: "Unique identifier of the task", align: :right},
+    { caption: 'Task name',       data: proc{|rec| rec.task_name},                      title: "Name of the task"},
+    { caption: 'Description',     data: proc{|rec| rec.description},                    title: "User-supplied description of the task"},
+    { caption: 'Created',         data: proc{|rec| localeDateTime rec.created},         title: "Creation date of the task"},
+    { caption: 'Last modified',   data: proc{|rec| localeDateTime rec.last_modified},   title: "Date on which the task was last modified"},
+    { caption: 'Parent task ID',  data: proc{|rec| fn rec.parent_task_id},              title: "Identifier of the parent task (if the task was created as a result of the recommendation of another task)", align: :right},
+    { caption: 'Last execution',  data: proc{|rec| rec.last_execution},                 title: "Name of the current or last task execution"},
+    { caption: 'Exec. type',      data: proc{|rec| rec.execution_type},                 title: "Type of the last execution. This information is optional for single-execution tasks."},
+    { caption: 'Exec. desc.',     data: proc{|rec| rec.execution_description},          title: "Optional description of the last execution"},
+    { caption: 'Exec. start',     data: proc{|rec| localeDateTime rec.execution_start}, title: "Execution start date and time of the task"},
+    { caption: 'Exec. end',       data: proc{|rec| localeDateTime rec.execution_end},   title: "Execution end date and time of the task"},
+    { caption: 'Status',          data: proc{|rec| rec.status},                         title: "Current operational status of the task"},
+    { caption: 'Status message',  data: proc{|rec| rec.status_message},                 title: "Informational message provided by the advisor regarding the status"},
+    { caption: 'Pct. compl. time',data: proc{|rec| fn rec.pct_completion_time},         title: "Percent completion, in terms of time, of the task when it is executing", align: :right},
+    { caption: 'Act. cnt.',       data: proc{|rec| fn rec.activity_counter},            title: "Counter that is updated frequently by the advisor, denoting that useful work is being performed", align: :right},
+    { caption: 'Rec. cnt.',       data: proc{|rec| fn rec.recommendation_count},        title: "Number of recommendations produced", align: :right},
+    { caption: 'Error message',   data: proc{|rec| rec.error_message},                  title: "Informational message or an error message indicating the current operation or condition"},
+    { caption: 'Source',          data: proc{|rec| rec.source},                         title: "Optional name that identifies the creator of the task"},
+    { caption: 'How created',     data: proc{|rec| rec.how_created},                    title: "Optional task or template on which the object was based"},
+    { caption: 'R/O',             data: proc{|rec| rec.read_only},                      title: "Indicates whether the task is read-only (TRUE) or not (FALSE)"},
+    { caption: 'Sys?',            data: proc{|rec| rec.system_task},                    title: "Indicates whether the task is a system task (TRUE) or not (FALSE). The automatic SQL tuning task, SYS_AUTO_SQL_TUNING_TASK, is one example of a system task."},
+    { caption: 'Advisor ID',      data: proc{|rec| fn rec.advisor_id},                  title: "Unique identifier for the advisor", align: :right},
+  ]
+
+%>
+
+<%=
+  gen_slickgrid(@tasks,
+                column_options,
+                caption: "SQL Tuning Advisor tasks from DBA_Advisor_Tasks with advior name = 'SQL Tuning Advisor'",
+                :max_height=>450,
+                show_pin_icon: 1,
+                update_area: @update_area
+  )
+%>
+
