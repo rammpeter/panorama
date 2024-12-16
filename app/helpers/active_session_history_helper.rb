@@ -9,15 +9,17 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash = {}
 
       # Performant access on gv$SQLArea ist unfortunately not possible here
-      sql_id_info_sql = "(SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40))
-                          FROM   DBA_Hist_SQLText t
-                          WHERE  t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID AND RowNum < 2
-                         )"
-
-      top_level_sql_id_info_sql = "(SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40))
-                          FROM   DBA_Hist_SQLText t
-                          WHERE  t.DBID=s.DBID AND t.SQL_ID=s.Top_Level_SQL_ID AND RowNum < 2
-                         )"
+      sql_id_info_sql = proc do | search_sql_id_col_name|
+        "(SELECT SQL_Short_Text
+          FROM   (SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40)) SQL_Short_Text
+                  FROM   DBA_Hist_SQLText t
+                  WHERE  t.DBID=s.DBID AND t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
+                  UNION ALL
+                  SELECT SUBSTR(t.SQL_Text,1,40) FROM gv$SQLStats t WHERE t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
+                 )
+          WHERE  RowNum < 2
+         )"
+      end
 
       @session_statistics_key_rules_hash["Wait Event"]      = {:sql => "NVL(s.Event, s.Session_State)", :sql_alias => "event",    :Name => 'Wait Event',    :Title => 'Wait event (session state, if wait event = NULL)', :Data_Title => '#{explain_wait_event(rec.event)}' }
       @session_statistics_key_rules_hash["Wait Class"]      = {:sql => "COALESCE(s.Wait_Class, DECODE(s.Session_State, 'ON CPU', 'CPU', '[Unknown]'))", :sql_alias => "wait_class",    :Name => 'Wait Class',    :Title => 'Wait class' }
@@ -31,9 +33,9 @@ module ActiveSessionHistoryHelper
       @session_statistics_key_rules_hash["Session Type"]    = {:sql => "SUBSTR(s.Session_Type,1,1)", :sql_alias => "session_type",              :Name => 'S-T',          :Title      => "Session-type: (U)SER, (F)OREGROUND or (B)ACKGROUND" }
       @session_statistics_key_rules_hash["Transaction"]     = {:sql => "s.Tx_ID",             :sql_alias => "transaction",        :Name => 'Tx.',           :Title => 'Transaction-ID' } if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["User"]            = {:sql => "u.UserName",          :sql_alias => "username",           :Name => "User",          :Title => "User", join: "LEFT JOIN All_Users u ON u.User_ID = s.User_ID" }
-      @session_statistics_key_rules_hash["SQL-ID"]          = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID of the direct executed SQL', :info_sql  => sql_id_info_sql, :info_caption => "SQL-Text (first chars)" }
+      @session_statistics_key_rules_hash["SQL-ID"]          = {:sql => "s.SQL_ID",            :sql_alias => "sql_id",             :Name => 'SQL-ID',        :Title => 'SQL-ID of the direct executed SQL', :info_sql  => sql_id_info_sql.call('s.SQL_ID'), :info_caption => "SQL-Text (first chars)" }
       @session_statistics_key_rules_hash["SQL Exec-ID"]     = {:sql => "s.SQL_Exec_ID",       :sql_alias => "sql_exec_id",        :Name => 'SQL Exec-ID',   :Title => 'SQL Execution ID', :info_sql  => "MIN(SQL_Exec_Start)", :info_caption => "Exec. start time"} if get_db_version >= "11.2"
-      @session_statistics_key_rules_hash["Top Level SQL-ID"]= {:sql => "s.Top_Level_SQL_ID",  :sql_alias => "top_level_sql_id",   :Name => 'Top Level SQL-ID',  :Title => "Top level SQL-ID\nID of the surrounding SQL if direct SQL is called recursive by another SQL", :info_sql  => top_level_sql_id_info_sql, :info_caption => "SQL-Text (first chars)" }
+      @session_statistics_key_rules_hash["Top Level SQL-ID"]= {:sql => "s.Top_Level_SQL_ID",  :sql_alias => "top_level_sql_id",   :Name => 'Top Level SQL-ID',  :Title => "Top level SQL-ID\nID of the surrounding SQL if direct SQL is called recursive by another SQL", :info_sql  => sql_id_info_sql.call('s.Top_Level_SQL_ID'), :info_caption => "SQL-Text (first chars)" }
       @session_statistics_key_rules_hash["Operation"]       = {:sql => "RTRIM(s.SQL_Plan_Operation||' '||s.SQL_Plan_Options)", :sql_alias => "operation", :Name => 'Operation', :Title => 'Operation of explain plan line' } if get_db_version >= "11.2"
       @session_statistics_key_rules_hash["Module"]          = {:sql => "TRIM(s.Module)",      :sql_alias => "module",             :Name => 'Module',        :Title => 'Module set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }
       @session_statistics_key_rules_hash["Action"]          = {:sql => "TRIM(s.Action)",      :sql_alias => "action",             :Name => 'Action',        :Title => 'Action set by DBMS_APPLICATION_INFO.Set_Module', :info_caption => 'Info' }

@@ -519,11 +519,10 @@ class DbaHistoryController < ApplicationController
        SELECT /* Panorama */ SQL_Text,
                    DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 0) Exact_Signature,
                    DBMS_SQLTUNE.SQLTEXT_TO_SIGNATURE(SQL_Text, 1) Force_Signature
-       FROM DBA_Hist_SQLText
-       WHERE dbid = ?
-       AND   SQL_ID = ?",
-                                          @dbid, @sql_id
-                                         ])
+       FROM (SELECT SQL_Text FROM DBA_Hist_SQLText WHERE dbid = ? AND SQL_ID = ?
+             UNION ALL SELECT SQL_FullText SQL_Text FROM gv$SQLStats WHERE SQL_ID = ?
+            )
+    ", @dbid, @sql_id, @sql_id])
 
 
     if sql_statement
@@ -532,7 +531,7 @@ class DbaHistoryController < ApplicationController
       @sql.force_matching_signature = sql_statement.force_signature if @sql.force_matching_signature.nil?   # Use calculated signature if history did not hit values
     else
       @exact_matching_signature = nil
-      @sql_statement      = "[No statement found in DBA_Hist_SQLText]"
+      @sql_statement      = "[No statement found in DBA_Hist_SQLText or gv$SQLStats]"
     end
 
     unless sql_statement                                                           # No SQL text found in history ?

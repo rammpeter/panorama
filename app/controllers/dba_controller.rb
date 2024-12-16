@@ -2355,7 +2355,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
                      ) h
               WHERE  RowNum <= 10
              ) h
-      LEFT OUTER JOIN gv$SQLArea sql ON sql.Inst_ID = h.Inst_ID AND sql.SQL_ID = h.SQL_ID
+      LEFT OUTER JOIN gv$SQLStats sql ON sql.Inst_ID = h.Inst_ID AND sql.SQL_ID = h.SQL_ID
       LEFT OUTER JOIN gv$Session s ON s.Inst_ID = h.Min_QInst_ID and s.SID = h.Min_QSession_ID AND s.Serial# = h.Min_QSession_Serial_No
       ORDER BY Wait_Time_secs DESC
     "].concat(where_values)

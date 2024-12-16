@@ -28,7 +28,9 @@ gem 'railties', rails_version
 gem 'sprockets-rails'
 
 # Use Puma as the app server
-gem 'puma', '~> 5.0'
+# gem 'puma', '~> 5.0'
+gem 'puma'
+
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.7'
 # Use Active Model has_secure_password
@@ -36,7 +38,10 @@ gem 'jbuilder', '~> 2.7'
 
 
 # gem 'activerecord-oracle_enhanced-adapter', github: "rsim/oracle-enhanced", branch: "release70"
-gem 'activerecord-oracle_enhanced-adapter'
+# gem 'activerecord-oracle_enhanced-adapter'
+# Avoid dependency on oci8, see https://github.com/rsim/oracle-enhanced/issues/2350
+# gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "release71"
+gem "activerecord-oracle_enhanced-adapter"
 gem 'activerecord-nulldb-adapter'
 
 # TODO: i18n 1.8.8, 1.8.9 leads to Uncaught exception: undefined method `deep_merge!' for {}:Concurrent::Hash
