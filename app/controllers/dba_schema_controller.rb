@@ -807,8 +807,8 @@ class DbaSchemaController < ApplicationController
       return
     end
 
-    # try if object is a package element (v$SQLP_Plan.Owner contains the package name in that case)
-    if @objects.count == 0
+    # try if object is a package element (v$SQL_Plan.Owner contains the package name in that case)
+    if @objects.count == 0 && !@owner.nil?
       @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Object_Type FROM DBA_Objects WHERE UPPER(Object_Name) LIKE ?", @owner]
     end
 
@@ -1136,14 +1136,17 @@ class DbaSchemaController < ApplicationController
 
     @references_from = @constraints.select {|c| c.constraint_type == 'R'}.count
 
-    @references_to = sql_select_one ["\
+    # Count the references to PK or unique constraints
+    @references_to = 0
+    @constraints.select {|c| c.constraint_type == 'P' || c.constraint_type == 'U'}.each do |target|
+      @references_to += sql_select_one ["\
       SELECT COUNT(*)
-      FROM   DBA_Constraints r
-      JOIN   DBA_Constraints c ON c.R_Owner = r.Owner AND c.R_Constraint_Name = r.Constraint_Name
-      WHERE  c.Constraint_Type = 'R'
-      AND    r.Owner      = ?
-      AND    r.Table_Name = ?
-      ", @owner, @table_name]
+      FROM   DBA_Constraints
+      WHERE  Constraint_Type = 'R'
+      AND   R_Owner = ?
+      AND   R_Constraint_Name = ?
+      ", @owner, target.constraint_name]
+    end
 
     @triggers = sql_select_one ["SELECT COUNT(*) FROM DBA_Triggers WHERE Table_Owner = ? AND Table_Name = ?", @owner, @table_name]
 

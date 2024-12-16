@@ -1,6 +1,5 @@
 <%=
     @update_area = get_unique_area_id
-    @external_update_area = get_unique_area_id
 
     link_index = proc do |rec|
       ajax_link(rec.min_index_name,
@@ -57,7 +56,7 @@
 
     gen_slickgrid(@references, column_options, {
                                      :caption => "Foreign key references from #{@owner}.#{@table_name}#{" (limited to constraints protected by index #{@index_name})" if @index_name}",
-                                     :max_height => 450, show_pin_icon: 1, update_area: @update_area
+                                     :max_height => 450, show_pin_icon: 1
                              })
 %>
 
@@ -65,7 +64,7 @@
 <div class="flex-row-container">
   <div class="flex-row-element">
     <%= ajax_submit("Visual References from", {
-      :update_area => @external_update_area,
+      :update_area => @update_area,
       :action      => :show_visual_references,
       :owner       => @owner,
       :table_name  => @table_name,
@@ -75,4 +74,4 @@
   </div>
 </div>
 
-<div id="<%= @external_update_area %>"></div>
+<div id="<%= @update_area %>"></div>
