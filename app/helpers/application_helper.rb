@@ -257,9 +257,11 @@ module ApplicationHelper
     retval.to_i
   end
 
+  # Evaluate parameter
+  # @return [Boolean] state
   def prepare_param_boolean(param_sym, **options)
     retval = prepare_param(param_sym)
-    return options[:default] if retval.nil?                                     # nil if no default option given
+    return options[:default]||false if retval.nil?                              # false if no default option given
     retval == 'true' || retval == 'TRUE' || retval == '1'
   end
 
