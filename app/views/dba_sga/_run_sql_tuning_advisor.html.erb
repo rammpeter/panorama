@@ -1,0 +1,24 @@
+<%= render_page_caption "Result of SQL Tuning Advisor task execution for task name = '#{@task_name}', SQL ID = '#{@sql_id}'" %>
+<%  @update_area = get_unique_area_id %>
+<div class="flex-row-container">
+
+  <% if @profile_recommendation_created %>
+    <%= ajax_form(controller: :dba_sga, action: :create_profile_from_sql_tuning_advisor_task, update_area: @update_area, task_name: @task_name, sql_id: @sql_id) do %>
+      <div class="flex-row-element">
+        <%= submit_tag("Accept recommended SQL Profile", :title => "Create the SQL profile recommended by this SQL Tuning Advisor task") %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= ajax_form(controller: :dba_sga, action: :drop_sql_tuning_advisor_task, update_area: @update_area, task_name: @task_name, sql_id: @sql_id) do %>
+    <div class="flex-row-element">
+      <%= submit_tag("Drop SQL Tuning Advisor task", :title => "Drop the current SQL tuning advisor task to free the used resources ") %>
+    </div>
+  <% end %>
+</div>
+
+<div id="<%= @update_area %>"></div>
+
+<div class='yellow-panel'>
+  <%=  my_html_escape(@report).html_safe %>
+</div>

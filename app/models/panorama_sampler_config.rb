@@ -328,6 +328,8 @@ class PanoramaSamplerConfig
     retval
   end
 
+  # Calculate the smallest snapshot cycle required by any of the configured DBs
+  # @return [Integer] The number of minutes between the job executions
   def self.min_snapshot_cycle
     min_snapshot_cycle = 60                                                     # at least every hour run job
     get_config_array.each do |config|

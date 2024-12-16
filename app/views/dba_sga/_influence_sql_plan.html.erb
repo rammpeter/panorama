@@ -3,6 +3,18 @@
 
   show_action = proc do |rec|
     case rec.type
+    when :sql_tuning_advisor
+      disabled = PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      title = "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan."
+      title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+
+      ajax_submit('SQL Tuning Advisor', {
+        :controller                 => :dba_sga,
+        :action                     => :show_sql_tuning_advisor,
+        :update_area                => @update_area,
+        :sql_id                     => @sql_id,
+      }, :disabled => disabled, :title=> title)
+
     when :plan_baseline then
       disabled = PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
       title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
@@ -53,7 +65,7 @@
 %>
 <%= gen_slickgrid(@methods,
                   column_options,
-                  { caption:       "Methods to influence the execution plan of SQL ID = '#{@sql_id}' without changing the SQL syntax in application",
+                  { caption:       "Methods to generate external influence on the execution plan of SQL ID = '#{@sql_id}' without changing the SQL syntax in application",
                     max_height:    450,
                     show_pin_icon: 1,
                     update_area:   @update_area

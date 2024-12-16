@@ -1815,9 +1815,9 @@ class DbaSgaController < ApplicationController
   end
 
   def list_sql_tuning_advisor_tasks
-    @tasks = sql_select_iterator "SELECT t.*, o.SQL_Count
+    @tasks = sql_select_iterator "SELECT t.*, o.SQL_Count, o.SQL_ID
                                   FROM   DBA_Advisor_Tasks t
-                                  LEFT OUTER JOIN  (SELECT /*+ NO_MERGE */ Task_ID, COUNT(*) SQL_Count
+                                  LEFT OUTER JOIN  (SELECT /*+ NO_MERGE */ Task_ID, COUNT(*) SQL_Count, MIN(Adv_SQL_ID) SQL_ID
                                                     FROM   DBA_Advisor_Objects
                                                     WHERE  Adv_SQL_ID IS NOT NULL
                                                     GROUP BY Task_ID
@@ -1829,9 +1829,10 @@ class DbaSgaController < ApplicationController
   end
 
   def sql_tuning_advisor_task_report
+    owner =     prepare_param :owner
     task_name = prepare_param :task_name
-    @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL' )
-                               FROM DUAL", task_name]
+    @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL', owner_name => ? )
+                               FROM DUAL", task_name, owner]
     render_partial
   end
 
@@ -1880,18 +1881,23 @@ class DbaSgaController < ApplicationController
 
     @methods = []
 
+    @methods << { type:               :sql_tuning_advisor,
+                  description:        "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan.\n\nADVISOR privilege is needed for the user to run the SQL Tuning Advisor.\nCREATE ANY SQL PROFILE privilege is needed to create a SQL profile from the result of the Tuning Advisor.",
+                  option_pack_needed: "Enterprise Edition + Tuning Pack"
+    }
+
     @methods << { type:               :plan_baseline,
                   description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{"\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack}",
                   option_pack_needed: "Enterprise Edition + #{ get_db_version < '18' ? "Tuning Pack" : "Diagnostics Pack"}"
     }
 
     @methods << { type:               :sql_profile,
-                  description:        "Generates commands for creating a SQL profile.\nThis allows to inject optimizer hints to the SQL.",
+                  description:        "Generates commands for manual creation of a SQL profile.\nThis allows to inject your own defined optimizer hints to the SQL.",
                   option_pack_needed: "Enterprise Edition + Tuning Pack"
     }
 
     @methods << { type:               :sql_patch,
-                  description:        "Generates commands for creating a SQL patch.\nThis allows to inject optimizer hints to the SQL.\nSimilar to SQL profile, but without the need for licensed Tuning Pack.",
+                  description:        "Generates commands for creation of a SQL patch.\nThis allows to inject your own defined optimizer hints to the SQL.\nSimilar to SQL profile, but without the need for licensed Tuning Pack.",
                   option_pack_needed: "None"
     }
 
@@ -1904,6 +1910,56 @@ class DbaSgaController < ApplicationController
 
     @methods.each {|m| m.extend(SelectHashHelper) }
     render_partial
+  end
+
+  def show_sql_tuning_advisor
+    @sql_id = prepare_param :sql_id
+    @name   = "Panorama_#{@sql_id}"
+    render_partial
+  end
+
+  def run_sql_tuning_advisor
+    @sql_id              = prepare_param :sql_id
+    name                = prepare_param :name
+    description         = prepare_param(:description) || ''
+    time_limit          = prepare_param_int :time_limit
+    overwrite_existing  = prepare_param_boolean :overwrite_existing
+    scope               = prepare_param :scope
+
+    if overwrite_existing
+      if sql_select_one(["SELECT COUNT(*) FROM DBA_Advisor_Tasks WHERE Owner = USER AND Task_Name = ?", name]) > 0
+        PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.drop_tuning_task(?); END;", name]
+      end
+    end
+
+    @task_name = sql_select_one ["\
+      SELECT DBMS_SQLTUNE.create_tuning_task(
+        sql_id      => ?,
+        scope       => ?,
+        time_limit  => ?,
+        task_name   => ?,
+        description => ?
+      ) FROM DUAL", @sql_id, scope, time_limit, name, description]
+
+    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.execute_tuning_task(?); END;", @task_name]
+
+    @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL', owner_name => USER ) FROM DUAL", @task_name]
+
+    @profile_recommendation_created = sql_select_one(["SELECT COUNT(*) FROM DBA_Advisor_Recommendations WHERE Owner = USER AND Task_Name = ? AND Type = 'SQL PROFILE'", @task_name]) > 0
+
+    render_partial
+  end
+
+  def create_profile_from_sql_tuning_advisor_task
+    @task_name = prepare_param :task_name
+    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.accept_sql_profile(task_name => ?, name => ?, task_owner => USER, replace => TRUE); END;", @task_name, @task_name]
+    show_popup_message("SQL Profile '#{@task_name}' created for SQL ID = '#{@sql_id}' based on Tuning Advisor task recommendation.")
+  end
+
+  def drop_sql_tuning_advisor_task
+    @task_name = prepare_param :task_name
+    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.drop_tuning_task(?); END;", @task_name]
+    show_popup_message("SQL Tuning Advisor task '#{@task_name}' dropped.")
   end
 
   def generate_sql_translation

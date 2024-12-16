@@ -1,0 +1,44 @@
+<%= render_page_caption "Run SQL Tuning Advisor for SQL ID = '#{@sql_id}'" %>
+
+<% @update_area = get_unique_area_id %>
+
+<%= ajax_form(controller: :dba_sga, action: :run_sql_tuning_advisor, update_area: @update_area, sql_id: @sql_id) do %>
+  <div class="flex-row-container">
+
+    <div class="flex-row-element" title="Name of SQL tuning task">
+      Name
+      <%= text_field_tag(:name, @name, :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Description of SQL tuning task">
+      Description
+      <%= text_field_tag(:description, '', :size=>50) %>
+    </div>
+
+    <div class="flex-row-element" title="Time limit in seconds for the execution of the tuning task">
+      Time limit
+      <%= number_field_tag(:time_limit, 60, size: 5, min: 1, max: 3000, style: 'text-align: right') %>
+    </div>
+
+    <div class="flex-row-element" title="Overwrite possibly existing tuning task with the same owner and name?">
+      Overwrite existing?
+      <%= check_box_tag(:overwrite_existing) %>
+    </div>
+
+    <div class="flex-row-element" title="Specifies the tuning scope:
+LIMITED: SQL Tuning Advisor produces recommendations based on statistical checks, access path analysis, and SQL structure analysis. SQL profile recommendations are not generated.
+COMPREHENSIVE: SQL Tuning Advisor carries out all the analysis it performs under limited scope plus SQL profiling.">
+      Scope
+      <select name="scope">
+        <option value='COMPREHENSIVE' selected='selected'>COMPREHENSIVE</option>
+        <option value='LIMITED'>LIMITED</option>
+      </select>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag("Execute SQL Tuning Advisor", :title => "Create and execute a SQL tuning task") %>
+    </div>
+  </div>
+
+<% end %>
+<div id="<%= @update_area %>"></div>
