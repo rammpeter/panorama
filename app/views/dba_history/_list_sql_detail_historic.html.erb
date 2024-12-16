@@ -298,6 +298,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
           :user_name                  => @sql.min_parsing_schema_name,
           :min_snap_id                => @sql.min_snap_id,
           :max_snap_id                => @sql.max_snap_id,
+          :dbid                       => @dbid,
           :force_matching_signature   => @sql.force_matching_signature.to_s,
           :exact_matching_signature   => @exact_matching_signature.to_s
       },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")

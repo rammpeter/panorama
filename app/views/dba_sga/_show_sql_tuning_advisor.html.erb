@@ -2,7 +2,14 @@
 
 <% @update_area = get_unique_area_id %>
 
-<%= ajax_form(controller: :dba_sga, action: :run_sql_tuning_advisor, update_area: @update_area, sql_id: @sql_id) do %>
+<%= ajax_form(controller:   :dba_sga,
+              action:       :run_sql_tuning_advisor,
+              update_area:  @update_area,
+              sql_id:       @sql_id,
+              min_snap_id:  @min_snap_id,
+              max_snap_id:  @max_snap_id,
+              dbid:         @dbid
+    ) do %>
   <div class="flex-row-container">
 
     <div class="flex-row-element" title="Name of SQL tuning task">

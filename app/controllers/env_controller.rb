@@ -766,13 +766,20 @@ public
 
   def list_dbids
     @dbids = sql_select_all "SELECT /* NO_CDB_TRANSFORMATION */ s.DBID, MIN(Begin_Interval_Time) Min_TS, MAX(End_Interval_Time) Max_TS,
-                                   (SELECT MIN(DB_Name) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) DB_Name,
+                                   n.DB_Name,
                                    (SELECT COUNT(DISTINCT Instance_Number) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) Instances,
                                    #{"(SELECT MIN(i.Con_ID) FROM DBA_Hist_Database_Instance i WHERE i.DBID=s.DBID) Con_ID," if get_db_version >= '12.1'}
                                    #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM 24*60*w.Snap_Interval) FROM DBA_Hist_WR_Control w WHERE w.DBID = s.DBID)" : "NULL" } Snap_Interval_Minutes,
                                    #{PackLicense.diagnostics_pack_licensed? ? "(SELECT EXTRACT(DAY FROM w.Retention)           FROM DBA_Hist_WR_Control w WHERE w.DBID = s.DBID)" : "NULL" } Snap_Retention_Days
                             FROM   DBA_Hist_Snapshot s
-                            GROUP BY s.DBID
+                            LEFT OUTER JOIN (SELECT DBID, DB_Name, Min(Startup_Time) Min_Time, MAX(Next_Startup) Max_Time
+                                             FROM  (
+                                                    SELECT DBID, DB_Name, Startup_time, LEAD(startup_time, 1, SYSDATE) OVER (PARTITION BY DBID, Instance_Number ORDER BY Startup_time) Next_Startup
+                                                    FROM   DBA_Hist_Database_Instance
+                                                   )
+                                             GROUP BY DBID, DB_Name
+                                            ) n ON n.DBID = s.DBID AND s.Begin_Interval_Time > n.Min_Time AND s.Begin_Interval_Time < n.Max_Time
+                            GROUP BY s.DBID, n.DB_Name
                             ORDER BY MIN(Begin_Interval_Time)"
     render_partial :list_dbids
   end

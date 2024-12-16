@@ -1881,6 +1881,7 @@ class DbaSgaController < ApplicationController
     @user_name                  = params[:user_name]
     @min_snap_id                = params[:min_snap_id]                          # only set if called from DBA_Hist_SQLStat view
     @max_snap_id                = params[:max_snap_id]                          # only set if called from DBA_Hist_SQLStat view
+    @dbid                       = prepare_param_dbid                            # only set if called from DBA_Hist_SQLStat view
     @force_matching_signature   = params[:force_matching_signature]
     @exact_matching_signature   = params[:exact_matching_signature]
 
@@ -1918,13 +1919,19 @@ class DbaSgaController < ApplicationController
   end
 
   def show_sql_tuning_advisor
-    @sql_id = prepare_param :sql_id
+    @sql_id       = prepare_param :sql_id
+    @min_snap_id  = prepare_param :min_snap_id                                  # only set if called from DBA_Hist_SQLStat view
+    @max_snap_id  = prepare_param :max_snap_id                                  # only set if called from DBA_Hist_SQLStat view
+    @dbid         = prepare_param_dbid                                                    # only set if called from DBA_Hist_SQLStat view
     @name   = "Panorama_#{@sql_id}"
     render_partial
   end
 
   def run_sql_tuning_advisor
-    @sql_id              = prepare_param :sql_id
+    @sql_id             = prepare_param :sql_id
+    @min_snap_id        = prepare_param :min_snap_id                            # only set if called from DBA_Hist_SQLStat view
+    @max_snap_id        = prepare_param :max_snap_id                            # only set if called from DBA_Hist_SQLStat view
+    @dbid               = prepare_param_dbid                                              # only set if called from DBA_Hist_SQLStat view
     name                = prepare_param :name
     description         = prepare_param(:description) || ''
     time_limit          = prepare_param_int :time_limit
@@ -1937,14 +1944,28 @@ class DbaSgaController < ApplicationController
       end
     end
 
-    @task_name = sql_select_one ["\
-      SELECT DBMS_SQLTUNE.create_tuning_task(
-        sql_id      => ?,
-        scope       => ?,
-        time_limit  => ?,
-        task_name   => ?,
-        description => ?
-      ) FROM DUAL", @sql_id, scope, time_limit, name, description]
+    @task_name = if @min_snap_id && @max_snap_id                                # only set if called from DBA_Hist_SQLStat view
+                   sql_select_one ["\
+                    SELECT DBMS_SQLTUNE.create_tuning_task(
+                      begin_snap  => ?,
+                      end_snap    => ?,
+                      sql_id      => ?,
+                      scope       => ?,
+                      time_limit  => ?,
+                      task_name   => ?,
+                      description => ?,
+                      dbid        => ?
+                    ) FROM DUAL", @min_snap_id, @max_snap_id, @sql_id, scope, time_limit, name, description, @dbid]
+                 else                                                           # called from SGA view
+                   sql_select_one ["\
+                    SELECT DBMS_SQLTUNE.create_tuning_task(
+                      sql_id      => ?,
+                      scope       => ?,
+                      time_limit  => ?,
+                      task_name   => ?,
+                      description => ?
+                    ) FROM DUAL", @sql_id, scope, time_limit, name, description]
+                 end
 
     PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.execute_tuning_task(?); END;", @task_name]
 
