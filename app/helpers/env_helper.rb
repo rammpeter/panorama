@@ -255,7 +255,7 @@ module EnvHelper
 
   def check_awr_for_time_drift
     # TODO: Check with foreign time settings if End_Interval_Time_TZ can replace End_Interval_Time in selections
-    if get_db_version >= '18.1' && [:diagnostics_pack, :diagnostics_and_tuning_pack].include?(PanoramaConnection.get_threadlocal_config[:management_pack_license])
+    if get_db_version >= '18.1' && [:diagnostics_pack, :diagnostics_and_tuning_pack].include?(PanoramaConnection.management_pack_license)
       msg = ''
       sql_select_all("SELECT Snap_ID, DBID, Con_ID, End_Interval_Time, End_Interval_Time_TZ,
                              TO_CHAR(EXTRACT (Hour FROM Snap_Timezone), '00')||':'||TRIM(TO_CHAR(EXTRACT (Minute FROM Snap_Timezone), '00')) Snap_Timezone,

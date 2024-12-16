@@ -303,8 +303,8 @@ class PanoramaConnection
   # Cache existing DBIDs once per connection
   def all_awr_dbids
     if !defined?(@awr_dbids) || @awr_dbids.nil?
-      @awr_dbids = case PanoramaConnection.get_threadlocal_config[:management_pack_license]
-                   when 'NONE' then []                                          # suppress access violations on AWR tables
+      @awr_dbids = case PanoramaConnection.management_pack_license
+                   when :none then []                                          # suppress access violations on AWR tables
                    else
                      PanoramaConnection.sql_select_all "\
                       SELECT s.DBID, n.DB_Name, s.Start_TS, s.End_TS, Con_ID
@@ -434,7 +434,9 @@ class PanoramaConnection
   def self.instance_number;                 check_for_open_connection;        Thread.current[:panorama_connection_connection_object].instance_number;                   end
   def self.is_cdb?;                         check_for_open_connection;        Thread.current[:panorama_connection_connection_object].cdb == 'YES';                      end
   def self.last_used_action_name;           check_for_open_connection;        Thread.current[:panorama_connection_connection_object].last_used_action_name;             end
-  def self.login_container_dbid;            check_for_open_connection(false); Thread.current[:panorama_connection_connection_object].login_container_dbid;              end
+  def self.login_container_dbid;            check_for_open_connection(false); Thread.current[:panorama_connection_connection_object].login_container_dbid; end
+  # @return [Symbol] :diagnostics_and_tuning_pack or :diagnostics_pack or :panorama_sampler or :none
+  def self.management_pack_license;         PanoramaConnection.get_threadlocal_config[:management_pack_license]; end
   def self.pdbs;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pdbs;                              end
   def self.pid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pid;                               end
   def self.rac?;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].cluster_database.upcase == 'TRUE'; end

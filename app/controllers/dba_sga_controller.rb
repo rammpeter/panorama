@@ -1590,11 +1590,16 @@ class DbaSgaController < ApplicationController
                                                      WHERE  SQL_profile IS NOT NULL
                                                      GROUP BY SQL_Profile
                                                     ) em ON em.SQL_Profile = p.Name
-                                 LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ SQL_Profile, COUNT(DISTINCT SQL_ID) AWR_Usages, MIN(SQL_ID) Min_History_SQL_ID
-                                                    FROM   DBA_Hist_SQLStat
-                                                    WHERE  SQL_profile IS NOT NULL
-                                                    GROUP BY SQL_Profile
-                                                   ) awr ON awr.SQL_Profile = p.Name" unless @single_sql}
+                                 #{ PanoramaConnection.management_pack_license == :none ? # Suppress accessing DBA_Hist_SQLStat if no management pack license
+                                    "CROSS JOIN (SELECT NULL AWR_Usages, NULL Min_History_SQL_ID FROM DUAL) awr"
+                                    :
+                                    "LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ SQL_Profile, COUNT(DISTINCT SQL_ID) AWR_Usages, MIN(SQL_ID) Min_History_SQL_ID
+                                                      FROM   DBA_Hist_SQLStat
+                                                      WHERE  SQL_profile IS NOT NULL
+                                                      GROUP BY SQL_Profile
+                                                     ) awr ON awr.SQL_Profile = p.Name"
+                                 }
+                                 " unless @single_sql}
                                   #{where_string}
                                  "].concat(where_values)
     render_partial
@@ -1887,7 +1892,7 @@ class DbaSgaController < ApplicationController
     }
 
     @methods << { type:               :plan_baseline,
-                  description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{"\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack}",
+                  description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{"\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack}",
                   option_pack_needed: "Enterprise Edition + #{ get_db_version < '18' ? "Tuning Pack" : "Diagnostics Pack"}"
     }
 

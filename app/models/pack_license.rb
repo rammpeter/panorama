@@ -9,20 +9,20 @@ class PackLicense
   end
 
   def self.diagnostics_pack_licensed?
-    license_type = PanoramaConnection.get_threadlocal_config[:management_pack_license]&.to_sym
+    license_type = PanoramaConnection.management_pack_license&.to_sym
     license_type == :diagnostics_pack || license_type == :diagnostics_and_tuning_pack
   end
 
   def self.tuning_pack_licensed?
-    PanoramaConnection.get_threadlocal_config[:management_pack_license]&.to_sym == :diagnostics_and_tuning_pack
+    PanoramaConnection.management_pack_license&.to_sym == :diagnostics_and_tuning_pack
   end
 
   def self.panorama_sampler_active?
-    PanoramaConnection.get_threadlocal_config[:management_pack_license]&.to_sym == :panorama_sampler
+    PanoramaConnection.management_pack_license&.to_sym == :panorama_sampler
   end
 
   def self.none_licensed?
-    PanoramaConnection.get_threadlocal_config[:management_pack_license]&.to_sym == :none
+    PanoramaConnection.management_pack_license&.to_sym == :none
   end
 
 
@@ -45,7 +45,7 @@ class PackLicense
   end
 
   # Filter SQL string or array for unlicensed Table Access
-  def self.filter_sql_for_pack_license(sql, management_pack_license: PanoramaConnection.get_threadlocal_config[:management_pack_license])
+  def self.filter_sql_for_pack_license(sql, management_pack_license: PanoramaConnection.management_pack_license)
     case sql.class.name
       when 'Array' then
         sql[0] = self.new(management_pack_license).filter_sql_string_for_pack_license(sql[0]) if sql && sql.count > 0

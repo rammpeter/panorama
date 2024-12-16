@@ -4,9 +4,9 @@
   show_action = proc do |rec|
     case rec.type
     when :sql_tuning_advisor
-      disabled = PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      disabled = PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
       title = "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan."
-      title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
 
       ajax_submit('SQL Tuning Advisor', {
         :controller                 => :dba_sga,
@@ -16,9 +16,9 @@
       }, :disabled => disabled, :title=> title)
 
     when :plan_baseline then
-      disabled = PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      disabled = PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
       title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
-      title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.get_threadlocal_config[:management_pack_license] != :diagnostics_and_tuning_pack
+      title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
 
       ajax_submit('SQL plan baseline', {
         :controller                 => :dba_history,
