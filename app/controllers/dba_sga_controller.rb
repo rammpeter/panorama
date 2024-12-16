@@ -1822,9 +1822,9 @@ class DbaSgaController < ApplicationController
   def list_sql_tuning_advisor_tasks
     @tasks = sql_select_iterator "SELECT t.*, o.SQL_Count, o.SQL_ID
                                   FROM   DBA_Advisor_Tasks t
-                                  LEFT OUTER JOIN  (SELECT /*+ NO_MERGE */ Task_ID, COUNT(*) SQL_Count, MIN(Adv_SQL_ID) SQL_ID
+                                  LEFT OUTER JOIN  (SELECT /*+ NO_MERGE */ Task_ID, COUNT(*) SQL_Count, MIN(#{ get_db_version >= '19' ? "Adv_SQL_ID" : "NULL"}) SQL_ID
                                                     FROM   DBA_Advisor_Objects
-                                                    WHERE  Adv_SQL_ID IS NOT NULL
+                                                    WHERE  #{ get_db_version >= '19' ? "Adv_SQL_ID" : "NULL"} IS NOT NULL
                                                     GROUP BY Task_ID
                                                    ) o ON o.Task_ID = t.Task_ID
                                   WHERE t.Advisor_Name = 'SQL Tuning Advisor'
