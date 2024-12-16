@@ -257,7 +257,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     post '/dba_sga/list_sql_tuning_advisor_tasks', :params => {:format=>:html, :update_area=>:hugo }
-    assert_response :success
+    assert_response_success_or_management_pack_violation("list_sql_tuning_advisor_tasks")
   end
 
   test "influence_sql_plan with xhr: true" do
