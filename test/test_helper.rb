@@ -169,8 +169,8 @@ class ActiveSupport::TestCase
     PanoramaSamplerConfig.get_config_entry_by_id(sampler_config[:id])
   end
 
-  def assert_response_success_or_management_pack_violation(comment = '')
-    if management_pack_license == :none
+  def assert_response_success_or_management_pack_violation(comment = '', expected_error_licenses = [:none])
+    if expected_error_licenses.include?(management_pack_license)
       sleep(0.5)                                                                # ensure moderate allocation of new DB-sessions beacause current session is destroyed
       assert_response(:error, "Expected :error but response is #{@response.response_code}: #{comment}")
     else
