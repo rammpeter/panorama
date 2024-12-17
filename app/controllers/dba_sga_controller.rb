@@ -1947,6 +1947,71 @@ class DbaSgaController < ApplicationController
     render_partial
   end
 
+  # generate a script comparable to the activity from above run_sql_tuning_advisor
+  def generate_sql_tuning_advisor
+    sql_id             = prepare_param :sql_id
+    min_snap_id        = prepare_param :min_snap_id                            # only set if called from DBA_Hist_SQLStat view
+    max_snap_id        = prepare_param :max_snap_id                            # only set if called from DBA_Hist_SQLStat view
+    dbid               = prepare_param_dbid                                              # only set if called from DBA_Hist_SQLStat view
+    name                = prepare_param :name
+    description         = prepare_param(:description) || ''
+    time_limit          = prepare_param_int :time_limit
+    overwrite_existing  = prepare_param_boolean :overwrite_existing
+    scope               = prepare_param :scope
+
+    task_name = "Panorama_#{sql_id}"
+    result = "
+-- Run SQL Tuning Advisor SQL-ID = '#{sql_id}'
+-- Generated with Panorama at #{Time.now}
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+  Task_Name VARCHAR2(200);
+BEGIN
+"
+    if @min_snap_id && @max_snap_id                                # only set if called from DBA_Hist_SQLStat view
+      result << "\
+  Task_Name := DBMS_SQLTUNE.create_tuning_task(
+                              begin_snap  => #{min_snap_id},
+                              end_snap    => #{max_snap_id},
+                              sql_id      => '#{sql_id}',
+                              scope       => 'COMPREHENSIVE',
+                              time_limit  => 60, /* adjust to your needs */
+                              task_name   => '#{task_name}',
+                              description => '<my description of task>',
+                              dbid        => #{dbid}
+                            );
+      "
+    else
+      result << "\
+  Task_Name := DBMS_SQLTUNE.create_tuning_task(
+                              sql_id      => '#{sql_id}',
+                              scope       => 'COMPREHENSIVE',
+                              time_limit  => 60, /* adjust to your needs */
+                              task_name   => '#{task_name}',
+                              description => '<my description of task>'
+                            );
+      "
+    end
+
+    result << "
+  DBMS_SQLTUNE.execute_tuning_task(Task_Name);
+  DBMS_OUTPUT.PUT_LINE(DBMS_SQLTUNE.report_tuning_task(Task_Name, /* Type*/ 'TEXT', /* Level */ 'ALL', owner_name => USER ));
+END;
+/
+
+-- to accept a SQL profile provided by this SQL Advisor tuning task execute:
+-- EXEC DBMS_SQLTUNE.accept_sql_profile(task_name => '#{task_name}', name => '#{task_name}', task_owner => USER, replace => TRUE);
+
+-- to drop the SQL Advisor tuning task as last step execute:
+-- EXEC DBMS_SQLTUNE.drop_tuning_task('#{task_name}');
+"
+    respond_to do |format|
+      format.html {render :html => render_code_mirror(result) }
+    end
+  end
+
   def generate_sql_plan_baseline_from_sga
     sql_id                      = prepare_param :sql_id
     plan_hash_value             = prepare_param :plan_hash_value

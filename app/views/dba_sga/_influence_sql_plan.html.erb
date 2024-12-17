@@ -5,9 +5,17 @@
 
   #### sql_tuning_advisor
   disabled = PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
-  title = "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan."
-  title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
-  action = ajax_submit('SQL Tuning Advisor', {
+  gen_action = ajax_submit('Generate SQL Tuning Advisor', {
+    :controller                 => :dba_sga,
+    :action                     => :generate_sql_tuning_advisor,
+    :update_area                => @update_area,
+    :sql_id                     => @sql_id,
+    min_snap_id:                @min_snap_id,
+    max_snap_id:                @max_snap_id,
+    dbid:                       @dbid
+  }, :disabled => disabled, title: "Generate template script for running the SQL Tuning advisor for this SQL.")
+  run_title =
+  run_action = ajax_submit('Run SQL Tuning Advisor', {
     :controller                 => :dba_sga,
     :action                     => :show_sql_tuning_advisor,
     :update_area                => @update_area,
@@ -15,9 +23,9 @@
     min_snap_id:                @min_snap_id,
     max_snap_id:                @max_snap_id,
     dbid:                       @dbid
-  }, :disabled => disabled, :title=> title)
+  }, :disabled => disabled, title: "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan.")
   @methods << { type:               :sql_tuning_advisor,
-                action:             action.html_safe,
+                action:             "#{gen_action} #{run_action}".html_safe,
                 description:        "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan.\n\nADVISOR privilege is needed for the user to run the SQL Tuning Advisor.\nCREATE ANY SQL PROFILE privilege is needed to create a SQL profile from the result of the Tuning Advisor.",
                 option_pack_needed: "Enterprise Edition + Diagnostics and Tuning Pack"
   }
