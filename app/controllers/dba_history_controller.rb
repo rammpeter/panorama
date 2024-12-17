@@ -2186,7 +2186,7 @@ FROM (
     snap_corrected_warning = ''
     if min_snap_id == max_snap_id
       min_snap_id -= 1
-      snap_corrected_warning = "\n-- End snapshot ID (#{max_snap_id}) must be greater than begin snapshot ID ((#{max_snap_id}).\nTherfore begin snapshot ID has been adjusted to #{min_snap_id}!\n\n"
+      snap_corrected_warning = "\n-- End snapshot ID (#{max_snap_id}) must be greater than begin snapshot ID ((#{max_snap_id}).\n-- Therfore begin snapshot ID has been adjusted to #{min_snap_id}!\n\n"
     end
 
     dbms_sqltune = get_db_version >= '18' ? 'DBMS_SQLSET' : 'DBMS_SQLTUNE'      # DBMS_SQLSET contains similar functions like DBMS_SQLTUNE but without requiring Tuning Pack
@@ -2223,7 +2223,7 @@ BEGIN
   END LOOP;
 
   -- Create new SQL Tuning Set (STS)
-  DBMS_SQLTUNE.CREATE_SQLSET(sqlset_name => '#{sts_name}', description => 'Panorama: SQL Tuning Set for loading plan into SQL Plan Baseline');
+  #{dbms_sqltune}.CREATE_SQLSET(sqlset_name => '#{sts_name}', description => 'Panorama: SQL Tuning Set for loading plan into SQL Plan Baseline');
 
   -- Populate STS from AWR, using a time duration when the desired plan was used
   --  Specify the sql_id in the basic_filter (other predicates are available, see documentation)

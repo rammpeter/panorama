@@ -1,69 +1,126 @@
 <%
   @update_area = get_unique_area_id
 
-  show_action = proc do |rec|
-    case rec.type
-    when :sql_tuning_advisor
-      disabled = PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
-      title = "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan."
-      title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
+  @methods = []
 
-      ajax_submit('SQL Tuning Advisor', {
-        :controller                 => :dba_sga,
-        :action                     => :show_sql_tuning_advisor,
-        :update_area                => @update_area,
-        :sql_id                     => @sql_id,
-        min_snap_id:                @min_snap_id,
-        max_snap_id:                @max_snap_id,
-        dbid:                       @dbid
-      }, :disabled => disabled, :title=> title)
+  #### sql_tuning_advisor
+  disabled = PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
+  title = "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan."
+  title = "SQL Tuning Advisor requires Enterprise Edition with Diagnostics and Tuning Pack." if PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
+  action = ajax_submit('SQL Tuning Advisor', {
+    :controller                 => :dba_sga,
+    :action                     => :show_sql_tuning_advisor,
+    :update_area                => @update_area,
+    :sql_id                     => @sql_id,
+    min_snap_id:                @min_snap_id,
+    max_snap_id:                @max_snap_id,
+    dbid:                       @dbid
+  }, :disabled => disabled, :title=> title)
+  @methods << { type:               :sql_tuning_advisor,
+                action:             action.html_safe,
+                description:        "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan.\n\nADVISOR privilege is needed for the user to run the SQL Tuning Advisor.\nCREATE ANY SQL PROFILE privilege is needed to create a SQL profile from the result of the Tuning Advisor.",
+                option_pack_needed: "Enterprise Edition + Diagnostics and Tuning Pack"
+  }
 
-    when :plan_baseline then
+  #### plan_baseline
+  title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
+  desc_add = ""
+  option_pack_needed = ""
+  if @min_snap_id && @max_snap_id                                           # called from AWR view
+    desc_add << "\nBases on AWR data for choosen time period."
+    if get_db_version < '18'
       disabled = PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
-      title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
-      title = "Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack
-
-      ajax_submit('SQL plan baseline', {
-        :controller                 => :dba_history,
-        :action                     => :select_plan_hash_value_for_baseline,
-        :update_area                => @update_area,
-        :sql_id                     => @sql_id,
-        :min_snap_id                => @min_snap_id,
-        :max_snap_id                => @max_snap_id,
-        :force_matching_signature   => @force_matching_signature.to_s,
-        :exact_matching_signature   => @exact_matching_signature.to_s
-      }, :disabled => disabled, :title=> title)
-    when :sql_profile then
-      ajax_submit('SQL Profile', {
-        :controller           => :dba_sga,
-        :action               => :generate_sql_profile,
-        :update_area          => @update_area,
-        :sql_id               => @sql_id,
-      }, :title=> "Generate script to create SQL profile for this SQL.")
-    when :sql_patch then
-      ajax_submit('SQL Patch', {
-        :controller           => :dba_sga,
-        :action               => :generate_sql_patch,
-        :update_area          => @update_area,
-        :sql_id               => @sql_id,
-      }, :title=> t(:dba_history_list_sql_detail_historic_create_sql_patch_hint, :default=>"Generate script to create SQL patch for this SQL."))
-    when :sql_translation then
-      ajax_submit('SQL Translation', {
-        :controller           => :dba_sga,
-        :action               => :generate_sql_translation,
-        :update_area          => @update_area,
-        :sql_id               => @sql_id,
-        :user_name            => @user_name,
-      }, :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate script to create profile for SQL-translation-framework for this SQL."))
-    else "Unsupported type #{rec.type}"
+      desc_add << "\n\nGeneration of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQL plan baseline from cursor cache instead (from current SGA)." if disabled
+      option_pack_needed = "Enterprise Edition + Diagnostics and Tuning Pack"
+    else
+      disabled = PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_pack
+      desc_add << "\n\nGeneration of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if disabled
+      option_pack_needed = "Enterprise Edition + Diagnostics Pack"
     end
+    action = ajax_submit('SQL plan baseline', {
+      :controller                 => :dba_history,
+      :action                     => :select_plan_hash_value_for_baseline,
+      :update_area                => @update_area,
+      :sql_id                     => @sql_id,
+      :min_snap_id                => @min_snap_id,
+      :max_snap_id                => @max_snap_id,
+      :force_matching_signature   => @force_matching_signature.to_s,
+      :exact_matching_signature   => @exact_matching_signature.to_s
+    }, :disabled => disabled, :title=> title)
+  else                                                                      # called from SGA view
+    desc_add << "\nBases on current SGA data."
+    disabled = @plan_hash_value.nil?
+    desc_add << "\n\nGeneration of SQL plan baseline from SGA requires a unique plan hash value.\nPlease choose a SQL child cursor view with a unique plan hash value." if disabled
+    option_pack_needed = "none"
+
+    action = ajax_submit('SQL plan baseline', {
+      :controller                 => :dba_sga,
+      :action                     => :generate_sql_plan_baseline_from_sga,
+      :update_area                => @update_area,
+      :sql_id                     => @sql_id,
+      plan_hash_value:            @plan_hash_value,
+      :force_matching_signature   => @force_matching_signature.to_s,
+      :exact_matching_signature   => @exact_matching_signature.to_s
+    }, :disabled => disabled, :title=> title)
   end
+  @methods << { type:               :plan_baseline,
+                action:             action.html_safe,
+                description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{desc_add}",
+                option_pack_needed: option_pack_needed
+  }
+
+  #### sql_profile
+  action = ajax_submit('SQL Profile', {
+    :controller           => :dba_sga,
+    :action               => :generate_sql_profile,
+    :update_area          => @update_area,
+    :sql_id               => @sql_id,
+  }, :title=> "Generate template script to create a SQL profile for this SQL.")
+
+  @methods << { type:               :sql_profile,
+                action:             action.html_safe,
+                description:        "Generates commands for manual creation of a SQL profile.\nThis allows to inject your own defined optimizer hints to the SQL.",
+                option_pack_needed: "Enterprise Edition + Tuning Pack"
+  }
+
+  #### sql_patch
+  action =       ajax_submit('SQL Patch', {
+    :controller           => :dba_sga,
+    :action               => :generate_sql_patch,
+    :update_area          => @update_area,
+    :sql_id               => @sql_id,
+  }, :title=> t(:dba_history_list_sql_detail_historic_create_sql_patch_hint, :default=>"Generate template script to create SQL patch for this SQL."))
+
+  @methods << { type:               :sql_patch,
+                action:             action.html_safe,
+                description:        "Generates commands for creation of a SQL patch.\nThis allows to inject your own defined optimizer hints to the SQL.\nSimilar to SQL profile, but without the need for licensed Tuning Pack.",
+                option_pack_needed: "None"
+  }
+
+  if get_db_version >= '12.1'
+    #### sql_translation
+    action =       ajax_submit('SQL Translation', {
+      :controller           => :dba_sga,
+      :action               => :generate_sql_translation,
+      :update_area          => @update_area,
+      :sql_id               => @sql_id,
+      :user_name            => @user_name,
+    }, :title=> t(:dba_history_list_sql_detail_historic_create_translation_hint, :default=>"Generate template script to create profile for SQL-translation-framework for this SQL."))
+
+    @methods << { type:               :sql_translation,
+                  action:             action.html_safe,
+                  description:        "Generates a script for using SQL translation framework.\nThis allows to replace all parts of the SQL statement as long as the number and types of bind variables remain the same,",
+                  option_pack_needed: "Enterprise Edition"
+    }
+  end
+
+  @methods.each {|m| m.extend(SelectHashHelper) }
 
   column_options =
     [
-      { caption: "Action",              data: show_action,            title: "Action to generate the script snippet to execute"},
-      { caption: "Description",         data: proc{|rec| rec.description },        title: "Description of influencing activity"},
-      { caption: "Option pack needed",  data: proc{|rec| rec.option_pack_needed }, title: "Needed licensing of option pack to use this function"},
+      { caption: "Action",              data: proc{|rec| rec[:action]},             title: "Action to generate the script snippet to execute"},
+      { caption: "Description",         data: proc{|rec| rec.description},          title: "Description of influencing activity"},
+      { caption: "Option pack needed",  data: proc{|rec| rec.option_pack_needed },  title: "Needed licensing of option pack to use this function"},
     ]
 %>
 <%= gen_slickgrid(@methods,

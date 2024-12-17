@@ -193,13 +193,14 @@
   <div class="flex-row-element">
     <%=
       ajax_submit('SQL plan mgmt.', {
-          controller:           :dba_sga,
-          action:               :influence_sql_plan,
-          update_area:          @update_area,
-          sql_id:               @sql_id,
-          user_name:            @sql.parsing_schema_name,
-          force_signature:      @sql.force_signature.to_s,
-          exact_signature:      @sql.exact_signature.to_s,
+          controller:               :dba_sga,
+          action:                   :influence_sql_plan,
+          update_area:              @update_area,
+          sql_id:                   @sql_id,
+          user_name:                @sql.parsing_schema_name,
+          force_matching_signature: @sql.force_signature.to_s,
+          exact_matching_signature: @sql.exact_signature.to_s,
+          plan_hash_value:          (@sql[:plan_hash_value_count] && @sql[:plan_hash_value_count] == 1 ? @sql.plan_hash_value : nil),
       },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")
     %>
   </div>

@@ -250,9 +250,9 @@
   dba_history_list_sql_detail_historic_create_baseline_hint: |-
     Generiere ein Script, um diesen konkreten Ausführungsplan als SQL-Baseline festzuschreiben.
   dba_history_list_sql_detail_historic_create_sql_patch_hint: |-
-    Generiere ein Script, um für dieses SQL einen SQL-Patch zu erstellen.
+    Generiere ein Template-Script, um für dieses SQL einen SQL-Patch zu erstellen.
   dba_history_list_sql_detail_historic_create_translation_hint: |-
-    Generiere ein Script, um für dieses SQL ein Profil für das SQL-Translation-Framework zu erstellen.
+    Generiere ein Template-Script, um für dieses SQL ein Profil für das SQL-Translation-Framework zu erstellen.
   dba_history_list_sql_detail_historic_last_plan_hash_hint:           Hash-Value des letzten Explain-Plans
   dba_history_list_sql_detail_historic_module_link_hint:              Detaillierung des Modul-Namens
   dba_history_list_sql_detail_historic_module_action_hint:            Module und Action der Session, von der Statement zuletzt geparst wurde

@@ -1877,44 +1877,15 @@ class DbaSgaController < ApplicationController
 
   # Show possibilities to influence the sql plan
   def influence_sql_plan
-    @sql_id                     = params[:sql_id]
-    @user_name                  = params[:user_name]
-    @min_snap_id                = params[:min_snap_id]                          # only set if called from DBA_Hist_SQLStat view
-    @max_snap_id                = params[:max_snap_id]                          # only set if called from DBA_Hist_SQLStat view
+    @sql_id                     = prepare_param :sql_id
+    @user_name                  = prepare_param :user_name
+    @min_snap_id                = prepare_param :min_snap_id                    # only set if called from DBA_Hist_SQLStat view
+    @max_snap_id                = prepare_param :max_snap_id                    # only set if called from DBA_Hist_SQLStat view
     @dbid                       = prepare_param_dbid                            # only set if called from DBA_Hist_SQLStat view
-    @force_matching_signature   = params[:force_matching_signature]
-    @exact_matching_signature   = params[:exact_matching_signature]
+    @force_matching_signature   = prepare_param :force_matching_signature
+    @exact_matching_signature   = prepare_param :exact_matching_signature
+    @plan_hash_value            = prepare_param :plan_hash_value                # only set if called from SGA view with unique plan hash value
 
-    @methods = []
-
-    @methods << { type:               :sql_tuning_advisor,
-                  description:        "Run Oracle's builtin SQL Tuning Advisor for this SQL to automatically find a better execution plan.\n\nADVISOR privilege is needed for the user to run the SQL Tuning Advisor.\nCREATE ANY SQL PROFILE privilege is needed to create a SQL profile from the result of the Tuning Advisor.",
-                  option_pack_needed: "Enterprise Edition + Tuning Pack"
-    }
-
-    @methods << { type:               :plan_baseline,
-                  description:        "Generate script to fix exactly one execution plan as SQL-baseline for this SQL.#{"\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if PanoramaConnection.edition == :standard || PanoramaConnection.management_pack_license != :diagnostics_and_tuning_pack}",
-                  option_pack_needed: "Enterprise Edition + #{ get_db_version < '18' ? "Tuning Pack" : "Diagnostics Pack"}"
-    }
-
-    @methods << { type:               :sql_profile,
-                  description:        "Generates commands for manual creation of a SQL profile.\nThis allows to inject your own defined optimizer hints to the SQL.",
-                  option_pack_needed: "Enterprise Edition + Tuning Pack"
-    }
-
-    @methods << { type:               :sql_patch,
-                  description:        "Generates commands for creation of a SQL patch.\nThis allows to inject your own defined optimizer hints to the SQL.\nSimilar to SQL profile, but without the need for licensed Tuning Pack.",
-                  option_pack_needed: "None"
-    }
-
-    if get_db_version >= '12.1'
-      @methods << { type:               :sql_translation,
-                    description:        "Generates a script for using SQL translation framework.\nThis allows to replace all parts of the SQL statement as long as the number and types of bind variables remain the same,",
-                    option_pack_needed: "Enterprise Edition"
-      }
-    end
-
-    @methods.each {|m| m.extend(SelectHashHelper) }
     render_partial
   end
 
@@ -1974,6 +1945,81 @@ class DbaSgaController < ApplicationController
     @profile_recommendation_created = sql_select_one(["SELECT COUNT(*) FROM DBA_Advisor_Recommendations WHERE Owner = USER AND Task_Name = ? AND Type = 'SQL PROFILE'", @task_name]) > 0
 
     render_partial
+  end
+
+  def generate_sql_plan_baseline_from_sga
+    sql_id                      = prepare_param :sql_id
+    plan_hash_value             = prepare_param :plan_hash_value
+    force_matching_signature    = prepare_param :force_matching_signature
+    exact_matching_signature    = prepare_param :exact_matching_signature
+
+    result = "
+-- Build SQL plan baseline for SQL-ID = '#{sql_id}', plan hash value = #{plan_hash_value}
+-- Generated with Panorama at #{Time.now}
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+  cur           sys_refcursor;
+  hit_count     PLS_INTEGER;
+  sql_handle    VARCHAR2(30);
+  plan_name     VARCHAR2(30);
+BEGIN
+  hit_count := DBMS_SPM.LOAD_PLANS_FROM_CURSOR_CACHE (
+    sql_id           => '#{sql_id}',
+    plan_hash_value  => #{plan_hash_value},
+    fixed            => 'YES',
+    enabled          => 'YES'
+  );
+
+  -- Get access criteria for the new created baseline based on exact- or force-signature
+  SELECT SQL_Handle, Plan_Name INTO sql_handle, plan_name FROM DBA_SQL_Plan_Baselines
+  WHERE  (Signature = #{force_matching_signature} OR Signature = #{exact_matching_signature})
+  AND    Created > SYSDATE-0.1;
+
+  -- Set the description according to your choice (max. 500 chars)
+  hit_count := DBMS_SPM.ALTER_SQL_PLAN_BASELINE(SQL_Handle => sql_handle, Plan_Name => plan_name, Attribute_Name => 'description', Attribute_Value => 'Baseline generated by Panorama ...');
+
+  -- You can check the existence of the baseline now by executing:
+  -- SELECT * FROM dba_sql_plan_baselines;
+  -- or by looking at SQL details page for your SQL with Panorama
+
+  -- Next commands remove currently existing cursors of this SQL from SGA to ensure hard parse with SQL plan baseline at next execution
+"
+
+    if PanoramaConnection.rac?
+      result << "  -- Because your system uses RAC you should execute the following block with DBMS_SHARED_POOL.PURGE once again connected on the appropriate RAC-instance\n"
+      instances = sql_select_all(["SELECT Inst_ID FROM gv$SQLArea WHERE SQL_ID=?", sql_id])
+      result << "  -- at generation time of this script the SQL is loaded in SGA at this RAC instances: #{instances.map{|i| i.inst_id }.join(', ')}\n"
+    end
+
+    result << "
+  FOR cu IN (SELECT RAWTOHEX(Address) Address, Hash_Value FROM v$SQLArea WHERE SQL_ID='#{sql_id}') LOOP
+    DBMS_SHARED_POOL.PURGE (cu.address||', '||cu.hash_value, 'C');
+    DBMS_OUTPUT.PUT_LINE('Existing cursor for SQL-ID=#{sql_id} removed from SGA');
+  END LOOP;
+END;
+/
+
+-- ######### to remove an existing SQL plan baseline execute the following:
+-- Get the SQL-Handle of your baseline from Panorama's selections or by
+-- SELECT * FROM dba_sql_plan_baselines WHERE SQL_Text LIKE '%<your SQL>%';
+
+-- Drop all baselines of the SQL with the given SQL-Handle
+-- DECLARE
+--   v_dropped_plans number;
+-- BEGIN
+--   v_dropped_plans := DBMS_SPM.DROP_SQL_PLAN_BASELINE (sql_handle => 'SQL_b6b0d1c71cd1807b');
+--   DBMS_OUTPUT.PUT_LINE('dropped ' || v_dropped_plans || ' plans');
+-- END;
+-- /
+
+"
+
+    respond_to do |format|
+      format.html {render :html => render_code_mirror(result) }
+    end
+
   end
 
   def create_profile_from_sql_tuning_advisor_task
