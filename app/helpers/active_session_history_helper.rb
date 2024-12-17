@@ -10,15 +10,22 @@ module ActiveSessionHistoryHelper
 
       # Performant access on gv$SQLArea ist unfortunately not possible here
       sql_id_info_sql = proc do | search_sql_id_col_name|
-        "(SELECT SQL_Short_Text
-          FROM   (SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40)) SQL_Short_Text
-                  FROM   DBA_Hist_SQLText t
-                  WHERE  t.DBID=s.DBID AND t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
-                  UNION ALL
-                  SELECT SUBSTR(t.SQL_Text,1,40) FROM gv$SQLStats t WHERE t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
-                 )
-          WHERE  RowNum < 2
-         )"
+        if get_db_version >= "12.1"
+          "(SELECT SQL_Short_Text
+            FROM   (SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40)) SQL_Short_Text
+                    FROM   DBA_Hist_SQLText t
+                    WHERE  t.DBID=s.DBID AND t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
+                    UNION ALL
+                    SELECT SUBSTR(t.SQL_Text,1,40) FROM gv$SQLStats t WHERE t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
+                   )
+            WHERE  RowNum < 2
+           )"
+        else                                                                    # 11.2 supports access on outer table only at top level of subselect
+          "(SELECT TO_CHAR(SUBSTR(t.SQL_Text,1,40)) SQL_Short_Text
+            FROM   DBA_Hist_SQLText t
+            WHERE  t.DBID=s.DBID AND t.SQL_ID=#{search_sql_id_col_name} AND RowNum < 2
+           )"
+        end
       end
 
       @session_statistics_key_rules_hash["Wait Event"]      = {:sql => "NVL(s.Event, s.Session_State)", :sql_alias => "event",    :Name => 'Wait Event',    :Title => 'Wait event (session state, if wait event = NULL)', :Data_Title => '#{explain_wait_event(rec.event)}' }
