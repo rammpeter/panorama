@@ -19,6 +19,7 @@
                               :owner           => rec.object_owner,
                               :name            => rec.object_name,
                               :object_type     => object_type,
+                              prefix:          :NBSP,                     # ensure real num_rows is shown in the first line of cell
                               :update_area     => update_area
                              },
                       :title=>"Count current number of rows in Table. CAUTION: May be long running!")+" <span id=\"#{update_area}\"></span>".html_safe

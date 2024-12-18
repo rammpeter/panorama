@@ -559,6 +559,7 @@ class StorageController < ApplicationController
     subpartition_name = prepare_param(:subpartition_name)
     object_type       = prepare_param(:object_type) || 'TABLE'
     prefix            = prepare_param :prefix
+    prefix = '&nbsp' if prefix == 'NBSP'                                        # use an alias to avoid escape of & tp \\u0026 in ajax call
 
     case
     when object_type == 'TABLE' || object_type == 'TABLE PARTITION' then
