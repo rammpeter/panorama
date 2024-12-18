@@ -52,7 +52,10 @@
    column_options << {:caption=>'Client version',      :data=>proc{|rec| rec.client_version},     :title=>'Client library version number'} if get_db_version >= '11.2'
    column_options << {:caption=>'Client driver',       :data=>proc{|rec| rec.client_driver},      :title=>'Client driver name'} if get_db_version >= '11.2'
 %>
-<%= gen_slickgrid(@dbsessions, column_options) %>
+<%=
+  # Show the first lin eonly because there could be multiple lines with same result due to duplicate hits for PL/SQL if DBA_Procedures with different Origin_Con_ID
+  gen_slickgrid(@dbsessions.empty? ? [] : [@dbsessions.first], column_options)
+%>
 
 <% if @pq_coordinator.count > 0 # Betrachete Session ist ein PQ-Slave, dann Info zum Coordinator hinzufügen %>
     <%
