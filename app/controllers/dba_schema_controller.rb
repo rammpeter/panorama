@@ -1155,6 +1155,13 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @table_name, @table_type)
     @grants       = get_grant_count(@owner, @table_name)
 
+    # the conditions for @audit_rule_cnt should match with the conditions used in method 'show_audit_rules' when filtering for object_type = 'TABLE'
+    @audit_rule_cnt = 0
+    @audit_rule_cnt += sql_select_one "SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%TABLE'"
+    @audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", @owner, @table_name]
+    @audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", @owner, @table_name]
+
+
     render_partial :list_object_description
   end
 
@@ -2478,11 +2485,8 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
-  def show_audit_rules
-    @audits         = sql_select_all "SELECT * FROM DBA_Stmt_Audit_Opts ORDER BY Audit_Option"
-    @obj_audit_opts = sql_select_all "SELECT * FROM DBA_Obj_Audit_Opts ORDER BY Owner, Object_Name"
+  def show_audit_config
     @options        = sql_select_all "SELECT * FROM gv$Option WHERE Parameter = 'Unified Auditing' ORDER BY Inst_ID"
-    @policies       = sql_select_iterator "SELECT * from DBA_Audit_Policies"
     begin
       @config_params = sql_select_all "SELECT * FROM DBA_Audit_Mgmt_Config_Params ORDER BY Audit_Trail, Parameter_Name"
     rescue Exception => e
@@ -2493,6 +2497,49 @@ class DbaSchemaController < ApplicationController
         raise
       end
     end
+
+    render_partial
+  end
+
+  # The conditions for filters should match the conditions for @audit_rule_cnt in method 'list_object_description'
+  def show_audit_rules
+    @object_type  = prepare_param :object_type                                  # optional, but must exists if the other filters are used
+    @owner        = prepare_param :owner                                        # optional
+    @object_name  = prepare_param :object_name                                  # optional
+
+    where_string = ''
+    if @object_type == 'TABLE'
+      where_string = " WHERE Audit_Option LIKE '%TABLE'"
+    end
+    @audits         = sql_select_all "SELECT * FROM DBA_Stmt_Audit_Opts #{where_string} ORDER BY Audit_Option"
+
+    where_string = ''
+    where_values = []
+    if @object_type
+      where_string = " WHERE Object_Type = ?"
+      where_values << @object_type
+    end
+    if @owner
+      where_string << " AND Owner = ?"
+      where_values << @owner
+    end
+    if @object_name
+      where_string << " AND Object_Name = ?"
+      where_values << @object_name
+    end
+    @obj_audit_opts = sql_select_all ["SELECT * FROM DBA_Obj_Audit_Opts #{where_string} ORDER BY Owner, Object_Name"].concat(where_values)
+
+    where_string = ''
+    where_values = []
+    if @owner
+      where_string << " WHERE Object_Schema = ?"
+      where_values << @owner
+    end
+    if @object_name
+      where_string << " AND Object_Name = ?"
+      where_values << @object_name
+    end
+    @fga_policies       = sql_select_all ["SELECT * FROM DBA_Audit_Policies #{where_string} ORDER BY Object_Schema, Object_Name"].concat(where_values)
 
     if get_db_version >= '12.2'                                                 # Start of recommended unified auditing
       @audit_unified_enabled_policies = sql_select_all "\

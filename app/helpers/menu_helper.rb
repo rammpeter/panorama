@@ -45,6 +45,7 @@ module MenuHelper
             ]
             },
             {:class => 'menu', :caption => 'Audit Trail', :content => [
+              {:class => 'item', :caption => 'Auditing config',             :controller => :dba_schema, :action => :show_audit_config, :hint => t(:menu_dba_schema_audit_config_hint, :default => 'Show configuration options for standard and unified auditing')},
               {:class => 'item', :caption => 'Auditing rules',              :controller => :dba_schema, :action => :show_audit_rules, :hint => t(:menu_dba_schema_audit_rules_hint, :default => 'Show rules for standard and fine grain auditing')},
               {:class => 'item', :caption => 'Standard audit trail + FGA',  :controller => :dba_schema, :action => :show_audit_trail, :hint => t(:menu_dba_schema_audit_trail_hint, :default => 'Show activities logged by standard audit trail and fine grain auditing (DBA_Common_Audit_Trail)')},
               {:class => 'item', :caption => 'Unified audit trail',         :controller => :dba_schema, :action => :show_unified_audit_trail, :hint => t(:menu_dba_schema_unified_audit_trail_hint, :default => 'Show activities logged by unified audit trail'), min_db_version: '12.1'},

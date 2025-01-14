@@ -739,7 +739,7 @@ oradebug setorapname diag
     @pdb_name         = prepare_param(:pdb_name)
     @show_only_user   = prepare_param(:showOnlyUser)    == '1'
     @show_pq_server   = prepare_param(:showPQServer)    == '1'
-    @only_avtive      = prepare_param(:onlyActive)      == '1'
+    @only_active      = prepare_param(:onlyActive)      == '1'
     @show_only_dblink = prepare_param(:showOnlyDbLink)  == '1'
     @show_timer       = prepare_param(:showTimer)       == '1'
     @object_owner     = prepare_param(:object_owner)
@@ -772,13 +772,13 @@ oradebug setorapname diag
     unless @show_pq_server
       where_string << ' AND pqc.QCInst_ID IS NULL'   # Nur die QCInst_ID is nicht belegt in gv$PX_Session. Die OCSID ist auch für den Query-Koordinator belegt, der ja kein PQ ist
     end
-    if @only_avtive
+    if @only_active
       where_string << " AND s.Status='ACTIVE'"
     end
     if @show_only_dblink
       where_string << " AND UPPER(s.program) like 'ORACLE@%' AND UPPER(s.Program) NOT LIKE 'ORACLE@'||(SELECT UPPER(i.Host_Name) FROM gv$Instance i WHERE i.Inst_ID=s.Inst_ID)||'%' "
     end
-    if @only_avtive && !@show_timer
+    if @only_active && !@show_timer
       where_string << " AND w.Event != 'PL/SQL lock timer'"
     end
     if @object_owner && @object_name

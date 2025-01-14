@@ -131,7 +131,7 @@
   caption << ", PDB = #{@pdb_name}"               if @pdb_name
   caption << ", type = 'USER'"                    if @show_only_user
   caption << ", without PQ slaves"                unless @show_pq_server
-  caption << ", status = 'ACTIVE'"                if @only_avtive
+  caption << ", status = 'ACTIVE'"                if @only_active
   caption << ", only DB-Link"                     if @show_only_dblink
   caption << ", without sleeping by timer"        unless @show_timer
   caption << ", owner = '#{@object_owner}'"       if @object_owner

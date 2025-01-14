@@ -432,7 +432,7 @@ module KeyExplanationHelper
           'enq: XR - quiesce database'        => 'Lock held during database quiesce',
           'enq: XR - database force logging'  => 'Lock held during database force logging mode',
           'enq: ZZ - update hash tables'      => 'Frequent change of global context content in RAC environment',
-          'Failed Logon Delay'                => 'Delay after unsuccessful logon try with SYS account. Delay duration is defined by _sys_logon_delay',
+          'Failed Logon Delay'                => "Delay after unsuccessful logon try.\nThe failed logon delay slows down each failed logon attempt, increasing the overall time that is required to perform a password-guessing attack.\nDelay duration is defined by _sys_logon_delay",
           'enq: XY - contention'              => 'Lock used for internal testing',
           'gc buffer busy'                    => 'A session is trying to access a buffer,but there is an open request (gc current request) for Global cache lock for that block already from same instance, and so, the session must wait for the GC lock request to complete before proceeding.',
           'gc buffer busy acquire'            => 'If existing GC open request (gc current request) originated from the local instance, then current session will wait for ‘gc buffer busy acquire’. Essentially, current process is waiting for another process in the local instance to acquire GC lock, on behalf of the local instance. Once GC lock is acquired, current process can access that buffer without additional GC processing (if the lock is acquired in a compatible mode).',

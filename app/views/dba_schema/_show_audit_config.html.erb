@@ -1,0 +1,58 @@
+<% @update_area=get_unique_area_id %>
+
+<div class="flex-row-container">
+
+  <div class="flex-row-element">
+    <%
+      column_options =
+        [
+          {:caption=> 'Instance',         :data=>proc{|rec| rec.inst_id},         :title=> "Instance number"},
+          {:caption=> 'Parameter',        :data=>proc{|rec| rec.parameter},       :title=> "Parameter name"},
+          {:caption=> 'Value',            :data=>proc{|rec| rec.value},           :title=> "Parameter value\nUnified_Auditing = TRUE: Unified auditing is enabled as standard\nUnified_Auditing = FALSE: Standard and unified auditing are both enabled (mixed mode)"},
+          {:caption=> 'Con-ID',           :data=>proc{|rec| rec.con_id},          :title=> "Container-ID of PDB"},
+        ]
+      column_options << {:caption=> 'Con-ID', :data=>proc{|rec| rec.con_id},          :title=> "Container-ID of PDB"} if @options.length > 0 && !@options[0]['con_id'].nil?
+    %>
+
+    <%=
+      gen_slickgrid(@options, column_options, {
+        :caption    => 'Unified auditing state from gv$Option',
+        :max_height => 450,
+        :width      => :auto,
+        show_pin_icon: 3
+      })
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%
+      column_options =
+        [
+          {caption: 'Audit trail',    data: proc{|rec| rec.audit_trail},         title: "Audit trails for which the property is configured"},
+          {caption: 'Name',           data: proc{|rec| rec.parameter_name},      title: "Name of the property"},
+          {caption: 'Value',          data: proc{|rec| rec.parameter_value},     title: "Value of the property"},
+        ]
+    %>
+
+    <%=
+      gen_slickgrid(@config_params, column_options, {
+        :caption    => 'Parameter from DBA_Audit_Mgmg_Config_Params',
+        :max_height => 450,
+        :width      => :auto,
+        show_pin_icon: 3
+      })
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%=
+      render_async(:dba, :oracle_parameter, {
+        option:               :auditing,
+        update_area:          @update_area
+      })
+    %>
+  </div>
+
+</div>
+
+<div id="<%= @update_area %>"></div>

@@ -4,7 +4,7 @@
 
 <%= ajax_form(:controller => :dba, :action => "list_sessions", :update_area=>@update_area) do  %>
   <div class="flex-row-container">
-    <div class="flex-row-element" title="<%= t(:dba_show_sessions_only_active_hint, :default=>"Show active sessions only") %>">
+    <div class="flex-row-element" title="<%= t(:dba_show_sessions_only_active_hint, :default=>"Show active sessions only.\n\nSee also description of checkbox 'Timer'.") %>">
       <%= t(:dba_show_sessions_only_active_caption, :default=>"Active only") %>
       <%= check_box_tag(:onlyActive, 1, true, onchange: "if (this.checked) { $('#showTimer').prop('disabled', false ); } else { $('#showTimer').prop('disabled', true ); }") %>
     </div>
