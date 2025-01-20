@@ -120,6 +120,9 @@
           ajax_link(fn(rec.policy_count), {
             action:       :list_audit_unified_policies,
             policy_name:  rec.policy_name,
+            object_type:  @object_type,
+            owner:        @owner,
+            object_name:  @object_name,
             update_area:  @update_area
           }, title: "Show the #{fn(rec.policy_count)} policies from Audit_Unified_Policies" )
         end

@@ -1155,12 +1155,7 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @table_name, @table_type)
     @grants       = get_grant_count(@owner, @table_name)
 
-    # the conditions for @audit_rule_cnt should match with the conditions used in method 'show_audit_rules' when filtering for object_type = 'TABLE'
-    @audit_rule_cnt = 0
-    @audit_rule_cnt += sql_select_one "SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%TABLE'"
-    @audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", @owner, @table_name]
-    @audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", @owner, @table_name]
-
+    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @table_name)
 
     render_partial :list_object_description
   end
@@ -1396,14 +1391,6 @@ class DbaSchemaController < ApplicationController
       @pkeys[0][:columns] = @pkeys[0][:columns][0...-2]                                         # Letzte beide Zeichen des Strings entfernen
     end
 
-    render_partial
-  end
-
-  # FGA policies of table or view
-  def list_object_policies
-    @owner        = prepare_param :owner
-    @object_name  = prepare_param :object_name
-    @policies = sql_select_all ["SELECT * FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", @owner, @object_name]
     render_partial
   end
 
@@ -2120,6 +2107,8 @@ class DbaSchemaController < ApplicationController
                                   WHERE  Owner = ? AND Object_Name = ? AND Package_Name IS NULL
                                  ", @owner, @object_name]        # Package_Name is NULL for standalone procedures/functions
 
+    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
+
     render_partial :list_plsql_description
   end
 
@@ -2257,6 +2246,8 @@ class DbaSchemaController < ApplicationController
       JOIN   DBA_Objects o ON o.Owner = v.Owner AND o.Object_Name = v.View_Name AND o.Object_Type = ?
       WHERE  v.Owner = ? AND v.View_Name = ?
     ", @object_type, @owner, @object_name]
+
+    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
 
     render_partial :list_view_description
   end
@@ -2508,10 +2499,12 @@ class DbaSchemaController < ApplicationController
     @object_name  = prepare_param :object_name                                  # optional
 
     where_string = ''
-    if @object_type == 'TABLE'
-      where_string = " WHERE Audit_Option LIKE '%TABLE'"
+    where_values = []
+    if @object_type
+      where_string = " WHERE Audit_Option LIKE '%'||?"
+      where_values << @object_type
     end
-    @audits         = sql_select_all "SELECT * FROM DBA_Stmt_Audit_Opts #{where_string} ORDER BY Audit_Option"
+    @audits         = sql_select_all ["SELECT * FROM DBA_Stmt_Audit_Opts #{where_string} ORDER BY Audit_Option"].concat(where_values)
 
     where_string = ''
     where_values = []
@@ -2542,9 +2535,31 @@ class DbaSchemaController < ApplicationController
     @fga_policies       = sql_select_all ["SELECT * FROM DBA_Audit_Policies #{where_string} ORDER BY Object_Schema, Object_Name"].concat(where_values)
 
     if get_db_version >= '12.2'                                                 # Start of recommended unified auditing
-      @audit_unified_enabled_policies = sql_select_all "\
+      where_string = ''
+      where_values = []
+      if @object_type
+        where_string = " WHERE (Audit_Option LIKE '%'||? )  OR ( Object_Type = ?"
+        where_values << @object_type
+        where_values << @object_type
+
+        if @owner
+          where_string << " AND Object_Schema = ?"
+          where_values << @owner
+        end
+        if @object_name
+          where_string << " AND Object_Name = ?"
+          where_values << @object_name
+        end
+
+        where_string << ")"
+        end
+      @audit_unified_enabled_policies = sql_select_all ["\
         WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
-             Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count FROM Audit_Unified_Policies GROUP BY Policy_Name),
+             Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
+                          FROM   Audit_Unified_Policies
+                          #{where_string}
+                          GROUP BY Policy_Name
+                         ),
              Not_Enabled AS (SELECT Policy_Name FROM Policies WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled))
         SELECT p.*, c.Comments, pc.Policy_Count
         FROM   (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Enabled
@@ -2552,19 +2567,42 @@ class DbaSchemaController < ApplicationController
                 SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure FROM Not_Enabled
                 ) p
         LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
-        LEFT OUTER JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
-        ORDER BY p.Policy_Name"
+        #{"LEFT OUTER " if @object_type.nil?}JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
+        ORDER BY p.Policy_Name"].concat(where_values)
     end
     render_partial
   end
 
   def list_audit_unified_policies
     @policy_name = prepare_param :policy_name
+    @object_type  = prepare_param :object_type                                  # optional, but must exists if the other filters are used
+    @owner        = prepare_param :owner                                        # optional
+    @object_name  = prepare_param :object_name                                  # optional
+
+    where_string = ''
+    where_values = []
+
+    if @object_type
+      where_string = " AND ( (Audit_option LIKE '%'||? ) OR ( Object_Type = ?"
+      where_values << @object_type
+      where_values << @object_type
+
+      if @owner
+        where_string << " AND Object_Schema = ?"
+        where_values << @owner
+      end
+      if @object_name
+        where_string << " AND Object_Name = ?"
+        where_values << @object_name
+      end
+      where_string << "))"
+    end
+
     @policies = sql_select_iterator ["\
       SELECT *
       FROM   Audit_Unified_Policies
-      WHERE  Policy_Name = ?
-      ORDER BY Policy_Name, Object_Schema, Object_Name, Audit_Option", @policy_name]
+      WHERE  Policy_Name = ? #{where_string}
+      ORDER BY Policy_Name, Object_Schema, Object_Name, Audit_Option", @policy_name].concat(where_values)
     render_partial
   end
 
@@ -3481,6 +3519,17 @@ class DbaSchemaController < ApplicationController
                     WHERE  Owner = ? AND Object_Name = ? #{where_string}
                     ORDER BY Start_Time DESC
                    ", owner, object_name].concat(where_values)
+  end
+
+  def calc_audit_rule_count(object_type, owner, object_name)
+
+  # the conditions for @audit_rule_cnt should match with the conditions used in method 'show_audit_rules' when filtering for object_type = 'TABLE'
+  audit_rule_cnt = 0
+  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%'||?", object_type]
+  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", owner, object_name]
+  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", owner, object_name]
+  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM Audit_Unified_Policies WHERE (Audit_Option LIKE '%'||?) OR (Object_Schema = ? AND Object_Name = ? AND Object_Type = ?)", object_type, owner, object_name, object_type]
+  audit_rule_cnt
   end
 
 end

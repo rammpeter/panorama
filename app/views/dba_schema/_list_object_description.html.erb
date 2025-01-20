@@ -436,17 +436,6 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
 
 <% end %>
 
-<%=
-  @update_area_policies = get_unique_area_id
-  render_async(:dba_schema, :list_object_policies, {
-    owner:          @owner,
-    object_name:    @table_name,
-    update_area:    @update_area_policies
-  })
-%>
-<div id="<%= @update_area_policies %>"></div>
-
-
 <div class="flex-row-container">
   <div class="flex-row-element">
     <%= ajax_submit("#{fn @indexes} Indexes", {

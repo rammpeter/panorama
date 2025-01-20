@@ -234,7 +234,7 @@
   dba_history_list_sql_area_historic_link_column_snap_title:    Anzeige der Werte der einzelnen AWR-Snapshots (unterhalb)
 
   dba_history_list_sql_detail_execution_access_hint:            Zugriffskriterium auf Objekt
-  dba_history_list_sql_detail_execution_filter_hint:            Filterkriterium auf Objekt
+  dba_history_list_sql_detail_execution_filter_hint:            Filterkriterium auf Objekt (Als weitere Filter genutzt nach den Zugriff)
   dba_history_list_sql_detail_execution_plan_id_hint:           ID der Operation
   dba_history_list_sql_detail_execution_plan_objectname_hint:   Name des Objekts
   dba_history_list_sql_detail_execution_plan_operation_hint:    Art des Zugriffs

@@ -237,6 +237,17 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "list_audit_rules with xhr: true" do
+    get '/dba_schema/show_audit_rules', params: {format: :html,  update_area: :hugo }
+    assert_response :success
+
+    get '/dba_schema/show_audit_rules', params: {format: :html,  object_type: 'TABLE', update_area: :hugo }
+    assert_response :success
+
+    get '/dba_schema/show_audit_rules', params: {format: :html,  object_type: 'TABLE', owner: 'SYS', object_name: 'AUD$', update_area: :hugo }
+    assert_response :success
+  end
+
   test "list_audit_trail with xhr: true" do
     get '/dba_schema/list_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
     assert_response :success

@@ -67,6 +67,17 @@
   </div>
 
   <div class="flex-row-element">
+    <%= ajax_submit("#{fn @audit_rule_cnt} Audit rules", {
+      :update_area => @update_area,
+      :action      => :show_audit_rules,
+      :owner       => @owner,
+      :object_name => @object_name,
+      object_type: @object_type
+    }, :title => "Show audit rules for #{@object_type} #{@owner}.#{@object_name}")
+    %>
+  </div>
+
+  <div class="flex-row-element">
     <%= ajax_submit('DBMS_METADATA', {
       :update_area => @update_area,
       :action      => :list_dbms_metadata_get_ddl,
