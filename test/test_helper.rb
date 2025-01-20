@@ -285,7 +285,7 @@ Begin_Interval_Time=#{localeDateTime(s.begin_interval_time)}, End_Interval_Time=
     end
 
     unless four_valid_snaps_found?(snaps)
-      message = "No 4 subsequent snapshots with same startup_time found in #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')}: snaps = #{snaps}"
+      message = "No 4 subsequent snapshots with same startup_time found in #{PanoramaConnection.adjust_table_name('DBA_Hist_Snapshot')} for DBID=#{get_dbid}: snaps = #{snaps}"
       puts message
       Rails.logger.debug('ActiveSupport::TestCase.initialize_min_max_snap_id_and_times') {message}
 
