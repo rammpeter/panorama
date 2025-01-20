@@ -9,7 +9,7 @@
    column_options << {:caption=> 'Comp.',               :data=>proc{|rec| fn(rec.composite)},           :title=> 'Indicates whether the partition is composite (YES) or not (NO)'}
 
    column_options << {:caption=> 'Column',              :data=>proc{|rec| rec.column_name},             :title=> 'Column LOB belongs to'}
-   column_options << {:caption=> 'Size (MB)',           :data=>proc{|rec| fn(rec.size_mb, 2)},          :title=> 'Size of LOB segment in MB', :align=>:right}
+   column_options << {:caption=> 'Size (MB)',           :data=>proc{|rec| fn(rec.size_mb, 2)},          :title=> 'Size of LOB segment in MB', data_title: proc{|rec| "%t\n\n#{size_explain(rec.size_mb)}"}, :align=>:right}
    column_options << {:caption=> 'Tablespace',          :data=>proc{|rec| rec.tablespace_name},         :title=> 'Name of the tablespace containing the LOB segment'}
    column_options << {:caption=> 'Init. extent (kBytes)',:data=>proc{|rec| fn(rec.initial_extent.to_i/1024)},  :title=> 'Size in kBytes of the initial extent of the LOB data partition', :align=>:right}
    column_options << {:caption=> 'Next extent (kBytes)',:data=>proc{|rec| fn(rec.next_extent.to_i/1024)},  :title=> 'Size in kBytes of secondary extents of the LOB data partition', :align=>:right}
