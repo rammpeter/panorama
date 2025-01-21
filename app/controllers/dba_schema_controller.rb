@@ -3528,7 +3528,15 @@ class DbaSchemaController < ApplicationController
   audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%'||?", object_type]
   audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", owner, object_name]
   audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", owner, object_name]
-  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM Audit_Unified_Policies WHERE (Audit_Option LIKE '%'||?) OR (Object_Schema = ? AND Object_Name = ? AND Object_Type = ?)", object_type, owner, object_name, object_type]
+  begin
+    audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM Audit_Unified_Policies WHERE (Audit_Option LIKE '%'||?) OR (Object_Schema = ? AND Object_Name = ? AND Object_Type = ?)", object_type, owner, object_name, object_type]
+  rescue Exception=> e
+    if e.message['ORA-00942'] # table or view does not exist
+      add_statusbar_message "ORA-00942 Table or view does not exist while accessing view 'Unified_Audit_Policies'"
+    else
+      raise
+    end
+  end
   audit_rule_cnt
   end
 
