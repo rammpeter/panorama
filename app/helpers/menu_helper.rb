@@ -97,6 +97,10 @@ module MenuHelper
                 {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=> 'dba_history',  :action=> 'show_sysmetric_historic',    :hint=>t(:menu_wait_sysmetric_historic_hint, :default=> 'Historic system metric from DBA_Hist_Sysmetric_History') },
                 ]
             },
+            { :class=> 'menu', :caption=>'Time model', :content=>[
+              {:class=> 'item', :caption=>t(:menu_historic_sys_time_model_historic, :default=> 'System time model historic'), controller: :dba_history,  action: :show_system_time_model_historic, hint: 'Historic system time model info from DBA_Hist_Sys_Time_Model' },
+              ]
+            },
             { :class=> 'menu', :caption=>t(:menu_wait_latch_caption, :default=> 'Latch statistics'), :content=>[
                 {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=> 'dba_history',  :action=> 'show_latch_statistics_historic',    :hint=>t(:menu_wait_latch_statistics_historic_hint, :default=> 'Calculated historic info from DBA_Hist_Latch') },
                 ]
@@ -123,7 +127,7 @@ module MenuHelper
                 {:class=> 'item', :caption=>'ASH global report (RAC)',    :controller=>:dba_history,    :action=> 'show_ash_global_report',   :hint=>'Genuine Oracle active session history global report for RAC by time period and instance (optional)' },
                 ]
             },
-            { :class=> 'menu', :caption=>t(:menu_wait_rac, :default=> 'RAC related analysis'), :content=>[
+            { :class=> 'menu', :caption=>t(:menu_wait_rac, :default=> 'RAC related analysis'), condition: PanoramaConnection.rac?, :content=>[
                 {:class=> 'item', :caption=> 'GC Request Latency historic',      :controller=> 'dba_waits',  :action=> 'gc_request_latency',    :hint=>t(:menu_wait_gc_historic_hint, :default=> 'Analysis of global cache activity') },
                 {class: 'item', caption: t(:menu_wait_drm_historic_caption, default: 'Dynamic Remastering (DRM) events historic'),  controller: :dba_waits,  action: :show_drm_historic,    hint: t(:menu_wait_drm_historic_hint, default: 'History of master role changes for DB-objects between RAC-instances') },
             ]

@@ -2036,6 +2036,7 @@
 
   menu_historic_caption:                                    Historisch
   menu_historic_awr_caption:                                Historisch aus AWR
+  menu_historic_sys_time_model_historic:                    System time model historisch
 
   menu_io_iostat_detail_caption:                            I/O-Stat Detail Historie
   menu_io_iostat_detail_hint:                               I/O-Historie basierend auf DBA_Hist_IOStat_Detail

@@ -226,11 +226,6 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
     instance = PanoramaConnection.instance_number
     # Evtl. als sysdba auf Test-DB Table loeschen wenn noetig: truncate table sys.WRH$_SYSMETRIC_HISTORY;
 
-    if get_current_database[:host] == "ramm.osp-dd.de"                              # Nur auf DB ausführen wo Test-User ein ALTER-Grant auf sys.WRH$_SYSMETRIC_HISTORY hat
-      puts "Prepare for Test: Executing ALTER INDEX sys.WRH$_SYSMETRIC_HISTORY_INDEX shrink space"
-      ActiveRecord::Base.connection.execute("ALTER INDEX sys.WRH$_SYSMETRIC_HISTORY_INDEX shrink space")
-    end
-
    ['SS', 'MI', 'HH24', 'DD'].each do |grouping|
      # Zeitabstand deutlich kuerzer fuer diesen Test
      time_selection_end  = Time.new
@@ -247,6 +242,15 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
      post '/dba_history/list_sysmetric_historic', :params => {:format=>:html,  :time_selection_start =>time_selection_start, :time_selection_end =>time_selection_end, :instance=>instance, :summary=>1, :grouping=>{:tag =>grouping}, :update_area=>:hugo }
      assert_response management_pack_license == :none ? :error : :success
    end
+  end
+
+  test "list_sys_time_model_historic with xhr: true" do
+    instance = PanoramaConnection.instance_number
+
+    post '/dba_history/list_system_time_model_historic', params: { format: :html,  time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, :update_area=>:hugo }
+    assert_response management_pack_license == :none ? :error : :success
+    post '/dba_history/list_system_time_model_historic', params: { format: :html,  instance: instance, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, :update_area=>:hugo }
+    assert_response management_pack_license == :none ? :error : :success
   end
 
   test "mutex_statistics_historic with xhr: true" do

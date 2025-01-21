@@ -1,0 +1,46 @@
+<%
+  start_time_data = proc do |rec|
+    if rec.min_begin_interval_time == rec.max_begin_interval_time
+      localeDateTime(rec.min_begin_interval_time)
+    else
+      localeDateTime(rec.rounded_begin_interval_time)
+    end
+  end
+
+  start_time_data_title = proc do |rec|
+    result = "%t\n"
+    if rec.min_begin_interval_time != rec.max_begin_interval_time
+      result << "\nShown start time of AWR snapshot for multiple instances is rounded to the nearest minute"
+      result << "\nMin. start time = #{localeDateTime(rec.min_begin_interval_time)}"
+      result << "\nMax. start time = #{localeDateTime(rec.max_begin_interval_time)}"
+    end
+
+    if rec.min_end_interval_time != rec.max_end_interval_time
+      result << "\nMin. end time = #{localeDateTime(rec.min_end_interval_time)}"
+      result << "\nMax. end time = #{localeDateTime(rec.max_end_interval_time)}"
+    else
+      result << "\nEnd time = #{localeDateTime(rec.max_end_interval_time)}"
+    end
+    result
+  end
+
+  value_data_title = proc do |value|
+    "%t\n\n#{seconds_explain(value/1000000.0)}"
+  end
+
+  column_options = []
+  column_options << { caption: "Start time",    data: start_time_data,         :title=>"Start time of AWR snapshot", data_title: start_time_data_title, plot_master_time: true}
+  @stat_names.sort.each do |key, value|
+    column_options << { caption: key, data: proc{|rec| fn(rec[value]/1000000.0, 3)}, title: "Increment of \"#{key}\" in seconds within the AWR snapshot\n\n#{time_model_desc(key)}", data_title: proc{|rec| value_data_title.call(rec[value]) }, align: :right}
+  end
+  column_options << { caption: 'Con. ID',       data: proc{|rec| fn(rec.con_id)},   title: "Container ID\n0: This value is used for rows containing data that pertain to the entire CDB. This value is also used for rows in non-CDBs.\n1: This value is used for rows containing data that pertain to only the root\nn: Where n is the applicable container ID for the rows containing data", :align=>"right"}
+%>
+
+<%= gen_slickgrid(@models, column_options, {
+  :caption => "System time model from #{@time_selection_start} until #{@time_selection_end}#{" for instance #{@instance}" if @instance}",
+  :max_height => 450,
+  show_pin_icon: 1,
+})
+%>
+
+

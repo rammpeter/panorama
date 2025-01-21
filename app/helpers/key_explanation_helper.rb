@@ -1396,4 +1396,36 @@ module KeyExplanationHelper
     desc = SEG_STATISTIC_DESC[stat_name]
     desc ? desc : "No description available for segment statistic \"#{stat_name}\""
   end
+
+  # copied from https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/V-SESS_TIME_MODEL.html#GUID-B5CF4362-325D-4F22-9A08-0873FA32A5C0__G2030340
+  TIME_MODEL_DESC = {
+    'DB time'                         => "Amount of elapsed time  spent performing Database user-level calls.\nThis does not include the elapsed time spent on instance background processes such as PMON.",
+    'DB CPU'                          => "Amount of CPU time  spent on database user-level calls.\nThis does not include the CPU time spent on instance background processes such as PMON.\n\nThis is a subset of \"DB time\".",
+    'background elapsed time'         => "Amount of elapsed time  consumed by database background processes.",
+    'background cpu time'             => "Amount of CPU time  consumed by database background processes.\n\nThis is a subset of \"background elapsed time\".",
+    'sequence load elapsed time'      => "Amount of elapsed time spent getting the next sequence number from the data dictionary.\nIf a sequence is cached, then this is the amount of time spent replenishing the cache when it runs out.\nNo time is charged when a sequence number is found in the cache.\nFor non-cached sequences, some time will be charged for every nextval call.\n\nThis is a subset of \"DB time\".",
+    'parse time elapsed'              => "Amount of elapsed time spent parsing SQL statements.\nIt includes both soft and hard parse time.\n\nThis is a subset of \"DB time\".",
+    'hard parse elapsed time'         => "Amount of elapsed time spent hard parsing SQL statements.\n\nThis is a subset of \"parse time elapsed\".",
+    'SQL execute elapsed time'        => "Amount of elapsed time SQL statements are executing.\nNote that for select statements this also includes the amount of time spent performing fetches of query results.\n\nThis is a subset of \"DB time\".",
+    'connection management call elapsed time' => "Amount of elapsed time spent performing session connect and disconnect calls.\n\nThis is a subset of \"DB time\".",
+    'failed parse elapsed time'       => "Amount of time spent performing SQL parses which ultimately fail with some parse error.",
+    'failed parse (out of shared memory) elapsed time' => "Amount of time spent performing SQL parses which ultimately fail with error ORA-04031.",
+    'hard parse (sharing criteria) elapsed time' => "Amount of elapsed time spent performing SQL hard parses when the hard parse resulted from not being able to share an existing cursor in the SQL cache.\n\nThis is a subset of \"hard parse elapsed time\".",
+    'hard parse (bind mismatch) elapsed time' => "Amount of elapsed time spent performing SQL hard parses when the hard parse resulted from bind type or bind size mismatch with an existing cursor in the SQL cache.\n\nThis is a subset of \"hard parse (sharing criteria) elapsed time\".",
+    'PL/SQL execution elapsed time'   => "Amount of elapsed time spent running the PL/SQL interpreter. This does not include time spent recursively executing/parsing SQL statements or time spent recursively executing the Java VM.\n\nThis is a subset of \"DB time\".",
+    'PL/SQL compilation elapsed time' => "Amount of elapsed time spent running the PL/SQL compiler.\n\nThis is a subset of \"DB time\".",
+    'inbound PL/SQL rpc elapsed time' => "Time inbound PL/SQL remote procedure calls have spent executing.\nIt includes all time spent recursively executing SQL and JAVA, and therefore is not easily related to \"PL/SQL execution elapsed time\".\n\nThis is a subset of \"DB time\".",
+    'Java execution elapsed time'     => "Amount of elapsed time spent running the Java VM.\nThis does not include time spent recursively executing/parsing SQL statements or time spent recursively executing PL/SQL.\n\nThis is a subset of \"DB time\".",
+    'RMAN cpu time (backup/restore)'  => "Amount of CPU time spent in RMAN backup and restore operations.\n\nThis is a subset of \"background cpu time\".",
+    'repeated bind elapsed time'      => "Amount of elapsed time spent giving new values to bind variables (rebinding).\n\nThis is a subset of \"DB time\".",
+    'OLAP engine elapsed time'        => "Amount of time spent performing OLAP session transactions.\nThis includes time spent on database user-level calls, SQL statement execution, and PL/SQL execution within the OLAP transaction.",
+    'OLAP engine CPU time'            => "Amount of CPU time spent on OLAP session transactions.\nThis includes time spent on database user-level calls, SQL statement execution, and PL/SQL execution within the OLAP transaction."
+  }
+
+  def time_model_desc(stat_name)
+    desc = TIME_MODEL_DESC[stat_name]
+    desc ? desc : "No description available for time model statistic \"#{stat_name}\""
+  end
+
+
 end
