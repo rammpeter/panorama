@@ -3522,22 +3522,21 @@ class DbaSchemaController < ApplicationController
   end
 
   def calc_audit_rule_count(object_type, owner, object_name)
-
-  # the conditions for @audit_rule_cnt should match with the conditions used in method 'show_audit_rules' when filtering for object_type = 'TABLE'
-  audit_rule_cnt = 0
-  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%'||?", object_type]
-  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", owner, object_name]
-  audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", owner, object_name]
-  begin
-    audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM Audit_Unified_Policies WHERE (Audit_Option LIKE '%'||?) OR (Object_Schema = ? AND Object_Name = ? AND Object_Type = ?)", object_type, owner, object_name, object_type]
-  rescue Exception=> e
-    if e.message['ORA-00942'] # table or view does not exist
-      add_statusbar_message "ORA-00942 Table or view does not exist while accessing view 'Unified_Audit_Policies'"
-    else
-      raise
+    # the conditions for @audit_rule_cnt should match with the conditions used in method 'show_audit_rules' when filtering for object_type = 'TABLE'
+    audit_rule_cnt = 0
+    audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Stmt_Audit_Opts WHERE Audit_Option LIKE '%'||?", object_type]
+    audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Obj_Audit_Opts WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE'", owner, object_name]
+    audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM DBA_Audit_Policies WHERE Object_Schema = ? AND Object_Name = ?", owner, object_name]
+    begin
+      audit_rule_cnt += sql_select_one ["SELECT COUNT(*) FROM Audit_Unified_Policies WHERE (Audit_Option LIKE '%'||?) OR (Object_Schema = ? AND Object_Name = ? AND Object_Type = ?)", object_type, owner, object_name, object_type]
+    rescue Exception=> e
+      if e.message['ORA-00942'] # table or view does not exist
+        add_statusbar_message "ORA-00942 Table or view does not exist for view 'Unified_Audit_Policies'! Access suppressed."
+      else
+        raise
+      end
     end
-  end
-  audit_rule_cnt
+    audit_rule_cnt
   end
 
 end
