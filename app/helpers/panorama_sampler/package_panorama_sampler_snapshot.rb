@@ -701,6 +701,15 @@ END Panorama_Sampler_Snapshot;
     COMMIT;
   END Snap_SysStat;
 
+  PROCEDURE Snap_Sys_Time_Model(p_Snap_ID IN NUMBER, p_DBID IN NUMBER, p_Instance IN NUMBER)  IS
+  BEGIN
+    INSERT INTO panorama_owner.Panorama_Sys_Time_Model(SNAP_ID, DBID, INSTANCE_NUMBER, STAT_ID, Stat_Name, VALUE, CON_DBID, CON_ID)
+    SELECT p_Snap_ID, p_DBID, p_Instance, Stat_ID, Stat_Name, Value, #{PanoramaConnection.db_version >= '12.1' ? "panorama_owner.Con_DBID_From_Con_ID.Get(Con_ID), Con_ID" : "p_DBID, 0"}
+    FROM   V$Sys_Time_Model
+    ;
+    COMMIT;
+  END Snap_Sys_Time_Model;
+
   PROCEDURE Snap_Tablespace(p_DBID IN NUMBER) IS
   BEGIN
     INSERT INTO panorama_owner.Panorama_Tablespace (DBID, TS#, TSNAME, CONTENTS, SEGMENT_SPACE_MANAGEMENT, EXTENT_MANAGEMENT, BLOCK_SIZE, CON_DBID, CON_ID
@@ -856,6 +865,7 @@ END Panorama_Sampler_Snapshot;
     CATCH_START Snap_Sysmetric_Summary    (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     CATCH_START Snap_System_Event         (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     CATCH_START Snap_SysStat              (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
+    CATCH_START Snap_Sys_Time_Model       (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END
     CATCH_START Snap_Tablespace           (p_DBID); CATCH_END
     CATCH_START Snap_Tempfile             (p_DBID); CATCH_END
     CATCH_START Snap_TempStatXS           (p_Snap_ID,   p_DBID,     p_Instance); CATCH_END

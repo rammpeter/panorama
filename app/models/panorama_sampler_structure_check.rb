@@ -1325,6 +1325,21 @@ class PanoramaSamplerStructureCheck
           primary_key: { columns: ['DBID', 'SNAP_ID', 'INSTANCE_NUMBER', 'STAT_ID', 'CON_DBID'], compress: 2 },
       },
       {
+        table_name: 'Panorama_Sys_Time_Model',
+        domain: :AWR,
+        columns: [
+          { column_name:  'SNAP_ID',                        column_type:   'NUMBER',    not_null: true },
+          { column_name:  'DBID',                           column_type:   'NUMBER',    not_null: true },
+          { column_name:  'INSTANCE_NUMBER',                column_type:   'NUMBER',    not_null: true },
+          { column_name:  'STAT_ID',                        column_type:   'NUMBER',    not_null: true },
+          { column_name:  'STAT_Name',                      column_type:   'VARCHAR2',  not_null: true, precision: 64},
+          { column_name:  'VALUE',                          column_type:   'NUMBER' },
+          { column_name:  'CON_DBID',                       column_type:   'NUMBER',    not_null: true },
+          { column_name:  'CON_ID',                         column_type:   'NUMBER' },
+        ],
+        primary_key: { columns: ['DBID', 'SNAP_ID', 'INSTANCE_NUMBER', 'STAT_ID', 'CON_DBID'], compress: 2 },
+      },
+      {
           table_name: 'Panorama_Tablespace',
           domain: :AWR,
           columns: [
