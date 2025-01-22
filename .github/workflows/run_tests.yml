@@ -119,7 +119,7 @@ jobs:
           echo "PANORAMA_VAR_HOME=$panorama_var_home" >> $GITHUB_ENV
           # Enable successful artifacts load even if dir is not created
           mkdir -p tmp/screenshots
-          JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+          JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
 
       - name: Check OS prerequisites

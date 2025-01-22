@@ -2443,4 +2443,9 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
    @statistics_levels = sql_select_all "SELECT * FROM gv$Statistics_Level"
    render_partial
   end
+
+  def list_database_properties
+    @properties = sql_select_all "SELECT * FROM Database_Properties ORDER BY Property_Name"
+    render_partial
+  end
 end # Class

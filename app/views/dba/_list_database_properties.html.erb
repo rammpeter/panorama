@@ -1,0 +1,17 @@
+<%
+  column_options = []
+  column_options << {caption: 'Property name',    data: proc{|rec| rec.property_name},    title: 'Property name'}
+  column_options << {caption: 'Property value',   data: proc{|rec| rec.property_value},   title: 'Property value'}
+  column_options << {caption: 'Description',      data: proc{|rec| rec.description},      title: 'Property description'}
+%>
+
+<%=
+  gen_slickgrid(@properties, column_options, {
+    :caption => "Content of Database_Properties",
+    :max_height => 450,
+    show_pin_icon: 1,
+  })
+%>
+
+
+
