@@ -174,7 +174,7 @@ class ApplicationController < ActionController::Base
 
     check_string = proc do |param_key, param_value|
       norm_param = CGI.unescapeHTML(param_value)                                # Unescape HTML entities, replace unicode entities like &#x70; or &#112; with characters
-      norm_param = norm_param.gsub(/<!--.*?-->/m, '')                           # Remove HTML comments
+      norm_param = norm_param.gsub(/<!--.*?-->/m, '').gsub(/<!--.*/m, '')       # Remove HTML comments even if they are split over multiple lines or are not closed
 
       norm_param = norm_param
                      .upcase
