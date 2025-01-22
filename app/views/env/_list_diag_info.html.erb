@@ -2,6 +2,7 @@
   @update_area = get_unique_area_id
 
   column_options = []
+  column_options << {caption: 'I',                data: proc{|rec| rec.inst_id},             title: "RAC instance number"} if PanoramaConnection.rac?
   column_options << {caption: 'Name',             data: proc{|rec| rec.name},                title: "Name of the info"}
   column_options << {caption: 'Value',            data: proc{|rec| rec.value},               title: "Describes the current state of the piece of data identified in the NAME column"}
   column_options << {caption: 'Con ID',           data: proc{|rec| fn(rec.con_id)},          title: "Container ID"} if get_db_version >= "12.1"

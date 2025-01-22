@@ -33,6 +33,7 @@ module MenuHelper
               {:class => 'item', :caption => 'DB options', :controller => :env, :action => :list_options, :hint => 'Show DB options from V$Option'},
               {:class => 'item', :caption => 'TNS services', :controller => :env, :action => :list_services, :hint => 'Show TNS services from DBA_Services'},
               {:class => 'item', :caption => 'Statistics level', :controller => :dba, :action => :list_statistics_level, :hint => 'Show system defaults for statistics level from gv$Statistics_Level'},
+              {:class => 'item', :caption => 'Diagnostic paths', :controller => :env, :action => :list_diag_info, :hint => 'Show info/paths from gv$Diag_Info'},
             ]
             },
             {:class => 'menu', :caption => 'User management', :content => [

@@ -36,6 +36,8 @@ gem 'jbuilder', '~> 2.7'
 # Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
+# 2025-01-22 concurrent-ruby 1.3.5 raises: NameError: uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger
+gem 'concurrent-ruby', '1.3.4'
 
 # gem 'activerecord-oracle_enhanced-adapter', github: "rsim/oracle-enhanced", branch: "release70"
 # gem 'activerecord-oracle_enhanced-adapter'

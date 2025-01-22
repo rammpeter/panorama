@@ -458,8 +458,14 @@ class EnvController < ApplicationController
   end
 
    def list_diag_info
-    @instance = prepare_param_instance
-    @diag_info = sql_select_all ["SELECT * FROM gv$Diag_Info WHERE Inst_ID = ?", @instance]
+    @instance = prepare_param_instance(allow_nil: true)
+    where_string = ''
+    where_values = []
+    if @instance
+      where_string << " WHERE Inst_ID = ?"
+      where_values << @instance
+    end
+    @diag_info = sql_select_all ["SELECT * FROM gv$Diag_Info #{where_string}"].concat(where_values)
     render_partial
   end
 
