@@ -108,7 +108,7 @@ jobs:
 
       - name: Get version numbers
         run: |
-          echo "JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`" >> $GITHUB_ENV
+          echo "JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`" >> $GITHUB_ENV
           echo JRUBY_VERSION=$JRUBY_VERSION
           PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
           echo "PANORAMA_VERSION=$PANORAMA_VERSION" >> $GITHUB_ENV
