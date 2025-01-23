@@ -1344,7 +1344,11 @@ FROM (
                       SELECT /*+ NO_MERGE*/ st.DBID, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID, ss.Max_Snap_ID,
                              Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
                       FROM   All_Snaps ss
-                      JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
+                      JOIN   (SELECT /*+ NO_MERGE */ DBID, Instance_Number, Snap_ID, Stat_ID, Value
+                              FROM   DBA_Hist_SysStat
+                              WHERE  Snap_ID >= (SELECT Min(Snap_ID) FROM All_Snaps) /* Ensure filter on Snap_ID works directly at table scan */
+                              AND    Snap_ID <= (SELECT Max(Snap_ID) FROM All_Snaps)
+                             ) st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
                       #{"JOIN v$StatName sn ON sn.Stat_ID = st.Stat_ID AND BITAND(sn.Class, #{@stat_class_bit.to_i}) = #{@stat_class_bit.to_i}" if @stat_class_bit}
                     ) hist
               WHERE  hist.Value >= 0    /* Ersten Snap nach Reboot ausblenden */

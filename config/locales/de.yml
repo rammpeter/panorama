@@ -1880,8 +1880,8 @@
   dragnet_helper_177_desc: |-
     Die Netzwerklatenz zwischen Client und Datenbankserver kann anhand der Anzahl der SQL-Ausführungen einer Sitzung zwischen zwei ASH-Snapshots geschätzt werden.
     Wenn eine Anwendung die gleiche, sehr kurz laufende SQL-Anfrage an die DB immer wieder in einer Schleife ausführt, dann:
-    - Es ist ein schlechter Architekturansatz für die Anwendung, da die Netzwerklatenz einen erheblichen Overhead für die Anwendungsleistung verursacht.
-    - Dieses Verhalten ermöglicht eine schwache Schätzung der Netzwerklatenz zwischen Client und Datenbankserver
+    - ist es ein schlechter Architekturansatz für die Anwendung, da die Netzwerklatenz einen erheblichen Overhead für die Anwendungsleistung verursacht.
+    - ermöglicht dieses Verhalten jedoch eine schwache Schätzung der Netzwerklatenz zwischen Client und Datenbankserver
     Angenommen, die Verarbeitungszeit in der Anwendung zwischen zwei DB-Aufrufen ist im Vergleich zur Netzwerklatenz und zur DB-Ausführungszeit sehr kurz,
     dann kann eine Zeitverzögerung durch die Zeit zwischen zwei SQL-Ausführungen abzüglich der durchschnittlichen SQL-Ausführungszeit auf der DB geschätzt werden.
     Diese Zeitverzögerung kann als die Zeit für die Netzwerklatenz für einen Round Trip plus die clientseitige Ausführungsvorbereitung (wie JDBC-Stack, Wertebindung usw.) betrachtet werden.

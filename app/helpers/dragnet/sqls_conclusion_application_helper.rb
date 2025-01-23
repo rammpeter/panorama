@@ -570,8 +570,8 @@ ORDER BY tc.Num_Distinct DESC
           :desc  => t(:dragnet_helper_177_desc, :default=>"\
 The network latency between client and database server can be estimated by the number of number of SQL executions of one session between two ASH snapshots.
 If an application executes the same very short running SQL against the DB over and over again in a loop, then:
-- It is a bad architecture approach for the application because the network latency will cause a significant overhead for application performance
-- This behavior gives a possibility for a weak estimation of the network latency between client and database server
+- it is a bad architecture approach for the application because the network latency will cause a significant overhead for application performance
+- however, this behavior gives a possibility for a weak estimation of the network latency between client and database server
 Assuming that the processing time in the application between two DB calls is very short compared to the network latency and DB execution time,
 then a time delay can be estimated by the time between two SQL executions minus the average SQL execution time at the DB.
 This time delay can be treated as the time for the network latency for a round trip plus the client side execution preparation (like JDBC stack, value binding etc.).
@@ -582,7 +582,7 @@ SELECT x.Inst_ID, u.UserName, x.Session_ID, x.Session_Serial# Serial_No, x.SQL_I
        x.Consecutive_ASH_Samples, x.Min_Sample_Time, x.Max_Sample_Time,
        x.Executions,
        ROUND(s.Elapsed_Time/1000.0 / DECODE(s.Executions, 0, 1, s.Executions), 3) Avg_SQL_Elapsed_ms_per_Exec,
-       ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions, 3) Avg_ms_between_two_exes,
+       ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions, 3) Avg_ms_between_two_executions,
        /* The time between two excutions - the avg. SQL execution time of this SQL */
        ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions -  s.Elapsed_Time/1000.0 / DECODE(s.Executions, 0, 1, s.Executions), 3) Avg_Network_and_app_Latency_ms
 FROM   (
