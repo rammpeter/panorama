@@ -581,10 +581,10 @@ This client side execution preparation should be constant and quite small compar
 SELECT x.Inst_ID, u.UserName, x.Session_ID, x.Session_Serial# Serial_No, x.SQL_ID, x.Machine, x.Module, x.Action,
        x.Consecutive_ASH_Samples, x.Min_Sample_Time, x.Max_Sample_Time,
        x.Executions,
-       ROUND(s.Elapsed_Time/1000.0 / DECODE(s.Executions, 0, 1, s.Executions), 3) Avg_SQL_Elapsed_ms_per_Exec,
+       ROUND(s.Elapsed_ms_per_Exec, 3) Avg_SQL_Elapsed_ms_per_Exec,
        ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions, 3) Avg_ms_between_two_executions,
        /* The time between two excutions - the avg. SQL execution time of this SQL */
-       ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions -  s.Elapsed_Time/1000.0 / DECODE(s.Executions, 0, 1, s.Executions), 3) Avg_Network_and_app_Latency_ms
+       ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions -  s.Elapsed_ms_per_Exec, 3) Avg_Network_and_App_Latency_ms
 FROM   (
         SELECT Inst_ID, Session_ID, Session_Serial#, User_ID,  SQL_ID, Machine, MIN(Module) Module, MIN(Action) Action,
                COUNT(*) Consecutive_ASH_Samples,
@@ -598,7 +598,6 @@ FROM   (
                         SELECT Sample_ID, Sample_Time, Inst_ID, User_ID, Session_ID, Session_Serial#, SQL_ID, SQL_Exec_ID, Machine, Module, Action,
                                LAG(SQL_ID,        1, 0) OVER (PARTITION BY Inst_ID, Session_ID, Session_Serial# ORDER BY Sample_Time) Prev_SQL_ID,
                                LAG(SQL_Exec_ID,   1, 0) OVER (PARTITION BY Inst_ID, Session_ID, Session_Serial# ORDER BY Sample_Time) Prev_SQL_Exec_ID,
-                               LEAD(SQL_Exec_ID,  1, 0) OVER (PARTITION BY Inst_ID, Session_ID, Session_Serial# ORDER BY Sample_Time) Next_SQL_Exec_ID,
                                LAG(Sample_ID,     1, 0) OVER (PARTITION BY Inst_ID, Session_ID, Session_Serial# ORDER BY Sample_Time) Prev_Sample_ID,
                                LEAD(Sample_ID,    1, 0) OVER (PARTITION BY Inst_ID, Session_ID, Session_Serial# ORDER BY Sample_Time) Next_Sample_ID
                         FROM   gv$Active_Session_History
@@ -614,12 +613,16 @@ FROM   (
         GROUP BY Inst_ID, Session_ID, Session_Serial#, User_ID,  SQL_ID, Machine, grp
         HAVING COUNT(*) > ? /* minimum result count to get valid statistic results */
        ) x
-JOIN   gv$SQLArea s ON s.Inst_ID = x.Inst_ID AND s.SQL_ID = x.SQL_ID
+JOIN   (SELECT Inst_ID, SQL_ID, Elapsed_Time/1000.0 / DECODE(Executions, 0, 1, Executions) Elapsed_ms_per_Exec
+        FROM   gv$SQLArea
+       ) s ON s.Inst_ID = x.Inst_ID AND s.SQL_ID = x.SQL_ID
 JOIN   All_Users u ON u.User_ID = x.User_ID
+WHERE  s.Elapsed_ms_per_Exec < ?
 ORDER BY Machine, Consecutive_ASH_Samples DESC
            ",
           parameter: [
             { name: t(:dragnet_helper_177_param_1_name, :default=>'Minimum number of consecutive ASH records within a session'), :size=>8, :default=>20, :title=>t(:dragnet_helper_177_param_1_hint, :default=>'The minimum number of consecutive ASH records with the same SQL_ID for a session to allow valid statistic considerations') },
+            { name: t(:dragnet_helper_177_param_2_name, :default=>'Maximum ms per execution for SQL'), :size=>8, :default=>50, :title=>t(:dragnet_helper_177_param_2_hint, :default=>'Maximum milliseconds per execution for the considered SQL to ensure that there are enough executions within on ASH cycle for plausible statistics') },
           ]
         },
     ]

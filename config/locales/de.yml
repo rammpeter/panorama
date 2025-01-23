@@ -1890,6 +1890,8 @@
   dragnet_helper_177_name:                                  Schätzung der Netzwerk-Latenz zwischen Client und Datenbank durch Auswertung der Active Session History
   dragnet_helper_177_param_1_hint:                          Die minimale Anzahl aufeinanderfolgender ASH-Records mit der selben SQL-ID innerhalb einer Session um valide statistische Betrachtungen zu erlauben
   dragnet_helper_177_param_1_name:                          Minimale Anzahl aufeinanderfolgender ASH-Records innerhalb einer Session
+  dragnet_helper_177_param_2_hint:                          Maximale Millisekunden je Execution für das betrachtete SQL um sicherzustellen, dass genügend Executions innerhalb des ASH-Zyklus stattfinden für plausible Statistiken
+  dragnet_helper_177_param_2_name:                          Maximale ms pro Execution für das SQL
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
