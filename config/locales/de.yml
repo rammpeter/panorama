@@ -587,6 +587,7 @@
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
   dragnet_helper_group_cascading_views:                     Views mit kaskadierenden Abhängigkeiten (mehrstufige Hierarchie)
+  dragnet_helper_group_conclusion_application_sql_issues:   SQL-Themen im Applikations-Kontext
   dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
   dragnet_helper_group_instance_setup_tuning:               Instance-Setup, Tuning und Monitoring
@@ -1876,6 +1877,19 @@
     Überblick über die TNS-Services und ihre Nutzung durch verbundene Sessions.
   dragnet_helper_176_name:                                  TNS-Service Nutzung nach Sessions
 
+  dragnet_helper_177_desc: |-
+    Die Netzwerklatenz zwischen Client und Datenbankserver kann anhand der Anzahl der SQL-Ausführungen einer Sitzung zwischen zwei ASH-Snapshots geschätzt werden.
+    Wenn eine Anwendung die gleiche, sehr kurz laufende SQL-Anfrage an die DB immer wieder in einer Schleife ausführt, dann:
+    - Es ist ein schlechter Architekturansatz für die Anwendung, da die Netzwerklatenz einen erheblichen Overhead für die Anwendungsleistung verursacht.
+    - Dieses Verhalten ermöglicht eine schwache Schätzung der Netzwerklatenz zwischen Client und Datenbankserver
+    Angenommen, die Verarbeitungszeit in der Anwendung zwischen zwei DB-Aufrufen ist im Vergleich zur Netzwerklatenz und zur DB-Ausführungszeit sehr kurz,
+    dann kann eine Zeitverzögerung durch die Zeit zwischen zwei SQL-Ausführungen abzüglich der durchschnittlichen SQL-Ausführungszeit auf der DB geschätzt werden.
+    Diese Zeitverzögerung kann als die Zeit für die Netzwerklatenz für einen Round Trip plus die clientseitige Ausführungsvorbereitung (wie JDBC-Stack, Wertebindung usw.) betrachtet werden.
+    Diese clientseitige Ausführungsvorbereitung sollte konstant und im Vergleich zur Netzwerklatenz recht klein sein, so dass wir die genannten Werte hauptsächlich als Netzwerklatenz annehmen können.
+
+  dragnet_helper_177_name:                                  Schätzung der Netzwerk-Latenz zwischen Client und Datenbank durch Auswertung der Active Session History
+  dragnet_helper_177_param_1_hint:                          Die minimale Anzahl aufeinanderfolgender ASH-Records mit der selben SQL-ID innerhalb einer Session um valide statistische Betrachtungen zu erlauben
+  dragnet_helper_177_param_1_name:                          Minimale Anzahl aufeinanderfolgender ASH-Records innerhalb einer Session
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

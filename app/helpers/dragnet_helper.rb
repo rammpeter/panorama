@@ -7,6 +7,7 @@ include ActiveSessionHistoryHelper
 
 # Liste der Rasterfahndungs-SQL
 include Dragnet::CascadingViewsHelper
+include Dragnet::ConclusionApplicationSqlIssuesHelper
 include Dragnet::DragnetSqlsLogwriterRedoHelper
 include Dragnet::DragnetSqlsLongRunningHelper
 include Dragnet::DragnetSqlsTuningSgaPgaHelper
@@ -134,6 +135,9 @@ module DragnetHelper
                                                 :entries => cascading_views
                                             }
                                ].concat(view_issues)
+                           },
+                           {   :name    => t(:dragnet_helper_group_conclusion_application_sql_issues, :default=>'SQL issues in application context'),
+                               :entries => conclusion_application_sql_issues
                            },
             ].concat(sqls_conclusion_application)
         },
