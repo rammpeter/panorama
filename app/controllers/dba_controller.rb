@@ -2450,18 +2450,74 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
   end
 
   def list_db_vault_realms
+    @realm_name = prepare_param :realm_name
+    where_string = ''
+    where_values = []
+    if @realm_name
+      where_string << "WHERE Name = ?"
+      where_values << @realm_name
+    end
+
     begin
-      @realms = sql_select_all "\
-        SELECT r.*
+      @realms = sql_select_all ["\
+        SELECT r.*, o.Object_Count, a.Auth_Count
         FROM   DBA_DV_REALM r
+        JOIN   (SELECT Realm_Name, COUNT(*) Object_Count
+                FROM   DBA_DV_REALM_OBJECT
+                GROUP BY Realm_Name
+               ) o ON o.Realm_Name = r.Name
+        JOIN   (SELECT Realm_Name, COUNT(*) Auth_Count
+                FROM   DBA_DV_REALM_AUTH
+                GROUP BY Realm_Name
+               ) a ON a.Realm_Name = r.Name
+        #{where_string}
         ORDER BY r.Name
-      "
+      "].concat(where_values)
     rescue Exception => e
-      if e.message['ORA-01031']
-        show_popup_message("Access on view 'DBA_DV_REALM' not possible. You need the DV_SECANALYST role or similar for access!")
-      else
-        raise e
-      end
+      e.message['ORA-01031'] ? show_popup_message("Access on view 'DBA_DV_REALM' not possible. You need the DV_SECANALYST role or similar for access!") : raise(e)
+    end
+    render_partial
+  end
+
+  def list_db_vault_objects
+    @realm_name = prepare_param :realm_name
+    where_string = ''
+    where_values = []
+    if @realm_name
+      where_string << "WHERE Realm_Name = ?"
+      where_values << @realm_name
+    end
+
+    begin
+      @objects = sql_select_all ["\
+        SELECT *
+        FROM  DBA_DV_REALM_OBJECT
+        #{where_string}
+        ORDER BY Realm_Name, Owner, Object_Name
+      "].concat(where_values)
+    rescue Exception => e
+      e.message['ORA-01031'] ? show_popup_message("Access on view 'DBA_DV_REALM' not possible. You need the DV_SECANALYST role or similar for access!") : raise(e)
+    end
+    render_partial
+  end
+
+  def list_db_vault_auths
+    @realm_name = prepare_param :realm_name
+    where_string = ''
+    where_values = []
+    if @realm_name
+      where_string << "WHERE Realm_Name = ?"
+      where_values << @realm_name
+    end
+    begin
+      @auths = sql_select_all ["\
+        SELECT *
+        FROM  DBA_DV_REALM_AUTH
+        #{where_string}
+        ORDER BY Realm_Name, Grantee
+      "].concat(where_values)
+    rescue Exception => e
+      e.message['ORA-01031'] ? show_popup_message("Access on view 'DBA_DV_REALM' not possible. You need the DV_SECANALYST role or similar for access!") : raise(e)
     end
     render_partial
   end

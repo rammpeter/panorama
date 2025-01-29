@@ -1,0 +1,28 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_column_realm_name = proc do |rec|
+    ajax_link(rec.realm_name, {
+      action:       :list_db_vault_realms,
+      realm_name:   rec.realm_name,
+      update_area:  @update_area
+    }, title: "Show realm #{rec.realm_name} from DBA_DV_REALM")
+  end
+
+  column_options = []
+  column_options << {caption: 'Realm name',     data: link_column_realm_name,           title: 'Name of DB vault realm'}
+  column_options << {caption: 'Object',         data: proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name)}, title: 'Object owner and name'}
+  column_options << {caption: 'Object type',    data: proc{|rec| rec.object_type},     title: 'Type of object'}
+%>
+
+<%=
+  gen_slickgrid(@objects, column_options, {
+    :caption => "DB vault objects from DBA_DV_Object#{" for realm '#{@realm_name}'" if @realm_name}",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+  })
+%>
+
+
+

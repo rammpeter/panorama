@@ -1,0 +1,41 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_column_realm_name = proc do |rec|
+    ajax_link(rec.realm_name, {
+      action:       :list_db_vault_realms,
+      realm_name:   rec.realm_name,
+      update_area:  @update_area
+    }, title: "Show realm #{rec.realm_name} from DBA_DV_REALM")
+  end
+
+  link_column_grantee = proc do |rec|
+    # TODO: distinguish between user and role
+    ajax_link(rec.grantee, {
+      controller:   :dba_schema,
+      action:       :list_db_users,
+      username:     rec.grantee,
+      update_area:  @update_area
+    }, title: "Show user info for '#{rec.grantee}'")
+  end
+
+  column_options = []
+  column_options << {caption: 'Realm name',     data: link_column_realm_name,             title: 'Name of DB vault realm'}
+  column_options << {caption: 'Grantee',        data: link_column_grantee,                title: 'Grantee name'}
+  column_options << {caption: 'Rule set',       data: proc{|rec| rec.auth_rule_set_name}, title: "Rule set to check before authorizing.\nIf the rule set evaluates to TRUE, then the authorization is allowed."}
+  column_options << {caption: 'Auth. options',  data: proc{|rec| rec.auth_options},       title: "Type of realm authorization: either Participant or Owner."}
+  column_options << {caption: 'Common auth.',   data: proc{|rec| rec.common_auth},        title: "Type of realm authorization: either Participant or Owner."}
+  column_options << {caption: 'Inherited auth.',data: proc{|rec| rec.inherited_auth},     title: "Shows the inheritance status of the realm authorization, when the COMMON_AUTH column output is YES. Values are as follows:\n\nYES means that the realm authorization was defined in another container that is higher in the hierarchy of the container tree, and inherited in this container when the Database Vault policy was applied.\n\nNO means that the realm authorization is local, or it is common from that container. For example, in an application root, an application common realm will have an INHERITED_AUTH value NO but a CDB root common command rule will have an INHERITED_AUTH value of YES."}
+%>
+
+<%=
+  gen_slickgrid(@auths, column_options, {
+    :caption => "DB vault authentications from DBA_DV_Auth#{" for realm '#{@realm_name}'" if @realm_name}",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+  })
+%>
+
+
+

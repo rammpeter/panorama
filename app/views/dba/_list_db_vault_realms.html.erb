@@ -1,6 +1,23 @@
 <%
   @update_area = get_unique_area_id
 
+  link_column_object_count = proc do |rec|
+    ajax_link(fn(rec.object_count), {
+      action:       :list_db_vault_objects,
+      realm_name:   rec.name,
+      update_area:  @update_area
+    }, title: "Show objects for realm #{rec.name} from DBA_DV_REALM_OBJECT")
+  end
+
+  link_column_auth_count = proc do |rec|
+    ajax_link(fn(rec.auth_count), {
+      action:       :list_db_vault_auths,
+      realm_name:   rec.name,
+      update_area:  @update_area
+    }, title: "Show authentications for realm #{rec.name} from DBA_DV_REALM_AUTH")
+  end
+
+
   column_options = []
   column_options << {caption: 'ID',             data: proc{|rec| fn(rec['id#'])},       title: 'The ID number of the realm, which is automatically generated when the realm is created', align: :right}
   column_options << {caption: 'Name',           data: proc{|rec| rec.name},             title: 'Name of DB vault realm'}
@@ -12,11 +29,13 @@
   column_options << {caption: 'Enabled',        data: proc{|rec| rec.enabled},          title: "Possible values are as follows:\nY indicates that realm checking is enabled\nN indicates it is disabled\nS indicates the realm is in simulation mode"}
   column_options << {caption: 'Oracle supplied',data: proc{|rec| rec.oracle_supplied},  title: "Indicates whether the realm is a default (that is, Oracle-supplied) realm or a user-created command rule. Possible values are:\nYES if the realm is a default realm\nNO if the realm is a user-created realm"}
   column_options << {caption: 'PL/SQL stack',   data: proc{|rec| rec.pl_sql_stack},     title: 'When simulation mode is enabled, indicates whether the PL/SQL stack has been recorded for failed operations. TRUE indicates that the PL/SQL stack has been recorded; FALSE indicates that the PL/SQL stack has not been recorded.'}
+  column_options << {caption: 'Objects',        data: link_column_object_count,         title: 'Number of objects for this realm in DBA_DV_REALM_OBJECT', align: :right}
+  column_options << {caption: 'Authentications',data: link_column_auth_count,           title: 'Number of authentications for this realm in DBA_DV_REALM_AUTH', align: :right}
 %>
 
 <%=
   gen_slickgrid(@realms, column_options, {
-    :caption => "DB vault realms from DBA_DV_Realm",
+    :caption => "DB vault realms from DBA_DV_Realm#{" for realm '#{@realm_name}'" if @realm_name}",
     :max_height => 450,
     show_pin_icon: 1,
     update_area:   @update_area
