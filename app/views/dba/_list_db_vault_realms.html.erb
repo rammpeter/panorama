@@ -1,0 +1,27 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << {caption: 'ID',             data: proc{|rec| fn(rec['id#'])},       title: 'The ID number of the realm, which is automatically generated when the realm is created', align: :right}
+  column_options << {caption: 'Name',           data: proc{|rec| rec.name},             title: 'Name of DB vault realm'}
+  column_options << {caption: 'Description',    data: proc{|rec| rec.description},      title: 'Description of DB vault realm'}
+  column_options << {caption: 'Audit options',  data: proc{|rec| rec.audit_options},    title: "Specifies whether auditing is enabled. Possible values are:\n0: No auditing for the realm.\n1: Creates an audit record when a realm violation occurs (for example, when an unauthorized user tries to modify an object that is protected by the realm).\n2: Creates an audit record for authorized activities on objects protected by the realm.\n3: Creates an audit record for both authorized and unauthorized activities on objects protected by the realm.", align: :right}
+  column_options << {caption: 'Realm type',     data: proc{|rec| rec.realm_type},       title: "Type of realm: whether it is a regular realm or a mandatory realm."}
+  column_options << {caption: 'Common',         data: proc{|rec| rec.common},           title: "For a multitenant environment, indicates whether the realm is local or common. Possible values are:\nYES if the realm is common\nNO if the realm is local"}
+  column_options << {caption: 'Inherited',      data: proc{|rec| rec.inherited},        title: "Shows the inheritance status of the realm, when the COMMON column output is YES. Values are as follows:\n\nYES means that the realm was defined in another container that is higher in the hierarchy of the container tree, and inherited in this container when the Database Vault policy was synced during the synchronization process of applications in an application PDB.\n\nNO means that the realm is a local object, or it is common from that container. For example, in an application root, an application common realm will have an INHERITED value NO but a CDB root common command rule will have an INHERITED value of YES."}
+  column_options << {caption: 'Enabled',        data: proc{|rec| rec.enabled},          title: "Possible values are as follows:\nY indicates that realm checking is enabled\nN indicates it is disabled\nS indicates the realm is in simulation mode"}
+  column_options << {caption: 'Oracle supplied',data: proc{|rec| rec.oracle_supplied},  title: "Indicates whether the realm is a default (that is, Oracle-supplied) realm or a user-created command rule. Possible values are:\nYES if the realm is a default realm\nNO if the realm is a user-created realm"}
+  column_options << {caption: 'PL/SQL stack',   data: proc{|rec| rec.pl_sql_stack},     title: 'When simulation mode is enabled, indicates whether the PL/SQL stack has been recorded for failed operations. TRUE indicates that the PL/SQL stack has been recorded; FALSE indicates that the PL/SQL stack has not been recorded.'}
+%>
+
+<%=
+  gen_slickgrid(@realms, column_options, {
+    :caption => "DB vault realms from DBA_DV_Realm",
+    :max_height => 450,
+    show_pin_icon: 1,
+    update_area:   @update_area
+  })
+%>
+
+
+

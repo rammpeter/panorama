@@ -2448,4 +2448,21 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
     @properties = sql_select_all "SELECT * FROM Database_Properties ORDER BY Property_Name"
     render_partial
   end
+
+  def list_db_vault_realms
+    begin
+      @realms = sql_select_all "\
+        SELECT r.*
+        FROM   DBA_DV_REALM r
+        ORDER BY r.Name
+      "
+    rescue Exception => e
+      if e.message['ORA-01031']
+        show_popup_message("Access on view 'DBA_DV_REALM' not possible. You need the DV_SECANALYST role or similar for access!")
+      else
+        raise e
+      end
+    end
+    render_partial
+  end
 end # Class
