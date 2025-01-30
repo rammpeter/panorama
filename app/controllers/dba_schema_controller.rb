@@ -2912,13 +2912,16 @@ class DbaSchemaController < ApplicationController
     group_time_sql = "CAST (Event_Timestamp AS DATE)" if grouping == 'SS'
 
     audits = sql_select_all ["\
+                   WITH UAT AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+                                FROM   Unified_Audit_Trail
+                                WHERE  1=1 #{where_string}
+                               )
                    SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *
                    FROM   (SELECT #{group_time_sql} Begin_Timestamp,
                                   MAX(Event_Timestamp)+1/1440 Max_Timestamp,  -- auf naechste ganze Minute aufgerundet
                                   UserHost, OS_UserName, DBUserName, Action_Name, Instance_ID,
                                   COUNT(*)         Audits
-                                  FROM   Unified_Audit_Trail
-                                  WHERE  1=1 #{where_string}
+                                  FROM   UAT
                                   GROUP BY #{group_time_sql}, UserHost, OS_UserName, DBUserName, Action_Name, Instance_ID
                           )
                    ORDER BY Begin_Timestamp, Audits
