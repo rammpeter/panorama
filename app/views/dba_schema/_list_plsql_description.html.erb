@@ -6,7 +6,7 @@
       {:caption=> 'Created',          :data=>proc{|rec| localeDateTime(rec.created)},          :title=> 'Timestamp of object creation'},
       {:caption=> 'Last DDL',         :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},    :title=> 'Timestamp of last DDL operation on object'},
       { caption: 'Spec. TS',          data: proc{|rec| localeDateTime(rec.spec_ts)},           title: "Timestamp for the last specification change of the object" },
-      {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects'},
+      {:caption=> 'Status',           :data=>proc{|rec| rec.status},                           :title=> 'Status of object in DBA_Objects', data_style: proc{|rec| "background-color: orange;" if rec.status != 'VALID'}},
       { caption: 'Opt. level',        data: proc{|rec| rec.plsql_optimize_level},             title: 'Optimization level that was used to compile the object'},
       { caption: 'Code type',         data: proc{|rec| rec.plsql_code_type},                  title: 'Compilation mode for the object'},
       { caption: 'Debug',             data: proc{|rec| rec.plsql_debug},                      title: 'Indicates whether the object was compiled with debug information or not'},

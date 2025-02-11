@@ -13,7 +13,7 @@
       {caption: 'Creation date',          data: proc{|rec| localeDateTime(rec.created)},        title: 'Timestamp for the creation of the object'},
       {caption: 'Last DDL time',          data: proc{|rec| localeDateTime(rec.last_ddl_time)},  title: 'Timestamp for the last modification of the object and dependent objects resulting from a DDL statement (including grants and revokes)'},
       {caption: 'Last spec. change',      data: proc{|rec| localeDateTime(rec.spec_ts)},        title: 'Timestamp of last specification change of the object'},
-      {caption: 'Status',                 data: proc{|rec| rec.status},                         title: 'Status of the object'},
+      {caption: 'Status',                 data: proc{|rec| rec.status},                         title: 'Status of the object', data_style: proc{|rec| "background-color: orange;" if rec.status != 'VALID'}},
       {caption: 'Temp.',                  data: proc{|rec| rec.temporary},                      title: 'Indicates whether the object is temporary (the current session can see only data that it placed in this object itself) (Y) or not (N)'},
       {caption: 'Gen.',                   data: proc{|rec| rec.generated},                      title: 'Indicates whether the name of this object was system-generated (Y) or not (N)'},
       {caption: 'Sec.',                   data: proc{|rec| rec.secondary},                      title: 'Indicates whether this is a secondary object created by the ODCIIndexCreate method of the Oracle Data Cartridge (Y) or not (N)'},

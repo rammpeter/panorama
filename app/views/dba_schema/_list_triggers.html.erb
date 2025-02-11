@@ -27,6 +27,7 @@
                     {:caption=> 'Created',            :data=>proc{|rec| localeDateTime(rec.created)},        :title=> 'Timestamp of trigger creation'},
                     {:caption=> 'Last DDL',           :data=>proc{|rec| localeDateTime(rec.last_ddl_time)},  :title=> 'Timestamp of last DDL operation on trigger'},
                     { caption: 'Spec. TS',            data: proc{|rec| localeDateTime(rec.spec_ts)},         title: "Timestamp for the last specification change of the trigger" },
+                    { caption: 'Status',              data: proc{|rec| rec.status},             title: "Status from DBA_Objects", data_style: proc{|rec| "background-color: orange;" if rec.status != 'VALID'}},
             ]
   column_options << {:caption=> 'Cross edition',        :data=>proc{|rec| rec.crossedition},        :title=> "Type of crossedition trigger:\nFORWARD\nREVERSE\nNO"}                             if get_db_version >= '11.2'
   column_options << {:caption=> 'Before statement',     :data=>proc{|rec| rec.before_statement},    :title=> "Indicates whether the trigger has a BEFORE STATEMENT section (YES) or not (NO)"}  if get_db_version >= '11.2'
