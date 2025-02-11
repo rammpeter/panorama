@@ -819,20 +819,20 @@ class DbaSgaController < ApplicationController
   def list_sga_components
     @instance        = prepare_param_instance
     @sums = sql_select_all ["\
-      SELECT s.Inst_ID, s.Pool, s.Bytes, NULL Parameter, r.Resize_Ops
+      SELECT s.Inst_ID, s.Pool, s.Bytes, NULL Parameter, r.Resize_Ops#{", s.Con_ID" if get_db_version >= '12.1'}
       FROM   (
-              SELECT /*+ NO_MERGE */ Inst_ID, NVL(Pool, Name) Pool, sum(Bytes) Bytes
+              SELECT /*+ NO_MERGE */ Inst_ID, NVL(Pool, Name) Pool, sum(Bytes) Bytes#{", Con_ID" if get_db_version >= '12.1'}
               FROM   gv$sgastat
               #{@instance ? "WHERE  Inst_ID = ?" : ""}
-              GROUP BY Inst_ID, NVL(Pool, Name)
+              GROUP BY Inst_ID, NVL(Pool, Name)#{", Con_ID" if get_db_version >= '12.1'}
              ) s
       LEFT OUTER JOIN (
-              SELECT Inst_ID, Component, COUNT(*) Resize_Ops
-              FROM   (SELECT Inst_ID, CASE WHEN Component LIKE '%buffer cache' THEN 'buffer_cache' ELSE Component END Component
+              SELECT Inst_ID, Component, COUNT(*) Resize_Ops#{", Con_ID" if get_db_version >= '12.1'}
+              FROM   (SELECT Inst_ID, CASE WHEN Component LIKE '%buffer cache' THEN 'buffer_cache' ELSE Component END Component#{", Con_ID" if get_db_version >= '12.1'}
                       FROM   gv$SGA_Resize_Ops
                      )
-              GROUP BY Inst_ID, Component
-             ) r ON r.Inst_ID = s.Inst_ID AND r.Component = s.Pool
+              GROUP BY Inst_ID, Component#{", Con_ID" if get_db_version >= '12.1'}
+             ) r ON r.Inst_ID = s.Inst_ID AND r.Component = s.Pool#{" AND r.Con_ID = s.Con_ID" if get_db_version >= '12.1'}
       ORDER BY s.Bytes DESC
       ", @instance]
 
@@ -850,11 +850,7 @@ class DbaSgaController < ApplicationController
     end
 
     @components = sql_select_iterator ["\
-      SELECT /* Panorama-Tool Ramm */
-        Inst_ID,
-        Pool,                                                   
-        Name,                                                   
-        Bytes
+      SELECT *
       FROM GV$SGAStat
       #{@instance ? "WHERE  Inst_ID = ?" : ""}
       ORDER BY Bytes DESC", @instance]
@@ -923,10 +919,14 @@ class DbaSgaController < ApplicationController
       GROUP BY x.Inst_ID, x.Status
       ", @instance]
 
+    total = { status: 'Total', mb_total: 0, blocks: 0}.extend(SelectHashHelper)
     @total_status_blocks = 0                  # Summation der Blockanzahl des Caches
-    @db_cache_global_sums.each do |c|
-      @total_status_blocks += c.blocks
+    @db_cache_global_sums.each do |s|
+      total[:mb_total]  += s.mb_total
+      total[:blocks]    += s.blocks
+      @total_status_blocks += s.blocks
     end
+    @db_cache_global_sums << total
 
 
     # Konkrete Objekte im Cache

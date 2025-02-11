@@ -14,12 +14,16 @@
 
 <!-- Tabelle mit Summen -->
 <%
-column_options =
+  total_data_style = proc do |rec|
+    "font-weight:bold;" if rec.status == "Total"
+  end
+
+  column_options =
 [
-  {:caption=>"Status",        :data=>proc{|rec| rec.status },               :title=>'Status', :data_title=>proc{|rec| stati[rec.status]}},
-  {:caption=>"Size (MB)",     :data=>proc{|rec| fn(rec.mb_total, 3)},       :title=>'Size in MBytes',       :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.mb_total)}"}},
-  {:caption=>"Blocks",        :data=>proc{|rec| fn(rec.blocks)},            :title=>'Number of DB blocks',  :align=>:right},
-  {:caption=>"%",             :data=>proc{|rec| fn(rec.blocks*100.0/@total_status_blocks,2)},:title=>"Percentage of total cache", :align=>:right },
+  {:caption=>"Status",        :data=>proc{|rec| rec.status },               :title=>'Status', :data_title=>proc{|rec| stati[rec.status]}, data_style: total_data_style},
+  {:caption=>"Size (MB)",     :data=>proc{|rec| fn(rec.mb_total, 3)},       :title=>'Size in MBytes',       :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.mb_total)}"}, data_style: total_data_style},
+  {:caption=>"Blocks",        :data=>proc{|rec| fn(rec.blocks)},            :title=>'Number of DB blocks',  :align=>:right, data_style: total_data_style},
+  {:caption=>"%",             :data=>proc{|rec| fn(rec.blocks*100.0/@total_status_blocks,2)},:title=>"Percentage of total cache", :align=>:right, data_style: total_data_style},
 ]
 %>
 <%= gen_slickgrid(@db_cache_global_sums, column_options, {:caption =>t(:dba_sga_list_db_cache_summary_caption, :default=>'Summary'), :max_height=>450, :width=>:auto}) %>

@@ -40,6 +40,7 @@ column_options =
   {:caption=>"Parameter",   :data=>proc{|rec| rec.parameter},                                      :title=>"Corresponding initialization parameter of instance"},
   {:caption=>'Resize ops.', :data=>link_resize_ops,                                                :title=>"Number of resize operations (from gv$SGA_Resize_Ops)", align: :right},
 ]
+  column_options << { caption: 'Con. ID', data: proc{|rec| fn(rec.con_id)}, title: "PDB container ID ", align: :right} if get_db_version >= '12.1'
 
 %>
 <div class="flex-row-element">
@@ -75,7 +76,7 @@ column_options =
   {:caption=>"MBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024).to_f,2)},      :title=>"Size of the component in SGA  in megabytes",    :align=>"right"},
   {:caption=>"GBytes",:data=>proc{|rec| formattedNumber(rec.bytes/(1024*1024*1024).to_f,2)}, :title=>"Size of the component in SGA  in gigabytes",    :align=>"right"},
 ]
-
+   column_options << { caption: 'Con. ID', data: proc{|rec| fn(rec.con_id)}, title: "PDB container ID ", align: :right} if get_db_version >= '12.1'
 %>
   <div class="flex-row-element">
 <%= gen_slickgrid(@components, column_options, {
