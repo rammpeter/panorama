@@ -31,6 +31,7 @@ WITH
   Views AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, View_Name
             FROM   DBA_Views
             WHERE  Owner NOT IN (#{system_schema_subselect})
+            #{" AND Owner IN (SELECT UserName FROM DBA_Users) /* Exclude APEX_xxx etc. */" if PanoramaConnection.autonomous_database?}
            ),
   Dependencies AS (SELECT /*+ NO_MERGE MATERIALIZE */ Referenced_Owner, Referenced_Name, COUNT(*) References
                    FROM   DBA_Dependencies
