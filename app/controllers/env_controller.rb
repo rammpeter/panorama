@@ -158,6 +158,7 @@ class EnvController < ApplicationController
 
       @version_info[0][:client_info]        = "JDBC connect string = \"#{PanoramaConnection.jdbc_thin_url}\""
       @version_info[1][:client_info]        = "JDBC driver version = \"#{PanoramaConnection.get_jdbc_driver_version}\""
+      @version_info[1][:client_info_title]  = "\nJDBC driver path = #{PanoramaConnection.get_jdbc_driver_path}"
       @version_info[2][:client_info]        = "Java client time zone = \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZone.get_default.get_display_name}"
       @version_info[3][:client_info]        = "DB client time zone = \"#{@database_info.sessiontimezone}\""
       @version_info[3][:client_info_title]  = "\n#{client_nls_info}"

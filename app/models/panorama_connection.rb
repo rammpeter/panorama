@@ -498,6 +498,13 @@ class PanoramaConnection
     e.message                                                                   # return Exception message instead of raising exeption
   end
 
+  def self.get_jdbc_driver_path
+    get_jdbc_raw_connection.getClass.getProtectionDomain.getCodeSource.getLocation.getPath
+  rescue Exception => e
+    e.message                                                                   # return Exception message instead of raising exeption
+  end
+
+
   # Get the warnings of the current JDBC connection
   # @return [String] the warnings of the current JDBC connection
   def self.get_connection_warnings

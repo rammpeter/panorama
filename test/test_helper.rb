@@ -88,6 +88,7 @@ class ActiveSupport::TestCase
       $first_log_written = true
       puts "Database version    = #{@db_version}"
       puts "JDBC driver version = #{PanoramaConnection.get_jdbc_driver_version}"
+      puts "JDBC driver path    = #{PanoramaConnection.get_jdbc_driver_path}"
       begin
         PanoramaConnection.sql_execute "PURGE RECYCLEBIN"
       rescue Exception=>e
