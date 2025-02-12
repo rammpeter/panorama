@@ -21,7 +21,7 @@
       <%=
         gen_slickgrid(@audits, column_options, {
           :caption    => 'Active auditing rules from DBA_Stmt_Audit_Opts',
-          :max_height => 450,
+          :max_height => 250,
           :width      => :auto,
           show_pin_icon: 3
         })
@@ -57,7 +57,7 @@
       <%=
         gen_slickgrid(@obj_audit_opts, column_options, {
           :caption    => 'Active auditing rules from DBA_Obj_Audit_Opts',
-          :max_height => 450,
+          :max_height => 250,
           :width      => :auto,
           show_pin_icon: 3
         })
@@ -105,7 +105,7 @@
       <%=
         gen_slickgrid(@fga_policies, column_options, {
           :caption    => 'FGA policies from DBA_Audit_Policies',
-          :max_height => 450,
+          :max_height => 250,
           :width      => :auto,
           show_pin_icon: 3
         })
@@ -113,41 +113,65 @@
     </div>
   <% end %>
 
-  <% if get_db_version >= '12.2' && @audit_unified_enabled_policies.count > 0 %>
-    <div class="flex-row-element">
-      <%
-        link_policy_count = proc do |rec|
-          ajax_link(fn(rec.policy_count), {
-            action:       :list_audit_unified_policies,
-            policy_name:  rec.policy_name,
-            object_type:  @object_type,
-            owner:        @owner,
-            object_name:  @object_name,
-            update_area:  @update_area
-          }, title: "Show the #{fn(rec.policy_count)} policies from Audit_Unified_Policies" )
-        end
-        column_options =
-          [
-            {caption: 'Policy',         data: proc{|rec| rec.policy_name },                           title: 'Name of the audit policy'},
-            {caption: 'Enabled option', data: proc{|rec| rec.enabled_option},                         title: "Enabled option of the audit policy. Possible values:\nBY USER: For policies that are enabled on users\nEXCEPT USER: For policies that are enabled on users\nBY GRANTED ROLE: For policies that are enabled on roles\nINVALID: For policies that are not enabled on either users or roles\nNO: Not enabled on any user or role (Records in Audit_Unified_Policies only)"},
-            {caption: 'Entity name',    data: proc{|rec| rec.entity_name},                            title: "Database entity (user name or role name) on which the audit policy is enabled.\nWhen an audit policy is enabled on all database users, ALL USERS is displayed in this column."},
-            {caption: 'Entity type',    data: proc{|rec| rec.entity_type},                            title: "Database entity type. Possible values:\nUSER: Indicates that the policy is enabled on a user or users.\nROLE: Indicates that the policy is enabled on a role or roles."},
-            {caption: 'Success',        data: proc{|rec| rec.success},                                title: 'Indicates whether the audit policy is enabled for auditing successful events (YES) or not (NO)'},
-            {caption: 'Failure',        data:  proc{|rec| rec.failure},                               title: 'Indicates whether the audit policy is enabled for auditing unsuccessful events (YES) or not (NO)'},
-            {caption: 'Policy count',   data:  link_policy_count,                                     title: 'Number of unified audit policies in Audit_Unified_Policies', align: :right},
-            {caption: 'Comment',        data:  proc{|rec| rec.comments},                              title: 'Comment from  Audit_Unified_Policy_Comments'},
-          ]
-      %>
+  <% if get_db_version >= '12.2' %>
+    <% if  @audit_unified_enabled_policies.count > 0 %>
+      <div class="flex-row-element">
+        <%
+          link_policy_count = proc do |rec|
+            ajax_link(fn(rec.policy_count), {
+              action:       :list_audit_unified_policies,
+              policy_name:  rec.policy_name,
+              object_type:  @object_type,
+              owner:        @owner,
+              object_name:  @object_name,
+              update_area:  @update_area
+            }, title: "Show the #{fn(rec.policy_count)} policies from Audit_Unified_Policies" )
+          end
+          column_options =
+            [
+              {caption: 'Policy',         data: proc{|rec| rec.policy_name },                           title: 'Name of the audit policy'},
+              {caption: 'Enabled option', data: proc{|rec| rec.enabled_option},                         title: "Enabled option of the audit policy. Possible values:\nBY USER: For policies that are enabled on users\nEXCEPT USER: For policies that are enabled on users\nBY GRANTED ROLE: For policies that are enabled on roles\nINVALID: For policies that are not enabled on either users or roles\nNO: Not enabled on any user or role (Records in Audit_Unified_Policies only)"},
+              {caption: 'Entity name',    data: proc{|rec| rec.entity_name},                            title: "Database entity (user name or role name) on which the audit policy is enabled.\nWhen an audit policy is enabled on all database users, ALL USERS is displayed in this column."},
+              {caption: 'Entity type',    data: proc{|rec| rec.entity_type},                            title: "Database entity type. Possible values:\nUSER: Indicates that the policy is enabled on a user or users.\nROLE: Indicates that the policy is enabled on a role or roles."},
+              {caption: 'Success',        data: proc{|rec| rec.success},                                title: 'Indicates whether the audit policy is enabled for auditing successful events (YES) or not (NO)'},
+              {caption: 'Failure',        data:  proc{|rec| rec.failure},                               title: 'Indicates whether the audit policy is enabled for auditing unsuccessful events (YES) or not (NO)'},
+              {caption: 'Policy count',   data:  link_policy_count,                                     title: 'Number of unified audit policies in Audit_Unified_Policies', align: :right},
+              {caption: 'Comment',        data:  proc{|rec| rec.comments},                              title: 'Comment from  Audit_Unified_Policy_Comments'},
+            ]
+        %>
 
-      <%=
-        gen_slickgrid(@audit_unified_enabled_policies, column_options, {
-          :caption    => 'Unified audit policies from Audit_Unified_Enabled_Policies',
-          :max_height => 450,
-          :width      => :auto,
-          show_pin_icon: 3
-        })
-      %>
-    </div>
+        <%=
+          gen_slickgrid(@audit_unified_enabled_policies, column_options, {
+            :caption    => 'Unified audit policies from Audit_Unified_Enabled_Policies',
+            :max_height => 250,
+            :width      => :auto,
+            show_pin_icon: 3
+          })
+        %>
+      </div>
+    <% end %>
+
+    <% if  @audit_unified_contexts.count > 0 %>
+      <div class="flex-row-element">
+        <%
+          column_options =
+            [
+              {caption: 'Namespace ',     data: proc{|rec| rec.namespace },            title: 'Application context namespace'},
+              {caption: 'Attribute',      data: proc{|rec| rec.attribute},             title: "Application context attribute"},
+              {caption: 'User name',      data: proc{|rec| rec.user_name},             title: "Username of database user for whom the application context's attribute is confiured to be captured in the audit trail"},
+            ]
+        %>
+
+        <%=
+          gen_slickgrid(@audit_unified_contexts, column_options, {
+            :caption    => 'Additional application context attributes from Audit_Unified_Contexts',
+            :max_height => 250,
+            :width      => :auto,
+            show_pin_icon: 3
+          })
+        %>
+      </div>
+    <% end %>
   <% end %>
 
 </div>

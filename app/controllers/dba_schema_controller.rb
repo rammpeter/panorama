@@ -2569,6 +2569,8 @@ class DbaSchemaController < ApplicationController
         LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
         #{"LEFT OUTER " if @object_type.nil?}JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
         ORDER BY p.Policy_Name"].concat(where_values)
+
+      @audit_unified_contexts = sql_select_all "SELECT * FROM Audit_Unified_Contexts ORDER BY Namespace, Attribute, User_Name"
     end
     render_partial
   end
