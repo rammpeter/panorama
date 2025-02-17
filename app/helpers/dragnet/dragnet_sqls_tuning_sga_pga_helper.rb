@@ -211,10 +211,10 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
             :desc  => t(:dragnet_helper_3_12_desc, :default=> 'Detection of non-optimal or incompatible database parameters'),
             :sql=>  "SELECT /* DB-Tools Ramm DB-Parameter */
                              Inst_ID, Name, Value, 'Value should be 0 if cursor_sharing is used because lookup to session cached cursors is done before converting literals to bind variables' Description
-                      FROM   gv$System_Parameter p
+                      FROM   #{PanoramaConnection.system_parameter_table} p
                       WHERE  Name = 'session_cached_cursors'
                       AND    Value != '0'
-                      AND    EXISTS (SELECT 1 FROM gv$System_Parameter pi WHERE pi.Inst_ID=p.Inst_ID AND pi.Name='cursor_sharing' AND pi.value!='EXACT' )
+                      AND    EXISTS (SELECT 1 FROM #{PanoramaConnection.system_parameter_table} pi WHERE pi.Inst_ID=p.Inst_ID AND pi.Name='cursor_sharing' AND pi.value!='EXACT' )
                      ",
         },
     ]

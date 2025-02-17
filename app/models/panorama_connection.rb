@@ -181,8 +181,8 @@ class PanoramaConnection
     db_config   = PanoramaConnection.direct_select_one(@jdbc_connection,
                   "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID, v.Edition,
                           CASE WHEN d.Platform_Name LIKE '%64%' THEN 8 ELSE 4 END                                                              db_wordsize,
-                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM v$System_Parameter WHERE Name = 'db_block_size'), 8192)       db_blocksize,
-                          NVL((SELECT /*+ NO_MERGE */ Value FROM v$System_Parameter WHERE Name = 'cluster_database'), 'FALSE')            cluster_database,
+                          NVL((SELECT /*+ NO_MERGE */ TO_NUMBER(Value) FROM #{system_parameter_table[1..-1]} WHERE Name = 'db_block_size'), 8192)       db_blocksize,
+                          NVL((SELECT /*+ NO_MERGE */ Value FROM #{system_parameter_table[1..-1]} WHERE Name = 'cluster_database'), 'FALSE')            cluster_database,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KCBH')                                                         Block_Common_Header_Size,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'UB4')                                                          Unsigned_Byte_4_Size,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KTBBH')                                                        Transaction_Fixed_Header_Size,
@@ -284,6 +284,17 @@ class PanoramaConnection
       end
     end
     @autonomous_database
+  end
+
+  # @return [String] the name of the system parameter table to use
+  def system_parameter_table
+    if !defined?(@system_parameter_table) || @system_parameter_table.nil?
+      @system_parameter_table = 'GV$System_Parameter'                           # Default if no other need
+      if PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Value FROM v$System_Parameter WHERE Name = 'cpu_count'")['value'].nil?
+        @system_parameter_table = 'GV$Parameter'                                # Use gv$Parameter if v$System_Parameter has empty values (e.g. for autonomous DB)
+      end
+    end
+    @system_parameter_table
   end
 
   # Select PDBs each time they are requested because number of PDBs may change during lifetime of PanoramaConnection
@@ -444,6 +455,7 @@ class PanoramaConnection
   def self.saddr;                           check_for_open_connection;        Thread.current[:panorama_connection_connection_object].saddr;                             end
   def self.serial_no;                       check_for_open_connection;        Thread.current[:panorama_connection_connection_object].serial_no;                         end
   def self.sid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].sid;                               end
+  def self.system_parameter_table;          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].system_parameter_table;            end
   # @return [Time] Time on DB-Server in his default timezone, but flagged with the time zone of the Panorama server
   def self.db_systime;                      check_for_open_connection;        Time.now + Thread.current[:panorama_connection_connection_object].time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection;        Thread.current[:panorama_connection_connection_object].stat_id_consistent_gets;           end

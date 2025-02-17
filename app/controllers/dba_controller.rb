@@ -633,7 +633,7 @@ oradebug setorapname diag
                                         Display_Value,
                                         IsDefault,
                                         ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
-                                 FROM  gv$System_Parameter
+                                 FROM  #{PanoramaConnection.system_parameter_table}
                                 ) v ON v.Instance = i.Instance AND v.ID = i.ID+1
                )
         WHERE 1=1 #{where_string}
@@ -643,7 +643,7 @@ oradebug setorapname diag
     rescue Exception
       if @option.nil?
         @hint = "Access rights on tables X$KSPPI and X$KSPPSV are possibly missing!</br>
-  Therefore only documented parameters from GV$System_Parameter are shown.</br></br>
+  Therefore only documented parameters from #{PanoramaConnection.system_parameter_table} are shown.</br></br>
 
   Possible solution to show underscore parameters also: Execute the following as user 'SYS':</br>
   &nbsp;&nbsp;  create view X_$KSPPI as select * from X$KSPPI;</br>
@@ -667,7 +667,7 @@ oradebug setorapname diag
                        Display_Value,
                        IsDefault,
                        ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
-                 FROM  gv$System_Parameter
+                 FROM  #{PanoramaConnection.system_parameter_table}
                 )
         WHERE 1=1 #{where_string}
         ORDER BY Name, Instance"].concat(where_values)

@@ -172,15 +172,15 @@ class EnvController < ApplicationController
 
 
       system_parameter_sql = if  get_db_version >= '12.1'
-                               # Ensure uniqueness of parameter names, because GV$System_Parameter may contain parameter names for each container
+                               # Ensure uniqueness of parameter names, because #{PanoramaConnection.system_parameter_table} may contain parameter names for each container
                                # Use the parameter of the current container if exists, otherwise use the parameter of the CDB (0)
-                               "SELECT Inst_ID, Name, Value FROM GV$System_Parameter p0
+                               "SELECT Inst_ID, Name, Value FROM #{PanoramaConnection.system_parameter_table} p0
                                 WHERE Con_ID = 0
-                                AND   NOT EXISTS (SELECT 1 FROM GV$System_Parameter pi WHERE pi.Inst_ID = p0.Inst_ID AND pi.Name = p0.Name AND pi.Con_ID = SYS_CONTEXT('USERENV', 'CON_ID'))
+                                AND   NOT EXISTS (SELECT 1 FROM #{PanoramaConnection.system_parameter_table} pi WHERE pi.Inst_ID = p0.Inst_ID AND pi.Name = p0.Name AND pi.Con_ID = SYS_CONTEXT('USERENV', 'CON_ID'))
                                 UNION ALL
-                                SELECT Inst_ID, Name, Value FROM GV$System_Parameter WHERE Con_ID = SYS_CONTEXT('USERENV', 'CON_ID')"
+                                SELECT Inst_ID, Name, Value FROM #{PanoramaConnection.system_parameter_table} WHERE Con_ID = SYS_CONTEXT('USERENV', 'CON_ID')"
                              else
-                               "SELECT Inst_ID, Name, Value FROM GV$System_Parameter"
+                               "SELECT Inst_ID, Name, Value FROM #{PanoramaConnection.system_parameter_table}"
                              end
       nls_parameters_sql = if  get_db_version >= '12.1'
                              "SELECT Inst_ID, Parameter, Value FROM gv$NLS_Parameters p0
@@ -735,7 +735,7 @@ private
 
   # @return [String] NONE | DIAGNOSTIC | DIAGNOSTIC+TUNING
   def read_control_management_pack_access
-    pack = sql_select_one "SELECT Value FROM V$System_Parameter WHERE name='control_management_pack_access'"
+    pack = sql_select_one "SELECT Value FROM #{PanoramaConnection.system_parameter_table[1..-1]} WHERE name='control_management_pack_access'"
     if pack.nil?
       if PanoramaConnection.autonomous_database?
         pack = 'DIAGNOSTIC+TUNING' # 'control_management_pack_access' is not set in autonomous databases, but license is included

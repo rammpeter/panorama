@@ -266,7 +266,7 @@ END Panorama_Sampler_Snapshot;
     INSERT INTO panorama_owner.Panorama_Parameter (SNAP_ID, DBID, INSTANCE_NUMBER, PARAMETER_HASH, PARAMETER_NAME, VALUE, ISDEFAULT, ISMODIFIED, CON_DBID, CON_ID
     ) SELECT p_Snap_ID, p_DBID, p_Instance, Hash, Name, Value, ISDEFAULT, ISMODIFIED,
              #{PanoramaConnection.db_version >= '12.1' ? "panorama_owner.Con_DBID_From_Con_ID.Get(Con_ID), Con_ID" : "p_DBID, 0"}
-      FROM   v$System_Parameter
+      FROM   #{PanoramaConnection.system_parameter_table[1..-1]}
     ;
     COMMIT;
   END Snap_Parameter;

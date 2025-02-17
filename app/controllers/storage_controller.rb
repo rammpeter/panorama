@@ -64,7 +64,7 @@ class StorageController < ApplicationController
       AND    lf.Is_Recovery_Dest_File = 'NO'  /* Count only redo logs outside FRA separate */
       "
 
-    @fra_size_bytes = sql_select_one("SELECT Value FROM v$System_Parameter WHERE Name='db_recovery_file_dest_size'").to_i
+    @fra_size_bytes = sql_select_one("SELECT Value FROM #{PanoramaConnection.system_parameter_table[1..-1]} WHERE Name='db_recovery_file_dest_size'").to_i
     #@flashback_log = sql_select_first_row "SELECT * FROM v$Flashback_Database_Log"
     @fra_usage = sql_select_all "SELECT * FROM v$Flash_Recovery_Area_Usage WHERE Percent_Space_Used > 0 ORDER BY Percent_Space_Used DESC"
 
@@ -668,14 +668,14 @@ class StorageController < ApplicationController
              SUM(DECODE(Status, 'UNEXPIRED', Bytes, 0))/(1024*1024) Size_MB_UnExpired,
              SUM(DECODE(Status, 'EXPIRED',   Bytes, 0))/(1024*1024) Size_MB_Expired,
              SUM(DECODE(Status, 'ACTIVE',    Bytes, 0))/(1024*1024) Size_MB_Active,
-             (SELECT Inst_ID FROM gv$System_Parameter p WHERE Name='undo_tablespace' AND p.Value = e.Tablespace_Name) Inst_ID
+             (SELECT Inst_ID FROM #{PanoramaConnection.system_parameter_table} p WHERE Name='undo_tablespace' AND p.Value = e.Tablespace_Name) Inst_ID
       FROM   DBA_UNDO_Extents e
       GROUP BY Owner, Tablespace_Name
       ORDER BY SUM(Bytes) DESC")
 
     @undo_segments = sql_select_iterator("\
       SELECT /* Panorama-Tool Ramm */ r.*, i.Owner Extent_Owner, i.Size_MB, i.Size_MB_UnExpired, i.Size_MB_Expired, i.Size_MB_Active, t.Transactions
-             --,(SELECT Inst_ID FROM gv$System_Parameter p WHERE Name='undo_tablespace' AND p.Value = i.Tablespace_Name) Inst_ID
+             --,(SELECT Inst_ID FROM #{PanoramaConnection.system_parameter_table} p WHERE Name='undo_tablespace' AND p.Value = i.Tablespace_Name) Inst_ID
       FROM   DBA_Rollback_Segs r
       LEFT OUTER JOIN (SELECT Owner, Segment_Name, Tablespace_Name,
                               SUM(Bytes)/(1024*1024) Size_MB,
