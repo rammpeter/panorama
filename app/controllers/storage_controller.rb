@@ -1320,10 +1320,9 @@ class StorageController < ApplicationController
     @cells = sql_select_all "\
       SELECT d.Cell_Hash, c.Cell_Path, c.Cell_Name
       FROM   (SELECT /*+ NO_MERGE */ DISTINCT Cell_Hash FROM DBA_Hist_Cell_DB) d
-      LEFT OUTER JOIN (SELECT CellHash, CellName Cell_Path,
-                       CAST(extract(xmltype(confval), '/cli-output/cell/name/text()')  AS VARCHAR2(200)) Cell_Name
-                       FROM   v$Cell_Config
-                       WHERE  ConfType = 'CELL'
+      LEFT OUTER JOIN (SELECT distinct CellHash, CellName Cell_Path,
+                              CAST(extract(xmltype(confval), '/cli-output/cell/name/text()')  AS VARCHAR2(200)) Cell_Name
+                       FROM   DBA_Hist_Cell_Config where ConfType = 'CELL'
                       ) c ON c.CellHash = d.Cell_Hash
       ORDER BY c.Cell_Name
     "
