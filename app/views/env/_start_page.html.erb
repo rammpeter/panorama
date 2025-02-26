@@ -59,7 +59,6 @@
       column_options << { caption: "S. L.",             data: supplemental_logging_data,                    title: "Supplemental logging settings for Log Miner, Golden Gate etc., table-specific config is shown by DBA_LOG_GROUPS", data_title: supplemental_logging_data_title}
       column_options << { caption: "Flash back",        data: proc{|rec| rec.flashback_on },                title: "Is Flashback Database available for this database"}
       column_options << { caption: "Fast start failover status", data: proc{|rec| rec.fs_failover_status }, title: "Current fast-start failover status of this database", data_title: fs_failover_status_data_title}
-      column_options << { caption: "Force log.",        data: proc{|rec| rec.force_logging },               title: "Indicates whether the database is under force logging mode (YES) or not (NO)"}
       column_options << { caption: "AWR interval",      data: proc{|rec| fn(rec.snap_interval_minutes) },   title: "Interval in minutes for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
       column_options << { caption: "AWR retention",     data: proc{|rec| fn(rec.snap_retention_days) },     title: "Retention in days for AWR-snapshots\nValues are hidden if you did not acknowledge licensing of Diagnostic Pack yet", :align=>:right}
       column_options << { caption: 'CDB',               data: proc{|rec| rec.cdb },                         title: 'Is this database a container DB (PDB)?', :align=>:right}  if get_db_version >= '12.1'
