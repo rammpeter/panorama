@@ -121,7 +121,7 @@
         <script type="application/javascript" nonce="<%= request.content_security_policy_nonce %>">
             $(function(){ initialize_combobox_filter('saved_logins_id', 'saved_logins_id_filter'); })
         </script>
-        <%= hidden_field_tag('browser_tab_id', @browser_tab_id) %>
+        <%= hidden_field_tag('browser_tab_id', @browser_tab_id, id: 'browser_tab_id_saved') %>
         <%= submit_tag t(:login_submit_caption, :default=>"Login"), :name => "login", style: "width: 12%", :title => t(:login_saved_login_title, :default=>"Login with selected saved credentials"), :disabled=>(last_logins.length==0) %>
         <%= submit_tag t(:login_saved_delete_caption, :default=>"Delete"), :name => "delete", style: "width: 12%", :title => t(:login_saved_delete_title, :default=>"Delete selected saved login information"), data: { confirm: t(:login_saved_delete_confirmation, :default=>"Do you really want to delete this saved login credential?") }, :disabled=>(last_logins.length==0) %>
       </div>
@@ -220,7 +220,7 @@
       </tr>
       <tr>
         <td colspan="2" align="center">
-          <%= hidden_field_tag('browser_tab_id', @browser_tab_id) %>
+          <%= hidden_field_tag('browser_tab_id', @browser_tab_id, id: 'browser_tab_id_new') %>
           <%= submit_tag t(:login_submit_caption, :default=>"Login"), :id => "submit_login_dialog" %>
         </td>
       </tr>
