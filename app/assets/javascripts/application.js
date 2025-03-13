@@ -63,7 +63,9 @@ function supportsES6() {
         return true;
     }
     catch (err) {
-        console.log('supportsES6: ' + err);
+        let message = 'Browser does not support ES6: '+err;
+        console.log(message);
+        alert(message);
         return false;
     }
 };

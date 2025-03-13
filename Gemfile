@@ -73,6 +73,7 @@ group :development do
   #gem 'date'
 
   # gem 'jarbler', :git => 'https://github.com/rammpeter/jarbler.git', branch: 'pramm'
+  # gem 'jarbler', github: 'rammpeter/jarbler', branch: 'pramm'
   gem 'jarbler'
   gem 'brakeman'
 
