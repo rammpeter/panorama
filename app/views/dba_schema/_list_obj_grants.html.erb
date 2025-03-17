@@ -4,13 +4,7 @@
   link_grantee = proc do |rec|
     case rec.grantee_type
     when 'USER' then
-      ajax_link(rec.grantee,
-                {action:      :list_db_users,
-                 username:    rec.grantee,
-                 update_area: @update_area,
-                },
-                title: "Show details for user '#{rec.grantee}'"
-      )
+      link_username(@update_area, rec.grantee)
     when 'ROLE' then
       ajax_link(rec.grantee,
                 {action:      :list_roles,
@@ -23,24 +17,13 @@
     end
   end
 
-  link_grantor = proc do |rec|
-    ajax_link(rec.grantor,
-              {action:      :list_db_users,
-               username:    rec.grantor,
-               update_area: @update_area,
-              },
-              title: "Show details for user '#{rec.grantor}'"
-    )
-  end
-
-
   column_options = []
   column_options << {caption: 'Grantee',      data: link_grantee,                             title: 'Name of the user or role receiving the grant'}
   column_options << {caption: 'Grantee type', data: proc{|rec| rec.grantee_type},             title: 'Type of grantee'}
   column_options << {caption: 'Owner',        data: proc{|rec| rec.owner},                    title: 'Owner of the object'}
   column_options << {caption: 'Object name',  data: proc{|rec| link_object_description(@update_area, rec.owner, rec.table_name, rec.table_name)},               title: 'Name of the object. The object can be any object, including tables, packages, indexes, sequences, and so on.'}
   column_options << {caption: 'Object type',  data: proc{|rec| rec.type},                     title: 'Type of the object'} if get_db_version >= '12.1'
-  column_options << {caption: 'Grantor',      data: link_grantor,                             title: 'Name of the user who performed the grant'}
+  column_options << {caption: 'Grantor',      data: proc{|rec| link_username(@update_area, rec.grantor)}, title: 'Name of the user who performed the grant'}
   column_options << {caption: 'Privilege',    data: proc{|rec| rec.privilege},                title: "Granted object privilege"}
   column_options << {caption: 'Grantable',    data: proc{|rec| rec.grantable},                title: "Indicates whether the privilege was granted with the GRANT OPTION (YES) or not (NO)"}
   column_options << {caption: 'Hierarchy',    data: proc{|rec| rec.hierarchy},                title: "Indicates whether the privilege was granted with the HIERARCHY OPTION (YES) or not (NO)"}

@@ -1,0 +1,30 @@
+<% @update_area = get_unique_area_id
+
+   show_quota = proc do |rec|
+     if rec.max_bytes == -1
+       'UNLIMITED'
+     else
+       fn(rec.max_bytes.to_f / (1024*1024)) if !rec.max_bytes.nil?
+     end
+   end
+
+   show_charged = proc do |rec|
+     fn(rec.bytes.to_f / (1024*1024)) if !rec.bytes.nil?
+   end
+
+   column_options = []
+   column_options << {caption: 'User name',    data: proc{|rec| link_username(@update_area, rec.username)},    title: 'Name of user'}
+   column_options << {caption: 'Tablespace',   data: proc{|rec| rec.tablespace_name},     title: "Name of tablespace"}
+   column_options << {caption: "Quota (MB)",   data: show_quota,                          title: "Maximum quota in tablespace for this schema in MB", data_title: proc{|rec| "%t\n#{size_explain((rec.max_bytes.to_f / (1024*1024) rescue nil)) if rec.max_bytes != -1 && !rec.max_bytes.nil?}"}, align: :right}
+   column_options << {caption: "Charged (MB)", data: show_charged,                        title: "MB charged for quota in tablespace for this schema from DBA_TS_QUOTAS", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes.to_f / (1024*1024) rescue nil)) if !rec.bytes.nil?}"}, align: :right}
+%>
+
+<%= gen_slickgrid(@quotas,
+                  column_options,
+                  { caption: "Tablespace quotas for user from DBA_TS_Quotas",
+                    max_height: 450,
+                    show_pin_icon: 1,
+                    update_area: @update_area
+                  }
+    )
+%>

@@ -9,19 +9,11 @@
     }, title: "Show realm #{rec.realm_name} from DBA_DV_REALM")
   end
 
-  link_column_grantee = proc do |rec|
-    # TODO: distinguish between user and role
-    ajax_link(rec.grantee, {
-      controller:   :dba_schema,
-      action:       :list_db_users,
-      username:     rec.grantee,
-      update_area:  @update_area
-    }, title: "Show user info for '#{rec.grantee}'")
-  end
+ # TODO: distinguish between user and role
 
   column_options = []
   column_options << {caption: 'Realm name',     data: link_column_realm_name,             title: 'Name of DB vault realm'}
-  column_options << {caption: 'Grantee',        data: link_column_grantee,                title: 'Grantee name'}
+  column_options << {caption: 'Grantee',        data: proc{|rec| link_username(@update_area, rec.grantee) }, title: 'Grantee name'}
   column_options << {caption: 'Rule set',       data: proc{|rec| rec.auth_rule_set_name}, title: "Rule set to check before authorizing.\nIf the rule set evaluates to TRUE, then the authorization is allowed."}
   column_options << {caption: 'Auth. options',  data: proc{|rec| rec.auth_options},       title: "Type of realm authorization: either Participant or Owner."}
   column_options << {caption: 'Common auth.',   data: proc{|rec| rec.common_auth},        title: "Type of realm authorization: either Participant or Owner."}

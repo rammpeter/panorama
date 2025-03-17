@@ -403,6 +403,11 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test 'list ts quotas' do
+    post '/dba_schema/list_ts_quotas', params: {format: :html, username: 'SYS' }
+    assert_response :success
+  end
+
   test 'list roles' do
     # call without parameters is tested as first level menu entry
     post '/dba_schema/list_roles', params: {format: :html, role: 'CONNECT' }

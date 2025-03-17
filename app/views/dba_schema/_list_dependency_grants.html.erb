@@ -4,12 +4,7 @@
   link_grantee = proc do |rec|
     case rec.grantee_type
     when 'USER' then
-      ajax_link(rec.grantee, {
-        action:       :list_db_users,
-        username:     rec.grantee,
-        update_area:  @update_area
-      }, title: "Show user details"
-      )
+      link_username(@update_area, rec.grantee)
     when 'ROLE' then
       ajax_link(rec.grantee, {
         action:       :list_roles,

@@ -58,19 +58,22 @@ class DbaSchemaController < ApplicationController
                                        Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, COUNT(*) Object_Cnt
                                                    FROM   DBA_Objects
                                                    GROUP BY Owner
-                                                  )
+                                                  ),
+                                       Quotas AS (SELECT /*+ NO_MERGE MATERIALIZE */ Username, COUNT(*) Quota_Cnt FROM DBA_TS_Quotas GROUP BY UserName)
                                   SELECT u.*,
                                          NVL(p.Granted_Roles, 0)      Granted_Roles,
                                          NVL(s.Privilege_Cnt,0)       Privilege_Cnt,
                                          NVL(t.Obj_Grants,0)          Obj_Grants,
                                          NVL(gt.Granted_Obj_Grants,0) Granted_Obj_Grants,
-                                         NVL(o.Object_Cnt, 0)         Object_Cnt
+                                         NVL(o.Object_Cnt, 0)         Object_Cnt,
+                                         NVL(q.Quota_Cnt, 0)          Quota_Cnt
                                   FROM   Users u
-                                  LEFT OUTER JOIN Role_Privs p ON p.Grantee = u.UserName
-                                  LEFT OUTER JOIN Tab_Privs t ON t.Grantee = u.UserName
-                                  LEFT OUTER JOIN Granted_Tab_Privs gt ON gt.Grantor = u.UserName
-                                  LEFT OUTER JOIN Sys_Privs s ON s.Grantee = u.UserName
-                                  LEFT OUTER JOIN Objects o ON o.Owner = u.UserName
+                                  LEFT OUTER JOIN Role_Privs p          ON p.Grantee  = u.UserName
+                                  LEFT OUTER JOIN Tab_Privs t           ON t.Grantee  = u.UserName
+                                  LEFT OUTER JOIN Granted_Tab_Privs gt  ON gt.Grantor = u.UserName
+                                  LEFT OUTER JOIN Sys_Privs s           ON s.Grantee  = u.UserName
+                                  LEFT OUTER JOIN Objects o             ON o.Owner    = u.UserName
+                                  LEFT OUTER JOIN Quotas q              ON q.UserName = u.UserName
                                   ORDER BY u.UserName
                                  "].concat(where_values)
     render_partial
@@ -332,6 +335,14 @@ class DbaSchemaController < ApplicationController
         data_title: proc{|rec| "#{title}\nResource type = '#{rec[key][:resource_type]}'\nCommon = '#{rec[key][:common]}'\nInherited = '#{rec[key][:inherited]}'\nImplicit = '#{rec[key][:implicit]}'"}
       }
     end)
+
+    render_partial
+  end
+
+  def list_ts_quotas
+    @username = prepare_param :username
+
+    @quotas = sql_select_iterator ["SELECT * FROM DBA_TS_Quotas WHERE UserName = ?", @username]
 
     render_partial
   end

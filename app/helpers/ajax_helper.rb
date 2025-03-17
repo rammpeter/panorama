@@ -279,6 +279,17 @@ module AjaxHelper
     )
   end
 
+  def link_username(update_area, username)
+    ajax_link(username,
+              { controller: :dba_schema,
+                action:      :list_db_users,
+                username:     username,
+                update_area: update_area,
+              },
+              title: "Show details for user '#{username}'"
+    )
+
+  end
   def link_current_or_historic_sql_id(update_area, instance, sql_id, time_selection_start, time_selection_end, parsing_schema_name=nil, con_id=nil)
     unique_id = get_unique_area_id
     prefix = "Show details in SGA or AWR history for SQL-ID = '#{sql_id}'#{", Instance = #{instance}" if instance}"

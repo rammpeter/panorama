@@ -61,6 +61,16 @@
     )
   end
 
+  link_quotas = proc do |rec|
+    ajax_link(fn(rec.quota_cnt),
+              {action:      :list_ts_quotas,
+               username:     rec.username,
+               update_area: @update_area,
+              },
+              title: "Show tablespace quotas of user '#{rec.username}'"
+    )
+  end
+
   render_action_buttons = proc do |rec|
     retval =
       "<div style=\"float:left\">#{
@@ -91,7 +101,7 @@
   column_options << {caption: 'Auth. type',   data: proc{|rec| rec.authentication_type},      title: 'Indicates the authentication mechanism for the user'}
   column_options << {caption: 'Cm.',          data: proc{|rec| rec.common},                   title: 'Indicates whether a given user is common'} if get_db_version >= '12.1'
   column_options << {caption: 'Orcl. maint.',data: proc{|rec| rec.oracle_maintained},        title: "Denotes whether the user was created, and is maintained, by Oracle-supplied scripts (such as catalog.sql or catproc.sql).\nA user for which this column has the value Y must not be changed in any way except by running an Oracle-supplied script."} if get_db_version >= '12.1'
-  column_options << {caption: 'Pr. o.',       data: proc{|rec| rec.proxy_only_connect},       title: 'Indicates whether a user can connect directly (N) or whether the account can only be proxied (Y) by users who have proxy privileges for this account (that is, by users who have been granted the "connect through" privilege for this account).'} if get_db_version >= '12.1'
+  column_options << {caption: 'Pr. o.',       data: proc{|rec| rec.proxy_only_connect},       title: "Proxy only connect\nIndicates whether a user can connect directly (N) or whether the account can only be proxied (Y) by users who have proxy privileges for this account (that is, by users who have been granted the \"connect through\" privilege for this account)."} if get_db_version >= '12.1'
   column_options << {caption: 'Last login',   data: proc{|rec| localeDateTime(rec.last_login)},title: 'The time of the last user login.'} if get_db_version >= '12.1'
   column_options << {caption: 'Inh.',         data: proc{|rec| rec.inherited},                title: "Indicates whether the user definition was inherited from another container (YES) or not (NO)"} if get_db_version >= '12.2'
   column_options << {caption: 'Default collation', data: proc{|rec| rec.default_collation},   title: "Default collation for the user’s schema"} if get_db_version >= '12.2'
@@ -102,7 +112,8 @@
   column_options << {caption: 'Object privs', data: link_obj_grants,                          title: 'Number of object privileges granted to this user', align: :right}
   column_options << {caption: 'System privs', data: link_privileges,                          title: 'Number of system privileges granted this user', align: :right}
   column_options << {caption: 'Granted object privs', data: link_granted_obj_privs,           title: 'Number of object privileges granted to others by this user', align: :right}
-  column_options << {caption: 'DB objects',   data: link_objects,                             title: 'Number of DB objects owned by this user', align: :right}
+  column_options << {caption: 'DB obj.',      data: link_objects,                             title: 'Number of DB objects owned by this user', align: :right}
+  column_options << {caption: 'TS quot.',     data: link_quotas,                              title: 'Number of tablespace quotas for this user', align: :right}
   column_options << {caption: 'Action',       data: render_action_buttons,                    title: 'Call action for this user'}
 %>
 
