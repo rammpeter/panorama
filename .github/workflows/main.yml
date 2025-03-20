@@ -50,10 +50,12 @@ jobs:
   test_23_5-free_PDB:  { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "23.5.0.24-free",  container: "PDB", max_parallel: 4 }, secrets: "inherit"}
 
   await_tests:
+    runs-on: ubuntu-latest
     needs: [test_autonomous_PDB, test_11_2-ee, test_12_1-ee, test_12_2-ee_CDB, test_12_2-ee_PDB, test_18_4-xe_CDB, test_19_10-ee_PDB, test_19_10-se2_CDB, test_19_10-se2_PDB, test_21_3-ee_CDB, test_21_3-ee_PDB, test_21_3-se2_CDB, test_21_3-se2_PDB]
     steps:
       - name: Proceed
         run: echo "Proceed with build if all tests passed"
+
   build_docker:
     runs-on: self-hosted
     needs: awaits_tests
