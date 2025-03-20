@@ -58,7 +58,7 @@ jobs:
 
   build_docker:
     runs-on: self-hosted
-    needs: awaits_tests
+    needs: await_tests
     steps:
       - name: Check out code
         uses: actions/checkout@v2
