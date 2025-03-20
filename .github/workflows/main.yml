@@ -145,7 +145,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         java: ['11', '21']
     runs-on: ${{ matrix.os }}
-    # needs: build_jar
+    needs: build_jar
     steps:
       - uses: actions/setup-java@v3
         with:
