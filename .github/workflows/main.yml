@@ -137,11 +137,20 @@ jobs:
           name: Panorama.jar
           path: Panorama.jar
 
+
+  test_jar:
+    runs-on: self-hosted
+    needs: build_jar
+    steps:
       - name: Test Panorama.jar
         run: |
           echo "Test Panorama.jar"
           test/test_panorama_jar.sh
 
+  deploy_jar:
+    runs-on: self-hosted
+    needs: test_jar
+    steps:
       - name: Final deploy Panorama.jar
         run: |
           # Ensure that exit code != 0 does not stop the build
@@ -177,4 +186,3 @@ jobs:
           else
             echo "Release with version $PANORAMA_VERSION already exists, no deployment"
           fi          
-
