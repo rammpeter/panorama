@@ -147,11 +147,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     # needs: build_jar
     steps:
-      - name: Set JDK
-        uses: actions/setup-java@v3
+      - uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: false # runs 'bundle install' and caches installed gems automatically
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -159,7 +163,7 @@ jobs:
       - name: Test Panorama.jar
         run: |
           echo "Test Panorama.jar"
-          test/test_panorama_jar.sh
+          ruby test/test_panorama_jar.rb
 
   deploy_jar:
     runs-on: self-hosted

@@ -1,5 +1,6 @@
 # Test the Panorama jar file
 # Should be started in RAILS_ROOT directory
+# TODO: remove after replacement with ruby file
 
 # raise error if file does not exist
 if [ ! -f "Panorama.jar" ]; then
