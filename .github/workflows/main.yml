@@ -51,7 +51,9 @@ jobs:
 
   await_tests:
     needs: [test_autonomous_PDB, test_11_2-ee, test_12_1-ee, test_12_2-ee_CDB, test_12_2-ee_PDB, test_18_4-xe_CDB, test_19_10-ee_PDB, test_19_10-se2_CDB, test_19_10-se2_PDB, test_21_3-ee_CDB, test_21_3-ee_PDB, test_21_3-se2_CDB, test_21_3-se2_PDB]
-
+    steps:
+      - name: Proceed
+        run: echo "Proceed with build if all tests passed"
   build_docker:
     runs-on: self-hosted
     needs: awaits_tests
