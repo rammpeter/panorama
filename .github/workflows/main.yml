@@ -139,9 +139,23 @@ jobs:
 
 
   test_jar:
-    runs-on: self-hosted
-    needs: build_jar
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java: ['11', '21']
+    runs-on: matrix.os
+    # needs: build_jar
     steps:
+      - name: Set JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: matrix.java
+          distribution: 'temurin'
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
       - name: Test Panorama.jar
         run: |
           echo "Test Panorama.jar"
