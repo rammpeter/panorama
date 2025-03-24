@@ -102,7 +102,7 @@ Rails.application.configure do
     console_logger = ActiveSupport::Logger.new(STDOUT)
     console_logger.formatter = config.log_formatter
     tagged_console_logger = ActiveSupport::TaggedLogging.new(console_logger)
-    file_logger = ActiveSupport::Logger.new( Rails.root.join("log", Rails.env + ".log" ), 5 , 10*1024*1024 )  # max. 50 MB logfile ( 5 files á 10 MB)
+    file_logger = ActiveSupport::Logger.new( Rails.root.join("log", Rails.env + ".log" ), 5 , 10*1024*1024 )  # max. 50 MB logfile ( 5 files with 10 MB)
     file_logger.formatter = config.log_formatter
     combined_logger = tagged_console_logger.extend(ActiveSupport::Logger.broadcast(file_logger))
     config.logger = combined_logger
