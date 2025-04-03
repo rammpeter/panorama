@@ -87,14 +87,14 @@ function useIndicator(url){
     ));
 }
 
-function showIndicator(url) {
+async function showIndicator(url) {
     if (useIndicator(url)){                                          // Unterdrücken der Anzeige Indikator
         indicator_call_stack_depth = indicator_call_stack_depth + 1;
         jQuery("#ajax_indicator").dialog("open");
     }
 }
 
-function hideIndicator(url) {
+async function hideIndicator(url) {
     if (useIndicator(url)) {                                          // Unterdrücken des Löschens des Indikator
         indicator_call_stack_depth = indicator_call_stack_depth - 1;
         if (indicator_call_stack_depth < 0)
@@ -159,7 +159,7 @@ function register_tooltip(jquery_object){
 
 
 // DOM-Tree auf doppelte ID's testen
-function check_dom_for_duplicate_ids() {
+async function check_dom_for_duplicate_ids() {
     var idDictionary = {};
     jQuery('[id]').each(function() {
         idDictionary[this.id] === undefined ? idDictionary[this.id] = 1 : idDictionary[this.id] ++;
@@ -319,9 +319,7 @@ function bind_ajax_callbacks() {
             showIndicator(ajaxOptions.url);
         })
         .ajaxComplete(function(event, jqXHR, ajaxOptions){
-            //check_dom_for_duplicate_ids();        // nur relevant fuer Debugging-Zwecke
-
-
+            check_dom_for_duplicate_ids();        // nur relevant fuer Debugging-Zwecke
             hideIndicator(ajaxOptions.url);
         })
         .ajaxError(function(event, jqXHR, ajaxSettings, thrownError){

@@ -573,7 +573,7 @@ oradebug setorapname diag
 
     raise "Unsupported option #{@option}" if !@option.nil? && !option_names.has_key?(@option)
 
-    @caption = "#{t(:dba_oracle_parameter_caption, :default=>'Init-parameter of database')}#{" relevant for #{@option}" if @option}"
+    @caption = "#{t(:dba_oracle_parameter_caption, :default=>'Init-parameter of database')} from #{PanoramaConnection.system_parameter_table}#{" relevant for #{@option}" if @option}"
 
     @reduced_columns = params[:reduced_columns] == 'true'
 

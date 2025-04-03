@@ -261,6 +261,8 @@ class DbaSchemaController < ApplicationController
       where_values << @profile
     end
 
+    mandatory_profile = sql_select_one "SELECT value FROM #{PanoramaConnection.system_parameter_table} WHERE name = 'mandatory_user_profile'"
+
     profiles = sql_select_all ["SELECT p.*, u.User_Count
                                 FROM   DBA_Profiles p
                                 LEFT OUTER JOIN   (SELECT /*+ NO_MERGE */ Profile, COUNT(*) User_Count
@@ -291,6 +293,10 @@ class DbaSchemaController < ApplicationController
       value
     end
 
+    @profiles.each do |p|
+      p[:mandatory] = (p[:profile] == mandatory_profile ? 'YES' : '')
+    end
+
     @update_area = get_unique_area_id
 
     link_users = proc do |rec|
@@ -306,6 +312,7 @@ class DbaSchemaController < ApplicationController
 
     @columns = [
       {:caption=> 'Profile',  data: proc{|rec| rec[:profile]}, title: 'Profile name'},
+      {:caption=> "Mand.",    data: proc{|rec| rec[:mandatory]}, title: "Mandatory profile as set by system parameter \"mandatory_user_profile\""},
       {:caption=> 'Users',    data: link_users, title: 'Number of users using this profile', align: :right},
     ]
     @columns.concat(pivot_columns.map do |key, value|
