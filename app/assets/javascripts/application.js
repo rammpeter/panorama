@@ -87,14 +87,14 @@ function useIndicator(url){
     ));
 }
 
-async function showIndicator(url) {
+function showIndicator(url) {
     if (useIndicator(url)){                                          // Unterdrücken der Anzeige Indikator
         indicator_call_stack_depth = indicator_call_stack_depth + 1;
         jQuery("#ajax_indicator").dialog("open");
     }
 }
 
-async function hideIndicator(url) {
+function hideIndicator(url) {
     if (useIndicator(url)) {                                          // Unterdrücken des Löschens des Indikator
         indicator_call_stack_depth = indicator_call_stack_depth - 1;
         if (indicator_call_stack_depth < 0)
