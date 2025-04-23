@@ -92,11 +92,15 @@ begin
   raise "Response should contain 'Please choose saved connection'" unless response.body['Please choose saved connection']
 
 rescue Exception => e
-  puts "Error: #{e.message}"
+  puts "Error: #{e.class}:#{e.message}"
   retcode = 1
 ensure
-  # Terminate the java process
-  Process.kill('KILL', thread.pid)
+  begin
+    # Terminate the java process
+    Process.kill('KILL', thread.pid)
+  rescue Exception => e
+    puts "Error at Process.kill: #{e.class}:#{e.message}"
+  end
   log_output(stdout, stderr)
   stdin.close
   stdout.close

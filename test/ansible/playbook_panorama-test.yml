@@ -160,6 +160,15 @@
         state: restarted
         enabled: yes
 
+    - name: Remove dangling Docker images
+      become: true
+      ansible.builtin.cron:
+        name: "Remove dangling Docker images"
+        minute: "0"
+        hour : "0"
+        job: "docker rmi -f $(docker images -f 'dangling=true' -q) > /dev/null 2>&1"
+        user: pramm
+
     - name: Pull Datadog Docker image
       become: true
       docker_image:
