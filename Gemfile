@@ -23,6 +23,9 @@ gem 'activejob', rails_version
 gem 'activesupport', rails_version
 gem 'railties', rails_version
 
+# 2025-04-23 avoid error with rel. 0.5.7: NameError: uninitialized constant Net::IMAP::Config::AttrTypeCoercion::Ractor
+gem 'net-imap', '0.5.6'
+
 # to avoid "no such file to load -- sprockets/railtie" or "NoMethodError: undefined method `assets' for #<Rails::Application::Configuration"
 # if sass-rails is moved to group :development
 gem 'sprockets-rails'

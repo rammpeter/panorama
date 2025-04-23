@@ -1,4 +1,5 @@
 # Setup VM for panorama-test
+# Requires Oracle Linux 9
 # Run: > ansible-playbook -i inventory.yml playbook_panorama-test.yml --extra-vars "datadog_api_key=<your API key>"
 - hosts: panorama-test
 
@@ -25,7 +26,7 @@
 
     - name: Install additional tools
       become: true
-      yum:
+      dnf:
         name:
           - traceroute
           - dnf-automatic

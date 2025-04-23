@@ -4,4 +4,5 @@ all:
     panorama-test:
       ansible_host: 10.214.3.3
       ansible_user: opc
+      ansible_python_interpreter: /usr/bin/python3.9
 

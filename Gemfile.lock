@@ -102,10 +102,10 @@ GEM
     mime-types (3.6.2)
       logger
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2025.0415)
+    mime-types-data (3.2025.0422)
     mini_mime (1.1.5)
     minitest (5.25.5)
-    net-imap (0.5.7)
+    net-imap (0.5.6)
       date
       net-protocol
     net-pop (0.1.2)
@@ -218,6 +218,7 @@ DEPENDENCIES
   jbuilder (~> 2.7)
   jwt
   listen (~> 3.3)
+  net-imap (= 0.5.6)
   playwright-ruby-client
   puma
   rack-mini-profiler (~> 2.0)
