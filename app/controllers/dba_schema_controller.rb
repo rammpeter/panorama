@@ -355,8 +355,20 @@ class DbaSchemaController < ApplicationController
   end
 
   def list_gradual_password_rollover
-    @user_info = sql_select_all("\
-      SELECT u.Account_Status, u.Password_Change_Date, u.Profile, u.UserName, u.Last_Login,
+    @groupby = prepare_param :groupby, default: 'username'           # Force showing of more detail
+    @groupfilter = params[:groupfilter]
+    @groupfilter = {} if @groupfilter.nil? || @groupfilter.empty?
+
+    where_string = ''
+    where_values = []
+
+    @groupfilter.each do |k,v|
+      where_string << " AND #{k} = ?"
+      where_values << v
+    end
+
+    @user_info = sql_select_all(["\
+      SELECT u.Account_Status, u.Password_Change_Date, u.Profile, u.UserName, a.Min_UserName, u.Last_Login,
              a.DBUserName, a.Logon_Count, a.Min_TS, a.Max_TS, a.OS_UserName_Cnt, a.Min_OS_UserName,
              a.UserHost_Cnt, a.Min_UserHost, a.Terminal_Cnt, a.Min_Terminal,
              a.Instance_ID_Cnt, a.Min_Instance_ID, a.External_UserID_Cnt, a.Min_External_UserID,
@@ -374,7 +386,7 @@ class DbaSchemaController < ApplicationController
                        WHERE Resource_Name = 'PASSWORD_ROLLOVER_TIME'
                       ) pr ON pr.Profile = u.Profile
       LEFT OUTER JOIN (
-                       SELECT NVL(DBProxy_Username, DBUserName) UserName, DBUserName, COUNT(*) Logon_Count,
+                       SELECT UserName, UserName Min_UserName, DBUserName, COUNT(*) Logon_Count,
                               MIN(Event_Timestamp) Min_TS, MAX(Event_Timestamp) Max_TS,
                               COUNT(DISTINCT OS_UserName         ) OS_UserName_Cnt,          MIN(OS_UserName         ) Min_OS_UserName,
                               COUNT(DISTINCT UserHost            ) UserHost_Cnt,             MIN(UserHost            ) Min_UserHost,
@@ -384,13 +396,16 @@ class DbaSchemaController < ApplicationController
                               COUNT(DISTINCT Global_UserID       ) Global_UserID_Cnt,        MIN(Global_UserID       ) Min_Global_UserID,
                               COUNT(DISTINCT Client_Program_Name ) Client_Program_Name_Cnt,  MIN(Client_Program_Name ) Min_Client_Program_Name,
                               COUNT(DISTINCT DBLink_Info         ) DBLink_Info_Cnt,          MIN(DBLink_Info         ) Min_DBLink_Info
-                       FROM   Unified_Audit_Trail
+                       FROM   (SELECT uat.*, NVL(DBProxy_Username, DBUserName) UserName FROM Unified_Audit_Trail uat)
                        WHERE  Action_Name = 'LOGON'
                        AND    Authentication_Type LIKE '%VERIFIER=12C-OLD%'
-                       GROUP BY DBUserName, DBProxy_Username
+                       #{where_string}
+                       GROUP BY UserName, DBUserName#{", #{@groupby}" if @groupby}
                       ) a ON a.UserName = u.UserName
       WHERE  u.Account_Status LIKE '%ROLLOVER%'
-    ")
+      #{ " AND a.UserName IS NOT NULL" if where_string != ''} /* Show users without old logons only if no filter defined */
+      ORDER BY a.Logon_Count DESC NULLS LAST, u.UserName
+    "].concat(where_values))
 
     render_partial
   end
@@ -2842,6 +2857,11 @@ class DbaSchemaController < ApplicationController
     @object_name    = prepare_param :object_name
     @action_name    = prepare_param :action_name
     @auth_user      = prepare_param :auth_user
+    @terminal       = prepare_param :terminal
+    @external_user_id = prepare_param :external_user_id
+    @global_user_id = prepare_param :global_user_id
+    @client_program_name = prepare_param :client_program_name
+    @dblink_info    = prepare_param :dblink_info
     @filter         = prepare_param :filter
 
     where_string = ""
@@ -2897,6 +2917,31 @@ class DbaSchemaController < ApplicationController
     if @action_name
       where_string << " AND UPPER(Action_name) LIKE UPPER('%'||?||'%')"
       where_values << @action_name
+    end
+
+    if @terminal
+      where_string << " AND Terminal = ?"
+      where_values << @terminal
+    end
+
+    if @external_user_id
+      where_string << " AND External_User_ID = ?"
+      where_values << @external_user_id
+    end
+
+    if @global_user_id
+      where_string << " AND Global_User_ID = ?"
+      where_values << @global_user_id
+    end
+
+    if @client_program_name
+      where_string << " AND Client_Program_Name = ?"
+      where_values << @client_program_name
+    end
+
+    if @dblink_info
+      where_string << " AND DBLink_Info = ?"
+      where_values << @dblink_info
     end
 
     if @auth_user
