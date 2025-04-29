@@ -363,8 +363,12 @@ class DbaSchemaController < ApplicationController
     where_values = []
 
     @groupfilter.each do |k,v|
-      where_string << " AND #{k} = ?"
-      where_values << v
+      if v.nil?
+        where_string << " AND #{k} IS NULL"
+      else
+        where_string << " AND #{k} = ?"
+        where_values << v
+      end
     end
 
     @user_info = sql_select_all(["\
