@@ -12,9 +12,4 @@ class HelpControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "version_history with xhr: true" do
-    get '/help/version_history', :params => {:format=>:html }
-    assert_response :success
-  end
-
 end

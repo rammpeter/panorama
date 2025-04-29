@@ -1,0 +1,219 @@
+# Change log of Panorama for Oracle
+## [Unreleased]
+
+## Release 2.17.72 
+- 2025-04-29 List also database triggers with base object type 'PLUGGABLE DATABASE'
+- 2025-04-28 Enhanced evaluation of password rollover usage
+
+## previous releases
+- 2025-01-22 New dragnet selection for estimation of client network latency
+- 2025-01-22 List content of gv$Diag_Info and Database_Properties
+- 2025-01-21 Evaluation of DBA_Hist_Sys_Time_Model included
+- 2024-10-28 Show configuration of TNS services
+- 2024-08-07 Show configuration of Exadata I/O resource manager
+- 2023-11-05 Show and hide additional colmns in execution plan
+- 2023-11-04 Fix Javascript memory leaks which lead to OOM in browser after frequent usage
+- 2023-10-25 Dashboard can show now top x groups of various criterias instead of only wait classes
+- 2023-10-19 Windows on Arm64 supported now after switching to jRuby 9.4.4.0
+- 2023-09-19 Visualize referential integrity relations by GraphViz for each table
+- 2023-09-19 Evaluation of unified audit trail added
+- 2023-08-17 Show client driver and client driver version in session list
+- 2023-06-05 New dragnet selection to detect empty ununsed partitions
+- 2023-05-22 Export and import of Panorama-Sampler config data possible now
+- 2023-03-14 New menu entry "Optimizer hints" with relation between hints and features
+- 2022-11-07 Bugfix: Panorama-Sampler rebuilds unuable indexes after shrinking space in reaction to errors
+- 2022-11-07 List unusable indexes also with invalid objects listing
+- 2022-10-18 New dragnet selection with suggestions for use of HASH JOIN SHARED
+- 2022-10-04 Panorama-Sampler: Finally fixed the ASH problem with ORA-00001: unique constraint (C##PANORAMA_TEST.INTERNAL_V$ACTIVE_SESS_HIST_PK) violated
+- 2022-09-28 Panorama-Sampler: Timing for ASH reworked to prevent from ORA-00001: unique constraint (C##PANORAMA_TEST.INTERNAL_V$ACTIVE_SESS_HIST_PK) violated
+- 2022-09-28 Panorama-Sampler: Proceed with AWR snapshot even if there are errors at particular elements
+- 2022-09-19 Panorama-Sampler: ASH and AWR are recorded for all visible PDBs now according to v$Containers
+- 2022-09-07 Bugfix: Instance=1 assumed if not RAC. Fix error: Instance number should not be empty
+- 2022-09-07 Panorama-Sampler: Keep time for ASH records with 1 second sampe cycle can be configured now, makes dashbord function better usable with Panorama-Sampler
+- 2022-09-07 Bugfix: Panorama-Sampler stores historic execution plans correctly now in Panorama_SQL_Plan
+- 2022-08-29 Bugfix: Limit log-term trend recording to ASH of the current PDB (possible double count until now on PDB and CDB)
+- 2022-08-25 Accept protecting index for FK constraints if all columns match, no matter which order the columns have
+- 2022-06-30 Show DBMS_XPLAN.DISPLAY_AWR for historic SQLs
+- 2022-06-30 Use right indentation for adaptiv execution plans
+- 2022-06-08 List roles, role grants, sys privs and object privs
+- 2022-05-23 Group SQL details in dashboard over all children of a SQL ID
+- 2022-05-09 Support for bind variables in SQL worksheet added
+- 2022-04-07 Evaluation of DBA_Scheduler_Jobs
+- 2022-04-07 Evaluation of DBA_hist_SGAStat added for historic SGA components
+- 2022-04-05 List settings from DBA_Stored_Settings for PL/SQL objects
+- 2021-10-01 Extract SQL text by cursor ID in trace files
+- 2021-10-01 Show default storage attributes and compression rules for table and index partitions
+- 2021-07-07 Show network encryption and checksumming in session info
+- 2021-06-32 Dashboard: Show times without activity as 0 in chart
+- 2021-06-16 Dragnet selection added for current and historic usage of PQ server
+- 2021-06-16 Dragnet selection added for list partitioning proposals
+- 2021-06-13 Period selection in time graphs added for ASH investigation
+- 2021-06-13 Real-time dashboard for ASH, SQLs and sessions added
+- 2021-03-19 Default secret for repeated use is generated at PANORAMA_VAR_HOME if no other is given
+- 2021-02-17 Dragnet selection for use of JDBC statement cache
+- 2021-02-11 Differentiation between hard and soft parse calls in SQL details
+- 2020-10-28 predefined_dragnet_selections.json required in strict JSON notation (line feeds in strings as \n)
+- 2020-09-30 SECRET_KEY_BASE or SECRET_KEY_BASE_FILE are required now for persistent connection configs.<br/>CAUTION: Passwords for Panorama-Samplerconnections have to be entered again
+- 2020-05-19 Bufix Panorama-Sampler: db block changes are sampled now
+- 2020-05-11 Historic usage of TEMP-tablespace now possible per Tablespace
+- 2020-03-02 gv$Process_Memory_Detail evaluated in session details including usage hints for population of this view
+- 2020-02-17 Saved connections expire after 3 months without using Panorama
+- 2020-01-20 List detailled consumption of PGA memory by sessions in 'PGA statistics / Current'
+- 2019-12-11 List detailled transaction history by flashback query
+- 2019-03-19 List RAC master instance for tables, indexes and their partitions and subpartitions 
+- 2019-03-08 Execution plan views: Filter records skipped by adaptive plans
+- 2019-01-07 Start ASH-sampling immediately after startup instead of starting sampling with first AWR-snapshot
+- 2018-08-14 Show MV refresh groups
+- 2018-08-13 Show existence and params of materialized view logs for a table in object description
+- 2018-08-09 Show segement statistics and active session history from object description
+- 2018-08-09 Dragnet selection for PCT_Free>0 but no updates
+- 2018-08-06 List invalid objects
+- 2018-07-31 List historic SGA resize-operations
+- 2018-06-20 SQL worksheet established
+- 2018-06-08 List existing extended statistics for table by clicking last analyzed date
+- 2018-06-07 Redo-logs in FRA don't count in addition to FRA-size for total sum
+- 2018-06-04 Use permanent subdir Panorama at your systems default temporary directory if not setting PANORAMA_VAR_HOME
+- 2018-05-06 Show object description for objects in recycle bin
+- 2018-05-05 Show log message if path length may exceed Windows-limit of 260 chars
+- 2018-05-02 Fixed problem on Windows-OS with No such file to load -- win32/security.rb
+- 2018-04-09 Support for tnsnames.ora in $ORACLE_HOME/network/admin without TNS_ADMIN
+- 2018-02-27 Show memory resize operations in SFA components
+- 2018-01-26 Each table can be closed separately and most tables may be pinned at page
+- 2017-12-19 New function for list upgrades and patches in menu
+- 2017-12-11 Show connection and last menu call in browser title
+- 2017-12-06 Each browser tab stores his own independent connection now. It was time now.
+- 2017-11-20 Switched to JRuby 1.9.14 with support for Java 9
+- 2017-11-09 Include-Files supported for tnsnames.ora a'la IFILE=/bla/bla
+- 2017-11-09 New Pnorama-Sampler functions added for object size evolution, DB-cache usage and blocking locks history
+- 2017-09-15 v$SYSAUX_Occupants added to TS-list
+- 2017-09-01 Panorama-Sampler: sampling of SegStat added
+- 2017-08-31 Choose plan_hash value for baseline creation if there are multiple
+- 2017-08-29 Panorama-Sampler: sampling of SysStat added
+- 2017-08-28 Panorama-Sampler: sampling of SQL binds added
+- 2017-08-27 Panorama-Sampler: sampling of SQL plan added
+- 2017-08-23 Own sampling for SQL History, ASH
+- 2017-08-10 Show active resource manager plan in start page
+- 2017-08-10 Detailled view on automated maintenance tasks
+- 2017-08-09 First alpha release of Panorama-Sampler as alternative to AWR
+- 2017-08-09 Separate thread per Web-Request to Panorama instead of fixed number of processes (supports more concurrent requests in multiuser environment)
+- 2017-06-19 Show column other with remote SQL via DB-Link in explain plan
+- 2017-06-15 Show ORACLE_HOME in start page
+- 2017-06-14 List fragmentation fo free tablespace extents, list extent size distribution of segments (table, index)
+- 2017-05-23 Additional historic TEMP-usage from SysMetrics at Storage/Temp/Historic
+- 2017-05-10 SQL Exec Start and SQL Exed-ID are shown in session details page
+- 2017-03-01 Show bind variable for SQL from SGA at level gv$SQLArea
+- 2017-01-03 Show current used and unused leaf blocks for indexes
+- 2016-12-21 View cluster structure
+- 2016-12-12 New menu entry "Feature usage" to show usage of features and packs
+- 2016-12-12 New menu entry start-page to recall the entry page after login
+- 2016-12-12 Describe objects: wildcards allowed for owner and object-name
+- 2016-12-07 Explicite usage of parameter SID/Servece-Name instead of trying both variants
+- 2016-11-29 Evaluate num_rows in execution plan from last analysis by executing SELECT COUNT(*)
+- 2016-11-21 New dragnet selection: list missing usage of bind variables by plan-hash-value
+- 2016-11-15 Save request parameters of current action to restore page at later time
+- 2016-09-20 Show SQL Monitor page a'la Cloud Control from SQL details
+- 2016-09-07 New dragnet function for detection of excessice logon operations
+- 2016-08-10 New dragnet functions for identification of unused tables and unused PL/SQL-Code
+- 2016-08-08 Describe function for additional types (PL/SQL-Objects, Views, Synonyms). Decribe function extended by dependencies and grants.
+- 2016-07-19 Show number of active parallel query slaves per operation in execution plan
+- 2016-06-21 Show DDL generated by DMBS_METADATA.get_ddl at object description
+- 2016-06-09 New dragnet selection: Possibly expensive TABLE ACCESS BY INDEX ROWID with additional filter predicates on table
+- 2016-06-09 Extended view on historic blocking locks with root blocker and detailed blocker/waiter infos
+- 2016-06-02 List audit actions from XML files instead of DBA_Audit_Trail if auditing to XML-output is configured
+- 2016-06-02 Function "List blocking DML-Locks" extended by link on "ID1/ID2" to show records from gv$Lock with same values for ID1, ID2 (in addition to gv$Session.Blocking_Session)
+- 2016-05-30 Number of DML-operations since last analyze is shown in table-description (from DBA_Tab_Modifications)
+- 2016-05-26 Use fuzzy time relation for historic allocation of TEMP space to consider also TEMP-usage of inactive sessions
+- 2016-05-23 New dragnet selection to show amount of LOGON-operations per time unit
+- 2016-05-23 List content of server-side log files like alert.log at "DBA general / Server logs"
+- 2016-05-23 New dragnet selection to show missing bind variables via number of distinct SQL-IDs on time line
+- 2016-04-19 Real amount of allocated temp space and PGA shown in explain plan
+- 2016-04-13 Download grid as CSV-file working in Firefox and Chrome, possibly not working in Internet Explorer
+- 2016-04-07 Show IP name resolution for machines
+- 2016-04-06 Evaluate LOB partitions in function "Describe object"
+- 2016-03-30 Menu entry "Attached objects" removed. New function "Sessions accessing" and "Objects accessed" in session details and table description for evaluation of gv$Access
+- 2016-03-21 Additional predefined SQLs for dragnet selection may be distribibuted by file predefined_dragnet_selections.json in PANORAMA_VAR_HOME
+- 2016-03-20 User is enabled to define personal dragnet SQLs that are stored at Panorama's server instance
+- 2016-03-16 Show historic GATHER_TABLE_STATS-operations as link at column "last analyzed" in table descriptions
+- 2016-03-14 New dragnet selection to identify TABLE ACCESS BY ROWID with string filter after weak index access
+- 2016-03-03 New function to generate script for creation of SQL plan baseline from historic execution plan by simple button click
+- 2016-03-02 Allow setting of query timeout in seconds in login dialog to automatically cancel long running queries after timeout
+- 2016-03-01 New function in table-description: Show detailed histogram values from DBA_Tab_Histograms for columns with histograms
+- 2016-02-26 New function in Session-details: Show detailed runtime information for active SQL by DBMS_SQLTUNE.report_sql_monitor
+- 2016-02-26 New function in SQL-details from SGA: Show execution plan as output from call DBMS_XPLAN.DISPLAY
+- 2016-02-26 New function in menu Spec. additions/Dragnet investigation": Relevance of access on migrated / chained rows compared to total amount of table access
+- 2016-02-11 New functions in menu Analyses/statistics" / "Genuine Oracle AWR reports" for generation fo Oracle's genuine reports by executing functions in package DBMS_WORKLOAD_REPOSITORY
+- 2016-02-11 New functions in menu "SGA/PGA details" / "SQL plan management" for display of existing SQL-profiles, SQL plan baselines and stored outlines
+- 2016-02-08 Use child-number and child-address to uniquely access gv$SQL
+- 2016-02-08 Show alias, query block and number of search columns for index access in executin plan from SGA
+- 2016-02-08 Show detailed hints for existing SQL profiles in SQL details
+- 2016-02-02 Show SGA memory-details from gv$DB_Object_Cache and gv$SQLArea with drill down
+- 2016-01-23 Remove single charts from diagrams by click in legend
+- 2016-01-06 Reduction of memory consumption at server site by iterating over large SQL-results, no need to store complete result as ruby array
+- 2016-01-06 Show compression state of partitions at table level
+- 2015-12-08 Allow wildcard search for SQL-IDs in SQL-Area
+- 2015-12-03 Jump to active session history details from temp usage historic
+- 2015-12-03 Reduce storage consumption at server side for stored history
+- 2015-11-19 Saved connection info is now stored at server sid, encrypted with server side key, key is salted with client side key (stored as encrypted cookie), so only requests from client are able to decrypt stored passwords
+- 2015-11-04 New column 'max. PGA usage' in 'Session waits historic'
+- 2015-11-04 New function 'Temp usage historic'
+- 2015-11-04 Support for context menu on touch devices (long touch instead of right mouse button)
+- 2015-11-04 Allow stacked charts in diagrams
+- 2015-11-04 Switch value points on/off in diagrams
+- 2015-11-04 Show 'others'-chart in Top-10 diagrams with cumulated values for charts outside top 10
+- 2015-11-04 Cache last used DB-connection in server to suppress disconnect after request and reconnect if next request uses same DB
+- 2015-10-26 rework look and feel
+- 2015-10-26 Recognize touch events on tablets and phones
+- 2015-10-26 Show last analyzed date in execution plan lines
+- 2015-10-26 Grouping active session history by session-type (foregreound/background)
+- 2015-10-26 Repeat last called menu action without deep-dive in menu-structures by clicking icon right to menu
+- 2015-10-26 Active Session History: Show tablespace name as object name if no current object exists. Helps to recognize action in UNDO-TS.
+- 2015-10-26 List captured bind values also for datatype TIMESTAMP
+- 2015-10-26 Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c
+- 2015-10-26 Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c
+- 2015-10-26 Dragnet investigation for parallel degradation (FORCE SERIAL)
+- 2015-07-16 Show load of parallel query slaves within coordinator session in Active Session History
+- 2015-07-16 Distinguish between active session load executed in parallel query slaves or not in Active Session History
+- 2015-07-16 List global database triggers like LOGON-Trigger at "DBA General" / "Database triggers"
+- 2015-07-16 Dragnet investigation: Use filter to search selection in list
+- 2015-07-16 Dragnet investigation: Further selections for performance pitfalls
+- 2015-07-16 Object description: show size and state of subpartitions
+- 2015-07-16 Disk stroage summary: Show size and content of Fast recovery Area
+- 2015-07-16 Filter string works also for username in Active Session History
+- 2015-07-16 Show retention for AWR data at start page
+- 2015-07-16 Add DB-Name and AWR retention in DBID-selection at start page if cloned database has different DB-IDs in AWR history
+- 2015-07-16 Evaluate history for one SQL-ID over all RAC-instances (not only per instance)
+- 2015-07-16 Show LOB details in object description, include LOB-size in size calculation of object size
+- 2015-07-16 Describe database objectes as separate menu item
+- 2015-07-16 SSL-encrypted network traffic between browser and Panorama-instance (https)
+- 2015-07-16 SQL-details historic: List complete history of recorded bind values
+- 2015-01-22 Historic timeline resource usage and resource limits
+- 2015-01-22 Historic timeline for real CPU-usage and DB-time
+- 2015-01-22 Correct calculation of CPU-Time and DB-Time in listing of active session history
+- 2014-09-17 Keep DB connection open after request for reuse in next request without reconnect
+- 2014-01-15 Analyse von UNDO-Tablespace unter "Storage / UNDO-TS"
+- 2014-01-15 Analyse von Materialized Views unter "Storage / Materialized view structures"
+- 2014-01-15 Konsoldierung von Storage-Themen unter eigenem Menüpunkt
+- 2014-01-15 Tabellen in Höhe zoombar durch Anfassen am unteren Rand
+- 2014-01-15 Auswertung Active Session History jetzt auch nach Transaction-ID und SQL-Exec-ID
+- 2013-05-14 Embedded Web-Server jetzt im Panorama.war enthalten, damit kann Panorama Standalone ausgeführt werden per "java -jar Panorama.war -Xmx512m". Bei Zeichensatz-Problemen bitte nach -Dfile.encoding=UTF-8 hinzufuegen.
+- 2012-11-26 Umstellung der tabellarischen Darstellungen auf jQuery-Plugin "slickGrid"
+- 2012-09-18 Erweiterung der Active Session History für Oracle 11g
+- 2011-11-30 Anzeige Wait-Times je Objekt in Segment-Statistics historisch
+- 2011-11-30 Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade
+- 2011-11-30 Ausweisung der Hinderungsgr&uuml;nde f&uuml; Nichtnutzung Shared Cursor
+- 2011-11-30 Separate Ausweisung der SQL-Area nach SQL-ID und zus&auml;tzlicher Unterscheidung von Child-Cursoren
+- 2011-11-30 Beginn Internationalisierung mit deutsch, englisch
+- 2011-11-30 Anzeige der Hierachie blockender Locks mit Ausl&ouml;ser-Sessions der Lock-Kaskade
+- 2011-11-30 Anzeige Nutzer in Login-Shortcuts
+- 2011-11-30 Anzeige von Tagessummen je SQL &uuml;ber komplett verf&uuml;gbaren Datenbestand in Historie (Button am Ende der SQL-Detail-Ansichten)
+- 2011-11-30 Erweiterung der Gruppierungen der ActiveSessionHistory um User
+- 2011-11-30 Separierung historischer SQL-Daten nach Parsing_Schema_User für saubere Trennung identischer SQL-Statements ausgeführt von verschiedenen Usern gegen gelichnamige Schema-Objekte
+- 2011-11-30 Einblenden der sekuendlichen Wait-Events aus v$Active_Session_Wait in historische Wait-Auswertung soweit diese in SGA verfuegbar sind
+- 2011-11-30 Auswertung blocking Locks aller Art über RAC-Lock-Manager unter "DBA-Wait-Analyse/Enqueue Statistics"
+- 2011-04-28 Anzeige Service-Name in Einzelanlistung der Active Session History
+- 2011-04-28 Connect jetzt auch zu Listener-Services m&ouml;glich (bisher nur auf konkrete SID)
+- 2011-04-28 Auswertung historische Enqueue-Kennzahlen
+- 2011-04-28 Auswertung des ON_CPU-State zus&auml;tzlich zu den bisherigen Wait-States in Active Session History
+
+
+

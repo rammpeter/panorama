@@ -324,7 +324,7 @@ module MenuHelper
     end
 
     output << "\
-          <li id='menu_li_help_version_history'>#{ link_to t(:menu_help_version_history_caption, :default=> 'Version history'), { :controller => 'help', :action=> 'version_history', browser_tab_id: @browser_tab_id}, id: "menu_help_version_history", :title=>t(:menu_help_version_history_hint, :default=>'Development history of features and versions'), :target=> '_blank'  }</li>
+          <li id='menu_li_help_version_history'><a href='https://github.com/rammpeter/panorama/blob/master/CHANGELOG.md' target='_blank' title=''#{t(:menu_help_version_history_hint, :default=>'Development history of features and versions')}''>#{ t(:menu_help_version_history_caption, :default=> 'Version history')}</a></li>
         </ul>
       </li>
     </ul>

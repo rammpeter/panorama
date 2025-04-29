@@ -18,6 +18,7 @@
                    {:caption=> 'Owner',        :data=>proc{|rec| rec.owner},              :title=> 'Owner of trigger'},
                    {:caption=> 'Name',         :data=>proc{|rec| rec.trigger_name},       :title=> 'Name of trigger'},
                    {:caption=> 'Type',         :data=>proc{|rec| rec.trigger_type},       :title=> 'Type of trigger'},
+                   {:caption=> 'Base object type',  :data=>proc{|rec| rec.base_object_type},  :title=> 'Base object on which the trigger is defined:'},
                    {:caption=> 'Event',        :data=>proc{|rec| rec.triggering_event},   :title=> 'Triggering event'},
                    {:caption=> 'Status',       :data=>proc{|rec| rec.status},             :title=> 'Status of trigger'},
                    {:caption=> 'Description',  :data=>proc{|rec| show_source(rec)},       :title=> 'Description of trigger'},

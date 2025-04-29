@@ -32,8 +32,4 @@ class HelpController < ApplicationController
     render :template=>"help/index"
   end
 
-  def version_history
-
-  end
-
 end
