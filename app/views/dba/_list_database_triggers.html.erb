@@ -29,6 +29,10 @@
                    { caption: 'Spec. TS',      data: proc{|rec| localeDateTime(rec.spec_ts)},         title: "Timestamp for the last specification change of the trigger" },
            ]
 
+   column_options.each do |c|
+     c[:data_style] = proc{|rec| 'color:grey;' if rec.status == 'DISABLED' }
+   end
+
 %>
 
 <%=
