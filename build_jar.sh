@@ -11,6 +11,14 @@ rm -rf public/assets/.sprockets*
 # Remove mini profile files
 find . -name mp_views* -exec rm -f {} \;
 
+# Use the Gemfile.lock as it is and don't update the gems
+bundle config set deployment 'true'
+# Avoid installing the gems in the development and test group and omit them in the jar
+bundle config set without 'development test'
+
+bundle install --jobs 4
+gem install jarbler
+
 if [ "$1" != "without_assets" ]
 then
   echo "Compile assets"
@@ -26,8 +34,14 @@ fi
 # Fixen durch auskommentieren des protection-Flags für pathmap_replace in gems/rake-11.3.0/lib/rake/ext/string.rb
 
 echo "Create Panorama.jar"
-bundle exec jarble
-if [ $? -ne 0 ]
+jarble
+JARBLE_RC=$?
+
+# reset previous state
+bundle config unset deployment
+bundle config unset without
+
+if [ $JARBLE_RC -ne 0 ]
 then
   echo "######### Error creating jar file"
   exit 1

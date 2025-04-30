@@ -18,13 +18,13 @@ gem 'activerecord', rails_version
 gem 'activemodel', rails_version
 gem 'actionpack', rails_version
 gem 'actionview', rails_version
-gem 'actionmailer', rails_version
+# gem 'actionmailer', rails_version
 gem 'activejob', rails_version
 gem 'activesupport', rails_version
 gem 'railties', rails_version
 
 # 2025-04-23 avoid error with rel. 0.5.7: NameError: uninitialized constant Net::IMAP::Config::AttrTypeCoercion::Ractor
-gem 'net-imap', '0.5.6'
+# gem 'net-imap', '0.5.6'
 
 # to avoid "no such file to load -- sprockets/railtie" or "NoMethodError: undefined method `assets' for #<Rails::Application::Configuration"
 # if sass-rails is moved to group :development
@@ -77,7 +77,9 @@ group :development do
 
   # gem 'jarbler', :git => 'https://github.com/rammpeter/jarbler.git', branch: 'pramm'
   # gem 'jarbler', github: 'rammpeter/jarbler', branch: 'pramm'
-  gem 'jarbler'
+  # jarbler is installed by build_jar.sh, not needed in Gemfile
+  # gem 'jarbler'
+
   gem 'brakeman'
 
   # Needed to build warfile

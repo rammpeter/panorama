@@ -125,11 +125,6 @@ jobs:
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-$JRUBY_VERSION
-          bundle config deployment 'true'
-          bundle config set without 'development test'
-          bundle install --jobs 4
-          # Jarbler should not be part of Panorama.jar, therefore installed separately
-          gem install jarbler
           ./build_jar.sh
 
       - name: Archive Panorama.jar
