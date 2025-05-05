@@ -174,7 +174,7 @@
     <% end %>
   </div>
 
-  <% if get_db_version >= '11.1' && get_current_database[:management_pack_license] == :diagnostics_and_tuning_pack %>
+  <% if get_db_version >= '11.1' && PackLicense.tuning_pack_licensed? %>
     <div class="flex-row-element">
       <%=
         ajax_submit("SQL-Monitor (#{@sql_monitor_reports_count})", {

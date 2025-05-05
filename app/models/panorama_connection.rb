@@ -447,6 +447,7 @@ class PanoramaConnection
   def self.last_used_action_name;           check_for_open_connection;        Thread.current[:panorama_connection_connection_object].last_used_action_name;             end
   def self.login_container_dbid;            check_for_open_connection(false); Thread.current[:panorama_connection_connection_object].login_container_dbid; end
   # @return [Symbol] :diagnostics_and_tuning_pack or :diagnostics_pack or :panorama_sampler or :none
+  # Use PackLicense.tuning_pack_licensed? etc. instead of this method
   def self.management_pack_license;         PanoramaConnection.get_threadlocal_config[:management_pack_license]; end
   def self.pdbs;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pdbs;                              end
   def self.pid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].pid;                               end
@@ -467,6 +468,7 @@ class PanoramaConnection
   def self.username;                        check_for_open_connection;        get_threadlocal_config[:user].upcase;    end
 
   private
+
 
   # should be called from within synchronized mutex
   def self.destroy_connection_in_mutexed_pool(destroy_conn)

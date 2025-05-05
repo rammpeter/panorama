@@ -705,7 +705,7 @@ module ApplicationHelper
                  WHERE  SQL_ID = ?",
                            sql_id]
 
-    if sql_text.nil? && PanoramaConnection.management_pack_license != :none  # Wenn nicht gefunden, dann in AWR-History suchen, but only if access is allowed
+    if sql_text.nil? && !PackLicense.none_licensed? # Wenn nicht gefunden, dann in AWR-History suchen, but only if access is allowed
       sql_text = sql_select_first_row ["\
                    SELECT /*+ Panorama-Tool Ramm */ SUBSTR(SQL_Text, 1, 150) SQL_Text
                    FROM   DBA_Hist_SQLText

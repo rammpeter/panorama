@@ -1590,7 +1590,7 @@ class DbaSgaController < ApplicationController
                                                      WHERE  SQL_profile IS NOT NULL
                                                      GROUP BY SQL_Profile
                                                     ) em ON em.SQL_Profile = p.Name
-                                 #{ PanoramaConnection.management_pack_license == :none ? # Suppress accessing DBA_Hist_SQLStat if no management pack license
+                                 #{ PackLicense.none_licensed? ? # Suppress accessing DBA_Hist_SQLStat if no management pack license
                                     "CROSS JOIN (SELECT NULL AWR_Usages, NULL Min_History_SQL_ID FROM DUAL) awr"
                                     :
                                     "LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ SQL_Profile, COUNT(DISTINCT SQL_ID) AWR_Usages, MIN(SQL_ID) Min_History_SQL_ID

@@ -2365,7 +2365,7 @@ END;
   end
 
   def show_sql_monitor_reports
-    raise PopupMessageException.new("Sorry, accessing DBA_HIST_Reports requires licensing of Diagnostics and Tuning Pack") if get_current_database[:management_pack_license] != :diagnostics_and_tuning_pack
+    raise PopupMessageException.new("Sorry, accessing DBA_HIST_Reports requires licensing of Diagnostics and Tuning Pack") if !PackLicense.tuning_pack_licensed?
     render_partial
   end
 
