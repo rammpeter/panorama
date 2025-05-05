@@ -38,11 +38,11 @@
     desc_add << "\nBases on AWR data for choosen time period."
     if get_db_version < '18'
       disabled = PanoramaConnection.edition == :standard || !PackLicense.tuning_pack_licensed?
-      desc_add << "\n\nGeneration of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQL plan baseline from cursor cache instead (from current SGA)." if disabled
+      desc_add << "\n\n<span style=\"color: red;\">Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQL plan baseline from cursor cache instead (from current SGA).</span>" if disabled
       option_pack_needed = "Enterprise Edition + Diagnostics and Tuning Pack"
     else
       disabled = PanoramaConnection.edition == :standard || !PackLicense.diagnostics_pack_licensed?
-      desc_add << "\n\nGeneration of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA)." if disabled
+      desc_add << "\n\n<span style=\"color: red;\">Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics Pack.\nYou may try to load SQLplan baseline from cursor cache instead (from current SGA).</span>" if disabled
       option_pack_needed = "Enterprise Edition + Diagnostics Pack"
     end
     action = ajax_submit('SQL plan baseline', {
@@ -58,7 +58,7 @@
   else                                                                      # called from SGA view
     desc_add << "\nBases on current SGA data."
     disabled = @plan_hash_value.nil?
-    desc_add << "\n\nGeneration of SQL plan baseline from SGA requires a unique plan hash value.\nPlease choose a SQL child cursor view with a unique plan hash value." if disabled
+    desc_add << "\n\n<span style=\"color: red;\">Generation of SQL plan baseline from SGA requires a unique plan hash value.\nPlease choose a SQL child cursor view with a unique plan hash value.</span>" if disabled
     option_pack_needed = "none"
 
     action = ajax_submit('SQL plan baseline', {
