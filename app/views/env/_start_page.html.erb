@@ -168,8 +168,12 @@
           )
         end
 
-        features_hint = "\
-Additional feature info for the PDB
+        link_cloud_identity = proc do |rec|
+          "<a href=\"#\" title=\"Show cloud identity details\" onclick=\"show_popup_message('<pre>#{my_html_escape(rec['cloud_identity'])}</pre>'); return false; \">YES</a>".html_safe
+        end
+
+        dv_status_hint = "\
+DB vault status info for the PDB
 Shows one of the following settings:
 
 DV_APP_PROTECTION shows whether Database Vault operations control has been configured or not configured
@@ -184,31 +188,32 @@ DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, 
             {:caption=>'Con-UID',          :data=>proc{|rec| fn rec.con_uid },                     :title=>"Unique identifier associated with the PDB"},
             {:caption=>'Name',             :data=>proc{|rec| rec.name },                           :title=>"Name of the PDB"},
             {:caption=>'Open mode',        :data=>proc{|rec| rec.open_mode},                       :title=>"Open mode info"},
-            {:caption=>'Restricted',       :data=>proc{|rec| rec.restricted},                      :title=>"Indicates whether only users possessing RESTRICTED SESSION privilege can connect to the PDB"},
+            {:caption=>'Restr.',           :data=>proc{|rec| rec.restricted},                      :title=>"Indicates whether only users possessing RESTRICTED SESSION privilege can connect to the PDB"},
             {:caption=>'Open time',        :data=>proc{|rec| localeDateTime(rec.open_time)},       :title=>"Date and time when the database was last opened"},
             {:caption=>'Total size',       :data=>proc{|rec| fn(rec.total_size/(1024*1024))},      :title=>"If a PDB is opened, disk space (in MBytes) used by the container,\nincluding both data and temp files.\nIf a PDB is closed, will be set to 0.", data_title: proc{|rec| "%t\n#{size_explain((rec.total_size.to_f / (1024*1024) rescue nil))}"}, align: :right },
             {:caption=>'Block size',       :data=>proc{|rec| fn(rec.block_size)},                  :title=>"The current block size for the PDB", align: :right},
             {:caption=>'Recovery status',  :data=>proc{|rec| rec.recovery_status},                 :title=>"Shows whether recovery is enabled or disabled for the PDB."},
-            {:caption=>'Snapshot parent',  :data=>proc{|rec| rec.snapshot_parent_con_id },         :title=>"This column shows the container ID of the master PDB that this PDB is a snapshot clone of.\nThis column shows a non-zero value only if the PDB is a snapshot clone.\nFor all other cases, it shows a value of 0."},
-            {:caption=>"Srv.",             :data=>link_services_pdb,                               :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
           ]
-        column_options << {:caption=>'Appl. root',         :data=>proc{|rec| rec.application_root},                :title=>"Indicates whether the PDB is an application root"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Appl. PDB',          :data=>proc{|rec| rec.application_pdb},                 :title=>"Indicates whether the PDB is an application PDB"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Appl. seed',         :data=>proc{|rec| rec.application_seed},                :title=>"Indicates whether the PDB is an application seed (an application seed is also an application PDB)"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Appl. root con-ID',  :data=>proc{|rec| rec.application_root_con_id},         :title=>"If this PDB is an application PDB, the container ID of an application root to which this application PDB belongs.\If this PDB is an application root clone, the container ID of an application root to which this application root clone belongs.\nOtherwise, NULL."} if get_db_version >= '12.2'
-        column_options << {:caption=>'Appl. root clone',   :data=>proc{|rec| rec.application_root_clone},          :title=>"Indicates whether this PDB is an application root clone (YES) or not (NO)"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Proxy PDB',                :data=>proc{|rec| rec.proxy_pdb},                       :title=>"Indicates whether this PDB is a proxy PDB (YES) or not (NO)"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Local UNDO',               :data=>proc{|rec| rec.local_undo},                      :title=>"Shows whether the PDB is in local undo. Possible values:\n1 – PDB is in local undo mode\n0 – PDB is in shared undo mode\nThis column is not relevant for CDB$ROOT."} if get_db_version >= '12.2'
-        column_options << {:caption=>'Creation time',            :data=>proc{|rec| localeDateTime(rec.creation_time)},   :title=>"Date and time at which the PDB was created."} if get_db_version >= '12.2'
-        column_options << {:caption=>'PDB count',                :data=>proc{|rec| fn rec.pdb_count},                    :title=>"The number of user-created PDBs belonging to a given application root or CDB$ROOT. For all other containers, its value is 0."} if get_db_version >= '12.2'
-        column_options << {:caption=>'Audit files size',         :data=>proc{|rec| fn rec.audit_files_size},             :title=>"Shows the current disk space usage (in bytes) by Unified Audit files (.bin format) in the container"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Max. size',                :data=>proc{|rec| fn rec.max_size},                     :title=>"Shows the maximum amount of disk space (in bytes) that can be used by data and temp files in the container"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Max. diag. size',          :data=>proc{|rec| fn rec.max_diagnostics_size},         :title=>"Shows the maximum amount of disk space (in bytes) that can be used by diagnostic traces generated in the container"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Max. audit size',          :data=>proc{|rec| fn rec.max_audit_size},               :title=>"Shows the maximum amount of disk space (in bytes) that can be used by Unified Audit files (.bin format) in the container"} if get_db_version >= '12.2'
-        column_options << {:caption=>'Last changed by',          :data=>proc{|rec| rec.last_changed_by},                 :title=>"Indicates what type of user last changed the PDB. "} if get_db_version >= '19'
-        column_options << {:caption=> 'AWR interval',            :data=>proc{|rec| fn(rec.snap_interval_minutes)},       :title=> "AWR snapshot interval in minutes at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
-        column_options << {:caption=> 'AWR retention',           :data=>proc{|rec| fn(rec.snap_retention_days)},         :title=> "AWR retention time for snapshots in days at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
-        column_options << {:caption=>'Features',                 :data=>proc{|rec| rec.features},                        title: features_hint} if get_db_version >= '12.2'
+        column_options << {:caption=>'Snapshot parent',   :data=>proc{|rec| rec.snapshot_parent_con_id },         :title=>"This column shows the container ID of the master PDB that this PDB is a snapshot clone of.\nThis column shows a non-zero value only if the PDB is a snapshot clone.\nFor all other cases, it shows a value of 0."} if @containers.any? { |rec| rec.snapshot_parent_con_id }
+        column_options << {:caption=>"Srv.",              :data=>link_services_pdb,                               :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right}
+        column_options << {:caption=>'Appl. root',        :data=>proc{|rec| rec.application_root},                :title=>"Indicates whether the PDB is an application root"} if get_db_version >= '12.2' && @containers.any? { |rec| rec.application_root != 'NO' }
+        column_options << {:caption=>'Appl. PDB',         :data=>proc{|rec| rec.application_pdb},                 :title=>"Indicates whether the PDB is an application PDB"} if get_db_version >= '12.2' && @containers.any? { |rec| rec.application_pdb != 'NO' }
+        column_options << {:caption=>'Appl. seed',        :data=>proc{|rec| rec.application_seed},                :title=>"Indicates whether the PDB is an application seed (an application seed is also an application PDB)"} if get_db_version >= '12.2' && @containers.any? { |rec| rec.application_seed != 'NO' }
+        column_options << {:caption=>'Appl. root con-ID', :data=>proc{|rec| rec.application_root_con_id},         :title=>"If this PDB is an application PDB, the container ID of an application root to which this application PDB belongs.\If this PDB is an application root clone, the container ID of an application root to which this application root clone belongs.\nOtherwise, NULL."} if get_db_version >= '12.2' && @containers.any? { |rec| rec.application_root_con_id }
+        column_options << {:caption=>'Appl. root clone',  :data=>proc{|rec| rec.application_root_clone},          :title=>"Indicates whether this PDB is an application root clone (YES) or not (NO)"} if get_db_version >= '12.2' && @containers.any? { |rec| rec.application_root_clone != 'NO' }
+        column_options << {:caption=>'Proxy PDB',         :data=>proc{|rec| rec.proxy_pdb},                       :title=>"Indicates whether this PDB is a proxy PDB (YES) or not (NO)"} if get_db_version >= '12.2' && @containers.any? { |rec| rec.proxy_pdb != 'NO' }
+        column_options << {:caption=>'Local UNDO',        :data=>proc{|rec| rec.local_undo},                      :title=>"Shows whether the PDB is in local undo. Possible values:\n1 – PDB is in local undo mode\n0 – PDB is in shared undo mode\nThis column is not relevant for CDB$ROOT."} if get_db_version >= '12.2'
+        column_options << {:caption=>'Creation time',     :data=>proc{|rec| localeDateTime(rec.creation_time)},   :title=>"Date and time at which the PDB was created."} if get_db_version >= '12.2'
+        column_options << {:caption=>'PDB count',         :data=>proc{|rec| fn rec.pdb_count},                    :title=>"The number of user-created PDBs belonging to a given application root or CDB$ROOT. For all other containers, its value is 0."} if get_db_version >= '12.2'
+        column_options << {:caption=>'Audit files size',  :data=>proc{|rec| fn rec.audit_files_size},             :title=>"Shows the current disk space usage (in bytes) by Unified Audit files (.bin format) in the container"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. size',         :data=>proc{|rec| fn rec.max_size},                     :title=>"Shows the maximum amount of disk space (in bytes) that can be used by data and temp files in the container"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. diag. size',   :data=>proc{|rec| fn rec.max_diagnostics_size},         :title=>"Shows the maximum amount of disk space (in bytes) that can be used by diagnostic traces generated in the container"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Max. audit size',   :data=>proc{|rec| fn rec.max_audit_size},               :title=>"Shows the maximum amount of disk space (in bytes) that can be used by Unified Audit files (.bin format) in the container"} if get_db_version >= '12.2'
+        column_options << {:caption=>'Last changed by',   :data=>proc{|rec| rec.last_changed_by},                 :title=>"Indicates what type of user last changed the PDB. "} if get_db_version >= '19'
+        column_options << {:caption=> 'AWR interval',     :data=>proc{|rec| fn(rec.snap_interval_minutes)},       :title=> "AWR snapshot interval in minutes at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
+        column_options << {:caption=> 'AWR retention',    :data=>proc{|rec| fn(rec.snap_retention_days)},         :title=> "AWR retention time for snapshots in days at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
+        column_options << {:caption=>'Cloud identity',    :data=>link_cloud_identity,                             title: "Is DB an autonomous DB?"} if @containers.count > 0 && @containers[0]['cloud_identity']
+        column_options << {:caption=>'DB vault status',   :data=>proc{|rec| rec.dv_status},                        title: dv_status_hint} if get_db_version >= '12.2' && @containers.any? { |rec| rec.dv_status }
       %>
       <%= gen_slickgrid(@containers, column_options, {
         :caption => "Pluggable database info from gv$Containers", :max_height=>400, :width => :auto, show_pin_icon: 2
