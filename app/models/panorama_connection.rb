@@ -564,7 +564,7 @@ class PanoramaConnection
 
   # Replace table_name according to license, used for view captions
   def self.adjust_table_name(table_name)
-    PackLicense.translate_sql_table_names(table_name, get_threadlocal_config[:management_pack_license])
+    PackLicense.translate_sql_table_names(table_name, PanoramaConnection.management_pack_license)
   end
 
   def self.get_nested_exception_message(exception)
