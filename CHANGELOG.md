@@ -1,6 +1,9 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Release 2.17.73
+- 2025-05-05 Limit size of result set in SQL worksheet to 100,000 rows
+
 ## Release 2.17.72 
 - 2025-04-29 List also database triggers with base object type 'PLUGGABLE DATABASE'
 - 2025-04-28 Enhanced evaluation of password rollover usage

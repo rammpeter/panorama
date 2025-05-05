@@ -838,6 +838,7 @@ class AdditionController < ApplicationController
 
   end
 
+  MAX_WORKSHEET_RESULT_COUNT = 100000
   def exec_worksheet_sql
     @caption = nil
 
@@ -855,7 +856,15 @@ class AdditionController < ApplicationController
       # choose execution type and execute
       if stripped_sql_statement.upcase =~ /^SELECT/ || stripped_sql_statement.upcase =~ /^WITH/
         @res = []
-        PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql').each {|r| @res << r}
+        count = 0
+        PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql').each do |r|
+          count += 1
+          @res << r
+          if count >= MAX_WORKSHEET_RESULT_COUNT
+            add_popup_message("Fetch of SQL result cancelled after #{fn MAX_WORKSHEET_RESULT_COUNT} rows to avoid memory overflow!")
+            break
+          end
+        end
         @end_time = PanoramaConnection.db_systime
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
         @caption = "Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(@end_time-@start_time, 3)} seconds"
