@@ -13,8 +13,10 @@ find . -name mp_views* -exec rm -f {} \;
 
 # Use the Gemfile.lock as it is and don't update the gems
 bundle config set deployment 'true'
+
 # Avoid installing the gems in the development and test group and omit them in the jar
-bundle config set without 'development test'
+# temporary removed to ensure that the gem 'listen' is installed
+# bundle config set without 'development test'
 
 bundle install --jobs 4
 gem install jarbler

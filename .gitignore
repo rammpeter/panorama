@@ -34,3 +34,12 @@ mycert.key
 /panorama.log
 /test/docker/oracle_db_prebuilt_panorama_test/Dockerfile.modified
 /test/docker/oracle_db_prebuilt_panorama_test/base.env
+
+
+.DS_Store
+app/.DS_Store
+app/assets/.DS_Store
+test/ansible/test.yml
+vendor/.DS_Store
+vendor/assets/.DS_Store
+vendor/assets/javascripts/.DS_Store
