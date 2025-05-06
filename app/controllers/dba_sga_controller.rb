@@ -2088,6 +2088,24 @@ END;
 
   end
 
+  def generate_drop_sql_plan_baseline_sql
+    sql_handle  = prepare_param :sql_handle
+    plan_name   = prepare_param :plan_name
+
+    @code = "
+-- Drop all baselines of the SQL with the given SQL-Handle
+SET SERVEROUTPUT ON;
+DECLARE
+  v_dropped_plans number;
+BEGIN
+  v_dropped_plans := DBMS_SPM.DROP_SQL_PLAN_BASELINE (sql_handle => '#{sql_handle}', plan_name => '#{plan_name}');
+  DBMS_OUTPUT.PUT_LINE('dropped ' || v_dropped_plans || ' plan baseline');
+END;
+/
+"
+    render_partial
+  end
+
   def create_profile_from_sql_tuning_advisor_task
     @task_name = prepare_param :task_name
     PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.accept_sql_profile(task_name => ?, name => ?, task_owner => USER, replace => TRUE); END;", @task_name, @task_name]

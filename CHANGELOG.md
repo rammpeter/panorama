@@ -1,6 +1,8 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+- 2025-05-06 Generate code for drop of SQL plan baseline
+
 ## Release 2.17.73
 - 2025-05-05 Limit size of result set in SQL worksheet to 100,000 rows
 
