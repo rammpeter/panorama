@@ -2021,6 +2021,7 @@ END;
     result = "
 -- Build SQL plan baseline for SQL-ID = '#{sql_id}', plan hash value = #{plan_hash_value}
 -- Generated with Panorama at #{Time.now}
+-- Should be executed as user with DBA privileges
 
 SET SERVEROUTPUT ON;
 

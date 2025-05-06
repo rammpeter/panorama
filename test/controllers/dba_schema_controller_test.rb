@@ -435,4 +435,11 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     post '/dba_schema/list_db_objects', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE BODY', update_area: :hugo }
     assert_response :success
   end
+
+  test 'list_gradual_password_rollover with xhr: true' do
+    if get_db_version >= '19.12'
+      post '/dba_schema/list_gradual_password_rollover', params: {format: :html, days_back: 3, update_area: :hugo }
+      assert_response :success
+    end
+  end
 end

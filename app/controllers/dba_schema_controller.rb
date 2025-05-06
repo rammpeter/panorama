@@ -354,13 +354,24 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def show_gradual_password_rollover
+    logon_unified_audit_option_count = sql_select_one( "SELECT COUNT(*)
+                                                        FROM   Audit_Unified_Policies p
+                                                        JOIN    Audit_Unified_Enabled_Policies ep ON ep.Policy_Name = p.Policy_Name
+                                                        WHERE  p.Audit_Option = 'LOGON'
+                                                        AND    ep.Enabled_Option = 'BY USER'")
+    add_popup_message("You need to have the Unified Audit option 'LOGON' enabled for the users to see the logon history!\nFor this DB there is no enabled Unified Audit policy containing the action 'LOGON'") if logon_unified_audit_option_count == 0
+    render_partial
+  end
+
   def list_gradual_password_rollover
+    @days_back = prepare_param_int :days_back, default: 30
     @groupby = prepare_param :groupby, default: 'username'           # Force showing of more detail
     @groupfilter = params[:groupfilter]
     @groupfilter = {} if @groupfilter.nil? || @groupfilter.empty?
 
     where_string = ''
-    where_values = []
+    where_values = [@days_back]
 
     @groupfilter.each do |k,v|
       if v.nil?
@@ -403,6 +414,7 @@ class DbaSchemaController < ApplicationController
                        FROM   (SELECT uat.*, NVL(DBProxy_Username, DBUserName) UserName FROM Unified_Audit_Trail uat)
                        WHERE  Action_Name = 'LOGON'
                        AND    Authentication_Type LIKE '%VERIFIER=12C-OLD%'
+                       AND   Event_Timestamp > SYSDATE - ?
                        #{where_string}
                        GROUP BY UserName, DBUserName#{", #{@groupby}" if @groupby}
                       ) a ON a.UserName = u.UserName
