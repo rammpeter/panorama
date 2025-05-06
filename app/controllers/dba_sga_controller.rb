@@ -2119,6 +2119,13 @@ END;
     show_popup_message("SQL Tuning Advisor task '#{@task_name}' dropped.")
   end
 
+  def generate_drop_sql_profile_sql
+    sql_profile  = prepare_param :sql_profile
+
+    @code = "EXEC DBMS_SQLTUNE.Drop_SQL_Profile('#{sql_profile}');"
+    render_partial
+  end
+
   def generate_sql_translation
     @sql_id              = params[:sql_id]
     user_name            = params[:user_name]
@@ -2274,7 +2281,8 @@ END;
 --   - 'hint_text'   Place your optimizer hints here.
 --                   Be aware that query block names and table-aliases must be used in optimizer hints
 --                   with same values as they appear in columns QBLOCK_NAME and OBJECT_ALIAS of v$SQL_PLAN!
---                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\".
+--                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\"
+--                    or as additional columns \"Query block name\" and \"Object alias\".
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
 --   - 'decription'  describe purpose of SQL profile
 
@@ -2349,7 +2357,8 @@ END;
 --   - 'hint_text'   Place your optimizer hints here.
 --                   Be aware that query block names and table-aliases must be used in optimizer hints
 --                   with same values as they appear in columns QBLOCK_NAME and OBJECT_ALIAS of v$SQL_PLAN!
---                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\".
+--                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\"
+--                    or as additional columns \"Query block name\" and \"Object alias\".
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
 --   - 'decription'  describe purpose of SQL-patch
 
@@ -2388,6 +2397,14 @@ END;
       format.html {render :html => render_code_mirror(result) }
     end
   end
+
+  def generate_drop_sql_patch_sql
+    sql_patch  = prepare_param :sql_patch
+
+    @code = "EXEC DBMS_SQLDiag.Drop_SQL_Patch('#{sql_patch}');"
+    render_partial
+  end
+
 
   def list_resize_operations_historic
     save_session_time_selection

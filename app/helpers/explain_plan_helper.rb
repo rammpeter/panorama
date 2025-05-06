@@ -476,6 +476,7 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     [
       { caption: 'Toggle additional columns for plan', icon_class: 'cui-columns', node_type: 'node', hint: 'Toggle additional columns in explain plan',
         items: [
+          toggle_column(header: 'Object alias'),
           toggle_column(header: 'Optimizer hint usage'),
           toggle_column(header: 'Partition attributes'),
           toggle_column(header: 'Projection'),

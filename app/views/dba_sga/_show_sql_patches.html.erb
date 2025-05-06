@@ -39,8 +39,18 @@
     "
   end
 
+  render_action_buttons = proc do |rec|
+    ajax_submit('Drop', {
+      controller:   :dba_sga,
+      action:       :generate_drop_sql_patch_sql,
+      sql_patch:    rec.name,
+      update_area: @update_area,
+    }, :title => "Generate the SQL code for drop of this SQL patch"
+    )
+  end
 
-column_options = []
+
+  column_options = []
 column_options << {:caption=>'Name',                :data=>proc{|rec| rec.name},                              :title=>"Name of the SQL patch"}
 column_options << {:caption=>'Category',            :data=>proc{|rec| rec.category},                          :title=>"Category of the SQL patch"}
 column_options << {:caption=>'Signature',           :data=>proc{|rec| fn rec.signature},                      :title=>"Unique identifier generated from normalized SQL text", align: :right}
@@ -57,6 +67,7 @@ column_options << {:caption=>'Task exec name',      :data=>proc{|rec| rec.task_e
 column_options << {:caption=>'Task object ID',      :data=>proc{|rec| fn rec.task_obj_id},                    :title=>"Advisor object ID for the SQL patch", align: :right}
 column_options << {:caption=>'Task finding ID',     :data=>proc{|rec| fn rec.task_fnd_id},                    :title=>"Advisor finding ID for the SQL patch", align: :right}
 column_options << {:caption=>'Task rec. ID',        :data=>proc{|rec| fn rec.task_rec_id},                    :title=>"Advisor recommendation ID for the SQL patchh", align: :right}
+  column_options << {:caption=> 'Action',               :data=>render_action_buttons,                           :title=> 'Call action for this SQL patch'}
 %>
 
 <%=
