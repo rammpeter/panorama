@@ -2107,7 +2107,8 @@ END;
   end
 
   def create_profile_from_sql_tuning_advisor_task
-    @task_name = prepare_param :task_name
+    @sql_id     = prepare_param :sql_id
+    @task_name  = prepare_param :task_name
     PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.accept_sql_profile(task_name => ?, name => ?, task_owner => USER, replace => TRUE); END;", @task_name, @task_name]
     show_popup_message("SQL Profile '#{@task_name}' created for SQL ID = '#{@sql_id}' based on Tuning Advisor task recommendation.")
   end

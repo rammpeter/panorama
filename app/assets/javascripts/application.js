@@ -333,7 +333,7 @@ function bind_ajax_callbacks() {
 //            if (jqXHR.responseText == undefined){                               // Server nicht erreichbar
                 error_dialog_content.text('Panorama-Server is not available');
             } else {
-                if (jqXHR.responseText.search('Error at server ') === -1 && jqXHR.status != 500) {      // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
+                if (jqXHR.responseText.search('Error at Panorama server ') === -1 && jqXHR.status != 500) {      // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
                     log_stack('Error:' + thrownError);
                     error_dialog_content.text(jqXHR.responseText);              // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
                 } else {
