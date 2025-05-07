@@ -182,12 +182,13 @@ class ApplicationController < ActionController::Base
       EVIL_PARAM_CONTENT.each do |evil|
         if norm_param[evil]
           Rails.logger.error('ApplicationController.check_params_4_vulnerability'){ "Evil content detected for parameter '#{param_key}' with content '#{param_value}'"}
-          raise "Not supported parameter content detected for paramater '#{param_key}'"
+          raise "Not supported parameter content detected for parameter '#{param_key}'"
         end
       end
-      if norm_param.match(/ON\w*=['"]/)  # Check for event handler like onclick, onmouseover, etc.
+      # (?i) makes case insenitive
+      if norm_param.match(/(?i)\bon\w*\s*=\s*['"]/)  # Check for event handler like onclick, onmouseover, etc.
         Rails.logger.error('ApplicationController.check_params_4_vulnerability'){ "Event handler detected for parameter '#{param_key}' with content '#{param_value}'"}
-        raise "Not supported parameter content detected for paramater '#{param_key}'"
+        raise "Not supported parameter content detected for parameter '#{param_key}'"
       end
     end
 

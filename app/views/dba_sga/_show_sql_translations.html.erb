@@ -31,6 +31,18 @@
     )
   end
 
+  render_action_buttons = proc do |rec|
+    ajax_submit('Drop', {
+      controller:               :dba_sga,
+      action:                   :generate_drop_sql_translation_sql,
+      owner:                    rec.owner,
+      sql_translation_profile:  rec.profile_name,
+      org_sql_id:               rec.sql_id,
+      update_area: @update_area,
+    }, :title => "Generate the SQL code for drop of this SQL translation"
+    )
+  end
+
   column_options = []
   column_options << {:caption=>'Owner',               :data=>proc{|rec| rec.owner},                             :title=>"Owner of SQL translation profile"}
   column_options << {:caption=>'Profile name',        :data=>proc{|rec| rec.profile_name},                      :title=>"Name of SQL translation profile"}
@@ -49,7 +61,7 @@
   column_options << {:caption=>'Error source',        :data=>proc{|rec| rec.error_source},                      :title=>"Source of the last error"}                                                             if get_db_version >= '12.2'
   column_options << {:caption=>'Translation method',  :data=>proc{|rec| rec.translation_method},                :title=>"Method used to translate the SQL during the last error"}                               if get_db_version >= '12.2'
   column_options << {:caption=>'Dict. SQL-ID',        :data=>proc{|rec| rec.dictionary_sql_id},                 :title=>"SQL identifier of the SQL text in the translation dictionary used to translate the SQL during the last error"} if get_db_version >= '12.2'
-
+  column_options << {:caption=> 'Action',             :data=>render_action_buttons,                             :title=> 'Call action for this SQL translation'}
 %>
 
 <%=
@@ -57,7 +69,7 @@
     if @translations.count > 0 && @translations[0].sql_id == @translated_sql_id  # Translation did not really happen
       caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' should be translated but SQL-translation did not happen (from DBA_SQL_Translations)</div>".html_safe
     else # Translation did really happen
-      caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' is result of SQL-translation (from DBA_SQL_Translations)</div>".html_safe
+      caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' ay be result of a SQL-translation (from DBA_SQL_Translations)</div>".html_safe
     end
   else
     caption = "SQL-translations from DBA_SQL_Translations"

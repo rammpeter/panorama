@@ -1771,6 +1771,42 @@ class DbaSgaController < ApplicationController
     end
   end
 
+  def generate_drop_sql_translation_sql
+    owner                    = prepare_param :owner
+    sql_translation_profile  = prepare_param :sql_translation_profile
+    org_sql_id               = prepare_param :org_sql_id
+
+    translations_in_profile = sql_select_one ["SELECT COUNT(*) FROM DBA_SQL_Translations WHERE Owner = ? AND Profile_Name = ?", owner, sql_translation_profile]
+    org_sql_text = sql_select_one ["SELECT SQL_Text FROM DBA_SQL_Translations WHERE Owner = ? AND Profile_Name = ? AND SQL_ID = ?", owner, sql_translation_profile, org_sql_id]
+
+    raise  PopupMessageException.new "No SQL translation found for owner '#{owner}' and profile '#{sql_translation_profile}' and SQL ID '#{org_sql_id}'" if org_sql_text.nil?
+    @code = "\
+-- Execute as user '#{owner}' to drop this SQL translation
+BEGIN
+  DBMS_SQL_TRANSLATOR.DEREGISTER_SQL_TRANSLATION(profile_name => '#{sql_translation_profile}',
+                                                  sql_text    => '#{org_sql_text.gsub("'", "''")}'
+  );
+END;
+/
+
+"
+    if translations_in_profile > 1
+      @code << "\
+-- Execute as user '#{owner}' to drop this SQL translation profile
+-- But be aware that there are still #{translations_in_profile-1 } other translations in that profile
+-- EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
+"
+    else
+      @code << "\
+-- Execute as user #{owner} to drop this SQL translation profile
+-- The current translation was the only one in this profile
+EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
+"
+    end
+
+    render_partial
+  end
+
   def show_sql_patches
     @exact_signature = params[:exact_signature]
     @force_signature = params[:force_signature]
@@ -2194,7 +2230,9 @@ END;
 /
 
 
--- 3. ####### Execute as DBA to establish translation:
+-- 3. ####### Execute as SYS as SYSDBA to establish translation:
+-- If not created as SYS you'll get \"ORA-01031: insufficient privileges\" at execution of \"ALTER SESSION SET SQL_TRANSLATION_PROFILE\"
+-- Check alert log for errors from logon trigger if translation does not work in new session
 
 CREATE TRIGGER #{db_trigger_name} AFTER LOGON ON DATABASE
 BEGIN
@@ -2209,7 +2247,7 @@ END;
 
 -- ############# Following acitivities should be sequentially executed in this order to remove translation if not needed anymore #############
 
--- 1. ####### Execute as DBA to remove translation if not needed anymore:
+-- 1. ####### Execute as SYS to remove translation if not needed anymore:
 
 DROP TRIGGER #{db_trigger_name};
 
