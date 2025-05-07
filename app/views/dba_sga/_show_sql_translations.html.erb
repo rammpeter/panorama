@@ -54,7 +54,11 @@
 
 <%=
   if @translated_sql_id
-    caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' is result of SQL-translation (from DBA_SQL_Translations)</div>".html_safe
+    if @translations.count > 0 && @translations[0].sql_id == @translated_sql_id  # Translation did not really happen
+      caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' should be translated but SQL-translation did not happen (from DBA_SQL_Translations)</div>".html_safe
+    else # Translation did really happen
+      caption = "<div style=\"background-color: coral;\">SQL text of SQL-ID='#{@translated_sql_id}' is result of SQL-translation (from DBA_SQL_Translations)</div>".html_safe
+    end
   else
     caption = "SQL-translations from DBA_SQL_Translations"
   end

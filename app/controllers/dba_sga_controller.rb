@@ -1722,23 +1722,25 @@ class DbaSgaController < ApplicationController
   end
 
   def show_sql_translations
-    @translated_sql_id = params[:translated_sql_id]                             # optional filter condition
-    @translated_sql_id = nil if @translated_sql_id == ''
+    @translated_sql_id = prepare_param :translated_sql_id                             # optional filter condition
 
     where_string = ''
     where_values = []
 
     if @translated_sql_id
+      where_string << "WHERE t.SQL_ID = ? OR "
+      where_values << @translated_sql_id
       if 0 < sql_select_one(["SELECT COUNT(*) FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", @translated_sql_id])
-        where_string << "WHERE DBMS_LOB.COMPARE(t.Translated_Text, (SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2)) = 0"
+        where_string << "DBMS_LOB.COMPARE(t.Translated_Text, (SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2)) = 0"
         where_values << @translated_sql_id
       else
         if 0 < sql_select_one(["SELECT COUNT(*) FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ? AND RowNum < 2", get_dbid, @translated_sql_id])
-          where_string << "WHERE DBMS_LOB.COMPARE(t.Translated_Text, (SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ? AND RowNum < 2)) = 0"
+          where_string << "DBMS_LOB.COMPARE(t.Translated_Text, (SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ? AND RowNum < 2)) = 0"
           where_values << get_dbid
           where_values << @translated_sql_id
         else
-          where_string << "WHERE 1=2"    # without hit
+          where_string = "WHERE 1=2"    # without hit
+          where_values = []
           Rails.logger.error('DbaSgaController.show_sql_translations') { "No SQL text found in gv$SQLArea or DBA_Hist_SQLText for SQL-ID='#{@translated_sql_id}'" }
         end
       end
@@ -2146,7 +2148,7 @@ END;
       end
     end
 
-    db_trigger_name     = 'SYS.' + "Panorama_Transl_#{user_name}"[0, 30]
+    db_trigger_name     = "Panorama_Transl_#{user_name}"[0, 30]
     profile_name        = "Panorama_Transl_#{user_name}".upcase[0, 30]
 
     sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ?", @sql_id]
@@ -2170,7 +2172,7 @@ END;
 
 -- ############# Following acitivities should be sequentially executed in this order to establish translation #############
 
--- 1. ####### Execute as user SYS to establish translation:
+-- 1. ####### Execute as DBA to establish translation:
 
 GRANT CREATE SQL TRANSLATION PROFILE TO #{user_name};
 
@@ -2192,7 +2194,7 @@ END;
 /
 
 
--- 3. ####### Execute as user SYS to establish translation:
+-- 3. ####### Execute as DBA to establish translation:
 
 CREATE TRIGGER #{db_trigger_name} AFTER LOGON ON DATABASE
 BEGIN
@@ -2207,7 +2209,7 @@ END;
 
 -- ############# Following acitivities should be sequentially executed in this order to remove translation if not needed anymore #############
 
--- 1. ####### Execute as user SYS to remove translation if not needed anymore:
+-- 1. ####### Execute as DBA to remove translation if not needed anymore:
 
 DROP TRIGGER #{db_trigger_name};
 
