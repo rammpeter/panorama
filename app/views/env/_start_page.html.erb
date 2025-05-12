@@ -212,7 +212,7 @@ DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, 
         column_options << {:caption=>'Last changed by',   :data=>proc{|rec| rec.last_changed_by},                 :title=>"Indicates what type of user last changed the PDB. "} if get_db_version >= '19'
         column_options << {:caption=> 'AWR interval',     :data=>proc{|rec| fn(rec.snap_interval_minutes)},       :title=> "AWR snapshot interval in minutes at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
         column_options << {:caption=> 'AWR retention',    :data=>proc{|rec| fn(rec.snap_retention_days)},         :title=> "AWR retention time for snapshots in days at PDB level for this particular PDB\n\nOnly shown if Diagnostics Pack is licensed", :align=>:right}
-        column_options << {:caption=>'Cloud identity',    :data=>link_cloud_identity,                             title: "Is DB an autonomous DB?"} if @containers.count > 0 && @containers[0]['cloud_identity']
+        column_options << {:caption=>'Cloud identity / Auton.',    :data=>link_cloud_identity,                             title: "Is this DB an autonomous DB?\n\nChecked by V$Containers.Cloud_Identity"} if @containers.count > 0 && @containers[0]['cloud_identity']
         column_options << {:caption=>'DB vault status',   :data=>proc{|rec| rec.dv_status},                        title: dv_status_hint} if get_db_version >= '12.2' && @containers.any? { |rec| rec.dv_status }
       %>
       <%= gen_slickgrid(@containers, column_options, {

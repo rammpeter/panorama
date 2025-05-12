@@ -98,10 +98,10 @@ GEM
       net-smtp
     marcel (1.0.4)
     method_source (1.1.0)
-    mime-types (3.6.2)
+    mime-types (3.7.0)
       logger
-      mime-types-data (~> 3.2015)
-    mime-types-data (3.2025.0429)
+      mime-types-data (~> 3.2025, >= 3.2025.0507)
+    mime-types-data (3.2025.0507)
     mini_mime (1.1.5)
     minitest (5.25.5)
     net-imap (0.5.8)
@@ -116,13 +116,13 @@ GEM
     nio4r (2.7.4-java)
     nokogiri (1.18.8-java)
       racc (~> 1.4)
-    playwright-ruby-client (1.51.0)
+    playwright-ruby-client (1.52.0)
       concurrent-ruby (>= 1.1.6)
       mime-types (>= 3.0)
     puma (6.6.0-java)
       nio4r (~> 2.0)
     racc (1.8.1-java)
-    rack (2.2.13)
+    rack (2.2.14)
     rack-mini-profiler (2.3.4)
       rack (>= 1.2.0)
     rack-test (2.2.0)
@@ -227,7 +227,7 @@ DEPENDENCIES
   web-console (>= 4.1.0)
 
 RUBY VERSION
-   ruby 3.1.4p0 (jruby 9.4.12.0)
+   ruby 3.1.4p0 (jruby 9.4.12.1)
 
 BUNDLED WITH
    2.6.5
