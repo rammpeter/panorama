@@ -276,9 +276,9 @@ class PanoramaConnection
   # @return [Boolean] true if DB is an autonomous DB
   def autonomous_database?
     if !defined?(@autonomous_database) || @autonomous_database.nil?
-      @autonomous_database = true                                               # assume autonomous if next selection doesn't fail
       begin
-        PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Cloud_Identity FROM v$Containers WHERE RowNum < 2")
+        cloud_identity = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Cloud_Identity FROM v$Containers WHERE RowNum < 2")
+        @autonomous_database = cloud_identity['AUTONOMOUSDATABASE']             # The DATABASE_OCID shout contain this String for autonomous DBs
       rescue Exception => e
         @autonomous_database = false                                            # not autonomous database because cloud_identity is not available
       end
