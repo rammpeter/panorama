@@ -1006,6 +1006,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   # remove trailing semicolon or slash if needed
   def prepare_sql_statement(sql)
     sql.rstrip!
+    sql.gsub!(/\r/, '')   # remove windows like carriage return
     lines = sql.split("\n")
     return nil if lines.length == 0
     lines[lines.length-1].gsub!(/\/$/, "")

@@ -10,6 +10,7 @@ class SQL_Worksheet  {
             value: "-- Place your SQL code here\n",
             mode:  "sql",
             lineNumbers: true
+            // lineSeparator: "\n) // does not make sense here because textfield will also return "\r\n", handled at server side now
         });
         this.file_open_id = file_open_id;
         this.autotrace_on = autotrace_on;
@@ -71,6 +72,7 @@ class SQL_Worksheet  {
                 return_sql = 'PL/SQL';                                          // mark as PL/SQL without selection
             }
         }
+
         return return_sql;
     }
 

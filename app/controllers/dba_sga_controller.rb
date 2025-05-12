@@ -2169,13 +2169,28 @@ END;
     user_name            = params[:user_name]
 
     if params[:fixed_user].nil? || params[:fixed_user] == ''
-      @user_data = sql_select_all ["SELECT u.UserName
-                                   FROM   (SELECT DISTINCT User_ID
-                                           FROM   gv$Active_Session_History
-                                           WHERE  SQL_ID = ?
-                                          ) a
-                                   JOIN   All_Users u ON u.User_ID = a.User_ID
-                                  ", @sql_id]
+      user_where_values = [@sql_id, @sql_id]
+      user_sql =  "SELECT u.UserName
+                   FROM   (SELECT DISTINCT User_ID
+                           FROM   gv$Active_Session_History
+                           WHERE  SQL_ID = ?
+                          ) a
+                   JOIN   All_Users u ON u.User_ID = a.User_ID
+                   UNION
+                   SELECT Parsing_schema_Name
+                   FROM   gv$SQLArea
+                   WHERE  SQL_ID = ?
+                  "
+      unless PackLicense.none_licensed?
+        user_where_values << @sql_id
+        user_sql << "UNION
+                     SELECT Parsing_Schema_Name
+                     FROM   DBA_Hist_SQLStat
+                     WHERE  SQL_ID = ?
+                    "
+      end
+
+      @user_data = sql_select_all [user_sql].concat(user_where_values)
 
       user_name = @user_data[0].username if @user_data.count == 1                 # Switch username to the real session owner
       if @user_data.count > 1
@@ -2188,7 +2203,7 @@ END;
     profile_name        = "Panorama_Transl_#{user_name}".upcase[0, 30]
 
     sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ?", @sql_id]
-    sql_text = sql_select_one ["SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?", get_dbid, @sql_id] if sql_text.nil?
+    sql_text = sql_select_one ["SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?", get_dbid, @sql_id] if sql_text.nil? && !PackLicense.none_licensed?
 
     profile_exists = 0 < sql_select_one(["SELECT COUNT(*) FROM DBA_SQL_Translations WHERE Owner = ? AND Profile_Name = ? ", user_name, profile_name])
 
