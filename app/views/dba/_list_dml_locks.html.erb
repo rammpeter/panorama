@@ -88,7 +88,7 @@
       {:caption=>"Maschine",    :data=>proc{|rec| rec.maschinepidprog},                   :title=>t(:dba_list_dml_locks_machine_hint, :default=>'Machine:PID of user-process:prozess name'), :data_title=>proc{|rec| rec.maschinepidprogfull} },
       {:caption=>"LT",          :data=>proc{|rec| rec.locktype},                          :title=>"Lock Type",                   :data_title=>proc{|rec| lock_types(rec.locktype)} },
       {:caption=>"Time wait.",  :data=>proc{|rec| fn(rec.waitingfortime, 3)},             :title=>t(:dba_list_dml_locks_time_hint, :default=>'Wait time in seconds for lock respectively since end of last wait event'), data_title: proc{|rec| "%t\n#{seconds_explain(rec.waitingfortime)}" }, :align=>"right"},
-      {:caption=>"Lock held",   :data=>proc{|rec| fn(rec.lock_held_seconds)},             :title=>"Time in seconds since lock was granted", :align=>"right"},
+      {:caption=>"Lock held",   :data=>proc{|rec| fn(rec.lock_held_seconds)},             :title=>"Time in seconds since lock was granted", data_title: proc{|rec| "%t\n#{seconds_explain(rec.lock_held_seconds)}" }, :align=>"right"},
       {:caption=>"ID1ID2",      :data=>proc{|rec| rec.id1id2},                            :title=>t(:dba_list_dml_locks_link_id12_hint, :default=>'ID1 and ID2 of lock') },
       {:caption=>"R",           :data=>proc{|rec| rec.request},                           :title=>"Request: !=0 indicates waiting for resource determinded by ID1, ID2", :data_title=>proc{|rec| lock_modes(rec.request)} },
       {:caption=>"L",           :data=>proc{|rec| rec.lockmode},                          :title=>"Lock-Modus",                 :data_title=>proc{|rec| lock_modes(rec.lockmode)} },
