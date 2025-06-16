@@ -41,23 +41,26 @@ module HtmlHelper
   end
 
   # Select DBID from different sources
-  def dbid_selection(select_element_id: nil, onchange: nil, wrap_label: false, show_all: false)
+  # @param select_element_id [String] DOM-ID of the select element
+  # @param onchange [String] JavaScript code to be executed on change event
+  # @param wrap_label [Boolean] Whether to wrap label and select element in a div
+  # @param show_all [Boolean] Whether to show an option for all DBIDs
+  # @param show_only_known_awr_dbids [Boolean] Whether to show only known AWR DBIDs or all available DBIDs
+  # @return [String] HTML select element with DBID values
+  def dbid_selection(select_element_id: nil, onchange: nil, wrap_label: false, show_all: false, show_only_known_awr_dbids: true)
     result = ''
     dbids = []
-=begin
-    dbids = [{dbid: PanoramaConnection.dbid, title: "DBID of instance / container DB"}]
-    current_dbids = Set[PanoramaConnection.dbid]
-    PanoramaConnection.pdbs.each do |p|
-      # Add possibly existing pluggable databases
-      current_dbids.add(p[:dbid])
-      dbids << {dbid: p[:dbid], title: "PDB #{p[:con_id]}: #{p[:name]}"}
-    end
-=end
-    # Add possibly existing previously recorded databases
-    PanoramaConnection.all_awr_dbids.each do |a|
-      #      unless current_dbids.include? a.dbid                                      # List AWR DBIDs not already known as current
+
+    if show_only_known_awr_dbids
+      # Add possibly existing previously recorded databases
+      PanoramaConnection.all_awr_dbids.each do |a|
         dbids << {dbid: a.dbid, title: "#{a.db_name}/#{a.con_id} #{localeDateTime(a.start_ts, :days)} .. #{localeDateTime(a.end_ts, :days)}"}
-      #end
+      end
+    else
+      dbids << {dbid: PanoramaConnection.dbid, title: "DBID of instance / container DB"}
+      PanoramaConnection.pdbs.each do |p|
+        dbids << {dbid: p[:dbid], title: "PDB #{p[:con_id]}: #{p[:name]}"}      # Add possibly existing pluggable databases
+      end
     end
 
     # Don't show choice if only one DBID available
