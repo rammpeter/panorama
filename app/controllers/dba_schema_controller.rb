@@ -2541,6 +2541,63 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_audit_unified_policy_names
+    @show_pin_icon  = prepare_param_int :show_pin_icon
+    @policy_name    = prepare_param :policy_name                                # optional, but must exists if the other filters are used
+    @object_type    = prepare_param :object_type                                # optional, but must exists if the other filters are used
+    @owner          = prepare_param :owner                                      # optional
+    @object_name    = prepare_param :object_name                                # optional
+    @update_area    = prepare_param :update_area_for_target                     # set only if called from show_audit_rules
+
+    where_string = ''
+    where_values = []
+
+    global_where_string = ''
+    global_where_values = []
+
+    if @policy_name
+      global_where_string << "WHERE p.Policy_Name = ?"
+      global_where_values << @policy_name
+    end
+
+    if @object_type
+      where_string = "WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?"
+      where_values << @object_type
+      where_values << @object_type
+
+      if @owner
+        where_string << " AND p.Object_Schema = ?"
+        where_values << @owner
+      end
+      if @object_name
+        where_string << " AND p.Object_Name = ?"
+        where_values << @object_name
+      end
+
+      where_string << ")"
+    end
+
+    @audit_unified_enabled_policies = sql_select_all ["\
+        WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
+             Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
+                          FROM   Audit_Unified_Policies p
+                          #{where_string}
+                          GROUP BY Policy_Name
+                         ),
+             Not_Enabled AS (SELECT Policy_Name FROM Policies WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled))
+        SELECT p.*, c.Comments, pc.Policy_Count
+        FROM   (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Enabled
+                UNION ALL
+                SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure FROM Not_Enabled
+                ) p
+        LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
+        #{"LEFT OUTER " if @object_type.nil?}JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
+        #{global_where_string}
+        ORDER BY p.Policy_Name"].concat(where_values).concat(global_where_values)
+
+    render_partial
+  end
+
   # The conditions for filters should match the conditions for @audit_rule_cnt in method 'list_object_description'
   def show_audit_rules
     @object_type  = prepare_param :object_type                                  # optional, but must exists if the other filters are used
@@ -2584,42 +2641,53 @@ class DbaSchemaController < ApplicationController
     @fga_policies       = sql_select_all ["SELECT * FROM DBA_Audit_Policies #{where_string} ORDER BY Object_Schema, Object_Name"].concat(where_values)
 
     if get_db_version >= '12.2'                                                 # Start of recommended unified auditing
+      @audit_unified_contexts = sql_select_all "SELECT * FROM Audit_Unified_Contexts ORDER BY Namespace, Attribute, User_Name"
+
       where_string = ''
       where_values = []
       if @object_type
-        where_string = " WHERE (Audit_Option LIKE '%'||? )  OR ( Object_Type = ?"
+        where_string = " WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?"
         where_values << @object_type
         where_values << @object_type
 
         if @owner
-          where_string << " AND Object_Schema = ?"
+          where_string << " AND p.Object_Schema = ?"
           where_values << @owner
         end
         if @object_name
-          where_string << " AND Object_Name = ?"
+          where_string << " AND p.Object_Name = ?"
           where_values << @object_name
         end
 
         where_string << ")"
-        end
-      @audit_unified_enabled_policies = sql_select_all ["\
-        WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
-             Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
-                          FROM   Audit_Unified_Policies
-                          #{where_string}
-                          GROUP BY Policy_Name
-                         ),
-             Not_Enabled AS (SELECT Policy_Name FROM Policies WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled))
-        SELECT p.*, c.Comments, pc.Policy_Count
-        FROM   (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Enabled
-                UNION ALL
-                SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure FROM Not_Enabled
-                ) p
-        LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
-        #{"LEFT OUTER " if @object_type.nil?}JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
-        ORDER BY p.Policy_Name"].concat(where_values)
+      end
 
-      @audit_unified_contexts = sql_select_all "SELECT * FROM Audit_Unified_Contexts ORDER BY Namespace, Attribute, User_Name"
+      @audit_options = sql_select_all ["\
+        SELECT Audit_Option, Audit_Option_Type,
+              COUNT(*) Policy_Cnt,
+              SUM(CASE WHEN Enabled_Option IS NULL THEN 0 ELSE 1 END) Enabled_Policy_Cnt,
+              COUNT(DISTINCT p.Policy_Name) Policy_Cnt, MIN(p.Policy_Name) Min_Policy_Name,
+              COUNT(DISTINCT(CASE WHEN Audit_Condition    = 'NONE' THEN NULL ELSE Audit_Condition     END)) Audit_Condition_Cnt,    MIN(Audit_Condition)    Min_Audit_Condition,
+              COUNT(DISTINCT(CASE WHEN Condition_Eval_Opt = 'NONE' THEN NULL ELSE Condition_Eval_Opt  END)) Condition_Eval_Opt_Cnt, MIN(Condition_Eval_Opt) Min_Condition_Eval_Opt,
+              COUNT(DISTINCT(CASE WHEN Object_Schema      = 'NONE' THEN NULL ELSE Object_Schema       END)) Object_Schema_Cnt,      MIN(Object_Schema)      Min_Object_Schema,
+              COUNT(DISTINCT(CASE WHEN Object_Name        = 'NONE' THEN NULL ELSE Object_Name         END)) Object_Name_Cnt,        MIN(Object_Name)        Min_Object_Name,
+              COUNT(DISTINCT(CASE WHEN Object_Type        = 'NONE' THEN NULL ELSE Object_Type         END)) Object_Type_Cnt,        MIN(Object_Type)        Min_Object_Type,
+              COUNT(DISTINCT Common)              Common_Cnt,               MIN(Common)               Min_Common,
+              COUNT(DISTINCT Inherited)           Inherited_Cnt,            MIN(Inherited)            Min_Inherited,
+              #{"COUNT(DISTINCT Audit_Only_TopLevel) Audit_Only_TopLevel_Cnt,  MIN(Audit_Only_TopLevel)  Min_Audit_Only_TopLevel,
+                 COUNT(DISTINCT Oracle_Supplied)  Oracle_Supplied_Cnt,      MIN(Oracle_Supplied)      Min_Oracle_Supplied," if get_db_version < '19.11'}
+              COUNT(DISTINCT e.Enabled_Option)    Enabled_Option_Cnt,       MIN(e.Enabled_Option)     Min_Enabled_Option,
+              COUNT(DISTINCT e.Entity_Name)       Entity_Name_Cnt,          MIN(e.Entity_Name)        Min_Entity_Name,
+              COUNT(DISTINCT e.Entity_Type)       Entity_Type_Cnt,          MIN(e.Entity_Type)        Min_Entity_Type,
+              COUNT(DISTINCT e.Success)           Success_Cnt,              MIN(e.Success)            Min_Success,
+              COUNT(DISTINCT e.Failure)           Failure_Cnt,              MIN(e.Failure)            Min_Failure
+        FROM   Audit_Unified_Policies p
+        LEFT OUTER JOIN Audit_Unified_Enabled_Policies e ON e.Policy_Name = p.Policy_Name
+        #{where_string}
+        GROUP BY Audit_Option, Audit_Option_Type
+        ORDER BY Audit_Option
+      "].concat(where_values)
+
     end
     render_partial
   end
@@ -2629,31 +2697,49 @@ class DbaSchemaController < ApplicationController
     @object_type  = prepare_param :object_type                                  # optional, but must exists if the other filters are used
     @owner        = prepare_param :owner                                        # optional
     @object_name  = prepare_param :object_name                                  # optional
+    @audit_option = prepare_param :audit_option
+    @audit_option_type = prepare_param :audit_option_type
 
-    where_string = ''
+    where_string = 'WHERE 1=1'
     where_values = []
 
+    if @policy_name
+      where_string << " AND p.Policy_Name = ?"
+      where_values << @policy_name
+    end
+
+    if @audit_option
+      where_string << " AND p.Audit_Option = ?"
+      where_values << @audit_option
+    end
+
+    if @audit_option_type
+      where_string << " AND p.Audit_Option_Type = ?"
+      where_values << @audit_option_type
+    end
+
     if @object_type
-      where_string = " AND ( (Audit_option LIKE '%'||? ) OR ( Object_Type = ?"
+      where_string = " AND ( (p.Audit_option LIKE '%'||? ) OR ( p.Object_Type = ?"
       where_values << @object_type
       where_values << @object_type
 
       if @owner
-        where_string << " AND Object_Schema = ?"
+        where_string << " AND p.Object_Schema = ?"
         where_values << @owner
       end
       if @object_name
-        where_string << " AND Object_Name = ?"
+        where_string << " AND p.Object_Name = ?"
         where_values << @object_name
       end
       where_string << "))"
     end
 
     @policies = sql_select_iterator ["\
-      SELECT *
-      FROM   Audit_Unified_Policies
-      WHERE  Policy_Name = ? #{where_string}
-      ORDER BY Policy_Name, Object_Schema, Object_Name, Audit_Option", @policy_name].concat(where_values)
+      SELECT p.*, e.Enabled_Option, e.Entity_Name, e.Entity_Type, e.Success, e.Failure
+      FROM   Audit_Unified_Policies p
+      LEFT OUTER JOIN Audit_Unified_Enabled_Policies e ON e.Policy_Name = p.Policy_Name
+      #{where_string}
+      ORDER BY p.Policy_Name, p.Object_Schema, p.Object_Name, p.Audit_Option"].concat(where_values)
     render_partial
   end
 

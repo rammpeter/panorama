@@ -5,173 +5,180 @@
 <% end %>
 
 <div class="flex-row-container">
-  <% if @audits.count > 0 %>
+  <div class="flex-row-element">
+    <%
+      column_options =
+        [
+          {:caption=> 'User',             :data=>proc{|rec| rec.user_name},       :title=> "User name if by user auditing.\nANY CLIENT if access by a proxy on behalf of a client is being audited.\nNULL for system-wide auditing"},
+          {:caption=> 'Proxy',            :data=>proc{|rec| rec.proxy_name},      :title=> "The name of the proxy user which is performing an operation for the client.\nNULL if the client is performing the operation directly."},
+          {:caption=> 'Audit-Option',     :data=>proc{|rec| rec.audit_option},    :title=> "Name of the system auditing option"},
+          {:caption=> 'Success',          :data=>proc{|rec| rec.success},         :title=> "Mode for WHENEVER SUCCESSFUL system auditing"},
+          {:caption=> 'Failure',          :data=>proc{|rec| rec.failure},         :title=> "Mode for WHENEVER NOT SUCCESSFUL system auditing"},
+        ]
+    %>
+
+    <%=
+      gen_slickgrid(@audits, column_options, {
+        :caption    => 'Active auditing rules from DBA_Stmt_Audit_Opts',
+        caption_title: "This view shows the auditing configuration for various SQL statements, indicating whether auditing is enabled for specific operations, and if so, whether it is set for successful executions, failures, or both.",
+        :max_height => 250,
+        :width      => :auto,
+        show_pin_icon: 3
+      })
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%
+      column_options =
+        [
+          {caption: 'Object',           data: proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name, nil, rec.object_type)},       title: "Object owner and name"},
+          {caption: 'Object type',      data: proc{|rec| rec.object_type},        title: "Type of the object"},
+          {caption: 'Alt',              data: proc{|rec| rec.alt},                title: "Auditing ALTER WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Aud',              data: proc{|rec| rec.aud},                title: "Auditing AUDIT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Com',              data: proc{|rec| rec['com']},                title: "Auditing COMMENT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Del',              data: proc{|rec| rec.del},                title: "Auditing DELETE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Gra',              data: proc{|rec| rec.gra},                title: "Auditing GRANT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Ind',              data: proc{|rec| rec.ind},                title: "Auditing INDEX WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Ins',              data: proc{|rec| rec.ins},                title: "Auditing INSERT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Loc',              data: proc{|rec| rec.loc},                title: "Auditing LOCK WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Ren',              data: proc{|rec| rec.ren},                title: "Auditing RENAME WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Sel',              data: proc{|rec| rec.sel},                title: "Auditing SELECT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Upd',              data: proc{|rec| rec.upd},                title: "Auditing UPDATE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Cre',              data: proc{|rec| rec.cre},                title: "Auditing CREATE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Rea',              data: proc{|rec| rec.rea},                title: "Auditing READ WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Wri',              data: proc{|rec| rec.wri},                title: "Auditing WRITE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+          {caption: 'Fbk',              data: proc{|rec| rec.fbk },                title: "Auditing FLASHBACK WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
+        ]
+    %>
+
+    <%=
+      gen_slickgrid(@obj_audit_opts, column_options, {
+        :caption    => 'Active auditing rules from DBA_Obj_Audit_Opts',
+        caption_title: "Displays the auditing options configured for specific database objects, such as tables, views, and procedures",
+        :max_height => 250,
+        :width      => :auto,
+        show_pin_icon: 3
+      })
+    %>
+  </div>
+
+  <div class="flex-row-element">
+    <%
+      focus = proc do |rec|
+        retval = ''
+        retval = 'Select' if rec.sel == 'YES'
+        if rec.ins == 'YES'
+          retval << ', ' if retval != ''
+          retval << 'Insert'
+        end
+        if rec.upd == 'YES'
+          retval << ', ' if retval != ''
+          retval << 'Update'
+        end
+        if rec.del == 'YES'
+          retval << ', ' if retval != ''
+          retval << 'Delete'
+        end
+        retval
+      end
+
+      column_options =
+        [
+          {caption: 'Object',         data: proc{|rec| link_object_description(@update_area, rec.object_schema, rec.object_name) }, title: 'Owner and name of the table or view'},
+          {caption: 'Policy',         data: proc{|rec| "#{rec.policy_owner}.#{rec.policy_name}" },    title: 'Policy owner and name'},
+          {caption: 'Policy text',    data: proc{|rec| rec.policy_text},                              title: 'Audit condition'},
+          {caption: 'Policy column',  data: proc{|rec| rec.policy_column},                            title: 'Relevant column'},
+          {caption: 'Audit handler function',  data: proc{|rec| "#{rec.pf_schema}.#{rec.pf_package}.#{rec.pf_function}"},  title: 'Schema, package and function of the audit handler function'},
+          {caption: 'Enbl.',          data: proc{|rec| rec.enabled},                                  title: 'Indicates whether the policy is enabled (YES) or disabled (NO)'},
+          {caption: 'Focus',          data: focus,                                  title: 'Statement type the policy is applied to'},
+          {caption: 'Audit trail',    data: proc{|rec| rec.audit_trail},                              title: 'Indicates the audit trail to which the audit records generated by this audit policy will be written'},
+          {caption: 'Column options', data: proc{|rec| rec.policy_column_options},                    title: 'Indicates whether all columns in the AUDIT_COLUMN parameter (ALL_COLUMNS) or any of the columns in the AUDIT_COLUMN parameter (ANY_COLUMNS) are considered for triggering fine-grained auditing'},
+        ]
+      column_options << {caption: 'Common', data: proc{|rec| rec.common},       title: 'Indicates whether the policy applies across multiple containers (YES) or not (NO)'} if get_db_version >= '12.2'
+      column_options << {caption: 'Inh.',   data: proc{|rec| rec.inherited},    title: 'Indicates whether the policy was inherited from another container (YES) or not (NO)'} if get_db_version >= '12.2'
+    %>
+
+    <%=
+      gen_slickgrid(@fga_policies, column_options, {
+        :caption    => 'FGA policies from DBA_Audit_Policies',
+        caption_title: "This view shows the Fine-Grained Auditing (FGA) policies defined in the database, including their conditions and focus.",
+        :max_height => 250,
+        :width      => :auto,
+        show_pin_icon: 3
+      })
+    %>
+  </div>
+
+  <% if get_db_version >= '12.2' %>
+    <div class="flex-row-element">
+      <%=  render_async(:dba_schema,
+                        :list_audit_unified_policy_names,
+                        params.permit!.to_h.merge({ update_area_for_target: @update_area,
+                                                    show_pin_icon: 3
+                                                  }
+                        ))
+      %>
+    </div>
+
     <div class="flex-row-element">
       <%
         column_options =
           [
-            {:caption=> 'User',             :data=>proc{|rec| rec.user_name},       :title=> "User name if by user auditing.\nANY CLIENT if access by a proxy on behalf of a client is being audited.\nNULL for system-wide auditing"},
-            {:caption=> 'Proxy',            :data=>proc{|rec| rec.proxy_name},      :title=> "The name of the proxy user which is performing an operation for the client.\nNULL if the client is performing the operation directly."},
-            {:caption=> 'Audit-Option',     :data=>proc{|rec| rec.audit_option},    :title=> "Name of the system auditing option"},
-            {:caption=> 'Success',          :data=>proc{|rec| rec.success},         :title=> "Mode for WHENEVER SUCCESSFUL system auditing"},
-            {:caption=> 'Failure',          :data=>proc{|rec| rec.failure},         :title=> "Mode for WHENEVER NOT SUCCESSFUL system auditing"},
+            {caption: 'Namespace ',     data: proc{|rec| rec.namespace },            title: 'Application context namespace'},
+            {caption: 'Attribute',      data: proc{|rec| rec.attribute},             title: "Application context attribute"},
+            {caption: 'User name',      data: proc{|rec| rec.user_name},             title: "Username of database user for whom the application context's attribute is confiured to be captured in the audit trail"},
           ]
       %>
 
       <%=
-        gen_slickgrid(@audits, column_options, {
-          :caption    => 'Active auditing rules from DBA_Stmt_Audit_Opts',
+        gen_slickgrid(@audit_unified_contexts, column_options, {
+          :caption    => 'Additional application context attributes from Audit_Unified_Contexts',
           :max_height => 250,
           :width      => :auto,
           show_pin_icon: 3
         })
       %>
     </div>
-  <% end %>
 
-  <% if @obj_audit_opts.count > 0 %>
     <div class="flex-row-element">
       <%
-        column_options =
-          [
-            {caption: 'Object',           data: proc{|rec| link_object_description(@update_area, rec.owner, rec.object_name, nil, rec.object_type)},       title: "Object owner and name"},
-            {caption: 'Object type',      data: proc{|rec| rec.object_type},        title: "Type of the object"},
-            {caption: 'Alt',              data: proc{|rec| rec.alt},                title: "Auditing ALTER WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Aud',              data: proc{|rec| rec.aud},                title: "Auditing AUDIT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Com',              data: proc{|rec| rec['com']},                title: "Auditing COMMENT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Del',              data: proc{|rec| rec.del},                title: "Auditing DELETE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Gra',              data: proc{|rec| rec.gra},                title: "Auditing GRANT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Ind',              data: proc{|rec| rec.ind},                title: "Auditing INDEX WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Ins',              data: proc{|rec| rec.ins},                title: "Auditing INSERT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Loc',              data: proc{|rec| rec.loc},                title: "Auditing LOCK WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Ren',              data: proc{|rec| rec.ren},                title: "Auditing RENAME WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Sel',              data: proc{|rec| rec.sel},                title: "Auditing SELECT WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Upd',              data: proc{|rec| rec.upd},                title: "Auditing UPDATE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Cre',              data: proc{|rec| rec.cre},                title: "Auditing CREATE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Rea',              data: proc{|rec| rec.rea},                title: "Auditing READ WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Wri',              data: proc{|rec| rec.wri},                title: "Auditing WRITE WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-            {caption: 'Fbk',              data: proc{|rec| rec.fbk },                title: "Auditing FLASHBACK WHENEVER SUCCESSFUL / UNSUCCESSFUL"},
-          ]
-      %>
+        link_options = proc do |rec, value|
+          ajax_link(fn(value), {
+            action:             :list_audit_unified_policies,
+            audit_option:       rec.audit_option,
+            audit_option_type:  rec.audit_option_type,
+            update_area:        @update_area
+          }, title: "Show the #{fn(rec.policy_cnt)} policies from Audit_Unified_Policies with this audit option and type" )
+        end
 
-      <%=
-        gen_slickgrid(@obj_audit_opts, column_options, {
-          :caption    => 'Active auditing rules from DBA_Obj_Audit_Opts',
-          :max_height => 250,
-          :width      => :auto,
-          show_pin_icon: 3
-        })
-      %>
-    </div>
-  <% end %>
+        link_policy_count = proc do |rec|
+          link_options.call(rec, rec.policy_cnt)
+        end
 
-  <% if @fga_policies.count > 0 %>
-    <div class="flex-row-element">
-      <%
-        focus = proc do |rec|
-          retval = ''
-          retval = 'Select' if rec.sel == 'YES'
-          if rec.ins == 'YES'
-            retval << ', ' if retval != ''
-            retval << 'Insert'
-          end
-          if rec.upd == 'YES'
-            retval << ', ' if retval != ''
-            retval << 'Update'
-          end
-          if rec.del == 'YES'
-            retval << ', ' if retval != ''
-            retval << 'Delete'
-          end
-          retval
+        link_enabled_policy_count = proc do |rec|
+          link_options.call(rec, rec.enabled_policy_cnt)
         end
 
         column_options =
           [
-            {caption: 'Object',         data: proc{|rec| link_object_description(@update_area, rec.object_schema, rec.object_name) }, title: 'Owner and name of the table or view'},
-            {caption: 'Policy',         data: proc{|rec| "#{rec.policy_owner}.#{rec.policy_name}" },    title: 'Policy owner and name'},
-            {caption: 'Policy text',    data: proc{|rec| rec.policy_text},                              title: 'Audit condition'},
-            {caption: 'Policy column',  data: proc{|rec| rec.policy_column},                            title: 'Relevant column'},
-            {caption: 'Audit handler function',  data: proc{|rec| "#{rec.pf_schema}.#{rec.pf_package}.#{rec.pf_function}"},  title: 'Schema, package and function of the audit handler function'},
-            {caption: 'Enbl.',          data: proc{|rec| rec.enabled},                                  title: 'Indicates whether the policy is enabled (YES) or disabled (NO)'},
-            {caption: 'Focus',          data: focus,                                  title: 'Statement type the policy is applied to'},
-            {caption: 'Audit trail',    data: proc{|rec| rec.audit_trail},                              title: 'Indicates the audit trail to which the audit records generated by this audit policy will be written'},
-            {caption: 'Column options', data: proc{|rec| rec.policy_column_options},                    title: 'Indicates whether all columns in the AUDIT_COLUMN parameter (ALL_COLUMNS) or any of the columns in the AUDIT_COLUMN parameter (ANY_COLUMNS) are considered for triggering fine-grained auditing'},
+            {caption: 'Audit option',         data: proc{|rec| rec.audit_option },            title: 'Auditing option defined in the audit policy'},
+            {caption: 'Audit option type',    data: proc{|rec| rec.audit_option_type},        title: "Type of the auditing option."},
+            {caption: 'Policy count',         data: link_policy_count,                        title: "Number of policies in Audit_Unified_Policies with this audit option", align: :right},
+            {caption: 'Enabled policy count', data: link_enabled_policy_count,                title: "Number of enabled policies in Audit_Unified_Policies with this audit option", align: :right},
           ]
-        column_options << {caption: 'Common', data: proc{|rec| rec.common},       title: 'Indicates whether the policy applies across multiple containers (YES) or not (NO)'} if get_db_version >= '12.2'
-        column_options << {caption: 'Inh.',   data: proc{|rec| rec.inherited},    title: 'Indicates whether the policy was inherited from another container (YES) or not (NO)'} if get_db_version >= '12.2'
       %>
 
       <%=
-        gen_slickgrid(@fga_policies, column_options, {
-          :caption    => 'FGA policies from DBA_Audit_Policies',
+        gen_slickgrid(@audit_options, column_options, {
+          :caption    => 'Condensed audit options from Audit_Unified_Policies',
           :max_height => 250,
           :width      => :auto,
           show_pin_icon: 3
         })
       %>
     </div>
-  <% end %>
 
-  <% if get_db_version >= '12.2' %>
-    <% if  @audit_unified_enabled_policies.count > 0 %>
-      <div class="flex-row-element">
-        <%
-          link_policy_count = proc do |rec|
-            ajax_link(fn(rec.policy_count), {
-              action:       :list_audit_unified_policies,
-              policy_name:  rec.policy_name,
-              object_type:  @object_type,
-              owner:        @owner,
-              object_name:  @object_name,
-              update_area:  @update_area
-            }, title: "Show the #{fn(rec.policy_count)} policies from Audit_Unified_Policies" )
-          end
-          column_options =
-            [
-              {caption: 'Policy',         data: proc{|rec| rec.policy_name },                           title: 'Name of the audit policy'},
-              {caption: 'Enabled option', data: proc{|rec| rec.enabled_option},                         title: "Enabled option of the audit policy. Possible values:\nBY USER: For policies that are enabled on users\nEXCEPT USER: For policies that are enabled on users\nBY GRANTED ROLE: For policies that are enabled on roles\nINVALID: For policies that are not enabled on either users or roles\nNO: Not enabled on any user or role (Records in Audit_Unified_Policies only)"},
-              {caption: 'Entity name',    data: proc{|rec| rec.entity_name},                            title: "Database entity (user name or role name) on which the audit policy is enabled.\nWhen an audit policy is enabled on all database users, ALL USERS is displayed in this column."},
-              {caption: 'Entity type',    data: proc{|rec| rec.entity_type},                            title: "Database entity type. Possible values:\nUSER: Indicates that the policy is enabled on a user or users.\nROLE: Indicates that the policy is enabled on a role or roles."},
-              {caption: 'Success',        data: proc{|rec| rec.success},                                title: 'Indicates whether the audit policy is enabled for auditing successful events (YES) or not (NO)'},
-              {caption: 'Failure',        data:  proc{|rec| rec.failure},                               title: 'Indicates whether the audit policy is enabled for auditing unsuccessful events (YES) or not (NO)'},
-              {caption: 'Policy count',   data:  link_policy_count,                                     title: 'Number of unified audit policies in Audit_Unified_Policies', align: :right},
-              {caption: 'Comment',        data:  proc{|rec| rec.comments},                              title: 'Comment from  Audit_Unified_Policy_Comments'},
-            ]
-        %>
-
-        <%=
-          gen_slickgrid(@audit_unified_enabled_policies, column_options, {
-            :caption    => 'Unified audit policies from Audit_Unified_Enabled_Policies',
-            :max_height => 250,
-            :width      => :auto,
-            show_pin_icon: 3
-          })
-        %>
-      </div>
-    <% end %>
-
-    <% if  @audit_unified_contexts.count > 0 %>
-      <div class="flex-row-element">
-        <%
-          column_options =
-            [
-              {caption: 'Namespace ',     data: proc{|rec| rec.namespace },            title: 'Application context namespace'},
-              {caption: 'Attribute',      data: proc{|rec| rec.attribute},             title: "Application context attribute"},
-              {caption: 'User name',      data: proc{|rec| rec.user_name},             title: "Username of database user for whom the application context's attribute is confiured to be captured in the audit trail"},
-            ]
-        %>
-
-        <%=
-          gen_slickgrid(@audit_unified_contexts, column_options, {
-            :caption    => 'Additional application context attributes from Audit_Unified_Contexts',
-            :max_height => 250,
-            :width      => :auto,
-            show_pin_icon: 3
-          })
-        %>
-      </div>
-    <% end %>
   <% end %>
 
 </div>
