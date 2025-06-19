@@ -2580,7 +2580,7 @@ class DbaSchemaController < ApplicationController
     @audit_unified_enabled_policies = sql_select_all ["\
         WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
              Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
-                                 #{get_db_version >= '19.11' ? ", COUNT(DISTINCT Oracle_Supplied) Oracle_Supplied_Cnt, MIN(Oracle_Supplied) Min_Oracle_Supplied" : "0 Oracle_Supplied_Cnt, NULL Min_Oracle_Supplied" }
+                                 #{get_db_version >= '19.11' ? ", COUNT(DISTINCT Oracle_Supplied) Oracle_Supplied_Cnt, MIN(Oracle_Supplied) Min_Oracle_Supplied" : ", 0 Oracle_Supplied_Cnt, NULL Min_Oracle_Supplied" }
                           FROM   Audit_Unified_Policies p
                           #{where_string}
                           GROUP BY Policy_Name
