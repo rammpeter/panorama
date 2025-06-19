@@ -143,30 +143,47 @@
 
     <div class="flex-row-element">
       <%
-        link_options = proc do |rec, value|
-          ajax_link(fn(value), {
+        link_options = proc do |rec|
+          ajax_link(fn(rec.record_cnt), {
             action:             :list_audit_unified_policies,
             audit_option:       rec.audit_option,
             audit_option_type:  rec.audit_option_type,
             update_area:        @update_area
-          }, title: "Show the #{fn(rec.policy_cnt)} policies from Audit_Unified_Policies with this audit option and type" )
+          }, title: "Show the #{fn(rec.record_cnt)} records from Audit_Unified_Policies with this audit option and type" )
         end
 
-        link_policy_count = proc do |rec|
-          link_options.call(rec, rec.policy_cnt)
+        show_alternate = proc do |rec, substr|
+          if rec["#{substr}_cnt"] > 1
+            "<&nbsp;#{rec["#{substr}_cnt"]}&nbsp;>".html_safe
+          else
+            rec["min_#{substr}"] if rec["#{substr}_cnt"] == 1
+          end
         end
 
-        link_enabled_policy_count = proc do |rec|
-          link_options.call(rec, rec.enabled_policy_cnt)
-        end
+        number_addition = "\n\nOr number of distinct different values if not unique"
 
         column_options =
           [
             {caption: 'Audit option',         data: proc{|rec| rec.audit_option },            title: 'Auditing option defined in the audit policy'},
             {caption: 'Audit option type',    data: proc{|rec| rec.audit_option_type},        title: "Type of the auditing option."},
-            {caption: 'Policy count',         data: link_policy_count,                        title: "Number of policies in Audit_Unified_Policies with this audit option", align: :right},
-            {caption: 'Enabled policy count', data: link_enabled_policy_count,                title: "Number of enabled policies in Audit_Unified_Policies with this audit option", align: :right},
+            {caption: 'Policy name',          data: proc{|rec| show_alternate.call(rec, 'policy_name')},    title: "Policy name if unqiue or number of policy names in Audit_Unified_Policies with this audit option"},
+            {caption: 'Enabled policy name', data: proc{|rec| show_alternate.call(rec, 'enabled_policy_name')}, title: "Enable policy name or number of enabled policy names in Audit_Unified_Policies with this audit option"},
+            {caption: 'Audit option records count', data: link_options,                                      title: "Number of records in Audit_Unified_Policies with this audit option"},
+            {caption: 'Audit condition',      data: proc{|rec| show_alternate.call(rec, 'audit_condition')}, title: "Condition associated with the audit policy.#{number_addition}"},
+            {caption: 'Condition eval. opt.', data: proc{|rec| show_alternate.call(rec, 'condition_eval_opt')}, title: "Evaluation option associated with the audit policy's condition. #{number_addition}"},
+            {caption: 'Object schema',        data: proc{|rec| show_alternate.call(rec, 'object_schema')},  title: "Owner of the object, for an object-specific auditing option.#{number_addition}"},
+            {caption: 'Object name',          data: proc{|rec| show_alternate.call(rec, 'object_name')},    title: "Name of the object, for an object-specific auditing option.#{number_addition}"},
+            {caption: 'Object type',          data: proc{|rec| show_alternate.call(rec, 'object_type')},    title: "Type of the object, for an object-specific auditing option.#{number_addition}"},
+            {caption: 'Common',               data: proc{|rec| show_alternate.call(rec, 'common')},         title: "ndicates whether the audit policy is a common audit policy or local audit policy.#{number_addition}"},
+            {caption: 'Inherited',            data: proc{|rec| show_alternate.call(rec, 'inherited')},      title: "Indicates whether the audit policy was inherited from another container.#{number_addition}"},
           ]
+        column_options << {caption: 'Audit only toplevel',  data: proc{|rec| show_alternate.call(rec, 'audit_only_toplevel')},  title: "Indicates whether the audit policy is defined to audit only top level SQL statements.#{number_addition}"} if get_db_version >= '19.11'
+        column_options << {caption: 'Oracle supplied',      data: proc{|rec| show_alternate.call(rec, 'oracle_supplied')},      title: "Indicates whether the audit policy is an Oracle-supplied policy .#{number_addition}"} if get_db_version >= '19.11'
+        column_options << {caption: 'Enabled option',       data: proc{|rec| show_alternate.call(rec, 'enabled_option')},       title: "Is the audit policy enabled?#{number_addition}"}
+        column_options << {caption: 'Entity name',          data: proc{|rec| show_alternate.call(rec, 'entity_name')},          title: "Database entity (user name or role name) on which the audit policy is enabled.#{number_addition}"}
+        column_options << {caption: 'Entity type',          data: proc{|rec| show_alternate.call(rec, 'entity_type')},          title: "Database entity type.#{number_addition}"}
+        column_options << {caption: 'Success',              data: proc{|rec| show_alternate.call(rec, 'success')},              title: "Indicates whether the audit policy is enabled for auditing successful events.#{number_addition}"}
+        column_options << {caption: 'Failure',              data: proc{|rec| show_alternate.call(rec, 'failure')},              title: "Indicates whether the audit policy is enabled for auditing unsuccessful events.#{number_addition}"}
       %>
 
       <%=

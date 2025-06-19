@@ -12,6 +12,15 @@
       update_area:  @update_area
     }, title: "Show the #{fn(rec.policy_count)} policies from Audit_Unified_Policies" )
   end
+
+  show_oracle_supplied = proc do |rec|
+    if rec.oracle_supplied_cnt > 1
+      "<&nbsp;#{rec.oracle_supplied_cnt}&nbsp;>".html_safe
+    else
+      rec.min_oracle_supplied
+    end
+  end
+
   column_options =
     [
       {caption: 'Policy',         data: proc{|rec| rec.policy_name },                           title: 'Name of the audit policy'},
@@ -21,6 +30,7 @@
       {caption: 'Success',        data: proc{|rec| rec.success},                                title: 'Indicates whether the audit policy is enabled for auditing successful events (YES) or not (NO)'},
       {caption: 'Failure',        data:  proc{|rec| rec.failure},                               title: 'Indicates whether the audit policy is enabled for auditing unsuccessful events (YES) or not (NO)'},
       {caption: 'Policy count',   data:  link_policy_count,                                     title: 'Number of unified audit policies in Audit_Unified_Policies', align: :right},
+      {caption: 'Oracle supplied',data:  show_oracle_supplied,                                  title: "Indicates whether the audit policy is an Oracle-supplied policy (YES) or not (NO)\nOracle-supplied policies are also called predefined policies."},
       {caption: 'Comment',        data:  proc{|rec| rec.comments},                              title: 'Comment from  Audit_Unified_Policy_Comments'},
     ]
 %>

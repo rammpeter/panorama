@@ -2580,15 +2580,22 @@ class DbaSchemaController < ApplicationController
     @audit_unified_enabled_policies = sql_select_all ["\
         WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
              Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
+                                 #{get_db_version >= '19.11' ? ", COUNT(DISTINCT Oracle_Supplied) Oracle_Supplied_Cnt, MIN(Oracle_Supplied) Min_Oracle_Supplied" : "0 Oracle_Supplied_Cnt, NULL Min_Oracle_Supplied" }
                           FROM   Audit_Unified_Policies p
                           #{where_string}
                           GROUP BY Policy_Name
                          ),
-             Not_Enabled AS (SELECT Policy_Name FROM Policies WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled))
+             Not_Enabled AS (SELECT Policy_Name, Oracle_Supplied_Cnt, Min_Oracle_Supplied
+                             FROM   Policies
+                             WHERE Policy_Name NOT IN (SELECT Policy_Name FROM Enabled)
+                            )
         SELECT p.*, c.Comments, pc.Policy_Count
-        FROM   (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Enabled
+        FROM   (SELECT e.Policy_Name, e.Enabled_Option, e.Entity_Name, e.Entity_Type, e.Success, e.Failure, p.Oracle_Supplied_Cnt, p.Min_Oracle_Supplied
+                FROM Enabled e
+                LEFT OUTER JOIN Policies p ON p.Policy_Name = e.Policy_Name
                 UNION ALL
-                SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure FROM Not_Enabled
+                SELECT Policy_Name, 'NO' Enabled_Option, NULL Entity_Name, NULL Entity_Type, NULL Success, NULL Failure, Oracle_Supplied_Cnt, Min_Oracle_Supplied
+                FROM Not_Enabled
                 ) p
         LEFT OUTER JOIN Audit_Unified_Policy_Comments c ON c.Policy_Name = p.Policy_Name
         #{"LEFT OUTER " if @object_type.nil?}JOIN Policies pc ON pc.Policy_Name = p.Policy_Name
@@ -2664,23 +2671,24 @@ class DbaSchemaController < ApplicationController
 
       @audit_options = sql_select_all ["\
         SELECT Audit_Option, Audit_Option_Type,
-              COUNT(*) Policy_Cnt,
-              SUM(CASE WHEN Enabled_Option IS NULL THEN 0 ELSE 1 END) Enabled_Policy_Cnt,
-              COUNT(DISTINCT p.Policy_Name) Policy_Cnt, MIN(p.Policy_Name) Min_Policy_Name,
-              COUNT(DISTINCT(CASE WHEN Audit_Condition    = 'NONE' THEN NULL ELSE Audit_Condition     END)) Audit_Condition_Cnt,    MIN(Audit_Condition)    Min_Audit_Condition,
-              COUNT(DISTINCT(CASE WHEN Condition_Eval_Opt = 'NONE' THEN NULL ELSE Condition_Eval_Opt  END)) Condition_Eval_Opt_Cnt, MIN(Condition_Eval_Opt) Min_Condition_Eval_Opt,
-              COUNT(DISTINCT(CASE WHEN Object_Schema      = 'NONE' THEN NULL ELSE Object_Schema       END)) Object_Schema_Cnt,      MIN(Object_Schema)      Min_Object_Schema,
-              COUNT(DISTINCT(CASE WHEN Object_Name        = 'NONE' THEN NULL ELSE Object_Name         END)) Object_Name_Cnt,        MIN(Object_Name)        Min_Object_Name,
-              COUNT(DISTINCT(CASE WHEN Object_Type        = 'NONE' THEN NULL ELSE Object_Type         END)) Object_Type_Cnt,        MIN(Object_Type)        Min_Object_Type,
-              COUNT(DISTINCT Common)              Common_Cnt,               MIN(Common)               Min_Common,
-              COUNT(DISTINCT Inherited)           Inherited_Cnt,            MIN(Inherited)            Min_Inherited,
-              #{"COUNT(DISTINCT Audit_Only_TopLevel) Audit_Only_TopLevel_Cnt,  MIN(Audit_Only_TopLevel)  Min_Audit_Only_TopLevel,
-                 COUNT(DISTINCT Oracle_Supplied)  Oracle_Supplied_Cnt,      MIN(Oracle_Supplied)      Min_Oracle_Supplied," if get_db_version < '19.11'}
-              COUNT(DISTINCT e.Enabled_Option)    Enabled_Option_Cnt,       MIN(e.Enabled_Option)     Min_Enabled_Option,
-              COUNT(DISTINCT e.Entity_Name)       Entity_Name_Cnt,          MIN(e.Entity_Name)        Min_Entity_Name,
-              COUNT(DISTINCT e.Entity_Type)       Entity_Type_Cnt,          MIN(e.Entity_Type)        Min_Entity_Type,
-              COUNT(DISTINCT e.Success)           Success_Cnt,              MIN(e.Success)            Min_Success,
-              COUNT(DISTINCT e.Failure)           Failure_Cnt,              MIN(e.Failure)            Min_Failure
+              COUNT(*) Record_Cnt,
+              COUNT(DISTINCT p.Policy_Name) Policy_Name_Cnt, MIN(p.Policy_Name) Min_Policy_Name,
+              COUNT(DISTINCT CASE WHEN e.Enabled_Option IS NULL THEN NULL ELSE p.Policy_Name END) Enabled_Policy_Name_Cnt,
+              MIN(CASE WHEN e.Enabled_Option IS NULL THEN NULL ELSE p.Policy_Name END) Min_Enabled_Policy_Name,
+              COUNT(DISTINCT(CASE WHEN p.Audit_Condition    = 'NONE' THEN NULL ELSE p.Audit_Condition     END)) Audit_Condition_Cnt,    MIN(p.Audit_Condition)    Min_Audit_Condition,
+              COUNT(DISTINCT(CASE WHEN p.Condition_Eval_Opt = 'NONE' THEN NULL ELSE p.Condition_Eval_Opt  END)) Condition_Eval_Opt_Cnt, MIN(p.Condition_Eval_Opt) Min_Condition_Eval_Opt,
+              COUNT(DISTINCT(CASE WHEN p.Object_Schema      = 'NONE' THEN NULL ELSE p.Object_Schema       END)) Object_Schema_Cnt,      MIN(p.Object_Schema)      Min_Object_Schema,
+              COUNT(DISTINCT(CASE WHEN p.Object_Name        = 'NONE' THEN NULL ELSE p.Object_Name         END)) Object_Name_Cnt,        MIN(p.Object_Name)        Min_Object_Name,
+              COUNT(DISTINCT(CASE WHEN p.Object_Type        = 'NONE' THEN NULL ELSE p.Object_Type         END)) Object_Type_Cnt,        MIN(p.Object_Type)        Min_Object_Type,
+              COUNT(DISTINCT p.Common)              Common_Cnt,               MIN(p.Common)               Min_Common,
+              COUNT(DISTINCT p.Inherited)           Inherited_Cnt,            MIN(p.Inherited)            Min_Inherited,
+              #{"COUNT(DISTINCT p.Audit_Only_TopLevel) Audit_Only_TopLevel_Cnt,  MIN(p.Audit_Only_TopLevel)  Min_Audit_Only_TopLevel,
+                 COUNT(DISTINCT p.Oracle_Supplied)     Oracle_Supplied_Cnt,      MIN(p.Oracle_Supplied)      Min_Oracle_Supplied," if get_db_version >= '19.11'}
+              COUNT(DISTINCT CASE WHEN e.Enabled_Option IS NULL THEN 'Off' ELSE e.Enabled_Option END) Enabled_Option_Cnt,       MIN(e.Enabled_Option)     Min_Enabled_Option,
+              COUNT(DISTINCT CASE WHEN e.Entity_Name    IS NULL THEN 'Off' ELSE e.Entity_Name    END) Entity_Name_Cnt,          MIN(e.Entity_Name)        Min_Entity_Name,
+              COUNT(DISTINCT CASE WHEN e.Entity_Type    IS NULL THEN 'Off' ELSE e.Entity_Type    END) Entity_Type_Cnt,          MIN(e.Entity_Type)        Min_Entity_Type,
+              COUNT(DISTINCT CASE WHEN e.Success        IS NULL THEN 'Off' ELSE e.Success        END) Success_Cnt,              MIN(e.Success)            Min_Success,
+              COUNT(DISTINCT CASE WHEN e.Failure        IS NULL THEN 'Off' ELSE e.Failure        END) Failure_Cnt,              MIN(e.Failure)            Min_Failure
         FROM   Audit_Unified_Policies p
         LEFT OUTER JOIN Audit_Unified_Enabled_Policies e ON e.Policy_Name = p.Policy_Name
         #{where_string}
