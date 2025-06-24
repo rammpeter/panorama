@@ -65,7 +65,6 @@ class StorageController < ApplicationController
       "
 
     @fra_size_bytes = sql_select_one("SELECT Value FROM #{PanoramaConnection.system_parameter_table[1..-1]} WHERE Name='db_recovery_file_dest_size'").to_i
-    #@flashback_log = sql_select_first_row "SELECT * FROM v$Flashback_Database_Log"
     @fra_usage = sql_select_all "SELECT * FROM v$Flash_Recovery_Area_Usage WHERE Percent_Space_Used > 0 ORDER BY Percent_Space_Used DESC"
 
     totals = {}
@@ -85,7 +84,6 @@ class StorageController < ApplicationController
         total_sum["mbfree"]  += t.mbfree
         total_sum["mbused"]  += t.mbused
       end
-
     end
 
     @fra_not_reclaimable_usage = 0
@@ -112,7 +110,11 @@ class StorageController < ApplicationController
     end
     @totals << total_sum
 
+    render_partial
+  end
 
+  def list_flashback_log
+    @flashback_log = sql_select_all "SELECT * FROM v$Flashback_Database_Log"
     render_partial
   end
 

@@ -82,7 +82,7 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    jwt (3.0.0)
+    jwt (3.1.0)
       base64
     listen (3.9.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -101,10 +101,10 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0610)
+    mime-types-data (3.2025.0617)
     mini_mime (1.1.5)
     minitest (5.25.5)
-    net-imap (0.5.8)
+    net-imap (0.5.9)
       date
       net-protocol
     net-pop (0.1.2)

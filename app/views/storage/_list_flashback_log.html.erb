@@ -1,0 +1,14 @@
+<%
+  column_options =
+    [
+      { caption: "Oldest flashback SCN",    data: proc{|rec| fn(rec.oldest_flashback_scn)},                   title: "Lowest system change number (SCN) in the flashback data, for any incarnation", align: :right},
+      { caption: "Oldest flashback time",   data: proc{|rec| localeDateTime(rec.oldest_flashback_time)},      title: "Time of the lowest SCN in the flashback data, for any incarnation"},
+      { caption: "Retention target",        data: proc{|rec| fn(rec.retention_target)},                       title: "Target retention time (in minutes)", align: :right},
+      { caption: "Current flashback size (GB)",     data: proc{|rec| fn(rec.flashback_size.to_f/(1024*1024*1024), 3)},title: "Current size (in gigabytes) of the flashback data", data_title: proc{|rec| "%t\n\n#{size_explain(rec.flashback_size.to_f/(1024*1024))}"}, align: :right},
+      { caption: "Estimated flashback size (GB)",   data: proc{|rec| fn(rec.estimated_flashback_size.to_f/(1024*1024*1024), 3)},title: "Estimated size of flashback data needed (in gigabytes) for the current target retention", data_title: proc{|rec| "%t\n\n#{size_explain(rec.estimated_flashback_size.to_f/(1024*1024))}"}, align: :right},
+    ]
+  column_options << { caption: "Con. ID",   data: proc{|rec| fn(rec.con_id)},title: "The ID of the container to which the data pertains.", align: :right} if get_db_version >= '12.2'
+
+%>
+
+<%= gen_slickgrid(@flashback_log, column_options, {:caption=> "Flashback log info from v$Flashback_Database_Log", :width=>:auto, :max_height=>450}) %>

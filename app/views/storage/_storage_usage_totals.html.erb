@@ -26,9 +26,22 @@
 <% if @fra_usage.length > 0 %>
 
   <%
+    link_file_type = proc do |rec|
+      case rec.file_type
+      when 'FLASHBACK LOG'
+        ajax_link(rec.file_type, {
+          action:             :list_flashback_log,
+          show_pin_icon:      1,
+          update_area:        @update_area
+        }, title: "Show the details for flashback log from V$Flashback_Database_Log" )
+      else
+        rec.file_type
+      end
+    end
+
     column_options =
       [
-        {:caption=>"File type",      :data=>proc{|rec| rec.file_type},                       :title=>'File type within fast recovery area'},
+        {:caption=>"File type",      :data=>link_file_type,                       :title=>'File type within fast recovery area'},
         {:caption=>"MB used",        :data=>proc{|rec| fn(rec.percent_space_used*@fra_size_bytes/(1024*1024)/100,2)},     :title=>'Used space in FRA in MBytes', data_title: proc{|rec| "%t\n#{size_explain((rec.percent_space_used*@fra_size_bytes/(1024*1024)/100 rescue nil))}"}, :align=>:right, show_pct_col_sum_hint: true},
         {:caption=>"% used",         :data=>proc{|rec| fn(rec.percent_space_used,2)},  pct_total_value: proc { 100 },      :title=>'Percentage used from total',        :align=>:right},
         {:caption=>"% recl.",     :data=>proc{|rec| fn(rec.percent_space_reclaimable,2)}, :title=>'Percentage reclaimable compared to total',        :align=>:right},
