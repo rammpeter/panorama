@@ -569,7 +569,7 @@ class PanoramaSamplerStructureCheck
               { column_name:  'Blocking_User_Name',             column_type:   'VARCHAR2',  precision: 128,                 comment: 'Owner of blocking session' },
               { column_name:  'Blocking_Machine',               column_type:   'VARCHAR2',  precision: 128,                 comment: 'Machine of blocking session' },
               { column_name:  'Blocking_OS_User',               column_type:   'VARCHAR2',  precision: 128,                 comment: 'OS-user of blocking session' },
-              { column_name:  'Blocking_Process',               column_type:   'VARCHAR2',  precision: 12,                  comment: 'Process-ID of blocking session' },
+              { column_name:  'Blocking_Process',               column_type:   'VARCHAR2',  precision: 128,                 comment: 'Process-ID of blocking session' },
               { column_name:  'Blocking_Program',               column_type:   'VARCHAR2',  precision: 128,                 comment: 'Program of blocking session' },
               { column_name:  'Waiting_For_PK_Column_Name',     column_type:   'VARCHAR2',  precision: 300,                 comment: 'Column name(s) of primary key of table waiting for unblocking' },
               { column_name:  'Waiting_For_PK_Value',           column_type:   'VARCHAR2',  precision: 128,                 comment: 'Primary key content of table-record waiting for unblocking' },
