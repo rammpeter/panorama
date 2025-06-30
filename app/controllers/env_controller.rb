@@ -740,7 +740,7 @@ private
       if PanoramaConnection.autonomous_database?
         pack = 'DIAGNOSTIC+TUNING' # 'control_management_pack_access' is not set in autonomous databases, but license is included
       else
-        msg = "Cannot read management pack licensing state from database!\nAssuming no management pack license exists.\n#{e.class}:#{e.message}\nUsed SQL:\n#{sql}"
+        msg = "Cannot read management pack licensing state from database!\nAssuming no management pack license exists."
         Rails.logger.error('EnvController.read_control_management_pack_access') { msg }
         pack = 'NONE'
       end

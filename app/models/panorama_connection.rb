@@ -278,7 +278,7 @@ class PanoramaConnection
     if !defined?(@autonomous_database) || @autonomous_database.nil?
       begin
         cloud_identity = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Cloud_Identity FROM v$Containers WHERE RowNum < 2")
-        @autonomous_database = cloud_identity.include?('AUTONOMOUSDATABASE')    # The DATABASE_OCID shout contain this String for autonomous DBs
+        @autonomous_database = cloud_identity['cloud_identity'].include?('AUTONOMOUSDATABASE')    # The DATABASE_OCID shout contain this String for autonomous DBs
       rescue Exception => e
         @autonomous_database = false                                            # not autonomous database because cloud_identity is not available
       end
@@ -848,7 +848,7 @@ class PanoramaConnection
         jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
         Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
         ExceptionHelper.log_exception_backtrace(e, 20)
-        raise "Your user needs SELECT ANY DICTIONARY or equivalent rights to login to Panorama!\n\n\n#{e.class.name} #{e.message}"
+        raise "Your user needs SELECT ANY DICTIONARY ( and SELECT_CATALOG_ROLE if autonomous DB) or equivalent rights to login to Panorama!\n\n\n#{e.class.name} #{e.message}"
       end
 
       # All checks succeeded, put in connection pool now
