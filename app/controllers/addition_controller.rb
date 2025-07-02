@@ -852,7 +852,7 @@ class AdditionController < ApplicationController
     if all_binds_defined?(@expected_binds, @binds)
       remember_binds_for_next_usage(@binds)
       worksheet_autotrace_start
-      @start_time = PanoramaConnection.db_systime
+      @start_time = PanoramaConnection.db_current_time
       # choose execution type and execute
       if stripped_sql_statement.upcase =~ /^SELECT/ || stripped_sql_statement.upcase =~ /^WITH/
         @res = []
@@ -865,13 +865,13 @@ class AdditionController < ApplicationController
             break
           end
         end
-        @end_time = PanoramaConnection.db_systime
+        @end_time = PanoramaConnection.db_current_time
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
         @caption = "Statement execution started at #{localeDateTime(@start_time)}, finished including result fetch within #{fn(@end_time-@start_time, 3)} seconds"
         render_partial :list_dragnet_sql_result, controller: :dragnet, additional_javascript_string: worksheet_autotrace_end
       else
         PanoramaConnection.sql_execute_native(sql: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql')
-        @end_time = PanoramaConnection.db_systime
+        @end_time = PanoramaConnection.db_current_time
         remember_last_executed_sql_id                                           # remember the SQL-ID for SQL details view
         render html: "<div class='page_caption'><b>Statement execution started at #{localeDateTime(@start_time)}, finished within #{fn(@end_time-@start_time, 3)} seconds</b></div>
         #{render_code_mirror(@sql_statement)}

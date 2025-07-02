@@ -612,7 +612,7 @@ class DbaSgaController < ApplicationController
     @open_cursors         = get_open_cursor_count(@instance, @sql_id)
 
     if @sql
-      @sql_monitor_reports_count = get_sql_monitor_count(@dbid, @instance, @sql_id, localeDateTime(@sql.first_load_time, :minutes), localeDateTime(PanoramaConnection.db_systime, :minutes))
+      @sql_monitor_reports_count = get_sql_monitor_count(@dbid, @instance, @sql_id, localeDateTime(@sql.first_load_time, :minutes), localeDateTime(PanoramaConnection.db_current_time, :minutes))
 
       render_partial :list_sql_detail_sql_id_childno
     else
@@ -678,7 +678,7 @@ class DbaSgaController < ApplicationController
     @execution_plan_count, @plan_object_count = get_execution_plan_count(@instance, @sql_id)
 
     @open_cursors          = get_open_cursor_count(@instance, @sql_id)
-    @sql_monitor_reports_count = get_sql_monitor_count(@dbid, @instance, @sql_id, localeDateTime(@sql.first_load_time, :minutes), localeDateTime(PanoramaConnection.db_systime, :minutes))
+    @sql_monitor_reports_count = get_sql_monitor_count(@dbid, @instance, @sql_id, localeDateTime(@sql.first_load_time, :minutes), localeDateTime(PanoramaConnection.db_current_time, :minutes))
 
     @sql_child_info = sql_select_first_row ["SELECT COUNT(DISTINCT plan_hash_value) Plan_Count,
                                                    MIN(Child_Number)          Min_Child_Number,

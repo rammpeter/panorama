@@ -257,10 +257,10 @@ class PanoramaConnection
       @cdb           = 'NO'
     end
 
-    db_time = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT SYSDATE FROM Dual")['sysdate'] # Time on DB-Server, but flagged as UTC
+    db_time = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT CURRENT_DATE FROM Dual")['current_date'] # Time on DB-Server, but flagged as UTC
     local_time = Time.now                                                       # Time on Panorama-Server with time zone
     panorama_time = Time.new(local_time.year, local_time.month, local_time.day, local_time.hour, local_time.min, local_time.sec, 0) # Time on Panorama-Server with same value but flagged as UTC
-    @time_delay_secs = db_time - panorama_time                                  # Difference between both UTC times DB-Server and Panorama-Server in seconds (DB-server - Panorama-server)
+    @time_delay_secs = db_time - panorama_time                                  # Difference between client time zone time of Panorama server and Ruby time in seconds (DB-current time - Panorama-server)
     @time_delay_secs = (@time_delay_secs/10.0).round * 10                       # Round to seconds with +/- 5 seconds
   end
 
@@ -473,8 +473,8 @@ class PanoramaConnection
   def self.serial_no;                       check_for_open_connection;        Thread.current[:panorama_connection_connection_object].serial_no;                         end
   def self.sid;                             check_for_open_connection;        Thread.current[:panorama_connection_connection_object].sid;                               end
   def self.system_parameter_table;          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].system_parameter_table;            end
-  # @return [Time] Time on DB-Server in his default timezone, but flagged with the time zone of the Panorama server
-  def self.db_systime;                      check_for_open_connection;        Time.now + Thread.current[:panorama_connection_connection_object].time_delay_secs;        end
+  # @return [Time] Time in client time zone of the Panorama server, should mostly be the same like Time.now but not really sure
+  def self.db_current_time;                 check_for_open_connection;        Time.now + Thread.current[:panorama_connection_connection_object].time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection;        Thread.current[:panorama_connection_connection_object].stat_id_consistent_gets;           end
   def self.table_directory_entry_size;      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].table_directory_entry_size;        end
   def self.table_directory_entry_size;      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].table_directory_entry_size;        end

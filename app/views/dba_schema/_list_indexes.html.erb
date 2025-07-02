@@ -229,7 +229,7 @@
          output << "Monitoring index = #{rec.monitoring}\n"
          output << "Start monitoring = #{localeDateTime(rec.start_monitoring)}\n"
          output << "End monitoring = #{localeDateTime(rec.end_monitoring)}\n"
-         output << "Not used since #{fn((PanoramaConnection.db_systime - rec.start_monitoring)/86400)} days\n" if rec.start_monitoring && rec.used=='NO'
+         output << "Not used since #{fn((PanoramaConnection.db_current_time - rec.start_monitoring) / 86400)} days\n" if rec.start_monitoring && rec.used == 'NO'
        else
          output << "MONITORING USAGE is not active for this index\n"
        end

@@ -948,7 +948,7 @@ oradebug setorapname diag
                   s.UserName, s.Machine, s.OSUser, s.Process, s.Program, s.Service_Name,
                   SYSDATE - (s.Last_Call_Et/86400) Last_Call,
                   s.Logon_Time, SYSDATE now_time /* needed for tracefile search */,
-                  sci.Network_Encryption, sci.Network_Checksumming,
+                  sci.Network_Encryption, sci.Network_Checksumming, sci.Network_Service_Banners,
                   p.spID, p.PID, p.TraceFile,
                   RawToHex(tx.XID) Tx_ID,
                   TO_DATE(tx.Start_Time, 'MM/DD/YY HH24:MI:SS') TX_Start_Time,
@@ -978,8 +978,9 @@ oradebug setorapname diag
                            ) c ON c.Inst_ID = s.Inst_ID AND c.SID = s.SID #{'AND c.Serial# = s.Serial#'  if get_db_version >= '11.2' }
            LEFT OUTER JOIN gv$Transaction tx ON tx.Inst_ID = s.Inst_ID AND tx.Addr = s.TAddr
            CROSS JOIN (SELECT /*+ NO_MERGE */
-                                   DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
-                                   DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming
+                                   DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
+                                   DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
+                                   LISTAGG(Network_Service_Banner, CHR(10)) Network_Service_Banners
                             FROM   gV$SESSION_CONNECT_INFO
                             WHERE  Inst_ID=? AND SID=? AND Serial#=?
                            )sci
@@ -2170,7 +2171,7 @@ oradebug setorapname diag
       smallest_timestamp = sql_select_one ["\
         SELECT MIN(Sample_Time) FROM gv$Active_Session_History s #{where_string}
       "].concat(where_values)
-      smallest_timestamp = PanoramaConnection.db_systime-300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
+      smallest_timestamp = PanoramaConnection.db_current_time - 300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
     else
       smallest_timestamp = Time.at(smallest_timestamp_ms/1000).utc
     end

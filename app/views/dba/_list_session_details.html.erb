@@ -1,5 +1,5 @@
 <div style="clear:both; padding: 5px;"></div>
-<%= render_page_caption("#{t(:dba_list_session_details_caption, :default=>'Details for session')} SID=#{@sid}, Serial#=#{@serial_no}, Instance=#{@instance}, #{"CDB=#{@dbsessions[0].con_id} (#{@dbsessions[0].container_name}), " if get_current_database[:cdb]}#{localeDateTime(PanoramaConnection.db_systime)}", get_recall_params_info_for_render_page_caption) %>
+<%= render_page_caption("#{t(:dba_list_session_details_caption, :default=>'Details for session')} SID=#{@sid}, Serial#=#{@serial_no}, Instance=#{@instance}, #{"CDB=#{@dbsessions[0].con_id} (#{@dbsessions[0].container_name}), " if get_current_database[:cdb]}#{localeDateTime(PanoramaConnection.db_current_time)}", get_recall_params_info_for_render_page_caption) %>
 
 <% @prev_update_area = @update_area
    @update_area = get_unique_area_id
@@ -42,7 +42,7 @@
    column_options << {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"}
    column_options << {:caption=>"Logon time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"}
    column_options << {:caption=>"Service name",   :data=>proc{|rec| rec.service_name},    :title=>"Name of TNS service"}
-   column_options << {:caption=>"Enc.",           :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner"}
+   column_options << {:caption=>"Enc.",           :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner", data_title: proc{|rec| "%t\n\nNetwork service banners =\n#{rec.network_service_banners}"}}
    column_options << {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"}
    column_options << {:caption=>'Tx. ID',         :data=>link_tx_id,                      :title=>"Transaction-ID if session has an active transaction", data_title: tx_id_data_title}
    column_options << {:caption=>'Auth. type',     :data=>proc{|rec| rec.authentication_type}, :title=>'How the user was authenticated. See V$SESSION_CONNECT_INFO.Authentication_Type'}
@@ -326,7 +326,7 @@
           sid:                  @sid,
           serial_no:             @serial_no,
           time_selection_start: localeDateTime(@dbsession.logon_time, :minutes),
-          time_selection_end:   localeDateTime(PanoramaConnection.db_systime, :minutes),
+          time_selection_end:   localeDateTime(PanoramaConnection.db_current_time, :minutes),
           update_area:          @update_area
       })
     %>

@@ -93,7 +93,7 @@ column_options =
 %>
 
 <%= gen_slickgrid(@locks, column_options, {
-        :caption => "Blocking DML-Locks from gv$Lock #{localeDateTime(PanoramaConnection.db_systime)}",
+        :caption => "Blocking DML-Locks from gv$Lock #{localeDateTime(PanoramaConnection.db_current_time)}",
         :max_height=>450,
         show_pin_icon: 1,
         update_area:   @update_area

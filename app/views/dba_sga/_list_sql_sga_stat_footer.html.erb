@@ -184,7 +184,7 @@
           instance:              @instance,
           sql_id:                @sql_id,
           time_selection_start:  localeDateTime(@sql.first_load_time, :minutes),
-          time_selection_end:    localeDateTime(PanoramaConnection.db_systime, :minutes),
+          time_selection_end:    localeDateTime(PanoramaConnection.db_current_time, :minutes),
          }, title: strings(:sql_monitor_list_title))
       %>
     </div>

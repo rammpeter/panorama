@@ -50,7 +50,7 @@
 %>
 
   <%= gen_slickgrid(@blocking_waits, column_options, {
-    :caption=>"Blocking Session-Waits from gv$Session at #{localeDateTime(PanoramaConnection.db_systime)}",
+    :caption=>"Blocking Session-Waits from gv$Session at #{localeDateTime(PanoramaConnection.db_current_time)}",
     :max_height => 450, show_pin_icon: 1
   }) %>
 

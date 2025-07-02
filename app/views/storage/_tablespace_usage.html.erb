@@ -1,6 +1,6 @@
 <% @update_area = get_unique_area_id %>
 
-<%= render_page_caption("#{t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')} #{get_current_database[:sid]} #{localeDateTime(PanoramaConnection.db_systime, :minutes)}")%>
+<%= render_page_caption("#{t(:storage_tablespace_usage_header_caption, :default=>'Storage-objects for database')} #{get_current_database[:sid]} #{localeDateTime(PanoramaConnection.db_current_time, :minutes)}")%>
 
 <div class="flex-row-container">
   <!-- div flex-row-element rendered in partoal because totals and FRA are two elements -->
