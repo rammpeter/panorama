@@ -1360,8 +1360,8 @@ class StorageController < ApplicationController
                      FROM   DBA_Hist_Snapshot
                      WHERE  DBID = ?
                      AND    Instance_Number = ?
-                     AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                     AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                     AND    End_Interval_time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
                     ),
            DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
                          DBID, Snap_ID,
@@ -1423,8 +1423,8 @@ class StorageController < ApplicationController
                      FROM   DBA_Hist_Snapshot
                      WHERE  DBID = ?
                      AND    Instance_Number = ?
-                     AND    End_Interval_time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                     AND    Begin_Interval_time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                     AND    End_Interval_time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
                     ),
            DB AS (SELECT /*+ NO_MERGE MATERIALIZE */
                          DBID, Snap_ID, Cell_Hash, Src_DBID,

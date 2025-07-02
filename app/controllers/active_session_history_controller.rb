@@ -14,8 +14,8 @@ class ActiveSessionHistoryController < ApplicationController
     retval = " MIN(Sample_Time)             First_Occurrence,
                MAX(Sample_Time)             Last_Occurrence,
                -- So komisch wegen Konvertierung Tiemstamp nach Date für Subtraktion
-               (TO_DATE(TO_CHAR(MAX(Sample_Time), '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}') -
-               TO_DATE(TO_CHAR(MIN(Sample_Time), '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}'))*(24*60*60) Sample_Dauer_Secs"
+               (TO_DATE(TO_CHAR(MAX(Sample_Time)+#{client_tz_offset_days}, '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}') -
+               TO_DATE(TO_CHAR(MIN(Sample_Time)+#{client_tz_offset_days}, '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}'))*(24*60*60) Sample_Dauer_Secs"
 
     session_statistics_key_rules.each do |_key, value|
       retval << ",
@@ -1201,8 +1201,8 @@ class ActiveSessionHistoryController < ApplicationController
                      )
               GROUP BY Sample_Time     -- Auf Ebene eines Samples reduzieren ueber RAC-Instanzen hinweg
              ) s
-      WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_start])}')    -- Nochmal Filtern nach der Rundung auf ganze Sekunden
-      AND    s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_end])}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
+      WHERE  s.Sample_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_start])}')    -- Nochmal Filtern nach der Rundung auf ganze Sekunden
+      AND    s.Sample_Time+#{client_tz_offset_days} <  TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_end])}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
       GROUP BY #{group_by_value}
       ORDER BY #{group_by_value}
       "].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat(@global_where_values).concat([@groupfilter[:time_selection_start], @groupfilter[:time_selection_end]])
@@ -1318,8 +1318,8 @@ class ActiveSessionHistoryController < ApplicationController
                      )
               GROUP BY Sample_Time     -- Auf Ebene eines Samples reduzieren ueber RAC-Instanzen hinweg
              ) s
-      WHERE  s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_start])}')    -- Nochmal Filtern nach der Rundung auf ganze Sekunden
-      AND    s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_end])}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
+      WHERE  s.Sample_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_start])}')    -- Nochmal Filtern nach der Rundung auf ganze Sekunden
+      AND    s.Sample_Time+#{client_tz_offset_days} <  TO_TIMESTAMP(?, '#{sql_datetime_mask(@groupfilter[:time_selection_end])}')      -- Nochmal Filtern nach der Rundung auf ganze Sekunden
       GROUP BY #{group_by_value}
       ORDER BY #{group_by_value}
                                   "].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat(@global_where_values).concat([@groupfilter[:time_selection_start], @groupfilter[:time_selection_end]])

@@ -67,14 +67,21 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         # @connection.oracle_downcase(col_name)                               # Rails 5-Variante
         # oracle_downcase(col_name) moved to private _oracle_downcase
         #col_name =~ /[a-z]/ ? col_name : col_name.downcase!
-        col_name.downcase!.freeze
+        { name: col_name.downcase!.freeze}
       end
+
+      column_types = cursor.column_types                                        # Avoid multiple calls to cursor.get_column_types
 
       # get synthetic names if SQL did not return any column names (e.g. SELECT 1 FROM DUAL)
       columns.each_with_index do |col, index|
-        col = "[ Unnamed #{index} ]" if col.nil? || col.empty?
-        columns[index] = col
+        if col[:name].nil? || col[:name].empty?
+          columns[index][:name] =  "[ Unnamed #{index} ]"
+        end
+        columns[index][:oracle_type] = column_types[index]
       end
+
+      # Remember the time offset for sysdate
+      client_tz_offset = PanoramaConnection.client_tz_offset
 
       fetch_options = {get_lob_value: true} # convert LOB columns to String
       # noinspection RubyAssignmentExpressionInConditionalInspection
@@ -83,7 +90,12 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         row_count += 1
         result_hash = {}
         columns.each_index do |index|
-          result_hash[columns[index]] = row[index]
+          # Convert date and timestamp columns to the client timezone of Panorama-Server
+          if [:DATE, :TIMESTAMP].include?(columns[index][:oracle_type])
+            row[index] = row[index] + (client_tz_offset * 3600) unless row[index].nil?
+          end
+
+          result_hash[columns[index][:name]] = row[index]
           row[index] = row[index].strip if row[index].class == String   # Remove possible 0x00 at end of string, this leads to error in Internet Explorer
         end
         result_hash.extend SelectHashHelper
@@ -129,6 +141,7 @@ class PanoramaConnection
   attr_accessor :sql_errors_count
   attr_reader :block_common_header_size
   attr_reader :cdb
+  attr_reader :client_tz_offset                                                 # Difference in seconds between Panorama-Server client time zone and DB-Server system time zone
   attr_reader :cluster_database                                                 # 'TRUE' if DB is a RAC
   attr_reader :con_id
   attr_reader :database_name
@@ -190,7 +203,8 @@ class PanoramaConnection
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBH')                                                         Data_Header_Size,
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBT')                                                         Table_Directory_Entry_Size,
                           (SELECT VSIZE(rowid) FROM Dual)                                                                                 RowID_Size,
-                          SYSDATE                                                                                                         Logon_time
+                          SYSDATE                                                                                                         Logon_time,
+                          (CURRENT_DATE - SYSDATE) * 24                                                                                   Client_TZ_Offset
                    FROM   v$Instance i
                    CROSS JOIN v$Database d
                    CROSS JOIN (SELECT CASE
@@ -210,6 +224,7 @@ class PanoramaConnection
     @database_name                    = db_config['database_name']
     @db_blocksize                     = db_config['db_blocksize']
     @db_wordsize                      = db_config['db_wordsize']
+    @client_tz_offset                 = db_config['client_tz_offset']
     @edition                          = (db_config['edition'] || 'standard').to_sym
     @instance_number                  = db_config['instance_number']
     @login_container_dbid             = db_config['dbid']                       # Default is DB's DBID, specified later for CDBs
@@ -435,6 +450,7 @@ class PanoramaConnection
   def self.autonomous_database?;            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].autonomous_database?;               end
   def self.block_common_header_size;        check_for_open_connection;        Thread.current[:panorama_connection_connection_object].block_common_header_size;          end
   def self.con_id;                          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].con_id;                            end  # Container-ID for PDBs or 0
+  def self.client_tz_offset;                check_for_open_connection;        Thread.current[:panorama_connection_connection_object].client_tz_offset;                  end
   def self.data_header_size;                check_for_open_connection;        Thread.current[:panorama_connection_connection_object].data_header_size;                  end
   def self.db_version;                      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].db_version;                        end
   def self.dbid;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].dbid;                              end

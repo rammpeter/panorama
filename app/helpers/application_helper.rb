@@ -88,6 +88,11 @@ module ApplicationHelper
     PanoramaConnection.db_version
   end
 
+  # @return [Numeric] Difference between Panorama server client timezone and DB system timezone in days
+  def client_tz_offset_days
+    PanoramaConnection.client_tz_offset.to_f/24
+  end
+
   def set_cached_time_selection_start(time_selection_start)
     @buffered_time_selection_start = nil
     ClientInfoStore.write_for_client_key(get_decrypted_client_key,:time_selection_start, time_selection_start)
@@ -307,8 +312,8 @@ module ApplicationHelper
     snaps = sql_select_all ["
       SELECT /* Panorama-Tool Ramm */ Min(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
       FROM   DBA_Hist_Snapshot
-      WHERE  Begin_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_start)}')
-      AND    Begin_Interval_Time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_end)}')
+      WHERE  Begin_Interval_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_start)}')
+      AND    Begin_Interval_Time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(time_selection_end)}')
       AND    DBID            = ?
       #{additional_where}",
                             time_selection_start, time_selection_end, prepare_param_dbid].concat(additional_binds)

@@ -92,7 +92,7 @@
     {:caption=>"Action",           :data=>proc{|rec| rec.action},                     :title=>"Action-Info"},
     {:caption=>"Service",          :data=>proc{|rec| rec.service_name},               :title=>t(:dba_list_sessions_service_hint, :default=>'Name of TNS-service session uses for connection') },
     {:caption=>"Logon Time",       :data=>proc{|rec| localeDateTime(rec.logon_time)}, :title=>'Logon time of session'},
-    {:caption=>"Enc.",             :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner"},
+    {:caption=>"Enc.",             :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner", data_title: proc{|rec| "%t\n\nNetwork service banners =\n#{rec.network_service_banners}"}},
     {:caption=>"Last Active Start",:data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>t(:dba_list_sessions_last_active_start_hint, :default=>'Start of last active phase of session')},
     {:caption=>"I/O-Index",        :data=>proc{|rec| fn(rec.ioindex)},                :title=>t(:dba_list_sessions_io_hint, :default=>'Weighted value of logical and physical I/O of session'), :align=>"right"},
     {:caption=>"Tx.",              :data=>link_transaction,                           :title=>'Active transaction of session', max_wrap_width: 15},

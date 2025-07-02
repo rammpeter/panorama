@@ -551,8 +551,8 @@ oradebug setorapname diag
                       GROUP BY DBID, Snap_ID, Instance_Number
                      ) l
               JOIN   DBA_Hist_Snapshot ss ON ss.DBID=l.DBID AND ss.Snap_ID=l.Snap_ID AND ss.Instance_Number=l.Instance_Number
-              WHERE  ss.Begin_Interval_time > TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-              AND    ss.Begin_Interval_time < TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}') #{wherestr}
+              WHERE  ss.Begin_Interval_time+#{client_tz_offset_days} > TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+              AND    ss.Begin_Interval_time+#{client_tz_offset_days} < TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}') #{wherestr}
             ) x
       ORDER BY x.Begin_Interval_Time, x.Instance_Number
       ", @dbid, @time_selection_start, @time_selection_end].concat whereval
@@ -854,8 +854,9 @@ oradebug setorapname diag
                           GROUP BY Inst_ID, Session_Addr
                          ),
            Session_Connect_Info AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, Serial#,
-                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
-                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service adapter%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
+                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
+                                           DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
+                                           LISTAGG(Network_Service_Banner, CHR(10)) Network_Service_Banners,
                                            MIN(Client_OCI_Library) Client_OCI_Library,
                                            MIN(Client_Version) Client_Version,
                                            MIN(Client_Driver) Client_Driver
@@ -885,7 +886,7 @@ oradebug setorapname diag
             s.Logon_Time,
             s.Blocking_Session_Status, s.Blocking_Instance, s.Blocking_Session,
             #{"s.Final_Blocking_Session_Status, s.Final_Blocking_Instance, s.Final_Blocking_Session," if get_db_version >= '12.1' }
-            sci.Network_Encryption, sci.Network_Checksumming,
+            sci.Network_Encryption, sci.Network_Checksumming, sci.Network_Service_Banners,
             sci.Client_Version, sci.Client_Driver, sci.Client_OCI_Library,
             i.Block_Gets+i.Consistent_Gets+i.Physical_Reads+i.Block_Changes+i.Consistent_Changes IOIndex,
             temp.Temp_MB, temp.Temp_Extents, temp.Temp_Blocks,
@@ -2151,7 +2152,7 @@ oradebug setorapname diag
     where_values = []
 
     if last_refresh_time_string                                                 # add refresh delta to existing data
-      where_string << "WHERE TO_CHAR(s.Sample_Time, 'YYYY/MM/DD HH24:MI:SS') > ?"
+      where_string << "WHERE TO_CHAR(s.Sample_Time+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') > ?"
       where_values << last_refresh_time_string
     else                                                                        # Initially read data
       where_string << "WHERE s.Sample_Time > SYSDATE - ?/24"
@@ -2185,7 +2186,7 @@ oradebug setorapname diag
                     FROM  (
                            SELECT Grouping,
                                   #{groupby_rules[:sql_alias]},
-                                  TO_CHAR(MAX(Sample_Time_Date), 'YYYY/MM/DD HH24:MI:SS') Sample_Time_String,
+                                  TO_CHAR(MAX(Sample_Time_Date)+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') Sample_Time_String,
                                   ROUND(SUM(Sessions)/?, 2) Sessions
                            FROM   (SELECT Sample_Time_Date,
                                           #{groupby_rules[:sql_alias]},
@@ -2220,7 +2221,7 @@ oradebug setorapname diag
 
 
     if ash_data.empty?                                                          # Ensure that at least one data point is returned to set the graph to 0
-      now_string = sql_select_one "SELECT TO_CHAR(SYSDATE, 'YYYY/MM/DD HH24:MI:SS') FROM DUAL"
+      now_string = sql_select_one "SELECT TO_CHAR(SYSDATE+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') FROM DUAL"
       ash_data << { sample_time_string: now_string, wait_class: 'Other', sessions: 0}.extend(SelectHashHelper)
     end
 
@@ -2245,7 +2246,7 @@ oradebug setorapname diag
     where_values = []
 
     if start_range_ms != 0 && end_range_ms != 0                                 # Manual selection in chart
-      where_string << "WHERE TO_CHAR(h.Sample_Time, 'YYYY/MM/DD HH24:MI:SS') >= ? AND TO_CHAR(h.Sample_Time, 'YYYY/MM/DD HH24:MI:SS') <= ?"
+      where_string << "WHERE TO_CHAR(h.Sample_Time+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') >= ? AND TO_CHAR(h.Sample_Time+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') <= ?"
       where_values << Time.at(start_range_ms/1000).utc.strftime("%Y/%m/%d %H:%M:%S")
       where_values << Time.at(end_range_ms/1000).utc.strftime("%Y/%m/%d %H:%M:%S")
 
@@ -2267,7 +2268,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
       end
     else
       if last_refresh_time_string
-        where_string << "WHERE TO_CHAR(h.Sample_Time, 'YYYY/MM/DD HH24:MI:SS') > ?"
+        where_string << "WHERE TO_CHAR(h.Sample_Time+#{client_tz_offset_days}, 'YYYY/MM/DD HH24:MI:SS') > ?"
         where_values << last_refresh_time_string
       else
         where_string << "WHERE h.Sample_Time > SYSDATE - ?/24"

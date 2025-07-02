@@ -33,8 +33,8 @@ class IoController < ApplicationController
       if key == :time_selection_end || key==:time_selection_start || key==:DBID
         sql = case key
               when :DBID                 then "s.DBID = ?"
-              when :time_selection_end   then "s.Begin_Interval_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')"
-              when :time_selection_start then "s.End_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')"
+              when :time_selection_end   then "s.Begin_Interval_Time+#{client_tz_offset_days} <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')"
+              when :time_selection_start then "s.End_Interval_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')"
               end
         @with_where_string << " AND #{sql}"
         @with_where_values << value

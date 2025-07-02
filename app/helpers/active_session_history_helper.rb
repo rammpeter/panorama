@@ -156,8 +156,8 @@ module ActiveSessionHistoryHelper
   # Ermitteln des SQL für NOT NULL oder NULL
   def groupfilter_value(key, value=nil)
     retval = case key.to_sym
-             when :time_selection_start then {:name => 'time_selection_start',        :sql => "s.Sample_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
-             when :time_selection_end   then {:name => 'time_selection_end',          :sql => "s.Sample_Time <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+             when :time_selection_start then {:name => 'time_selection_start',        :sql => "s.Sample_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
+             when :time_selection_end   then {:name => 'time_selection_end',          :sql => "s.Sample_Time+#{client_tz_offset_days} <  TO_TIMESTAMP(?, '#{sql_datetime_mask(value)}')", :already_bound => true }
     end
 
     retval = additional_ash_filter_conditions[key.to_sym] if retval.nil? # 1. try to find rules

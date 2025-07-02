@@ -116,8 +116,9 @@ class EnvController < ApplicationController
       # Data for DB versions
       @version_info = sql_select_all "SELECT /* Panorama Tool Ramm */ Banner FROM V$Version"
       @database_info = sql_select_first_row "SELECT /* Panorama Tool Ramm */ Name, Platform_name, Created, dbtimezone, sessiontimezone,
-                                                    SYSDATE,       TO_CHAR(SYSTIMESTAMP,       'TZH:TZM') Sys_Offset,
-                                                    CURRENT_DATE,  TO_CHAR(CURRENT_TIMESTAMP,  'TZH:TZM') Current_Offset
+                                                    /* Read SYSDATE and CURRENT_DATE as char to keep values in their original time zone without conversion by iterate_query */
+                                                    TO_CHAR(SYSDATE,      'YYYY/MM/DD HH24:MI:SS') sysdate_char,      TO_CHAR(SYSTIMESTAMP,       'TZH:TZM') Sys_Offset,
+                                                    TO_CHAR(CURRENT_DATE, 'YYYY/MM/DD HH24:MI:SS') Current_Date_Char, TO_CHAR(CURRENT_TIMESTAMP,  'TZH:TZM') Current_Offset
                                              FROM v$Database"  # Zugriff ueber Hash, da die Spalte nur in Oracle-Version > 9 existiert
       @instance_number = sql_select_one "SELECT Instance_Number FROM v$Instance"
 
@@ -165,9 +166,9 @@ class EnvController < ApplicationController
       @version_info[4][:client_info]        = "DB client NLS setting = \"#{client_info.nls_lang}\""
       @version_info[4][:client_info_title]  = "\n#{client_nls_info}"
 
-      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(@database_info.sysdate)}'&nbsp;&nbsp;#{@database_info.sys_offset}",
-                         banner_title: "System time and time zone according to OS settings of DB server = '#{localeDateTime(@database_info.sysdate)} #{@database_info.sys_offset}'.\nDB timezone offset for TIMESTAMP WITH LOCAL TIME ZONE given at CREATE DATABASE =  '#{@database_info.dbtimezone}'",
-                         :client_info=>"CURRENT_DATE = '#{localeDateTime(@database_info.current_date)}'&nbsp;&nbsp;#{@database_info.current_offset}"
+      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(Time.parse(@database_info.sysdate_char))}'&nbsp;&nbsp;#{@database_info.sys_offset}",
+                         banner_title: "System time and time zone according to OS settings of DB server = '#{localeDateTime(Time.parse(@database_info.sysdate_char))} #{@database_info.sys_offset}'.\nDB timezone offset for TIMESTAMP WITH LOCAL TIME ZONE given at CREATE DATABASE =  '#{@database_info.dbtimezone}'",
+                         :client_info=>"CURRENT_DATE = '#{localeDateTime(Time.parse(@database_info.current_date_char))}'&nbsp;&nbsp;#{@database_info.current_offset}"
       }.extend SelectHashHelper)
 
 
@@ -387,8 +388,8 @@ class EnvController < ApplicationController
                             MAX(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Max_Snap_ID
                      FROM   DBA_Hist_Snapshot ss
                      WHERE  DBID = ?
-                     AND    Begin_Interval_Time >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                     AND    Begin_Interval_Time <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                     AND    Begin_Interval_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                     AND    Begin_Interval_Time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
              ),
       All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time
                     FROM   Snaps

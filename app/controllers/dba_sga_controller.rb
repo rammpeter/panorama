@@ -2687,8 +2687,8 @@ END;
                                            s.Bytes/(1024*1024) MBytes
                                     FROM   DBA_Hist_SGAStat s
                                     JOIN   DBA_hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
-                                    WHERE  ss.Begin_Interval_Time  >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                                    AND    ss.End_Interval_Time    <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                                    WHERE  ss.Begin_Interval_Time+#{client_tz_offset_days}  >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                                    AND    ss.End_Interval_Time+#{client_tz_offset_days}    <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
                                     #{where_string}
                                     ORDER BY 1
                                     ", @time_selection_start, @time_selection_end].concat(where_values)

@@ -85,7 +85,7 @@ class DbaPgaController < ApplicationController
         FROM   DBA_Hist_Snapshot
         WHERE  DBID = ?
         AND    Instance_Number = ?
-        AND    Begin_Interval_Time BETWEEN  TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+        AND    Begin_Interval_Time+#{client_tz_offset_days} BETWEEN  TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
       ", @dbid, @instance, @time_selection_start, @time_selection_end ]
 
     raise PopupMessageException.new("There are no AWR-snapshots between #{@time_selection_start} and #{@time_selection_end}!
