@@ -856,7 +856,7 @@ oradebug setorapname diag
            Session_Connect_Info AS (SELECT /*+ NO_MERGE MATERIALIZE */ Inst_ID, SID, Serial#,
                                            DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
                                            DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
-                                           LISTAGG(Network_Service_Banner, CHR(10)) Network_Service_Banners,
+                                           LISTAGG(Network_Service_Banner, CHR(10)) WITHIN GROUP (ORDER BY Network_Service_Banner) Network_Service_Banners,
                                            MIN(Client_OCI_Library) Client_OCI_Library,
                                            MIN(Client_Version) Client_Version,
                                            MIN(Client_Driver) Client_Driver
@@ -980,7 +980,7 @@ oradebug setorapname diag
            CROSS JOIN (SELECT /*+ NO_MERGE */
                                    DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Encryption service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Encryption,
                                    DECODE(SUM(CASE WHEN Network_Service_Banner LIKE '%Crypto-checksumming service%' THEN 1 ELSE 0 END), 0, 'NO', 'YES') Network_Checksumming,
-                                   LISTAGG(Network_Service_Banner, CHR(10)) Network_Service_Banners
+                                   LISTAGG(Network_Service_Banner, CHR(10)) WITHIN GROUP (ORDER BY Network_Service_Banner) Network_Service_Banners
                             FROM   gV$SESSION_CONNECT_INFO
                             WHERE  Inst_ID=? AND SID=? AND Serial#=?
                            )sci
