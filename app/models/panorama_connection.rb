@@ -51,7 +51,12 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
 
   # Method comparable with ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_query,
   # but without storing whole result in memory
-  def iterate_query(sql, name = 'SQL', binds = [], modifier = nil, query_timeout = nil, &block)
+  # @param sql [String] SQL-Statement to execute
+  # @param name [String] Name of the SQL-Statement, used for logging
+  # @param binds [Array] Array of ActiveRecord::Relation::QueryAttribute objects, used for binding parameters
+  # @param modifier [Proc] Proc to modify each row before yielding it
+  # @param query_timeout [Integer] Timeout in seconds for query execution, default is 600 seconds
+  def iterate_query(sql, name: 'SQL', binds: [], modifier: nil, query_timeout: nil, convert_tz: true, &block)
     # Variante für Rails 5
     type_casted_binds = binds.map { |attr| TypeMapper.new.type_cast(attr.value_for_database) }
 
@@ -91,7 +96,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         result_hash = {}
         columns.each_index do |index|
           # Convert date and timestamp columns to the client timezone of Panorama-Server
-          if [:DATE, :TIMESTAMP].include?(columns[index][:oracle_type])
+          if convert_tz && [:DATE, :TIMESTAMP].include?(columns[index][:oracle_type])
             row[index] = row[index] + (client_tz_offset * 3600) unless row[index].nil?
           end
 
@@ -608,14 +613,18 @@ class PanoramaConnection
   # liefert Objekt zur späteren Iteration per each, erst dann wird SQL-Select ausgeführt (jedesmal erneut)
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
-  def self.sql_select_iterator(sql, modifier=nil, query_name = 'sql_select_iterator')
+  def self.sql_select_iterator(sql, modifier: nil, query_name: 'sql_select_iterator', convert_tz: true)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+    raise 'sql_select_iterator: modifier must be a Proc' if modifier && !modifier.is_a?(Proc)
+    raise 'sql_select_iterator: query_name must be a String' if !query_name.is_a?(String)
+
     check_for_open_connection                                                   # ensure opened Oracle-connection
     stmt, binds = sql_prepare_binds(PackLicense.filter_sql_for_pack_license(sql))   # Transform SQL and split SQL and binds
     SqlSelectIterator.new(
       stmt:           translate_sql(stmt),
       binds:          binds,
       modifier:       modifier,
-      query_name:     query_name
+      query_name:     query_name,
+      convert_tz:     convert_tz
     )      # kann per Aufruf von each die einzelnen Records liefern
   end
 
@@ -623,24 +632,24 @@ class PanoramaConnection
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
   # return Array of Hash mit Columns des Records
-  def self.sql_select_all(sql, modifier=nil, query_name = 'sql_select_all')   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+  def self.sql_select_all(sql, modifier: nil, query_name: 'sql_select_all', convert_tz: true)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
     result = []
-    PanoramaConnection::sql_select_iterator(sql, modifier, query_name).each do |r|
+    PanoramaConnection::sql_select_iterator(sql, modifier: modifier, query_name: query_name, convert_tz: convert_tz).each do |r|
       result << r
     end
     result
   end
 
   # Select genau erste Zeile
-  def self.sql_select_first_row(sql, query_name = 'sql_select_first_row')
-    result = sql_select_all(sql, nil, query_name)
+  def self.sql_select_first_row(sql, query_name: 'sql_select_first_row', convert_tz: true)
+    result = sql_select_all(sql, query_name: query_name, convert_tz: convert_tz)
     return nil if result.empty?
     result[0]     #.extend SelectHashHelper      # Erweitern Hash um Methodenzugriff auf Elemente
   end
 
   # Select genau einen Wert der ersten Zeile des Result
-  def self.sql_select_one(sql, query_name = 'sql_select_one')
-    result = sql_select_first_row(sql, query_name)
+  def self.sql_select_one(sql, query_name: 'sql_select_one', convert_tz: true)
+    result = sql_select_first_row(sql, query_name: query_name, convert_tz: convert_tz)
     return nil unless result
     result.first[1]           # Value des Key/Value-Tupels des ersten Elememtes im Hash
   end
@@ -986,18 +995,32 @@ class PanoramaConnection
     # Remember this parameters for execution at method each
     # stmt - SQL-String
     # binds - Parameter-Array
-    def initialize(stmt:, binds:, modifier: nil, query_timeout: PanoramaConnection.get_threadlocal_config[:query_timeout], query_name: 'SqlSelectIterator')
+    def initialize(stmt:,
+                   binds:,
+                   modifier: nil,
+                   query_timeout: PanoramaConnection.get_threadlocal_config[:query_timeout],
+                   query_name: 'SqlSelectIterator',
+                   convert_tz: true
+    )
       @stmt           = stmt
       @binds          = binds
       @modifier       = modifier              # proc for modifikation of record
       @query_timeout  = query_timeout
       @query_name     = query_name
+      @convert_tz     = convert_tz            # Convert time zone of date/time values to client time zone
     end
 
     def each(&block)
       # Execute SQL and call block for every record of result
       Thread.current[:panorama_connection_connection_object].register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
-      Thread.current[:panorama_connection_connection_object].jdbc_connection.iterate_query(@stmt, @query_name, @binds, @modifier, @query_timeout, &block)
+      Thread.current[:panorama_connection_connection_object].jdbc_connection.iterate_query(@stmt,
+                                                                                           name: @query_name,
+                                                                                           binds: @binds,
+                                                                                           modifier: @modifier,
+                                                                                           query_timeout: @query_timeout,
+                                                                                           convert_tz: @convert_tz,
+                                                                                           &block
+      )
     rescue Exception => e
       PanoramaConnection.check_for_erroneous_connection_removal(e)              # check if too much errors occurred for this connection
 

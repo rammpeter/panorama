@@ -857,7 +857,11 @@ class AdditionController < ApplicationController
       if stripped_sql_statement.upcase =~ /^SELECT/ || stripped_sql_statement.upcase =~ /^WITH/
         @res = []
         count = 0
-        PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement), binds: ar_binds_from_binds(@binds), query_name: 'exec_worksheet_sql').each do |r|
+        PanoramaConnection::SqlSelectIterator.new(stmt: PackLicense.filter_sql_for_pack_license(@sql_statement),
+                                                  binds: ar_binds_from_binds(@binds),
+                                                  query_name: 'exec_worksheet_sql',
+                                                  convert_tz: false             # do not convert to local time zone, as this is a worksheet and not a report
+        ).each do |r|
           count += 1
           @res << r
           if count >= MAX_WORKSHEET_RESULT_COUNT

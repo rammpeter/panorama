@@ -600,29 +600,31 @@ module ApplicationHelper
   end
 
   # Helper fuer Ausführung SQL-Select-Query,
-  # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
-  #            modifier = proc für Anwendung auf die fertige Row
-  # return Array of Hash mit Columns des Records
-  def sql_select_all(sql, modifier=nil, query_name = 'sql_select_all')   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
-    PanoramaConnection.sql_select_all(sql, modifier, query_name)
+  # @param sql [String] mit Statement oder Array mit Statement und Bindevariablen
+  # @param modifier [Proc]  für Anwendung auf die fertige Row
+  # @param query_name [String] Name des Queries, wird in Logfile ausgegeben
+  # @param convert_tz [Boolean] true, wenn Zeitstempel in lokale Zeitzone umgewandelt werden sollen
+  # @return [Array] of Hash mit Columns des Records
+  def sql_select_all(sql, modifier: nil, query_name: 'sql_select_all', convert_tz: true)   # Parameter String mit SQL oder Array mit SQL und Bindevariablen
+    PanoramaConnection.sql_select_all(sql, modifier: modifier, query_name: query_name, convert_tz: convert_tz)
   end
 
   # Analog sql_select all, jedoch return ResultIterator mit each-Method
   # liefert Objekt zur späteren Iteration per each, erst dann wird SQL-Select ausgeführt (jedesmal erneut)
   # Parameter: sql = String mit Statement oder Array mit Statement und Bindevariablen
   #            modifier = proc für Anwendung auf die fertige Row
-  def sql_select_iterator(sql, modifier=nil, query_name = 'sql_select_iterator')
-    PanoramaConnection.sql_select_iterator(sql, modifier, query_name)
+  def sql_select_iterator(sql, modifier: nil, query_name: 'sql_select_iterator', convert_tz: true)
+    PanoramaConnection.sql_select_iterator(sql, modifier: modifier, query_name: query_name, convert_tz: convert_tz)
   end
 
   # Select genau erste Zeile
-  def sql_select_first_row(sql, query_name = 'sql_select_first_row')
-    PanoramaConnection.sql_select_first_row(sql, query_name)
+  def sql_select_first_row(sql, query_name: 'sql_select_first_row', convert_tz: true)
+    PanoramaConnection.sql_select_first_row(sql, query_name: query_name, convert_tz: convert_tz)
   end
 
   # Select genau einen Wert der ersten Zeile des Result
   def sql_select_one(sql, query_name = 'sql_select_one')
-    PanoramaConnection.sql_select_one(sql, query_name)
+    PanoramaConnection.sql_select_one(sql, query_name: query_name)
   end
 
   # Switch between DBA_xxx and CDB_xxx for CDBs

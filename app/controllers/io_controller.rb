@@ -224,7 +224,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
       ORDER BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
-      " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
+      " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
@@ -403,7 +403,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
       ORDER BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
-                          " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
+                          " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""
@@ -593,7 +593,7 @@ class IoController < ApplicationController
              #{@global_where_string}
       GROUP BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
       ORDER BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
-                          " ].concat(@with_where_values).concat(@global_where_values), record_modifier)
+                          " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = ""

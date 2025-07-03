@@ -2,6 +2,8 @@ require 'panorama_sampler/package_panorama_sampler_ash'
 require 'panorama_sampler/package_panorama_sampler_snapshot'
 require 'panorama_sampler/package_panorama_sampler_blocking_locks'
 
+# Timezone-Handling: all timestamp values for Panorama-Sampler data should be handled in default server timezone a'la SYSDATE
+
 class PanoramaSamplerSampling
   include PanoramaSampler::PackagePanoramaSamplerAsh
   include PanoramaSampler::PackagePanoramaSamplerSnapshot
@@ -40,11 +42,12 @@ class PanoramaSamplerSampling
                                                     FROM   #{@sampler_config.get_owner}.Panorama_Snapshot
                                                     WHERE  DBID=? AND Instance_Number=?
                                                     AND    Snap_ID = (SELECT MAX(Snap_ID) FROM #{@sampler_config.get_owner}.Panorama_Snapshot WHERE DBID=? AND Instance_Number=?)
-                                                   ", PanoramaConnection.login_container_dbid, PanoramaConnection.instance_number, PanoramaConnection.login_container_dbid, PanoramaConnection.instance_number]
+                                                   ", PanoramaConnection.login_container_dbid, PanoramaConnection.instance_number, PanoramaConnection.login_container_dbid, PanoramaConnection.instance_number],
+                                                        convert_tz: false
 
     if last_snap.nil?                                                           # First access
       @snap_id = 1
-      begin_interval_time = (PanoramaConnection.sql_select_one "SELECT SYSDATE FROM Dual") - (@sampler_config.get_awr_ash_snapshot_cycle).minutes
+      begin_interval_time = PanoramaConnection.sql_select_one("SELECT SYSDATE FROM Dual", convert_tz: false) - (@sampler_config.get_awr_ash_snapshot_cycle).minutes
     else
       @snap_id            = last_snap.snap_id + 1
       begin_interval_time = last_snap.end_interval_time
@@ -288,7 +291,7 @@ class PanoramaSamplerSampling
 
   def do_longterm_trend_sampling(snapshot_time)
     # start with start of last snapshot + snapshot_cycle. All records before are already considered
-    start_time = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp)+#{@sampler_config.get_longterm_trend_snapshot_cycle}/24 FROM #{@sampler_config.get_owner}.Longterm_Trend"
+    start_time = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp)+#{@sampler_config.get_longterm_trend_snapshot_cycle}/24 FROM #{@sampler_config.get_owner}.Longterm_Trend", convert_tz: false
     start_time = Time.now - 86400*1000 if start_time.nil?                       # Start 1000 days back for first time
 
     # End_time is cycle back - 1 hour for visibility of ASH - 1 hour carrence
@@ -297,7 +300,7 @@ class PanoramaSamplerSampling
                                                   FROM   (SELECT  SYSDATE - 2 / 24 End_time_Uneven
                                                           FROM    Dual
                                                          )
-                                                 "
+                                                 ", convert_tz: false
     insert_0 = ''
     insert_distinct = ''
     [

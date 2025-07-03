@@ -305,7 +305,7 @@ class ActiveSessionHistoryController < ApplicationController
       GROUP BY #{group_by_value}
       ORDER BY #{group_by_value}
      "
-     ].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat([@dbid]).concat(@global_where_values), record_modifier)
+     ].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat([@dbid]).concat(@global_where_values), modifier: record_modifier)
 
     render_partial :list_session_statistic_historic_single_record
   end # list_session_statistic_historic_single_record
@@ -376,7 +376,7 @@ class ActiveSessionHistoryController < ApplicationController
       ORDER BY SUM(s.Sample_Cycle) DESC
      "
      ].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat(@global_where_values),
-                              record_modifier
+                                                      modifier: record_modifier
     )
 
     #profile_data = JRuby::Profiler.profile do
@@ -1083,7 +1083,7 @@ class ActiveSessionHistoryController < ApplicationController
        LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = x.Current_File_No
        ORDER BY x.Order_Level
       ", get_dbid, @min_snap_id, @max_snap_id, @sample_time, @sample_time, @sample_time, @blocked_session, @blocked_session_serial_no].
-        concat(@blocked_inst_id ? [@blocked_inst_id] : []).concat([get_dbid]), record_modifier)
+        concat(@blocked_inst_id ? [@blocked_inst_id] : []).concat([get_dbid]), modifier: record_modifier)
 
     render_partial
   end

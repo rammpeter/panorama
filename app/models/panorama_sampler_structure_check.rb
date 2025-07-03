@@ -103,7 +103,7 @@ class PanoramaSamplerStructureCheck
                                                                              MIN(Begin_Interval_Time)         Min_Interval_Time,
                                                                              MAX(End_Interval_Time)           Max_interval_time
                                                                       FROM #{ps.owner}.PANORAMA_SNAPSHOT
-                                                                      WHERE DBID = ?", ps[:last_dbid]]
+                                                                      WHERE DBID = ?", ps[:last_dbid]], convert_tz: true
             ps[:instances]  = max_dbid_data.instances
             ps[:min_time]   = max_dbid_data.min_interval_time
             ps[:max_time]   = max_dbid_data.max_interval_time
@@ -117,23 +117,23 @@ class PanoramaSamplerStructureCheck
         end
 
         if ps.object_sizes_count > 0
-          ps[:object_sizes_min_gather_date] = PanoramaConnection.sql_select_one "SELECT MIN(Gather_Date) FROM #{ps.owner}.PANORAMA_OBJECT_SIZES"
-          ps[:object_sizes_max_gather_date] = PanoramaConnection.sql_select_one "SELECT MAX(Gather_Date) FROM #{ps.owner}.PANORAMA_OBJECT_SIZES"
+          ps[:object_sizes_min_gather_date] = PanoramaConnection.sql_select_one "SELECT MIN(Gather_Date) FROM #{ps.owner}.PANORAMA_OBJECT_SIZES", convert_tz: true
+          ps[:object_sizes_max_gather_date] = PanoramaConnection.sql_select_one "SELECT MAX(Gather_Date) FROM #{ps.owner}.PANORAMA_OBJECT_SIZES", convert_tz: true
         end
 
         if ps.cache_objects_count > 0
-          ps[:cache_objects_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_CACHE_OBJECTS"
-          ps[:cache_objects_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_CACHE_OBJECTS"
+          ps[:cache_objects_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_CACHE_OBJECTS", convert_tz: true
+          ps[:cache_objects_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_CACHE_OBJECTS", convert_tz: true
         end
 
         if ps.blocking_locks_count > 0
-          ps[:blocking_locks_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_BLOCKING_LOCKS"
-          ps[:blocking_locks_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_BLOCKING_LOCKS"
+          ps[:blocking_locks_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_BLOCKING_LOCKS", convert_tz: true
+          ps[:blocking_locks_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.PANORAMA_BLOCKING_LOCKS", convert_tz: true
         end
 
         if ps.longterm_trend_count > 0
-          ps[:longterm_trend_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.LONGTERM_TREND"
-          ps[:longterm_trend_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.LONGTERM_TREND"
+          ps[:longterm_trend_min_snapshot] = PanoramaConnection.sql_select_one "SELECT MIN(Snapshot_Timestamp) FROM #{ps.owner}.LONGTERM_TREND", convert_tz: true
+          ps[:longterm_trend_max_snapshot] = PanoramaConnection.sql_select_one "SELECT MAX(Snapshot_Timestamp) FROM #{ps.owner}.LONGTERM_TREND", convert_tz: true
         end
       end
     end
@@ -1796,7 +1796,8 @@ ORDER BY Column_ID
                                                WHERE  Object_Type = ?
                                                AND    Owner       = ?
                                                AND    Object_Name = ?
-                                              ", (type == :spec ? 'PACKAGE' : 'PACKAGE BODY'), @sampler_config.get_owner.upcase, package_name.upcase]
+                                              ", (type == :spec ? 'PACKAGE' : 'PACKAGE BODY'), @sampler_config.get_owner.upcase, package_name.upcase],
+                                            convert_tz: true # Last_DDL_Time should be comparable with File.ctime in local file system of Panorama server
   end
 
   # Ensure existence of most recent version of package
