@@ -6,7 +6,7 @@
     <% column_options =
          [
            {:caption=>"Server versions",      :data=>proc{|rec| rec.banner },         :title=>"Version info for database server", data_title: proc{|rec| "%t\n#{rec[:banner_title]}"} },
-           {:caption=>"Client versions",      :data=>proc{|rec| rec.client_info },    :title=>"Version info for client machine (machine where Panorama's server instance is running)", data_title: proc{|rec| "%t\n#{rec[:client_info_title]}"}},
+           {:caption=>"Client versions",      :data=>proc{|rec| rec.client_info },    :title=>"Version info for client machine (machine where the Panorama server instance is running)", data_title: proc{|rec| "%t\n#{rec[:client_info_title]}"}},
          ]
     %>
     <%= gen_slickgrid(@version_info, column_options, {:width => :auto}) %>

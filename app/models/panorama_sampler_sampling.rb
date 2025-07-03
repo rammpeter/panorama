@@ -11,6 +11,13 @@ class PanoramaSamplerSampling
 
 
   # call sampling method a'a do_object_size_sampling(snapshot_time)
+  # @param sampler_config [PanoramaSamplerConfig] configuration object
+  # @param snapshot_time [Time] Start time of current snapshot in time zone of Panorama server instance
+  # @param domain [Symbol] Domain to sample, e.g. :AWR_ASH, :OBJECT_SIZE, :CACHE_OBJECTS, :BLOCKING_LOCKS, :LONGTERM_TREND
+  # @return [void]
+  #
+  # This method is called from PanoramaSamplerStructureCheck.do_sampling and PanoramaSamplerStructureCheck.do_housekeeping
+  #
   def self.do_sampling(sampler_config, snapshot_time, domain)
     PanoramaSamplerSampling.new(sampler_config).send("do_#{domain.downcase}_sampling".to_sym, snapshot_time)
   end
@@ -37,6 +44,8 @@ class PanoramaSamplerSampling
   end
 
   # Iterate over the visible PDBs (recognized by v$Containers)
+  # @param snapshot_time [Time] Start time of current snapshot at exact minute boundary in time zone of Panorama server instance
+  # @return [void]
   def do_awr_sampling(snapshot_time)
     last_snap = PanoramaConnection.sql_select_first_row ["SELECT Snap_ID, End_Interval_Time
                                                     FROM   #{@sampler_config.get_owner}.Panorama_Snapshot
@@ -180,6 +189,8 @@ class PanoramaSamplerSampling
     Rails.logger.info('PanoramaSamplerSampling.run_ash_daemon_internal') { "ASH daemon regularly terminated for ID=#{@sampler_config.get_id}, Name='#{@sampler_config.get_name}'" }
   end
 
+  # @param snapshot_time [Time] Start time of current snapshot at exact minute boundary in time zone of Panorama server instance
+  # @return [void]
   def do_object_size_sampling(snapshot_time)
     PanoramaConnection.sql_execute ["\
       INSERT INTO #{@sampler_config.get_owner}.Panorama_Object_Sizes (Owner, Segment_Name, Segment_Type, Tablespace_Name, Gather_Date, Bytes, Num_Rows)
@@ -218,7 +229,7 @@ class PanoramaSamplerSampling
                                           'LOB PARTITION',        'LOB',
                                           s.Segment_Type
                                           ) = n.Type
-      ", snapshot_time.strftime('%Y-%m-%d %H:%M:%S')]
+      ", (snapshot_time-PanoramaConnection.client_tz_offset_hours*3600).strftime('%Y-%m-%d %H:%M:%S')]
   end
 
   def do_object_size_housekeeping(shrink_space)
@@ -256,7 +267,7 @@ class PanoramaSamplerSampling
                                      LEFT OUTER JOIN v$Tablespace ts ON ts.TS# = bh.TS#
                                      GROUP BY Inst_ID, NVL(o.Owner,'[UNKNOWN]'), NVL(o.Object_Name,'TS='||ts.Name), o.SubObject_Name
                                      HAVING SUM(bh.Blocks) > 1000 /* Geringfuegigkeits-Grenze */
-                                    ", snapshot_time.strftime('%Y-%m-%d %H:%M:%S') ]
+                                    ", (snapshot_time-PanoramaConnection.client_tz_offset_hours*3600).strftime('%Y-%m-%d %H:%M:%S') ]
   end
 
   def do_cache_objects_housekeeping(shrink_space)

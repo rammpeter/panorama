@@ -25,7 +25,7 @@ class WorkerThread
 
   # Generic create snapshot
   # @param {PanoramaSamplerConfig} sampler_config: configuration object
-  # @param {Time} snapshot_time Start time of current snapshot
+  # @param {Time} snapshot_time Start time of current snapshot in time zone of Panorama server instance
   # @param {Symbol} domain For which domain the snapshot should be executed
   def self.create_snapshot(sampler_config, snapshot_time, domain)
 
@@ -147,8 +147,10 @@ class WorkerThread
     PanoramaConnection.release_connection                                       # Free DB connection in Pool
   end
 
-  # Generic method to create snapshots
   @@active_snapshots = {}
+  # Generic method to create snapshots
+  # @param [Time] snapshot_time Start time of current snapshot in time zone of Panorama server instance
+  # @param [Symbol] domain For which domain the snapshot should be executed
   def create_snapshot_internal(snapshot_time, domain)
     snapshot_semaphore_key = "#{@sampler_config.get_id}_#{domain}"
     if @@active_snapshots[snapshot_semaphore_key]                               # Predecessor not correctly finished

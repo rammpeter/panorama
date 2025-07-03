@@ -86,7 +86,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
       end
 
       # Remember the time offset for sysdate
-      client_tz_offset = PanoramaConnection.client_tz_offset
+      client_tz_offset_hours = PanoramaConnection.client_tz_offset_hours
 
       fetch_options = {get_lob_value: true} # convert LOB columns to String
       # noinspection RubyAssignmentExpressionInConditionalInspection
@@ -97,7 +97,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
         columns.each_index do |index|
           # Convert date and timestamp columns to the client timezone of Panorama-Server
           if convert_tz && [:DATE, :TIMESTAMP].include?(columns[index][:oracle_type])
-            row[index] = row[index] + (client_tz_offset * 3600) unless row[index].nil?
+            row[index] = row[index] + (client_tz_offset_hours * 3600) unless row[index].nil?
           end
 
           result_hash[columns[index][:name]] = row[index]
@@ -146,7 +146,7 @@ class PanoramaConnection
   attr_accessor :sql_errors_count
   attr_reader :block_common_header_size
   attr_reader :cdb
-  attr_reader :client_tz_offset                                                 # Difference in seconds between Panorama-Server client time zone and DB-Server system time zone
+  attr_reader :client_tz_offset_hours                                           # Difference in seconds between Panorama-Server client time zone and DB-Server system time zone
   attr_reader :cluster_database                                                 # 'TRUE' if DB is a RAC
   attr_reader :con_id
   attr_reader :database_name
@@ -209,7 +209,7 @@ class PanoramaConnection
                           (SELECT Type_Size FROM v$Type_Size WHERE Type = 'KDBT')                                                         Table_Directory_Entry_Size,
                           (SELECT VSIZE(rowid) FROM Dual)                                                                                 RowID_Size,
                           SYSDATE                                                                                                         Logon_time,
-                          (CURRENT_DATE - SYSDATE) * 24                                                                                   Client_TZ_Offset
+                          (CURRENT_DATE - SYSDATE) * 24                                                                                   Client_TZ_Offset_Hours
                    FROM   v$Instance i
                    CROSS JOIN v$Database d
                    CROSS JOIN (SELECT CASE
@@ -229,7 +229,7 @@ class PanoramaConnection
     @database_name                    = db_config['database_name']
     @db_blocksize                     = db_config['db_blocksize']
     @db_wordsize                      = db_config['db_wordsize']
-    @client_tz_offset                 = db_config['client_tz_offset']
+    @client_tz_offset_hours           = db_config['client_tz_offset_hours']
     @edition                          = (db_config['edition'] || 'standard').to_sym
     @instance_number                  = db_config['instance_number']
     @login_container_dbid             = db_config['dbid']                       # Default is DB's DBID, specified later for CDBs
@@ -455,7 +455,7 @@ class PanoramaConnection
   def self.autonomous_database?;            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].autonomous_database?;               end
   def self.block_common_header_size;        check_for_open_connection;        Thread.current[:panorama_connection_connection_object].block_common_header_size;          end
   def self.con_id;                          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].con_id;                            end  # Container-ID for PDBs or 0
-  def self.client_tz_offset;                check_for_open_connection;        Thread.current[:panorama_connection_connection_object].client_tz_offset;                  end
+  def self.client_tz_offset_hours;          check_for_open_connection;        Thread.current[:panorama_connection_connection_object].client_tz_offset_hours;            end
   def self.data_header_size;                check_for_open_connection;        Thread.current[:panorama_connection_connection_object].data_header_size;                  end
   def self.db_version;                      check_for_open_connection;        Thread.current[:panorama_connection_connection_object].db_version;                        end
   def self.dbid;                            check_for_open_connection;        Thread.current[:panorama_connection_connection_object].dbid;                              end

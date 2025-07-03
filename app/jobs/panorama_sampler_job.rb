@@ -76,7 +76,7 @@ class PanoramaSamplerJob < ApplicationJob
   private
   # Check if sampling should be executed
   # @param [PanoramaSamplerConfig] config
-  # @param [Time] snapshot_time
+  # @param [Time] snapshot_time in time zone of Panorama server instance
   # @param [Symbol] domain
   # @param [Integer] minute_factor
   def check_for_sampling(config, snapshot_time, domain, minute_factor = 1)

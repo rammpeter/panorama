@@ -90,7 +90,7 @@ module ApplicationHelper
 
   # @return [Numeric] Difference between Panorama server client timezone and DB system timezone in days
   def client_tz_offset_days
-    PanoramaConnection.client_tz_offset.to_f/24
+    PanoramaConnection.client_tz_offset_hours.to_f/24
   end
 
   def set_cached_time_selection_start(time_selection_start)
