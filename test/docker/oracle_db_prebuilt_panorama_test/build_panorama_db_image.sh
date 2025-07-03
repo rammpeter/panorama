@@ -32,13 +32,12 @@ if [[ $BASE_IMAGE =~ "23" ]]; then
   export YUM=microdnf
 else
   # Settings for Docker-Images pre 23
-  export YUM=yum -y
+  export YUM="yum -y"
 fi
 
 
 # Ensure that image is loaded before docker inspect
-# Supressed to ensure using local image instead of possibly older image in registry
-# docker pull $BASE_IMAGE
+docker pull $BASE_IMAGE
 
 # get environment from base image and replace in Dockerfile
 docker inspect ${BASE_IMAGE} | jq ".[0].Config.Env" |

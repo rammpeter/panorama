@@ -13,12 +13,11 @@ FROM ${BASE_IMAGE} as base
 MAINTAINER Peter Ramm <Peter.Ramm@ottogroup.com>
 
 USER    root
-ARG YUM=yum -y
+ARG     YUM="yum -y"
 RUN     rm -rf /var/log/*
 
 # Update OS to current patch state
-RUN     ${YUM} update && ${YUM} install procps && ${YUM} clean all
-
+RUN     echo "YUM = ${YUM}" && ${YUM} update && ${YUM} install procps && ${YUM} clean all
 
 USER   oracle
 ENV ORACLE_PASSWORD oracle
