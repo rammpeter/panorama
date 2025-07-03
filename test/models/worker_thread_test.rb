@@ -65,7 +65,7 @@ class WorkerThreadTest < ActiveSupport::TestCase
         PanoramaConnection.sql_execute "ALTER INDEX #{@sampler_config.get_owner}.Panorama_SQL_Plan_PK UNUSABLE"
 
         WorkerThread.new(@sampler_config, 'test_create_ash_sampler_daemon').create_ash_sampler_daemon(Time.now.round)
-        ld        WorkerThread.new(@sampler_config, 'test_do_sampling_AWR').create_snapshot_internal(Time.now.round, :AWR) # Tables must be created before snapshot., first snapshot initialization called
+        WorkerThread.new(@sampler_config, 'test_do_sampling_AWR').create_snapshot_internal(Time.now.round, :AWR) # Tables must be created before snapshot., first snapshot initialization called
 
         PanoramaConnection.set_connection_info_for_request(saved_config)        # reconnect because create_snapshot_internal freed the connection
         # Ensure that the index is usable again
