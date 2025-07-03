@@ -54,7 +54,7 @@ DOCKER_BUILDKIT=0 docker build --no-cache \
 --build-arg BASE_IMAGE=$BASE_IMAGE \
 --build-arg CDB_SERVICE=$CDB_SERVICE \
 --build-arg PDB_SERVICE=$PDB_SERVICE \
---build-arg YUM=$YUM \
+--build-arg "YUM=$YUM" \
 -f Dockerfile.modified \
 -t $TARGET_IMAGE -m 3g .
 
