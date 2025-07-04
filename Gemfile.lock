@@ -195,6 +195,7 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    win32api (0.1.0)
     zeitwerk (2.6.18)
 
 PLATFORMS
@@ -225,6 +226,7 @@ DEPENDENCIES
   sprockets-rails
   tzinfo-data
   web-console (>= 4.1.0)
+  win32api
 
 RUBY VERSION
    ruby 3.1.4p0 (jruby 9.4.13.0)
