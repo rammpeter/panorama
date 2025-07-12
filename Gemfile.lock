@@ -82,7 +82,7 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    jwt (3.1.0)
+    jwt (3.1.2)
       base64
     listen (3.9.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -101,7 +101,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0617)
+    mime-types-data (3.2025.0708)
     mini_mime (1.1.5)
     minitest (5.25.5)
     net-imap (0.5.9)
@@ -180,7 +180,7 @@ GEM
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
     thor (1.3.2)
-    tilt (2.6.0)
+    tilt (2.6.1)
     timeout (0.4.3)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -195,7 +195,6 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    win32api (0.1.0)
     zeitwerk (2.6.18)
 
 PLATFORMS
@@ -226,7 +225,6 @@ DEPENDENCIES
   sprockets-rails
   tzinfo-data
   web-console (>= 4.1.0)
-  win32api
 
 RUBY VERSION
    ruby 3.1.4p0 (jruby 9.4.13.0)
