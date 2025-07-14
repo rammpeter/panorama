@@ -66,8 +66,8 @@
   <div class="flex-row-element">
     <%
       focus = proc do |rec|
-        retval = ''
-        retval = 'Select' if rec.sel == 'YES'
+        retval = String.new
+        retval = 'Select'.dup if rec.sel == 'YES'
         if rec.ins == 'YES'
           retval << ', ' if retval != ''
           retval << 'Insert'

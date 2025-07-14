@@ -6,7 +6,7 @@
 <div style="width: auto;">
   <div class="fieldset_input_outer">
     <fieldset class="fieldset_input">
-      <% edition_name = PanoramaConnection.edition.to_s; edition_name[0] = edition_name[0].upcase %>
+      <% edition_name = PanoramaConnection.edition.to_s.dup; edition_name[0] = edition_name[0].upcase %>
       <legend><%= t(:env_list_management_pack_license_legend, :default=>'Licensing of management packs for your current database') %> (<%= edition_name %> Edition)</legend>
       <div class="flex-row-container">
         <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_dp_hint, :default=>"Panorama will access Oracle's 'Diagnostic Pack' if you choose this option\nbut doesn't access Oracle's 'Tuning Pack'.\nYou can choose this option only if you have Enterprise Edition (not Standard Edition) and init-parameter control_management_pack includes Diagnostics Pack license") %>">

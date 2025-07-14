@@ -7,7 +7,7 @@
     ]
 
   exadata_cell_db_columns.each do |key, col|
-    caption = col[:caption].clone
+    caption = col[:caption].dup
     caption << ajax_submit('Cells',
                            { action:                :list_exadata_io_load_distribution,
                              update_area:           @update_area,

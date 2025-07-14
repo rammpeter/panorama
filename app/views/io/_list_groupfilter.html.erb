@@ -8,7 +8,7 @@
    @time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
    @time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
 
-   @caption = ""
+   @caption = String.new
    @caption << (ajax_form(:controller => :io, :action        => :refresh_time_selection,
                                          :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
                                          :groupfilter   => @groupfilter,            # Groupfilter des letzten Aufrufes wiederverwenden, reduziert um Fehlerquellen
@@ -16,7 +16,7 @@
                                          repeat_controller: controller_name,
                                          :repeat_action => @repeat_action             # Zuletzt aufgerufene Action im selben Controller wiederholen
                                  ) do
-     form_content = ""
+     form_content = String.new
      form_content << "<div style=\"float:left;\">"
      form_content << @header
      form_content << "&nbsp;"

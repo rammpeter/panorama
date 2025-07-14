@@ -6,7 +6,7 @@
   end
 
   show_event_data_title = proc do |rec|
-    result = "%t\n"
+    result = "%t\n".dup
     result << "Sessions is currently working on CPU. Last wait event was:\n#{rec.event}\n\nExplanation of last wait event is:\n" if rec.state != 'WAITING'
     result << explain_wait_event(rec.event)
     result
@@ -17,7 +17,7 @@
   end
 
   show_class_data_title = proc do |rec|
-    result = "%t\n"
+    result = "%t\n".dup
     result << "Sessions is currently working on CPU. Last wait class was:\n#{rec.wait_class}" if rec.state != 'WAITING'
     result
   end

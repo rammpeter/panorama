@@ -5,7 +5,7 @@ module DbaHelper
   def object_nach_file_und_block(fileno, blockno, instance=nil)
     # Erster Test, das Objekt ueber den DB-Cache zu identifizieren (schneller)
 
-    wherestr = ""
+    wherestr = String.new
     whereval = []
 
     if instance
@@ -151,8 +151,8 @@ WHERE  indx = (SELECT name_ksrcctx FROM x$ksrcctx WHERE addr like '%'||TRIM(TO_C
 
   def get_sql_monitor_count(dbid, instance, sql_id, time_selection_start, time_selection_end, sid=nil, serial_no=nil)
     if get_db_version >= '11.1' && PackLicense.tuning_pack_licensed?
-      where_string_sga = ''
-      where_string_awr = ''
+      where_string_sga = String.new
+      where_string_awr = String.new
       where_values = []
 
       if instance

@@ -348,7 +348,7 @@ class StorageController < ApplicationController
   end
 
   def list_registered_materialized_views
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if params[:snapshot_id]
@@ -386,7 +386,7 @@ class StorageController < ApplicationController
     @refresh_group = params[:refresh_group]
     @refresh_group = nil if @refresh_group == ''
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if params[:owner]
@@ -442,7 +442,7 @@ class StorageController < ApplicationController
     @master = nil if @master == ''
 
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if @log_owner
@@ -481,9 +481,9 @@ class StorageController < ApplicationController
 
   # Anzeige der n:m zwischen MV und MV-Log
   def list_snapshot_logs
-    where_string = ""
+    where_string = String.new
     where_values = []
-    @grid_caption = ""
+    @grid_caption = String.new
 
     if params[:snapshot_id]
       where_string << " AND l.Snapshot_ID = ?"
@@ -532,7 +532,7 @@ class StorageController < ApplicationController
     @refgroup = params[:refgroup]
     @refgroup = nil if @refgroup == ''
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @refgroup
@@ -739,7 +739,7 @@ class StorageController < ApplicationController
     @sid        = prepare_param(:sid)
     @serial_no   = prepare_param(:serial_no)
 
-    @where_string = ''
+    @where_string = String.new
     @where_values = []
 
     if @segment_id
@@ -857,9 +857,9 @@ class StorageController < ApplicationController
   end
 
   def list_exadata_cell_server
-    where_string = ''
+    where_string = String.new
     where_values = []
-    @filter      = ''
+    @filter      = String.new
 
     if params[:cellname]
       where_string << " AND c.CellName = ?"
@@ -954,9 +954,9 @@ class StorageController < ApplicationController
   end
 
   def list_exadata_cell_physical_disk
-    where_string = ''
+    where_string = String.new
     where_values = []
-    @filter      = ''
+    @filter      = String.new
 
     if params[:cellname]
       where_string << " AND pd.CellName = ?"
@@ -1056,9 +1056,9 @@ class StorageController < ApplicationController
   end
 
   def list_exadata_cell_cell_disk
-    where_string = ''
+    where_string = String.new
     where_values = []
-    @filter      = ''
+    @filter      = String.new
 
     if params[:cellname]
       where_string << " AND pd.pd_CellName = ?"
@@ -1161,9 +1161,9 @@ class StorageController < ApplicationController
   end
 
   def list_exadata_cell_grid_disk
-    where_string = ''
+    where_string = String.new
     where_values = []
-    @filter      = ''
+    @filter      = String.new
 
     if params[:cellname]
       where_string << " AND cd.CellName = ?"
@@ -1342,7 +1342,7 @@ class StorageController < ApplicationController
     @cell_hash = prepare_param_int(:cell_hash) || 0
     @src_dbid = prepare_param_int( :src_dbid) || 0
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @cell_hash > 0
@@ -1402,7 +1402,7 @@ class StorageController < ApplicationController
     @grouping   = prepare_param :grouping
     @column     = prepare_param :column
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @cell_hash > 0
@@ -1572,9 +1572,9 @@ class StorageController < ApplicationController
   end
 
   def list_free_extents
-    where_string = ''
+    where_string = String.new
     where_values = []
-    @filter      = ''
+    @filter      = String.new
 
 
     if params[:tablespace]
@@ -1651,7 +1651,7 @@ class StorageController < ApplicationController
     @segment_name = params[:segment_name]
     @partition_name = prepare_param :partition_name
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @partition_name
@@ -1733,7 +1733,7 @@ class StorageController < ApplicationController
   def list_asm_disk_groups
     @group_number = prepare_param :group_number
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @group_number
@@ -1756,7 +1756,7 @@ class StorageController < ApplicationController
   def list_asm_disks
     @group_number = prepare_param :group_number
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @group_number

@@ -77,7 +77,7 @@ class ActiveSessionHistoryController < ApplicationController
 
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
-    @filter = ''
+    @filter = String.new
     @groupfilter.each do |key, value|
       @filter << "#{groupfilter_value(key)[:name]}=\"#{value}\", " unless groupfilter_value(key)[:hide_content]
     end
@@ -123,7 +123,7 @@ class ActiveSessionHistoryController < ApplicationController
       alias_name = column[column.index('.')+1, column.length] if column.index('.')     # Tabellen-Alias entfernen
     end
 
-    retval = ''
+    retval = String.new
     retval << "CASE WHEN COUNT(DISTINCT #{column}) > 1 THEN NULL ELSE MIN(#{column}) END #{alias_name}, "
     retval << "COUNT(DISTINCT #{column}) #{alias_name}_Cnt"
   end
@@ -135,7 +135,7 @@ class ActiveSessionHistoryController < ApplicationController
   def list_session_statistic_historic_single_record
 
     # additional SQL needed for Joining
-    additional_join = ''                                                        # Default if not needed
+    additional_join = String.new                                                        # Default if not needed
     if params[:groupfilter][:Blocking_Event]
       left_outer_join = false                                                   # Default if special columns don't require left outer join
 
@@ -768,10 +768,10 @@ class ActiveSessionHistoryController < ApplicationController
               else raise "blocking_locks_historic_event_detail: unknown role '#{role}'"
               end
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
-    global_where_string = ''
+    global_where_string = String.new
     global_where_values = []
 
     if @blocking_instance

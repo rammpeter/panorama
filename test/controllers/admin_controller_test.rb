@@ -63,7 +63,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
   test "set_log_level with xhr: true" do
     admin_logout
     post '/admin/set_log_level',  :params => {:format=>:html, log_level: :DEBUG}
-    assert_response :redirect, log_on_failure('Should be redirected to logon request')
+    assert_response :redirect, log_on_failure("Should be redirected to logon request but is #{@response.response_code}" )
 
     admin_login
     post '/admin/set_log_level',  :params => {:format=>:html, log_level: :INFO}

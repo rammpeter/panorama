@@ -22,7 +22,7 @@
      groupfilter
    end
 
-    @caption = ""
+    @caption = String.new
     @caption << (ajax_form(:controller => :active_session_history, :action        => :refresh_time_selection,
                                 additional_join: defined?(@additional_join) ? @additional_join : nil,   # Possibley defined additional join SQL
                                 :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
@@ -31,7 +31,7 @@
                                 repeat_controller: controller_name,
                                 :repeat_action => @repeat_action                # Zuletzt aufgerufene action wiederholen
                         ) do
-        form_content = ""
+        form_content = String.new
         form_content << "<div class=\"float_left\">"
         form_content << @header
         form_content << "&nbsp;"

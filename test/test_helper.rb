@@ -1,3 +1,6 @@
+# Magic comment to suppress warnings about frozen string literals, see https://gist.github.com/fxn/bf4eed2505c76f4fca03ab48c43adc72
+# frozen_string_literal: true
+
 # Configure Rails Environment
 ENV['RAILS_ENV'] ||= 'test'
 
@@ -58,7 +61,7 @@ class ActionController::TestCase
     # Problem: fixtures.rb merkt sich am Start des Tests die aktive Connection und will darauf am Ende des Tests ein Rollback machen
     # zu diesem Zeitpunkt ist die gemerkte Connection jedoch gar nicht mehr aktiv, da mehrfach andere Connection aktiviert wurde
     # Lösung: Leeren des Arrays mit gemerkten Connections von fixture.rb, so dass nichts mehr zurückgerollt wird
-    @fixture_connections.clear
+    @fixture_connections&.clear
   end
 
 end

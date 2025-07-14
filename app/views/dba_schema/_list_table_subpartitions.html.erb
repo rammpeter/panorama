@@ -53,7 +53,7 @@
   end
 
   list_states = proc do |rec|
-    result = ''
+    result = String.new
 
     if !(rec.compression.nil? || rec.compression == 'DISABLED' || rec.compression == 'N/A' || rec.compression == 'NONE')
       result << '<br/>' if result.length > 0

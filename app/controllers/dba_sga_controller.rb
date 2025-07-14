@@ -71,7 +71,7 @@ class DbaSgaController < ApplicationController
     max_result_count = 100 unless max_result_count
     top_sort         = 'ElapsedTimeTotal' unless top_sort
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if filters[:instance]
@@ -157,7 +157,7 @@ class DbaSgaController < ApplicationController
                    "JOIN gv$SQLStats st ON st.Inst_ID = s.Inst_ID AND st.SQL_ID = s.SQL_ID"
                  end
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if instance
@@ -257,7 +257,7 @@ class DbaSgaController < ApplicationController
 
   # get sums over various records in gv$SQL
   def v_sql_sums(instance, sql_id, object_status, parsing_schema_name, con_id)
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if instance
@@ -353,7 +353,7 @@ class DbaSgaController < ApplicationController
     @child_address          = prepare_param :child_address
     @show_adaptive_plans    = prepare_param_int :show_adaptive_plans
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if !@child_number.nil?
@@ -506,7 +506,7 @@ class DbaSgaController < ApplicationController
       hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 
-    @additional_ash_message = ''
+    @additional_ash_message = String.new
     if !@child_number.nil?
       child_count = sql_select_one ["SELECT COUNT(*) FROM gv$SQL WHERE Inst_ID = ? AND SQL_ID = ?", @instance, @sql_id]
       @additional_ash_message << "\nASH-values are for child_number=#{@child_number} only but #{child_count} children exists for this SQL-ID and Instance" if child_count > 1
@@ -545,7 +545,7 @@ class DbaSgaController < ApplicationController
     parsing_schema_name = prepare_param(:parsing_schema_name)
     con_id              = prepare_param(:con_id)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if instance
@@ -749,7 +749,7 @@ class DbaSgaController < ApplicationController
       @instance, @sql_id, @child_number]
 
     @reasons.each do |r|
-      reasons = ""        # Konkatenierte Strings mit Gründen
+      reasons = String.new        # Konkatenierte Strings mit Gründen
       r.each do |key, value|
         if key!="inst_id" && key!="sql_id" && key!="address" && key!="child_address" && key!="child_number" && key!="reason"
           reasons << "#{key}, "if value == 'Y'
@@ -793,7 +793,7 @@ class DbaSgaController < ApplicationController
     @show_defaults            = prepare_param_boolean :show_defaults
     @update_area              = prepare_param :update_area
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @child_number
@@ -1005,7 +1005,7 @@ class DbaSgaController < ApplicationController
     @object_name  = prepare_param :ObjectName
     @instance     = prepare_param_instance
 
-    wherestr = "p.Object_Name LIKE UPPER(?)"
+    wherestr = "p.Object_Name LIKE UPPER(?)".dup
     whereval = [@object_name]
 
     if @object_owner
@@ -1566,7 +1566,7 @@ class DbaSgaController < ApplicationController
     @sql_profile              = prepare_param(:sql_profile)
     @update_area              = prepare_param(:update_area)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     @caption = "SQL profiles from DBA_SQL_Profiles"
     @single_sql = false                                                         # look for whole DB
@@ -1618,7 +1618,7 @@ class DbaSgaController < ApplicationController
     @force_matching_signature = prepare_param(:force_matching_signature)
     @exact_matching_signature = prepare_param(:exact_matching_signature)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @force_matching_signature || @exact_matching_signature
@@ -1676,7 +1676,7 @@ class DbaSgaController < ApplicationController
 
   def list_plan_baseline_dbms_xplan
     baselines = sql_select_all ["SELECT Plan_Table_Output FROM TABLE(DBMS_XPLAN.display_sql_plan_baseline(?, ?))", params[:sql_handle], params[:plan_name]]
-    baseline = ''
+    baseline = String.new
     baselines.each do |b|
       baseline << my_html_escape(b.plan_table_output)
       baseline << "<br/>"
@@ -1700,7 +1700,7 @@ class DbaSgaController < ApplicationController
     @force_matching_signature = prepare_param(:force_matching_signature)
     @exact_matching_signature = prepare_param(:exact_matching_signature)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     @caption = "Stored outlines from DBA_Outlines"
     @single_sql = false
@@ -1724,7 +1724,7 @@ class DbaSgaController < ApplicationController
   def show_sql_translations
     @translated_sql_id = prepare_param :translated_sql_id                             # optional filter condition
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @translated_sql_id
@@ -1811,7 +1811,7 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     @exact_signature = params[:exact_signature]
     @force_signature = params[:force_signature]
 
-    where_stmt = ''
+    where_stmt = String.new
     where_values = []
 
     if @exact_signature && @force_signature
@@ -2468,8 +2468,7 @@ END;
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
     @update_area = get_unique_area_id
 
-
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     unless @instance.nil?
@@ -2602,7 +2601,7 @@ END;
     @oper_type    = params[:oper_type]
     @oper_type    = nil if @oper_type == ''
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     unless @instance.nil?
@@ -2671,7 +2670,7 @@ END;
     pool_details  = prepare_param(:pool_details) == '1'
     @con_id       = prepare_param :con_id
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @instance
       where_string << " AND s.Instance_Number = ?"
@@ -2724,7 +2723,7 @@ END;
     @sid          = prepare_param(:sid)
     @serial_no    = prepare_param(:serial_no)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @instance

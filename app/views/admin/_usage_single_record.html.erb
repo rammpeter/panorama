@@ -20,7 +20,7 @@ column_options = [
         {:caption=>"URL",           :data=>proc{|rec| rec.URL},             :title=> 'Attached host:port:sid/servicename'},
         ]
 
-   caption = "Single records, filter: "
+   caption = "Single records, filter: ".dup
    @filter.each do |key, value|
      caption << "#{key}=#{value}, "
    end

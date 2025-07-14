@@ -37,7 +37,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}
   end
 
   data_title_object_name = proc do |rec|
-    output = "%t\n\n"
+    output = "%t\n\n".dup
     output << "\nType = #{rec.object_type}"
     output << "\nAlias = #{rec.object_alias}"
     output << "\nQuery block name in plan_table = #{rec.qblock_name}" if rec.qblock_name

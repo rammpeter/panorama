@@ -36,7 +36,7 @@
   end
 
   link_ts_details = proc do |rec|
-    details = ''
+    details = String.new
     case rec.tablespace_name
     when 'SYSAUX' then
       details << ajax_link('v$SYSAUX_Occupants',
@@ -130,7 +130,7 @@
   end
 
   data_default_compression = proc do |rec|
-    result = '';
+    result = String.new
     result = "Tables:'#{rec['compress_for']}' "               if rec['compress_for']
     result = "Indexes:'#{rec['index_compress_for']}' "        if rec['index_compress_for']
     result = "InMemory:'#{rec['def_inmemory_compression']}' " if rec['def_inmemory_compression']

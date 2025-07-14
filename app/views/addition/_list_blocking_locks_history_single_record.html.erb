@@ -7,7 +7,7 @@ def link_column_sql_id(instance, sql_id, child_number, parsing_schema_name)
 end
 
   link_ash_blocking_sid = proc do |rec|
-    retval = ''
+    retval = String.new
     if rec.blocking_sid
       retval << ajax_link(rec.blocking_sid, {
                           controller:  :active_session_history,

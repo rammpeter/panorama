@@ -125,7 +125,7 @@
 %>
 
 <%=
-  caption = "Sessions from gv$Session"
+  caption = "Sessions from gv$Session".dup
   caption << ", instance = #{@instance}"          if @instance
   caption << ", service = #{@service_name}"       if @service_name
   caption << ", PDB = #{@pdb_name}"               if @pdb_name

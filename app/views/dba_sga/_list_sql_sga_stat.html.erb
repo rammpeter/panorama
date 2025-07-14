@@ -61,7 +61,7 @@ Total hard parse time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg
     <td  style="vertical-align: top">
       <div id="<%= "#{@table_id_prefix}_right_td" %>">
         <table  style="font-size:small; width: 100%;">
-          <% add_title_info = "\n"
+          <% add_title_info = "\n".dup
              add_title_info << "\nObject status of SQL='#{@sql.object_status}'"
              add_title_info << "\nChild address (identifies child record in gv$SQL) = '#{@sql.child_address}'" if @modus == "GV$SQL"
              add_title_info << "\nModule='#{@sql.module}'\nAction='#{@sql.action}'"

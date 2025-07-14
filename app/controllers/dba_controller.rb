@@ -389,7 +389,7 @@ oradebug setorapname diag
     end
 
     # Ermittlung der Primary-Key-Spalten der Tabelle
-    pkey_cols = ""
+    pkey_cols = String.new
     first = true
     pstmt.each do |s| 
       if first
@@ -463,7 +463,7 @@ oradebug setorapname diag
     save_session_time_selection  # werte in session puffern
     @time_groupby = prepare_param(:time_groupby).to_sym
 
-    wherestr = ""
+    wherestr = String.new
     whereval = []
 
     if @instance
@@ -522,7 +522,7 @@ oradebug setorapname diag
     @dbid     = prepare_param_dbid
     save_session_time_selection  # werte in session puffern
 
-    wherestr = ""
+    wherestr = String.new
     whereval = []
 
     if @instance
@@ -577,7 +577,7 @@ oradebug setorapname diag
 
     @reduced_columns = params[:reduced_columns] == 'true'
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @option
@@ -747,7 +747,7 @@ oradebug setorapname diag
     @object_type      = prepare_param(:object_type)
     @filter           = prepare_param(:filter)
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if @instance
@@ -1375,7 +1375,7 @@ oradebug setorapname diag
     @show_partitions  = prepare_param(:show_partition_info) == '1'
     @sampletime       = prepare_param_int :sample_length
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @instance
@@ -1708,7 +1708,7 @@ oradebug setorapname diag
     @excl_filter  = nil if @excl_filter == ''
     @suppress_defaults = params[:suppress_defaults] == '1'
 
-    where_filter = ''
+    where_filter = String.new
     where_values = []
 
     unless @log_type == 'all'
@@ -1718,9 +1718,9 @@ oradebug setorapname diag
 
     if @suppress_defaults
       if @excl_filter
-        @excl_filter << '|'
+        @excl_filter << '|'.dup
       else
-        @excl_filter = ''
+        @excl_filter = String.new
       end
       @excl_filter << "Thread 1 advanced to log sequence % (LGWR switch)|"
       @excl_filter << "Current log# % seq# % mem#|"
@@ -1844,7 +1844,7 @@ oradebug setorapname diag
     @filename_excl_filter         = prepare_param(:filename_excl_filter)
     @content_incl_filter          = prepare_param(:content_incl_filter)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
 
@@ -2087,7 +2087,7 @@ oradebug setorapname diag
                                 AND    l.Line_Number < end_line.line_number
                                ", @instance, @adr_home, @trace_filename, @con_id, @line_number]
     end
-    result = ''
+    result = String.new
     content.each do |rec|
       result << rec.payload
     end
@@ -2149,7 +2149,7 @@ oradebug setorapname diag
       with_sql = "procs AS (SELECT /*+ NO_MERGE */ Object_ID, SubProgram_ID, Object_Type, Owner, Object_Name, Procedure_name FROM DBA_Procedures),"
     end
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if last_refresh_time_string                                                 # add refresh delta to existing data
@@ -2243,7 +2243,7 @@ oradebug setorapname diag
     start_range_ms            = prepare_param(:start_range_ms).to_i
     end_range_ms              = prepare_param(:end_range_ms).to_i
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if start_range_ms != 0 && end_range_ms != 0                                 # Manual selection in chart
@@ -2388,7 +2388,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
     @job_name     = prepare_param :job_name
     @job_subname  = prepare_param :job_subname
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @job_subname
       where_string << " AND Job_SubName = ?"
@@ -2453,7 +2453,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
 
   def list_db_vault_realms
     @realm_name = prepare_param :realm_name
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @realm_name
       where_string << "WHERE Name = ?"
@@ -2483,7 +2483,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
 
   def list_db_vault_objects
     @realm_name = prepare_param :realm_name
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @realm_name
       where_string << "WHERE Realm_Name = ?"
@@ -2505,7 +2505,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
 
   def list_db_vault_auths
     @realm_name = prepare_param :realm_name
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @realm_name
       where_string << "WHERE Realm_Name = ?"

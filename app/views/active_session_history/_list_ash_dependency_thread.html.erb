@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   link_column_sql_id = proc do |rec|
-    retval = ''
+    retval = String.new
     retval << link_historic_sql_id(rec.instance_number, rec.sql_id, localeDateTime(rec.rounded_sample_time), localeDateTime(rec.rounded_sample_time), @update_area, rec.username)
     if rec["top_level_sql_id"] && rec.top_level_sql_id != rec.sql_id
       retval << " "
@@ -12,7 +12,7 @@
   end
 
   link_column_sid = proc do |rec|
-    retval = ''
+    retval = String.new
     groupfilter = {
       :DBID                   => get_dbid,
       Instance:               rec.instance_number,
@@ -50,7 +50,7 @@
 
   link_column_object = proc do |rec|
     update_area = "list_session_statistic_single_record_convert_rowid_#{rec.session_id}_#{rec.instance_number}"
-    result = ''
+    result = String.new
     result << link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner}. #{rec.object_name}#{rec.subobject_name ? " (#{rec.subobject_name})" : ""}") if rec.object_name
 
 
@@ -97,7 +97,7 @@
   end
 
   link_plsql_object = proc do |rec|
-    result = ''
+    result = String.new
     result << link_object_description(@update_area, rec.peo_owner, rec.peo_object_name, "#{rec.peo_object_type} #{rec.peo_owner}. #{rec.peo_object_name}. #{rec.peo_procedure_name}") if rec.peo_object_name
     result << ' '
     result << link_object_description(@update_area, rec.po_owner, rec.po_object_name, "#{rec.po_object_type} #{rec.po_owner}. #{rec.po_object_name}. #{rec.po_procedure_name}") if rec.po_object_name

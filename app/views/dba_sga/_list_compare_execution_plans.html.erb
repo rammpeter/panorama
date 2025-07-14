@@ -1,6 +1,6 @@
 <%
   def show_operation(rec)
-    tab = ""
+    tab = String.new
     rec.depth.downto(2) {tab += " |&nbsp;"}
     "<span style='white-space: nowrap; color: lightgray;'>#{tab}</span><span>#{rec.operation} #{rec.options}</span>".html_safe
   end

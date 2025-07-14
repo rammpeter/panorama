@@ -24,7 +24,7 @@
       end
 
       supplemental_logging_data_title = proc do |rec|
-        retval = "%t\n"
+        retval = "%t\n".dup
         retval << "\nMinimum supplemental logging = '#{rec.supplemental_log_data_min}'"
         retval << "\nPrimary key supplemental logging = '#{rec.supplemental_log_data_pk}'"
         retval << "\nUnique key supplemental logging = '#{rec.supplemental_log_data_ui}'"
@@ -35,7 +35,7 @@
       end
 
       fs_failover_status_data_title = proc do |rec|
-        retval = "%t\n"
+        retval = "%t\n".dup
         retval << "\nFast-start failover mode = '#{rec.fs_failover_mode}'" if get_db_version >= '19'
         retval << "\nFast-start failover current target = '#{rec.fs_failover_current_target}'"
         retval << "\nFast-start failover threshold = '#{fn(rec.fs_failover_threshold)}'"

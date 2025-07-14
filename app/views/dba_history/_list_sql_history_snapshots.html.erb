@@ -71,7 +71,7 @@ caption << (ajax_form(:controller => :dba_history, :action        => :list_sql_h
                                       :sql_id         => @sql_id,
                                       :update_area   => @prev_update_area,                   # Update_area des letzten Aufrufes wiederverwenden
                               ) do
-  form_output = ''
+  form_output = String.new
   form_output << "<div class=\"flex-row-container\" style=\"font-weight: normal;\">"
   form_output << "  <div class=\"flex-row-element\" title=\"RAC-Instance. You can change this filter value or empty this field to disable the filter\">"
   form_output << "    Instance"

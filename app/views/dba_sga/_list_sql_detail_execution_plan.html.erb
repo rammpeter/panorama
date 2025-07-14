@@ -53,7 +53,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     end
 
     data_title_object_name = proc do |rec|
-      output = "%t\n\n"
+      output = "%t\n\n".dup
       output << "\nType = #{rec.object_type}"
       output << "\nAlias = #{rec.object_alias}"
       output << "\nQuery block name in plan_table = #{rec.qblock_name}" if rec.qblock_name
@@ -114,7 +114,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     end
 
     temp_title = proc do |rec|
-      output = "%t\n"
+      output = "%t\n".dup
       output << "\nMaximum temp segment_size allocated by one session (incl. PQ-server) recorded by ASH = #{fn(rec.max_temp_ash_mb, 3)}" if rec.max_temp_ash_mb
       output << "\nMaximum temp segment size recorded in gv$SQL_Plan_Statistics_All = #{fn(rec.max_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.max_tempseg_size && rec.max_tempseg_size != 0
       output << "\nTemp segment size at last execution in gv$SQL_Plan_Statistics_All = #{fn(rec.last_tempseg_size.to_f/(1024*1024), 3)} MBytes" if rec.last_tempseg_size && rec.last_tempseg_size != 0
@@ -207,7 +207,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
        end
      end
 
-     @caption = "Execution Plan from gV$SQL_Plan_Statistics_All:"
+     @caption = "Execution Plan from gV$SQL_Plan_Statistics_All:".dup
      if mp[:plans].length > 0
         if mp.child_count == 1
           @caption << " of Child=#{mp.min_child_number} "
@@ -218,7 +218,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
        @caption << "\n#{fn(mp[:plans][0].executions)} executions, #{fn(mp.elapsed_secs_per_exec, 6)} seconds elapsed / execution" if @multiplans.length > 1
        @caption << @additional_ash_message
      end
-     @caption_title = ''
+     @caption_title = String.new
      @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on Active Session History.\\n"
      @caption_title << "First considered ASH sample is from #{localeDateTime(@min_sample_time)}\\n" if @min_sample_time
 

@@ -23,10 +23,10 @@ class IoController < ApplicationController
     @groupfilter = @groupfilter.to_unsafe_h.to_h.symbolize_keys  if @groupfilter.class == ActionController::Parameters
     raise "Parameter groupfilter should be of class Hash or ActionController::Parameters" if @groupfilter.class != Hash
     @groupby    = groupby                  # Instanzvariablen zur nachfolgenden Nutzung
-    @global_where_string  = ""             # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
+    @global_where_string  = String.new     # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
     @global_where_values  = []             # Filter-werte für nachfolgendes Statement für alle Union-Tabellen
 
-    @with_where_string    = ""
+    @with_where_string    = String.new
     @with_where_values    = []
 
     @groupfilter.each do |key,value|
@@ -39,7 +39,7 @@ class IoController < ApplicationController
         @with_where_string << " AND #{sql}"
         @with_where_values << value
       else
-        sql = key_rule_function.call(key)[:sql].clone
+        sql = key_rule_function.call(key)[:sql].dup
         if value && value != ''
           sql << " = ?"
         else
@@ -129,7 +129,7 @@ class IoController < ApplicationController
 
   private
   def include_io_file_history_default_select_list
-    retval = ""
+    retval = String.new
     io_file_key_rules.each do |key, value|
       retval << ",\nCASE WHEN COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) = 1 THEN TO_CHAR(MIN(#{value[:sql]})) ELSE '< ' || COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) ||' >' END #{value[:sql_alias]}"
     end
@@ -227,7 +227,7 @@ class IoController < ApplicationController
       " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
-    @filter = ""
+    @filter = String.new
     @groupfilter.each do |key, value|
       @filter << "#{key}=\"#{value}\", "
     end
@@ -283,7 +283,7 @@ class IoController < ApplicationController
 
   def iostat_detail_history_internal_sql_select
     result = "SELECT s.*, f.Function_Name, f.FileType_Name,
-             "
+             ".dup
 
     def iostat_detail_history_internal_sql_select_column(column)
       "#{column} - LAG(#{column}, 1, #{column}) OVER (PARTITION BY f.DBID, f.Instance_Number, f.Function_ID, f.FileType_ID ORDER BY f.Snap_ID) #{column},\n"
@@ -307,7 +307,7 @@ class IoController < ApplicationController
   end
 
   def include_iostat_detail_history_default_select_list
-    retval = ""
+    retval = String.new
     iostat_detail_key_rules.each do |key, value|
       retval << ",\nCASE WHEN COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) = 1 THEN TO_CHAR(MIN(#{value[:sql]})) ELSE '< ' || COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) ||' >' END #{value[:sql_alias]}"
     end
@@ -406,7 +406,7 @@ class IoController < ApplicationController
                           " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
-    @filter = ""
+    @filter = String.new
     @groupfilter.each do |key, value|
       @filter << "#{key}=\"#{value}\", "
     end
@@ -467,7 +467,7 @@ class IoController < ApplicationController
 
   def iostat_filetype_history_internal_sql_select
     result = "SELECT s.*, f.FileType_Name,
-             "
+             ".dup
 
     def iostat_filetype_history_internal_sql_select_column(column)
       "#{column} - LAG(#{column}, 1, #{column}) OVER (PARTITION BY f.DBID, f.Instance_Number, f.FileType_ID ORDER BY f.Snap_ID) #{column},\n"
@@ -497,7 +497,7 @@ class IoController < ApplicationController
   end
 
   def include_iostat_filetype_history_default_select_list
-    retval = ""
+    retval = String.new
     iostat_filetype_key_rules.each do |key, value|
       retval << ",\nCASE WHEN COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) = 1 THEN TO_CHAR(MIN(#{value[:sql]})) ELSE '< ' || COUNT(DISTINCT NVL(TO_CHAR(#{value[:sql]}), ' ')) ||' >' END #{value[:sql_alias]}"
     end
@@ -596,7 +596,7 @@ class IoController < ApplicationController
                           " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
-    @filter = ""
+    @filter = String.new
     @groupfilter.each do |key, value|
       @filter << "#{key}=\"#{value}\", "
     end

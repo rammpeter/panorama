@@ -18,3 +18,9 @@ file_path = File.join(gem_path, 'lib', 'active_record', 'connection_adapters', '
 content = File.read(file_path)
 new_content = content.gsub("if RUBY_ENGINE == \"jruby\"", "if RUBY_ENGINE == \"xjruby\"")
 File.open(file_path, 'w') { |file| file.write(new_content) }
+
+# Workaround for NameError (uninitialized constant ActionCable::Server): in actioncable (8.0.2) lib/action_cable.rb:78:in 'server'
+module ActionCable
+  module Server
+  end
+end

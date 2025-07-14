@@ -1,7 +1,26 @@
 require 'date'
 require_relative "boot"
 
-require "rails/all"
+# Instead of rails/all, which loads all Rails components, we load only the necessary ones.
+# require "rails/all"
+
+# Pick the frameworks you want:
+require "active_model/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+require "action_controller/railtie"
+require "action_view/railtie"
+# require "action_mailer/railtie"
+# require "action_cable/engine" # ActionCable is not used in Panorama, but required by rails/all
+# require "rails"
+
+
+# require "active_storage/engine" # Uncomment if you use Active Storage
+# require "action_mailbox/engine"   # Uncomment if you use Action Mailbox
+# require "action_text/engine"     # Uncomment if you use Action Text
+# require "action_cable/engine"    # <--- REMOVE OR COMMENT THIS LINE
+# require "rails/test_unit/railtie" # Uncomment if you use Minitest/Test Unit
+
 require 'sprockets/railtie'
 
 # Require the gems listed in Gemfile, including any gems
@@ -118,6 +137,10 @@ module Panorama
     # This change is not backwards compatible with earlier Rails versions.
     # It's best enabled when your entire app is migrated and stable on 6.1.
     config.action_dispatch.cookies_same_site_protection = :lax
+
+    # Remove dependency on ActionCable, which is not used in Panorama
+    # PR, 2025-07-12
+    # config.middleware.delete ActionCable::Server::Base
 
     # Log the used settings from environment
     # @param [String] setting Name of setting

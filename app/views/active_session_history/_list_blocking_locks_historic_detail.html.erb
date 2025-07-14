@@ -107,7 +107,7 @@
 
 
   link_blocking_object = proc do |rec|
-    result = ''
+    result = String.new
     result << rec.root_blocking_object_type << ' ' if rec.root_blocking_object_type && rec.root_blocking_object_type != '< 0 >'
     if rec.root_blocking_object_owner && rec.root_blocking_object && rec.root_blocking_object_owner[0] != '<' && rec.root_blocking_object[0] != '<'
       result << link_object_description(@update_area, rec.root_blocking_object_owner, rec.root_blocking_object)
@@ -125,7 +125,7 @@
 
 
   link_blocked_object = proc do |rec|
-    result = ''
+    result = String.new
     result << rec.blocked_object_type << ' ' if rec.blocked_object_type && rec.blocked_object_type != '< 0 >'
     if rec.blocked_object_owner && rec.blocked_object && rec.blocked_object_owner[0] != '<' && rec.blocked_object[0] != '<'
       result << link_object_description(@update_area, rec.blocked_object_owner, rec.blocked_object)

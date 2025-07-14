@@ -543,7 +543,7 @@ class PanoramaConnection
   # Get the warnings of the current JDBC connection
   # @return [String] the warnings of the current JDBC connection
   def self.get_connection_warnings
-    retval = ''
+    retval = String.new
     warning = get_jdbc_raw_connection.get_warnings
     while warning
       retval << "#{warning.get_message}\n"
@@ -557,13 +557,13 @@ class PanoramaConnection
   def self.sql_prepare_binds(sql)
     binds = []
     if sql.class == Array
-      stmt =sql[0].clone      # Kopieren, da im Stmt nachfolgend Ersetzung von ? durch :A1 .. :A<n> durchgeführt wird
+      stmt =sql[0].dup                                                          # Kopieren und unfreeze, da im Stmt nachfolgend Ersetzung von ? durch :A1 .. :A<n> durchgeführt wird
       # Aufbereiten SQL: Ersetzen Bind-Aliases
       bind_index = 0
-      while stmt['?']                   # Iteration über Binds
+      while stmt['?']                                                           # Iteration über Binds
         bind_index = bind_index + 1
         bind_alias = ":A#{bind_index}"
-        stmt['?'] = bind_alias          # Ersetzen ? durch Host-Variable
+        stmt['?'] = bind_alias                                                  # Ersetzen ? durch Host-Variable
 
         raise "bind value at position #{bind_index} missing for '#{bind_alias}' in binds-array!\nBinds: #{sql.drop(1)}\nSQL:\n #{stmt}" if sql.count <= bind_index
         raise "bind value at position #{bind_index} is NULL for '#{bind_alias}' in binds-array!\nBinds: #{sql.drop(1)}\nSQL:\n #{stmt}" unless sql[bind_index]
@@ -590,7 +590,7 @@ class PanoramaConnection
 
   def self.get_nested_exception_message(exception)
     if exception.cause                                                          # exception class supports cause
-      message = ''
+      message = String.new
       cause = exception
       while cause = cause.cause                                                 # dig into nested causes
         message << "#{cause.class}:\n#{cause.message}"
@@ -682,7 +682,7 @@ class PanoramaConnection
   rescue Exception => e
     PanoramaConnection.check_for_erroneous_connection_removal(e)                # check if too much errors occurred for this connection
 
-    bind_text = ''
+    bind_text = String.new
     unless binds.nil?
       binds.each do |b|
         bind_text << "#{b.name} = #{b.value}\n"
@@ -889,8 +889,12 @@ class PanoramaConnection
     raise "PanoramaConenction.get_decrypted_password: Result = nil after decryption" if decrypted_password.nil?
     decrypted_password
   rescue Exception => e
+    output = "Stack-Trace for #{e.class}:#{e.message}\n"
+    e.backtrace.each {|bt| output << "#{bt}\n" }
+    output << "--- end of stacktrace ---\n\n\n"
+    Rails.logger.warn('PanoramaConnection.get_decrypted_password') { output }
+
     msg = "Error in PanoramaConnection.get_decrypted_password decrypting pasword: #{e.class} #{e.message}"
-    Rails.logger.warn('PanoramaConnection.get_decrypted_password') { msg }
     raise "One part of encryption key for stored password has changed at server side!\nPlease connect again with full connection info including username and password.\n\n#{msg}"
   end
 
@@ -965,7 +969,8 @@ class PanoramaConnection
 
   # Translate text in SQL-statement
   def self.translate_sql(stmt)
-    stmt.gsub!(/\n[ \n]*\n/, "\n")                                                  # Remove empty lines in SQL-text
+    stmt = stmt.dup                                                             # Unfreeze SQL-Statement, so that it can be modified
+    stmt.gsub!(/\n[ \n]*\n/, "\n")                                              # Remove empty lines in SQL-text
     stmt
   end
 
@@ -1024,7 +1029,7 @@ class PanoramaConnection
     rescue Exception => e
       PanoramaConnection.check_for_erroneous_connection_removal(e)              # check if too much errors occurred for this connection
 
-      bind_text = ''
+      bind_text = String.new
       @binds.each do |b|
         bind_text << "#{b.name} = #{b.value}\n"
       end

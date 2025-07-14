@@ -32,7 +32,7 @@
 
   #### plan_baseline
   title = t(:dba_history_list_sql_detail_historic_create_baseline_hint, :default=>"Generate script to fix exactly this execution plan as SQL-baseline for this SQL.")
-  desc_add = ""
+  desc_add = String.new
   option_pack_needed = ""
   if @min_snap_id && @max_snap_id                                           # called from AWR view
     desc_add << "\nBases on AWR data for choosen time period."

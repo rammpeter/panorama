@@ -93,7 +93,7 @@ module ExplainPlanHelper
 
   # Build tree with tabbed inserts for column operation
   def list_tree_column_operation(rec, indent_vector, plan_array)
-    tab = ""
+    tab = String.new
     toggle_id = "#{get_unique_area_id}_#{rec.id}"
 
     unless rec.depth.nil?
@@ -122,7 +122,6 @@ module ExplainPlanHelper
         tab << "<span class=\"toggle #{'vertical-line' if rec.id < v[:last_exists_id]}\" title=\"parent_id=#{v[:parent_id]} last_exists_id=#{v[:last_exists_id]}\">#{'' if rec.id < v[:last_exists_id]}</span>&nbsp;"
       end
     end
-
 
     if rec[:is_parent]                                                       # Über hash ansprechen, da in bestimmten Konstellationen der Wert nicht im hash enthalten ist => false
       if rec.id > 0                                                          # 1. und 2. Zeile haben gleiche Einrückung durch weglassen des letzten Eintrages von indent_vector, hiermit bleibt 1. Zeile trotzde, weiter links
@@ -197,7 +196,7 @@ module ExplainPlanHelper
             description: other_xml_info_type(rec.attributes['type'].to_s)
           }.extend SelectHashHelper)
         when 'bind' then
-          attributes = ''
+          attributes = String.new
           rec.attributes.each do |key, val|
             attributes << "#{key}=#{val} "
           end
@@ -223,7 +222,7 @@ module ExplainPlanHelper
           end
         when 'display_map' then
           rec.xpath('row').each do |dm|
-            attributes = ''
+            attributes = String.new
             dm.attributes.each do |key, val|
               attributes << "#{key}=#{val} "
             end
@@ -272,8 +271,8 @@ module ExplainPlanHelper
     # @param hint_usage [Hash] hint usage structure to add the hint to
     process_h_tag = proc do |h_tag, type,  hint_usage|
       hint = {
-        hint_text:    '',
-        hint_reason:  '',
+        hint_text:    String.new,
+        hint_reason:  String.new,
         type:         type,
         attributes:   []
       }
@@ -450,7 +449,7 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     raise "header must be given" unless header
     col_setting = ClientInfoStore.read_for_client_key(get_decrypted_client_key,'additional_explain_plan_columns', default: {})
     show_hide = col_setting[header] ? 'Hide' : 'Show'
-    js = ''
+    js = String.new
     js << "jQuery.ajax({\n"
     js << "              method: 'POST',\n"
     js << "              dataType: 'html',\n"

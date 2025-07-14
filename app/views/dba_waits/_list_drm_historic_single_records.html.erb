@@ -19,7 +19,7 @@
   column_options << {caption: "Con-ID",     data: proc{|rec| rec.con_id},                          title: "Container-ID", align: :right} if get_db_version >= '12.1'
 
 
-  caption = "Dynamic remastering events from gv$Policy_History"
+  caption = "Dynamic remastering events from gv$Policy_History".dup
   caption << " from #{@time_selection_start} until #{@time_selection_end}"  if @time_selection_start && @time_selection_end
   caption << ", target instance = #{@target_instance}"                      if @target_instance
   caption << ", Data-Object-ID = #{@data_object_id}"                        if @data_object_id

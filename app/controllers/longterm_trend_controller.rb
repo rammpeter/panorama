@@ -76,7 +76,7 @@ class LongtermTrendController < ApplicationController
 
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
-    @filter = ''
+    @filter = String.new
     @groupfilter.each do |key, value|
       @filter << "#{groupfilter_value(key)[:name]}=\"#{value}\", " unless groupfilter_value(key)[:hide_content]
     end
@@ -241,7 +241,7 @@ class LongtermTrendController < ApplicationController
     # Add pne cycle to duration because last occurrence points to start of last considered cycle
     retval = " MIN(Snapshot_Timestamp)             First_Occurrence,
                MAX(Snapshot_Timestamp)             Last_Occurrence,
-               (MAX(Snapshot_Timestamp) - MIN(Snapshot_Timestamp)) * 24 + MAX(Snapshot_Cycle_Hours) Sample_Duration_Hours"
+               (MAX(Snapshot_Timestamp) - MIN(Snapshot_Timestamp)) * 24 + MAX(Snapshot_Cycle_Hours) Sample_Duration_Hours".dup
 
     longterm_trend_key_rules.each do |key, value|
       retval << ",
@@ -277,7 +277,7 @@ class LongtermTrendController < ApplicationController
     @groupfilter = @groupfilter.to_unsafe_h.to_h.symbolize_keys  if @groupfilter.class == ActionController::Parameters
     raise "Parameter groupfilter should be of class Hash or ActionController::Parameters" if @groupfilter.class != Hash
     @groupby    = groupby                  # Instanzvariablen zur nachfolgenden Nutzung
-    @where_string  = ""             # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
+    @where_string  = String.new             # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
     @where_values = []              # Filter-werte für nachfolgendes Statement für alle Union-Tabellen
 
     @groupfilter.each do |key,value|

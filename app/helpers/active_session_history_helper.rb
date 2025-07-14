@@ -183,11 +183,11 @@ module ActiveSessionHistoryHelper
     @groupfilter = @groupfilter.to_unsafe_h.to_h.symbolize_keys  if @groupfilter.class == ActionController::Parameters
     raise "Parameter groupfilter should be of class Hash or ActionController::Parameters" if @groupfilter.class != Hash
     @groupby    = groupby                                                       # Instanzvariablen zur nachfolgenden Nutzung
-    @global_where_string  = ''                                                  # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
+    @global_where_string  = String.new                                          # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für alle Union-Tabellen
     @global_where_values = []                                                   # Filter-werte für nachfolgendes Statement für alle Union-Tabellen
-    @dba_hist_where_string  = ''                                                # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für DBA_Hist_Active_Sess_History
+    @dba_hist_where_string  = String.new                                        # Filter-Text für nachfolgendes Statement mit AND-Erweiterung für DBA_Hist_Active_Sess_History
     @dba_hist_where_values = []                                                 # Filter-werte für nachfolgendes Statement für DBA_Hist_Active_Sess_History
-    @sga_ash_where_string  = ''
+    @sga_ash_where_string  = String.new
     @sga_ash_where_values = []
 
     # convert integers from strings
@@ -285,7 +285,7 @@ module ActiveSessionHistoryHelper
               Session_State, Blocking_Session, Blocking_session_Status, Blocking_Session_Serial# Blocking_session_Serial_No,
               Blocking_Hangchain_Info, NVL(Event, Session_State) Event, Event_ID, Seq# Sequence, P1Text, P1, P2Text, P2, P3Text, P3,
               Wait_Class, Wait_Time, Time_waited, Time_Waited/1000000 Seconds_in_Wait, Program, Module, Action, Client_ID, Current_Obj# Current_Obj_No, Current_File#  Current_File_No, Current_Block# Current_Block_No, RawToHex(XID) Tx_ID,
-              PLSQL_Entry_Object_ID, PLSQL_Entry_SubProgram_ID, PLSQL_Object_ID, PLSQL_SubProgram_ID, Service_Hash, QC_Session_ID, QC_Instance_ID '
+              PLSQL_Entry_Object_ID, PLSQL_Entry_SubProgram_ID, PLSQL_Object_ID, PLSQL_SubProgram_ID, Service_Hash, QC_Session_ID, QC_Instance_ID '.dup
     if get_db_version >= '11.2'
       retval << ", NVL(SQL_ID, Top_Level_SQL_ID) SQL_ID,  /* Wenn keine SQL-ID, dann wenigstens Top-Level SQL-ID zeigen */
                  QC_Session_Serial# QC_Session_Serial_No, Is_SQLID_Current, Top_Level_SQL_ID, SQL_Plan_Line_ID, SQL_Plan_Operation, SQL_Plan_Options, SQL_Exec_ID, SQL_Exec_Start,

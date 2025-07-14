@@ -90,7 +90,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    end
 
    data_title_object_name = proc do |rec|
-     output = "%t\n\n"
+     output = "%t\n\n".dup
      output << "\nType = #{rec.object_type}"
      output << "\nAlias = #{rec.object_alias}"
      output << "\nQuery block name in plan_table = #{rec.qblock_name}" if rec.qblock_name
@@ -169,7 +169,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     @caption << "#{@mp.executions} executions, #{formattedNumber(@mp.secs_per_execution,6)} seconds elapsed / execution"
   end
 
-  @caption_title = ''
+  @caption_title = String.new
    if get_db_version >= '11.2'
      @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on Active Session History.\\n"
      @caption_title << "First considered ASH sample is from #{localeDateTime(@min_sample_time)}\\n"
@@ -181,7 +181,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
    end
 
    param_string = proc do |addition|
-     retval = '{ '
+     retval = '{ '.dup
      params.each do |key, value|
        retval << "#{key}: '#{value}', "
      end

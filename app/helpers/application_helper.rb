@@ -302,7 +302,7 @@ module ApplicationHelper
   # Format "DD.MM.YYYY HH:MI" bzw.sql_datetime_minute_mask (locale)
   # Belegt die Instance-Variablen @min_snap_id und @max_snap_id
   def get_instance_min_max_snap_id(time_selection_start, time_selection_end, instance)
-    additional_where = ''
+    additional_where = String.new
     additional_binds = []
     if instance && instance != 0
       additional_where << ' AND Instance_Number = ?'
@@ -444,7 +444,7 @@ module ApplicationHelper
         end
       end
 
-      addition = ''
+      addition = String.new
 
       if id > 19  # Undo-Segemnt mit in ID
         undo_segment = ((id-15)/2).to_i  # ID = 2 * Undo-Segment + 15
@@ -479,7 +479,7 @@ module ApplicationHelper
   # Add string to status-bar-message
   # @param [String] message
   def add_statusbar_message(message)
-    @statusbar_message = '' if !defined?(@statusbar_message) || @statusbar_message.nil?
+    @statusbar_message = String.new if !defined?(@statusbar_message) || @statusbar_message.nil?
     @statusbar_message << "\n" if @statusbar_message.length > 0
     @statusbar_message << message
   end
@@ -487,7 +487,7 @@ module ApplicationHelper
   # Add an message that is shown in addition after rendering the regular result
   # @param [String] message
   def add_popup_message(message)
-    @popup_message = '' if !defined?(@popup_message) || @popup_message.nil?
+    @popup_message = String.new if !defined?(@popup_message) || @popup_message.nil?
     @popup_message << "\n\n" if @popup_message.length > 0
     @popup_message << message
    end
@@ -568,7 +568,7 @@ module ApplicationHelper
   # create texarea and CodeMirror object
   def render_code_mirror(text, cm_options: {}, options: {})
     id = get_unique_area_id
-    output = ''
+    output = String.new
     #output << ActionView::Helpers::FormTagHelper.text_area_tag(id, text)
     output << "<textarea id=\"#{id}\" name=\"#{id}\">#{ERB::Util.html_escape(text)}</textarea>\n"
     output << "<script type=\"text/javascript\">\ncode_mirror_from_textarea(\"#{id}\", #{cm_options.to_json}, #{options.to_json});"
@@ -667,7 +667,7 @@ module ApplicationHelper
 
   # @return [String] the secret used for encryption of JWT
   def jwt_secret
-    "#{cookies[:client_salt]}#{Rails.application.secrets.secret_key_base}"
+    "#{cookies[:client_salt]}#{Panorama::Application.config.secret_key_base}"
   end
 
   def get_sga_sql_statement(instance, sql_id)  # Ermittlung formatierter SQL-Text
@@ -820,7 +820,7 @@ module ApplicationHelper
     return nil if mbytes.nil? || mbytes == ''
     fmbytes = mbytes.to_f
     return nil if fmbytes == 0
-    retval = ''
+    retval = String.new
     retval << "\n= #{fn(fmbytes * 1024 * 1024)} Bytes"      if fmbytes < 0.01 && fmbytes > -0.01
     retval << "\n= #{fn(fmbytes * 1024, 1)    } Kilobytes"  if (fmbytes < 10     && fmbytes > 0.0001) || (fmbytes > -10 && fmbytes < -0.0001)
     retval << "\n= #{fn(fmbytes, 1 )          } Megabytes"  if (fmbytes < 10000  && fmbytes > 0.1) || (fmbytes > -10000 && fmbytes < -0.1)

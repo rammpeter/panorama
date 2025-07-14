@@ -48,7 +48,7 @@ module HtmlHelper
   # @param show_only_known_awr_dbids [Boolean] Whether to show only known AWR DBIDs or all available DBIDs
   # @return [String] HTML select element with DBID values
   def dbid_selection(select_element_id: nil, onchange: nil, wrap_label: false, show_all: false, show_only_known_awr_dbids: true)
-    result = ''
+    result = String.new
     dbids = []
 
     if show_only_known_awr_dbids

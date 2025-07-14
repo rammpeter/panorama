@@ -180,7 +180,7 @@ class DbaHistoryController < ApplicationController
     max_snap_id     = params[:max_snap_id]
     max_snap_id     = nil if max_snap_id == ''
 
-    where_string = 'AND s.DBID = ?'
+    where_string = 'AND s.DBID = ?'.dup
     where_values = [@dbid]
 
     group_criteria = "CAST(Begin_Interval_Time + INTERVAL '0.5' SECOND AS DATE)" # Ensure that multiple RAC instances are rounded into one grouped row
@@ -197,7 +197,7 @@ class DbaHistoryController < ApplicationController
       where_values << max_snap_id
     end
 
-    object_where_string = ''
+    object_where_string = String.new
     object_where_values = []
 
     if @subobject_name
@@ -302,11 +302,11 @@ class DbaHistoryController < ApplicationController
     maxResultCount   = nil if  maxResultCount == ''
     groupby_instance = params[:groupby_instance] && params[:groupby_instance] != ''
 
-    save_session_time_selection                   # Werte puffern fuer spaetere Wiederverwendung
+    save_session_time_selection                                                 # Werte puffern fuer spaetere Wiederverwendung
 
-    where_string_instance  = ""                         # Filter-Text für nachfolgendes Statement
-    where_string_innen  = ""                         # Filter-Text für nachfolgendes Statement
-    where_string_aussen = ""                         # Filter-Text für nachfolgendes Statement
+    where_string_instance  = String.new                                         # Filter-Text für nachfolgendes Statement
+    where_string_innen     = String.new                                         # Filter-Text für nachfolgendes Statement
+    where_string_aussen    = String.new                                         # Filter-Text für nachfolgendes Statement
     where_values = [@time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid]          # Filter-werte für nachfolgendes Statement
     if instance
       where_string_instance << " AND Instance_Number = ?"
@@ -637,8 +637,8 @@ class DbaHistoryController < ApplicationController
     save_session_time_selection   # werte in session puffern
     @show_adaptive_plans = prepare_param_int :show_adaptive_plans
 
-    where_stmt       = ""
-    ash_where_stmt   = ""
+    where_stmt       = String.new
+    ash_where_stmt   = String.new
     where_values     = []
     ash_where_values = []
     if @instance
@@ -857,7 +857,7 @@ class DbaHistoryController < ApplicationController
     min_snap_id     = prepare_param_int  :min_snap_id
     max_snap_id     = prepare_param_int  :max_snap_id
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if instance
@@ -1007,7 +1007,7 @@ class DbaHistoryController < ApplicationController
     @object_owner = nil if @object_owner == ""
     @object_name = params[:ObjectName]
 
-    where_filter = ""
+    where_filter = String.new
     where_values = []
     if @instance
       where_filter << " AND s.Instance_Number = ?"
@@ -1074,8 +1074,8 @@ FROM (
     @dbid      = prepare_param_dbid
     save_session_time_selection                  # Werte puffern fuer spaetere Wiederverwendung
 
-    additional_where1 = ""
-    additional_where2 = ""
+    additional_where1 = String.new
+    additional_where2 = String.new
     binds = [@dbid]  # 1. Bindevariable
     if @instance && @instance != 0
       additional_where1 << " AND Instance_Number = ? "
@@ -1217,7 +1217,7 @@ FROM (
   def list_system_statistics_historic_full
     trunc_tag = params[:verdichtung][:tag]
 
-    additional_where = ""
+    additional_where = String.new
     binds = [prepare_param_dbid]  # 1. Bindevariablen
     if @instance
       additional_where << " AND   Instance_Number = ? "
@@ -1311,7 +1311,7 @@ FROM (
   end
 
   def list_system_statistics_historic_sum
-    additional_where = ""
+    additional_where = String.new
     binds = [prepare_param_dbid]  # 1. Bindevariable
     if @instance 
       additional_where << " AND   Instance_Number = ? "
@@ -1419,7 +1419,7 @@ FROM (
     time_expression = "TRUNC(Begin_Time, '#{trunc_tag}')"   # Default- TRUNC
     time_expression = "Begin_Time" if trunc_tag == "SS"     # Bei Sekunden nicht weiter verdichten, sondern kleinstes Korn nehmen
 
-    additional_where = ""
+    additional_where = String.new
     binds = [@dbid]  # 1. Bindevariablen
     binds.concat [@time_selection_start, @time_selection_end, @time_selection_end]
     if @instance
@@ -1529,7 +1529,7 @@ FROM (
     @dbid      = prepare_param_dbid
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @instance
@@ -1590,7 +1590,7 @@ FROM (
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
 
-    where_string  = ""                         # Filter-Text für nachfolgendes Statement
+    where_string  = String.new                         # Filter-Text für nachfolgendes Statement
     where_values = [@dbid, @time_selection_start, @time_selection_end, @dbid]    # Filter-werte für nachfolgendes Statement
     if @instance
       where_string << " AND l.Instance_Number = ?"
@@ -1752,7 +1752,7 @@ FROM (
     @filter               = prepare_param(:filter)
     @filter_value         = prepare_param(:filter_value)
 
-    where_string  = ""                         # Filter-Text für nachfolgendes Statement
+    where_string  = String.new                         # Filter-Text für nachfolgendes Statement
     where_values = [@time_selection_start, @time_selection_end]    # Filter-werte für nachfolgendes Statement
     if @instance
       where_string << " AND Inst_ID = ?"
@@ -1789,7 +1789,7 @@ FROM (
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
 
-    where_string  = ""                         # Filter-Text für nachfolgendes Statement
+    where_string  = String.new                         # Filter-Text für nachfolgendes Statement
     where_values = [@dbid, @time_selection_start, @time_selection_end, @dbid]    # Filter-werte für nachfolgendes Statement
     if @instance
       where_string << " AND h.Instance_Number = ?"
@@ -1891,7 +1891,7 @@ FROM (
 
     # !!! Kein Filter auf DBID in diesem SQL, damit nach Abzug und Neuaufbau einer DB die Historien miteinander verglichen werden können
     where_string = " WHERE TRUNC(ss.Begin_Interval_Time)+#{client_tz_offset_days} = TO_TIMESTAMP(?, '#{sql_datetime_date_mask}') "
-    where_string_global = ""
+    where_string_global = String.new
     where_values1 = [@tag1]
     where_values2 = [@tag2]
     where_values_global = []
@@ -2199,7 +2199,7 @@ FROM (
     @force_matching_signature   = params[:force_matching_signature]
     @exact_matching_signature   = params[:exact_matching_signature]
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @min_snap_id
@@ -2377,8 +2377,8 @@ END;
     @serial_no    = params[:serial_no]  == '' ? nil : params[:serial_no]
     save_session_time_selection   # werte in session puffern
 
-    where_string_hist = ''
-    where_string_sga  = ''
+    where_string_hist = String.new
+    where_string_sga  = String.new
     where_values = []
 
     if @instance
@@ -2406,7 +2406,7 @@ END;
     end
 
     # at first look for gv$SQL_Monitor
-    sql_stmt = "SELECT * FROM ("
+    sql_stmt = "SELECT * FROM (".dup
 
     sql_stmt << "\
       SELECT #{get_db_version >= '12.1' ? 'Report_ID' : '0'} Report_ID,

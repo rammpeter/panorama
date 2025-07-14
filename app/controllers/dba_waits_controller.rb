@@ -17,7 +17,7 @@ class DbaWaitsController < ApplicationController
     
     def get_values(filter)  # ermitteln der Aktuellen Werte
       # Sortierung des Results muss mit Methode smaller korrelieren
-      where_string = ""
+      where_string = String.new
       where_values = []
       if params[:suppress_idle_waits]=='1'
         where_string << " Wait_Class != 'Idle' "
@@ -314,7 +314,7 @@ class DbaWaitsController < ApplicationController
   def list_drm_historic_events
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
 
@@ -377,7 +377,7 @@ class DbaWaitsController < ApplicationController
 
   def list_drm_historic_objects
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @policy_event != '[All]'
@@ -412,7 +412,7 @@ class DbaWaitsController < ApplicationController
     @subobject_name       = prepare_param(:subobject_name)
     @policy_event         = prepare_param(:policy_event)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @time_selection_start && @time_selection_end

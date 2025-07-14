@@ -124,7 +124,7 @@ class EnvController < ApplicationController
 
       client_info = sql_select_first_row "SELECT sys_context('USERENV', 'NLS_DATE_LANGUAGE') || '_' || sys_context('USERENV', 'NLS_TERRITORY') NLS_Lang FROM DUAL"
 
-      client_nls_info = ''
+      client_nls_info = String.new
       sql_select_all("SELECT Parameter, Value FROM NLS_Session_Parameters").each do |nls_param|
         if nls_param.parameter == 'NLS_NUMERIC_CHARACTERS'
           client_nls_info << "Decimal separator = '#{nls_param.value[0]}'\n"
@@ -256,7 +256,7 @@ class EnvController < ApplicationController
           dv_status.each do |dv|
             @containers.each do |c|
               if dv['con_id'] && c.con_id == dv.con_id  # check if CDB_DV_STATUS has a column con_id, has not in 12.1
-                c.dv_status = '' if c.dv_status.nil?
+                c.dv_status = String.new if c.dv_status.nil?
                 c.dv_status << "#{dv.name}: #{dv.status}\n"
               end
             end
@@ -317,9 +317,9 @@ class EnvController < ApplicationController
     @instance = prepare_param_instance
     @pdb_name = prepare_param :pdb_name
 
-    where_string = ''
+    where_string = String.new
     where_values = []
-    session_where_string = ''
+    session_where_string = String.new
     session_where_values = []
 
     if @instance
@@ -374,7 +374,7 @@ class EnvController < ApplicationController
     @dbid         = prepare_param_dbid
     save_session_time_selection
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @instance
@@ -461,7 +461,7 @@ class EnvController < ApplicationController
 
    def list_diag_info
     @instance = prepare_param_instance(allow_nil: true)
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @instance
       where_string << " WHERE Inst_ID = ?"

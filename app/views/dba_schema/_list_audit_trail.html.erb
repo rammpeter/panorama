@@ -66,7 +66,7 @@
 
 
 <%=
-    caption = "Audit-Records from DBA_Common_Audit_Trail"
+    caption = "Audit-Records from DBA_Common_Audit_Trail".dup
     caption << ", from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
     caption << ", Instance=#{@instance}"            if @instance
     caption << ", Audit type=#{@audit_type}"        if @audit_type

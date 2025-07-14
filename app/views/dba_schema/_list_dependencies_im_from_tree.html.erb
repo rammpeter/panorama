@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   show_level = proc do |rec|
-    out = ''
+    out = String.new
     rec.level.downto 1 do
       out << '&nbsp;&nbsp;&nbsp;'
     end

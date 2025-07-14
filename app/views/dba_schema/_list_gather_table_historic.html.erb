@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   show_notes = proc do |rec|
-    output = ''
+    output = String.new
     Nokogiri::XML(rec.notes).xpath("//params//param").each do |p|
       output << "#{p.attribute('name')} = #{p.attribute('val')}<br/>" if p.attribute('val').to_s.length > 0
     end

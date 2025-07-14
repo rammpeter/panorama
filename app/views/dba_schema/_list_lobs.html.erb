@@ -103,7 +103,7 @@
    column_options << {:caption=> 'Action',              :data=>render_action_buttons,                   :title=> 'Call action for this LOB'}
 
 
-   caption = 'LOB segments of '
+   caption = 'LOB segments of '.dup
    caption << @owner if @owner
    caption << ".#{@table_name}" if @table_name
 %>

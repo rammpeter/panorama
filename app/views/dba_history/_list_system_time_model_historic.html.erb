@@ -8,7 +8,7 @@
   end
 
   start_time_data_title = proc do |rec|
-    result = "%t\n"
+    result = "%t\n".dup
     if rec.min_begin_interval_time != rec.max_begin_interval_time
       result << "\nShown start time of AWR snapshot for multiple instances is rounded to the nearest minute"
       result << "\nMin. start time = #{localeDateTime(rec.min_begin_interval_time)}"

@@ -55,7 +55,7 @@
 
 
    list_states = proc do |rec|
-     result = ''
+     result = String.new
      result << "#{'<br/>' if result.length > 0}Degree =  #{rec.degree}"                                                                    if rec.degree != '0' && rec.degree.to_i != 1
      result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
      result << "#{'<br/>' if result.length > 0}Func.idx-Status =  #{rec.funcidx_status}"                                                   if !(rec.funcidx_status.nil? || rec.funcidx_status == 'ENABLED')
@@ -219,7 +219,7 @@
 
     1. ALTER INDEX ... MONITORING USAGE (recorded in sys.Object_Usage/DBA_Object_Usage)
 
-    #{ output = ''
+    #{ output = String.new
        if rec.used == 'YES' || rec.used == 'NO'
          if rec.used == 'YES'
            output << "YES, this index has been used for access since last monitoring start\n"

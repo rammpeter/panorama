@@ -536,7 +536,7 @@ module KeyExplanationHelper
   def statistic_class(class_id)
     return nil if class_id.nil?
     @class_number = class_id
-    @result = ''
+    @result = String.new
 
     def check_for_class(value, name)
       if @class_number >= value

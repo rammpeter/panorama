@@ -3,7 +3,7 @@
   @update_area = get_unique_area_id
 
   list_states = proc do |rec|
-    result = ''
+    result = String.new
     result << "#{'<br/>' if result.length > 0}Status =  #{rec.status}"                                                                    if !(rec.status == 'VALID' || rec.status == 'N/A' || rec.status == 'USABLE')
     result << "#{'<br/>' if result.length > 0}Compression =  #{rec.compression}"  if !(rec.compression == 'DISABLED')
     result << "#{'<br/>' if result.length > 0}Flash Cache = #{rec.flash_cache}"                                                           if get_db_version >= '12.1' && !(rec.flash_cache.nil? || rec.flash_cache == 'DEFAULT')

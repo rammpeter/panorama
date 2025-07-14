@@ -1,7 +1,7 @@
 <% @update_area=get_unique_area_id %>
 
 <%=
-  result = 'Global cache request latency from GV$SysStat: '
+  result = 'Global cache request latency from GV$SysStat: '.dup
   @totals.each do |t|
     result << "Instance #{t.inst_id}: #{formattedNumber(t.avg_receive_time_ms,2)} ms  "
   end

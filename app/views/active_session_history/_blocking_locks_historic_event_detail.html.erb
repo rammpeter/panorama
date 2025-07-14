@@ -86,7 +86,7 @@
   end
 
   unique_blocking_properties = proc do |rec|
-    retval = ''
+    retval = String.new
     retval << "User:#{rec.blocking_user} "        if rec.blocking_user
     retval << "Module:#{rec.blocking_module} "    if rec.blocking_module
     retval << "Action:#{rec.blocking_action} "    if rec.blocking_action
@@ -97,7 +97,7 @@
   end
 
   unique_waiting_properties = proc do |rec|
-    retval = ''
+    retval = String.new
     retval << "User:#{rec.waiting_user} "         if rec.waiting_user
     retval << "Module:#{rec.waiting_module} "     if rec.waiting_module
     retval << "Action:#{rec.waiting_action} "     if rec.waiting_action

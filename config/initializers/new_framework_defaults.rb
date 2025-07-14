@@ -12,7 +12,7 @@ Rails.application.config.action_controller.forgery_protection_origin_check = tru
 
 # Make Ruby 2.4 preserve the timezone of the receiver when calling `to_time`.
 # Previous versions had false.
-ActiveSupport.to_time_preserves_timezone = true
+ActiveSupport.to_time_preserves_timezone = :zone
 
 # Require `belongs_to` associations by default. Previous versions had false.
 Rails.application.config.active_record.belongs_to_required_by_default = true

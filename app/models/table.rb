@@ -10,7 +10,7 @@ class Table
   # @return [Array<Reference>]
   def references_from(constraint_name: nil, index_owner: nil, index_name: nil)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if constraint_name

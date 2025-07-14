@@ -98,7 +98,7 @@ module DiagramHelper
 
 
     # JavaScript-Array aufbauen mit Daten
-    output = ""
+    output = String.new
     output << "jQuery(function($){"
     output << "var data_array = [\n"
     graph_array.each do |g|                                             # Ausgabe mit groesstem beginnen

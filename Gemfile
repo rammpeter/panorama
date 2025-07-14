@@ -3,7 +3,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # add jRuby versions by ruby-install jruby-9.4.7.0
 # use chruby to switch between ruby versions
-ruby '3.1.4'
+# ruby '3.1.4'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
 # gem 'rails', '~> 6.1.7', '>= 6.1.7.2'
@@ -11,8 +11,8 @@ ruby '3.1.4'
 # Alternative instead of complete rails including actioncable etc., prev. version was 6.0.4
 # rails_version = "7.0.0" # requires ruby >= 2.7.0 but jRuby 9.3.2.0 is compatible with ruby 2.6 only
 # see: https://rubygems.org/gems/rails/versions
-rails_version = "6.1.7.10"
-# rails_version = "8.0.2"
+# rails_version = "6.1.7.10"
+rails_version = "8.0.2"
 #gem 'rails', rails_version
 gem 'activerecord', rails_version
 gem 'activemodel', rails_version
@@ -46,7 +46,7 @@ gem 'concurrent-ruby', '1.3.4'
 # gem 'activerecord-oracle_enhanced-adapter'
 # Avoid dependency on oci8, see https://github.com/rsim/oracle-enhanced/issues/2350
 # gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "release71"
-gem "activerecord-oracle_enhanced-adapter"
+gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80'
 gem 'activerecord-nulldb-adapter'
 
 # TODO: i18n 1.8.8, 1.8.9 leads to Uncaught exception: undefined method `deep_merge!' for {}:Concurrent::Hash

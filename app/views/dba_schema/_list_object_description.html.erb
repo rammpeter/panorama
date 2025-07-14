@@ -166,19 +166,19 @@ column_options =
    end
 
    create_data_title = proc do |rec|
-     result = "%t"
+     result = "%t".dup
      result << "\nFirst creation of a partition = #{localeDateTime(@partition_attribs.min_created)}" if @attribs[0].partitioned == 'YES'
      result << "\nLast creation of a partition = #{localeDateTime(@partition_attribs.max_created)}" if @attribs[0].partitioned == 'YES'
     result
    end
 
    last_ddl_data_title = proc do |rec|
-     result = "%t"
+     result = "%t".dup
      result << "\nTimestamp of last DDL operation of a partition = #{localeDateTime(@partition_attribs.last_ddl_time)}" if @attribs[0].partitioned == 'YES'
      result
    end
     spec_ts_data_title = proc do |rec|
-     result = "%t"
+     result = "%t".dup
      result << "\nTimestamp for the last specification change of a partition = #{localeDateTime(@partition_attribs.last_spec_ts)}" if @attribs[0].partitioned == 'YES'
      result
    end
@@ -201,7 +201,7 @@ column_options =
    end
 
    list_states = proc do |rec|
-    result = ''
+    result = String.new
     result << "#{'<br/>' if result.length > 0}Cached =  #{rec.cache}"                                                                     if rec.cache.strip != 'N'
     result << "#{'<br/>' if result.length > 0}Cell Flash Cache = #{rec.cell_flash_cache}"                                                 if get_db_version >= '12.1.0.2' && rec.cell_flash_cache != 'DEFAULT'
     result << "#{'<br/>' if result.length > 0}Clustering Type = #{rec.clustering_type}"                                                   if get_db_version >= '12.1.0.2' && !rec.clustering_type.nil?

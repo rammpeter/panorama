@@ -34,7 +34,7 @@ module AjaxHelper
 
   # render menu button with submenu
   def render_command_array_menu(command_array)
-    output = ''
+    output = String.new
     div_id = get_unique_area_id                                                 # Basis for DOM-IDs
     output << "<span style=\"margin-left:5px;   \" class=\"slick-shadow\" >"
     output << "<span id=\"#{div_id}\" style=\"padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer; \">"
@@ -99,7 +99,7 @@ module AjaxHelper
 
     command_array = [command_array] if command_array.class == Hash              # Construct Array if only single entry
 
-    output = ''
+    output = String.new
     output << "<div class=\"page_caption\">"
     output << "<span>"
 
@@ -163,7 +163,7 @@ module AjaxHelper
   #   html_options: Hash
   def ajax_link(caption, url, html_options={}, additional_onclick_js=nil)
     data = {}
-    options = ''
+    options = String.new
 
     # update_area should pe passed to server
     url.each do |key, value|

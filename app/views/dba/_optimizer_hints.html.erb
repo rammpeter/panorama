@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   target_level = proc do |rec|
-    result = ''
+    result = String.new
     result << 'Statement' if rec.target_level.to_i & 1 > 0
     if rec.target_level.to_i & 2 > 0
       result << ", " if result != ''

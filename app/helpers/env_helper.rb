@@ -25,7 +25,7 @@ module EnvHelper
     end
 
     if retval.nil? && ENV['SECRET_KEY_BASE_FILE']                                              # User-provided secrets file
-      if File.exists?(ENV['SECRET_KEY_BASE_FILE'])
+      if File.exist?(ENV['SECRET_KEY_BASE_FILE'])
         retval = File.read(ENV['SECRET_KEY_BASE_FILE'])
         Rails.logger.info('EnvHelper.secret_key_base') { "Secret key base read from file '#{ENV['SECRET_KEY_BASE_FILE']}' pointed to by SECRET_KEY_BASE_FILE environment variable (#{retval.length} chars)" }
         Rails.logger.error('EnvHelper.secret_key_base') { "Secret key base file pointed to by SECRET_KEY_BASE_FILE environment variable is empty!" } if retval.nil? || retval == ''
@@ -256,7 +256,7 @@ module EnvHelper
   def check_awr_for_time_drift
     # TODO: Check with foreign time settings if End_Interval_Time_TZ can replace End_Interval_Time in selections
     if get_db_version >= '18.1' && PackLicense.diagnostics_pack_licensed?
-      msg = ''
+      msg = String.new
       sql_select_all("SELECT Snap_ID, DBID, Con_ID, End_Interval_Time, End_Interval_Time_TZ,
                              TO_CHAR(EXTRACT (Hour FROM Snap_Timezone), '00')||':'||TRIM(TO_CHAR(EXTRACT (Minute FROM Snap_Timezone), '00')) Snap_Timezone,
                              (CAST(End_Interval_Time AS DATE) - CAST(End_Interval_Time_TZ AS DATE)) *24 Diff_Hours

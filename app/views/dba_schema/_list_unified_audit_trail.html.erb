@@ -32,7 +32,7 @@
   end
 
   show_additional_info = proc do|rec|
-    output = ''
+    output = String.new
     output << "Owner and name after rename = #{link_object_description(@update_area, rec.new_schema, rec.new_name)}\n" if rec.new_schema || rec.new_name
     output << "Object privileges ganted or revoked = '#{rec.object_privileges}'\n"  if rec.object_privileges
     output << "System privileges ganted or revoked = '#{rec.system_privilege}'\n"   if rec.system_privilege
@@ -91,7 +91,7 @@
 
 
 <%=
-  caption = "Audit-Records from Unified_Audit_Trail"
+  caption = "Audit-Records from Unified_Audit_Trail".dup
   caption << ", from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
   caption << ", Instance=#{@instance}"            if @instance
   caption << ", DBID=#{@dbid}"                    if @dbid

@@ -1,3 +1,8 @@
+require_relative '../helpers/panorama_sampler/package_panorama_sampler_ash'
+require_relative '../helpers/panorama_sampler/package_con_dbid_from_con_id'
+require_relative '../helpers/panorama_sampler/package_panorama_sampler_snapshot'
+require_relative '../helpers/panorama_sampler/package_panorama_sampler_blocking_locks'
+
 class PanoramaSamplerStructureCheck
   include PanoramaSampler::PackagePanoramaSamplerAsh
   include PanoramaSampler::PackageConDbidFromConId
@@ -1601,7 +1606,7 @@ ORDER BY Column_ID
 
   # Replace DBA_Hist in SQL with corresponding Panorama-Sampler table
   def self.transform_sql_for_sampler(org_sql)
-    sql = org_sql.clone
+    sql = org_sql.dup
 
     # fake gv$Active_Session_History in SQL so translation will hit it
     sql.gsub!(/gv\$Active_Session_History/i, 'DBA_HIST_V$Active_Sess_History')

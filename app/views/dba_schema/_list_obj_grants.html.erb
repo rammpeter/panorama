@@ -30,7 +30,7 @@
   column_options << {caption: 'Common',       data: proc{|rec| rec.common},                   title: "Indicates whether a given role is common. Possible values:\nYES if the role is common\nNO if the role is local (not common)"} if get_db_version >= '12.1'
   column_options << {caption: 'Inherited',    data: proc{|rec| rec.inherited},                title: 'Indicates whether the role was inherited from another container (YES) or not (NO)'} if get_db_version >= '18.1'
 
-  caption = "Granted object privileges from DBA_Tab_Privs for "
+  caption = "Granted object privileges from DBA_Tab_Privs for ".dup
   caption << "Privilege='#{@privilege}'"  if @privilege
   caption << "Grantee='#{@grantee}'"      if @grantee
   caption << "Grantor='#{@grantor}'"      if @grantor

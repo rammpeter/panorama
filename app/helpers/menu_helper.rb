@@ -369,7 +369,7 @@ module MenuHelper
 
   def build_menu_entry(menu_entry, prev_menu_caption='')
     @menu_node_id += 1
-    output = ''
+    output = String.new
     output << "<li id='menu_node_li_#{@menu_node_id}' >"
     output << "<a id='menu_node_#{@menu_node_id}' class='sf-with-ul' href='#a'>#{menu_entry[:caption]}<span class='sf-sub-indicator'> »</span></a>"
     output << "<ul id='menu_node_ul_#{@menu_node_id}'>

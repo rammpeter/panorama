@@ -1,6 +1,7 @@
 require_relative '../database_helper'
 
-module PanoramaSampler::PackagePanoramaSamplerAsh
+module PanoramaSampler
+  module PackagePanoramaSamplerAsh
   # PL/SQL-Package for snapshot creation
   # panorama_owner is replaced by real schema owner
   def panorama_sampler_ash_spec
@@ -451,4 +452,5 @@ END Panorama_Sampler_ASH;
   end
 
 
+end
 end

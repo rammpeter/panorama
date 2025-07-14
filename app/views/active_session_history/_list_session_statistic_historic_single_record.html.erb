@@ -51,7 +51,7 @@
    end
 
   link_column_sql_id = proc do |rec|
-    retval = ''
+    retval = String.new
     retval << link_historic_sql_id(rec.instance_number, rec.sql_id, @groupfilter[:time_selection_start], @groupfilter[:time_selection_end], @update_area, rec.username) if rec.sql_id_cnt == 1
     retval << " < #{rec.sql_id_cnt } >" if rec.sql_id_cnt > 1
     if rec["top_level_sql_id"] && rec.top_level_sql_id_cnt==1 && rec.top_level_sql_id != rec.sql_id
@@ -80,7 +80,7 @@
 
   def link_column_object(rec)
     update_area = "list_session_statistic_single_record_convert_rowid_#{rec.row_num}"
-    result = ''
+    result = String.new
     result << link_object_description(@update_area, rec.owner, rec.object_name, "#{rec.owner}. #{rec.object_name}#{rec.subobject_name ? " (#{rec.subobject_name})" : ""}") if rec.object_name
 
 
@@ -153,7 +153,7 @@
    end
 
   def link_plsql_object(rec)
-    result = ''
+    result = String.new
     result << link_object_description(@update_area, rec.peo_owner, rec.peo_object_name, "#{rec.peo_object_type} #{rec.peo_owner}. #{rec.peo_object_name}. #{rec.peo_procedure_name}") if rec.peo_object_name
     result << ' '
     result << link_object_description(@update_area, rec.po_owner, rec.po_object_name, "#{rec.po_object_type} #{rec.po_owner}. #{rec.po_object_name}. #{rec.po_procedure_name}") if rec.po_object_name

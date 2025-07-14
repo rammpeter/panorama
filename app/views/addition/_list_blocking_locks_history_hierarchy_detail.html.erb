@@ -39,7 +39,7 @@
   end
 
   link_ash_blocking_sid = proc do |rec|
-    retval = ''
+    retval = String.new
     if rec.sid
       retval << ajax_link(rec.sid, {
         controller:  :active_session_history,

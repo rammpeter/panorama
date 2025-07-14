@@ -13,7 +13,7 @@
     @group_filter_addition = []
   end
 
-  @caption = ""
+  @caption = String.new
   @caption << (ajax_form(controller:  :longterm_trend,
                          action:      :refresh_time_selection,
                          :groupby       => @groupby,                     # Gruppierungskriterium für einen Dialog
@@ -22,7 +22,7 @@
                          repeat_controller: controller_name,
                          :repeat_action => @repeat_action                # Zuletzt aufgerufene action wiederholen
   ) do
-    form_content = ""
+    form_content = String.new
     form_content << "<div class=\"float_left\">"
     form_content << @header
     form_content << "&nbsp;"

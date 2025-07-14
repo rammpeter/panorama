@@ -4,7 +4,7 @@
   @update_area = get_unique_area_id
 
   @total_time_waited_data_title = proc do |rec|
-    retval = '%t'
+    retval = '%t'.dup
     retval << "\n= #{fn(rec.seconds_active)} seconds"
     retval << "\n= #{fn(rec.seconds_active.to_f/60, 1)} minutes" if rec.seconds_active > 60
     retval << "\n= #{fn(rec.seconds_active.to_f/3600, 1)} hours" if rec.seconds_active > 3600

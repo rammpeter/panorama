@@ -6,7 +6,7 @@ class HelpController < ApplicationController
 
   def overview
     def print_menu_entry(menu_entry)
-      ioutput = ""
+      ioutput = String.new
       ioutput << "<h3>#{menu_entry[:caption]}</h3>"
       ioutput << "<ul>
       "
@@ -23,7 +23,7 @@ class HelpController < ApplicationController
        ioutput
     end
 
-    @menu_entry_help = ""
+    @menu_entry_help = String.new
    menu_content.each do |m|
       @menu_entry_help << print_menu_entry(m)
     end

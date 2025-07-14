@@ -62,7 +62,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
       result
     end # render_entry_json
 
-    response = '[ '                                                             # JSON-Buffer
+    response = '[ '.dup                                                         # JSON-Buffer
     entry_id = 0
     dragnet_sql_list.each do |s|
       subresult = render_entry_json('', entry_id, s, filter, include_description)
@@ -80,7 +80,7 @@ Rails.logger.info "get_selection_list started" if  Rails.env.test?
   def refresh_selected_data
     entry = extract_entry_by_entry_id(params[:entry_id])
 
-    parameter = ""
+    parameter = String.new
     if entry[:parameter]        # Parameter erwähnt (erwartet als Array)
       parameter << "<br/><table>"
       entry[:parameter].each do |p|

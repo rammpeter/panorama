@@ -1,6 +1,6 @@
  # encoding: utf-8
 
-require 'json'
+ require 'json'
 # Zusatzfunktionen, die auf speziellen Tabellen und Prozessen aufsetzen, die nicht prinzipiell in DB vorhanden sind
 class AdditionController < ApplicationController
   include AdditionHelper
@@ -184,7 +184,7 @@ class AdditionController < ApplicationController
 
 
     # JavaScript-Array aufbauen mit Daten
-    output = ""
+    output = String.new
     output << "jQuery(function($){"
     output << "var data_array = ["
     headers.each do |key, value|
@@ -556,7 +556,7 @@ class AdditionController < ApplicationController
   def list_object_increase
     save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
 
-    @wherestr = ""
+    @wherestr = String.new
     @whereval = []
 
     @schema_name = nil
@@ -733,7 +733,7 @@ class AdditionController < ApplicationController
     @owner           = prepare_param(:Owner)
     @tablespace_name = prepare_param(:Tablespace_Name)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @segment_type
@@ -953,8 +953,8 @@ class AdditionController < ApplicationController
     @groupfilter = @groupfilter.to_unsafe_h.to_h.symbolize_keys  if @groupfilter.class == ActionController::Parameters
     raise "Parameter groupfilter should be of class Hash or ActionController::Parameters" if @groupfilter.class != Hash
     @groupkey    = groupkey
-    @where_string  = ""                    # Filter-Text für nachfolgendes Statement mit AND-Erweiterung
-    @where_values = []    # Filter-werte für nachfolgendes Statement
+    @where_string  = String.new                                                 # Filter-Text für nachfolgendes Statement mit AND-Erweiterung
+    @where_values = []                                                          # Filter-werte für nachfolgendes Statement
 
     @groupfilter.each {|key,value|
       sql = blocking_locks_groupfilter_values(key)[:sql].clone

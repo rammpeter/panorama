@@ -63,7 +63,7 @@ end
 
 
 def link_column_blocking_reason_cascade(rec, value)
-  retval = ''
+  retval = String.new
   retval << ajax_link(rec.sid_min, {
                         controller:  :active_session_history,
                         action:     :list_session_statistic_historic_grouping,
@@ -96,7 +96,7 @@ def link_column_blocking_reason_cascade(rec, value)
 end
 
 def link_column_blocked(rec)
-  retval = ''
+  retval = String.new
   retval << ajax_link(rec.blocking_sid_min, {
     controller:  :active_session_history,
     action:     :list_session_statistic_historic_grouping,

@@ -50,18 +50,18 @@ module SlickgridHelper
   # Aufbauen Javascipt-Strunktur mit columns für slickgrid
   def prepare_js_columns_for_slickgrid(table_id, column_options)
     col_index = 0
-    output = '['
+    output = '['.dup
     column_options.each do |col|
       begin
 
-        cssClass = ''
+        cssClass = String.new
         cssClass << ' align-right' if col[:align].to_s == 'right'
         cssClass << " #{col[:css_class]}" if col[:css_class]
         output << "{id:           '#{col[:name]}',
                   name:         '#{col[:caption]}',
                   toolTip:      '#{col[:title]}',
                   index:        '#{col[:index]}',
-                 "
+                 ".dup
         output << " cssClass:     '#{cssClass}',"   if cssClass != ''
         output << " style:        '#{col[:style]}'," if col[:style]
         output << ' no_wrap:      1,'               if col[:no_wrap]
@@ -102,7 +102,7 @@ module SlickgridHelper
   end
 
   def prepare_js_global_options_for_slickgrid(table_id, global_options)
-    output = '{'
+    output = '{'.dup
     output << "\n  caption:                 '#{global_options[:caption]}',"
     output << "\n  command_menu_entries:    #{global_options[:command_menu_entries].to_json},"    if global_options[:command_menu_entries]
     output << "\n  data_filter:             #{global_options[:data_filter]},"      if global_options[:data_filter]
@@ -227,7 +227,7 @@ module SlickgridHelper
       table_id  = "grid_#{rand(99999999)}"                                      # Zufallszahl für html-ID
     end
 
-    output = ''
+    output = String.new
     output << "<div id='#{table_id}' style='"
     output << "height:#{global_options[:height]};" unless global_options[:max_height]
     output << "'></div>\n"
@@ -244,7 +244,7 @@ module SlickgridHelper
     output << "var data=[\n"
     data.each do |rec|
       output << '{'
-      metadata = ''
+      metadata = String.new
       column_options.each do |col|
         begin
           if col[:data].class == Proc
@@ -282,7 +282,7 @@ module SlickgridHelper
         end
 
         # Title ermitteln
-        title = ''
+        title = String.new
         if col[:data_title]
           begin
             title << col[:data_title].call(rec).to_s if col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen

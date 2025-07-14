@@ -10,7 +10,7 @@
   show_extracted_col = proc do |rec|
     # input: XML-structure for outline_data
     # return: Array of hint-texts
-    output = ''
+    output = String.new
     Nokogiri::XML(rec.comp_data).xpath("//hint").each do |hint|
       output << "#{my_html_escape(hint.text)}<br/>"
     end

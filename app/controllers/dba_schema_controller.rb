@@ -23,7 +23,7 @@ class DbaSchemaController < ApplicationController
     @username     = prepare_param :username
     @profile      = prepare_param :profile
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @username
@@ -82,7 +82,7 @@ class DbaSchemaController < ApplicationController
   def show_db_user_ddl
     @username = prepare_param :username
 
-    @output = ''
+    @output = String.new
     @output << sql_select_one(["SELECT DBMS_METADATA.GET_DDL('USER', ?) FROM DUAL", @username]) + ";\n"
     quotas = sql_select_one(["SELECT DBMS_METADATA.GET_GRANTED_DDL('TABLESPACE_QUOTA', tq.UserName) FROM DBA_TS_Quotas tq   WHERE tq.UserName = ?", @username])
     @output << quotas.gsub(/END;/, "END;\n/") + "\n" unless quotas.nil?
@@ -123,7 +123,7 @@ class DbaSchemaController < ApplicationController
 
   def list_roles
     @role     = prepare_param :role
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @role
@@ -163,7 +163,7 @@ class DbaSchemaController < ApplicationController
   def list_role_grants
     @role     = prepare_param :role
     @grantee  = prepare_param :grantee
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @role
@@ -208,7 +208,7 @@ class DbaSchemaController < ApplicationController
   def list_granted_sys_privileges
     @privilege  = prepare_param :privilege
     @grantee    = prepare_param :grantee
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @privilege
@@ -252,7 +252,7 @@ class DbaSchemaController < ApplicationController
 
   def list_user_profiles
     @profile = prepare_param :profile
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @profile
@@ -370,7 +370,7 @@ class DbaSchemaController < ApplicationController
     @groupfilter = params[:groupfilter]
     @groupfilter = {} if @groupfilter.nil? || @groupfilter.empty?
 
-    where_string = ''
+    where_string = String.new
     where_values = [@days_back]
 
     @groupfilter.each do |k,v|
@@ -430,7 +430,7 @@ class DbaSchemaController < ApplicationController
     @privilege  = prepare_param :privilege
     @grantee    = prepare_param :grantee
     @grantor    = prepare_param :grantor
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @privilege
@@ -504,7 +504,7 @@ class DbaSchemaController < ApplicationController
     @filter           = prepare_param(:filter)
     @segment_name     = prepare_param(:segment_name)
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if !@tablespace_name.nil? && @tablespace_name != all_dropdown_selector_name
@@ -755,7 +755,7 @@ class DbaSchemaController < ApplicationController
     @object_name  = prepare_param(:object_name)
     @object_type  = prepare_param(:object_type)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @owner
@@ -791,7 +791,7 @@ class DbaSchemaController < ApplicationController
 
     show_popup_message "Object name or schema name should be set! At least with wildcard character (%, _)." if @object_name.nil? && @owner.nil?
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @owner
@@ -1433,7 +1433,7 @@ class DbaSchemaController < ApplicationController
         AND    Constraint_Name = ?
         ORDER BY Position
         ", @owner, @table_name, @pkeys[0].constraint_name]
-      @pkeys[0][:columns] = ''
+      @pkeys[0][:columns] = String.new
       columns.each do |c|
         @pkeys[0][:columns] << c.column_name+', '
       end
@@ -1448,7 +1448,7 @@ class DbaSchemaController < ApplicationController
     @table_name = params[:table_name]
     @index_name = prepare_param(:index_name)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @index_name
@@ -1903,7 +1903,6 @@ class DbaSchemaController < ApplicationController
     end
 
     references.each do |r|
-      attribs = ''
       tooltip = "#{r.owner.downcase}.#{r.table_name} (#{r.fk_constraint_name}) ->\n#{r.r_owner.downcase}.#{r.r_table_name} (#{r.pk_constraint_name})"
       attribs = "tooltip=\\\"#{tooltip}\\\""
       attribs << " label=\\\"#{r.fk_constraint_name}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_fk_names
@@ -1976,7 +1975,7 @@ class DbaSchemaController < ApplicationController
       @objects[object_key] = {owner: r.referenced_owner, name: r.referenced_name, type: r.referenced_type} unless @objects.has_key?(object_key)
     end
 
-    @digraph = ''
+    @digraph = String.new
     @objects.each do |key, value|
       label = "#{value[:owner].downcase}.#{value[:name]}|#{value[:type]}"
       tooltip = "Object: #{value[:owner].downcase}.#{value[:name]}\nType: #{value[:type]}"
@@ -1985,7 +1984,6 @@ class DbaSchemaController < ApplicationController
     end
 
     dependencies.each do |r|
-      attribs = ''
       tooltip = "#{r.type} #{r.owner.downcase}.#{r.name} depends on\n#{r.referenced_type} #{r.referenced_owner.downcase}.#{r.referenced_name}\n(#{r.referenced_link_name} #{r.dependency_type})"
       attribs = "tooltip=\\\"#{tooltip}\\\""
       attribs << " label=\\\"#{r.dependency_type}\\\" labeltooltip=\\\"#{tooltip}\\\"" if @show_edge_attribs
@@ -2142,7 +2140,7 @@ class DbaSchemaController < ApplicationController
       WHERE  o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?
     ", @owner, @object_name, @object_type]
 
-    @source = "CREATE OR REPLACE "
+    @source = "CREATE OR REPLACE ".dup
     sql_select_iterator(["SELECT Text FROM DBA_Source WHERE Owner=? AND Name=? AND Type = ? ORDER BY Line", @owner, @object_name, @object_type]).each do |r|
       @source << r.text
     end
@@ -2467,7 +2465,7 @@ class DbaSchemaController < ApplicationController
     @table_name = params[:table_name]
     @segment_name = params[:segment_name]
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @owner && @owner != ''
@@ -2549,10 +2547,10 @@ class DbaSchemaController < ApplicationController
     @object_name    = prepare_param :object_name                                # optional
     @update_area    = prepare_param :update_area_for_target                     # set only if called from show_audit_rules
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
-    global_where_string = ''
+    global_where_string = String.new
     global_where_values = []
 
     if @policy_name
@@ -2561,7 +2559,7 @@ class DbaSchemaController < ApplicationController
     end
 
     if @object_type
-      where_string = "WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?"
+      where_string = "WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?".dup
       where_values << @object_type
       where_values << @object_type
 
@@ -2611,7 +2609,7 @@ class DbaSchemaController < ApplicationController
     @owner        = prepare_param :owner                                        # optional
     @object_name  = prepare_param :object_name                                  # optional
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @object_type
       where_string = " WHERE Audit_Option LIKE '%'||?"
@@ -2619,7 +2617,7 @@ class DbaSchemaController < ApplicationController
     end
     @audits         = sql_select_all ["SELECT * FROM DBA_Stmt_Audit_Opts #{where_string} ORDER BY Audit_Option"].concat(where_values)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @object_type
       where_string = " WHERE Object_Type = ?"
@@ -2635,7 +2633,7 @@ class DbaSchemaController < ApplicationController
     end
     @obj_audit_opts = sql_select_all ["SELECT * FROM DBA_Obj_Audit_Opts #{where_string} ORDER BY Owner, Object_Name"].concat(where_values)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
     if @owner
       where_string << " WHERE Object_Schema = ?"
@@ -2650,10 +2648,10 @@ class DbaSchemaController < ApplicationController
     if get_db_version >= '12.2'                                                 # Start of recommended unified auditing
       @audit_unified_contexts = sql_select_all "SELECT * FROM Audit_Unified_Contexts ORDER BY Namespace, Attribute, User_Name"
 
-      where_string = ''
+      where_string = String.new
       where_values = []
       if @object_type
-        where_string = " WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?"
+        where_string = " WHERE (p.Audit_Option LIKE '%'||? )  OR ( p.Object_Type = ?".dup
         where_values << @object_type
         where_values << @object_type
 
@@ -2768,7 +2766,7 @@ class DbaSchemaController < ApplicationController
     @machine        = prepare_param :machine
     @object_name    = prepare_param :object_name
     @statement_type = prepare_param :statement_type
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if params[:time_selection_start] && params[:time_selection_end]
@@ -2974,7 +2972,7 @@ class DbaSchemaController < ApplicationController
     @dblink_info    = prepare_param :dblink_info
     @filter         = prepare_param :filter
 
-    where_string = ""
+    where_string = String.new
     where_values = []
 
     if params[:time_selection_start] && params[:time_selection_end]
@@ -3241,7 +3239,7 @@ class DbaSchemaController < ApplicationController
 
     @operations = analyze_operations(@owner, @table_name, @partition_name)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @partition_name
@@ -3311,7 +3309,7 @@ class DbaSchemaController < ApplicationController
 
     @operations = analyze_operations(@owner, @index_name, @partition_name)
 
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if @partition_name
@@ -3667,7 +3665,7 @@ class DbaSchemaController < ApplicationController
 
   private
   def analyze_operations(owner, object_name, partition_name)
-    where_string = ''
+    where_string = String.new
     where_values = []
 
     if partition_name
