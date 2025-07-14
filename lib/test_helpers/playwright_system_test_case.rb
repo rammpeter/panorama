@@ -27,7 +27,7 @@ class PlaywrightSystemTestCase < ActiveSupport::TestCase
     unless self.passed?
       unless @@pw_page.nil?
         screenshot_dir = "#{Rails.root}/tmp/screenshots"
-        Dir.mkdir(screenshot_dir) unless File.exists?(screenshot_dir)
+        Dir.mkdir(screenshot_dir) unless File.exist?(screenshot_dir)
         filename = method_name.clone
         filename.gsub!(/\//, '_') if filename['/']
         filepath = "#{screenshot_dir}/#{filename}.png"

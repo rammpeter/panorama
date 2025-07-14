@@ -218,7 +218,7 @@ jobs:
             mkdir -p log
             touch log/test.log
           else
-            bundle exec rake test
+            bundle exec rails test
           fi
 
       - name: copy test.log locally to allow access before completion of whole actions
