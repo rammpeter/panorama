@@ -148,12 +148,14 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "expand_sql_text with xhr: true" do
-    if get_db_version >= '12.1'
-      dummy_sql = "SELECT SYSDATE FROM DUAL"                                    # Dummy SQL to get a valid SQL_ID with readable tables to avoid ORA-00942 in DBMS_UTILITY.EXPAND_SQL_TEXT
-      sql_select_one dummy_sql                                                  # SQL should be in SGA now
-      dummy_sql_id = sql_select_one ["SELECT SQL_ID FROM v$sql WHERE SQL_Text = ?", dummy_sql]
-      post '/dba_sga/expand_sql_text' , params: {format: :html, sql_id: dummy_sql_id, update_area: :hugo }
-      assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        dummy_sql = "SELECT SYSDATE FROM DUAL"                                    # Dummy SQL to get a valid SQL_ID with readable tables to avoid ORA-00942 in DBMS_UTILITY.EXPAND_SQL_TEXT
+        sql_select_one dummy_sql                                                  # SQL should be in SGA now
+        dummy_sql_id = sql_select_one ["SELECT SQL_ID FROM v$sql WHERE SQL_Text = ?", dummy_sql]
+        post '/dba_sga/expand_sql_text' , params: {format: :html, sql_id: dummy_sql_id, update_area: :hugo }
+        assert_response :success
+      end
     end
   end
 

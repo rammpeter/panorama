@@ -371,12 +371,14 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "generate_baseline_creation with xhr: true" do
-    if [:diagnostics_pack, :diagnostics_and_tuning_pack].include? management_pack_license
-      if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
-        Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
-      else
-        post '/dba_history/generate_baseline_creation', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :plan_hash_value=>1234567, :update_area=>:hugo }
-        assert_response :success
+    assert_nothing_raised do
+      if [:diagnostics_pack, :diagnostics_and_tuning_pack].include? management_pack_license
+        if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
+          Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
+        else
+          post '/dba_history/generate_baseline_creation', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :plan_hash_value=>1234567, :update_area=>:hugo }
+          assert_response :success
+        end
       end
     end
   end
@@ -413,41 +415,45 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_sql_monitor_reports with xhr: true" do
-    if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !@@hist_sql_id.nil?  # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
-      [nil,PanoramaConnection.instance_number].each do |instance |
-        [{sql_id: @@hist_sql_id}, {sid: 1, serial_no: 2}].each do |p|
-          post '/dba_history/list_sql_monitor_reports', params: {format: :html, instance: instance, sql_id: p[:sql_id], sid: p[:sid], serial_no: p[:serial_no],
-                                                                 time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, update_area: :hugo }
-          assert_response management_pack_license == :none ? :error : :success
+    assert_nothing_raised do
+      if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !@@hist_sql_id.nil?  # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
+        [nil,PanoramaConnection.instance_number].each do |instance |
+          [{sql_id: @@hist_sql_id}, {sid: 1, serial_no: 2}].each do |p|
+            post '/dba_history/list_sql_monitor_reports', params: {format: :html, instance: instance, sql_id: p[:sql_id], sid: p[:sid], serial_no: p[:serial_no],
+                                                                   time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, update_area: :hugo }
+            assert_response management_pack_license == :none ? :error : :success
+          end
         end
       end
     end
   end
 
   test "list_awr_sql_monitor_report_html with xhr: true" do
-    instance = PanoramaConnection.instance_number
-    # 18.4 xe raises ORA-13988: Ungültige Eingabe für variable Argumentlisten-Berichtfunktion.
-    if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !get_db_version['18.4']
-      origins = ['GV$SQL_MONITOR']
+    assert_nothing_raised do
+      instance = PanoramaConnection.instance_number
+      # 18.4 xe raises ORA-13988: Ungültige Eingabe für variable Argumentlisten-Berichtfunktion.
+      if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !get_db_version['18.4']
+        origins = ['GV$SQL_MONITOR']
 
-      # DBA_Hist_Reports available beginning with 12.1
-      if get_db_version >= '12.1'
-        origins << 'DBA_Hist_Reports'
-        report_id_hist = sql_select_one "SELECT MAX(report_ID) FROM DBA_HIST_REPORTS"
-        report_id_hist = 1 if report_id_hist.nil?                               # Use fake ID if no real hit exists
-      end
+        # DBA_Hist_Reports available beginning with 12.1
+        if get_db_version >= '12.1'
+          origins << 'DBA_Hist_Reports'
+          report_id_hist = sql_select_one "SELECT MAX(report_ID) FROM DBA_HIST_REPORTS"
+          report_id_hist = 1 if report_id_hist.nil?                               # Use fake ID if no real hit exists
+        end
 
-      origins.each do |origin|
-        post '/dba_history/list_awr_sql_monitor_report_html', params: {format: :html,
-                                                                       report_id:             origin == 'GV$SQL_MONITOR' ? 0 : report_id_hist,
-                                                                       instance:              instance,
-                                                                       sid:                   1,
-                                                                       serial_no:              1,
-                                                                       sql_id:                '1',
-                                                                       sql_exec_id:           1,
-                                                                       origin:                origin,
-                                                                       update_area: :hugo }
-        assert_response management_pack_license == :none ? :error : :success
+        origins.each do |origin|
+          post '/dba_history/list_awr_sql_monitor_report_html', params: {format: :html,
+                                                                         report_id:             origin == 'GV$SQL_MONITOR' ? 0 : report_id_hist,
+                                                                         instance:              instance,
+                                                                         sid:                   1,
+                                                                         serial_no:              1,
+                                                                         sql_id:                '1',
+                                                                         sql_exec_id:           1,
+                                                                         origin:                origin,
+                                                                         update_area: :hugo }
+          assert_response management_pack_license == :none ? :error : :success
+        end
       end
     end
   end
