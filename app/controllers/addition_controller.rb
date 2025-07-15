@@ -1105,7 +1105,8 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
                     when 'Date/Time'  then Time.parse(bind[:value])
                     else raise "Unsupported type '#{bind[:type]}'"
                     end
-      ar_binds << ActiveRecord::Relation::QueryAttribute.new(":#{bind[:alias]}", typed_value, worksheet_bind_types[bind[:type]][:type_class].new)
+      # 2025-07 Don't use specific type classes like ActiveRecord::Type::Time etc. as this will not work with Oracle enhanced adapter
+      ar_binds << ActiveRecord::Relation::QueryAttribute.new(":#{bind[:alias]}", typed_value, ActiveRecord::Type::Value.new)
     end
     ar_binds
   end

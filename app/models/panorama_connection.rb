@@ -1016,15 +1016,12 @@ class PanoramaConnection
       Thread.current[:panorama_connection_connection_object].register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
 
       type_casted_binds = @binds.map do |attr|
-        if attr.value_for_database.class == ActiveRecord::Type::Time::Value
-          casted_value = TypeMapper.new.type_cast(attr.value)
-          Rails.logger.debug('SqlSelectIterator.each') { "Directly type-casting Time value for database: value ='#{attr.value}' of class #{attr.value.class}, type-casted value = '#{casted_value}' of class #{casted_value.class}" }
-          casted_value
-        else
-          TypeMapper.new.type_cast(attr.value_for_database)
-        end
+        # attr.value_for_database.type should be only teh default ActiveRecord::Type::Value
+        # especially using ActiveRecord::Type::Time::Value will only bind the time and not the date
+        casted_value = TypeMapper.new.type_cast(attr.value_for_database)
+        Rails.logger.debug('SqlSelectIterator.each') { "Prepare bind: value ='#{attr.value}' of class #{attr.value.class}, type-casted value = '#{casted_value}' of class #{casted_value.class}" }
+        casted_value
       end
-
 
       Thread.current[:panorama_connection_connection_object].jdbc_connection.iterate_query(@stmt,
                                                                                            name: @query_name,

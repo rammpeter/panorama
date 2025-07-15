@@ -47,11 +47,11 @@ module AdditionHelper
 
   def worksheet_bind_types
     {
-      'Content dependent' => { type_class: ActiveRecord::Type::Value,   test_sql_value: 5,              test_bind_value: 5 } ,
-      'String'            => { type_class: ActiveRecord::Type::String,  test_sql_value: "'Hugo'",       test_bind_value: 'Hugo' },
-      'Integer'           => { type_class: ActiveRecord::Type::Integer, test_sql_value: 3,              test_bind_value: 3 },
-      'Float'             => { type_class:  ActiveRecord::Type::Float,  test_sql_value: 5.3,            test_bind_value: 5.3 },
-      'Date/Time'         => { type_class:  ActiveRecord::Type::Time,   test_sql_value: "TO_DATE('01.11.2023 13:45', 'DD.MM.YYYY HH24:MI')", test_bind_value: '01.11.2023 13:45 +0000' }
+      'Content dependent' => { test_sql_value: 5,              test_bind_value: 5 } ,
+      'String'            => { test_sql_value: "'Hugo'",       test_bind_value: 'Hugo' },
+      'Integer'           => { test_sql_value: 3,              test_bind_value: 3 },
+      'Float'             => { test_sql_value: 5.3,            test_bind_value: 5.3 },
+      'Date/Time'         => { test_sql_value: "TO_DATE('01.11.2023 13:45', 'DD.MM.YYYY HH24:MI')", test_bind_value: '01.11.2023 13:45 +0000' }
     }
   end
 end
