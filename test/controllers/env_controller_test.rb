@@ -101,8 +101,10 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
   # Test aller generischer Menü-Einträge ohne korrespondierende Action im konkreten Controller
   test "render_menu_action with xhr: true" do
-    menu_content.each do |mo|
-      exec_menu_entry_action(mo)
+    assert_nothing_raised do
+      menu_content.each do |mo|
+        exec_menu_entry_action(mo)
+      end
     end
   end
 

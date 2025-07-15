@@ -2620,7 +2620,7 @@ class DbaSchemaController < ApplicationController
     where_string = String.new
     where_values = []
     if @object_type
-      where_string = " WHERE Object_Type = ?"
+      where_string << " WHERE Object_Type = ?"
       where_values << @object_type
     end
     if @owner

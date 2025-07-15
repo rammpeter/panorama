@@ -8,22 +8,24 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
 
   # Ensure that the connection is established with various settings
   test "connect to db" do
-    [
-      { 'MAX_CONNECTION_POOL_SIZE' => 10},
-      { 'MAX_CONNECTION_POOL_SIZE' => nil},
-    ].each do |env_setting|
-      env_setting.each do |key, value|
-        if value.nil?
-          ENV.delete(key)
-        else
-          ENV[key] = value.to_s
+    assert_nothing_raised do
+      [
+        { 'MAX_CONNECTION_POOL_SIZE' => 10},
+        { 'MAX_CONNECTION_POOL_SIZE' => nil},
+      ].each do |env_setting|
+        env_setting.each do |key, value|
+          if value.nil?
+            ENV.delete(key)
+          else
+            ENV[key] = value.to_s
+          end
         end
+        PanoramaConnection.disconnect_aged_connections(-10)                         # disconnect all existing connections, force creation of new connection in next step
+        Thread.current[:panorama_connection_connection_object] = nil              # Release the relation to current connection object
+        Object.send(:remove_const, :PanoramaConnection)
+        load 'panorama_connection.rb'
+        PanoramaConnection.sql_select_one "SELECT SYSDATE FROM DUAL"              # force connect to db
       end
-      PanoramaConnection.disconnect_aged_connections(-10)                         # disconnect all existing connections, force creation of new connection in next step
-      Thread.current[:panorama_connection_connection_object] = nil              # Release the relation to current connection object
-      Object.send(:remove_const, :PanoramaConnection)
-      load 'panorama_connection.rb'
-      PanoramaConnection.sql_select_one "SELECT SYSDATE FROM DUAL"              # force connect to db
     end
   end
 

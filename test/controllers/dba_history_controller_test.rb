@@ -394,17 +394,19 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_resource_limits_historic with xhr: true" do
-    instances = [nil, PanoramaConnection.instance_number]
-    if management_pack_license != :none
-      sql_select_all("SELECT DISTINCT Resource_Name FROM DBA_Hist_Resource_Limit").each do |resname_rec|
-        instances.each do |instance|
-          post '/dba_history/list_resource_limits_historic', params: {
+    assert_nothing_raised do
+      instances = [nil, PanoramaConnection.instance_number]
+      if management_pack_license != :none
+        sql_select_all("SELECT DISTINCT Resource_Name FROM DBA_Hist_Resource_Limit").each do |resname_rec|
+          instances.each do |instance|
+            post '/dba_history/list_resource_limits_historic', params: {
               format:               :html,
               instance:             instance,
               resource_name:        resname_rec.resource_name,
               update_area:          :hugo
-          }
-          assert_response :success
+            }
+            assert_response :success
+          end
         end
       end
     end
