@@ -17,6 +17,8 @@ DECLARE
       EXECUTE IMMEDIATE 'grant connect, resource to '||p_UserName;
       EXECUTE IMMEDIATE 'GRANT CREATE VIEW TO '||p_UserName;
       EXECUTE IMMEDIATE 'grant select any dictionary, OEM_Monitor to '||p_UserName;
+      # to allow ALTER SESSION SET EVENTS etc.
+      EXECUTE IMMEDIATE 'GRANT ALTER SESSION to '||p_UserName;
       -- muss als sys ausgeführt werden
       EXECUTE IMMEDIATE 'GRANT EXECUTE ON DBMS_LOCK TO '||p_UserName;
       EXECUTE IMMEDIATE 'alter profile DEFAULT limit password_life_time UNLIMITED';

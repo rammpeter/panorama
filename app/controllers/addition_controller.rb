@@ -1102,7 +1102,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
                     when 'String'     then bind[:value]
                     when 'Integer'    then Integer(bind[:value])
                     when 'Float'      then Float(bind[:value])
-                    when 'Date/Time'  then DateTime.parse(bind[:value])
+                    when 'Date/Time'  then Time.parse(bind[:value])
                     else raise "Unsupported type '#{bind[:type]}'"
                     end
       ar_binds << ActiveRecord::Relation::QueryAttribute.new(":#{bind[:alias]}", typed_value, worksheet_bind_types[bind[:type]][:type_class].new)

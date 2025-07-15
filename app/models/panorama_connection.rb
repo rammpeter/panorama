@@ -56,14 +56,11 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
   # @param binds [Array] Array of ActiveRecord::Relation::QueryAttribute objects, used for binding parameters
   # @param modifier [Proc] Proc to modify each row before yielding it
   # @param query_timeout [Integer] Timeout in seconds for query execution, default is 600 seconds
-  def iterate_query(sql, name: 'SQL', binds: [], modifier: nil, query_timeout: nil, convert_tz: true, &block)
-    # Variante für Rails 5
-    type_casted_binds = binds.map { |attr| TypeMapper.new.type_cast(attr.value_for_database) }
-
+  def iterate_query(sql, name: 'SQL', binds: [], type_casted_binds: [], modifier: nil, query_timeout: nil, convert_tz: true, &block)
     log(sql, name, binds, type_casted_binds) do
       cursor = nil
       cursor = prepare(sql)
-      cursor.bind_params(type_casted_binds) if !binds.empty?
+      cursor.bind_params(type_casted_binds) if !type_casted_binds.empty?
 
       cursor.get_raw_statement.setQueryTimeout(query_timeout.to_i) if query_timeout          # Erweiterunge gegenüber exec_query
       cursor.exec
@@ -568,8 +565,7 @@ class PanoramaConnection
         raise "bind value at position #{bind_index} missing for '#{bind_alias}' in binds-array!\nBinds: #{sql.drop(1)}\nSQL:\n #{stmt}" if sql.count <= bind_index
         raise "bind value at position #{bind_index} is NULL for '#{bind_alias}' in binds-array!\nBinds: #{sql.drop(1)}\nSQL:\n #{stmt}" unless sql[bind_index]
 
-        binds << ActiveRecord::Relation::QueryAttribute.new(bind_alias, sql[bind_index], ActiveRecord::Type::Value.new)   # Ab Rails 5
-        # binds << [ ActiveRecord::ConnectionAdapters::Column.new(bind_alias, nil, ActiveRecord::Type::Value.new), sql[bind_index]] # Neu ab Rails 4.2.0, Abstrakter Typ muss angegeben werden
+        binds << ActiveRecord::Relation::QueryAttribute.new(bind_alias, sql[bind_index], ActiveRecord::Type::Value.new)
       end
     else
       if sql.class == String
@@ -1018,9 +1014,22 @@ class PanoramaConnection
     def each(&block)
       # Execute SQL and call block for every record of result
       Thread.current[:panorama_connection_connection_object].register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
+
+      type_casted_binds = @binds.map do |attr|
+        if attr.value_for_database.class == ActiveRecord::Type::Time::Value
+          casted_value = TypeMapper.new.type_cast(attr.value)
+          Rails.logger.debug('SqlSelectIterator.each') { "Directly type-casting Time value for database: value ='#{attr.value}' of class #{attr.value.class}, type-casted value = '#{casted_value}' of class #{casted_value.class}" }
+          casted_value
+        else
+          TypeMapper.new.type_cast(attr.value_for_database)
+        end
+      end
+
+
       Thread.current[:panorama_connection_connection_object].jdbc_connection.iterate_query(@stmt,
                                                                                            name: @query_name,
                                                                                            binds: @binds,
+                                                                                           type_casted_binds: type_casted_binds,
                                                                                            modifier: @modifier,
                                                                                            query_timeout: @query_timeout,
                                                                                            convert_tz: @convert_tz,
@@ -1030,8 +1039,8 @@ class PanoramaConnection
       PanoramaConnection.check_for_erroneous_connection_removal(e)              # check if too much errors occurred for this connection
 
       bind_text = String.new
-      @binds.each do |b|
-        bind_text << "#{b.name} = #{b.value}\n"
+      @binds.each_with_index do |b, index|
+        bind_text << "#{b.name}: value ='#{b.value}' of class #{b.value.class}, type-casted value = '#{type_casted_binds[index]}' of class #{type_casted_binds[index].class}\n"
       end
 
       # Ensure stacktrace of first exception is show

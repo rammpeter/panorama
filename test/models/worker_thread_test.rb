@@ -28,16 +28,18 @@ class WorkerThreadTest < ActiveSupport::TestCase
   end
 
   test "check_structure" do
-    @connection_users.each do |connection_user|                                 # Use different user for connect
-      @select_any_tables.each do |select_any_table|                             # Test package and anonymous PL/SQL
-        @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
-        @sampler_config.set_select_any_table(select_any_table)
+    assert_nothing_raised do
+      @connection_users.each do |connection_user|                               # Use different user for connect
+        @select_any_tables.each do |select_any_table|                           # Test package and anonymous PL/SQL
+          @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
+          @sampler_config.set_select_any_table(select_any_table)
 
-        PanoramaSamplerStructureCheck.remove_tables(@sampler_config)              # ensure missing objects is tested
+          PanoramaSamplerStructureCheck.remove_tables(@sampler_config)          # ensure missing objects is tested
 
-        PanoramaSamplerStructureCheck.domains.each do |domain|
-          PanoramaSamplerStructureCheck.do_check(@sampler_config, domain)
-        end                                                                     # leave all objects existing because other tests rely on
+          PanoramaSamplerStructureCheck.domains.each do |domain|
+            PanoramaSamplerStructureCheck.do_check(@sampler_config, domain)
+          end                                                                   # leave all objects existing because other tests rely on
+        end
       end
     end
   end

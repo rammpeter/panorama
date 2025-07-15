@@ -28,7 +28,9 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
   end
 
   test "disconnect_aged_connections" do
-    PanoramaConnection.disconnect_aged_connections(100)
+    assert_nothing_raised do
+      PanoramaConnection.disconnect_aged_connections(100)
+    end
   end
 
   test "check_for_erroneous_connection_removal" do
@@ -54,9 +56,11 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
   end
 
   test "recreate destroyed connection" do
-    PanoramaConnection.sql_execute("BEGIN\nDBMS_Application_Info.Set_Module('Panorama-Test', 'recreate destroyed connection');\nEND;")
-    PanoramaConnection.destroy_connection
-    PanoramaConnection.sql_execute("BEGIN\nDBMS_Application_Info.Set_Module('Panorama-Test', 'recreate destroyed connection');\nEND;")
+    assert_nothing_raised do
+      PanoramaConnection.sql_execute("BEGIN\nDBMS_Application_Info.Set_Module('Panorama-Test', 'recreate destroyed connection');\nEND;")
+      PanoramaConnection.destroy_connection
+      PanoramaConnection.sql_execute("BEGIN\nDBMS_Application_Info.Set_Module('Panorama-Test', 'recreate destroyed connection');\nEND;")
+    end
   end
 
 end

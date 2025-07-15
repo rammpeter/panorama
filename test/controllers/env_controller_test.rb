@@ -68,8 +68,8 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should throw oracle-error from test-db" do
 =begin
+  test "should throw oracle-error from test-db" do
   # Test führt aktuell zu account locked
     set_dummy_db_connection
     real_passwd = session[:database][:password]
@@ -84,8 +84,8 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
     # Rücksetzen Connection, damit nächster Zugriff reconnect ausführt
     session[:database][:password] = real_passwd
     open_oracle_connection
-=end
   end
+=end
 
 
   def exec_menu_entry_action(menu_entry)

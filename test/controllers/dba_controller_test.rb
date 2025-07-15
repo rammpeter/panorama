@@ -15,7 +15,9 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
 
   # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
   test "test_controllers_menu_entries_with_actions with xhr: true" do
-    call_controllers_menu_entries_with_actions
+    assert_nothing_raised do
+      call_controllers_menu_entries_with_actions
+    end
   end
 
 
@@ -137,15 +139,17 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "segment_stat with xhr: true"       do
-    if get_db_version >= '18'
-      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5 }
-      assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '18'
+        post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5 }
+        assert_response :success
 
-      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, instance: 1 }
-      assert_response :success
+        post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, instance: 1 }
+        assert_response :success
 
-      post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, show_partition_info: 1 }
-      assert_response :success
+        post '/dba/list_segment_statistics', params: { format: :html, update_area: :hugo, sample_length: 5, show_partition_info: 1 }
+        assert_response :success
+      end
     end
   end
 
@@ -207,45 +211,47 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'trace_files with xhr: true' do
-    # Access on trace files leads to hours of runtime in autonomous DBK
-    if get_db_version >= '12.2' && !PanoramaConnection.autonomous_database?
-      instance  = PanoramaConnection.instance_number
-      trace_file = nil
-      trace_file = sql_select_first_row "SELECT Inst_ID, ADR_Home, Trace_Filename, Con_ID FROM gv$Diag_Trace_File"
+    assert_nothing_raised do
+      # Access on trace files leads to hours of runtime in autonomous DBK
+      if get_db_version >= '12.2' && !PanoramaConnection.autonomous_database?
+        instance  = PanoramaConnection.instance_number
+        trace_file = nil
+        trace_file = sql_select_first_row "SELECT Inst_ID, ADR_Home, Trace_Filename, Con_ID FROM gv$Diag_Trace_File"
 
-      [nil, 'hugo', 'erster|zweiter'].each do |filter|
-        post '/dba/list_trace_files', :params => {format:               :html,
-                                                  time_selection_start: @time_selection_start,
-                                                  time_selection_end:   @time_selection_end,
-                                                  filename_incl_filter: filter,
-                                                  filename_excl_filter: filter,
-                                                  content_incl_filter:  filter,
-                                                  content_excl_filter:  filter,
-                                                  update_area:          :hugo
-        }
-        assert_response :success
+        [nil, 'hugo', 'erster|zweiter'].each do |filter|
+          post '/dba/list_trace_files', :params => {format:               :html,
+                                                    time_selection_start: @time_selection_start,
+                                                    time_selection_end:   @time_selection_end,
+                                                    filename_incl_filter: filter,
+                                                    filename_excl_filter: filter,
+                                                    content_incl_filter:  filter,
+                                                    content_excl_filter:  filter,
+                                                    update_area:          :hugo
+          }
+          assert_response :success
 
-        if !trace_file.nil?
-          [0,1].each do |dont_show_sys|
-            [0,1].each do |dont_show_stat|
-              post '/dba/list_trace_file_content', params: {format: :html, instance: trace_file.inst_id, adr_home: trace_file.adr_home,
-                                                            trace_filename: trace_file.trace_filename, con_id: trace_file.con_id,
-                                                            time_selection_start: @time_selection_start,
-                                                            time_selection_end:   @time_selection_end,
-                                                            dont_show_sys: dont_show_sys, dont_show_stat: dont_show_stat,
-                                                            max_trace_file_lines_to_show: 100,
-                                                            first_or_last_lines: dont_show_sys==0 ? 'first' : 'last',
-                                                            update_area: :hugo }
-              assert_response :success
+          if !trace_file.nil?
+            [0,1].each do |dont_show_sys|
+              [0,1].each do |dont_show_stat|
+                post '/dba/list_trace_file_content', params: {format: :html, instance: trace_file.inst_id, adr_home: trace_file.adr_home,
+                                                              trace_filename: trace_file.trace_filename, con_id: trace_file.con_id,
+                                                              time_selection_start: @time_selection_start,
+                                                              time_selection_end:   @time_selection_end,
+                                                              dont_show_sys: dont_show_sys, dont_show_stat: dont_show_stat,
+                                                              max_trace_file_lines_to_show: 100,
+                                                              first_or_last_lines: dont_show_sys==0 ? 'first' : 'last',
+                                                              update_area: :hugo }
+                assert_response :success
+              end
             end
           end
-        end
 
-        post '/dba/list_trace_file_content', params: {format: :html, instance: instance, adr_home: 'hugo', trace_filename: 'hugo',
-                                                      time_selection_start: @time_selection_start,
-                                                      time_selection_end:   @time_selection_end,
-                                                      con_id: 1, update_area: :hugo }
-        assert_response :success
+          post '/dba/list_trace_file_content', params: {format: :html, instance: instance, adr_home: 'hugo', trace_filename: 'hugo',
+                                                        time_selection_start: @time_selection_start,
+                                                        time_selection_end:   @time_selection_end,
+                                                        con_id: 1, update_area: :hugo }
+          assert_response :success
+        end
       end
     end
   end
