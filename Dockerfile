@@ -38,7 +38,7 @@ COPY --from=openjdk /customjre $JAVA_HOME
 COPY ${BACKEND_SRC_PATH} .
 
 RUN  microdnf update
-RUN  microdnf install wget tar gzip curl bash tzdata make clang
+RUN  microdnf install wget tar gzip curl bash tzdata make clang git
 RUN  echo "### install jruby" && \
      (cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
      (cd /opt && tar -xvf jruby-dist-$JRUBY_VERSION-bin.tar.gz && rm jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \

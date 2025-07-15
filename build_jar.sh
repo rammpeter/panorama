@@ -14,9 +14,12 @@ find . -name mp_views* -exec rm -f {} \;
 # Use the Gemfile.lock as it is and don't update the gems
 bundle config set deployment 'true'
 
+# Ensures that after no test or development dependecies are initialized at 'bundle exec rake assets:precompile'
+export RAILS_ENV=production
+
 # Avoid installing the gems in the development and test group and omit them in the jar
-# temporary removed to ensure that the gem 'listen' is installed
-# bundle config set without 'development test'
+# Does the same like  export BUNDLE_WITHOUT="development:test"
+bundle config set without 'development:test'
 
 bundle install --jobs 4
 gem install jarbler

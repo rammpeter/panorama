@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rammpeter/oracle-enhanced.git
-  revision: c1094bc2e69147920999273a682b555b6c79e097
+  revision: 695537daabd50f652dd8e299a6b1c3b632a99fc5
   branch: release80
   specs:
     activerecord-oracle_enhanced-adapter (8.0.0-java)
@@ -102,7 +102,7 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    io-console (0.8.0-java)
+    io-console (0.8.1-java)
     irb (1.15.2)
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
