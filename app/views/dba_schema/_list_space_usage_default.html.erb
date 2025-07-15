@@ -34,13 +34,13 @@
   end
 
   approx_title_add = proc do |rec|
-    result = "\n\nCalculated using average values for the four segments (e.g. estimating 12,5 % free for the number of blocks with 0..25% free space)"
+    result = "\n\nCalculated using average values for the four segments (e.g. estimating 12,5 % free for the number of blocks with 0..25% free space)".dup
     result << "\nIncludes also the free space in blocks according to PCT_FREE (for tables and indexes)"
     result
   end
 
   approx_data_title = proc do |rec|
-    result = "%t"
+    result = "%t".dup
     result << "\n\nFreeable space for reorganization taking PCT_FREE into account is #{fn(approx_free_mbytes_without_pctfree.call(rec),2)} MB" if rec.pct_free
     result
   end

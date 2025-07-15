@@ -11,7 +11,9 @@ class StorageControllerTest < ActionDispatch::IntegrationTest
 
   # Alle Menu-Einträge testen für die der Controller eine Action definiert hat
   test "test_controllers_menu_entries_with_actions with xhr: true" do
-    call_controllers_menu_entries_with_actions
+    assert_nothing_raised do
+      call_controllers_menu_entries_with_actions
+    end
   end
 
   test "storage_controller with xhr: true" do

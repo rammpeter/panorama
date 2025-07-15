@@ -268,41 +268,47 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "generate_sql_translation with xhr: true" do
-    if get_db_version >= '12.1'
-      [:SGA, :AWR].each do |location|
-        [nil, true].each do |fixed_user|
-          post '/dba_sga/show_sql_translations', :params => {:format      => :html,
-                                                   :location    => location,
-                                                   :sql_id      => @@hist_sql_id,
-                                                   :user_name   => @@hist_parsing_schema_name,
-                                                   :fixed_user  => fixed_user,
-                                                   :update_area => :hugo
-          }
-          assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        [:SGA, :AWR].each do |location|
+          [nil, true].each do |fixed_user|
+            post '/dba_sga/show_sql_translations', :params => {:format      => :html,
+                                                               :location    => location,
+                                                               :sql_id      => @@hist_sql_id,
+                                                               :user_name   => @@hist_parsing_schema_name,
+                                                               :fixed_user  => fixed_user,
+                                                               :update_area => :hugo
+            }
+            assert_response :success
+          end
         end
       end
     end
   end
 
   test "generate_sql_patch with xhr: true" do
-    if get_db_version >= '12.1'
-      post '/dba_sga/generate_sql_patch', :params => {format: :html, sql_id: @@hist_sql_id, update_area: :hugo }
-      assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        post '/dba_sga/generate_sql_patch', :params => {format: :html, sql_id: @@hist_sql_id, update_area: :hugo }
+        assert_response :success
+      end
     end
   end
 
   test "list_resize_operations_historic with xhr: true" do
-    if get_db_version >= "11.1"
-      historic_resize_grouping_options.each do |time_groupby, value|
-        post '/dba_sga/list_resize_operations_historic', params: {format: :html, time_groupby: time_groupby,  time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, instance: @instance, update_area: :hugo }
-        assert_response_success_or_management_pack_violation("list_resize_operations_historic time_groupby=#{time_groupby}")
+    assert_nothing_raised do
+      if get_db_version >= "11.1"
+        historic_resize_grouping_options.each do |time_groupby, value|
+          post '/dba_sga/list_resize_operations_historic', params: {format: :html, time_groupby: time_groupby,  time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, instance: @instance, update_area: :hugo }
+          assert_response_success_or_management_pack_violation("list_resize_operations_historic time_groupby=#{time_groupby}")
 
 
-        # Test ohne instance führt in Rel. 18.3 per JDBC zu
-        # ORA-12801: Fehler in parallelem Abfrage-Server P000 angezeigt
-        # ORA-01006: Bind-Variable nicht vorhanden
-        #post '/dba_sga/list_resize_operations_historic', params: {format: :html, time_groupby: time_groupby,  time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, update_area: :hugo }
-        #assert_response_success_or_management_pack_violation("list_resize_operations_historic time_groupby=#{time_groupby}")
+          # Test ohne instance führt in Rel. 18.3 per JDBC zu
+          # ORA-12801: Fehler in parallelem Abfrage-Server P000 angezeigt
+          # ORA-01006: Bind-Variable nicht vorhanden
+          #post '/dba_sga/list_resize_operations_historic', params: {format: :html, time_groupby: time_groupby,  time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, update_area: :hugo }
+          #assert_response_success_or_management_pack_violation("list_resize_operations_historic time_groupby=#{time_groupby}")
+        end
       end
     end
   end

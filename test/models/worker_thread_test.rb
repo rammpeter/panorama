@@ -21,9 +21,11 @@ class WorkerThreadTest < ActiveSupport::TestCase
   end
 
   test "check_connection" do
-    @connection_users.each do |connection_user|                            # Use different user for connect
-      @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
-      WorkerThread.new(@sampler_config, 'test_check_connection').check_connection_internal(FakeController.new)
+    assert_nothing_raised do
+      @connection_users.each do |connection_user|                            # Use different user for connect
+        @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
+        WorkerThread.new(@sampler_config, 'test_check_connection').check_connection_internal(FakeController.new)
+      end
     end
   end
 
@@ -79,15 +81,16 @@ class WorkerThreadTest < ActiveSupport::TestCase
 
 
   test "do_sampling_longterm_trend" do
-    @sampler_config = prepare_panorama_sampler_thread_db_config                 # Config for StructureCheck only
-    PanoramaSamplerStructureCheck.do_check(@sampler_config, :AWR)               # Existing structure is precondition for test
-    PanoramaSamplerStructureCheck.do_check(@sampler_config, :LONGTERM_TREND)    # Existing structure is precondition for test
+    assert_nothing_raised do
+      @sampler_config = prepare_panorama_sampler_thread_db_config               # Config for StructureCheck only
+      PanoramaSamplerStructureCheck.do_check(@sampler_config, :AWR)      # Existing structure is precondition for test
+      PanoramaSamplerStructureCheck.do_check(@sampler_config, :LONGTERM_TREND)    # Existing structure is precondition for test
 
-    @connection_users.each do |connection_user|                            # Use different user for connect
-      [true, false].each do |log_item|
-        @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
+      @connection_users.each do |connection_user|                               # Use different user for connect
+        [true, false].each do |log_item|
+          @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
 
-        @mod_sampler_config = PanoramaSamplerConfig.new(@sampler_config.get_cloned_config_hash.merge(
+          @mod_sampler_config = PanoramaSamplerConfig.new(@sampler_config.get_cloned_config_hash.merge(
             longterm_trend_log_wait_class:  log_item,
             longterm_trend_log_wait_event:  log_item,
             longterm_trend_log_user:        log_item,
@@ -96,31 +99,33 @@ class WorkerThreadTest < ActiveSupport::TestCase
             longterm_trend_log_module:      log_item,
             longterm_trend_log_action:      log_item,
             longterm_trend_subsume_limit:   400  # per mille
-        ))
-        WorkerThread.new(@mod_sampler_config, "test_sampling_longterm_trend", domain: :LONGTERM_TREND).create_snapshot_internal(Time.now.round, :LONGTERM_TREND)
+          ))
+          WorkerThread.new(@mod_sampler_config, "test_sampling_longterm_trend", domain: :LONGTERM_TREND).create_snapshot_internal(Time.now.round, :LONGTERM_TREND)
+        end
       end
     end
   end
 
-
-
   test "do_sampling_other_than_AWR_ASH" do
-    @connection_users.each do |connection_user|                                 # Use different user for connect
-      sleep(1)                                                                  # Ensure that at least 1 second is between executions to supress unique key violations
-      [:OBJECT_SIZE, :CACHE_OBJECTS, :BLOCKING_LOCKS ].each do |domain|
-        if domain != :AWR_ASH
-          @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
-          WorkerThread.new(@sampler_config, "test_sampling_#{domain}").create_snapshot_internal(Time.now.round, domain)
+    assert_nothing_raised do
+      @connection_users.each do |connection_user|                                 # Use different user for connect
+        sleep(1)                                                                  # Ensure that at least 1 second is between executions to supress unique key violations
+        [:OBJECT_SIZE, :CACHE_OBJECTS, :BLOCKING_LOCKS ].each do |domain|
+          if domain != :AWR_ASH
+            @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)
+            WorkerThread.new(@sampler_config, "test_sampling_#{domain}").create_snapshot_internal(Time.now.round, domain)
+          end
         end
       end
     end
   end
 
   test "check_analyze" do
-    @sampler_config = prepare_panorama_sampler_thread_db_config
-    @sampler_config.set_last_analyze_check_timestamp(Time.now - 86400*20)       # 20 days back
-    WorkerThread.new(@sampler_config, 'check_analyze').check_analyze_internal   #run in same thread instead of separate thread
-    # WorkerThread.check_analyze(@sampler_config)
+    assert_nothing_raised do
+      @sampler_config = prepare_panorama_sampler_thread_db_config
+      @sampler_config.set_last_analyze_check_timestamp(Time.now - 86400*20)       # 20 days back
+      WorkerThread.new(@sampler_config, 'check_analyze').check_analyze_internal   #run in same thread instead of separate thread
+      # WorkerThread.check_analyze(@sampler_config)
+    end
   end
-
 end
