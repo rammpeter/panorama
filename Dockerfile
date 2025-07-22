@@ -42,7 +42,6 @@ RUN  microdnf install wget tar gzip curl bash tzdata make clang git
 RUN  echo "### install jruby" && \
      (cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
      (cd /opt && tar -xvf jruby-dist-$JRUBY_VERSION-bin.tar.gz && rm jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
-     ln -s /opt/jruby-$JRUBY_VERSION/bin/jruby /opt/jruby-$JRUBY_VERSION/bin/ruby && \
      ruby -v
 RUN  date # show  timezone
 RUN  echo '### due to error building digest-crc:6.0.3 sh: line 0: exec: jrake: not found' && \
