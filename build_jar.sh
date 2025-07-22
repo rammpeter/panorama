@@ -19,7 +19,10 @@ export RAILS_ENV=production
 
 # Avoid installing the gems in the development and test group and omit them in the jar
 # Does the same like  export BUNDLE_WITHOUT="development:test"
-bundle config set without 'development:test'
+bundle config set --local without 'development test'
+
+# Ensure that only the needed gems for production in the Gemfile are installed
+rm -rf vendor/bundle
 
 bundle install --jobs 4
 gem install jarbler
