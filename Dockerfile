@@ -55,6 +55,8 @@ RUN  echo "gem: --no-rdoc --no-ri" > ~/.gemrc
 RUN  bundle config set deployment 'true'
 RUN  bundle config set --local without 'development test'
 RUN  rm -rf vendor/bundle # remove old vendor gems
+# Ensure bundle install uses the correct JRE
+RUN  bundle lock --add-platform universal-java-21 && bundle lock --add-platform universal-java-24
 RUN  bundle install --jobs 4
 RUN  bundle exec rake assets:precompile
 # RUN  echo "### reduce storage / remove unnecessary packages" && gem cleanup && gem list && \
