@@ -246,7 +246,7 @@ GEM
     zeitwerk (2.7.3)
 
 PLATFORMS
-  universal-java-21
+  universal-java-24
 
 DEPENDENCIES
   actionpack (= 8.0.2)
@@ -275,4 +275,4 @@ DEPENDENCIES
   web-console (>= 4.1.0)
 
 BUNDLED WITH
-   2.6.9
+   2.7.1

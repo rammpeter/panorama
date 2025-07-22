@@ -2125,6 +2125,12 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
+    object_id_filter = if @object_type == 'PACKAGE BODY'
+                        " AND p.Object_ID = (SELECT Object_ID FROM DBA_Objects op WHERE op.Owner = o.Owner AND op.Object_Name = o.Object_Name AND op.Object_Type = 'PACKAGE')"
+                      else
+                        " AND p.Object_ID = o.Object_ID"
+                      end
+
     @attribs = sql_select_all ["\
       SELECT o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status,
               s.PLSQL_Optimize_Level, s.PLSQL_Code_Type, s.PLSQL_Debug, s.PLSQL_Warnings, s.NLS_Length_Semantics, s.PLSQL_CCFlags, PLScope_Settings,
@@ -2136,7 +2142,7 @@ class DbaSchemaController < ApplicationController
       LEFT OUTER JOIN DBA_PLSQL_Object_Settings s ON s.Owner = o.Owner AND s.Name = o.Object_Name AND s.Type = o.Object_Type
       LEFT OUTER JOIN DBA_Procedures p ON p.Owner = o.Owner AND p.Object_Name = o.Object_Name
                                        AND p.Object_Type = DECODE(o.Object_Type, 'PACKAGE BODY', 'PACKAGE', o.Object_Type)
-                                       AND p.Procedure_Name IS NULL
+                                       AND p.Procedure_Name IS NULL #{object_id_filter}
       WHERE  o.Owner = ? AND o.Object_Name = ? AND o.Object_Type = ?
     ", @owner, @object_name, @object_type]
 
