@@ -426,6 +426,17 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     "
   end
 
+  # build data title for column access predicates
+  def access_predicates_data_title(rec)
+    result = "%t\n".dup
+    result << "#{my_html_escape expand_compare_spaces(rec.access_predicates)}"
+    result << "\nNumber of columns with matching predicates = #{rec.search_columns}"  if rec.search_columns
+    result << "\n\npartition start = #{rec.partition_start}"                          if rec.partition_start
+    result << "\npartition stop = #{rec.partition_stop}"                              if rec.partition_stop
+    result << "\npartition ID = #{rec.partition_id}"                                  if rec.partition_id
+    result
+  end
+
   def parallel_short(rec)
     case rec.other_tag
     when 'PARALLEL_COMBINED_WITH_PARENT' then 'PCWP'
