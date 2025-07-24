@@ -16,7 +16,7 @@
 #       password: noa
 
 default: &default
-  adapter: nulldb
+   adapter: nulldb
 
 development:
   <<: *default
@@ -32,11 +32,7 @@ development:
 # Set DB by env DB_VERSION, e.g. DB_VERSION=10.2 for test_10.2
 # Konkrete Oracle-Test-DB wird erst in test_helper.rb  set_session_test_db_context geswitcht, Parameter werden schon hier gesetzt
 test:
-  adapter: nulldb
-  test_url:      jdbc:oracle:thin:@ramm-1.osp-dd.de:1521:RAMM
-  test_username: noatest
-  test_password: noa
-
+  <<: *default
 
 production:
   <<: *default

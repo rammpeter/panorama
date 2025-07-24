@@ -21,10 +21,8 @@ export RAILS_ENV=production
 # Does the same like  export BUNDLE_WITHOUT="development:test"
 bundle config set --local without 'development test'
 
-# Ensure that only the needed gems for production in the Gemfile are installed
-rm -rf vendor/bundle
-
 bundle install --jobs 4
+# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.2.gem
 gem install jarbler
 
 if [ "$1" != "without_assets" ]
