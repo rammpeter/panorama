@@ -72,6 +72,9 @@ group :development do
   # Use SCSS for stylesheets
   gem 'sass-rails', '>= 6'
 
+  # Needed to build executable lock_jars for jar-dependencies
+  gem 'ruby-maven', '~> 3.9'
+
   # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
   #gem 'date'
 

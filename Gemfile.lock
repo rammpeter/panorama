@@ -205,6 +205,9 @@ GEM
     reline (0.6.2)
       io-console (~> 0.5)
     rexml (3.4.1)
+    ruby-maven (3.9.3)
+      ruby-maven-libs (~> 3.9.9)
+    ruby-maven-libs (3.9.9)
     ruby-plsql (0.8.0)
     sass-rails (6.0.0)
       sassc-rails (~> 2.1, >= 2.1.1)
@@ -269,6 +272,7 @@ DEPENDENCIES
   rails (= 8.0.2)
   railties (= 8.0.2)
   rexml
+  ruby-maven (~> 3.9)
   sass-rails (>= 6)
   sprockets-rails
   tzinfo-data
