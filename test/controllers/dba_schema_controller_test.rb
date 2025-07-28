@@ -251,18 +251,20 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_audit_unified_policy_names with xhr: true" do
-    if get_db_version >= '12.2'
-      get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, update_area: :hugo }
-      assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '12.2'
+        get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, update_area: :hugo }
+        assert_response :success
 
-      get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, policy_name: 'HUGO_POLICY', update_area: :hugo }
-      assert_response :success
+        get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, policy_name: 'HUGO_POLICY', update_area: :hugo }
+        assert_response :success
 
-      get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, policy_name: 'HUGO_POLICY', object_type: 'TABLE', update_area: :hugo }
-      assert_response :success
+        get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, policy_name: 'HUGO_POLICY', object_type: 'TABLE', update_area: :hugo }
+        assert_response :success
 
-      get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, object_type: 'TABLE', update_area: :hugo }
-      assert_response :success
+        get '/dba_schema/list_audit_unified_policy_names', params: {format: :html, object_type: 'TABLE', update_area: :hugo }
+        assert_response :success
+      end
     end
   end
 
