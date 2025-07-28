@@ -2126,7 +2126,7 @@ class DbaSchemaController < ApplicationController
     @grants       = get_grant_count(@owner, @object_name)
 
     object_id_filter = if @object_type == 'PACKAGE BODY'
-                        " AND p.Object_ID = (SELECT Object_ID FROM DBA_Objects op WHERE op.Owner = o.Owner AND op.Object_Name = o.Object_Name AND op.Object_Type = 'PACKAGE')"
+                        " AND p.Object_ID = (SELECT Object_ID FROM DBA_Objects op WHERE op.Owner = p.Owner AND op.Object_Name = p.Object_Name AND op.Object_Type = 'PACKAGE')"
                       else
                         " AND p.Object_ID = o.Object_ID"
                       end
