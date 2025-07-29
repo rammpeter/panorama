@@ -16,7 +16,7 @@ there are two ways to run Panorama:
 2. as Docker container
 
 ### 1. Use Panorama as Java program (jar file)
-- Ensure you have Java installed (version 8 or higher)
+- Ensure you have Java installed (version 21 or higher)
 - Download the latest release of Panorama.jar from https://github.com/rammpeter/panorama/releases/latest
 - Start the application by executing the jar file in a terminal:
   ```
