@@ -25,6 +25,7 @@ jobs:
   setup:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v1
       - name: Remove orphanded DB containers older than 1 hour from previous runs
         run: |
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
