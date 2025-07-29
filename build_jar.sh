@@ -14,27 +14,36 @@ find . -name mp_views* -exec rm -f {} \;
 # Use the Gemfile.lock as it is and don't update the gems
 bundle config set deployment 'true'
 
-# Ensures that after no test or development dependecies are initialized at 'bundle exec rake assets:precompile'
-export RAILS_ENV=production
-
-# Avoid installing the gems in the development and test group and omit them in the jar
-# Does the same like  export BUNDLE_WITHOUT="development:test"
-bundle config set --local without 'development test'
-
-bundle install --jobs 4
-# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.2.gem
-gem install jarbler
-
 if [ "$1" != "without_assets" ]
 then
+  #### Configure all for rake asssets:precompile
+  # Restore the original Gemfile.lock content for rake execution
+  bundle config unset without
+  bundle install --jobs 4
   echo "Compile assets"
   bundle exec rake assets:precompile
   if [ $? -ne 0 ]
   then
     echo "######### Error running rake assets:precompile"
+    # reset previous state
+    bundle config unset deployment
+    bundle config unset without
     exit 1
   fi
 fi
+
+# Avoid installing the gems in the development and test group and omit them in the jar
+# Does the same like  export BUNDLE_WITHOUT="development:test"
+bundle config set --local without 'development test'
+bundle install --jobs 4
+
+# Ensures that after no test or development dependecies are initialized at 'bundle exec rake assets:precompile'
+export RAILS_ENV=production
+
+
+# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.2.gem
+gem install jarbler
+
 
 # NoMethodError: protected method `pathmap_replace' called for "public/404.html":String
 # Fixen durch auskommentieren des protection-Flags für pathmap_replace in gems/rake-11.3.0/lib/rake/ext/string.rb

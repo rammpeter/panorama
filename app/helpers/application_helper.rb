@@ -639,9 +639,9 @@ module ApplicationHelper
   def admin_jwt_valid?
     token = cookies[:master]
     begin
-      decoded_token = JWT.decode(token, jwt_secret, true, { algorithm: 'HS256' })
+      JWT.decode(token, jwt_secret, true, { algorithm: 'HS256' })
       true
-    rescue JWT::DecodeError => e
+    rescue JWT::DecodeError
       false
     end
   end

@@ -40,7 +40,7 @@ gem 'jbuilder', '~> 2.7'
 # gem 'bcrypt', '~> 3.1.7'
 
 # 2025-01-22 concurrent-ruby 1.3.5 raises: NameError: uninitialized constant ActiveSupport::LoggerThreadSafeLevel::Logger
-gem 'concurrent-ruby', '1.3.4'
+# gem 'concurrent-ruby', '1.3.4'
 
 # gem 'activerecord-oracle_enhanced-adapter', github: "rsim/oracle-enhanced", branch: "release70"
 # gem 'activerecord-oracle_enhanced-adapter'
@@ -49,16 +49,14 @@ gem 'concurrent-ruby', '1.3.4'
 gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80'
 gem 'activerecord-nulldb-adapter'
 
-# TODO: i18n 1.8.8, 1.8.9 leads to Uncaught exception: undefined method `deep_merge!' for {}:Concurrent::Hash
-# Check if following versions fix this error
-# s.add_dependency 'i18n', '1.8.7'
-gem 'i18n'
-
 # Use Json Web Token (JWT) for token based authentication
 gem 'jwt'
 
 # Used for XMl processing in bequeathed packages
 gem 'rexml'
+
+#### certain dependencies fixed to version according to system gems to be equal with default Gems in x86-64-linux
+gem 'jar-dependencies', '0.5.4' # Fix: You have already activated jar-dependencies 0.5.4, but your Gemfile requires jar-dependencies 0.5.5.
 
 group :development do
   # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"

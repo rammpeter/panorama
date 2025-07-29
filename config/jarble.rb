@@ -12,6 +12,11 @@ Jarbler::Config.new do |config|
   # Works only up to JRuby < 10.0.0.0 which requires Java 21 or above
   config.java_opts = '-source 1.8 -target 1.8'
 
+  config.executable             = 'bin/rails'
+  config.executable_params      = %w(server -e production -p 8080)
+  # config.executable             = '../gems/jruby/3.4.0/bin/puma'
+  # config.executable_params      = %w(-e production -p 8080)
+
   # Application directories or files to include in the jar file
   # config.includes = ["app", "bin", "config", "config.ru", "db", "Gemfile", "Gemfile.lock", "lib", "log", "public", "script", "vendor", "tmp"]
   # config.includes << "additional"
