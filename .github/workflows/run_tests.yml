@@ -122,13 +122,16 @@ jobs:
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
 
-      - name: Check OS prerequisites
+      - name: Check OS prerequisites and set bundle config
         if: ${{ matrix.management_pack_license == env.RANDOM_STRING }}
         run: |
           env
           docker ps -a
           docker images
           java -version
+          bundle config deployment 'true'
+          bundle config path '/tmp'
+
 
       # create encypted wallet zip file to store in repository, add passphrase
       # gpg --symmetric --cipher-algo AES256 Wallet_panoramatest.zip
@@ -191,9 +194,6 @@ jobs:
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-${{ env.JRUBY_VERSION }}       
-
-          bundle config deployment 'true'
-          bundle config path '/tmp'
 
           export TEST_PORT=${{ env.TEST_PORT }}
           echo "TNS_ADMIN=$TNS_ADMIN"
