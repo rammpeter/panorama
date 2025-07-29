@@ -33,7 +33,7 @@ jobs:
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
           source "$HOME/.rvm/scripts/rvm"
-          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
+          rvm use --default jruby-$JRUBY_VERSION       
           which bundle
           bundle --version
           pwd
