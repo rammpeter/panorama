@@ -125,6 +125,8 @@ jobs:
       - name: Check OS prerequisites and set bundle config
         if: ${{ matrix.management_pack_license == env.RANDOM_STRING }}
         run: |
+          source "$HOME/.rvm/scripts/rvm"
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
           env
           docker ps -a
           docker images
