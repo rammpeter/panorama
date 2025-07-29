@@ -28,6 +28,22 @@ jobs:
       - name: Remove orphanded DB containers older than 1 hour from previous runs
         run: |
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
+      - name: Prepare Gem repo for all tests
+        run: |
+          JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
+          echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
+          source "$HOME/.rvm/scripts/rvm"
+          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
+          which bundle
+          bundle --version
+          pwd
+          bundle config deployment 'true'
+          # All runners should use the same path
+          bundle config path '/tmp'
+          bundle lock --add-platform universal-java-21
+          bundle lock --add-platform universal-java-24
+          bundle install --jobs 4
+
 
   # !!! Remember to adjust the "needed" jobs in awaits_tests if changing the test jobs here !!!
   test_autonomous_PDB: { uses: "rammpeter/panorama/.github/workflows/run_tests.yml@master", needs: [setup], with: { db_version: "autonomous",    container: "PDB", max_parallel: 1 }, secrets: "inherit"}

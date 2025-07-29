@@ -130,23 +130,6 @@ jobs:
           docker images
           java -version
 
-      - name: bundle install
-        if: ${{ matrix.management_pack_license == env.RANDOM_STRING }}
-        run: |
-          source "$HOME/.rvm/scripts/rvm"
-          rvm use --default jruby-${{ env.JRUBY_VERSION }}       
-          which bundle
-          bundle --version
-          pwd
-          bundle config deployment 'true'
-          # All runners should use the same path
-          # bundle config path '/tmp'
-          # Prevent from error "Bundler::GemNotFound: Could not find rake-13.0.6.gem for installation"
-          # gem install rake --no-doc
-          bundle lock --add-platform universal-java-21
-          bundle lock --add-platform universal-java-24
-          bundle install --jobs 4
-
       # create encypted wallet zip file to store in repository, add passphrase
       # gpg --symmetric --cipher-algo AES256 Wallet_panoramatest.zip
       - name: Decrypt Wallet for database access
@@ -208,6 +191,10 @@ jobs:
         run: |
           source "$HOME/.rvm/scripts/rvm"
           rvm use --default jruby-${{ env.JRUBY_VERSION }}       
+
+          bundle config deployment 'true'
+          bundle config path '/tmp'
+
           export TEST_PORT=${{ env.TEST_PORT }}
           echo "TNS_ADMIN=$TNS_ADMIN"
           if [[ -n "$TNS_ADMIN" ]]; then
