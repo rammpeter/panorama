@@ -150,7 +150,7 @@ GEM
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
-    psych (5.2.6-java)
+    psych (5.2.3-java)
       date
       jar-dependencies (>= 0.1.7)
     puma (6.6.0-java)
@@ -266,6 +266,7 @@ DEPENDENCIES
   jwt
   listen (~> 3.3)
   playwright-ruby-client
+  psych (= 5.2.3)
   puma
   rack-mini-profiler (~> 2.0)
   rails (= 8.0.2)

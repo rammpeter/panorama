@@ -57,6 +57,7 @@ gem 'rexml'
 
 #### certain dependencies fixed to version according to system gems to be equal with default Gems in x86-64-linux
 gem 'jar-dependencies', '0.5.4' # Fix: You have already activated jar-dependencies 0.5.4, but your Gemfile requires jar-dependencies 0.5.5.
+gem 'psych', '5.2.3'
 
 group :development do
   # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
