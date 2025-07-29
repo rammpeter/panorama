@@ -1991,11 +1991,6 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     min_snap_id        = prepare_param :min_snap_id                            # only set if called from DBA_Hist_SQLStat view
     max_snap_id        = prepare_param :max_snap_id                            # only set if called from DBA_Hist_SQLStat view
     dbid               = prepare_param_dbid                                              # only set if called from DBA_Hist_SQLStat view
-    name                = prepare_param :name
-    description         = prepare_param(:description) || ''
-    time_limit          = prepare_param_int :time_limit
-    overwrite_existing  = prepare_param_boolean :overwrite_existing
-    scope               = prepare_param :scope
 
     task_name = "Panorama_#{sql_id}"
     result = "

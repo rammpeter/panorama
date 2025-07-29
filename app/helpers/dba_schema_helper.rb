@@ -44,7 +44,7 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
         (size_mb - calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks)) / size_mb
       end
     end
-  rescue Exception => e
+  rescue Exception
       nil
   end
 

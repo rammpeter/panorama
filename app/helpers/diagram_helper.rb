@@ -24,7 +24,6 @@ module DiagramHelper
     value_key_name        = param[:value_key_name]
     top_x                 = param[:top_x]
     caption               = param[:caption]
-    update_area           = param[:update_area]
     null_points_cycle     = param[:null_points_cycle]
     plotselected_handler  = param[:plotselected_handler]
     next_update_area_id   = param[:next_update_area_id]

@@ -3,6 +3,7 @@ then
   echo "Clean Cache and logs"
   rm -rf tmp/*
   rm -rf log/*
+  bundle cleanup --force
 fi
 
 echo "Remove the assets at public"

@@ -711,7 +711,6 @@ private
     database = get_current_database
 
     last_logins = read_last_logins
-    min_id = nil
 
     last_logins.each do |value|
       last_logins.delete(value) if value && value[:tns] == database[:tns] && value[:user] == database[:user]    # Aktuellen eintrag entfernen
