@@ -291,26 +291,28 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_unified_audit_trail with xhr: true" do
-    if get_db_version >= '12.1'
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
-      assert_response :success
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+        assert_response :success
 
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
-                                                 :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"none", :update_area=>:hugo }
-      assert_response :success
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+                                                                :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"none", :update_area=>:hugo }
+        assert_response :success
 
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none", :update_area=>:hugo }
-      assert_response :success
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :sessionid=>12345, :grouping=>"none", :update_area=>:hugo }
+        assert_response :success
 
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
-      assert_response :success
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"none", :update_area=>:hugo }
+        assert_response :success
 
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
-                                                 :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"MI", :top_x=>"5", :update_area=>:hugo }
-      assert_response :success
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :os_user=>"Hugo", :db_user=>"Hugo",
+                                                                :machine=>"Hugo", :object_name=>"Hugo", :action_name=>"Hugo", :grouping=>"MI", :top_x=>"5", :update_area=>:hugo }
+        assert_response :success
 
-      get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
-      assert_response :success
+        get '/dba_schema/list_unified_audit_trail', :params => {:format=>:html,  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :grouping=>"MI", :update_area=>:hugo }
+        assert_response :success
+      end
     end
   end
 

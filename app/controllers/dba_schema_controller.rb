@@ -2125,7 +2125,7 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
-    object_id_filter = if @object_type == 'PACKAGE BODY'
+    object_id_filter = if @object_type == 'PACKAGE BODY' && get_db_version >= '12.1' # 11.2 raises: ORA-01799: a column may not be outer-joined to a subquery
                         " AND p.Object_ID = (SELECT Object_ID FROM DBA_Objects op WHERE op.Owner = p.Owner AND op.Object_Name = p.Object_Name AND op.Object_Type = 'PACKAGE')"
                       else
                         " AND p.Object_ID = o.Object_ID"
