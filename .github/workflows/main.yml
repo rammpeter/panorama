@@ -185,6 +185,8 @@ jobs:
           ruby test/test_panorama_jar.rb
 
   deploy_jar:
+    permissions:
+      contents: write # Allow creation of releaes and upload assets
     runs-on: self-hosted
     needs: test_jar
     steps:
