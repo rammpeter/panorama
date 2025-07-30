@@ -193,15 +193,15 @@ jobs:
           # Ensure that exit code != 0 does not stop the build
           set +e
           # Scan all releases for the version
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/rammpeter/panorama/releases | grep tag_name | grep "$PANORAMA_VERSION"
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/rammpeter/panorama/releases | grep tag_name | grep "${{ env.PANORAMA_VERSION }}"
           if [[ $? -eq 1 ]];then
-            echo "Release with version $PANORAMA_VERSION does not exist, deploying"
+            echo "Release with version ${{ env.PANORAMA_VERSION }} does not exist, deploying"
             set -e
             # Create release
             RES=`curl -L -X POST --silent \
                       -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                       https://api.github.com/repos/rammpeter/panorama/releases \
-                      -d "{\"tag_name\":\"v$PANORAMA_VERSION\",\"target_commitish\":\"master\",\"name\":\"Release $PANORAMA_VERSION\",\"body\":\"Continous development\",\"draft\":false,\"prerelease\":false,\"generate_release_notes\":false}"` 
+                      -d "{\"tag_name\":\"v${{ env.PANORAMA_VERSION }}\",\"target_commitish\":\"master\",\"name\":\"Release ${{ env.PANORAMA_VERSION }}\",\"body\":\"Continous development\",\"draft\":false,\"prerelease\":false,\"generate_release_notes\":false}"` 
             RELEASE_ID=`echo $RES | jq ".id"`
             if [[ "$RELEASE_ID" == "null" ]]; then
               echo "Release creation failed! Response was:"
@@ -221,5 +221,5 @@ jobs:
               exit 1
             fi           
           else
-            echo "Release with version $PANORAMA_VERSION already exists, no deployment"
+            echo "Release with version ${{ env.PANORAMA_VERSION }} already exists, no deployment"
           fi          
