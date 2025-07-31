@@ -80,7 +80,7 @@ jobs:
     permissions:
       packages: write  # Crucial: Grants write access to GitHub Packages (GHCR)
     runs-on: self-hosted
-#    needs: await_tests
+    needs: await_tests
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -140,8 +140,6 @@ jobs:
 
       - name: Final push Docker image
         run: |
-          # TODO: remove this check if you want to deploy on every commit
-          exit 1
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
           set +e
