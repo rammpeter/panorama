@@ -106,7 +106,8 @@ jobs:
       - name: Test Docker image
         run: |
           echo "Test docker image"
-          docker run --rm -d --name panorama-ci-test -p 8080:8080 ghcr.io/rammpeter/panorama:ci-temp
+          docker run -d --name panorama-ci-test -p 8080:8080 ghcr.io/rammpeter/panorama:ci-temp
+          docker ps -a
           # Wait for the container to become available
           MAX_WAIT=240 # 4 minutes
           typeset -i LOOPS=0
@@ -123,6 +124,7 @@ jobs:
           if [ $LOOPS -eq $MAX_WAIT ]; then
             echo "Docker container not reachable at port 8080 after $LOOPS seconds! Details follow:"            
             docker logs panorama-ci-test
+            docker rm -f panorama-ci-test
             exit 1
           fi
           # Check content of the web interface
@@ -131,8 +133,10 @@ jobs:
           else
             echo "Panorama start page is not accessible"
             docker logs panorama-ci-test
+            docker rm -f panorama-ci-test
             exit 1
           fi  
+          docker rm -f panorama-ci-test
 
       - name: Final push Docker image
         run: |
