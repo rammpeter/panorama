@@ -80,7 +80,7 @@ jobs:
     permissions:
       packages: write  # Crucial: Grants write access to GitHub Packages (GHCR)
     runs-on: self-hosted
-    needs: await_tests
+#    needs: await_tests
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -99,16 +99,45 @@ jobs:
             echo "Ensure using latest version of $FROM"
             docker pull $FROM
           done
-          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
+          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:ci-temp .
           docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-          docker push ghcr.io/rammpeter/panorama:latest
+          docker push ghcr.io/rammpeter/panorama:ci-temp
 
       - name: Test Docker image
         run: |
           echo "Test docker image"
+          docker run --rm -d --name panorama-ci-test -p 8080:8080 ghcr.io/rammpeter/panorama:ci-temp
+          # Wait for the container to become available
+          MAX_WAIT=240 # 4 minutes
+          typeset -i LOOPS=0
+          while [ $LOOPS -lt $MAX_WAIT ]; do
+            retval=0
+            curl http://localhost:8080/ 2>/dev/null >/dev/null || retval=$?
+            if [ $retval -eq 0 ]; then
+              break
+            fi
+            LOOPS=LOOPS+1
+            echo -n .
+            sleep 1
+          done
+          if [ $LOOPS -eq $MAX_WAIT ]; then
+            echo "Docker container not reachable at port 8080 after $LOOPS seconds! Details follow:"            
+            docker logs panorama-ci-test
+            exit 1
+          fi
+          # Check content of the web interface
+          if curl -s http://localhost:8080/ | grep -q "Please choose saved connection or"; then
+            echo "Panorama start page is accessible"
+          else
+            echo "Panorama start page is not accessible"
+            docker logs panorama-ci-test
+            exit 1
+          fi  
 
       - name: Final push Docker image
         run: |
+          # TODO: remove this check if you want to deploy on every commit
+          exit 1
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
           set +e
@@ -116,8 +145,10 @@ jobs:
           if [[ $? -eq 1 ]];then
             echo "Image with release $PANORAMA_VERSION does not exist, deploying"
             set -e
-            docker tag ghcr.io/rammpeter/panorama:latest ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:latest
             docker push ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker push ghcr.io/rammpeter/panorama:latest
             docker login -u rammpeter -p ${{ secrets.DOCKER_IO_API_KEY }} docker.io
             docker tag ghcr.io/rammpeter/panorama:latest docker.io/rammpeter/panorama:$PANORAMA_VERSION
             docker push docker.io/rammpeter/panorama:$PANORAMA_VERSION
