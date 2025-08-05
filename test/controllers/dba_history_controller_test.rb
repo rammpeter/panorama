@@ -432,7 +432,12 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
     assert_nothing_raised do
       instance = PanoramaConnection.instance_number
       # 18.4 xe raises ORA-13988: Ungültige Eingabe für variable Argumentlisten-Berichtfunktion.
-      if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !get_db_version['18.4']
+      # Autonomoous 23 raises ORA-13988: Invalid input given to variable argument list report function. at "SYS.DBMS_REPORT", line 3850
+      if get_db_version >= '11.1' &&
+         management_pack_license == :diagnostics_and_tuning_pack &&
+         !get_db_version['18.4'] &&
+         !PanoramaConnection.autonomous_database?
+
         origins = ['GV$SQL_MONITOR']
 
         # DBA_Hist_Reports available beginning with 12.1
