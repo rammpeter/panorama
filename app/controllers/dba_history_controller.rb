@@ -2189,7 +2189,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>SQL Report for SQL-ID #{@sql_id}</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def select_plan_hash_value_for_baseline
