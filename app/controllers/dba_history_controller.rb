@@ -2106,7 +2106,8 @@ FROM (
 
     @report.gsub!(/http:/, 'https:') if request.original_url['https://']        # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
 
-    render :html => @report.html_safe
+    @report.sub!(/<head>/, "<he ad><title>Performace Hub Report</title>")
+    render :json => { action: 'show_in_new_tab', result: @report}.to_json
   end
 
   def list_awr_report_html
@@ -2122,7 +2123,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def list_awr_global_report_html
@@ -2138,7 +2141,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def list_ash_report_html
@@ -2171,7 +2176,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>ASH report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
 
