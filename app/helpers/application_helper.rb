@@ -88,6 +88,11 @@ module ApplicationHelper
     PanoramaConnection.db_version
   end
 
+  def get_db_version_numeric    # Oracle-Version as float with the first two digits as major and minor version
+    split_version = PanoramaConnection.db_version.split('.')
+    "#{split_version[0]}.#{split_version[1]}".to_f
+  end
+
   # @return [Numeric] Difference between Panorama server client timezone and DB system timezone in days
   def client_tz_offset_days
     PanoramaConnection.client_tz_offset_hours.to_f/24

@@ -1,4 +1,6 @@
 # encoding: utf-8
+
+require 'java'
 class DbaSgaController < ApplicationController
 
   #require "dba_helper"   # Erweiterung der Controller um Helper-Methoden
@@ -1925,6 +1927,42 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     @plan_hash_value            = prepare_param :plan_hash_value                # only set if called from SGA view with unique plan hash value
 
     render_partial
+  end
+
+  # Execute a PL/SQL function that returns a CLOB
+  # @param function_call [String] the PL/SQL function call to execute, e.g. "DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')"
+  # @param binds [Array] the parameters to bind to the function call
+  # @return [String] the result of the function call as a String
+  def exec_clob_plsql_function(function_call, binds)
+
+  end
+
+  def report_sql
+    @sql_id                     = prepare_param :sql_id
+
+    begin
+      sql = "{ ? = call DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL') }";  # CallableStatement syntax for functions
+      cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
+      cs.register_out_parameter(1, java.sql.Types::CLOB);                         # Register the first parameter (return value) as an OUT parameter
+      cs.set_string(2, @sql_id);                                                  # Set the input parameter
+      cs.execute();
+      clob = cs.get_clob(1);                                                      # Result is of class oracle.sql.CLOB
+
+      reader = clob.get_character_stream                                          # oracle.jdbc.driver.OracleClobReader
+      br = java.io.BufferedReader.new(reader)                                     # Wrap in BufferedReader for efficiency
+      line = java.lang.String.new
+      result = String.new
+      while ((line = br.readLine()) != nil) do
+        result << line
+        result << "\n"
+      end
+      render :json => { action: 'show_in_new_tab', result: result}.to_json, :status => 200
+    rescue Exception => e
+      cs&.close
+      Rails.logger.error('DbaSgaController.report_sql') { "Error '#{e.class} : #{e.message}' occured" }
+      ExceptionHelper.log_exception_backtrace(e)
+      render :html => my_html_escape("ERROR: #{e.class}\n#{e.message}").html_safe, :status => 500
+    end
   end
 
   def show_sql_tuning_advisor

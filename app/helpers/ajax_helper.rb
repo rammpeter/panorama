@@ -139,7 +139,7 @@ module AjaxHelper
     raise "@browser_tab_id is not set before calling ajax_form" if !defined?(@browser_tab_id) || @browser_tab_id.nil?
 
     html_options[:remote] = true              # Ajax-Call verwenden
-    html_options['data-type'] = :html
+    html_options['data-type'] = :html unless html_options.has_key?('data-type') ||  html_options.has_key?('data-type'.to_sym)
     html_options[:onsubmit] = "bind_ajax_html_response(jQuery(this), '#{url[:update_area]}');#{html_options[:onsubmit]}"
 
     url[:controller] = controller_name unless url[:controller]
