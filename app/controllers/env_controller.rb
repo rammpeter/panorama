@@ -25,7 +25,7 @@ class EnvController < ApplicationController
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
     # Ensure client browser has unique client_key stored as cookie (create new one if not already exists)
-      initialize_client_key_cookie
+    initialize_client_key_cookie
     initialize_browser_tab_id                                                   # Helper to distiguish browser tabs
     ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, {current_database: nil}) # Overwrite previous setting from last session
 

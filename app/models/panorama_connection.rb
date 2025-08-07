@@ -708,6 +708,50 @@ class PanoramaConnection
     thread_connection&.unregister_sql_execution
   end
 
+  # Execute a PL/SQL function that returns a CLOB
+  # @param function_call [String] the PL/SQL function call to execute, e.g. "DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')"
+  # @param binds [Array] the parameters to bind to the function call
+  #   one bind os a Hash "{ java_type: "STRING", value: "some_value" }"
+  # @return [String] the result of the function call as a String
+  def self.exec_clob_plsql_function(function_call, binds)
+    begin
+      sql = "{ ? = call #{function_call} }";                                      # CallableStatement syntax for functions
+      cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
+      cs.register_out_parameter(1, java.sql.Types::CLOB);                         # Register the first parameter (return value) as an OUT parameter
+
+      binds.each_with_index do |bind, index|
+        case bind[:java_type]
+        when "STRING"
+          cs.set_string(index + 2, bind[:value])                                  # Set the input parameter, index + 2 because first is OUT parameter
+        when "NUMBER"
+          cs.set_int(index + 2, bind[:value])                                     # Set the input parameter, index + 2 because first is OUT parameter
+        when "DATE"
+          cs.set_date(index + 2, java.sql.Date.value_of(bind[:value]))            # Set the input parameter, index + 2 because first is OUT parameter
+        else
+          raise ArgumentError, "Unsupported java_type: #{bind[:java_type]}"
+        end
+      end
+
+      cs.execute();
+      clob = cs.get_clob(1);                                                      # Result is of class oracle.sql.CLOB
+
+      reader = clob.get_character_stream                                          # oracle.jdbc.driver.OracleClobReader
+      br = java.io.BufferedReader.new(reader)                                     # Wrap in BufferedReader for efficiency
+      line = java.lang.String.new
+      result = String.new
+      while ((line = br.readLine()) != nil) do
+        result << line
+        result << "\n"
+      end
+      result
+    rescue Exception => e
+      Rails.logger.error('DbaSgaController.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occured" }
+      raise e
+    ensure
+      cs&.close
+    end
+  end
+
   def self.commit                                                               # only relevant if autocommit is switched off
     PanoramaConnection.get_connection.commit
   end
