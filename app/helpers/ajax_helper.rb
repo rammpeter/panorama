@@ -139,7 +139,9 @@ module AjaxHelper
     raise "@browser_tab_id is not set before calling ajax_form" if !defined?(@browser_tab_id) || @browser_tab_id.nil?
 
     html_options[:remote] = true              # Ajax-Call verwenden
-    html_options['data-type'] = :html unless html_options.has_key?('data-type') ||  html_options.has_key?('data-type'.to_sym)
+    raise "Use Symbol for data-type not String" if html_options['data-type']
+    html_options['data-type'.to_sym] = :html unless html_options.has_key?('data-type'.to_sym)
+    html_options['data-type'.to_sym] = html_options['data-type'.to_sym].to_sym         # Use content as Symbol, not String
     html_options[:onsubmit] = "bind_ajax_html_response(jQuery(this), '#{url[:update_area]}');#{html_options[:onsubmit]}"
 
     url[:controller] = controller_name unless url[:controller]
@@ -147,7 +149,7 @@ module AjaxHelper
 
     raise 'ajax_form: key=:controller missing in parameter url'   unless url[:controller]
     raise 'ajax_form: key=:action missing in parameter url'       unless url[:action]
-    raise 'ajax_form: key=:update_area missing in parameter url'  unless url[:update_area]
+    raise 'ajax_form: key=:update_area missing in parameter url'  if html_options['data-type'.to_sym] != :json &&  !url[:update_area]
 
     # update_area should be part of request for additional use in server
     (form_tag url_for(url), html_options do                                     # internen Rails-Helper verwenden

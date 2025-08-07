@@ -1934,10 +1934,6 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     result = PanoramaConnection.exec_clob_plsql_function("DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')", [{java_type: "STRING", value: @sql_id}])
     result.sub!(/<head>/, "<head><title>SQL Diagnostic Report for SQL-ID #{@sql_id}</title>")
     render :json => { action: 'show_in_new_tab', result: result}.to_json
-  rescue Exception => e
-    Rails.logger.error('DbaSgaController.report_sql') { "Error '#{e.class} : #{e.message}' occured" }
-    ExceptionHelper.log_exception_backtrace(e)
-    render :html => my_html_escape("ERROR: #{e.class}\n#{e.message}").html_safe, :status => 500
   end
 
   def show_sql_tuning_advisor

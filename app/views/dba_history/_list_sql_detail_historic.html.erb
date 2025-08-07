@@ -309,10 +309,8 @@ Hash-value over total optimizer environment + Number of different optimizer envi
     <%=
       ajax_submit('Diag. report',
                   {
-                    format:                   :json,
                     controller:               :dba_sga,
                     action:                   :report_sql,
-                    update_area:              @update_area,
                     sql_id:                   @sql_id
                   },
                   { title: "Show SQL diagnostic report provided by DBMS_SQLDIAG.Report_SQL.\n\nThis opens a new browser tab, popups need to be enabled." },
