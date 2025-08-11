@@ -943,7 +943,7 @@ class DbaSchemaController < ApplicationController
 
     # assuming it is a table now
     # DBA_Tables is empty for XML-Tables, but DBA_All_Tables contains both object and relational tables
-    @attribs = sql_select_all ["SELECT t.*,
+    @attribs = sql_select_all ["SELECT t.*, SYSDATE,
                                        o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Object_ID Table_Object_ID,
                                        m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
                                        s.Size_MB_Table, s.Blocks Segment_Blocks, s.Extents,

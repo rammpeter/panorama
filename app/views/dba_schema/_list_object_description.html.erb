@@ -325,6 +325,21 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
      Saved space by compression = #{(fn(needed_space - rec.size_mb_table) rescue nil)} MB"
    end
 
+   data_title_modification = proc do |rec, column|
+      result = "%t"
+      if rec.last_analyzed && rec[column]
+        age_secs = (rec.sysdate - rec.last_analyzed)
+        per_sec = rec[column].to_f / age_secs
+        result << "\n"
+        result << "\nAvg. #{fn(per_sec * 24 * 60 * 60, 1)} per day" if per_sec * 24 * 60 * 60 > 0.1
+        result << "\nAvg. #{fn(per_sec * 60 * 60, 1)} per hour"     if per_sec * 60 * 60      > 0.1
+        result << "\nAvg. #{fn(per_sec * 60, 1)} per minute"        if per_sec * 60           > 0.1
+        result << "\nAvg. #{fn(per_sec, 1)} per second"             if per_sec                > 0.1
+      end
+      result << "\n\nMonitoring=#{rec.monitoring}"
+      result
+   end
+
    column_options = []
    column_options << {:caption=> 'TS',               :data=>proc{|rec| rec.tablespace_name},                  :title=> 'Tablespace name', data_title: proc{|rec| data_title_part_def.call(rec.def_tablespace_name)} }
    column_options << {:caption=> 'Pct Free',         :data=>proc{|rec| rec.pct_free},                         :title=> 'Percent free', data_title: proc{|rec| "#{data_title_part_def.call(rec.def_pct_free)}#{"Average = #{rec['avg_pct_free']}" if rec['avg_pct_free']}"}, :align=>:right}
@@ -348,9 +363,9 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    column_options << {:caption=> 'Last analyzed',    :data=>proc{|rec| link_last_analyzed(rec)},              :title=> "The date of the most recent time this table was analyzed", data_title: last_analyzed_data_title, data_style: last_analyzed_data_style }
    column_options << {:caption=> 'Log.',             :data=>proc{|rec| rec.logging},                          :title=> "Indicates whether or not changes to the table are logged in Redo-Log.\nNULL for partitioned tables" }
    column_options << {:caption=> 'Mon.',             :data=>proc{|rec| rec.monitoring},                       :title=> "Indicates whether the table has the MONITORING attribute set (YES) or not (NO).\nIf YES then the DML activities of this table are monitored in XXX_Tab_Modifications." }
-   column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                       :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
-   column_options << {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                       :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
-   column_options << {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                       :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nValues are cumulated also if rows are removed by ALTER TABLE DROP PARTITION instead of DELETE.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| "%t\nMonitoring=#{rec.monitoring}" } }
+   column_options << {:caption=> 'Inserts',          :data=>proc{|rec| fn rec.inserts},                       :title=> "Number of insert-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| data_title_modification.call(rec, 'inserts') } }
+   column_options << {:caption=> 'Updates',          :data=>proc{|rec| fn rec.updates},                       :title=> "Number of update-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| data_title_modification.call(rec, 'updates') } }
+   column_options << {:caption=> 'Deletes',          :data=>proc{|rec| fn rec.deletes},                       :title=> "Number of delete-operations since last table analysis if table has MONITORING-flag.\nValues are cumulated also if rows are removed by ALTER TABLE DROP PARTITION instead of DELETE.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.\nThis values are gathered only if STATISTICS_LEVEL > BASIC.", :align=>:right, :data_title=>proc{|rec| data_title_modification.call(rec, 'deletes') } }
    column_options << {:caption=> 'Trunc.',           :data=>proc{|rec| rec.truncated},                        :title=> "Has table been truncated since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}  if get_db_version >= '11.2'
    column_options << {:caption=> 'Drop seg.',        :data=>proc{|rec| fn rec.drop_segments},                 :title=> "Number of partition and subpartition segments dropped since last table analysis if table has MONITORING-flag.\nALTER TABLE DROP PARTITION also increases the number of delete-operations even though no explicit delete operation happened.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here.", :align=>:right}
    column_options << {:caption=> 'Last DML',         :data=>proc{|rec| localeDateTime(rec.last_dml)},         :title=> "Timestamp of last DML-operations since last table analysis if table has MONITORING-flag.\nStatistics are populated in memory by database. Run the DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO to see the latest information here."}
