@@ -87,6 +87,8 @@ group :development do
   # Needed to build warfile
   # gem 'jruby-jars'
   # gem 'jruby-rack'
+  # gem 'ruby-debug-base', name: '/Users/pramm/Downloads/ruby-debug-base-0.11.0-java.gem'
+  # gem 'ruby-debug-ide'
 end
 
 group :test do
