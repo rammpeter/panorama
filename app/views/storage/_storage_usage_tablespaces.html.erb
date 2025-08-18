@@ -54,7 +54,7 @@
       details << "Retention=#{rec.retention}"
     end
 
-    details
+    details.html_safe
   end
 
   show_pct_used = proc do |rec|

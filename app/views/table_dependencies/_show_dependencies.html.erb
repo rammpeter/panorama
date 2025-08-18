@@ -9,8 +9,7 @@
       out << '&nbsp;&nbsp;&nbsp;'
     end
     out << "#{rec.level}"
-    puts out
-    out
+    out.html_safe
   end
 
    column_options =

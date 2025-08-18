@@ -14,7 +14,7 @@
 
   shown = proc do |owner, name|
     # TODO: <wbr> im Text wirkt sich nicht auf Spaltenbreite aus
-    "#{owner}#{'. ' if owner}#{name}".html_safe
+    "#{owner}#{'. ' if owner}#{name}"
   end
 
   event_data_title = proc do |rec|

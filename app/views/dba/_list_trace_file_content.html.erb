@@ -7,7 +7,7 @@
     if !rec.payload.nil? && (payload['PARSE #'] || payload['EXEC #'] || payload['FETCH #'] || payload['WAIT #'] || payload['BIND #']  || payload['STAT #'] || payload['CLOSE #'] || payload['ERROR #'])
 
       hash_index = payload.index('#')
-      result = payload[0, hash_index]                                           # line Content before cursor ID
+      result = my_html_escape(payload[0, hash_index])                            # line Content before cursor ID
 
       after_cursor_pos = rec.payload[hash_index, rec.payload.length].index(':')
       after_cursor_pos = rec.payload[hash_index, rec.payload.length].index(' ') if after_cursor_pos.nil?    # check for blank if no colon after cursor ID
@@ -31,8 +31,8 @@
             update_area:    @update_area
         }, title: "Show SQL of cursor #{cursor}. Requires additional read of trace file.")
 
-        result << payload[hash_index + after_cursor_pos, payload.length]
-        result
+        result << my_html_escape(payload[hash_index + after_cursor_pos, payload.length])
+        result.html_safe
       end
     else
       payload

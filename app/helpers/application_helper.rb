@@ -218,31 +218,6 @@ module ApplicationHelper
     org.gsub(/'/, "'+String.fromCharCode(39)+'")
   end
 
-  # Maskieren von html-special chars incl. NewLine
-  def my_html_escape(org_value, line_feed_to_br=true)
-    '' if org_value.nil?
-
-    begin
-      retval = ERB::Util.html_escape(org_value)                                          # Standard-Escape kann kein NewLine-><BR>
-    rescue Encoding::CompatibilityError => e
-      Rails.logger.error('ApplicationHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
-      ExceptionHelper.log_exception_backtrace(e)
-
-      # force encoding to UTF-8 before
-      retval = ERB::Util.html_escape(org_value.force_encoding('UTF-8'))   # Standard-Escape kann kein NewLine-><BR>
-    end
-
-    if line_feed_to_br  # Alle vorkommenden NewLine ersetzen
-      # Alle vorkommenden CR ersetzen, führt sonst bei Javascript zu Error String not closed
-      retval.gsub!(/\r/, '')
-      retval.gsub!(/\n/, '<br>')
-    end
-    retval.gsub!(/\\/, '\\\\\\\\')                                              # Escape single backslash
-    retval.gsub!(/&amp;#8203;/, '&#8203;')                                      # Restore Zero width space in result to ensure word wrap
-    retval.gsub!(/&amp;ZeroWidthSpace;/, '&ZeroWidthSpace;')                    # Restore Zero width space in result to ensure word wrap
-    retval
-  end
-
   # Escape SQL-Syntax to be transform SQL-Statements for usage in EXECUTE IMMEDIATE etc. with ''
   def sql_escape(org_value)
     org_value.gsub(/'/, "''").gsub(/&/, "'||CHR(38)||'")

@@ -89,7 +89,7 @@
 
   link_sql_session = proc do |rec|
     if rec.sessions > 1
-      "<&nbsp;#{fn(rec.sessions)}&nbsp;>"
+      "<&nbsp;#{fn(rec.sessions)}&nbsp;>".html_safe
     else
       link_session_or_history.call(rec.min_qinst_id, rec.min_qsession_id, rec.min_qsession_serial_no, rec.first_occurrence, rec.last_occurrence, rec.sql_id, rec.osuser != nil)
     end
@@ -125,7 +125,7 @@
 
   show_username = proc do |rec|
     if rec.user_ids > 1
-      "<&nbsp;#{fn(rec.user_ids)}&nbsp;>"
+      "<&nbsp;#{fn(rec.user_ids)}&nbsp;>".html_safe
     else
       rec.username
     end
@@ -138,7 +138,7 @@
   column_options_sqls << {caption: 'Sess.',            data: link_sql_session,                            title: "Session ID/serial# if only one session was executing this SQL in in considered time period\nor number of different sessions have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'User',             data: show_username,                               title: "DB-Username if only one user was executing this SQL in in considered time period\nor number of different users have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0}, title: "Number of different parallel query server sessions involved in execution of this SQL in considered time period", align: :right}
-  column_options_sqls << {caption: 'SQL text',         data: proc{|rec| my_html_escape(rec.sql_subtext)}, title: "Start of SQL text"}
+  column_options_sqls << {caption: 'SQL text',         data: proc{|rec| rec.sql_subtext},                 title: "Start of SQL text"}
   column_options_sqls << {caption: 'C',                data: proc{|rec| rec.con_id},                      title: "Container ID of PDB"} if get_db_version >= '12.1'
 
 %>
