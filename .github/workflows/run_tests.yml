@@ -38,7 +38,7 @@ jobs:
       RAILS_ENV: test
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v5
 
       # test only for 1 of 4 management pack licenses to reduce test time
       - name: Set Random value 1 of 4 for management pack license to test
