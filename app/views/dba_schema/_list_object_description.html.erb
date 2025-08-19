@@ -326,7 +326,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    end
 
    data_title_modification = proc do |rec, column|
-      result = "%t"
+      result = "%t".dup
       if rec.last_analyzed && rec[column]
         age_secs = (rec.sysdate - rec.last_analyzed)
         per_sec = rec[column].to_f / age_secs

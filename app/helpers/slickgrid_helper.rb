@@ -37,7 +37,8 @@ module SlickgridHelper
 
   def escape_js_chars(input)                                                    # Javascript-kritische Zeichen escapen in Strings
     return nil unless input
-    internal_escape(input).gsub("\n", '<br>')                                   # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+    # Remove 0x0d (Carriage Return) and escape 0x0a (Line Feed) in Javascript-Strings
+    internal_escape(input).gsub("\n", '<br>').gsub("\r", '')                    # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
   end
 
   def eval_with_rec (input, rec)  # Ausführen eval mit Ausgabe des Inputs in Exception
@@ -146,7 +147,7 @@ module SlickgridHelper
     begin
       retval = ERB::Util.html_escape(org_value)                                          # Standard-Escape kann kein NewLine-><BR>
     rescue Encoding::CompatibilityError => e
-      Rails.logger.error('ApplicationHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
+      Rails.logger.error('SlickgridHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
       ExceptionHelper.log_exception_backtrace(e)
 
       # force encoding to UTF-8 before
