@@ -8,8 +8,8 @@
       instance:       rec.inst_id,
       resource_name:  rec.resource_name,
       update_area:@update_area
-    },
-              :title=> "Show recorded history for resource limits")
+    }, :title=> "Show recorded history for resource limits"
+    ).html_safe
   end
 
   show_fn_value = proc do |val|

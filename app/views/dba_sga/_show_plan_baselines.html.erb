@@ -57,7 +57,7 @@
           plan_name:    rec.plan_name,
           update_area: @update_area,
         }, :title => "Generate the SQL code for drop of this SQL plan baseline"
-    )
+    ).html_safe
   end
 
   column_options = [

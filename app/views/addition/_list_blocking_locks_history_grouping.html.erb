@@ -92,7 +92,7 @@ def link_column_blocking_reason_cascade(rec, value)
                         {:title => "Show full cascade of blockers for this session at the last snapshot of period"},
                         style: 'display:inline;'
   ) if rec.sid_min
-  retval
+  retval.html_safe
 end
 
 def link_column_blocked(rec)
@@ -125,7 +125,7 @@ def link_column_blocked(rec)
                         { :title=>'Show sessions blocked by this session at the last snapshot of period'},
                         style: 'display:inline;'
   ) if rec.blocking_sid_min
-  retval
+  retval.html_safe
 end
 
 

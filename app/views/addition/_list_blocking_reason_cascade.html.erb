@@ -40,7 +40,7 @@ link_column_blocked = proc do |rec|
                           style: 'display:inline;'
     )
   end
-  retval
+  retval.html_safe
 end
 
   link_object = proc do |rec|

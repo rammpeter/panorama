@@ -38,7 +38,7 @@ end
                             :title => "Show full cascade of blockers for this session"
       )
     end
-    retval
+    retval.html_safe
   end
 
 def link_column_blocking_reason_cascade(rec, value)

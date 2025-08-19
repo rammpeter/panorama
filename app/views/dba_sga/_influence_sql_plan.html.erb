@@ -14,7 +14,7 @@
     max_snap_id:                @max_snap_id,
     dbid:                       @dbid
   }, :disabled => disabled, title: "Generate template script for running the SQL Tuning advisor for this SQL.")
-  run_title =
+
   run_action = ajax_submit('Run SQL Tuning Advisor', {
     :controller                 => :dba_sga,
     :action                     => :show_sql_tuning_advisor,

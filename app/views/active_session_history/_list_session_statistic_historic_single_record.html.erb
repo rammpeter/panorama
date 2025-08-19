@@ -137,7 +137,7 @@
                               }, {:title => "List full blocking session dependency thread (if blocking session is blocked itself by other session)"},
                               style: 'display:inline;'
         )
-        retval
+        retval.html_safe
       else
         value
       end
