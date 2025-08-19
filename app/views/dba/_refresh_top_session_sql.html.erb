@@ -71,7 +71,7 @@
   column_options_sessions << {caption: 'SID / SN',         data: link_session,                          title: 'SID, Serial_No\n(of query coordinator session for parallel query)', data_title: proc{|rec| "%t\n#{rec.qsession_id},#{rec.qsession_serial_no}"}}
   column_options_sessions << {caption: 'Wait time (sec.)', data: link_wait_time_session,                title: "Wait time of session in seconds in considered time period", align: :right, show_pct_col_sum_background: true, data_title: wait_time_data_title }
   column_options_sessions << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0},       title: "Number of different parallel query server sessions involved in SQL execution of this session in considered time period", align: :right}
-  column_options_sessions << {caption: 'User',             data: proc{|rec| rec.username},              title: "Name of DB-User"}
+  column_options_sessions << {caption: 'User',             data: proc{|rec| link_username(@update_area, rec.username)}, title: "Name of DB-User"}
   column_options_sessions << {caption: 'Machine',          data: proc{|rec| rec.machine},               title: "Client machine"}
   column_options_sessions << {caption: 'OS user',          data: proc{|rec| rec.osuser},                title: "Client machine user (available only if session is still connected)"}
   column_options_sessions << {caption: 'Top SQL ID',       data: link_session_sql,                      title: "SQL-ID of most intensive SQL of session in considered time period", data_title: proc{|rec| "%t\nChild-number = #{rec.max_sql_child_number}"}}
@@ -127,7 +127,7 @@
     if rec.user_ids > 1
       "<&nbsp;#{fn(rec.user_ids)}&nbsp;>".html_safe
     else
-      rec.username
+      link_username(@update_area, rec.username)
     end
   end
 

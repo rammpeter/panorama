@@ -130,6 +130,7 @@
                                                          },
                                                title: 'Show history of transaction from Flashback_Transaction_Query'
       )
+      when 'User' then link_username(@update_area, rec.group_value)
       else rec.group_value
       end
     end
