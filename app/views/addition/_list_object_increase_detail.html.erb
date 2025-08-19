@@ -30,7 +30,7 @@
     if rec.name_addition
       result << " ( #{rec.name_addition} )"
     end
-    result
+    result.html_safe
   end
 
   def show_ts(rec)

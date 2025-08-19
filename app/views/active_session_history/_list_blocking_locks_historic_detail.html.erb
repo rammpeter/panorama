@@ -120,7 +120,7 @@
 
     result << link_file_block_row(rec['blocking_file_no'], rec['blocking_block_no'], rec['blocking_row_no'], rec.blocking_data_object_id, "#{@update_area}_#{rec.hash.abs}", true)  # nach Oracle 11.2 und auch belegt (nur belegt wenn eindeutig)
 
-    result
+    result.html_safe
   end
 
 
@@ -138,7 +138,7 @@
 
     result << link_file_block_row(rec['blocked_file_no'], rec['blocked_block_no'], rec['blocked_row_no'], rec.blocked_data_object_id, "#{@update_area}_#{rec.hash.abs}", true)  # nach Oracle 11.2 und auch belegt (nur belegt wenn eindeutig)
 
-    result
+    result.html_safe
   end
 
 

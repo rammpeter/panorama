@@ -5,7 +5,7 @@
   link_column_sql_id = proc do |rec|
     "\
 #{link_historic_sql_id(rec.root_blocking_instance_number, rec.root_blocking_sql_id,      localeDateTime(rec.root_snapshot_timestamp), localeDateTime(rec.root_snapshot_timestamp), @update_area, rec.root_blocking_user_name)} \
-#{link_historic_sql_id(rec.root_blocking_instance_number, rec.root_blocking_prev_sql_id, localeDateTime(rec.root_snapshot_timestamp), localeDateTime(rec.root_snapshot_timestamp), @update_area, rec.root_blocking_user_name)}"
+#{link_historic_sql_id(rec.root_blocking_instance_number, rec.root_blocking_prev_sql_id, localeDateTime(rec.root_snapshot_timestamp), localeDateTime(rec.root_snapshot_timestamp), @update_area, rec.root_blocking_user_name)}".html_safe
   end
 
   link_root_blocking_sid = proc do |rec|

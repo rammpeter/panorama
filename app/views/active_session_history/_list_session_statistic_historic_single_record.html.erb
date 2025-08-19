@@ -60,7 +60,7 @@
     else
       retval << " < #{rec.top_level_sql_id_cnt } >" if rec['top_level_sql_id_cnt'] && rec.top_level_sql_id_cnt > 1
     end
-    retval
+    retval.html_safe
   end
 
   link_column_sid = proc do |rec|
@@ -97,9 +97,9 @@
                         },
                         :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
            )
-      result << "<div id=\"#{update_area}\"></div>".html_safe
+      result << "<div id=\"#{update_area}\"></div>"
     end
-    result
+    result.html_safe
   end
 
   link_blocking_sid = proc do |rec|
@@ -157,7 +157,7 @@
     result << link_object_description(@update_area, rec.peo_owner, rec.peo_object_name, "#{rec.peo_object_type} #{rec.peo_owner}. #{rec.peo_object_name}. #{rec.peo_procedure_name}") if rec.peo_object_name
     result << ' '
     result << link_object_description(@update_area, rec.po_owner, rec.po_object_name, "#{rec.po_object_type} #{rec.po_owner}. #{rec.po_object_name}. #{rec.po_procedure_name}") if rec.po_object_name
-    result
+    result.html_safe
   end
 
   # Ermitteln Hint für Module, wenn Application
@@ -236,7 +236,7 @@
   column_options <<  {:caption=>"Tx. ID",           :data=>link_transaction,                                            :title=>"Transaction ID that the session was working on at the time of sampling", :data_title=>proc{|rec| data_title_alt(rec.tx_id_cnt) }}
   column_options <<  {:caption=>"Mode",             :data=>proc{|rec| show_alt(rec.modus, rec.modus_cnt)},              :title=>"Mode in which session is executed", :data_title=>proc{|rec| data_title_alt(rec.modus_cnt) } }                                             if get_db_version >= "11.2"
   column_options <<  {:caption=>"Program",          :data=>proc{|rec| show_alt(rec.program, rec.program_cnt) },         :title=>"Programm", :data_title=>proc{|rec| data_title_alt(rec.program_cnt) } }  if get_db_version < "11.2"
-  column_options <<  {:caption=>"Program / Machine / Port",:data=>proc{|rec| "#{show_alt(rec.program, rec.program_cnt)}, #{show_alt(link_machine_ip_info(@update_area, rec.machine), rec.machine_cnt)}: #{show_alt(rec.port, rec.port_cnt)}" },  :title=>"Programm and machine and port on client", :data_title=>proc{|rec| data_title_alt((rec.program_cnt+rec.machine_cnt+rec.port_cnt)/3) }}                         if get_db_version >= "11.2"
+  column_options <<  {:caption=>"Program / Machine / Port",:data=>proc{|rec| "#{show_alt(rec.program, rec.program_cnt)}, #{show_alt(link_machine_ip_info(@update_area, rec.machine), rec.machine_cnt)}: #{show_alt(rec.port, rec.port_cnt)}".html_safe },  :title=>"Programm and machine and port on client", :data_title=>proc{|rec| data_title_alt((rec.program_cnt+rec.machine_cnt+rec.port_cnt)/3) }}                         if get_db_version >= "11.2"
   column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| show_alt(rec.client_id, rec.client_id_cnt)},      :title=>"Client-ID"}
   column_options <<  {:caption=>"Service",          :data=>proc{|rec| show_alt(rec.service_name, rec.service_name_cnt)},:title=>"SQL*Net-Service"}
   column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken': 'Maximum amount of PGA memory (in kBytes) consumed by one single session at one time'} ", :align=>:right}         if get_db_version >= "11.2"

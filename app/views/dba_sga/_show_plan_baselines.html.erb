@@ -17,7 +17,7 @@
    end
 
   link_sql_id = proc do |rec|
-    "#{fn(rec.sga_usages)}\n#{link_sql_id(@update_area, rec.inst_id, rec.sql_id)}"
+    "#{fn(rec.sga_usages)}\n#{link_sql_id(@update_area, rec.inst_id, rec.sql_id)}".html_safe
   end
 
   link_comp_data = proc do |rec|
