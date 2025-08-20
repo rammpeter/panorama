@@ -158,6 +158,8 @@ module SlickgridHelper
       # Alle vorkommenden CR ersetzen, führt sonst bei Javascript zu Error String not closed
       retval.gsub!(/\r/, '')
       retval.gsub!(/\n/, '<br>')
+    else
+      retval.gsub!(/\r/, "\n")                                                  # Avoid having \r in text
     end
     retval.gsub!(/\\/, '\\\\\\\\')                                              # Escape single backslash
     retval.gsub!(/&amp;#8203;/, '&#8203;')                                      # Restore Zero width space in result to ensure word wrap
@@ -314,14 +316,11 @@ module SlickgridHelper
         title = String.new
         if col[:data_title]
           begin
-            title = col[:data_title].call(rec) if col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
-            title = eval_with_rec("\"#{col[:data_title]}\"", rec)  unless col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
+            title << col[:data_title].call(rec).to_s if col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
+            title << eval_with_rec("\"#{col[:data_title]}\"", rec)  unless col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
           rescue Exception => e
             ExceptionHelper.reraise_extended_exception(e, "processing data_title-rule for column #{col[:caption]}")
           end
-          title = String.new if title.nil?
-          title = title.to_s unless title.class == String
-          title = title.dup if title.frozen?                                   # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
           title = my_html_escape(title, false) if title.class == String && !title.html_safe?
           title['%t'] = col[:title].gsub('\n', "\n") if title['%t'] && col[:title]   # einbetten :title in :data_title, wenn per %t angewiesen, replace \n with real line feed before
         end
