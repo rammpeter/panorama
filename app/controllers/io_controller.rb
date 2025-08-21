@@ -87,7 +87,8 @@ class IoController < ApplicationController
   # Union Select gegen DBA_Hist_FileStatxs und DBA_Hist_TempStatxs
   def io_file_history_internal_sql_select
     def single_table_select(table_name, type)
-      "SELECT s.Begin_Interval_Time, s.End_Interval_Time, f.Instance_Number, f.Snap_ID, f.FileName, f.TSName, Block_Size, '#{type}' File_Type,
+      "SELECT #{awr_snapshot_ts_round('s.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+              s.Begin_Interval_Time, s.End_Interval_Time, f.Instance_Number, f.Snap_ID, f.FileName, f.TSName, Block_Size, '#{type}' File_Type,
               PhyRds         - LAG(PhyRds,         1, PhyRds)         OVER (PARTITION BY f.DBID, f.Instance_Number, f.File# ORDER BY f.Snap_ID) PhyRds,
               PhyWrts        - LAG(PhyWrts,        1, PhyWrts)        OVER (PARTITION BY f.DBID, f.Instance_Number, f.File# ORDER BY f.Snap_ID) PhyWrts,
               SingleBlkRds   - LAG(SingleBlkRds,   1, SingleBlkRds)   OVER (PARTITION BY f.DBID, f.Instance_Number, f.File# ORDER BY f.Snap_ID) SingleBlkRds,
@@ -154,7 +155,7 @@ class IoController < ApplicationController
              (TO_DATE(TO_CHAR(MAX(f.End_Interval_Time), '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}') -
               TO_DATE(TO_CHAR(MIN(f.Begin_Interval_Time), '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}'))*(24*60*60) Sample_Dauer_Secs
              #{include_io_file_history_default_select_list},
-             COUNT(DISTINCT ROUND(f.Begin_Interval_Time, 'MI'))         Samples,
+             COUNT(DISTINCT f.Rounded_Begin_Interval_Time) Samples,
              #{io_file_history_external_column_list}
       FROM   (#{io_file_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID -- Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger
