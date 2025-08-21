@@ -1215,7 +1215,13 @@ FROM (
   end
 
   def list_system_statistics_historic_full
-    trunc_tag = params[:verdichtung][:tag]
+    ts_code = case params[:verdichtung][:tag]
+              when 'AWR'  then awr_snapshot_ts_round('ss.Begin_Interval_Time')
+              when 'HH24' then "TRUNC(ss.Begin_Interval_Time, 'HH24')"
+              when 'DD'   then "TRUNC(ss.Begin_Interval_Time, 'DD')"
+              else raise "Unsupported value for parameter :verdichtung (#{params[:verdichtung][:tag]})"
+              end
+
 
     additional_where = String.new
     binds = [prepare_param_dbid]  # 1. Bindevariablen
@@ -1226,7 +1232,7 @@ FROM (
     binds.concat [@time_selection_start, @time_selection_end]
 
     single_stats = sql_select_iterator ["
-      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Begin_Interval_Time,
+      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time,
                             Min(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Min_Snap_ID,
                             MAX(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Max_Snap_ID
                      FROM   DBA_Hist_Snapshot ss
@@ -1234,17 +1240,19 @@ FROM (
                      AND    Begin_Interval_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
                      AND    Begin_Interval_Time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
              ),
-      All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time
+      All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time, End_Interval_Time
                     FROM   Snaps
                     UNION ALL
                     SELECT DBID, Instance_Number, MIN(Snap_ID-1) Snap_ID, /* Vorgänger des ersten mit auswerten für Differenz per LAG */
-                           MIN(Min_Snap_ID) Min_Snap_ID,  MAX(Max_Snap_ID) Max_Snap_ID, MIN(Begin_Interval_time)
+                           MIN(Min_Snap_ID) Min_Snap_ID,  MAX(Max_Snap_ID) Max_Snap_ID, MIN(Begin_Interval_time), MAX(End_Interval_Time)
                     FROM   Snaps
                     GROUP BY DBID, Instance_Number
                    )
-      SELECT /* Panorama-Tool Ramm */ TRUNC(hist.Begin_Interval_Time, '#{trunc_tag}') Begin_Interval_Time, hist.Stat_ID, SUM(hist.Value) Value
+      SELECT /* Panorama-Tool Ramm */ Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time,
+             hist.Stat_ID, SUM(hist.Value) Value
       FROM   (
-              SELECT /*+ NO_MERGE */ ss.DBID, ss.Begin_Interval_Time, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID,
+              SELECT /*+ NO_MERGE */ #{ts_code} Rounded_Begin_Interval_Time,
+                     ss.DBID, ss.Begin_Interval_Time, ss.End_Interval_Time, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID,
                      Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
               FROM   All_Snaps ss
               JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
@@ -1252,7 +1260,7 @@ FROM (
             ) hist
       WHERE  hist.Value >= 0    /* Ersten Snap nach Reboot ausblenden */
       AND    hist.Snap_ID >= hist.Min_Snap_ID /* Vorgaenger des ersten Snap fuer LAG wieder ausblenden */
-      GROUP BY TRUNC(hist.Begin_Interval_Time, '#{trunc_tag}'), hist.Stat_ID
+      GROUP BY Rounded_Begin_Interval_Time, hist.Stat_ID
       ORDER BY 1, Stat_ID"].concat(binds)
 
     statnames = sql_select_all ["
@@ -1270,10 +1278,14 @@ FROM (
     empty = true
     single_stats.each do |s|
       empty = false
-      if ts != s.begin_interval_time
+      if ts != s.rounded_begin_interval_time
         @stats << rec if ts    # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
-        rec = {:begin_interval_time => s.begin_interval_time }              # Neuer Record
-        ts = s.begin_interval_time                                          # Vergleichswert fur naechsten Record
+        rec = {  # Neuer Record
+                 rounded_begin_interval_time: s.rounded_begin_interval_time,
+                 min_begin_interval_time:     s.min_begin_interval_time,
+                 max_end_interval_time:       s.max_end_interval_time
+        }
+        ts = s.rounded_begin_interval_time                                          # Vergleichswert fur naechsten Record
       end
       rec[s.stat_id] = s.value if s.value != 0      # 0-Values nicht speichern
       columns[s.stat_id] = true if s.value != 0     # Statistik als verwendet kennzeichnen
@@ -1282,7 +1294,13 @@ FROM (
 
     column_options =
     [
-      {caption: "Interval", data: proc{|rec| localeDateTime(rec[:begin_interval_time])}, :title=>"Start of AWR snapshot period", :plot_master_time=>true }
+      {
+        caption:    "Interval",
+        data:       proc{|rec| localeDateTime(rec[:rounded_begin_interval_time])},
+        title:      "Start of AWR snapshot period",
+        data_title: proc{|rec| "%t\nEarliest begin interval time: #{localeDateTime(rec[:min_begin_interval_time])}\nLatest end interval time: #{localeDateTime(rec[:max_end_interval_time])}"},
+        plot_master_time: true
+      }
     ]
     statnames.each do |sn|
       if columns[sn.stat_id]              # Statistik kommt auch im Result vor
@@ -1540,7 +1558,7 @@ FROM (
     @min_snap_id, @max_snap_id = get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)
 
     result = sql_select_iterator ["
-      SELECT  ROUND(snap.Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time,
+      SELECT  #{awr_snapshot_ts_round('snap.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
               snap.Begin_Interval_Time, snap.End_Interval_Time,
               hist.Stat_ID, hist.Stat_Name, hist.Value#{get_db_version >='12.1' ? ", hist.Con_ID": ", NULL Con_ID"}
       FROM   (

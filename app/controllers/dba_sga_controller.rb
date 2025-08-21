@@ -2685,7 +2685,7 @@ END;
       where_values << @con_id
     end
 
-    sgastat = sql_select_iterator ["SELECT ROUND(ss.Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time,
+    sgastat = sql_select_iterator ["SELECT #{awr_snapshot_ts_round('ss.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
                                            #{pool_details ? "DECODE(s.Pool, NULL, '', s.Pool||' / ')||s.Name" : "NVL(s.Pool, s.Name) "} Pool,
                                            s.Bytes/(1024*1024) MBytes
                                     FROM   DBA_Hist_SGAStat s
