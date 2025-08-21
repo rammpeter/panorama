@@ -808,4 +808,12 @@ module ApplicationHelper
     retval << "\n= #{fn(fmbytes / (1024 * 1024), 1 ) } Terabytes"  if fmbytes > 1000000
     retval
   end
+
+  # Round a timestamp to the nearest full minute according to AWR snapshot cycle
+  # @param [String] col_name Name of the DATE or TIMESTAMP column to round
+  # @return [String] SQL snippet for rounding the timestamp column
+  def awr_snapshot_ts_round(col_name)
+    interval = PanoramaConnection.min_awr_interval
+    "TRUNC(#{col_name}, 'HH') + ROUND( ( EXTRACT(MINUTE FROM CAST(#{col_name} AS TIMESTAMP)) + EXTRACT(SECOND FROM CAST(#{col_name} AS TIMESTAMP))/60 ) / #{interval} ) * INTERVAL '#{interval}' MINUTE"
+  end
 end

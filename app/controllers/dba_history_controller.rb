@@ -2005,12 +2005,15 @@ FROM (
 
     @limits = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             ROUND(ss.End_Interval_Time, 'MI')    End_Interval,
+             Rounded_End_Interval_Time            End_Interval,
              SUM(rl.Current_Utilization)          Current_Utilization,
              SUM(rl.Max_Utilization)              Max_Utilization,
              SUM(rl.Initial_Allocation)           Initial_Allocation,
              SUM(rl.Limit_Value)                  Limit_Value
-      FROM   DBA_Hist_Snapshot ss
+      FROM   (SELECT #{awr_snapshot_ts_round('ss.End_Interval_Time')} Rounded_End_Interval_Time,
+                     ss.*
+              FROM   DBA_Hist_Snapshot ss
+             ) ss
       JOIN   (SELECT DBID, Snap_ID, Instance_Number, Current_Utilization, Max_Utilization,
                      CASE WHEN TRIM(Initial_Allocation) = 'UNLIMITED' THEN -1 ELSE TO_NUMBER(Initial_Allocation) END Initial_Allocation,
                      CASE WHEN TRIM(Limit_Value)        = 'UNLIMITED' THEN -1 ELSE TO_NUMBER(Limit_Value)        END Limit_Value
@@ -2019,8 +2022,8 @@ FROM (
               AND    Resource_Name  = ?
               #{ @instance ? " AND Instance_Number = ?" : ''}
              ) rl ON rl.DBID=ss.DBID AND rl.Snap_ID=ss.Snap_ID AND rl.Instance_Number=ss.Instance_Number
-      GROUP BY ROUND(ss.End_Interval_Time, 'MI')
-      ORDER BY ROUND(ss.End_Interval_Time, 'MI') DESC
+      GROUP BY Rounded_End_Interval_Time
+      ORDER BY Rounded_End_Interval_Time DESC
      ", @dbid, @resource_name].concat(@instance ? [@instance] : [])
 
     if @limits.length == 0
@@ -2545,8 +2548,9 @@ END;
     @instance  = prepare_param_instance
 
     osstats = sql_select_iterator ["\
-      SELECT ROUND(Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name, SUM(Value) Value
-      FROM   (SELECT ssi.Begin_Interval_Time, ssi.End_Interval_Time, REPLACE(s.Stat_Name, '_', ' ') Stat_Name, ss.Min_Snap_ID, s.Snap_ID,
+      SELECT Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name, SUM(Value) Value
+      FROM   (SELECT #{awr_snapshot_ts_round('ssi.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     ssi.Begin_Interval_Time, ssi.End_Interval_Time, REPLACE(s.Stat_Name, '_', ' ') Stat_Name, ss.Min_Snap_ID, s.Snap_ID,
                      DECODE(#{get_db_version >= '11.2' ? "vs.cumulative" : "'NO'"}, 'YES',
                                 s.Value - LAG(s.Value, 1, s.Value) OVER (PARTITION BY s.Instance_Number, s.Stat_Name ORDER BY s.Snap_ID),
                                 s.Value
@@ -2566,7 +2570,7 @@ END;
               AND     s.Snap_ID <= ss.Max_Snap_ID
              )
       WHERE  Snap_ID >= Min_Snap_ID  /* Filter first Snap_ID that is only used for LAG */
-      GROUP BY ROUND(Begin_Interval_Time, 'MI'), Stat_Name
+      GROUP BY Rounded_Begin_Interval_Time, Stat_Name
       ORDER BY 1, Stat_Name
     ", get_dbid, @time_selection_start, @time_selection_end].concat(@instance ? [@instance] : [])
 
