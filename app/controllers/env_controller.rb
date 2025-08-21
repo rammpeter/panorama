@@ -401,7 +401,8 @@ class EnvController < ApplicationController
                    )
       SELECT Rounded_Begin_Interval_Time, Stat_Name, SUM(VALUE) Value
       FROM   (
-              SELECT /*+ NO_MERGE */ ROUND(Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time, st.Instance_Number, ss.Snap_ID, ss.Min_Snap_ID, st.Stat_Name,
+              SELECT /*+ NO_MERGE */ #{awr_snapshot_ts_round('Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     st.Instance_Number, ss.Snap_ID, ss.Min_Snap_ID, st.Stat_Name,
                      Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
               FROM   All_Snaps ss
               JOIN   DBA_Hist_Service_Stat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
