@@ -362,6 +362,8 @@ class PanoramaConnection
                                                                WHERE  w.DBID = (SELECT DBID FROM v$Database)
                                                                #{" OR (w.DBID, w.Con_ID) IN (SELECT DBID, Con_ID FROM gv$Containers)" if PanoramaConnection.db_version >= '12.1' }
                                                               ")
+        @min_awr_interval = 60 if @min_awr_interval.nil?                        # Default if nothing returned by the previous query
+        @min_awr_interval = @min_awr_interval.to_i * 24 * 60                    # Convert to minutes
       end
       Rails.logger.debug('PanoramaConnection.min_awr_interval') { "Set min_awr_interval = #{@min_awr_interval} for management_pack_license = #{PanoramaConnection.management_pack_license.inspect}" }
     end
