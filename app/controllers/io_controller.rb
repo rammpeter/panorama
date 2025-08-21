@@ -415,7 +415,6 @@ class IoController < ApplicationController
       @filter << "#{key}=\"#{value}\", "
     end
     diagram_caption = "Timeline for #{@data_column_name}, Filter: #{@filter}"
-    puts ios.inspect
     plot_top_x_diagramm(:data_array     => ios,
                         :time_key_name  => "rounded_end_interval_time",
                         :curve_key_name => "group_value",

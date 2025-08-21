@@ -212,7 +212,7 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
 
   test "list_system_statistics_historic with xhr: true" do
     instance = PanoramaConnection.instance_number
-    [nil, 'MI', 'HH24', 'DD'].each do |tag|
+    ['AWR', 'HH24', 'DD'].each do |tag|
       post '/dba_history/list_system_statistics_historic', :params => {:format=>:html,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>instance, :full=>1, :verdichtung=>{tag: tag}, :update_area=>:hugo }
       assert_response management_pack_license == :none ? :error : :success
     end
