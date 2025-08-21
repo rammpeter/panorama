@@ -352,6 +352,22 @@ class PanoramaConnection
     @awr_dbids
   end
 
+  # The smallest AWR interval in minutes of any PDB or Panorama Sampler
+  def min_awr_interval
+    if !defined?(@min_awr_interval) || @min_awr_interval.nil?
+      @min_awr_interval = 60                                                    # Default if nothing else specified
+      if PanoramaConnection.management_pack_license != :none
+        @min_awr_interval = PanoramaConnection.sql_select_one("SELECT MIN(EXTRACT(DAY FROM 24*60*w.Snap_Interval))
+                                                               FROM   DBA_Hist_WR_Control w
+                                                               WHERE  w.DBID = (SELECT DBID FROM v$Database)
+                                                               #{" OR (w.DBID, w.Con_ID) IN (SELECT DBID, Con_ID FROM gv$Containers)" if PanoramaConnection.db_version >= '12.1' }
+                                                              ")
+      end
+      Rails.logger.debug('PanoramaConnection.min_awr_interval') { "Set min_awr_interval = #{@min_awr_interval} for management_pack_license = #{PanoramaConnection.management_pack_license.inspect}" }
+    end
+    @min_awr_interval
+  end
+
   def stat_id_consistent_gets
     if !defined?(@stat_id_consistent_gets)
       @stat_id_consistent_gets = PanoramaConnection.sql_select_one "SELECT Statistic# FROM v$StatName WHERE Name = 'consistent gets'"
@@ -479,6 +495,7 @@ class PanoramaConnection
   # @return [Symbol] :diagnostics_and_tuning_pack or :diagnostics_pack or :panorama_sampler or :none
   # Use PackLicense.tuning_pack_licensed? etc. instead of this method
   def self.management_pack_license;         PanoramaConnection.get_threadlocal_config[:management_pack_license]; end
+  def self.min_awr_interval;                check_for_open_connection.min_awr_interval;                  end
   def self.pdbs;                            check_for_open_connection.pdbs;                              end
   def self.pid;                             check_for_open_connection.pid;                               end
   def self.rac?;                            check_for_open_connection.cluster_database.upcase == 'TRUE'; end
