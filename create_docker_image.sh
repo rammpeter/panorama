@@ -6,7 +6,7 @@ for FROM in `grep "^FROM" Dockerfile | grep -v scratch |  awk '{print $2}' | tai
   docker pull $FROM
 done
 
-JRUBY_VERSION=`cat .ruby-version | cut -c 7-13`
+JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
 echo JRUBY_VERSION=$JRUBY_VERSION
 
 # Use "--progress=plain" to see the full console output
