@@ -284,7 +284,9 @@ class IoController < ApplicationController
   end
 
   def iostat_detail_history_internal_sql_select
-    result = "SELECT s.*, f.Function_Name, f.FileType_Name,
+    result = "SELECT #{awr_snapshot_ts_round('s.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     #{awr_snapshot_ts_round('s.End_Interval_Time')} Rounded_End_Interval_Time,
+                     s.*, f.Function_Name, f.FileType_Name,
              ".dup
 
     def iostat_detail_history_internal_sql_select_column(column)
@@ -334,7 +336,7 @@ class IoController < ApplicationController
              MAX(f.End_Interval_Time)                      Last_Occurrence,
              #{timestamp_diff_secs('MAX(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs
              #{include_iostat_detail_history_default_select_list},
-             COUNT(DISTINCT ROUND(f.Begin_Interval_Time, 'MI')) Samples,
+             COUNT(DISTINCT f.Rounded_Begin_Interval_Time) Samples,
              #{iostat_detail_history_external_column_list}
       FROM   (#{iostat_detail_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
@@ -352,19 +354,19 @@ class IoController < ApplicationController
 
     @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
-                            DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Round_Begin_Interval_Time, Begin_Interval_Time,  End_Interval_Time
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
                      WHERE  1=1 #{@with_where_string}
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
-             f.Round_Begin_Interval_Time Begin_Interval_Time,
+             f.Rounded_Begin_Interval_Time Begin_Interval_Time,
              #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
              #{iostat_detail_history_external_column_list}
       FROM   (#{iostat_detail_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
              #{@global_where_string}
-      GROUP BY f.Round_Begin_Interval_Time
-      ORDER BY f.Round_Begin_Interval_Time
+      GROUP BY f.Rounded_Begin_Interval_Time
+      ORDER BY f.Rounded_Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
     render_partial :list_iostat_detail_history_samples
@@ -388,23 +390,23 @@ class IoController < ApplicationController
       rec["diagram_value"] = data_column[:raw_data].call(rec)                   # Berechnen des konkreten Wertes
     }
 
-    ios = sql_select_iterator(["\
+    ios = sql_select_all(["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
-                            DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
                      WHERE  1=1 #{@with_where_string}
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              #{iostat_detail_key_rule(@groupby)[:sql]}           Group_Value,
-             Round_End_Interval_Time,
+             Rounded_End_Interval_Time,
              #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
              #{iostat_detail_history_external_column_list}
              --#{data_column[:group_operation]}(#{data_column[:data_column]}) Value
       FROM   (#{iostat_detail_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
              #{@global_where_string}
-      GROUP BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
-      ORDER BY Round_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
+      GROUP BY Rounded_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
+      ORDER BY Rounded_End_Interval_Time, #{iostat_detail_key_rule(@groupby)[:sql]}
                           " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
@@ -413,9 +415,9 @@ class IoController < ApplicationController
       @filter << "#{key}=\"#{value}\", "
     end
     diagram_caption = "Timeline for #{@data_column_name}, Filter: #{@filter}"
-
+    puts ios.inspect
     plot_top_x_diagramm(:data_array     => ios,
-                        :time_key_name  => "round_end_interval_time",
+                        :time_key_name  => "rounded_end_interval_time",
                         :curve_key_name => "group_value",
                         :value_key_name => "diagram_value",
                         :top_x          => 20,
@@ -468,7 +470,9 @@ class IoController < ApplicationController
   end
 
   def iostat_filetype_history_internal_sql_select
-    result = "SELECT s.*, f.FileType_Name,
+    result = "SELECT #{awr_snapshot_ts_round('s.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     #{awr_snapshot_ts_round('s.End_Interval_Time')} Rounded_End_Interval_Time,
+                     s.*, f.FileType_Name,
              ".dup
 
     def iostat_filetype_history_internal_sql_select_column(column)
@@ -524,7 +528,7 @@ class IoController < ApplicationController
              MAX(f.End_Interval_Time)                      Last_Occurrence,
              #{timestamp_diff_secs('MAX(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs
              #{include_iostat_filetype_history_default_select_list},
-             COUNT(DISTINCT ROUND(f.Begin_Interval_Time, 'MI')) Samples,
+             COUNT(DISTINCT f.Rounded_Begin_Interval_Time) Samples,
              #{iostat_filetype_history_external_column_list}
       FROM   (#{iostat_filetype_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
@@ -542,19 +546,19 @@ class IoController < ApplicationController
 
     @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
-                            DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Round_Begin_Interval_Time, Begin_Interval_Time,  End_Interval_Time
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
                      WHERE  1=1 #{@with_where_string}
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
-             f.Round_Begin_Interval_Time Begin_Interval_Time,
+             f.Rounded_Begin_Interval_Time Begin_Interval_Time,
              #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
              #{iostat_filetype_history_external_column_list}
       FROM   (#{iostat_filetype_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
              #{@global_where_string}
-      GROUP BY f.Round_Begin_Interval_Time
-      ORDER BY f.Round_Begin_Interval_Time
+      GROUP BY f.Rounded_Begin_Interval_Time
+      ORDER BY f.Rounded_Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
     render_partial :list_iostat_filetype_history_samples
@@ -580,21 +584,21 @@ class IoController < ApplicationController
 
     ios = sql_select_iterator(["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
-                            DBID, Instance_Number, Snap_ID, ROUND(End_Interval_Time, 'MI') Round_End_Interval_Time, Begin_Interval_Time, End_Interval_Time
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
                      WHERE  1=1 #{@with_where_string}
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              #{iostat_filetype_key_rule(@groupby)[:sql]}           Group_Value,
-             Round_End_Interval_Time,
+             Rounded_End_Interval_Time,
              #{timestamp_diff_secs('MIN(f.End_Interval_Time) - MIN(f.Begin_Interval_Time)')} Sample_Dauer_Secs,
              #{iostat_filetype_history_external_column_list}
              --#{data_column[:group_operation]}(#{data_column[:data_column]}) Value
       FROM   (#{iostat_filetype_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID /* Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger */
              #{@global_where_string}
-      GROUP BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
-      ORDER BY Round_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
+      GROUP BY Rounded_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
+      ORDER BY Rounded_End_Interval_Time, #{iostat_filetype_key_rule(@groupby)[:sql]}
                           " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
@@ -605,7 +609,7 @@ class IoController < ApplicationController
     diagram_caption = "Timeline for #{@data_column_name}, Filter: #{@filter}"
 
     plot_top_x_diagramm(:data_array     => ios,
-                        :time_key_name  => "round_end_interval_time",
+                        :time_key_name  => "rounded_end_interval_time",
                         :curve_key_name => "group_value",
                         :value_key_name => "diagram_value",
                         :top_x          => 20,
