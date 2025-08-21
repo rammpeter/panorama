@@ -88,6 +88,7 @@ class IoController < ApplicationController
   def io_file_history_internal_sql_select
     def single_table_select(table_name, type)
       "SELECT #{awr_snapshot_ts_round('s.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+              #{awr_snapshot_ts_round('s.End_Interval_Time')} Rounded_End_Interval_Time,
               s.Begin_Interval_Time, s.End_Interval_Time, f.Instance_Number, f.Snap_ID, f.FileName, f.TSName, Block_Size, '#{type}' File_Type,
               PhyRds         - LAG(PhyRds,         1, PhyRds)         OVER (PARTITION BY f.DBID, f.Instance_Number, f.File# ORDER BY f.Snap_ID) PhyRds,
               PhyWrts        - LAG(PhyWrts,        1, PhyWrts)        OVER (PARTITION BY f.DBID, f.Instance_Number, f.File# ORDER BY f.Snap_ID) PhyWrts,
@@ -174,18 +175,18 @@ class IoController < ApplicationController
 
     @samples = sql_select_iterator ["\
       WITH Snaps AS (SELECT /*+ NO_MERGE */
-                            DBID, Instance_Number, Snap_ID, ROUND(Begin_Interval_Time, 'MI') Begin_Interval_Time,  End_Interval_Time
+                            DBID, Instance_Number, Snap_ID, Begin_Interval_Time,  End_Interval_Time
                      FROM   DBA_Hist_Snapshot s
                      WHERE  1=1 #{@with_where_string}
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
-             f.Begin_Interval_Time,
+             f.Rounded_Begin_Interval_Time Begin_Interval_Time,
              #{io_file_history_external_column_list}
       FROM   (#{io_file_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID -- Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger
              #{@global_where_string}
-      GROUP BY f.Begin_Interval_Time
-      ORDER BY f.Begin_Interval_Time
+      GROUP BY f.Rounded_Begin_Interval_Time
+      ORDER BY f.Rounded_Begin_Interval_Time
       " ].concat(@with_where_values).concat(@global_where_values)
 
     render_partial :list_io_file_history_samples
@@ -217,14 +218,14 @@ class IoController < ApplicationController
                     )
       SELECT /*+ ORDERED Panorama-Tool Ramm */
              #{io_file_key_rule(@groupby)[:sql]}           Group_Value,
-             ROUND(f.End_Interval_Time, 'MI')              End_Interval_Time,
+             f.Rounded_End_Interval_Time                   End_Interval_Time,
              #{io_file_history_external_column_list}
              --#{data_column[:group_operation]}(#{data_column[:data_column]}) Value
       FROM   (#{io_file_history_internal_sql_select}) f
       WHERE  f.Snap_ID != f.First_Snap_ID -- Erster Treffer ist zu verwerfen wegen LAG ohne Vorgänger
              #{@global_where_string}
-      GROUP BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
-      ORDER BY ROUND(f.End_Interval_Time, 'MI'), #{io_file_key_rule(@groupby)[:sql]}
+      GROUP BY f.Rounded_End_Interval_Time, #{io_file_key_rule(@groupby)[:sql]}
+      ORDER BY f.Rounded_End_Interval_Time, #{io_file_key_rule(@groupby)[:sql]}
       " ].concat(@with_where_values).concat(@global_where_values), modifier: record_modifier)
 
     # Anzeige der Filterbedingungen im Caption des Diagrammes
