@@ -84,11 +84,6 @@ group :development do
 
   gem 'brakeman'
 
-  # Needed to build warfile
-  # gem 'jruby-jars'
-  # gem 'jruby-rack'
-  # gem 'ruby-debug-base', name: '/Users/pramm/Downloads/ruby-debug-base-0.11.0-java.gem'
-  # gem 'ruby-debug-ide'
 end
 
 group :test do
@@ -98,6 +93,7 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:windows, :jruby]
+
 
 # Build Panorama.war with warbler (./build_war.sh), Use warbler directly from git
 # gem install specific_install
