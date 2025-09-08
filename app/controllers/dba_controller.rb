@@ -2169,7 +2169,12 @@ oradebug setorapname diag
     smallest_timestamp = nil
     if smallest_timestamp_ms.nil?                                               # first time read data (or none existing until now)
       smallest_timestamp = sql_select_one ["\
-        SELECT MIN(Sample_Time) FROM gv$Active_Session_History s #{where_string}
+        SELECT MAX(Min_Sample_Time)
+        FROM   (SELECT MIN(Sample_Time) Min_Sample_Time
+                FROM   gv$Active_Session_History s
+                #{where_string}
+                GROUP BY s.Inst_ID
+               )
       "].concat(where_values)
       smallest_timestamp = PanoramaConnection.db_current_time - 300 if smallest_timestamp.nil?              # use 5 minutes if no data in gv$Active_Session_History, especially for test
     else
@@ -2177,6 +2182,11 @@ oradebug setorapname diag
     end
     db_time_now = sql_select_one "SELECT SYSDATE FROM DUAL"
     seconds_coverered = db_time_now - smallest_timestamp
+
+    # Ensure that data is show only if all instances have valid data (min. ASH record of RAC instances may differ, show only graph if data of all instances is present)
+    where_string << " AND s.Sample_Time >= SYSDATE - ?/84600"
+    where_values << seconds_coverered
+
     grouping_secs = (seconds_coverered/(window_width/2)).round
     grouping_secs = 1 if grouping_secs < 1
     grouping_secs = grouping_secs.to_f                                          # ensure exact values after division in SQL

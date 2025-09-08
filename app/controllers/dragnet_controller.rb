@@ -26,7 +26,7 @@ class DragnetController < ApplicationController
   #   a_attr      : {}  // attributes for the generated A node
   # }
   def get_selection_list
-Rails.logger.info "get_selection_list started" if  Rails.env.test?
+    Rails.logger.info("DragnetController.get_selection_list") { "get_selection_list started" } if  Rails.env.test?
     filter = params[:filter]
     filter = nil if filter == ''
     include_description = params[:include_description] == 'true'

@@ -166,9 +166,9 @@ class EnvController < ApplicationController
       @version_info[4][:client_info]        = "DB client NLS setting = \"#{client_info.nls_lang}\""
       @version_info[4][:client_info_title]  = "\n#{client_nls_info}"
 
-      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(Time.parse(@database_info.sysdate_char))}'&nbsp;&nbsp;#{@database_info.sys_offset}",
+      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(Time.parse(@database_info.sysdate_char))}'&nbsp;&nbsp;#{@database_info.sys_offset}".html_safe,
                          banner_title: "System time and time zone according to OS settings of DB server = '#{localeDateTime(Time.parse(@database_info.sysdate_char))} #{@database_info.sys_offset}'.\nDB timezone offset for TIMESTAMP WITH LOCAL TIME ZONE given at CREATE DATABASE =  '#{@database_info.dbtimezone}'",
-                         :client_info=>"CURRENT_DATE = '#{localeDateTime(Time.parse(@database_info.current_date_char))}'&nbsp;&nbsp;#{@database_info.current_offset}"
+                         :client_info=>"CURRENT_DATE = '#{localeDateTime(Time.parse(@database_info.current_date_char))}'&nbsp;&nbsp;#{@database_info.current_offset}".html_safe
       }.extend SelectHashHelper)
 
 

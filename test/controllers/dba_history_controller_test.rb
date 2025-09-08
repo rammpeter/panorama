@@ -106,7 +106,7 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
 
   test 'list_sql_historic_execution_plan with xhr: true' do
     if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
-      Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
+      Rails.logger.info("DbaHistoryControllerTest.list_sql_historic_execution_plan") { 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE' }
     else
       post '/dba_history/list_sql_historic_execution_plan', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :instance=>PanoramaConnection.instance_number, :parsing_schema_name=>@@hist_parsing_schema_name,
                                                                         :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :update_area=>:hugo }

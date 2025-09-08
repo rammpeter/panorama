@@ -46,7 +46,9 @@ gem 'jbuilder', '~> 2.7'
 # gem 'activerecord-oracle_enhanced-adapter'
 # Avoid dependency on oci8, see https://github.com/rsim/oracle-enhanced/issues/2350
 # gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "release71"
-gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80'
+
+# Use branch releae80 with the last commit from 2025-06-29
+gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80', ref: 'c1094bc'
 gem 'activerecord-nulldb-adapter'
 
 # Use Json Web Token (JWT) for token based authentication
@@ -103,3 +105,9 @@ gem 'tzinfo-data', platforms: [:windows, :jruby]
 #group :development do
 #  gem 'warbler', :git => 'https://github.com/jruby/warbler.git'
 #end
+
+
+# Fix Debugging issue with JRuby 10:
+# https://youtrack.jetbrains.com/issue/RUBY-34161/Debug-fails-to-start-for-JRuby-10.0.0
+# Replace ./pramm/Applications/RubyMine.app/Contents/plugins/ruby/rb/gems/ruby-debug-base-0.11.0-java.gem
+# with  https://github.com/mohamedhafez/ruby-debug/releases/download/0.11.0.jruby-10/ruby-debug-base-0.11.0-java.gem
