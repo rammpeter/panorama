@@ -1,0 +1,16 @@
+<%
+  column_options = []
+  column_options << {:caption=>"Sample time",       :data=>proc{|rec| localeDateTime(rec.end_interval_time)}, :title=>"Timestamp of the snapshot when the parameter value was recorded", plot_master_time: true}
+  column_options << {:caption=>"Value",             :data=>proc{|rec| rec.value},                  :title=>"Parameter value"}
+  column_options << {:caption=>"Default",           :data=>proc{|rec| rec.isdefault},                      :title=>t(:dba_oracle_parameter_is_default_hint, :default=>'Is parameter value still default')}
+  column_options << {caption: 'Is modified',         data: proc{|rec| rec.ismodified},                     title: "Indicates whether the parameter has been modified after instance startup:\nMODIFIED - Parameter has been modified with ALTER SESSION\nSYSTEM_MOD - Parameter has been modified with ALTER SYSTEM (which causes all the currently logged in sessions' values to be modified)\nFALSE - Parameter has not been modified after instance startup"} unless @reduced_columns
+  column_options << {caption: 'Container ID',        data: proc{|rec| rec.con_id},                        :title=>"The ID of the container to which the data pertains."} if get_db_version >= '12.1'
+
+%>
+
+<%=
+  caption = "Parameter history from #{PanoramaConnection.adjust_table_name('DBA_Hist_Parameter')} for DBID = #{@dbid}, Instance = #{@instance}, Name = #{@parameter_name}"
+  gen_slickgrid(@parameters, column_options, {caption: caption, max_height: 450, width: :auto, show_pin_icon: 1})
+%>
+
+

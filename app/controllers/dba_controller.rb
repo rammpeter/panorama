@@ -597,9 +597,19 @@ oradebug setorapname diag
 
     @hint = nil
 
+    history_join = if PackLicense.diagnostics_pack_licensed? || PackLicense.panorama_sampler_active?
+                     " LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Instance_Number, Parameter_Name, COUNT(*) Samples
+                                        FROM   DBA_Hist_Parameter
+                                        WHERE   DBID = #{get_dbid}
+                                        GROUP BY Instance_Number, Parameter_Name
+                                       ) h ON h.Instance_Number = p.Instance AND h.Parameter_Name = p.Name
+                     "
+                   else
+                     " CROSS JOIN (SELECT NULL Samples FROM DUAL) h "
+                   end
     begin
       @parameters = sql_select_all(["\
-        SELECT /* Panorama-Tool Ramm */ *
+        SELECT /* Panorama-Tool Ramm */ p.*, h.Samples
         FROM   (SELECT NVL(v.Instance,      i.Instance)      Instance,
                        NVL(v.ID,            i.ID)            ID,
                        NVL(v.ParamType,     i.ParamType)     ParamType,
@@ -635,7 +645,8 @@ oradebug setorapname diag
                                         ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
                                  FROM  #{PanoramaConnection.system_parameter_table}
                                 ) v ON v.Instance = i.Instance AND v.ID = i.ID+1
-               )
+               ) p
+        #{history_join}
         WHERE 1=1 #{where_string}
         ORDER BY Name, Instance"].concat(where_values)
       )
@@ -668,7 +679,8 @@ oradebug setorapname diag
                        IsDefault,
                        ISSES_MODIFIABLE, IsSys_Modifiable, IsInstance_Modifiable, IsModified, IsAdjusted, IsDeprecated, Update_Comment#{", IsBasic" if get_db_version >= '11.1'}#{", Con_ID" if get_db_version >= '12.1'}
                  FROM  #{PanoramaConnection.system_parameter_table}
-                )
+                ) p
+        #{history_join}
         WHERE 1=1 #{where_string}
         ORDER BY Name, Instance"].concat(where_values)
       )
@@ -684,6 +696,20 @@ oradebug setorapname diag
     end
 
   end # oracle_parameter
+
+  def oracle_parameter_historic
+    @instance       = prepare_param_instance
+    @parameter_name = prepare_param(:parameter_name)
+
+    @parameters = sql_select_iterator ["SELECT p.*, s.End_Interval_Time
+                                        FROM   DBA_Hist_Parameter p
+                                        JOIN   DBA_Hist_Snapshot s ON s.DBID = p.DBID AND s.Snap_ID = p.Snap_ID AND s.Instance_Number = p.Instance_Number
+                                        WHERE  p.DBID = ?
+                                        AND    p.Instance_Number = ?
+                                        AND    p.Parameter_Name    = ?
+                                        ORDER BY p.Snap_ID DESC", get_dbid, @instance, @parameter_name]
+    render_partial
+  end
 
   # Latch-Waits wegen cache buffers chains
   def latch_cache_buffers_chains

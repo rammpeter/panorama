@@ -1,5 +1,6 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
+- 2025-09-10 History of init.ora parameters added to "DBA General / Database configuration / Init parameters"
 
 ## Release 2.18.4
 - 2025-08-07 Offer Oracle's SQL diagnostic report for 19.28++
