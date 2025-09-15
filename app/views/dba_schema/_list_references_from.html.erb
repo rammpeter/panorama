@@ -30,7 +30,7 @@
     end
 
     protecting_index_data_style = proc do |rec|
-      "background-color: coral;" if rec.min_index_name.nil? && rec.r_num_rows > 10000 # referenced table with more than 10000 rows and no index for protection
+      "background-color: coral;" if rec.min_index_name.nil? && (rec.r_num_rows.nil? || rec.r_num_rows > 10000) # referenced table with more than 10000 rows and no index for protection
     end
 
     column_options =
