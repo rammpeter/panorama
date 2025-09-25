@@ -35,6 +35,7 @@ module MenuHelper
               {:class => 'item', :caption => 'Statistics level', :controller => :dba, :action => :list_statistics_level, :hint => 'Show system defaults for statistics level from gv$Statistics_Level'},
               {:class => 'item', :caption => 'Diagnostic paths', :controller => :env, :action => :list_diag_info, :hint => 'Show info/paths from gv$Diag_Info'},
               {:class => 'item', :caption => 'Database properties', :controller => :dba, :action => :list_database_properties, :hint => 'Show info from Database_Properties'},
+              {:class => 'item', :caption => 'Active SQL traces', :controller => :env, :action => :active_sql_traces, :hint => 'Show activation rules for SQL traces and tracing sessions'},
               {:class => 'menu', :caption => 'DB vault configuration', :content => [
                 { class: 'item', caption: 'DB vault realms', controller: :dba, action: :list_db_vault_realms, :hint => 'Show configuration info for DB vault realms'},
               ]},

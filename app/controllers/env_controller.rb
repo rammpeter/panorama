@@ -264,8 +264,6 @@ class EnvController < ApplicationController
         end
       end
 
-      @traces = sql_select_all "SELECT * from DBA_ENABLED_TRACES"
-
       check_awr_for_time_drift
     rescue Exception => e
       Rails.logger.error('EnvController.start_page') { "#{e.class} #{e.message}" }
@@ -276,6 +274,12 @@ class EnvController < ApplicationController
 
     @dictionary_access_problem = true unless select_any_dictionary?(@dictionary_access_msg)
     render_partial :start_page, {additional_javascript_string: build_main_menu_js_code }  # Wait until all loogon jobs are processed before showing menu
+  end
+
+  def active_sql_traces
+    @traces = sql_select_iterator "SELECT * from DBA_ENABLED_TRACES"
+    @sessios = sql_select_iterator "SELECT * FROM gv$Session WHERE sql_trace='ENABLED' ORDER BY Inst_ID, SID"
+    render_partial
   end
 
   # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections

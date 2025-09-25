@@ -222,30 +222,6 @@ DV_ENABLE_STATUS shows whether Oracle Database Vault has been enabled, that is, 
     </div>
   <% end %>
 
-  <% if @traces.length > 0 %>
-    <div class="flex-row-element">
-      <%
-        column_options =
-          [
-            {caption: 'Trace type',                       data: proc{|rec| rec.trace_type},       title: 'Type of the trace'},
-            {caption: 'Primary ID',                       data: proc{|rec| rec.primary_id},       title: 'Primary qualifier (specific client identifier or service name)'},
-            {caption: 'Qualifier ID1',                    data: proc{|rec| rec.qualifier_id1},    title: 'Secondary qualifier (specific module name)'},
-            {caption: 'Qualifier ID2',                    data: proc{|rec| rec.qualifier_id2},    title: 'Additional qualifier (specific action name)'},
-            {caption: 'Waits',                            data: proc{|rec| rec.waits},            title: 'Indicates whether waits are traced (TRUE) or not (FALSE)'},
-            {caption: 'Binds',                            data: proc{|rec| rec.binds},            title: 'Indicates whether binds are traced (TRUE) or not (FALSE)'},
-            {caption: 'Instance name',                    data: proc{|rec| rec.instance_name},    title: 'Instance name for tracing restricted to named instances'},
-          ]
-      %>
-      <%=
-        gen_slickgrid(@traces, column_options, {
-          :caption    => "Active SQL traces from DBA_Enabled_Traces",
-          :width      => :auto,
-          :max_height => 200
-        })
-      %>
-    </div>
-  <% end %>
-
   <div class="flex-row-element" >
     <% @show_management_pack_choice = true %>
     <%= render :partial => 'licensing' %>
