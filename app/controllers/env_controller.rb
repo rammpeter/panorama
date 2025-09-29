@@ -278,7 +278,6 @@ class EnvController < ApplicationController
 
   def active_sql_traces
     @traces = sql_select_iterator "SELECT * from DBA_ENABLED_TRACES"
-    @sessios = sql_select_iterator "SELECT * FROM gv$Session WHERE sql_trace='ENABLED' ORDER BY Inst_ID, SID"
     render_partial
   end
 
