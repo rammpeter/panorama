@@ -113,7 +113,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
   end #iterate_query
 
   # Method comparable to ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_update
-  def exec_update(sql, name, binds)
+  def exec_update(sql, name, binds = [])
     type_casted_binds = binds.map { |attr| TypeMapper.new.type_cast(attr.value_for_database) }
 
     log(sql, name, binds, type_casted_binds) do
@@ -949,6 +949,14 @@ class PanoramaConnection
         jdbc_connection.exec_update(tz_stmt, 'set timezone', [])
       rescue Exception => e
           Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error '#{e.message}' while setting client timezone with '#{tz_stmt}'" }
+      end
+
+      if !Rails.env.production?
+        begin
+          jdbc_connection.exec_update("ALTER SESSION SET Statistics_Level = ALL", 'set statistics level')
+        rescue Exception => e
+          Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error '#{e.message}' while setting statistics level to ALL" }
+        end
       end
 
       begin

@@ -1378,6 +1378,7 @@ oradebug setorapname diag
       FROM   gV$SES_OPTIMIZER_ENV
       WHERE  Inst_ID = ?
       AND    SID = ?
+      ORDER BY Name
       ", @instance, @sid]
 
     render_partial
