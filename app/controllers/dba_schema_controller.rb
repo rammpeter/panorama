@@ -1204,9 +1204,19 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @table_name, @table_type)
     @grants       = get_grant_count(@owner, @table_name)
 
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @table_name)
 
     render_partial :list_object_description
+  end
+
+  # Async loaded button to show audit rules for the object, but do not slow down initial display of the object
+  def render_audit_rules_button
+    @owner                      = prepare_param :owner
+    @object_name                = prepare_param :object_name
+    @object_type                = prepare_param :object_type
+    @update_area_button_action  = prepare_param :update_area_button_action
+
+    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
+    render_partial
   end
 
   def list_distinct_values
@@ -2160,8 +2170,6 @@ class DbaSchemaController < ApplicationController
                                   WHERE  Owner = ? AND Object_Name = ? AND Package_Name IS NULL
                                  ", @owner, @object_name]        # Package_Name is NULL for standalone procedures/functions
 
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
-
     render_partial :list_plsql_description
   end
 
@@ -2299,9 +2307,6 @@ class DbaSchemaController < ApplicationController
       JOIN   DBA_Objects o ON o.Owner = v.Owner AND o.Object_Name = v.View_Name AND o.Object_Type = ?
       WHERE  v.Owner = ? AND v.View_Name = ?
     ", @object_type, @owner, @object_name]
-
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
-
     render_partial :list_view_description
   end
 
