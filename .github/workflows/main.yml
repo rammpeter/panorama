@@ -32,6 +32,7 @@ jobs:
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
       - name: Prepare Gem repo for all tests
         run: |
+          rm -rf /tmp/jruby
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
           source "$HOME/.rvm/scripts/rvm"
