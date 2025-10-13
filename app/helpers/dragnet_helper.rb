@@ -173,7 +173,7 @@ module DragnetHelper
         Rails.logger.info("Predefined dragnet selections not found at #{predefined_filename}")
       end
 
-      # Extend list with personal selections (dependent from browser cookie)
+      # Extend list with personal selections (depend on browser cookie)
       dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])   # personal extensions from cache
       if dragnet_personal_selection_list && dragnet_personal_selection_list.count > 0
         tag_external_selections(dragnet_personal_selection_list, :personal)     # Mark as personal

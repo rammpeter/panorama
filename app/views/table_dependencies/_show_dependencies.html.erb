@@ -25,7 +25,7 @@
 
 %>
 
-<%= gen_slickgrid(@dependencies, column_options, :caption => "Tables dependent from #{@username}.#{@tablename} by foreign key constraint", show_pin_icon: 1) %>
+<%= gen_slickgrid(@dependencies, column_options, :caption => "Tables which depend on #{@username}.#{@tablename} by foreign key constraint", show_pin_icon: 1) %>
 
 
 <div id="<%= @update_area %>"></div>

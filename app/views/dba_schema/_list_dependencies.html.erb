@@ -38,7 +38,7 @@
           { caption: 'Spec. TS',                data: proc{|rec| localeDateTime(rec.spec_ts)},                                            title: "Timestamp for the last specification change of the object", data_title: proc{|rec| "%t #{rec.owner}.#{rec.name}"}},
           { caption: 'Status',                  data: proc{|rec| rec.status},                                                             title: 'Status of object (from DBA_Objects)', data_title: proc{|rec| "Status of object #{rec.owner}.#{rec.name} (from DBA_Objects)"}},
           {:caption=> 'Dependency type',       :data=>proc{|rec| rec.dependency_type},                                                    :title=> 'Whether the dependency is a REF dependency (REF) or not (HARD)'},
-          {:caption=> 'Depending objects',     :data=>proc{|rec| link_depending_objects(rec)},                                            :title=> 'Number of objects that are dependent from this object', :data_title=>proc{|rec| "%t #{rec.owner}.#{rec.name}"}},
+          {:caption=> 'Depending objects',     :data=>proc{|rec| link_depending_objects(rec)},                                            :title=> 'Number of objects that depend on this object', :data_title=>proc{|rec| "%t #{rec.owner}.#{rec.name}"}},
       ]
 
 
@@ -87,7 +87,7 @@
                      :object_type    => @object_type,
                      :update_area    => @update_area,
                     },
-                    :title=>"Show full tree of objects that are dependent from #{@object_type} #{@owner}.#{@object_name}")
+                    :title=>"Show full tree of objects that depend on #{@object_type} #{@owner}.#{@object_name}")
     %>
   </div>
   <div class="flex-row-element">

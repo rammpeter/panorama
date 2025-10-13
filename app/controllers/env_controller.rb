@@ -75,14 +75,14 @@ class EnvController < ApplicationController
     raise "Unsupported target '#{target_object}' for env/get_tnsnames_content" unless ['config', 'database'].include?(target_object) # prevent from XSS
     selected      = params[:selected]
 
-    result = "jQuery('##{target_object}_tns').replaceWith(\"<select id='#{target_object}_tns' name='#{target_object}[tns]' style='width: 85%;'>"
+    result = "jQuery('##{target_object}_tns').replaceWith(\"<select id='#{target_object}_tns' name='#{target_object}[tns]' style='width: 82%;'>"
 
     tnsnames.keys.sort.each do |key|
       result << "<option #{"selected='selected' " if key==selected}value='#{key}'>#{key}&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;#{tnsnames[key][:hostName]} : #{tnsnames[key][:port]} : #{tnsnames[key][:sidName]}</option>"
     end
     result << "</select>"
 
-    result << "<input type='search' placeholder='Filter' id='#{target_object}_filter' title='#{t(:combobox_filter_title, default: 'Filter for selection list')}' style='margin-left:4px; width: 12%;'>"
+    result << "<input type='search' placeholder='Filter' id='#{target_object}_filter' title='#{t(:combobox_filter_title, default: 'Filter for selection list')}' style='margin-left:4px; width: 15%;'>"
 
     result << "<script type='application/javascript'>$(function(){ initialize_combobox_filter('#{target_object}_tns', '#{target_object}_filter'); })</script>"
 
