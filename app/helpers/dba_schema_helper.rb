@@ -87,6 +87,7 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
   end
 
   # Theoretical net size of uncompressed object without free space
+  # @param [Integer] avg_row_len The avaerage row length optionally corrected by the length of metadata only columns https://jonathanlewis.wordpress.com/2025/09/29/rowlen-surprise/
   def calc_needed_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize)
     data_size_per_block_without_row_dir =  ((blocksize - block_header_size(ini_trans)) * (1 - pct_free/100.0) - table_directory_entry_size).to_i
 
@@ -100,12 +101,14 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
   end
 
 
+  # @param [Integer] avg_row_len The avaerage row length optionally corrected by the length of metadata only columns https://jonathanlewis.wordpress.com/2025/09/29/rowlen-surprise/
   def calc_free_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb)
     size_mb - calc_needed_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize)
   rescue
     nil
   end
 
+  # @param [Integer] avg_row_len The avaerage row length optionally corrected by the length of metadata only columns https://jonathanlewis.wordpress.com/2025/09/29/rowlen-surprise/
   def calc_free_space_pct_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb)
     calc_free_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb) * 100.0 / size_mb rescue nil
   end
