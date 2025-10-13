@@ -763,13 +763,13 @@ private
     end
     set_current_database(current_database)
     write_connection_to_last_logins
-    # choosen management pack license may influence the choosen DBID, therefore calculate it again
+    # chosen management pack license may influence the chosen DBID, therefore calculate it again
     set_cached_dbid(PanoramaConnection.select_initial_dbid)
   end
 
 public
 
-  # Process choosen management pack
+  # Process chosen management pack
   def choose_managent_pack_license
     persist_management_pack_license(params[:management_pack_license])
     start_page

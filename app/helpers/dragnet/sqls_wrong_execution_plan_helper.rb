@@ -159,7 +159,7 @@ Statement executes only for current connected RAC-Instance (due to runtime probl
 This conversion may lead to missing usage of existing indizes and cause unnecessary I/O and CPU load.
 Especially implicit conversion by TO_NUMBER while accessing VARCHAR2-columns with number bind type prevents usage of existing indizes.
 For this cases data type according to column type should be used for bind variable.
-Conversion by INTERNAL_FUNCTION may be suboptimal e.g. for IN-lists if efficient usage of existing index with inlist iteration is not choosen.'),
+Conversion by INTERNAL_FUNCTION may be suboptimal e.g. for IN-lists if efficient usage of existing index with inlist iteration is not chosen.'),
             :sql=>  "\
 WITH Ind_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM DBA_Ind_Columns)
 SELECT p.Inst_ID, p.SQL_ID,

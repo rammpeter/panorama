@@ -43,7 +43,7 @@ class DashboardData {
             console.log(content);
     }
 
-    // which refresh cycle is choosen in select list now
+    // which refresh cycle is chosen in select list now
     selected_refresh_cycle(){
         return $('#'+this.refresh_cycle_id).children("option:selected").val();
     }

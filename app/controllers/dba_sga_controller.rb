@@ -666,7 +666,7 @@ class DbaSgaController < ApplicationController
     @instance = @sqls[0].inst_id                                                # ab hier kann es nur Records einer Instance geben
 
     if @sqls.count == 1     # Nur einen Child-Cursor gefunden, dann direkt weiterleiten an Anzeige auf Child-Ebene
-      add_statusbar_message(t(:dba_sga_list_sql_detail_sql_id_only_one_child_msg, :default=>"Only one child record found in gv$SQL, therefore child level view directly choosen"))
+      add_statusbar_message(t(:dba_sga_list_sql_detail_sql_id_only_one_child_msg, :default=>"Only one child record found in gv$SQL, therefore child level view directly chooen"))
       params[:instance]     = @instance
       params[:child_number] = @sqls[0].child_number
       list_sql_detail_sql_id_childno  # Anzeige der Child-Info
@@ -2220,7 +2220,7 @@ END;
 -- All existing translations are listed in Panorama via menu 'SGA/PGA-details' / 'SQL plan management' / 'SQL translations'
 
 -- Attributes that must be adjusted by you in this script:
---   - Name of the user that is really executing the SQL if this is different from current choosen user '#{user_name}'
+--   - Name of the user that is really executing the SQL if this is different from current chosen user '#{user_name}'
 --   - Translated SQL text, currently initialized with the text of the original SQL
 
 -- To activate the translation you must reconnect your session to make the LOGON-trigger working (restart application or reset session pool)

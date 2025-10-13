@@ -28,7 +28,7 @@
               :ObjectName             => rec.name,
               :update_area            => @update_area
             },
-     :title=>"Show SQLs using this object in choosen time period")
+     :title=>"Show SQLs using this object in chosen time period")
   end
 
   show_name = proc do |rec|
@@ -48,7 +48,7 @@
     {:caption=>"Min. Dirty",       :data=>proc{|rec| fn(rec.minblocksdirty)},                                       :title=>"Minimum number of dirty DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
     {:caption=>"Max. Dirty",       :data=>proc{|rec| fn(rec.maxblocksdirty)},                                       :title=>"Maximum number of dirty DB-blocks in cache used by this object at a single snapshot", :align=>"right"},
     {:caption=>"Samples",          :data=>link_samples,                                                             :title=>"Number of snaphsot samples for this object in period", :align=>:right},
-    {:caption=>'SQLs',             :data=>link_sqls,                                                                :title=>"Show SQLs using this object in choosen time period"},
+    {:caption=>'SQLs',             :data=>link_sqls,                                                                :title=>"Show SQLs using this object in chosen time period"},
   ]
 %>
 

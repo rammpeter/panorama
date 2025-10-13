@@ -399,24 +399,24 @@ class PanoramaConnection
   # set the initial value for used dbid at login time (DB's DBID or CDB's DBID)
   def self.select_initial_dbid
     unless PanoramaConnection.is_cdb?            # used DB's DBID if not CDB
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Choosen #{PanoramaConnection.dbid} beacuse DB is not a CDB"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse DB is not a CDB"}
       return PanoramaConnection.dbid
     end
     begin
       login_container_snapshot_count=  sql_select_one(["SELECT COUNT(*) FROM DBA_Hist_Snapshot WHERE DBID = ?", PanoramaConnection.login_container_dbid])
     rescue Exception => e
       if e.message['ORA-00942']
-        Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Choosen #{PanoramaConnection.dbid} beacuse selecting xxx_Sanpshot ended up in ORA-00942"}
+        Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse selecting xxx_Sanpshot ended up in ORA-00942"}
         return PanoramaConnection.dbid                                          # DBA_Hist_Snapshot does not already exists! Should happen only if Panorama_Snapshot is used for sampler and DB structures are not yet created
       else
         raise
       end
     end
     if login_container_snapshot_count == 0                                      # Check if AWR for container is really sampled
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Choosen #{PanoramaConnection.dbid} beacuse there are no snapshots for #{PanoramaConnection.login_container_dbid}"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse there are no snapshots for #{PanoramaConnection.login_container_dbid}"}
       return PanoramaConnection.dbid                                            # Use connections DBID if container has no AWR data
     else
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Choosen #{PanoramaConnection.login_container_dbid} beacuse there are snapshots for that DBID"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.login_container_dbid} beacuse there are snapshots for that DBID"}
       return PanoramaConnection.login_container_dbid                            # Use containers DBID if container has AWR data
     end
   end

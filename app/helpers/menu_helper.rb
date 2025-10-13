@@ -11,7 +11,7 @@ module MenuHelper
   def menu_content
     main_menu = [
         {class: 'menu', caption: t(:menu_dba_caption, :default => 'DBA general'), content: [
-            {class: 'item', caption: t(:menu_dba_start_page_caption, :default => 'Start page'), controller: :env, action: :start_page, hint: t(:menu_dba_start_page_hint, :default => 'Show global information for choosen database')},
+            {class: 'item', caption: t(:menu_dba_start_page_caption, :default => 'Start page'), controller: :env, action: :start_page, hint: t(:menu_dba_start_page_hint, :default => 'Show global information for chosen database')},
             {class: 'item', caption: 'Dashboard', controller: :dba, action: :show_dashboard, hint: t(:menu_dba_dashboard_hint, :default => 'Show dashboard with current performance aspects')},
             {class: 'menu', caption: 'DB-Locks', content: [
                 {class: 'item', caption: t(:menu_current_caption, :default => 'Current'), controller: :dba, action: 'show_locks', hint: t(:menu_dba_locks_hint, :default => 'shows current locking state incl. blocking sessions')},
