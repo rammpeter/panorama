@@ -204,5 +204,20 @@
       },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")
     %>
   </div>
+
+  <% if (get_db_version_numeric.to_i == 19 && get_db_version_numeric >= 19.28) || get_db_version_numeric >= 23.9 %>
+    <%=
+      ajax_submit('Diag. report',
+                  {
+                    controller:               :dba_sga,
+                    action:                   :report_sql,
+                    sql_id:                   @sql_id
+                  },
+                  { title: "Show SQL diagnostic report provided by DBMS_SQLDIAG.Report_SQL.\n\nThis opens a new browser tab, popups need to be enabled." },
+                  { 'data-type': :json }
+      )
+    %>
+
+  <% end %>
 </div>
 

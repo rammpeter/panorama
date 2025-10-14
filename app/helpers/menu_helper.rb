@@ -11,7 +11,7 @@ module MenuHelper
   def menu_content
     main_menu = [
         {class: 'menu', caption: t(:menu_dba_caption, :default => 'DBA general'), content: [
-            {class: 'item', caption: t(:menu_dba_start_page_caption, :default => 'Start page'), controller: :env, action: :start_page, hint: t(:menu_dba_start_page_hint, :default => 'Show global information for choosen database')},
+            {class: 'item', caption: t(:menu_dba_start_page_caption, :default => 'Start page'), controller: :env, action: :start_page, hint: t(:menu_dba_start_page_hint, :default => 'Show global information for chosen database')},
             {class: 'item', caption: 'Dashboard', controller: :dba, action: :show_dashboard, hint: t(:menu_dba_dashboard_hint, :default => 'Show dashboard with current performance aspects')},
             {class: 'menu', caption: 'DB-Locks', content: [
                 {class: 'item', caption: t(:menu_current_caption, :default => 'Current'), controller: :dba, action: 'show_locks', hint: t(:menu_dba_locks_hint, :default => 'shows current locking state incl. blocking sessions')},
@@ -35,6 +35,7 @@ module MenuHelper
               {:class => 'item', :caption => 'Statistics level', :controller => :dba, :action => :list_statistics_level, :hint => 'Show system defaults for statistics level from gv$Statistics_Level'},
               {:class => 'item', :caption => 'Diagnostic paths', :controller => :env, :action => :list_diag_info, :hint => 'Show info/paths from gv$Diag_Info'},
               {:class => 'item', :caption => 'Database properties', :controller => :dba, :action => :list_database_properties, :hint => 'Show info from Database_Properties'},
+              {:class => 'item', :caption => 'Active SQL traces', :controller => :env, :action => :active_sql_traces, :hint => 'Show activation rules for SQL traces and tracing sessions'},
               {:class => 'menu', :caption => 'DB vault configuration', :content => [
                 { class: 'item', caption: 'DB vault realms', controller: :dba, action: :list_db_vault_realms, :hint => 'Show configuration info for DB vault realms'},
               ]},

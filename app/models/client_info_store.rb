@@ -33,7 +33,7 @@ class ClientInfoStore
   def self.read_from_browser_tab_client_info_store(client_key, browser_tab_id, key)
     browser_tab_ids = ClientInfoStore.read_for_client_key(client_key,:browser_tab_ids) # read full tree with all browser-tab-specific connections
     if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
-      Rails.logger.error('ClientInfoStore.read_from_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids}"}
+      Rails.logger.error('ClientInfoStore.read_from_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids.keys}"}
       raise "No session state available at Panorama-Server! Please reload the browser page."
     end
     browser_tab_ids[browser_tab_id][key]                                        # get current value for current browser tab
@@ -47,7 +47,7 @@ class ClientInfoStore
   def self.write_to_browser_tab_client_info_store(client_key, browser_tab_id, values)
     browser_tab_ids = self.read_for_client_key(client_key,:browser_tab_ids)             # read full tree with all browser-tab-specific connections
     if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
-      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids}"}
+      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids.keys}"}
       raise "No session state available at Panorama-Server! Please reload the browser page."
     end
     values.each do |key, value|
@@ -104,7 +104,7 @@ class ClientInfoStore
   def read_for_client_key(client_key, key, default: nil)
     value = read(client_key)                                                    # Read the whole content Hash from cache
     if value.nil? || value.class != Hash || value[key].nil?                     # Abbruch wenn Struktur nicht passt
-      Rails.logger.info('ClientInfoStore.read_for_client_key') {"No data found in client specific client_info_store while looking for key=#{key}"}
+      Rails.logger.debug('ClientInfoStore.read_for_client_key') {"No data found in client specific client_info_store while looking for key=#{key}"}
       return default
     end
     value[key]                                                                  # return value regardless it's nil or not

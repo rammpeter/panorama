@@ -12,15 +12,15 @@
    end
 
    show_username = proc do |rec|
-     rec.username_count > 1 ? "<&nbsp;#{rec.username_count}&nbsp;>" : rec.username
+     rec.username_count > 1 ? "<&nbsp;#{rec.username_count}&nbsp;>".html_safe : rec.username
    end
 
    show_module = proc do |rec|
-    rec.module_count > 1 ? "<&nbsp;#{rec.module_count}&nbsp;>" : rec.module
+    rec.module_count > 1 ? "<&nbsp;#{rec.module_count}&nbsp;>".html_safe : rec.module
   end
 
   show_action = proc do |rec|
-    rec.action_count > 1 ? "<&nbsp;#{rec.action_count}&nbsp;>" : rec.action
+    rec.action_count > 1 ? "<&nbsp;#{rec.action_count}&nbsp;>".html_safe : rec.action
   end
 
   column_options = []

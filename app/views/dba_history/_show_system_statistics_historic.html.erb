@@ -21,7 +21,7 @@
     <div class="flex-row-container" style="border:1px solid gray; padding-left: 5px;">
       <div class="flex-row-element" title="<%= t(:dba_history_show_system_statistics_historic_grouping_hint, :default=>'Group values by time slice (smallest cycle is AWR-snapshot)') %>">
         <%= t(:dba_history_show_system_statistics_historic_grouping_caption, :default=>'Grouping') %>
-        <%= select :verdichtung, :tag, [['Minute', 'MI'], [t(:hour, :default=>'Hour'), 'HH24'], [t(:day, :default=>'Day'), 'DD'] ], {:selected=>'MI'} %>
+        <%= select :verdichtung, :tag, [['AWR cycle', 'AWR'], [t(:hour, :default=>'Hour'), 'HH24'], [t(:day, :default=>'Day'), 'DD'] ], {:selected=>'AWR'} %>
       </div>
       <div class="flex-row-element">
         <%= submit_tag(t(:dba_history_show_system_statistics_historic_details_caption, :default=>'Details of system statistics'), :title => t(:dba_history_show_system_statistics_historic_details_hint, :default=>'Show pivot-table with all statistics per grouping time slice'), :name=>"full") %>

@@ -790,7 +790,7 @@ class AdditionController < ApplicationController
       if rec.tablespaces == 1
         rec.greatest_ts
       else
-        "<&nbsp;#{rec.tablespaces}&nbsp;different&nbsp;>"
+        "<&nbsp;#{rec.tablespaces}&nbsp;different&nbsp;>".html_safe
       end
     end
 

@@ -18,7 +18,7 @@
 
   column_options =
     [
-      {:caption=>"Schema",  :data=>proc{|rec| rec.schema},                  :title=>"Schema / Owner"},
+      {:caption=>"Schema",  :data=>proc{|rec| link_username(@update_area, rec.schema)}, :title=>"Schema / Owner"},
     ]
 
   type_data_title = proc do |type|

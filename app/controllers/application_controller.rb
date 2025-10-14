@@ -93,7 +93,7 @@ class ApplicationController < ActionController::Base
       raise "Error '#{e.message}' occured. Please close browser session and start again!"
     end
 
-    raise PopupMessageException.new(t(:application_connection_no_db_choosen, default: 'No DB choosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')) if current_database.nil?
+    raise PopupMessageException.new(t(:application_connection_no_db_chosen, default: 'No DB chosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')) if current_database.nil?
 
     current_database.symbolize_keys! if current_database.class.name == 'Hash'   # Sicherstellen, dass Keys wirklich symbole sind. Bei Nutzung Engine in App erscheinen Keys als Strings
 

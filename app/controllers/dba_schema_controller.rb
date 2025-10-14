@@ -943,10 +943,12 @@ class DbaSchemaController < ApplicationController
 
     # assuming it is a table now
     # DBA_Tables is empty for XML-Tables, but DBA_All_Tables contains both object and relational tables
-    @attribs = sql_select_all ["SELECT t.*,
+    @attribs = sql_select_all ["SELECT t.*, SYSDATE,
                                        o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Object_ID Table_Object_ID,
                                        m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
                                        s.Size_MB_Table, s.Blocks Segment_Blocks, s.Extents,
+                                       /* see https://jonathanlewis.wordpress.com/2025/09/29/rowlen-surprise/ */
+                                       (SELECT NVL(SUM(Avg_Col_Len), 0) FROM DBA_Tab_Cols WHERE Owner = t.Owner AND Table_Name = t.Table_Name AND User_Generated = 'NO') Sum_Col_Len_Metadata_Only,
                                        (SELECT COUNT(*)
                                         FROM   DBA_Stat_Extensions e
                                         WHERE  e.Owner = t.Owner AND e.Table_Name = t.Table_Name
@@ -1204,9 +1206,19 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @table_name, @table_type)
     @grants       = get_grant_count(@owner, @table_name)
 
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @table_name)
 
     render_partial :list_object_description
+  end
+
+  # Async loaded button to show audit rules for the object, but do not slow down initial display of the object
+  def render_audit_rules_button
+    @owner                      = prepare_param :owner
+    @object_name                = prepare_param :object_name
+    @object_type                = prepare_param :object_type
+    @update_area_button_action  = prepare_param :update_area_button_action
+
+    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
+    render_partial
   end
 
   def list_distinct_values
@@ -2125,7 +2137,7 @@ class DbaSchemaController < ApplicationController
     @dependencies = get_dependencies_count(@owner, @object_name, @object_type)
     @grants       = get_grant_count(@owner, @object_name)
 
-    object_id_filter = if @object_type == 'PACKAGE BODY'
+    object_id_filter = if @object_type == 'PACKAGE BODY' && get_db_version >= '12.1' # 11.2 raises: ORA-01799: a column may not be outer-joined to a subquery
                         " AND p.Object_ID = (SELECT Object_ID FROM DBA_Objects op WHERE op.Owner = p.Owner AND op.Object_Name = p.Object_Name AND op.Object_Type = 'PACKAGE')"
                       else
                         " AND p.Object_ID = o.Object_ID"
@@ -2159,8 +2171,6 @@ class DbaSchemaController < ApplicationController
     @arg_count = sql_select_one ["SELECT COUNT(*) FROM DBA_Arguments
                                   WHERE  Owner = ? AND Object_Name = ? AND Package_Name IS NULL
                                  ", @owner, @object_name]        # Package_Name is NULL for standalone procedures/functions
-
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
 
     render_partial :list_plsql_description
   end
@@ -2299,9 +2309,6 @@ class DbaSchemaController < ApplicationController
       JOIN   DBA_Objects o ON o.Owner = v.Owner AND o.Object_Name = v.View_Name AND o.Object_Type = ?
       WHERE  v.Owner = ? AND v.View_Name = ?
     ", @object_type, @owner, @object_name]
-
-    @audit_rule_cnt = calc_audit_rule_count(@object_type, @owner, @object_name)
-
     render_partial :list_view_description
   end
 

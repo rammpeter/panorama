@@ -470,7 +470,7 @@ class PanoramaSamplerConfig
     export_array = []
     get_config_array.map{|config| config.get_cloned_config_hash}.each do |config_hash|
       config_hash.delete(:adapter)
-      config_hash.delete(:choosen_dbid)
+      config_hash.delete(:chosen_dbid)
       config_hash.delete(:client_salt)
       config_hash.delete(:id)
       config_hash.delete(:last_analyze_check_timestamp)

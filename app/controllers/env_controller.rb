@@ -25,7 +25,7 @@ class EnvController < ApplicationController
   # Einstieg in die Applikation, rendert nur das layout (default.rhtml), sonst nichts
   def index
     # Ensure client browser has unique client_key stored as cookie (create new one if not already exists)
-      initialize_client_key_cookie
+    initialize_client_key_cookie
     initialize_browser_tab_id                                                   # Helper to distiguish browser tabs
     ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, {current_database: nil}) # Overwrite previous setting from last session
 
@@ -75,14 +75,14 @@ class EnvController < ApplicationController
     raise "Unsupported target '#{target_object}' for env/get_tnsnames_content" unless ['config', 'database'].include?(target_object) # prevent from XSS
     selected      = params[:selected]
 
-    result = "jQuery('##{target_object}_tns').replaceWith(\"<select id='#{target_object}_tns' name='#{target_object}[tns]' style='width: 85%;'>"
+    result = "jQuery('##{target_object}_tns').replaceWith(\"<select id='#{target_object}_tns' name='#{target_object}[tns]' style='width: 82%;'>"
 
     tnsnames.keys.sort.each do |key|
       result << "<option #{"selected='selected' " if key==selected}value='#{key}'>#{key}&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;#{tnsnames[key][:hostName]} : #{tnsnames[key][:port]} : #{tnsnames[key][:sidName]}</option>"
     end
     result << "</select>"
 
-    result << "<input type='search' placeholder='Filter' id='#{target_object}_filter' title='#{t(:combobox_filter_title, default: 'Filter for selection list')}' style='margin-left:4px; width: 12%;'>"
+    result << "<input type='search' placeholder='Filter' id='#{target_object}_filter' title='#{t(:combobox_filter_title, default: 'Filter for selection list')}' style='margin-left:4px; width: 15%;'>"
 
     result << "<script type='application/javascript'>$(function(){ initialize_combobox_filter('#{target_object}_tns', '#{target_object}_filter'); })</script>"
 
@@ -166,9 +166,9 @@ class EnvController < ApplicationController
       @version_info[4][:client_info]        = "DB client NLS setting = \"#{client_info.nls_lang}\""
       @version_info[4][:client_info_title]  = "\n#{client_nls_info}"
 
-      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(Time.parse(@database_info.sysdate_char))}'&nbsp;&nbsp;#{@database_info.sys_offset}",
+      @version_info << ({:banner => "SYSDATE = '#{localeDateTime(Time.parse(@database_info.sysdate_char))}'&nbsp;&nbsp;#{@database_info.sys_offset}".html_safe,
                          banner_title: "System time and time zone according to OS settings of DB server = '#{localeDateTime(Time.parse(@database_info.sysdate_char))} #{@database_info.sys_offset}'.\nDB timezone offset for TIMESTAMP WITH LOCAL TIME ZONE given at CREATE DATABASE =  '#{@database_info.dbtimezone}'",
-                         :client_info=>"CURRENT_DATE = '#{localeDateTime(Time.parse(@database_info.current_date_char))}'&nbsp;&nbsp;#{@database_info.current_offset}"
+                         :client_info=>"CURRENT_DATE = '#{localeDateTime(Time.parse(@database_info.current_date_char))}'&nbsp;&nbsp;#{@database_info.current_offset}".html_safe
       }.extend SelectHashHelper)
 
 
@@ -264,8 +264,6 @@ class EnvController < ApplicationController
         end
       end
 
-      @traces = sql_select_all "SELECT * from DBA_ENABLED_TRACES"
-
       check_awr_for_time_drift
     rescue Exception => e
       Rails.logger.error('EnvController.start_page') { "#{e.class} #{e.message}" }
@@ -276,6 +274,11 @@ class EnvController < ApplicationController
 
     @dictionary_access_problem = true unless select_any_dictionary?(@dictionary_access_msg)
     render_partial :start_page, {additional_javascript_string: build_main_menu_js_code }  # Wait until all loogon jobs are processed before showing menu
+  end
+
+  def active_sql_traces
+    @traces = sql_select_iterator "SELECT * from DBA_ENABLED_TRACES"
+    render_partial
   end
 
   # Aufgerufen aus dem Anmelde-Dialog für gemerkte DB-Connections
@@ -401,7 +404,8 @@ class EnvController < ApplicationController
                    )
       SELECT Rounded_Begin_Interval_Time, Stat_Name, SUM(VALUE) Value
       FROM   (
-              SELECT /*+ NO_MERGE */ ROUND(Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time, st.Instance_Number, ss.Snap_ID, ss.Min_Snap_ID, st.Stat_Name,
+              SELECT /*+ NO_MERGE */ #{awr_snapshot_ts_round('Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     st.Instance_Number, ss.Snap_ID, ss.Min_Snap_ID, st.Stat_Name,
                      Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
               FROM   All_Snaps ss
               JOIN   DBA_Hist_Service_Stat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
@@ -759,13 +763,13 @@ private
     end
     set_current_database(current_database)
     write_connection_to_last_logins
-    # choosen management pack license may influence the choosen DBID, therefore calculate it again
+    # chosen management pack license may influence the chosen DBID, therefore calculate it again
     set_cached_dbid(PanoramaConnection.select_initial_dbid)
   end
 
 public
 
-  # Process choosen management pack
+  # Process chosen management pack
   def choose_managent_pack_license
     persist_management_pack_license(params[:management_pack_license])
     start_page

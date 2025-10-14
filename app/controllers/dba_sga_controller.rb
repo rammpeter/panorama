@@ -1,4 +1,6 @@
 # encoding: utf-8
+
+require 'java'
 class DbaSgaController < ApplicationController
 
   #require "dba_helper"   # Erweiterung der Controller um Helper-Methoden
@@ -664,7 +666,7 @@ class DbaSgaController < ApplicationController
     @instance = @sqls[0].inst_id                                                # ab hier kann es nur Records einer Instance geben
 
     if @sqls.count == 1     # Nur einen Child-Cursor gefunden, dann direkt weiterleiten an Anzeige auf Child-Ebene
-      add_statusbar_message(t(:dba_sga_list_sql_detail_sql_id_only_one_child_msg, :default=>"Only one child record found in gv$SQL, therefore child level view directly choosen"))
+      add_statusbar_message(t(:dba_sga_list_sql_detail_sql_id_only_one_child_msg, :default=>"Only one child record found in gv$SQL, therefore child level view directly chooen"))
       params[:instance]     = @instance
       params[:child_number] = @sqls[0].child_number
       list_sql_detail_sql_id_childno  # Anzeige der Child-Info
@@ -1927,6 +1929,13 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     render_partial
   end
 
+  def report_sql
+    @sql_id                     = prepare_param :sql_id
+    result = PanoramaConnection.exec_clob_plsql_function("DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')", [{java_type: "STRING", value: @sql_id}])
+    result.sub!(/<head>/, "<head><title>SQL Diagnostic Report for SQL-ID #{@sql_id}</title>")
+    render :json => { action: 'show_in_new_tab', result: result}.to_json
+  end
+
   def show_sql_tuning_advisor
     @sql_id       = prepare_param :sql_id
     @min_snap_id  = prepare_param :min_snap_id                                  # only set if called from DBA_Hist_SQLStat view
@@ -2211,7 +2220,7 @@ END;
 -- All existing translations are listed in Panorama via menu 'SGA/PGA-details' / 'SQL plan management' / 'SQL translations'
 
 -- Attributes that must be adjusted by you in this script:
---   - Name of the user that is really executing the SQL if this is different from current choosen user '#{user_name}'
+--   - Name of the user that is really executing the SQL if this is different from current chosen user '#{user_name}'
 --   - Translated SQL text, currently initialized with the text of the original SQL
 
 -- To activate the translation you must reconnect your session to make the LOGON-trigger working (restart application or reset session pool)
@@ -2676,7 +2685,7 @@ END;
       where_values << @con_id
     end
 
-    sgastat = sql_select_iterator ["SELECT ROUND(ss.Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time,
+    sgastat = sql_select_iterator ["SELECT #{awr_snapshot_ts_round('ss.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
                                            #{pool_details ? "DECODE(s.Pool, NULL, '', s.Pool||' / ')||s.Name" : "NVL(s.Pool, s.Name) "} Pool,
                                            s.Bytes/(1024*1024) MBytes
                                     FROM   DBA_Hist_SGAStat s

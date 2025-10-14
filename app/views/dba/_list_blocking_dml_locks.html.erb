@@ -20,7 +20,7 @@ def show_blocking_object(rec)
   output << " (#{rec.blocking_subobject_name})" if rec.blocking_subobject_name
   output << " - "
   output << link_column_blocking_object(rec)
-  output
+  output.html_safe
 end
 
 def link_column_blocking_object(rec)

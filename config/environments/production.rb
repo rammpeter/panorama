@@ -1,5 +1,19 @@
 require "active_support/core_ext/integer/time"
 
+class PanoramaLogFormatter
+  include ActiveSupport::TaggedLogging::Formatter
+  def call(severity, timestamp, progname, message)
+    date_format = timestamp.strftime("%Y-%m-%d %H:%M:%S.%3N")
+    # tagged_message = tag_stack.format_message(message)
+    # tagged_message not used because of too much garbage in the log (a'la [ActiveJob] [InitializationJob] [083634de-de20-47ae-90d4-cdb4b53f5ed1])
+    "[#{date_format}] #{severity.ljust(5)} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{ message}\n"
+  rescue => e
+    # Fallback in case formatting fails
+    "FATAL: Log formatting failed: #{e.message} - Original message: #{message.inspect}\n"
+  end
+end
+
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -83,35 +97,14 @@ Rails.application.configure do
   # Tell Active Support which deprecation messages to disallow.
   config.active_support.disallowed_deprecation_warnings = []
 
-  # Use default logging formatter so that PID and timestamp are not suppressed.
-  # config.log_formatter = ::Logger::Formatter.new
-  config.log_formatter = proc do |severity, datetime, progname, msg|
-    date_format = datetime.strftime("%Y-%m-%d %H:%M:%S.%3N")
-    "[#{date_format}] #{severity.ljust(5)} (#{Thread.current.object_id}#{' ' if progname}#{progname}): #{msg}\n"
-  end
-
-  # Use a different logger for distributed setups.
-  # require "syslog/logger"
-  # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
-  # if ENV["RAILS_LOG_TO_STDOUT"].present?
-  #   logger           = ActiveSupport::Logger.new(STDOUT)
-  #   logger.formatter = config.log_formatter
-  # config.logger    = ActiveSupport::TaggedLogging.new(logger)
-  # end
   if ENV["RAILS_LOG_TO_STDOUT_AND_FILE"].present?
     console_logger = ActiveSupport::Logger.new(STDOUT)
-    console_logger.formatter = config.log_formatter
-    tagged_console_logger = ActiveSupport::TaggedLogging.new(console_logger)
     file_logger = ActiveSupport::Logger.new( Rails.root.join("log", Rails.env + ".log" ), 5 , 10*1024*1024 )  # max. 50 MB logfile ( 5 files with 10 MB)
-    file_logger.formatter = config.log_formatter
-    combined_logger = tagged_console_logger.extend(ActiveSupport::Logger.broadcast(file_logger))
-    config.logger = combined_logger
+    config.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BroadcastLogger.new(console_logger, file_logger))
   else
-    # Behviour regularly controlled by RAILS_LOG_TO_STDOUT used as default to ensure newlines are not esacped with | in jetty
-    logger           = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
+    config.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
   end
+  config.logger.formatter = PanoramaLogFormatter.new
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false

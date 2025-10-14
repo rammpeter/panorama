@@ -73,19 +73,24 @@ module ApplicationHelper
   end
 
   def set_cached_dbid(dbid)                                                     # Current or previous DBID of connected database
-    Rails.logger.debug('ApplicationHelper.set_cached_dbid'){ "Choosen_dbid set = #{dbid}"}
+    Rails.logger.debug('ApplicationHelper.set_cached_dbid'){ "Chosen_dbid set = #{dbid}"}
     @buffered_dbid = nil                                                        # throe away previous value
-    set_current_database(get_current_database.merge({choosen_dbid: dbid.to_i}))
+    set_current_database(get_current_database.merge({chosen_dbid: dbid.to_i}))
     # write_to_client_info_store(:dbid, dbid.to_i)
   end
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
-    @buffered_dbid = get_current_database[:choosen_dbid] if !defined?(@buffered_dbid) || @buffered_dbid.nil?
+    @buffered_dbid = get_current_database[:chosen_dbid] if !defined?(@buffered_dbid) || @buffered_dbid.nil?
     @buffered_dbid
   end
 
   def get_db_version    # Oracle-Version
     PanoramaConnection.db_version
+  end
+
+  def get_db_version_numeric    # Oracle-Version as float with the first two digits as major and minor version
+    split_version = PanoramaConnection.db_version.split('.')
+    "#{split_version[0]}.#{split_version[1]}".to_f
   end
 
   # @return [Numeric] Difference between Panorama server client timezone and DB system timezone in days
@@ -211,31 +216,6 @@ module ApplicationHelper
   def escape_js_single_quote(org)
     return nil if org.nil?
     org.gsub(/'/, "'+String.fromCharCode(39)+'")
-  end
-
-  # Maskieren von html-special chars incl. NewLine
-  def my_html_escape(org_value, line_feed_to_br=true)
-    '' if org_value.nil?
-
-    begin
-      retval = ERB::Util.html_escape(org_value)                                          # Standard-Escape kann kein NewLine-><BR>
-    rescue Encoding::CompatibilityError => e
-      Rails.logger.error('ApplicationHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
-      ExceptionHelper.log_exception_backtrace(e)
-
-      # force encoding to UTF-8 before
-      retval = ERB::Util.html_escape(org_value.force_encoding('UTF-8'))   # Standard-Escape kann kein NewLine-><BR>
-    end
-
-    if line_feed_to_br  # Alle vorkommenden NewLine ersetzen
-      # Alle vorkommenden CR ersetzen, führt sonst bei Javascript zu Error String not closed
-      retval.gsub!(/\r/, '')
-      retval.gsub!(/\n/, '<br>')
-    end
-    retval.gsub!(/\\/, '\\\\\\\\')                                              # Escape single backslash
-    retval.gsub!(/&amp;#8203;/, '&#8203;')                                      # Restore Zero width space in result to ensure word wrap
-    retval.gsub!(/&amp;ZeroWidthSpace;/, '&ZeroWidthSpace;')                    # Restore Zero width space in result to ensure word wrap
-    retval
   end
 
   # Escape SQL-Syntax to be transform SQL-Statements for usage in EXECUTE IMMEDIATE etc. with ''
@@ -827,5 +807,13 @@ module ApplicationHelper
     retval << "\n= #{fn(fmbytes / 1024, 1 ) } Gigabytes"  if fmbytes > 1000 || fmbytes < 1000000
     retval << "\n= #{fn(fmbytes / (1024 * 1024), 1 ) } Terabytes"  if fmbytes > 1000000
     retval
+  end
+
+  # Round a timestamp to the nearest full minute according to AWR snapshot cycle
+  # @param [String] col_name Name of the DATE or TIMESTAMP column to round
+  # @return [String] SQL snippet for rounding the timestamp column
+  def awr_snapshot_ts_round(col_name)
+    interval = PanoramaConnection.min_awr_interval
+    "TRUNC(#{col_name}, 'HH') + ROUND( ( EXTRACT(MINUTE FROM CAST(#{col_name} AS TIMESTAMP)) + EXTRACT(SECOND FROM CAST(#{col_name} AS TIMESTAMP))/60 ) / #{interval} ) * INTERVAL '#{interval}' MINUTE"
   end
 end

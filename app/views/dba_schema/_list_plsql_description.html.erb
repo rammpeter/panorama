@@ -1,5 +1,7 @@
 <% @update_area = get_unique_area_id %>
 
+<%= render_page_caption("Description of #{@object_type} #{@owner}.#{@object_name}") %>
+
 <%
   column_options =
     [
@@ -26,9 +28,9 @@
   column_options << { caption: 'Result cache',data: proc{|rec| rec.result_cache},             title: "Indicates whether the function is result–cached (YES) or not (NO)"} if get_db_version >= '12.2' && @object_type == 'FUNCTION'
 %>
 
-<%= gen_slickgrid(@attribs, column_options, {:caption => "Description of #{@object_type} #{@owner}.#{@object_name}", :height => :auto}) %>
+<%= gen_slickgrid(@attribs, column_options, {height: :auto}) %>
 
-<%=  render_code_mirror(@source, cm_options: { lineNumbers: true}) %>
+<%= render_code_mirror(@source, cm_options: { lineNumbers: true}) %>
 
 <div class="flex-row-container">
   <% if @object_type == 'PACKAGE' %>
@@ -105,14 +107,17 @@
   </div>
 
   <div class="flex-row-element">
-    <%= ajax_submit("#{fn @audit_rule_cnt} Audit rules", {
-      :update_area => @update_area,
-      :action      => :show_audit_rules,
-      :owner       => @owner,
-      :object_name => @object_name,
-      object_type: @object_type
-    }, :title => "Show audit rules for #{@object_type} #{@owner}.#{@object_name}")
+    <%=
+      @update_area_audit_rules = get_unique_area_id
+      render_async(:dba_schema, :render_audit_rules_button, {
+        owner:                          @owner,
+        object_name:                    @object_name,
+        object_type:                    @object_type,
+        update_area:                    @update_area_audit_rules,
+        update_area_button_action:      @update_area
+      })
     %>
+    <div id ="<%= @update_area_audit_rules %>"></div>
   </div>
 
   <div class="flex-row-element">

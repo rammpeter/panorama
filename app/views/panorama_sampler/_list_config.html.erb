@@ -28,7 +28,7 @@
     }, :title => 'Delete error message for this config entry'
     )}</div>"
     end
-    retval
+    retval.html_safe
   end
 
   @error_style = proc do |rec|

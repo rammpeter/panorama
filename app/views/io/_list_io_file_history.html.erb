@@ -61,10 +61,12 @@
 <%=
     @hidden_link_data_column_id = get_unique_area_id
     @hidden_link_timeline_id    = get_unique_area_id
+    grid_id                     = get_unique_area_id
 
     gen_slickgrid(@ios,
                  @column_options,
                  {
+                    grid_id:              grid_id,
                      :caption              => @caption ? @caption : "",
                      :max_height           => 450,
                      show_pin_icon: 1,
@@ -74,7 +76,7 @@
                                      :hint    => t(:list_io_file_history_timeline_hint, :default=>"Show values time line, each point in graph for one snapshot sample"),
                                      :icon_class => "cui-chart-line",
                                      # Setze den Spaltenheader der angeklickten Spalte in text_field eines Formulares und sende dieses
-                                     :action  => "$('##{@hidden_link_data_column_id}').val($(t).data('slickgridextended').last_slickgrid_contexmenu_col_header.text()); $('##{@hidden_link_timeline_id}').click();"
+                                     :action  => "$('##{@hidden_link_data_column_id}').val($('##{grid_id}').data('slickgridextended').last_slickgrid_contexmenu_col_header.text()); $('##{@hidden_link_timeline_id}').click();"
                            }]
                  }
                 )

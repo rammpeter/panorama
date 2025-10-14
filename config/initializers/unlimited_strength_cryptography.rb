@@ -25,10 +25,10 @@ if false      # try to work without JCE fix, 2020-09-30
     end
   rescue ClassNotFoundException => e
     # Handle Mac Java, etc not having this configuration setting
-    Rails.logger.error "unlimited_strength_cryptography.rb: ClassNotFoundException #{e}"
+    Rails.logger.error("unlimited_strength_cryptography.rb") { "ClassNotFoundException #{e}" }
   rescue Exception => e
-    Rails.logger.error "unlimited_strength_cryptography.rb: Error faking advanced JCE (#{e})!"
-    Rails.logger.error "Please fix this by installing Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files"
-    Rails.logger.error "This files are available at http://www.oracle.com/technetwork/java/javase/downloads/index.html"
+    Rails.logger.error("unlimited_strength_cryptography.rb") { "Error faking advanced JCE (#{e})!" }
+    Rails.logger.error("unlimited_strength_cryptography.rb") { "Please fix this by installing Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files" }
+    Rails.logger.error("unlimited_strength_cryptography.rb") { "This files are available at http://www.oracle.com/technetwork/java/javase/downloads/index.html" }
   end
 end

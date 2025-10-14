@@ -260,17 +260,22 @@ Hash-value over total optimizer environment + Number of different optimizer envi
   <% if @instance && PackLicense.diagnostics_pack_licensed? %>
     &nbsp;
     <div class="flex-row-element">
-      <%= form_tag(url_for(:controller            => :dba_history,
-                           :action                => :list_awr_sql_report_html,
-                           :instance              => @instance,
-                           :time_selection_start  => @time_selection_start,
-                           :time_selection_end    => @time_selection_end,
-                           :sql_id                => @sql_id,
-                           dbid:                  @dbid,
-                           browser_tab_id:        @browser_tab_id
-                   ), {:method => 'post', :target=>'_blank'}) do %>
-        <%= submit_tag('SQL report', :title =>t(:dba_history_list_sql_detail_historic_sql_report_hint, :default=>"Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML.\n\nLoading the new page may last some seconds, don't worry.")) %>
-      <% end %>
+      <%= ajax_submit('SQL report',
+                      {
+                        :controller            => :dba_history,
+                        :action                => :list_awr_sql_report_html,
+                        :instance              => @instance,
+                        :time_selection_start  => @time_selection_start,
+                        :time_selection_end    => @time_selection_end,
+                        :sql_id                => @sql_id,
+                        dbid:                  @dbid,
+                      },
+                      {
+                        :title =>t(:dba_history_list_sql_detail_historic_sql_report_hint, :default=>"Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML.\n\nLoading the new page may last some seconds, don't worry.")
+                      },
+                      { 'data-type': :json }
+          )
+      %>
     </div>
   <% end %>
 
@@ -304,6 +309,20 @@ Hash-value over total optimizer environment + Number of different optimizer envi
       },  title: "Show methods to influence the execution plan without changing the SQL syntax of this SQL")
     %>
   </div>
+
+  <% if (get_db_version_numeric.to_i == 19 && get_db_version_numeric >= 19.28) || get_db_version_numeric >= 23.9 %>
+    <%=
+      ajax_submit('Diag. report',
+                  {
+                    controller:               :dba_sga,
+                    action:                   :report_sql,
+                    sql_id:                   @sql_id
+                  },
+                  { title: "Show SQL diagnostic report provided by DBMS_SQLDIAG.Report_SQL.\n\nThis opens a new browser tab, popups need to be enabled." },
+                  { 'data-type': :json }
+      )
+    %>
+  <% end %>
 </div>
 
 <div id="<%= @update_area %>" style="clear:both; width:100%;">

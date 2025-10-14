@@ -1,6 +1,12 @@
 <%= render_page_caption("Generate genuine Oracle ASH global report for RAC") %>
 
-<%= form_tag(url_for(:controller=>:dba_history, :action=>:list_ash_global_report_html, browser_tab_id: @browser_tab_id), {:method => 'post', :target=>'_blank'}) do %>
+<%=
+  ajax_form({
+              :controller=>:dba_history,
+              :action=>:list_ash_global_report_html
+            }, { 'data-type': :json }
+    ) do
+%>
   <div class="flex-row-container">
     <%= include_start_end_timepicker %>
     <%= instance_tag %>

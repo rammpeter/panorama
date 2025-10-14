@@ -8,7 +8,7 @@
       retval << " "
       retval << link_historic_sql_id(rec.instance_number, rec.top_level_sql_id, localeDateTime(rec.rounded_sample_time), localeDateTime(rec.rounded_sample_time), @update_area, rec.username)
     end
-    retval
+    retval.html_safe
   end
 
   link_column_sid = proc do |rec|
@@ -66,9 +66,9 @@
                         },
                         :title=>t(:dba_list_dml_locks_link_column_blocking_object_hint, :default=>"Determine associated rowid")
            )
-      result << "<div id=\"#{update_area}\"></div>".html_safe
+      result << "<div id=\"#{update_area}\"></div>"
     end
-    result
+    result.html_safe
   end
 
   link_blocking_sid = proc do |rec|
@@ -101,7 +101,7 @@
     result << link_object_description(@update_area, rec.peo_owner, rec.peo_object_name, "#{rec.peo_object_type} #{rec.peo_owner}. #{rec.peo_object_name}. #{rec.peo_procedure_name}") if rec.peo_object_name
     result << ' '
     result << link_object_description(@update_area, rec.po_owner, rec.po_object_name, "#{rec.po_object_type} #{rec.po_owner}. #{rec.po_object_name}. #{rec.po_procedure_name}") if rec.po_object_name
-    result
+    result.html_safe
   end
 
 
@@ -151,7 +151,7 @@
   column_options <<  {caption: 'Tx. ID',           data: link_transaction,                            title: "Transaction ID that the session was working on at the time of sampling"}
   column_options <<  {caption: 'Mode',             data: proc{|rec| rec.modus },                      title: "Mode in which session is executed"}                                             if get_db_version >= "11.2"
   column_options <<  {caption: 'Program',          data: proc{|rec| rec.program },                    title: "Programm" }  if get_db_version < "11.2"
-  column_options <<  {caption: 'Program / Machine / Port', data: proc{|rec| "#{rec.program}, #{link_machine_ip_info(@update_area, rec.machine)}: #{rec.port}" },  :title=>"Programm and machine and port on client"}   if get_db_version >= "11.2"
+  column_options <<  {caption: 'Program / Machine / Port', data: proc{|rec| "#{rec.program}, #{link_machine_ip_info(@update_area, rec.machine)}: #{rec.port}".html_safe },  :title=>"Programm and machine and port on client"}   if get_db_version >= "11.2"
   column_options <<  {caption: "Client-ID",        data: proc{|rec| rec.client_id},                   title: "Client-ID"}
   column_options <<  {caption: "Service",          data: proc{|rec| rec.service_name},                title: "SQL*Net-Service"}
   column_options <<  {caption: "PGA (kByte)",      data: proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  title: "Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if get_db_version >= "11.2"

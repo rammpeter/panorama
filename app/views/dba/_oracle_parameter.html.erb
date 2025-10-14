@@ -1,6 +1,7 @@
 <%= @hint %>
 
 <%
+  @update_area = get_unique_area_id
 
   list_type = proc do |rec|
     case rec.paramtype
@@ -14,14 +15,27 @@
     end
   end
 
-column_options = []
+  link_history = proc do |rec|
+    ajax_link(fn(rec.samples), {
+                      controller:       :dba,
+                      action:           :oracle_parameter_historic,
+                      update_area:      @update_area,
+                      instance:         rec.instance,
+                      parameter_name:   rec.name,
+                     },
+              title: "Show history of snapshots from #{PanoramaConnection.adjust_table_name('DBA_Hist_Parameter')} for this parameter"
+    )
+  end
 
+
+  column_options = []
   column_options << {:caption=>"I",                 :data=>proc{|rec| rec.instance},                       :title=>"Instance-ID"} if PanoramaConnection.rac?
   column_options << {:caption=>"ID",                :data=>proc{|rec| formattedNumber(rec.id)},            :title=>"Parameter-ID", :align=>"right"}  unless @reduced_columns
   column_options << {:caption=>"Type",              data: list_type,                                       :title=>"Parameter type"}  unless @reduced_columns
   column_options << {:caption=>"Name",              :data=>proc{|rec| rec.name},                           :title=>"Parameter name"}
   column_options << {:caption=>"Description",       :data=>proc{|rec| rec.description},                    :title=>"Description of parameter"}
   column_options << {:caption=>"Value",             :data=>proc{|rec| rec.display_value},                  :title=>"Parameter-value human readable (display_value)", data_title: proc{|rec| "%t\nNative value = #{rec.value}" }}
+  column_options << {:caption=>"History",           :data=>link_history,                                   :title=>"Number of snapshots in AWR history from #{PanoramaConnection.adjust_table_name('DBA_Hist_Parameter')}" }
   column_options << {:caption=>"Update comment",    :data=>proc{|rec| rec.update_comment},                 :title=>"Comments associated with the most recent update"}
   column_options << {:caption=>"Default",           :data=>proc{|rec| rec.isdefault},                      :title=>t(:dba_oracle_parameter_is_default_hint, :default=>'Is parameter value still default')}
   column_options << {caption: 'Session modifiable', data: proc{|rec| rec.isses_modifiable},                title: "Indicates whether the parameter can be changed with ALTER SESSION (TRUE) or not (FALSE)"} unless @reduced_columns
@@ -40,7 +54,16 @@ FALSE - Parameter cannot be changed with ALTER SYSTEM unless a server parameter 
 
 <%=
     caption = @caption
-    gen_slickgrid(@parameters, column_options, {caption: caption, max_height: 600, width: :auto, show_pin_icon: 1})
+    gen_slickgrid(@parameters,
+                  column_options,
+                  {
+                    caption: caption,
+                    max_height: 600,
+                    width: :auto,
+                    show_pin_icon: 1,
+                    update_area: @update_area,
+                  }
+    )
 %>
 
 

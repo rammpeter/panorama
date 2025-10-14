@@ -106,7 +106,7 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
 
   test 'list_sql_historic_execution_plan with xhr: true' do
     if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
-      Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
+      Rails.logger.info("DbaHistoryControllerTest.list_sql_historic_execution_plan") { 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE' }
     else
       post '/dba_history/list_sql_historic_execution_plan', :params => {:format=>:html, :sql_id=>@@hist_sql_id, :instance=>PanoramaConnection.instance_number, :parsing_schema_name=>@@hist_parsing_schema_name,
                                                                         :min_snap_id=>@min_snap_id, :max_snap_id=>@max_snap_id, :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :update_area=>:hugo }
@@ -212,7 +212,7 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
 
   test "list_system_statistics_historic with xhr: true" do
     instance = PanoramaConnection.instance_number
-    [nil, 'MI', 'HH24', 'DD'].each do |tag|
+    ['AWR', 'HH24', 'DD'].each do |tag|
       post '/dba_history/list_system_statistics_historic', :params => {:format=>:html,  :time_selection_start =>@time_selection_start, :time_selection_end =>@time_selection_end, :stat_class=> {:bit => 1}, :instance=>instance, :full=>1, :verdichtung=>{tag: tag}, :update_area=>:hugo }
       assert_response management_pack_license == :none ? :error : :success
     end
@@ -432,7 +432,12 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
     assert_nothing_raised do
       instance = PanoramaConnection.instance_number
       # 18.4 xe raises ORA-13988: Ungültige Eingabe für variable Argumentlisten-Berichtfunktion.
-      if get_db_version >= '11.1' && management_pack_license == :diagnostics_and_tuning_pack && !get_db_version['18.4']
+      # Autonomoous 23 raises ORA-13988: Invalid input given to variable argument list report function. at "SYS.DBMS_REPORT", line 3850
+      if get_db_version >= '11.1' &&
+         management_pack_license == :diagnostics_and_tuning_pack &&
+         !get_db_version['18.4'] &&
+         !PanoramaConnection.autonomous_database?
+
         origins = ['GV$SQL_MONITOR']
 
         # DBA_Hist_Reports available beginning with 12.1

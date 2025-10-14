@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'exception_helper'
 
 # Methods added to this helper will be available to all templates in the application.
 module SlickgridHelper
@@ -7,8 +8,6 @@ module SlickgridHelper
 
   # Entfernen aller umhüllenden Tags, umwandeln html-Ersetzungen
   def strip_inner_html(content)
-    content = content.dup if content.frozen?      # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
-
     #
     # Stripping html from string is expensive operation
     # Rails provides santitize and strip_tags which is slightly slow
@@ -38,7 +37,8 @@ module SlickgridHelper
 
   def escape_js_chars(input)                                                    # Javascript-kritische Zeichen escapen in Strings
     return nil unless input
-    internal_escape(input).gsub("\n", '<br>')                                   # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
+    # Remove 0x0d (Carriage Return) and escape 0x0a (Line Feed) in Javascript-Strings
+    internal_escape(input).gsub("\n", '<br>').gsub("\r", '')                    # Linefeed im Text fuer html escapen für weitere Verwendung, da sonst ParseError
   end
 
   def eval_with_rec (input, rec)  # Ausführen eval mit Ausgabe des Inputs in Exception
@@ -139,6 +139,34 @@ module SlickgridHelper
 
   public
 
+  # Maskieren von html-special chars incl. NewLine
+  # used here as well as in application_helper.rb
+  def my_html_escape(org_value, line_feed_to_br=true)
+    '' if org_value.nil?
+
+    begin
+      retval = ERB::Util.html_escape(org_value)                                          # Standard-Escape kann kein NewLine-><BR>
+    rescue Encoding::CompatibilityError => e
+      Rails.logger.error('SlickgridHelper.my_html_escape') { "#{e.class} #{e.message}: Content: #{org_value}" }
+      ExceptionHelper.log_exception_backtrace(e)
+
+      # force encoding to UTF-8 before
+      retval = ERB::Util.html_escape(org_value.force_encoding('UTF-8'))   # Standard-Escape kann kein NewLine-><BR>
+    end
+
+    if line_feed_to_br  # Alle vorkommenden NewLine ersetzen
+      # Alle vorkommenden CR ersetzen, führt sonst bei Javascript zu Error String not closed
+      retval.gsub!(/\r/, '')
+      retval.gsub!(/\n/, '<br>')
+    else
+      retval.gsub!(/\r/, "\n")                                                  # Avoid having \r in text
+    end
+    retval.gsub!(/\\/, '\\\\\\\\')                                              # Escape single backslash
+    retval.gsub!(/&amp;#8203;/, '&#8203;')                                      # Restore Zero width space in result to ensure word wrap
+    retval.gsub!(/&amp;ZeroWidthSpace;/, '&ZeroWidthSpace;')                    # Restore Zero width space in result to ensure word wrap
+    retval
+  end
+
 
   # Ausgabe einer Table per SlickGrid
   # Parameter:
@@ -147,7 +175,7 @@ module SlickgridHelper
   #     :align                => Ausrichtung
   #     :caption              => Spalten-Header
   #     :css_class            => class für Feld
-  #     :data                 => Ausdruch für Ausgabe der Daten (rec = aktuelles Zeilen-Objekt
+  #     :data                 => proc für Ausgabe der Daten (rec = aktuelles Zeilen-Objekt
   #     :data_style           => Style für Spaltendaten (:style genutzt, wenn nicht definiert)
   #     :data_title           => MouseOver-Hint für Spaltendaten (:title genutzt, wenn nicht definiert), "%t" innerhalb des data_title wird mit Inhalt von :title ersetzt
   #     :field_decorator_function => Javascript-Funktionskörper, return cell-html, folgenden Variablen sind belegt:
@@ -255,9 +283,12 @@ module SlickgridHelper
         rescue Exception => e
           ExceptionHelper.reraise_extended_exception(e, "evaluating :data-expression for column '#{col[:caption]}'")
         end
+
+        celldata = celldata.dup if celldata.frozen?                             # Prevent RuntimeError (can't modify frozen string): if content is frozen (Symbol etc.)
+        celldata = my_html_escape(celldata) if celldata.class == String && !celldata.html_safe?
+
         begin
-          # Clone celldata while encoding to avoid "can't modify frozen String" if using encode!
-          celldata = celldata.encode(Encoding::UTF_8) if celldata.encoding != Encoding::UTF_8 # Ensure that other content is translated to UTF-8
+          celldata.encode!(Encoding::UTF_8) if celldata.encoding != Encoding::UTF_8 # Ensure that other content is translated to UTF-8
         rescue Exception => e
           celldata = "Error #{e.class}: #{e.message} converting result for column '#{col[:caption]}'".gsub(/\\x/, '0x')
           # raise "Error #{e.class}: '#{e.message}' converting result for column '#{col[:caption]}' from #{celldata.encoding} to #{Encoding::UTF_8}"
@@ -290,6 +321,7 @@ module SlickgridHelper
           rescue Exception => e
             ExceptionHelper.reraise_extended_exception(e, "processing data_title-rule for column #{col[:caption]}")
           end
+          title = my_html_escape(title, false) if title.class == String && !title.html_safe?
           title['%t'] = col[:title].gsub('\n', "\n") if title['%t'] && col[:title]   # einbetten :title in :data_title, wenn per %t angewiesen, replace \n with real line feed before
         end
 

@@ -71,7 +71,7 @@
   column_options_sessions << {caption: 'SID / SN',         data: link_session,                          title: 'SID, Serial_No\n(of query coordinator session for parallel query)', data_title: proc{|rec| "%t\n#{rec.qsession_id},#{rec.qsession_serial_no}"}}
   column_options_sessions << {caption: 'Wait time (sec.)', data: link_wait_time_session,                title: "Wait time of session in seconds in considered time period", align: :right, show_pct_col_sum_background: true, data_title: wait_time_data_title }
   column_options_sessions << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0},       title: "Number of different parallel query server sessions involved in SQL execution of this session in considered time period", align: :right}
-  column_options_sessions << {caption: 'User',             data: proc{|rec| rec.username},              title: "Name of DB-User"}
+  column_options_sessions << {caption: 'User',             data: proc{|rec| link_username(@update_area, rec.username)}, title: "Name of DB-User"}
   column_options_sessions << {caption: 'Machine',          data: proc{|rec| rec.machine},               title: "Client machine"}
   column_options_sessions << {caption: 'OS user',          data: proc{|rec| rec.osuser},                title: "Client machine user (available only if session is still connected)"}
   column_options_sessions << {caption: 'Top SQL ID',       data: link_session_sql,                      title: "SQL-ID of most intensive SQL of session in considered time period", data_title: proc{|rec| "%t\nChild-number = #{rec.max_sql_child_number}"}}
@@ -89,7 +89,7 @@
 
   link_sql_session = proc do |rec|
     if rec.sessions > 1
-      "<&nbsp;#{fn(rec.sessions)}&nbsp;>"
+      "<&nbsp;#{fn(rec.sessions)}&nbsp;>".html_safe
     else
       link_session_or_history.call(rec.min_qinst_id, rec.min_qsession_id, rec.min_qsession_serial_no, rec.first_occurrence, rec.last_occurrence, rec.sql_id, rec.osuser != nil)
     end
@@ -125,9 +125,9 @@
 
   show_username = proc do |rec|
     if rec.user_ids > 1
-      "<&nbsp;#{fn(rec.user_ids)}&nbsp;>"
+      "<&nbsp;#{fn(rec.user_ids)}&nbsp;>".html_safe
     else
-      rec.username
+      link_username(@update_area, rec.username)
     end
   end
 
@@ -138,7 +138,7 @@
   column_options_sqls << {caption: 'Sess.',            data: link_sql_session,                            title: "Session ID/serial# if only one session was executing this SQL in in considered time period\nor number of different sessions have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'User',             data: show_username,                               title: "DB-Username if only one user was executing this SQL in in considered time period\nor number of different users have been executing this SQL in considered time period", align: :right}
   column_options_sqls << {caption: 'PQ',               data: proc{|rec| fn(rec.pq_sessions) if rec.pq_sessions > 0}, title: "Number of different parallel query server sessions involved in execution of this SQL in considered time period", align: :right}
-  column_options_sqls << {caption: 'SQL text',         data: proc{|rec| my_html_escape(rec.sql_subtext)}, title: "Start of SQL text"}
+  column_options_sqls << {caption: 'SQL text',         data: proc{|rec| rec.sql_subtext},                 title: "Start of SQL text"}
   column_options_sqls << {caption: 'C',                data: proc{|rec| rec.con_id},                      title: "Container ID of PDB"} if get_db_version >= '12.1'
 
 %>

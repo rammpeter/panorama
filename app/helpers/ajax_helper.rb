@@ -78,7 +78,7 @@ module AjaxHelper
     output << "return {items: items};\n"
     output << "}});\n"
     output << "</script>\n"
-    output
+    output.html_safe
   end
 
   # Render header line with caption
@@ -139,7 +139,9 @@ module AjaxHelper
     raise "@browser_tab_id is not set before calling ajax_form" if !defined?(@browser_tab_id) || @browser_tab_id.nil?
 
     html_options[:remote] = true              # Ajax-Call verwenden
-    html_options['data-type'] = :html
+    raise "Use Symbol for data-type not String" if html_options['data-type']
+    html_options['data-type'.to_sym] = :html unless html_options.has_key?('data-type'.to_sym)
+    html_options['data-type'.to_sym] = html_options['data-type'.to_sym].to_sym         # Use content as Symbol, not String
     html_options[:onsubmit] = "bind_ajax_html_response(jQuery(this), '#{url[:update_area]}');#{html_options[:onsubmit]}"
 
     url[:controller] = controller_name unless url[:controller]
@@ -147,13 +149,12 @@ module AjaxHelper
 
     raise 'ajax_form: key=:controller missing in parameter url'   unless url[:controller]
     raise 'ajax_form: key=:action missing in parameter url'       unless url[:action]
-    raise 'ajax_form: key=:update_area missing in parameter url'  unless url[:update_area]
+    raise 'ajax_form: key=:update_area missing in parameter url'  if html_options['data-type'.to_sym] != :json &&  !url[:update_area]
 
     # update_area should be part of request for additional use in server
     (form_tag url_for(url), html_options do                                     # internen Rails-Helper verwenden
       yield
-    end )
-
+    end ).html_safe
   end
 
   # Ajax-Link definieren mit Indikator-Anzeige während Ausführung
@@ -196,7 +197,7 @@ module AjaxHelper
     ajax_form(url, form_options) do
       #html_options['data-disable-with']=false
       submit_tag caption, html_options
-    end
+    end.html_safe
   end
 
   # Erzeugen eines Links aus den konkreten Wait-Parametern mit aktueller Erläuterung sowie link auf aufwendige Erklärung
@@ -243,7 +244,7 @@ module AjaxHelper
       :prefix      => prefix,
       :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
      }
-    )
+    ).html_safe
   end
 
   # Erzeugen eines Links aus den Parametern auf Detail-Darstellung des SQL
@@ -276,7 +277,7 @@ module AjaxHelper
                 :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
                },
               additional_onclick_js
-    )
+    ).html_safe
   end
 
   def link_username(update_area, username)
@@ -287,8 +288,7 @@ module AjaxHelper
                 update_area: update_area,
               },
               title: "Show details for user '#{username}'"
-    )
-
+    ).html_safe
   end
   def link_current_or_historic_sql_id(update_area, instance, sql_id, time_selection_start, time_selection_end, parsing_schema_name=nil, con_id=nil)
     unique_id = get_unique_area_id
@@ -309,7 +309,7 @@ module AjaxHelper
                :prefix      => prefix,
                :onmouseover => "expand_sql_id_hint('#{unique_id}', '#{sql_id}');"
               }
-    )
+    ).html_safe
   end
 
   def link_session_details(update_area, instance, sid, serial_no, print_val: nil, additional_onclick_js: nil)
@@ -327,7 +327,7 @@ module AjaxHelper
                 },
                 {:title=>t(:dba_list_sessions_show_session_hint, :default=>'Show current session details in SGA')},
                 additional_onclick_js
-                )
+                ).html_safe
     end
   end
 
@@ -339,8 +339,7 @@ module AjaxHelper
                             :machine_name => machine_name,
                             :update_area  => update_area
     }, :title=>'Show IP name resolution'
-    )
-
+    ).html_safe
   end
 
   # create a link to show the object description
@@ -361,7 +360,7 @@ module AjaxHelper
                :object_type  => object_type,
                :update_area  => update_area  # TODO: Ensure additional_tooltip is shown with linefeeds
     }, :title=>"#{"#{additional_tooltip}\n\nClick link to: " if additional_tooltip}#{t(:ajax_helper_link_object_description_hint, :default=>"Show object structure and details for")} #{owner}.#{object_name}"
-    )
+    ).html_safe
   end
 
   def link_file_block_row(file_no, block_no, row_no, data_object_id, update_area, linefeed_prefix = false)
@@ -385,6 +384,4 @@ module AjaxHelper
       ''
     end
   end
-
-
 end

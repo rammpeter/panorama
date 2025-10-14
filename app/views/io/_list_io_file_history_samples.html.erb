@@ -9,7 +9,7 @@
 <%
 column_options =
   [
-    {:caption=>"Sample-Time",           :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sample interval, rounded on minute", :plot_master_time=>true},
+    {:caption=>"Sample-Time",           :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sample interval, rounded to AWR cycle", :plot_master_time=>true},
   ]
 column_options.concat io_file_values_column_options         # Feldliste der numerischen Werte zur Mehrfachverwendung in diversen Views
 

@@ -1215,7 +1215,13 @@ FROM (
   end
 
   def list_system_statistics_historic_full
-    trunc_tag = params[:verdichtung][:tag]
+    ts_code = case params[:verdichtung][:tag]
+              when 'AWR'  then awr_snapshot_ts_round('ss.Begin_Interval_Time')
+              when 'HH24' then "TRUNC(ss.Begin_Interval_Time, 'HH24')"
+              when 'DD'   then "TRUNC(ss.Begin_Interval_Time, 'DD')"
+              else raise "Unsupported value for parameter :verdichtung (#{params[:verdichtung][:tag]})"
+              end
+
 
     additional_where = String.new
     binds = [prepare_param_dbid]  # 1. Bindevariablen
@@ -1226,7 +1232,7 @@ FROM (
     binds.concat [@time_selection_start, @time_selection_end]
 
     single_stats = sql_select_iterator ["
-      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Begin_Interval_Time,
+      WITH Snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Begin_Interval_Time, End_Interval_Time,
                             Min(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Min_Snap_ID,
                             MAX(Snap_ID) OVER (PARTITION BY DBID, Instance_Number) Max_Snap_ID
                      FROM   DBA_Hist_Snapshot ss
@@ -1234,17 +1240,19 @@ FROM (
                      AND    Begin_Interval_Time+#{client_tz_offset_days} >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
                      AND    Begin_Interval_Time+#{client_tz_offset_days} <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
              ),
-      All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time
+      All_snaps AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, Instance_Number, Snap_ID, Min_Snap_ID, Max_Snap_ID, Begin_Interval_Time, End_Interval_Time
                     FROM   Snaps
                     UNION ALL
                     SELECT DBID, Instance_Number, MIN(Snap_ID-1) Snap_ID, /* Vorgänger des ersten mit auswerten für Differenz per LAG */
-                           MIN(Min_Snap_ID) Min_Snap_ID,  MAX(Max_Snap_ID) Max_Snap_ID, MIN(Begin_Interval_time)
+                           MIN(Min_Snap_ID) Min_Snap_ID,  MAX(Max_Snap_ID) Max_Snap_ID, MIN(Begin_Interval_time), MAX(End_Interval_Time)
                     FROM   Snaps
                     GROUP BY DBID, Instance_Number
                    )
-      SELECT /* Panorama-Tool Ramm */ TRUNC(hist.Begin_Interval_Time, '#{trunc_tag}') Begin_Interval_Time, hist.Stat_ID, SUM(hist.Value) Value
+      SELECT /* Panorama-Tool Ramm */ Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time,
+             hist.Stat_ID, SUM(hist.Value) Value
       FROM   (
-              SELECT /*+ NO_MERGE */ ss.DBID, ss.Begin_Interval_Time, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID,
+              SELECT /*+ NO_MERGE */ #{ts_code} Rounded_Begin_Interval_Time,
+                     ss.DBID, ss.Begin_Interval_Time, ss.End_Interval_Time, st.Instance_Number, st.Snap_ID, st.Stat_Id, ss.Min_Snap_ID,
                      Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
               FROM   All_Snaps ss
               JOIN   DBA_Hist_SysStat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
@@ -1252,7 +1260,7 @@ FROM (
             ) hist
       WHERE  hist.Value >= 0    /* Ersten Snap nach Reboot ausblenden */
       AND    hist.Snap_ID >= hist.Min_Snap_ID /* Vorgaenger des ersten Snap fuer LAG wieder ausblenden */
-      GROUP BY TRUNC(hist.Begin_Interval_Time, '#{trunc_tag}'), hist.Stat_ID
+      GROUP BY Rounded_Begin_Interval_Time, hist.Stat_ID
       ORDER BY 1, Stat_ID"].concat(binds)
 
     statnames = sql_select_all ["
@@ -1270,10 +1278,14 @@ FROM (
     empty = true
     single_stats.each do |s|
       empty = false
-      if ts != s.begin_interval_time
+      if ts != s.rounded_begin_interval_time
         @stats << rec if ts    # Wegschreiben des gebauten Records (ausser bei erstem Durchlauf)
-        rec = {:begin_interval_time => s.begin_interval_time }              # Neuer Record
-        ts = s.begin_interval_time                                          # Vergleichswert fur naechsten Record
+        rec = {  # Neuer Record
+                 rounded_begin_interval_time: s.rounded_begin_interval_time,
+                 min_begin_interval_time:     s.min_begin_interval_time,
+                 max_end_interval_time:       s.max_end_interval_time
+        }
+        ts = s.rounded_begin_interval_time                                          # Vergleichswert fur naechsten Record
       end
       rec[s.stat_id] = s.value if s.value != 0      # 0-Values nicht speichern
       columns[s.stat_id] = true if s.value != 0     # Statistik als verwendet kennzeichnen
@@ -1282,7 +1294,13 @@ FROM (
 
     column_options =
     [
-      {caption: "Interval", data: proc{|rec| localeDateTime(rec[:begin_interval_time])}, :title=>"Start of AWR snapshot period", :plot_master_time=>true }
+      {
+        caption:    "Interval",
+        data:       proc{|rec| localeDateTime(rec[:rounded_begin_interval_time])},
+        title:      "Start of AWR snapshot period",
+        data_title: proc{|rec| "%t\nEarliest begin interval time: #{localeDateTime(rec[:min_begin_interval_time])}\nLatest end interval time: #{localeDateTime(rec[:max_end_interval_time])}"},
+        plot_master_time: true
+      }
     ]
     statnames.each do |sn|
       if columns[sn.stat_id]              # Statistik kommt auch im Result vor
@@ -1540,7 +1558,7 @@ FROM (
     @min_snap_id, @max_snap_id = get_min_max_snapshot(@instance, @time_selection_start, @time_selection_end, @dbid)
 
     result = sql_select_iterator ["
-      SELECT  ROUND(snap.Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time,
+      SELECT  #{awr_snapshot_ts_round('snap.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
               snap.Begin_Interval_Time, snap.End_Interval_Time,
               hist.Stat_ID, hist.Stat_Name, hist.Value#{get_db_version >='12.1' ? ", hist.Con_ID": ", NULL Con_ID"}
       FROM   (
@@ -2005,12 +2023,15 @@ FROM (
 
     @limits = sql_select_all ["\
       SELECT /* Panorama-Tool Ramm */
-             ROUND(ss.End_Interval_Time, 'MI')    End_Interval,
+             Rounded_End_Interval_Time            End_Interval,
              SUM(rl.Current_Utilization)          Current_Utilization,
              SUM(rl.Max_Utilization)              Max_Utilization,
              SUM(rl.Initial_Allocation)           Initial_Allocation,
              SUM(rl.Limit_Value)                  Limit_Value
-      FROM   DBA_Hist_Snapshot ss
+      FROM   (SELECT #{awr_snapshot_ts_round('ss.End_Interval_Time')} Rounded_End_Interval_Time,
+                     ss.*
+              FROM   DBA_Hist_Snapshot ss
+             ) ss
       JOIN   (SELECT DBID, Snap_ID, Instance_Number, Current_Utilization, Max_Utilization,
                      CASE WHEN TRIM(Initial_Allocation) = 'UNLIMITED' THEN -1 ELSE TO_NUMBER(Initial_Allocation) END Initial_Allocation,
                      CASE WHEN TRIM(Limit_Value)        = 'UNLIMITED' THEN -1 ELSE TO_NUMBER(Limit_Value)        END Limit_Value
@@ -2019,8 +2040,8 @@ FROM (
               AND    Resource_Name  = ?
               #{ @instance ? " AND Instance_Number = ?" : ''}
              ) rl ON rl.DBID=ss.DBID AND rl.Snap_ID=ss.Snap_ID AND rl.Instance_Number=ss.Instance_Number
-      GROUP BY ROUND(ss.End_Interval_Time, 'MI')
-      ORDER BY ROUND(ss.End_Interval_Time, 'MI') DESC
+      GROUP BY Rounded_End_Interval_Time
+      ORDER BY Rounded_End_Interval_Time DESC
      ", @dbid, @resource_name].concat(@instance ? [@instance] : [])
 
     if @limits.length == 0
@@ -2106,7 +2127,8 @@ FROM (
 
     @report.gsub!(/http:/, 'https:') if request.original_url['https://']        # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
 
-    render :html => @report.html_safe
+    @report.sub!(/<head>/, "<he ad><title>Performace Hub Report</title>")
+    render :json => { action: 'show_in_new_tab', result: @report}.to_json
   end
 
   def list_awr_report_html
@@ -2122,7 +2144,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def list_awr_global_report_html
@@ -2138,7 +2162,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def list_ash_report_html
@@ -2171,7 +2197,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>ASH report</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
 
@@ -2189,7 +2217,9 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>SQL Report for SQL-ID #{@sql_id}</title>")
+    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
   end
 
   def select_plan_hash_value_for_baseline
@@ -2526,7 +2556,8 @@ END;
       if request.original_url['https://']                                         # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
         report.gsub!(/http:/, 'https:')
       end
-      render :html => report.html_safe
+      report.sub!(/<head>/, "<head><title>SQL Monitor Report for SQL-ID #{sql_id}</title>")
+      render :json => { action: 'show_in_new_tab', result: report}.to_json
     end
   end
 
@@ -2535,8 +2566,9 @@ END;
     @instance  = prepare_param_instance
 
     osstats = sql_select_iterator ["\
-      SELECT ROUND(Begin_Interval_Time, 'MI') Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name, SUM(Value) Value
-      FROM   (SELECT ssi.Begin_Interval_Time, ssi.End_Interval_Time, REPLACE(s.Stat_Name, '_', ' ') Stat_Name, ss.Min_Snap_ID, s.Snap_ID,
+      SELECT Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name, SUM(Value) Value
+      FROM   (SELECT #{awr_snapshot_ts_round('ssi.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
+                     ssi.Begin_Interval_Time, ssi.End_Interval_Time, REPLACE(s.Stat_Name, '_', ' ') Stat_Name, ss.Min_Snap_ID, s.Snap_ID,
                      DECODE(#{get_db_version >= '11.2' ? "vs.cumulative" : "'NO'"}, 'YES',
                                 s.Value - LAG(s.Value, 1, s.Value) OVER (PARTITION BY s.Instance_Number, s.Stat_Name ORDER BY s.Snap_ID),
                                 s.Value
@@ -2556,7 +2588,7 @@ END;
               AND     s.Snap_ID <= ss.Max_Snap_ID
              )
       WHERE  Snap_ID >= Min_Snap_ID  /* Filter first Snap_ID that is only used for LAG */
-      GROUP BY ROUND(Begin_Interval_Time, 'MI'), Stat_Name
+      GROUP BY Rounded_Begin_Interval_Time, Stat_Name
       ORDER BY 1, Stat_Name
     ", get_dbid, @time_selection_start, @time_selection_end].concat(@instance ? [@instance] : [])
 

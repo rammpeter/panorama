@@ -1,7 +1,13 @@
 <%= render_page_caption("Generate genuine Oracle performance hub report") %>
 
 
-<%= form_tag(url_for(:controller=>:dba_history, :action=>:list_performance_hub_report, :browser_tab_id=>@browser_tab_id), {:method => 'post', :target=>'_blank'}) do %>
+<%=
+  ajax_form({
+              :controller=>:dba_history,
+              :action=>:list_performance_hub_report
+            }, { 'data-type': :json }
+  ) do
+%>
   <div class="flex-row-container">
     <%= include_start_end_timepicker %>
     <%= instance_tag(rac_only: true) %>

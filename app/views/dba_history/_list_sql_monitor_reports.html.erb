@@ -4,7 +4,9 @@
 
   link_action = proc do |rec|
     @hidden_id += 1
-    form_tag(url_for(controller:            :dba_history,
+
+    ajax_form({
+                controller:            :dba_history,
                 action:                :list_awr_sql_monitor_report_html,
                 report_id:             rec.report_id,
                 instance:              rec.instance_number,
@@ -13,17 +15,17 @@
                 sql_id:                rec.sql_id,
                 sql_exec_id:           rec.sql_exec_id,
                 origin:                rec.origin,
-                browser_tab_id:        @browser_tab_id),
-                  {method: 'post', target: '_blank'}
-                  ) do                                     # internen Rails-Helper verwenden
-                    hidden_field_tag("download_oracle_com_reachable_#{@hidden_id}", 'false', name: 'download_oracle_com_reachable') + # Field is set at submit click with reachable state
-                    submit_tag('Show report',
-                               {title: "Show generated SQL-Monitor report in separate browser tab (requires internet connection).\n\nLoading the new page may last some seconds, don't worry.",
-                                onclick: "on_submit_click('download_oracle_com_reachable_#{@hidden_id}');"
-                               }
-                    )
-                  end
+                browser_tab_id:        @browser_tab_id
+              }, { 'data-type': :json }
+    ) do
+      hidden_field_tag("download_oracle_com_reachable_#{@hidden_id}", 'false', name: 'download_oracle_com_reachable') + # Field is set at submit click with reachable state
+        submit_tag('Show report',
+                   {title: "Show generated SQL-Monitor report in separate browser tab (requires internet connection).\n\nLoading the new page may last some seconds, don't worry.",
+                    onclick: "on_submit_click('download_oracle_com_reachable_#{@hidden_id}');"
+                   }
+        )
 
+    end
   end
 
   link_sql = proc do |rec|

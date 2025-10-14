@@ -23,7 +23,7 @@ there are two ways to run Panorama:
   > java -jar panorama.jar
   ```
 - Open the application in your browser: http://localhost:8080
-- Login with an Oracle user of the choosen database 
+- Login with an Oracle user of the chosen database 
 
 ### 2. Use Panorama as container
 - Ensure you have Docker or Podman installed
@@ -32,7 +32,7 @@ there are two ways to run Panorama:
   > docker run -p 8080:8080 docker.io/rammpeter/panorama
   ```
 - Open the application in your browser: http://localhost:8080
-- Login with an Oracle user of the choosen database
+- Login with an Oracle user of the chosen database
 
 ## License
 This application is available free of charge under the terms of the [GNU General Public License](http://www.gnu.org/licenses/gpl-3.0).

@@ -1,5 +1,11 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
+- 2025-09-10 History of init.ora parameters added to "DBA General / Database configuration / Init parameters"
+
+## Release 2.18.4
+- 2025-08-07 Offer Oracle's SQL diagnostic report for 19.28++
+- 2025-08-07 Show spinner while loading the original Oracle reports in new browser tag
+- 2025-07-29 Require Java 21 or higher as runtime environment for Panorama, due to update of JRuby to 10.x
 
 ## Release 2.17.76
 - 2025-07-02 All DATE and TIMESTAMP values are converted now to the client timezone of the Panorama server if this is different from the database system timezone

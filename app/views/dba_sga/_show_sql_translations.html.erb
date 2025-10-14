@@ -40,7 +40,7 @@
       org_sql_id:               rec.sql_id,
       update_area: @update_area,
     }, :title => "Generate the SQL code for drop of this SQL translation"
-    )
+    ).html_safe
   end
 
   column_options = []

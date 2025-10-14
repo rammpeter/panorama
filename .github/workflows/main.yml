@@ -12,7 +12,8 @@
 #     > gem install bundler
 
 name: Panorama CI
-
+permissions:
+  contents: read
 on:
   push:
     branches:
@@ -25,12 +26,13 @@ jobs:
   setup:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v5
       - name: Remove orphanded DB containers older than 1 hour from previous runs
         run: |
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
       - name: Prepare Gem repo for all tests
         run: |
+          rm -rf /tmp/jruby
           JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`
           echo "JRUBY_VERSION=$JRUBY_VERSION" | tee -a $GITHUB_ENV
           source "$HOME/.rvm/scripts/rvm"
@@ -76,11 +78,13 @@ jobs:
         run: echo "Proceed with build if all tests passed"
 
   build_docker:
+    permissions:
+      packages: write  # Crucial: Grants write access to GitHub Packages (GHCR)
     runs-on: self-hosted
     needs: await_tests
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Get version numbers
         run: |
@@ -96,13 +100,44 @@ jobs:
             echo "Ensure using latest version of $FROM"
             docker pull $FROM
           done
-          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:latest .
+          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:ci-temp .
           docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-          docker push ghcr.io/rammpeter/panorama:latest
+          docker push ghcr.io/rammpeter/panorama:ci-temp
 
       - name: Test Docker image
         run: |
           echo "Test docker image"
+          docker run -d --name panorama-ci-test -p 8080:8080 ghcr.io/rammpeter/panorama:ci-temp
+          docker ps -a
+          # Wait for the container to become available
+          MAX_WAIT=240 # 4 minutes
+          typeset -i LOOPS=0
+          while [ $LOOPS -lt $MAX_WAIT ]; do
+            retval=0
+            curl http://localhost:8080/ 2>/dev/null >/dev/null || retval=$?
+            if [ $retval -eq 0 ]; then
+              break
+            fi
+            LOOPS=LOOPS+1
+            echo -n .
+            sleep 1
+          done
+          if [ $LOOPS -eq $MAX_WAIT ]; then
+            echo "Docker container not reachable at port 8080 after $LOOPS seconds! Details follow:"            
+            docker logs panorama-ci-test
+            docker rm -f panorama-ci-test
+            exit 1
+          fi
+          # Check content of the web interface
+          if curl -s http://localhost:8080/ | grep -q "Please choose saved connection or"; then
+            echo "Panorama start page is accessible"
+          else
+            echo "Panorama start page is not accessible"
+            docker logs panorama-ci-test
+            docker rm -f panorama-ci-test
+            exit 1
+          fi  
+          docker rm -f panorama-ci-test
 
       - name: Final push Docker image
         run: |
@@ -113,8 +148,10 @@ jobs:
           if [[ $? -eq 1 ]];then
             echo "Image with release $PANORAMA_VERSION does not exist, deploying"
             set -e
-            docker tag ghcr.io/rammpeter/panorama:latest ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:latest
             docker push ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker push ghcr.io/rammpeter/panorama:latest
             docker login -u rammpeter -p ${{ secrets.DOCKER_IO_API_KEY }} docker.io
             docker tag ghcr.io/rammpeter/panorama:latest docker.io/rammpeter/panorama:$PANORAMA_VERSION
             docker push docker.io/rammpeter/panorama:$PANORAMA_VERSION
@@ -130,15 +167,12 @@ jobs:
     needs: await_tests
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Get version numbers
         run: |
           echo "JRUBY_VERSION=`cat .ruby-version | cut -c 7-20`" >> $GITHUB_ENV
           echo JRUBY_VERSION=$JRUBY_VERSION
-          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
-          echo "PANORAMA_VERSION=$PANORAMA_VERSION" >> $GITHUB_ENV
-          echo PANORAMA_VERSION=$PANORAMA_VERSION
 
       - name: Build jar
         run: |
@@ -172,10 +206,10 @@ jobs:
           bundler-cache: false # runs 'bundle install' and caches installed gems automatically
 
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: Panorama.jar
 
@@ -185,11 +219,24 @@ jobs:
           ruby test/test_panorama_jar.rb
 
   deploy_jar:
+    permissions:
+      contents: write # Allow creation of releaes and upload assets
     runs-on: self-hosted
     needs: test_jar
     steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: Panorama.jar
+
       - name: Final deploy Panorama.jar
         run: |
+          PANORAMA_VERSION=`cat config/application.rb | grep "VERSION =" | cut -d " " -f5 | sed "s/'//g"`
+          echo "PANORAMA_VERSION=$PANORAMA_VERSION"
+
           # Ensure that exit code != 0 does not stop the build
           set +e
           # Scan all releases for the version

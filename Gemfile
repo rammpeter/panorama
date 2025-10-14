@@ -12,7 +12,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # rails_version = "7.0.0" # requires ruby >= 2.7.0 but jRuby 9.3.2.0 is compatible with ruby 2.6 only
 # see: https://rubygems.org/gems/rails/versions
 # rails_version = "6.1.7.10"
-rails_version = "8.0.2"
+rails_version = "8.0.2.1"
 #gem 'rails', rails_version
 gem 'activerecord', rails_version
 gem 'activemodel', rails_version
@@ -46,7 +46,9 @@ gem 'jbuilder', '~> 2.7'
 # gem 'activerecord-oracle_enhanced-adapter'
 # Avoid dependency on oci8, see https://github.com/rsim/oracle-enhanced/issues/2350
 # gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "release71"
-gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80'
+
+# Use branch releae80 with the last commit from 2025-06-29
+gem "activerecord-oracle_enhanced-adapter", github: 'rammpeter/oracle-enhanced', branch: 'release80', ref: 'c1094bc'
 gem 'activerecord-nulldb-adapter'
 
 # Use Json Web Token (JWT) for token based authentication
@@ -55,9 +57,10 @@ gem 'jwt'
 # Used for XMl processing in bequeathed packages
 gem 'rexml'
 
-#### certain dependencies fixed to version according to system gems to be equal with default Gems in x86-64-linux
+#### certain dependencies fixed to version according to system gems to be equal with default Gems in x86-64-linux or aarch64
 gem 'jar-dependencies', '0.5.4' # Fix: You have already activated jar-dependencies 0.5.4, but your Gemfile requires jar-dependencies 0.5.5.
 gem 'psych', '5.2.3'
+gem 'io-console', '0.8.0'
 
 group :development do
   # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
@@ -84,9 +87,6 @@ group :development do
 
   gem 'brakeman'
 
-  # Needed to build warfile
-  # gem 'jruby-jars'
-  # gem 'jruby-rack'
 end
 
 group :test do
@@ -97,6 +97,7 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:windows, :jruby]
 
+
 # Build Panorama.war with warbler (./build_war.sh), Use warbler directly from git
 # gem install specific_install
 # gem specific_install https://github.com/jruby/warbler.git
@@ -105,3 +106,9 @@ gem 'tzinfo-data', platforms: [:windows, :jruby]
 #group :development do
 #  gem 'warbler', :git => 'https://github.com/jruby/warbler.git'
 #end
+
+
+# Fix Debugging issue with JRuby 10:
+# https://youtrack.jetbrains.com/issue/RUBY-34161/Debug-fails-to-start-for-JRuby-10.0.0
+# Replace ./pramm/Applications/RubyMine.app/Contents/plugins/ruby/rb/gems/ruby-debug-base-0.11.0-java.gem
+# with  https://github.com/mohamedhafez/ruby-debug/releases/download/0.11.0.jruby-10/ruby-debug-base-0.11.0-java.gem

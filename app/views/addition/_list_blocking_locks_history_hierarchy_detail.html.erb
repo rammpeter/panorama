@@ -35,7 +35,7 @@
   link_column_sql_id = proc do |rec|
     "\
 #{link_historic_sql_id(rec.instance_number, rec.sql_id, @snapshot_timestamp, @snapshot_timestamp, @update_area, rec.user_name)} \
-#{link_historic_sql_id(rec.instance_number, rec.prev_sql_id, @snapshot_timestamp, @snapshot_timestamp, @update_area, rec.user_name)}"
+#{link_historic_sql_id(rec.instance_number, rec.prev_sql_id, @snapshot_timestamp, @snapshot_timestamp, @update_area, rec.user_name)}".html_safe
   end
 
   link_ash_blocking_sid = proc do |rec|
@@ -70,7 +70,7 @@
                             style: 'display:inline;'
       )
     end
-    retval
+    retval.html_safe
   end
 
   column_options =

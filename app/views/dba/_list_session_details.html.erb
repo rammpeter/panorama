@@ -123,7 +123,7 @@
   column_options << {:caption=>'SQL exec ID',     :data=>proc{|rec| fn(rec[:sql_exec_id])},                 :title=>"ID / sequence of current SQL execution", :align=>:right  } if get_db_version >= '11.1'
   column_options << {caption: "Entry PL/SQL",       data: link_entry_plsql,                                 title: "Top-most PL/SQL subprogram on the stack"}
   column_options << {caption: "PL/SQL",             data: link_plsql,                                       title: "Currently executing PL/SQL subprogram"}
-  column_options << {:caption=>"SQL-Text", :data=>proc{|rec| "<pre class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</pre>" }, title: "Text of SQL statement" }
+  column_options << {:caption=>"SQL-Text", :data=>proc{|rec| "<pre class=\"monospace\">#{convert_word_wrap_comma(rec[:sql_text])}</pre>".html_safe }, title: "Text of SQL statement" }
 %>
 <div style="padding: 5px;"></div>
 

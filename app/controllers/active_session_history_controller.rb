@@ -1122,11 +1122,6 @@ class ActiveSessionHistoryController < ApplicationController
     # Fest vergleichbaren Wert für Hash-Join mitgeben, damit nicht komplette Menge kartesisch verknüpft werden vor Wirken der >= and <= Bedingung
     fuzzy_round_filter = "ROUND(s.Sample_Time, 'HH') = ROUND(t.Sample_Time, 'HH')"  # Unschärfe bei Betrachtung über Stundengrenze wird billigend in Kauf genommen, damit kartesisches Produkt nur innerhalb einer Stunde entsteht
 
-    # Unbrauchbare Funktion, da Übergänge unsauber werden
-    #fuzzy_round_filter = "ROUND(TO_NUMBER(TO_CHAR(t.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} )) =
-    #                      ROUND(TO_NUMBER(TO_CHAR(s.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} ))"
-
-    #fuzzy_round_filter = "ROUND(s.Sample_Time, 'MI') = ROUND(t.Sample_Time, 'MI')"  if @fuzzy_seconds <= 30
     fuzzy_round_filter = "s.Sample_Time = t.Sample_Time"                            if @fuzzy_seconds == 0        # Direkter Vergleich der Werte wenn keine fuzzy-Funktion gewünscht
 
     case @time_groupby.to_sym
@@ -1239,11 +1234,6 @@ class ActiveSessionHistoryController < ApplicationController
     # Fest vergleichbaren Wert für Hash-Join mitgeben, damit nicht komplette Menge kartesisch verknüpft werden vor Wirken der >= and <= Bedingung
     fuzzy_round_filter = "ROUND(s.Sample_Time, 'HH') = ROUND(t.Sample_Time, 'HH')"  # Unschärfe bei Betrachtung über Stundengrenze wird billigend in Kauf genommen, damit kartesisches Produkt nur innerhalb einer Stunde entsteht
 
-    # Unbrauchbare Funktion, da Übergänge unsauber werden
-    #fuzzy_round_filter = "ROUND(TO_NUMBER(TO_CHAR(t.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} )) =
-    #                      ROUND(TO_NUMBER(TO_CHAR(s.Sample_Time, 'SSSSS')) / (2*#{@fuzzy_seconds} ))"
-
-    #fuzzy_round_filter = "ROUND(s.Sample_Time, 'MI') = ROUND(t.Sample_Time, 'MI')"  if @fuzzy_seconds <= 30
     fuzzy_round_filter = "s.Sample_Time = t.Sample_Time"                            if @fuzzy_seconds == 0        # Direkter Vergleich der Werte wenn keine fuzzy-Funktion gewünscht
 
     case @time_groupby.to_sym

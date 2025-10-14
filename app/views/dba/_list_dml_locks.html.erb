@@ -93,7 +93,7 @@
       {:caption=>"R",           :data=>proc{|rec| rec.request},                           :title=>"Request: !=0 indicates waiting for resource determinded by ID1, ID2", :data_title=>proc{|rec| lock_modes(rec.request)} },
       {:caption=>"L",           :data=>proc{|rec| rec.lockmode},                          :title=>"Lock-Modus",                 :data_title=>proc{|rec| lock_modes(rec.lockmode)} },
       {:caption=>"Blocking SID",:data=>proc{|rec| link_column_blocking_sid(rec)},         :title=>t(:dba_list_dml_locks_blocking_sid_hint, :default=>'Instance and SID of blocking session (the session this session waits for)') },
-      {:caption=>"Blocking Object",:data=>proc{|rec| "<span style='float:left;'>#{rec.waitingforobject}</span> #{link_column_blocking_object_rowid(rec)}"},   :title=>t(:dba_list_dml_locks_blocking_object_hint, :default=>'Ressource this session waits for') },
+      {:caption=>"Blocking Object",:data=>proc{|rec| "<span style='float:left;'>#{rec.waitingforobject}</span> #{link_column_blocking_object_rowid(rec)}".html_safe},   :title=>t(:dba_list_dml_locks_blocking_object_hint, :default=>'Ressource this session waits for') },
    ]
 
 %>

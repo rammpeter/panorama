@@ -37,8 +37,10 @@ WORKDIR /opt/panorama
 COPY --from=openjdk /customjre $JAVA_HOME
 COPY ${BACKEND_SRC_PATH} .
 
-RUN  microdnf update
-RUN  microdnf install wget tar gzip curl bash tzdata make clang git
+# Not nneded because done again st last stage
+# RUN  microdnf update
+RUN  microdnf install wget tar gzip curl bash tzdata git
+# RUN  microdnf install wget tar gzip curl bash tzdata make clang git
 RUN  echo "### install jruby" && \
      (cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
      (cd /opt && tar -xvf jruby-dist-$JRUBY_VERSION-bin.tar.gz && rm jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
@@ -54,14 +56,18 @@ RUN  gem install --no-document bundler
 RUN  echo "gem: --no-rdoc --no-ri" > ~/.gemrc
 RUN  bundle config set deployment 'true'
 RUN  bundle config set --local without 'development test'
+RUN  bundle config install.args "--no-document"
 RUN  rm -rf vendor/bundle # remove old vendor gems
 # Ensure bundle install uses the correct JRE
 RUN  bundle lock --add-platform universal-java-21 && bundle lock --add-platform universal-java-24
-RUN  bundle install --jobs 4
+RUN  bundle install --jobs 4 --no-cache
 RUN  bundle exec rake assets:precompile
 # RUN  echo "### reduce storage / remove unnecessary packages" && gem cleanup && gem list && \
 #RUN  microdnf remove libmetalink expat wget tar gzip make gcc binutils glibc-devel libxcrypt-devel glibc-headers kernel-headers \
 #     libgomp pkgconf-pkg-config pkgconf libpkgconf pkgconf-m4 isl cpp libmpc
+
+RUN  rm -f vendor/cache/* && \
+     rm -rf vendor/bundle/jruby/*/cache/*
 
 RUN  microdnf clean all
 RUN  rm -rf $HOME/.bundle/cache && \
@@ -82,7 +88,7 @@ ENV JAVA_HOME=/opt/jre \
     WORKDIR=/opt/panorama
 ENV PATH $JAVA_HOME/bin:$JRUBY_HOME/bin:$PATH
 
-# RUN  microdnf update && microdnf clean all
+RUN  microdnf update && microdnf clean all
 
 WORKDIR $WORKDIR
 

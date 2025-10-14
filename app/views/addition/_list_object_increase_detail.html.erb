@@ -30,14 +30,14 @@
     if rec.name_addition
       result << " ( #{rec.name_addition} )"
     end
-    result
+    result.html_safe
   end
 
   def show_ts(rec)
     if rec.tablespaces == 1
       rec.last_ts
     else
-      "<&nbsp;#{rec.tablespaces}&nbsp;different&nbsp;>"
+      "<&nbsp;#{rec.tablespaces}&nbsp;different&nbsp;>".html_safe
     end
   end
 

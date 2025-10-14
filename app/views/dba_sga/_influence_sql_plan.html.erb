@@ -14,7 +14,7 @@
     max_snap_id:                @max_snap_id,
     dbid:                       @dbid
   }, :disabled => disabled, title: "Generate template script for running the SQL Tuning advisor for this SQL.")
-  run_title =
+
   run_action = ajax_submit('Run SQL Tuning Advisor', {
     :controller                 => :dba_sga,
     :action                     => :show_sql_tuning_advisor,
@@ -35,7 +35,7 @@
   desc_add = String.new
   option_pack_needed = ""
   if @min_snap_id && @max_snap_id                                           # called from AWR view
-    desc_add << "\nBases on AWR data for choosen time period."
+    desc_add << "\nBases on AWR data for chosen time period."
     if get_db_version < '18'
       disabled = PanoramaConnection.edition == :standard || !PackLicense.tuning_pack_licensed?
       desc_add << "\n\n<span style=\"color: red;\">Generation of SQL plan baseline from AWR requires Enterprise Edition with Diagnostics and Tuning Pack.\nYou may try to load SQL plan baseline from cursor cache instead (from current SGA).</span>" if disabled

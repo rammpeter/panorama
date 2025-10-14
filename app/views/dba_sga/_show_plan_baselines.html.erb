@@ -17,7 +17,7 @@
    end
 
   link_sql_id = proc do |rec|
-    "#{fn(rec.sga_usages)}\n#{link_sql_id(@update_area, rec.inst_id, rec.sql_id)}"
+    "#{fn(rec.sga_usages)}\n#{link_sql_id(@update_area, rec.inst_id, rec.sql_id)}".html_safe
   end
 
   link_comp_data = proc do |rec|
@@ -57,7 +57,7 @@
           plan_name:    rec.plan_name,
           update_area: @update_area,
         }, :title => "Generate the SQL code for drop of this SQL plan baseline"
-    )
+    ).html_safe
   end
 
   column_options = [

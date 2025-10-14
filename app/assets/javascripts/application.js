@@ -250,7 +250,9 @@ function process_ajax_success(data, xhr, target, options){
             $('#' + target).children().remove();                                // remove all children of target including their event handlers and data objects
             $('#' + target).html(data);                                         // render html in target dom-element
         } else if (xhr.getResponseHeader("content-type").indexOf("text/javascript") >= 0) {
-            eval(data);                                                             // Execute as javascript
+            eval(data);                                                         // Execute as javascript
+        } else if (xhr.getResponseHeader("content-type").indexOf("application/json") >= 0) {
+            process_json_response(data);                                        // Execute as json
         } else {
             alert("Unsupported content type in ajax response: " + xhr.getResponseHeader("content-type"));
         }
@@ -260,6 +262,29 @@ function process_ajax_success(data, xhr, target, options){
         hideIndicator();
         log_exception_to_console(err, xhr);
         throw("\nException: " + err.message + "\nSee browser console for details.\n");
+    }
+}
+
+/**
+ * Process json response from server
+ * Opens a new tab with the content of the response.
+ * The response should contain a 'result' field with the HTML content.
+ * @param data JSON response object containing fields:
+ *   - action: the action that should be executed.
+ *   - result: the HTML content to show.
+ */
+function process_json_response(data){
+    switch (data.action) {
+        case "show_in_new_tab":
+            const blob = new Blob([data.result], { type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const newTab = window.open(url, '_blank');
+            if (!newTab) {
+                alert("Popup blocked! Please allow popups for this site.");
+            }
+            break;
+        default:
+            alert(`Invalid JSON response: missing or unknown action '${data.action}'.`);
     }
 }
 

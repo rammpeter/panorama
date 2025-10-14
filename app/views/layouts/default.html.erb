@@ -110,14 +110,14 @@
     <%= form_tag url_for(:controller=>:env, :action=>:set_database_by_id), {:remote=>true, 'data-type'.to_sym=>:html, :id=>:formSavedLogin} do %>
       <div>     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
         <label  title="<%= t(:login_saved_logins_title, :default=>"Saved DB connections from former use") %>">
-        <select id="saved_logins_id" name="saved_logins_id"  autocomplete="off" style="width: 60%">
+        <select id="saved_logins_id" name="saved_logins_id"  autocomplete="off" style="width: 55%">
           <% last_logins.each_index do |index| %>
             <% database = last_logins[index] %>
             <option <%= "selected=1" if index ==  0 %> value="<%= index %>"><%= "#{database[:user]} @ #{database[:tns]}" %></option>
           <% end %>
         </select>
         </label>
-        <input type="search" placeholder="Filter" id="saved_logins_id_filter" style="width: 10%;" title="<%= t(:combobox_filter_title, default: 'Filter for selection list') %>">
+        <input type="search" placeholder="Filter" id="saved_logins_id_filter" style="width: 15%;" title="<%= t(:combobox_filter_title, default: 'Filter for selection list') %>">
         <script type="application/javascript" nonce="<%= request.content_security_policy_nonce %>">
             $(function(){ initialize_combobox_filter('saved_logins_id', 'saved_logins_id_filter'); })
         </script>
