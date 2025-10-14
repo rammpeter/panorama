@@ -3,10 +3,10 @@
 
 # Usage:
 # Build image:                    > docker build -t rammpeter/panorama .
-# Create container from image:    > docker run --name panorama -p8080:8080 -d rammpeter/panorama
+# Create container from image:    > docker run --name panorama -p 8080:8080 -d rammpeter/panorama
 
 # create container with tnsnames.ora from host and timezone set
-# > docker run --name panorama -p8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
+# > docker run --name panorama -p 8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
 # STAGE 1: JRE build
 FROM eclipse-temurin:21 as openjdk
