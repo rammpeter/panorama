@@ -389,8 +389,8 @@ module ExplainPlanHelper
                              end
         end
         p['hint_usage'] << "\n"
-        p['hint_usage'] =  p['hint_usage'].html_safe
       end
+      p['hint_usage'] =  p['hint_usage']&.html_safe                             # html_safe after all appends are done, otherwise <> will be escaped
     end
 
     # Add the hint usage to the plan lines
