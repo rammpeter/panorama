@@ -52,7 +52,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     singles= sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(p) USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
                      FROM   DBA_Procedures p
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
@@ -187,7 +187,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(p) USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
                      FROM   DBA_Procedures p
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
@@ -328,7 +328,7 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= PanoramaConnection.sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(p) USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
                      FROM   DBA_Procedures p
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
@@ -1052,7 +1052,7 @@ class ActiveSessionHistoryController < ApplicationController
     }
 
     @thread = sql_select_all(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(p) USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
                      FROM   DBA_Procedures p
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
