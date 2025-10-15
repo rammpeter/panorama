@@ -948,7 +948,7 @@ class DbaSchemaController < ApplicationController
                                        m.Inserts, m.Updates, m.Deletes, m.Timestamp Last_DML, #{"m.Truncated, " if get_db_version >= '11.2'}m.Drop_Segments,
                                        s.Size_MB_Table, s.Blocks Segment_Blocks, s.Extents,
                                        /* see https://jonathanlewis.wordpress.com/2025/09/29/rowlen-surprise/ */
-                                       (SELECT NVL(SUM(Avg_Col_Len), 0) FROM DBA_Tab_Cols WHERE Owner = t.Owner AND Table_Name = t.Table_Name AND User_Generated = 'NO') Sum_Col_Len_Metadata_Only,
+                                       #{ get_db_version >= '12.1' ? "(SELECT NVL(SUM(Avg_Col_Len), 0) FROM DBA_Tab_Cols WHERE Owner = t.Owner AND Table_Name = t.Table_Name AND User_Generated = 'NO')" : 0 } Sum_Col_Len_Metadata_Only,
                                        (SELECT COUNT(*)
                                         FROM   DBA_Stat_Extensions e
                                         WHERE  e.Owner = t.Owner AND e.Table_Name = t.Table_Name
