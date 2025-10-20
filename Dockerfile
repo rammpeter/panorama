@@ -9,7 +9,7 @@
 # > docker run --name panorama -p 8080:8080 -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" -d rammpeter/panorama:latest
 
 # STAGE 1: JRE build
-FROM eclipse-temurin:21 as openjdk
+FROM docker.io/eclipse-temurin:21 as openjdk
 #FROM openjdk:19 as openjdk
 
 # Build small JRE image
@@ -23,7 +23,7 @@ RUN $JAVA_HOME/bin/jlink \
          --output /customjre
 
 # STAGE 2: App build
-FROM oraclelinux:8-slim as build_stage
+FROM docker.io/oraclelinux:8-slim as build_stage
 
 ENV BACKEND_SRC_PATH=.
 ARG JRUBY_VERSION
@@ -79,7 +79,7 @@ RUN  rm -rf $HOME/.bundle/cache && \
      rm -rf test/*
 
 # FROM scratch
-FROM oraclelinux:8-slim
+FROM docker.io/oraclelinux:8-slim
 MAINTAINER Peter Ramm <Peter@ramm-oberhermsdorf.de>
 
 ARG JRUBY_VERSION
