@@ -63,7 +63,7 @@ ORDER BY Max_Num_Distinct / Num_Rows DESC NULLS LAST",
         :desc  => t(:dragnet_helper_163_name, :default=>"If partition keys are unique or selective enough for efficient partition pruning, then where is often no need to hold this columns in index in addition.
 Partition pruning e.g. for list partitions is more efficient than B-tree access in index.
 Removal of this columns from index reduces size of index and also effort for index scan.
-Exception: For unique indexes and for foreign key constraint protection this columns have to be part of index nethertheless.
+Exception: For unique indexes and for foreign key constraint protection this columns have to be part of index nevertheless.
 "),
         :sql=> "\
 SELECT i.Table_Owner, i.Table_Name, i.Owner, i.Index_Name, s.MBytes, i.Num_Rows, pc.Column_Name,

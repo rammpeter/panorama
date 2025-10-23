@@ -257,7 +257,7 @@ function SlickGridExtended(container_id, options){
             } else if (grid.getOptions()['sort_method'] === 'BubbleSort'){
                 bubbleSort();
             } else {
-                alert('Option "sort_method" with unsuported value "'+grid.getOptions()['sort_type']+'"');
+                alert('Option "sort_method" with unsupported value "'+grid.getOptions()['sort_type']+'"');
             }
 
             if (!args.sortAsc)
@@ -697,7 +697,7 @@ function SlickGridExtended(container_id, options){
     }
 
     /**
-     * Fill unsed space in column width until total width reaches current_grid_width
+     * Fill unused space in column width until total width reaches current_grid_width
      * @param options
      * @param current_table_width
      * @param current_grid_width
@@ -705,7 +705,7 @@ function SlickGridExtended(container_id, options){
     this.fill_unused_column_space = function(options, columns, current_table_width, current_grid_width){
         // Evtl. Zoomen der Spalten wenn noch mehr Platz rechts vorhanden
         if (options.width === '' || options.width === '100%'){                  // automatische volle Breite des Grid
-            var wrapped_colums_remaining = true;                                // assume there are wrapped columns to enlarge at first
+            var wrapped_columns_remaining = true;                                // assume there are wrapped columns to enlarge at first
             var all_columns_fixed = true;                                       // assume there are no columns to expand
             // fill all columns one by one
             while (current_table_width < current_grid_width){                   // noch Platz am rechten Rand, kann auch nach wrap einer Spalte verbleiben
@@ -716,13 +716,13 @@ function SlickGridExtended(container_id, options){
                     if (!column.fixedWidth)
                         all_columns_fixed = false;
                     if (current_table_width < current_grid_width && !column.fixedWidth &&
-                        (!wrapped_colums_remaining || column.width < column.max_nowrap_width || column.width < column.header_nowrap_width )
+                        (!wrapped_columns_remaining || column.width < column.max_nowrap_width || column.width < column.header_nowrap_width )
                     ){
                         column.width++;
                         current_table_width++;
                     }
                 });
-                wrapped_colums_remaining = wrapped_column_found;                // enlarge all not fixed columns in next loops if no wrapped columns are remaining
+                wrapped_columns_remaining = wrapped_column_found;                // enlarge all not fixed columns in next loops if no wrapped columns are remaining
             }
             if (all_columns_fixed && current_table_width < current_grid_width){ // if all columns are fixed, enlarge the last column
                 columns[columns.length-1].width = columns[columns.length-1].width + current_grid_width - current_table_width;
@@ -1496,7 +1496,7 @@ function SlickGridExtended(container_id, options){
             .attr('onclick', null)
         ;
 
-        // set new titile for close button: closes also descendants
+        // set new title for close button: closes also descendants
         jQuery('#'+container_id+'_header_left_box_remove_table_from_page').attr('title', locale_translate('slickgrid_close_descendants_hint'));
 
 
@@ -1547,7 +1547,7 @@ var in_slickgrid_resize_handler_timeout = false;
 function resize_handler(){
     if(in_slickgrid_resize_handler_timeout !== false)
         clearTimeout(in_slickgrid_resize_handler_timeout);
-    in_slickgrid_resize_handler_timeout = setTimeout(resize_slickGrids, 100); //200 is time in miliseconds
+    in_slickgrid_resize_handler_timeout = setTimeout(resize_slickGrids, 100); //200 is time in milliseconds
 }
 
 jQuery(window).resize(function(){ resize_handler();});                      // Onetime registration of resize event handler at first load

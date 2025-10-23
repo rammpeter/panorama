@@ -6,17 +6,17 @@ class WorkerThread
 
   ############################### class methods as public interface ###############################
   # Check if connection may function and return DBID of database
-  # raise_exeption_on_error allows to proceeed without exception
+  # raise_exception_on_error allows to proceed without exception
   # @param [PanoramaSamplerConfig] sampler_config
   # @param [ApplicationController] controller
-  # @param [TrueClass, FalseClass] raise_exeption_on_error
-  def self.check_connection(sampler_config, controller, raise_exeption_on_error = true)
+  # @param [TrueClass, FalseClass] raise_exception_on_error
+  def self.check_connection(sampler_config, controller, raise_exception_on_error = true)
     thread = Thread.new{WorkerThread.new(sampler_config, 'check_connection').check_connection_internal(controller)}
     thread.name = 'WorkerThread: check_connection'
     result = thread.value
     result
   rescue Exception => e
-    if raise_exeption_on_error
+    if raise_exception_on_error
       ExceptionHelper.reraise_extended_exception(e, "", log_location: 'WorkerThread.check_connection')
     else
       Rails.logger.error('WorkerThread.check_connection') { "Exception #{e.message} raised in WorkerThread.check_connection" }
@@ -34,7 +34,7 @@ class WorkerThread
       create_snapshot(sampler_config, snapshot_time, :AWR)                      # recall method with changed domain
     else
       name = "create #{domain} snapshot"
-      thread = Thread.new{WorkerThread.new(sampler_config, name, domain: domain).create_snapshot_internal(snapshot_time, domain)}  # Excute the snapshot and terminate
+      thread = Thread.new{WorkerThread.new(sampler_config, name, domain: domain).create_snapshot_internal(snapshot_time, domain)}  # Execute the snapshot and terminate
       thread.name = "WorkerThread :#{name}"
     end
   rescue Exception => e
@@ -67,7 +67,7 @@ class WorkerThread
   def initialize(sampler_config, action_name, domain: nil)
     @sampler_config = sampler_config
     # @sampler_config = PanoramaSamplerConfig.new(@sampler_config) if @sampler_config.class == Hash
-    raise "WorkerThread.intialize: Parameter sampler_config of class PanoramaSamplerConfig required, got #{@sampler_config.class}" if @sampler_config.class != PanoramaSamplerConfig
+    raise "WorkerThread.initialize: Parameter sampler_config of class PanoramaSamplerConfig required, got #{@sampler_config.class}" if @sampler_config.class != PanoramaSamplerConfig
 
 
     connection_config = @sampler_config.get_cloned_config_hash                  # Structure similar to database
@@ -161,7 +161,7 @@ class WorkerThread
         @sampler_config.set_error_message(msg)
         return
       else
-        msg = "Previous #{domain} snapshot not yet finshed for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name}) since #{@@active_snapshots[snapshot_semaphore_key]} due to semaphore, but corresponding DB session is not active no more"
+        msg = "Previous #{domain} snapshot not yet finished for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name}) since #{@@active_snapshots[snapshot_semaphore_key]} due to semaphore, but corresponding DB session is not active no more"
         Rails.logger.error('WorkerThread.create_snapshot_internal') { msg }
         @sampler_config.set_error_message(msg)
         @@active_snapshots.delete(snapshot_semaphore_key)                       # Remove semaphore because

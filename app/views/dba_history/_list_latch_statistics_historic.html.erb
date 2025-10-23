@@ -23,7 +23,7 @@ column_options =
     {:caption=>'Last occurrence',   :data=>proc{|rec| localeDateTime(rec.last_occurrence) },    :title=>"Last occurrence in sample"},
     {:caption=>"Samples",           :data=>proc{|rec| link_column(rec, fn(rec.anzahl_samples))},:title=>"Number of sample records in grouping", :align=>"right"},
     {:caption=>"Gets",              :data=>proc{|rec| fn(rec.getsno)},                          :title=>"Number of times the latch was requested in willing-to-wait mode", :align=>"right"},
-    {:caption=>"Misses",            :data=>proc{|rec| fn(rec.misses)},                          :title=>"Number of times the latch was requested in willing-to-wait mode and the requestor had to wait", :align=>"right"},
+    {:caption=>"Misses",            :data=>proc{|rec| fn(rec.misses)},                          :title=>"Number of times the latch was requested in willing-to-wait mode and the requester had to wait", :align=>"right"},
     {:caption=>"% Misses",          :data=>proc{|rec| fn(rec.pct_misses, 2)},                   :title=>"% Misses von Gets", :align=>"right"},
     {:caption=>"Sleeps",            :data=>proc{|rec| fn(rec.sleeps)},                          :title=>"Number of times a willing-to-wait latch request resulted in a session sleeping while waiting for the latch", :align=>"right"},
     {:caption=>"Imm. Gets",         :data=>proc{|rec| fn(rec.immediate_gets)},                  :title=>"Number of times a latch was requested in no-wait mode", :align=>"right"},

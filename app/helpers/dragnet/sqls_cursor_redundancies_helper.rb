@@ -32,7 +32,7 @@ Using force-matching-signature instead of plan-hash-value for detection is risky
                                       FROM   DBA_Hist_Active_Sess_History
                                       CROSS JOIN Ret
                                       WHERE  Sample_Time > SYSDATE-Ret.Days
-                                      AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                                      AND    DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                                      ) h
                               LEFT OUTER JOIN (SELECT Inst_ID Instance_Number, SQL_Plan_Hash_Value, MIN(Sample_Time) Min_Sample_Time   /* limit Values in AWR-table from SGA*/
                                                FROM   gv$Active_Session_History
@@ -213,7 +213,7 @@ Remind the diagram view via context menu 'Show column in diagram'."),
         {
             :name  => t(:dragnet_helper_121_name, :default=>'Multiple open cursor: overview over SQL'),
             :desc  => t(:dragnet_helper_121_desc, :default=>'Normally there should be only one open cursor per SQL statement and session.
-SQLs with multiple open cursors withon one session my flood session cursor cache and PGA
+SQLs with multiple open cursors within one session my flood session cursor cache and PGA
 '),
             :sql=>  "SELECT /* Panorama: Number of open cursor grouped by SQL */
                              oc.*
@@ -232,7 +232,7 @@ SQLs with multiple open cursors withon one session my flood session cursor cache
         {
             :name  => t(:dragnet_helper_122_name, :default=>'Multiple open cursor: SQLs opened multiple in session'),
             :desc  => t(:dragnet_helper_122_desc, :default=>'Normally there should be only one open cursor per SQL statement and session.
-SQLs with multiple open cursors withon one session my flood session cursor cache and PGA
+SQLs with multiple open cursors within one session my flood session cursor cache and PGA
 '),
             :sql=>  "SELECT /* SQLs mehrfach als Cursor geoeffnet je Session */
                              sq.*, cu.SID \"Session-ID\", s.UserName, cu.Anz_Open_Cursor \"Number of open cursor\", cu.Anz_Sql \"Number of SQLs\",
@@ -268,7 +268,7 @@ Role DBA is required to execute this selection.
                          KsmLrCom     \"Type of allocation\",
                          KsmLrSiz     \"Size of Allocation in Bytes\",
                          KsmLrNum     \"No. items flushed from sh.pool\",
-                         KsmLrHon     \"Name of object beeing loaded\",
+                         KsmLrHon     \"Name of object being loaded\",
                          KsmLrOHV     \"HashValue of object\",
                          RAWTOHEX(KsmLrSes)     \"Session Raw (V$Session.SAddr)\",
                          KsmLrADU,

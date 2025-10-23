@@ -394,7 +394,7 @@ END Panorama_Sampler_ASH;
       UPDATE panorama_owner.Panorama_ASH_Counter SET Ash_Run_ID = v_Ash_Run_ID WHERE Instance_Number = p_Instance_Number;
       COMMIT;
 
-      DBMS_LOCK.SLEEP(10-MOD(EXTRACT(SECOND FROM SYSTIMESTAMP), 10));           -- Wait until time is at excact 10 seconds boundary
+      DBMS_LOCK.SLEEP(10-MOD(EXTRACT(SECOND FROM SYSTIMESTAMP), 10));           -- Wait until time is at exact 10 seconds boundary
       DBMS_LOCK.SLEEP(0.1);                                                     -- Ensure next SLEEP waits until 0.1 second after 10 seconds boundary
 
       SELECT NVL(MAX(Sample_ID), 0) INTO v_Sample_ID FROM panorama_owner.Internal_V$Active_Sess_History WHERE Instance_Number = p_Instance_Number;
@@ -429,7 +429,7 @@ END Panorama_Sampler_ASH;
           Persist_Samples(p_Instance_Number);                                   -- write content of AshTable into DB
           -- Check for termination
           SELECT Ash_Run_ID INTO v_Dummy FROM panorama_owner.Panorama_ASH_Counter WHERE Instance_Number = p_Instance_Number;
-          EXIT WHEN v_Dummy > v_Ash_Run_ID;                                     -- a successing daemon process is active
+          EXIT WHEN v_Dummy > v_Ash_Run_ID;                                     -- a succeeding daemon process is active
           EXIT WHEN SYSDATE >= v_LastSampleTime;                                -- return control to Panorama server at least x seconds after end of AWR snapshot
         END IF;
       END LOOP;

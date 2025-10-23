@@ -7,7 +7,7 @@ module Dragnet::SqlsConclusionApplicationHelper
     [
         {
             :name  => t(:dragnet_helper_76_name, :default=>'Substantial larger runtime per module compared to average over longer time period'),
-            :desc  => t(:dragnet_helper_76_desc, :default=>'Based on active session history are shown outlier on databaase runtime per module je Module.
+            :desc  => t(:dragnet_helper_76_desc, :default=>'Based on active session history are shown outlier on database runtime per module je Module.
 Units for time consideration are defined by date format picture of TRUNC-function (DD=day, HH24=hour etc.)'),
             :sql=>  "WITH Modules AS (
                SELECT /*+ PARALLEL(h,2) */
@@ -21,7 +21,7 @@ Units for time consideration are defined by date format picture of TRUNC-functio
                WHERE  Sample_Time > SYSDATE-?
                AND    Instance_Number = ?
                AND    NVL(Event, 'Hugo') NOT IN ('PX Deq Credit: send blkd')
-               AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+               AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                GROUP BY TRUNC(Sample_Time, picture), Module
               )
            SELECT Module,
@@ -352,7 +352,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
               ORDER BY \"Duration (Secs.)\" DESC
            ",
             :parameter=>[
-                {:name=> 'Minimale Transaktionsdauer in Sekunden', :size=>8, :default=>300, :title=> 'Minimale Dauer der Transaktion in Sekunden für Aufnahme in Selektion'},
+                {:name=> 'Minimum transaction duration in seconds', :size=>8, :default=>300, :title=> 'Minimum duration of transaction in seconds for consideration in selection'},
             ]
         },
         {
@@ -400,7 +400,7 @@ Transaktions in OLTP-systems should be short enough to keep potential lock wait 
                               FROM   DBA_Hist_Active_Sess_History s
                               WHERE  XID IS NOT NULL
                               AND    Sample_Time > SYSDATE-?
-                              AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                              AND    s.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                               GROUP BY XID, NVL(Event, Session_State)
                              )
                       GROUP BY XID
@@ -539,7 +539,7 @@ AND    pxs.SID IS NULL
         {
             :name  => t(:dragnet_helper_145_name, :default=>'Possibly missing guaranty of uniqueness by unique index or unique / primary key constraint'),
             :desc  => t(:dragnet_helper_145_desc, :default=>"If an implicit expectation for uniqueness of a column exists, then this should be safeguarded by an unique index or unique constraint.
-This list shows all all columns with unique values at the time of last analysis if neither unqiue index nor unique constraint exists for this column.
+This list shows all all columns with unique values at the time of last analysis if neither unique index nor unique constraint exists for this column.
             "),
             :sql=>  "
 WITH Constraints  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Table_Name, Constraint_Type FROM DBA_Constraints WHERE Constraint_Type IN ('P', 'U')),
@@ -583,7 +583,7 @@ SELECT x.Inst_ID, u.UserName, x.Session_ID, x.Session_Serial# Serial_No, x.SQL_I
        x.Executions,
        ROUND(s.Elapsed_ms_per_Exec, 3) Avg_SQL_Elapsed_ms_per_Exec,
        ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions, 3) Avg_ms_between_two_executions,
-       /* The time between two excutions - the avg. SQL execution time of this SQL */
+       /* The time between two executions - the avg. SQL execution time of this SQL */
        ROUND(x.Consecutive_ASH_Samples*1000.0 / x.Executions -  s.Elapsed_ms_per_Exec, 3) Avg_Network_and_App_Latency_ms
 FROM   (
         SELECT Inst_ID, Session_ID, Session_Serial#, User_ID,  SQL_ID, Machine, MIN(Module) Module, MIN(Action) Action,
@@ -605,7 +605,7 @@ FROM   (
                         AND    PLSQL_Entry_Object_ID IS NULL  /* Exclude local executions without network influence */
                         AND    PLSQL_Object_ID IS NULL        /* Exclude local executions without network influence */
                        ) x
-                WHERE  SQL_ID = Prev_SQL_ID                   /* The same SQL is executed consecutive, the same SQL_ID is neeed as precondition to count the executions by SQL_Exec_ID */
+                WHERE  SQL_ID = Prev_SQL_ID                   /* The same SQL is executed consecutive, the same SQL_ID is needed as precondition to count the executions by SQL_Exec_ID */
                 AND    SQL_Exec_ID > Prev_SQL_Exec_ID         /* Each snapshot sees a new SQL execution and SQL_Exec_ID was increasing */
                 AND    (Sample_ID = Prev_Sample_ID + 1 OR     /* No gap between the snapshots of this session */
                         Sample_ID = Next_Sample_ID - 1 )

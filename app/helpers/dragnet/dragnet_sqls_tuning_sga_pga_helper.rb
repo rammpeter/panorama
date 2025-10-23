@@ -30,7 +30,7 @@ This selection scans for objects with high block access rate compared to size of
                                      SUM(Row_Lock_Waits_Delta) Row_Lock_Waits
                               FROM   DBA_Hist_Seg_Stat s
                               JOIN   DBA_Hist_Snapshot t ON t.DBID = s.DBID AND t.Instance_Number = s.Instance_Number AND t.Snap_ID = s.Snap_ID
-                              WHERE  t.Begin_Interval_Time > SYSDATE-? /* Anzahl Tage der Betrachtung rueckwirkend */
+                              WHERE  t.Begin_Interval_Time > SYSDATE-? /* Number of days backward */
                               GROUP BY s.Instance_Number, s.Obj#
                              )s,
                              (SELECT /*+ NO_MERGE */ o.Owner, o.Object_Name, o.SubObject_Name, o.Object_Type, o.Object_ID,
@@ -59,7 +59,7 @@ This selection scans for objects with high block access rate compared to size of
             :name  => t(:dragnet_helper_101_name, :default=>'Identification of hot blocks in DB-cache: suboptimal indexes'),
             :desc  => t(:dragnet_helper_101_desc, :default=>'Indexes with high fluctuation of data and consecutive content are successive scanning more DB-blocks per access if rows have been deleted.
 Especially problematic is access to first records in index order of such moving windows.
-This indexes may need cyclic reorganisation e.g. by ALTER INDEX SHRINK SPACE COMPACT or ALTER INDEX COALESCE for running OLTP-systems or ALTER INDEX REBUILD in appliction downtimes.
+This indexes may need cyclic reorganisation e.g. by ALTER INDEX SHRINK SPACE COMPACT or ALTER INDEX COALESCE for running OLTP-systems or ALTER INDEX REBUILD in application downtimes.
 This selection scans for SQL statements in current SGA with access on indexes which possibly need reorganisation.'),
             :sql=>  "SELECT * FROM (
                       SELECT /*+ NO_MERGE MATERIALIZE */ p.Inst_ID \"Inst\", p.SQL_ID, p.Child_Number \"Child Number\", s.Executions \"Executions\",
@@ -198,7 +198,7 @@ Especially this is true for generated dynamic SQL statements (e.g. from OR-mappe
                       FROM   DBA_hist_Active_Sess_History s
                       WHERE  Sample_Time >SYSDATE - ?
                       AND    Instance_Number = ?
-                      AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                      AND    DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                       GROUP BY Sample_Time
                       ORDER BY 1",
             :parameter=>[

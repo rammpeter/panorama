@@ -54,7 +54,7 @@ module Dragnet::SqlsWrongExecutionPlanHelper
             :name  => t(:dragnet_helper_93_name, :default=>'Nested loop join on large tables with large result of SQL (consideration of current SGA)'),
             :desc  => t(:dragnet_helper_93_desc, :default=>'Frequently executed nested loop operations on large (not fitting into DB-cache) tables may cause large runtime of SQL.
 Listed statements should be checked for use of hash join instead.
-This statement executes only for current (login) RAC-instance. Please execute separate for every RAC-instance (due to extremly large runtimes accessing GV$-tables).'),
+This statement executes only for current (login) RAC-instance. Please execute separate for every RAC-instance (due to extremely large runtimes accessing GV$-tables).'),
             :sql=>  "SELECT /* DB-Tools Ramm Nested Loop auf grossen Tabellen */ * FROM (
                       SELECT /*+ PARALLEL(p,2) PARALLEL(s,2) */
                              p.Inst_ID, p.SQL_ID, p.Plan_Hash_Value, p.operation, p.Object_Type,  p.options, p.Object_Name,
@@ -102,11 +102,11 @@ This statement executes only for current (login) RAC-instance. Please execute se
                                              AND s.Plan_Hash_Value    = p.Plan_Hash_Value
                       )
                       ORDER BY Rows_Per_Execution*Num_Rows DESC NULLS LAST",
-            :parameter=>[{:name=> t(:dragnet_helper_93_param_1_name, :default=>'Minimum number of rows processed / execution'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_93_param_1_hint, :default=>'Minimum number of rows processed / execution as threshold for possible inefficieny of nested loop')}]
+            :parameter=>[{:name=> t(:dragnet_helper_93_param_1_name, :default=>'Minimum number of rows processed / execution'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_93_param_1_hint, :default=>'Minimum number of rows processed / execution as threshold for possible inefficiency of nested loop')}]
         },
         {
             :name  => t(:dragnet_helper_94_name, :default=>'Iteration in nested-loop join against full scan operation (current SGA)'),
-            :desc  => t(:dragnet_helper_94_desc, :default=>'Frequent execution of full scan operation by iteration in nested loop join may result in exorbitant number of block access massive contention of CPU and I/O-ressources.
+            :desc  => t(:dragnet_helper_94_desc, :default=>'Frequent execution of full scan operation by iteration in nested loop join may result in exorbitant number of block access massive contention of CPU and I/O-resources.
 It may also activate cache buffers chains latch-waits.
 This access my be acceptable, if controlling result for nested loop has only one or less records.
 Statement executes only for current connected RAC-Instance (due to runtime problem otherwise), so it must be executed separately for every instance.'),
@@ -155,7 +155,7 @@ Statement executes only for current connected RAC-Instance (due to runtime probl
         },
         {
             :name  => t(:dragnet_helper_95_name, :default=>'Implicit conversion by TO_NUMBER or INTERNAL_FUNCTION (prevented usage of indexes)'),
-            :desc  => t(:dragnet_helper_95_desc, :default=>'Implicit type conversions are some times accidentially due to wrong type of bind variable.
+            :desc  => t(:dragnet_helper_95_desc, :default=>'Implicit type conversions are some times accidentally due to wrong type of bind variable.
 This conversion may lead to missing usage of existing indizes and cause unnecessary I/O and CPU load.
 Especially implicit conversion by TO_NUMBER while accessing VARCHAR2-columns with number bind type prevents usage of existing indizes.
 For this cases data type according to column type should be used for bind variable.
@@ -205,7 +205,7 @@ JOIN   (SELECT h.*, SUM(Seconds) OVER (PARTITION BY SQL_ID, UserName, SQL_Plan_H
                 JOIN   All_Users u ON u.User_ID = h.User_ID
                 WHERE  ss.Begin_Interval_Time > SYSDATE - ?
                 AND    u.UserName NOT IN (#{system_schema_subselect})
-                AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                 GROUP BY h.SQL_ID, u.UserName, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
                ) h
         WHERE  h.Seconds > ?
@@ -303,7 +303,7 @@ Results are from DBA_Hist_SQL_Plan'),
                                        CROSS JOIN min_Time
                                        WHERE  ss.Begin_Interval_Time > min_time.min_time
                                        AND    u.UserName NOT IN (#{system_schema_subselect})
-                                       AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                                       AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                                        GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID
                                      ) h ON h.Instance_Number = ps.Instance_Number AND h.SQL_ID = ps.SQL_ID AND h.SQL_Plan_Hash_Value = ps.Plan_Hash_Value AND h.SQL_Plan_Line_ID = ps.Cartesian_Line_ID
 

@@ -89,7 +89,7 @@ AND   (   Last_Analyzed IS NULL
 ORDER BY x.MBytes DESC NULLS LAST
                     ",
           :parameter=>[
-            {:name=>t(:dragnet_helper_104_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_104_param_1_hint, :default=>'If analyze info exists: minimun age for consideration in selection')},
+            {:name=>t(:dragnet_helper_104_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_104_param_1_hint, :default=>'If analyze info exists: minimum age for consideration in selection')},
             {:name=>t(:dragnet_helper_104_param_2_name, :default=>'Minimum size (MB) if Num_Rows = 0'), :size=>8, :default=>100, :title=>t(:dragnet_helper_104_param_2_hint, :default=>'Minimum size of object in MB for check if num_rows=0 matches with size of object')}
           ]
         },
@@ -141,7 +141,7 @@ AND   (   Last_Analyzed IS NULL
 ORDER BY x.MBytes DESC NULLS LAST
                     ",
           :parameter=>[
-            {:name=>t(:dragnet_helper_108_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_108_param_1_hint, :default=>'If analyze info exists: minimun age for consideration in selection')},
+            {:name=>t(:dragnet_helper_108_param_1_name, :default=>'Minimum age of existing analyze info in days'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_108_param_1_hint, :default=>'If analyze info exists: minimum age for consideration in selection')},
             {:name=>t(:dragnet_helper_104_param_2_name, :default=>'Minimum size (MB) if Num_Rows = 0'), :size=>8, :default=>100, :title=>t(:dragnet_helper_104_param_2_hint, :default=>'Minimum size of object in MB for check if num_rows=0 matches with size of object')}
           ]
         },

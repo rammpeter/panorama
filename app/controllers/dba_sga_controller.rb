@@ -226,16 +226,16 @@ class DbaSgaController < ApplicationController
                 st.Avg_Hard_Parse_Time/1000 Avg_Hard_Parse_Time_ms
            FROM #{modus} s
            #{stats_join} /* alias st */
-           LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Programm
+           LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Program_ID -- PL/SQL-Program
            WHERE s.SQL_ID  = ? #{where_string}
            ", sql_id].concat where_values
     if sql.nil? && object_status
       sql = fill_sql_sga_stat(modus, instance, sql_id, nil, child_number, parsing_schema_name)
-      add_statusbar_message("No SQL found with Object_Status='#{object_status}' in #{modus}. Filter Object_Status is supressed now.")
+      add_statusbar_message("No SQL found with Object_Status='#{object_status}' in #{modus}. Filter Object_Status is suppressed now.")
     end
     if sql.nil? && parsing_schema_name
       sql = fill_sql_sga_stat(modus, instance, sql_id, object_status, child_number, nil)
-      add_statusbar_message("No SQL found with Parsing_Schema_Name='#{parsing_schema_name}' in #{modus}. Filter Parsing_Schema_Name is supressed now.")
+      add_statusbar_message("No SQL found with Parsing_Schema_Name='#{parsing_schema_name}' in #{modus}. Filter Parsing_Schema_Name is suppressed now.")
     end
 
     return nil if sql.nil?
@@ -387,7 +387,7 @@ class DbaSgaController < ApplicationController
           op  NUMBER PATH '@op',    -- operation
           dis NUMBER PATH '@dis',   -- display
           par NUMBER PATH '@par',   -- parent
-          prt NUMBER PATH '@prt',   -- unkown
+          prt NUMBER PATH '@prt',   -- unknown
           dep NUMBER PATH '@dep',   -- depth
           skp NUMBER PATH '@skp'    -- skip
         ) (+) AS X
@@ -2225,7 +2225,7 @@ END;
 
 -- To activate the translation you must reconnect your session to make the LOGON-trigger working (restart application or reset session pool)
 
--- ############# Following acitivities should be sequentially executed in this order to establish translation #############
+-- ############# Following activities should be sequentially executed in this order to establish translation #############
 
 -- 1. ####### Execute as DBA to establish translation:
 
@@ -2264,7 +2264,7 @@ BEGIN
 END;
 /
 
--- ############# Following acitivities should be sequentially executed in this order to remove translation if not needed anymore #############
+-- ############# Following activities should be sequentially executed in this order to remove translation if not needed anymore #############
 
 -- 1. ####### Execute as SYS to remove translation if not needed anymore:
 
@@ -2586,7 +2586,7 @@ END;
       @result << value
     end
 
-    # Fill missing values from begin until first ocurrence of value, resulting_sizes has values of last record
+    # Fill missing values from begin until first occ    urrence of value, resulting_sizes has values of last record
     @result.reverse.each do |r|
 
     end

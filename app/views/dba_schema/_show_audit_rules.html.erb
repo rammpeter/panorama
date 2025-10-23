@@ -127,7 +127,7 @@
           [
             {caption: 'Namespace ',     data: proc{|rec| rec.namespace },            title: 'Application context namespace'},
             {caption: 'Attribute',      data: proc{|rec| rec.attribute},             title: "Application context attribute"},
-            {caption: 'User name',      data: proc{|rec| rec.user_name},             title: "Username of database user for whom the application context's attribute is confiured to be captured in the audit trail"},
+            {caption: 'User name',      data: proc{|rec| rec.user_name},             title: "Username of database user for whom the application context's attribute is configured to be captured in the audit trail"},
           ]
       %>
 
@@ -166,7 +166,7 @@
           [
             {caption: 'Audit option',         data: proc{|rec| rec.audit_option },            title: 'Auditing option defined in the audit policy'},
             {caption: 'Audit option type',    data: proc{|rec| rec.audit_option_type},        title: "Type of the auditing option."},
-            {caption: 'Policy name',          data: proc{|rec| show_alternate.call(rec, 'policy_name')},    title: "Policy name if unqiue or number of policy names in Audit_Unified_Policies with this audit option"},
+            {caption: 'Policy name',          data: proc{|rec| show_alternate.call(rec, 'policy_name')},    title: "Policy name if unique or number of policy names in Audit_Unified_Policies with this audit option"},
             {caption: 'Enabled policy name', data: proc{|rec| show_alternate.call(rec, 'enabled_policy_name')}, title: "Enable policy name or number of enabled policy names in Audit_Unified_Policies with this audit option"},
             {caption: 'Audit option records count', data: link_options,                                      title: "Number of records in Audit_Unified_Policies with this audit option"},
             {caption: 'Audit condition',      data: proc{|rec| show_alternate.call(rec, 'audit_condition')}, title: "Condition associated with the audit policy.#{number_addition}"},

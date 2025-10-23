@@ -2,7 +2,7 @@
 class IoController < ApplicationController
   include IoHelper
 
-  # Redudant zu Methode aus ActiveSessionHistoryController, da send nur innerhalb des gleichen Controllers praktikabel
+  # Redundant zu Methode aus ActiveSessionHistoryController, da send nur innerhalb des gleichen Controllers praktikabel
   def refresh_time_selection
     params.require [:repeat_controller, :repeat_action]
 

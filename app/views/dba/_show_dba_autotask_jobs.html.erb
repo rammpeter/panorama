@@ -49,7 +49,7 @@
                    {:caption=>'Client name',                    :data=>proc{|rec| rec.client_name},                         :title=>'Name of Automated Maintenance Tasks Client'},
                    {:caption=>'Job runs',                       :data=>proc{|rec| link_job_runs(rec)},                      :title=>'Number of recorded job runs for this client', :align=>:right},
                    {:caption=>'Status',                         :data=>proc{|rec| rec.status},                              :title=>'Current status of the Client'},
-                   {:caption=>'Consumer group',                 :data=>proc{|rec| rec.consumer_group},                      :title=>'Resource Consumer Group normaly used to execute jobs'},
+                   {:caption=>'Consumer group',                 :data=>proc{|rec| rec.consumer_group},                      :title=>'Resource Consumer Group normally used to execute jobs'},
                    {:caption=>'Client tag',                     :data=>proc{|rec| rec.client_tag},                          :title=>'Tag used in forming job names'},
                    {:caption=>'Priority override',              :data=>proc{|rec| rec.priority_override},                   :title=>'Priority override for jobs'},
                    {:caption=>'Attributes',                     :data=>proc{|rec| rec.attributes},                          :title=>'Client attributes'},

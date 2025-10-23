@@ -51,7 +51,7 @@ module EnvHelper
       retval = Random.rand 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
       File.write(default_secret_key_base_file, retval)
     end
-    retval.to_s.strip                                                           # remove witespaces incl. \n
+    retval.to_s.strip                                                           # remove whitespaces incl. \n
   end
 
   #def init_management_pack_license(current_database)
@@ -113,7 +113,7 @@ module EnvHelper
     end
   end
 
-  # Helper to distiguish browser tabs, sets @browser_tab_id
+  # Helper to distinguish browser tabs, sets @browser_tab_id
   # @return [void]
   def initialize_browser_tab_id
     tab_ids = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids, default: {})
@@ -125,9 +125,9 @@ module EnvHelper
       end
       @browser_tab_id += 1
     end
-    tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)             # create Hash for browser tab if not already exsists
+    tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)             # create Hash for browser tab if not already exists
     tab_ids[@browser_tab_id][:last_page_load] = Time.now
-    tab_ids[@browser_tab_id][:last_request]   = Time.now                        # Ensure that this browser tab entry will not be cleand up by ClientInfoStore.cleanup in ConnectionTerminationJob
+    tab_ids[@browser_tab_id][:last_request]   = Time.now                        # Ensure that this browser tab entry will not be cleaned up by ClientInfoStore.cleanup in ConnectionTerminationJob
     ClientInfoStore.write_for_client_key(get_decrypted_client_key,:browser_tab_ids, tab_ids)
   end
 

@@ -9,11 +9,11 @@ module StringsHelper
 
 Click link at column 'SQL exec ID' to generate SQL-Monitor report if there are multiple results",
       sql_monitor_list_title: I18n.t(:strings_sql_monitor_list_hint, default: "List recorded SQL-Monitor reports from gv$SQL_Monitor and DBA_HIST_Reports\nClick Report-ID to show chosen SQL-Monitor report in separate browser tab."),
-      parse_calls_title:      "Number of parse calls\nIncludes soft and hard parses at opening of new cursor.\nRegardless wether parsed SQL can be reused or not.\nAlso accessing cursors from session cursor cache counts as parse call."
+      parse_calls_title:      "Number of parse calls\nIncludes soft and hard parses at opening of new cursor.\nRegardless whether parsed SQL can be reused or not.\nAlso accessing cursors from session cursor cache counts as parse call."
 
   }
   def strings(key)
-    raise "StringsHelper.strings: Key '#{key}' not found in predfined strings" unless @@strings_list[key]
+    raise "StringsHelper.strings: Key '#{key}' not found in predefined strings" unless @@strings_list[key]
     @@strings_list[key]
   end
 end

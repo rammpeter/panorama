@@ -135,14 +135,14 @@ module ApplicationHelper
 
   def formattedNumber(number,                 # Auszugebende Zahl (Integer oder Float)
                       decimalCount=0,         # Anzahl Dezimalstellen
-                      supress_0_value=false   # Unterdrücken der Ausgabe bei number=0 ?
+                      suppress_0_value=false   # Unterdrücken der Ausgabe bei number=0 ?
                      )
     decimal_delimiter   = numeric_decimal_separator
     thousands_delimiter = numeric_thousands_separator
     return nil if number.nil?   # Leere Ausgabe bei nil
     number = number.to_f if number.instance_of?(String) || number.instance_of?(BigDecimal)   # Numerisches Format erzwingen
 
-    return nil if supress_0_value && number == 0  # Leere Ausgabe bei Wert 0 und Unterdrückung Ausgabe angefordert
+    return nil if suppress_0_value && number == 0  # Leere Ausgabe bei Wert 0 und Unterdrückung Ausgabe angefordert
 
     return nil if number == Float::INFINITY || number.to_f.nan? # Division / 0 erlaubt in Float, bringt Infinity
 
@@ -173,10 +173,10 @@ module ApplicationHelper
     ExceptionHelper.log_exception_backtrace(e, 20)
     msg = e.message
     msg << " unsupported datatype #{number.class}" if !(number.instance_of?(Float)  || number.class.name == 'Integer' || number.class.name == 'Fixnum' || number.class.name == 'Bignum')
-    raise "formattedNumber: #{msg} evaluating number=#{number} (#{number.class}), decimalCount=#{decimalCount} (#{decimalCount.class}), supress_0_value=#{supress_0_value} (#{supress_0_value.class})"
+    raise "formattedNumber: #{msg} evaluating number=#{number} (#{number.class}), decimalCount=#{decimalCount} (#{decimalCount.class}), suppress_0_value=#{suppress_0_value} (#{suppress_0_value.class})"
   rescue
     msg = " unsupported datatype #{number.class}" if !(number.instance_of?(Float)  || number.class.name == 'Integer' || number.class.name == 'Fixnum' || number.class.name == 'Bignum')
-    raise "formattedNumber: #{msg} evaluating number=#{number} (#{number.class}), decimalCount=#{decimalCount} (#{decimalCount.class}), supress_0_value=#{supress_0_value} (#{supress_0_value.class})"
+    raise "formattedNumber: #{msg} evaluating number=#{number} (#{number.class}), decimalCount=#{decimalCount} (#{decimalCount.class}), suppress_0_value=#{suppress_0_value} (#{suppress_0_value.class})"
   end
 
   alias fn formattedNumber
@@ -558,7 +558,7 @@ module ApplicationHelper
   end
 
   # request parameter for later recreation of view
-  # as arry entry for render_page_caption
+  # as array entry for render_page_caption
   # May not contain '
   def get_recall_params_info_for_render_page_caption
     {
@@ -724,7 +724,7 @@ module ApplicationHelper
     else
       cookies.delete(:client_key)                                               # Verwerfen des nicht entschlüsselbaren Cookies
       cookies.delete(:client_salt)
-      ExceptionHelper.reraise_extended_exception(e, "while decrypting your client key from browser cookie. \nPlease try again.", log_location: 'ApplictionHelper.get_decrypted_client_key')
+      ExceptionHelper.reraise_extended_exception(e, "while decrypting your client key from browser cookie. \nPlease try again.", log_location: 'ApplicationHelper.get_decrypted_client_key')
     end
   end
 

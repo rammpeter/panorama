@@ -53,8 +53,8 @@ class StorageController < ApplicationController
       ")
 
     log_files = sql_select_all "\
-      SELECT 'Redo-Logs ouside FRA'     Contents,
-             'Size of all Redo-Logfiles that are stored ouside FRA' Content_Hint,
+      SELECT 'Redo-Logs outside FRA'    Contents,
+             'Size of all Redo-Logfiles that are stored outside FRA' Content_Hint,
              SUM(l.Bytes)/1048576       MBTotal,
              0                          MBFree,
              SUM(l.Bytes)/1048576       MBUsed
@@ -298,10 +298,10 @@ class StorageController < ApplicationController
       UNION ALL
       SELECT 'Redo Inst='||l.Inst_ID    Tablespace_Name, l.Inst_ID,
              DECODE(lf.Is_Recovery_Dest_File, 'YES', 'Redo-Logs in FRA',
-                                              'NO',  'Redo-Logs ouside FRA'
+                                              'NO',  'Redo-Logs outside FRA'
                    )                    Contents,
              DECODE(lf.Is_Recovery_Dest_File, 'YES', 'Size of all Redo-Logfiles that are stored in FRA',
-                                              'NO',  'Size of all Redo-Logfiles that are stored ouside FRA'
+                                              'NO',  'Size of all Redo-Logfiles that are stored outside FRA'
                    )                    Content_Hint,
              NULL                       BlockSize,
              NULL Initial_Extent, NULL Next_Extent, NULL Min_Extents, NULL Max_Extents, NULL max_size, NULL Pct_Increase, NULL Min_ExtLen,

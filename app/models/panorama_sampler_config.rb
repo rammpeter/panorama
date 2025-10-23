@@ -14,12 +14,12 @@ class PanoramaSamplerConfig
     @config_hash = config_hash.clone                                            # Store config as instance element
 
     unless @config_hash.instance_of?(Hash)
-      msg = "Paremeter config_hash is not a Hash but a #{config_hash.class}"
+      msg = "Parameter config_hash is not a Hash but a #{config_hash.class}"
       Rails.logger.error('PanoramaSamplerConfig.initialize: '){msg}
       raise msg
     end
 
-    # Intitalize defaults
+    # Inititalize defaults
     @config_hash[:id]                                 = PanoramaSamplerConfig.get_max_id+1     if !@config_hash.has_key?(:id)
 
     @config_hash[:awr_ash_snapshot_cycle]             = 60    if !@config_hash.has_key?(:awr_ash_snapshot_cycle)
@@ -91,7 +91,7 @@ class PanoramaSamplerConfig
     end
   end
 
-  # getter in direct declaration. Missing getters are catched by method_missing
+  # getter in direct declaration. Missing getters are caught by method_missing
   def get_id;                                 get_config_value(:id);                                  end
   def get_awr_ash_active;                     get_config_value(:awr_ash_active);                      end
   def get_awr_ash_snapshot_cycle;             get_config_value(:awr_ash_snapshot_cycle);              end
@@ -134,9 +134,9 @@ class PanoramaSamplerConfig
       @config_hash[:select_any_table] = true if @config_hash[:user].upcase == 'SYS' # no DBA_Sys_Privs exists for SYS
 
       if @config_hash[:select_any_table]
-        Rails.logger.debug("Panorama-Sampler PL/SQL used as Packages because acccess on V$-tables is possible in packages for user '#{@config_hash[:user]}'")
+        Rails.logger.debug("Panorama-Sampler PL/SQL used as Packages because access on V$-tables is possible in packages for user '#{@config_hash[:user]}'")
       else
-        Rails.logger.debug("Panorama-Sampler PL/SQL used as anonymous PL/SQL because no acccess on V$-tables is possible in packages for user '#{@config_hash[:user]}'")
+        Rails.logger.debug("Panorama-Sampler PL/SQL used as anonymous PL/SQL because no access on V$-tables is possible in packages for user '#{@config_hash[:user]}'")
       end
     end
     @config_hash[:select_any_table]
@@ -563,7 +563,7 @@ E.g. #{example_values.select{|v| v >= min_hours}.join(', ')} etc. hours.
     raise PopupMessageException.new "#{name} snapshot cycle must be not empty#{addition}" if value.nil?
     raise PopupMessageException.new "#{name} cycle must not be an integer number#{addition}" if value.to_i != value
     raise PopupMessageException.new "#{name} cycle must be at least #{min_hours} hours#{addition}" if value < min_hours
-    raise PopupMessageException.new "24 must be divisable without remainder by the #{name} snapshot cycle if value is < 24#{addition}" if value <= 24 && 24 % value != 0
+    raise PopupMessageException.new "24 must be divisible without remainder by the #{name} snapshot cycle if value is < 24#{addition}" if value <= 24 && 24 % value != 0
     raise PopupMessageException.new "#{name} snapshot cycle must be divisible without remainder by 24 if value is > 24#{addition}" if value >= 24 && value % 24 != 0
   end
 

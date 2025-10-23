@@ -28,7 +28,7 @@
    column_options << {:caption=>"Status",         :data=>proc{|rec| rec.status},          :title=>"Status"}
    column_options << {caption: 'Wait event',      data: proc{|rec| rec.wait_event},       title: 'Wait event', data_title: proc{|rec| "%t\n\n#{explain_wait_event(rec.wait_event)}"}}
    column_options << {caption: 'Blocking session',   data: proc{|rec| link_session_details(@update_area, rec.blocking_instance, rec.blocking_session, rec.blocking_serial_no)}, title: 'Session that is blocking this session'} if @dbsessions[0]&.blocking_session_status == 'VALID'
-   column_options << {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of depenency tree that is blocking this session'} if @dbsessions[0]&.final_blocking_session_status == 'VALID'
+   column_options << {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of dependency tree that is blocking this session'} if @dbsessions[0]&.final_blocking_session_status == 'VALID'
    column_options << {:caption=>"Client-Info",    :data=>proc{|rec| rec.client_info},     :title=>"Client-Info"}
    column_options << {:caption=>"Module",         :data=>proc{|rec| rec.module},          :title=>"Module"}
    column_options << {:caption=>"Action",         :data=>proc{|rec| rec.action},          :title=>"Action"}
@@ -175,7 +175,7 @@
 
       column_options = []
     column_options <<  {caption: 'I',               data: proc{|rec| rec.inst_id},                title: "RAC instance of workarea", align: :right} if PanoramaConnection.rac?
-    column_options <<  {caption: 'SQL ID',          data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)},     title: "SQL ID of aktive workarea"}
+    column_options <<  {caption: 'SQL ID',          data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)},     title: "SQL ID of active workarea"}
     column_options <<  {caption: 'SQL exec start',  data: proc{|rec| localeDateTime(rec.sql_exec_start)}, title: "Start time of SQL execution"}
     column_options <<  {caption: 'SQL exec ID',     data: proc{|rec| fn(rec.sql_exec_id)},        title: "SQL execution identifier", align: :right}
     column_options <<  {caption: 'Operation',       data: proc{|rec| rec.operation_type},         title: "Type of operation using the work area"}

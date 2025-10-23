@@ -116,7 +116,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       raise "Number of additional_ash_filter_conditions larger than session_statistics_key_rules! Not all content from additional_ash_filter_conditions is tested this way!"
     end
 
-    additional_filters = additional_ash_filter_conditions.keys                  # Test all additional filter values that are not grouping criterias in session_statistics_key_rules
+    additional_filters = additional_ash_filter_conditions.keys                  # Test all additional filter values that are not grouping criteria in session_statistics_key_rules
     additional_filters_index = 0
     session_statistics_key_rules.each do |groupby, value|
       add_filter = {groupby => bind_value_from_key_rule(groupby)}               # Filter from grouping criteria

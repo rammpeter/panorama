@@ -30,7 +30,7 @@ It is recommended to have at least 10% free space in the index blocks to avoid f
         },
         {
             :name  => t(:dragnet_helper_2_name, :default=> 'Recommendations for index-compression, test by selectivity'),
-            :desc  => t(:dragnet_helper_2_desc, :default=> 'Index-compression (COMPRESS) is usefull by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
+            :desc  => t(:dragnet_helper_2_desc, :default=> 'Index-compression (COMPRESS) is useful by reduction of physical footprint for OLTP-indexes with poor selectivity (column level).
   For poor selective indexes reduction of size by 1/4 to 1/3 is possible.'),
             :sql=> "\
 WITH Segments AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes
@@ -142,7 +142,7 @@ This selections shows recommendations for compression of single columns of multi
         {
           :name  => t(:dragnet_helper_168_name, :default=> 'Recommendations for ADVANCED HIGH index compression'),
           :desc  => t(:dragnet_helper_168_desc, :default=>"Introduced with Oracle 12.2 the ADVANCED HIGH index compression as part of the Oracle Advanced Compression Option allows significant better compression than the other index key deduplication functions (COMPRESS, COMPRESS ADVANCED LOW).
-But the drawback is that index maintenence is more costly and index access costs more CPU effort and can become up to five times slower, especially for index scans with larger results.
+But the drawback is that index maintenance is more costly and index access costs more CPU effort and can become up to five times slower, especially for index scans with larger results.
 Therefore COMPRESS ADVANCED HIGH is especially suggested for less frequently used indexes on tables with less DML.
 This selection considers indexes with < x seconds in wait at SQLs accessing this index worth for possible COMPRESS ADVANCED HIGH.
 "),
@@ -257,7 +257,7 @@ ORDER BY seg.MBytes DESC NULLS LAST
         },
         {
             :name  => t(:dragnet_helper_4_name, :default=> 'Avoid data redundancy in primary key index (move to index-organized tables)'),
-            :desc  => t(:dragnet_helper_4_desc, :default=>"IOT-structure for tables is recommended if following criterias outbalance to positive side:
+            :desc  => t(:dragnet_helper_4_desc, :default=>"IOT-structure for tables is recommended if following criteria outbalance to positive side:
   Positive: Saving of disk space and buffer cache space due to omission of table itself
   Positive: Omission of 'table-access by row-id' while accessing data by index, because PKey-index already contains all table data
   Negative: Enlargement of secondary indexes because of redundant saving of PKey-values in every secondary index

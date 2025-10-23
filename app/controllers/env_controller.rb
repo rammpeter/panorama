@@ -26,7 +26,7 @@ class EnvController < ApplicationController
   def index
     # Ensure client browser has unique client_key stored as cookie (create new one if not already exists)
     initialize_client_key_cookie
-    initialize_browser_tab_id                                                   # Helper to distiguish browser tabs
+    initialize_browser_tab_id                                                   # Helper to distinguish browser tabs
     ClientInfoStore.write_to_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, {current_database: nil}) # Overwrite previous setting from last session
 
     set_I18n_locale('en') if get_locale.nil?                                    # Locale not yet specified, set default
@@ -654,7 +654,7 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
 
     # Set management pack according to 'control_management_pack_access' only after DB selects,
     # Until now get_current_database[:management_pack_license] is :none for first time login, so no management pack license is violated until now
-    # User has to acknowlede management pack licensing at next screen
+    # User has to acknowledge management pack licensing at next screen
     set_current_database(get_current_database.merge( {management_pack_license: init_management_pack_license } )) if called_from_set_database_by_params
 
     write_connection_to_last_logins
@@ -795,7 +795,7 @@ public
     render_partial :list_dbids
   end
 
-  # DBID explizit setzen wenn mehrere verschiedene in Historie vorhande
+  # DBID explicit setzen wenn mehrere verschiedene in Historie vorhande
   def set_dbid
     set_cached_dbid(params[:dbid])
     list_dbids
@@ -853,7 +853,7 @@ public
     render_partial
   end
 
-  # Get arry with all engine's controller actions for routing
+  # Get array with all engine's controller actions for routing
   def self.routing_actions(controller_dir)
     routing_list = []
 

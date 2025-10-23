@@ -153,7 +153,7 @@ Min, Snap_ID = #{snaps.min_snap_id}, max,, Snap_ID = #{snaps.max_snap_id}") if s
 
     column_options =
       [
-        {:caption=>"Timestamp",        :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sampe period", :plot_master_time=>true},
+        {:caption=>"Timestamp",        :data=>proc{|rec| localeDateTime(rec.begin_interval_time)},  :title=>"Start of sample period", :plot_master_time=>true},
       ]
     known_pga_stat_columns.each do |key, value|
       if header[key]  # Spalte hinzufügen wenn im Result auch wirklich vorhanden

@@ -33,7 +33,7 @@
 //      plotselected_handler:   function(start, end) with parameters as ms since 1970: (xstart, xend)=>{ ... }
 
 /**
- * Factory method to initally create a plot diagram from outside
+ * Factory method to initially create a plot diagram from outside
  * @param unique_id A generated unique id for the elements of the diagram
  * @param parent_id The DOM element where the diagram should be placed, should be a div that is empty for the first call
  * @param caption
@@ -78,7 +78,7 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
     this.parent_id                  = parent_id;
     this.caption                    = caption;
     this.data_array                 = data_array;
-    // Doo not provide the options from construktor because they are replaced later
+    // Doo not provide the options from constructor because they are replaced later
 
     let plot_area_id        = "diagram_"+unique_id;
     let plot_area = jQuery("<div id='"+plot_area_id+"'></div>").appendTo("#"+parent_id);       // add a new div for the diagram
@@ -92,7 +92,7 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
     var legendXAxis             = null;         // erzeugt in initialize
     var previousToolTipPoint    = null;
     var toolTipID               = canvas_id+"_ToolTip";
-    var plot                    = null;           //jQuery.plot(jQuery('#'+canvas_id), erzeugt in intialize()
+    var plot                    = null;           //jQuery.plot(jQuery('#'+canvas_id), erzeugt in initialize()
 
     // Initialisierung des Objektes, ab jetzt ist this gültig
     this.initialize = function(){

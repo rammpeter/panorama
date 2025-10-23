@@ -399,24 +399,24 @@ class PanoramaConnection
   # set the initial value for used dbid at login time (DB's DBID or CDB's DBID)
   def self.select_initial_dbid
     unless PanoramaConnection.is_cdb?            # used DB's DBID if not CDB
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse DB is not a CDB"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} because DB is not a CDB"}
       return PanoramaConnection.dbid
     end
     begin
       login_container_snapshot_count=  sql_select_one(["SELECT COUNT(*) FROM DBA_Hist_Snapshot WHERE DBID = ?", PanoramaConnection.login_container_dbid])
     rescue Exception => e
       if e.message['ORA-00942']
-        Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse selecting xxx_Sanpshot ended up in ORA-00942"}
+        Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} because selecting xxx_Sanpshot ended up in ORA-00942"}
         return PanoramaConnection.dbid                                          # DBA_Hist_Snapshot does not already exists! Should happen only if Panorama_Snapshot is used for sampler and DB structures are not yet created
       else
         raise
       end
     end
     if login_container_snapshot_count == 0                                      # Check if AWR for container is really sampled
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} beacuse there are no snapshots for #{PanoramaConnection.login_container_dbid}"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.dbid} because there are no snapshots for #{PanoramaConnection.login_container_dbid}"}
       return PanoramaConnection.dbid                                            # Use connections DBID if container has no AWR data
     else
-      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.login_container_dbid} beacuse there are snapshots for that DBID"}
+      Rails.logger.debug('PanoramaConnection.select_initial_dbid') { "Chosen #{PanoramaConnection.login_container_dbid} because there are snapshots for that DBID"}
       return PanoramaConnection.login_container_dbid                            # Use containers DBID if container has AWR data
     end
   end
@@ -566,13 +566,13 @@ class PanoramaConnection
   def self.get_jdbc_driver_version
     get_jdbc_raw_connection.getMetaData.getDriverVersion
   rescue Exception => e
-    e.message                                                                   # return Exception message instead of raising exeption
+    e.message                                                                   # return Exception message instead of raising exception
   end
 
   def self.get_jdbc_driver_path
     get_jdbc_raw_connection.getClass.getProtectionDomain.getCodeSource.getLocation.getPath
   rescue Exception => e
-    e.message                                                                   # return Exception message instead of raising exeption
+    e.message                                                                   # return Exception message instead of raising exception
   end
 
 
@@ -587,7 +587,7 @@ class PanoramaConnection
     end
     retval.length == 0 ? nil : retval
   rescue Exception => e
-    e.message                                                                   # return Exception message instead of raising exeption
+    e.message                                                                   # return Exception message instead of raising exception
   end
 
   def self.sql_prepare_binds(sql)
@@ -691,7 +691,7 @@ class PanoramaConnection
 
   def self.sql_execute(sql, query_name = 'sql_execute')
     # raise 'binds are not yet supported for sql_execute' if sql.class != String
-    transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for lincense violation and possible statement transformation
+    transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for license violation and possible statement transformation
     stmt, binds = sql_prepare_binds(transformed_sql)   # Transform SQL and split SQL and binds
     sql_execute_native(sql: stmt, binds: binds, query_name: query_name)
   end
@@ -771,7 +771,7 @@ class PanoramaConnection
       end
       result
     rescue Exception => e
-      Rails.logger.error('DbaSgaController.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occured" }
+      Rails.logger.error('DbaSgaController.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occurred" }
       raise e
     ensure
       cs&.close
@@ -986,7 +986,7 @@ class PanoramaConnection
     output << "--- end of stacktrace ---\n\n\n"
     Rails.logger.warn('PanoramaConnection.get_decrypted_password') { output }
 
-    msg = "Error in PanoramaConnection.get_decrypted_password decrypting pasword: #{e.class} #{e.message}"
+    msg = "Error in PanoramaConnection.get_decrypted_password decrypting password: #{e.class} #{e.message}"
     raise "One part of encryption key for stored password has changed at server side!\nPlease connect again with full connection info including username and password.\n\n#{msg}"
   end
 
@@ -1112,7 +1112,7 @@ class PanoramaConnection
       PanoramaConnection.thread_connection.register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
 
       type_casted_binds = @binds.map do |attr|
-        # attr.value_for_database.type should be only teh default ActiveRecord::Type::Value
+        # attr.value_for_database.type should be only the default ActiveRecord::Type::Value
         # especially using ActiveRecord::Type::Time::Value will only bind the time and not the date
         casted_value = TypeMapper.new.type_cast(attr.value_for_database)
         Rails.logger.debug('SqlSelectIterator.each') { "Prepare bind: value ='#{attr.value}' of class #{attr.value.class}, type-casted value = '#{casted_value}' of class #{casted_value.class}" }

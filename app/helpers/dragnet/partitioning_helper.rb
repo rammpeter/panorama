@@ -108,7 +108,7 @@ Solution for such situations is global (not) partitioning of index.'),
                                     WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                                     AND    s.Sample_Time > (SELECT Limit FROM Days_Back)
                                     AND    s.Snap_ID > (SELECT Min_Snap_ID FROM Min_Snap)
-                                    AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                                    AND    s.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                                     UNION ALL
                                     SELECT 1 Sample_Cycle, Inst_ID Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                     FROM   gv$Active_Session_History
@@ -172,7 +172,7 @@ Especially with release 12.2 and above automatic list partitioning lets you easy
 Conditions for useful partitioning by these filters are:
 - The potential partition key should significantly reduce the result (e.g. to less than 3/4 if used as filter condition)
 - The resulting number of partitions should by manageable (Oracle's absolute maximum for partitions of a table is 1048575, but the optimal number is much smaller)
-- The number of records in a partition should be high enough (e.g. more than 10000 .. 100000), otherwhise it could be more sufficient to use an index
+- The number of records in a partition should be high enough (e.g. more than 10000 .. 100000), otherwise it could be more sufficient to use an index
 - The filter condition should by deterministic (able to be used as partition criteria)
 "),
           :sql=> "\
@@ -194,7 +194,7 @@ FROM   (
                        10 Wait_Time_Sec, Sample_Time, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, SQL_Child_Number, SQL_Plan_Operation, SQL_Plan_Options, User_ID, Current_Obj#
                 FROM   DBA_Hist_Active_Sess_History s
                 WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
-                AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                AND    s.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                 UNION ALL
                 SELECT 1 Wait_Time_Sec,  Sample_Time, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID, SQL_Child_Number, SQL_Plan_Operation, SQL_Plan_Options, User_ID, Current_Obj#
                 FROM gv$Active_Session_History
@@ -230,7 +230,7 @@ Especially with release 12.2 and above automatic list partitioning lets you easy
 Conditions for useful partitioning by these filters are:
 - The potential partition key should significantly reduce the result (e.g. to less than 3/4 if used as filter condition)
 - The resulting number of partitions should by manageable (Oracle's absolute maximum for partitions of a table is 1048575, but the optimal number is much smaller)
-- The number of records in a partition should be high enough (e.g. more than 10000 .. 100000), otherwhise it could be more sufficient to use an index
+- The number of records in a partition should be high enough (e.g. more than 10000 .. 100000), otherwise it could be more sufficient to use an index
 - The filter condition should by deterministic (able to be used as partition criteria)
 
 Unfortunately, only execution plans in SGA are considered because Oracle does not store access and filter predicates in AWR speichert (fixed with rel. 21.3).
@@ -263,7 +263,7 @@ FROM   (
                 FROM   DBA_Hist_Active_Sess_History
                 WHERE  Sample_Time > SYSDATE - ?
                 AND    SQL_Plan_Line_ID IS NOT NULL
-                AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                AND    DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                 GROUP BY SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                 HAVING COUNT(*) * 10 > ?  /* * 10 seconds */
                ) h ON h.SQL_ID = p.SQL_ID AND h.SQL_Plan_Hash_Value = p.Plan_Hash_Value AND h.SQL_Plan_Line_ID = p.ID
@@ -318,7 +318,7 @@ WITH Indexes AS     (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table
                      FROM   DBA_Tab_Columns tc
                      LEFT OUTER JOIN DBA_Part_Key_Columns pc ON pc.Owner = tc.Owner AND pc.Name = tc.Table_Name AND pc.Column_Name = tc.Column_Name
                      WHERE  tc.Owner NOT IN (#{system_schema_subselect})
-                     AND    pc.Column_Name IS NULL /* Don't show colums that are already used as partition key */
+                     AND    pc.Column_Name IS NULL /* Don't show columns that are already used as partition key */
                      AND    tc.Num_Distinct + tc.Num_Nulls > 1 /* There should be more than 1 partition in result */
                      AND    tc.Num_Distinct < ?
                     ),

@@ -7,7 +7,7 @@ module Dragnet::SuboptimalIndexUsageHelper
     [
         {
             :name  => t(:dragnet_helper_106_name, :default => 'Sub-optimal index access with only partial usage of index'),
-            :desc  => t(:dragnet_helper_106_desc, :default => 'Occurrence of index attributes as filter instead of access criteria with signifcant load by index access targets to possible problems with index usage.
+            :desc  => t(:dragnet_helper_106_desc, :default => 'Occurrence of index attributes as filter instead of access criteria with significant load by index access targets to possible problems with index usage.
 This may be caused by for example:
 - wrong data type for bind variable
 - usage of functions at the wrong side while accessing columns of index
@@ -35,7 +35,7 @@ This selection evaluates current SGA.
         {
             :name  => t(:dragnet_helper_115_name, :default => 'Excessive filtering after TABLE ACCESS BY ROWID due to weak index access criteria (current SGA)'),
             :desc  => t(:dragnet_helper_115_desc, :default => 'INDEX RANGE|SKIP SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
-You should consider to expand index by filter criterias of table access to reduce number of TABLE ACCESS BY ROWID.
+You should consider to expand index by filter criteria of table access to reduce number of TABLE ACCESS BY ROWID.
 This selection evaluates the current content of SGA.
 Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
 '),
@@ -68,7 +68,7 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
         {
             :name  => t(:dragnet_helper_116_name, :default => 'Excessive filtering after TABLE ACCESS BY ROWID due to weak index access criteria (AWR history)'),
             :desc  => t(:dragnet_helper_116_desc, :default => 'INDEX RANGE|SKIP SCAN with high number of rows returned and restrictive filter after TABLE ACCESS BY ROWID leads to unnecessary effort for table access before rejecting table records from result.
-You should consider to expand index by filter criterias of table access to reduce number of TABLE ACCESS BY ROWID.
+You should consider to expand index by filter criteria of table access to reduce number of TABLE ACCESS BY ROWID.
 This selection evaluates the AWR history.
 Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
 '),
@@ -86,7 +86,7 @@ Result is sorted by time effort for operation TABLE ACCESS BY ROWID.
                               FROM   DBA_Hist_Active_Sess_History
                               WHERE  Sample_Time > SYSDATE - ?
                               AND    SQL_Plan_Operation = 'TABLE ACCESS' AND SQL_Plan_Options LIKE 'BY%INDEX ROWID%'
-                              AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                              AND    DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                               GROUP BY DBID, Instance_Number, SQL_ID, SQL_Child_Number, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                               HAVING COUNT(*) > ?
                              ) ash ON ash.DBID=ta.DBID AND ash.SQL_ID=ta.SQL_ID AND ash.SQL_Plan_Hash_Value=ta.Plan_Hash_Value AND ash.SQL_Plan_Line_ID=ta.ID

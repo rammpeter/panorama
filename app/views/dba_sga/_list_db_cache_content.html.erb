@@ -1,14 +1,14 @@
 <%= render_page_caption("#{t(:dba_sga_list_db_cache_content_caption, :default=>'DB-cache usage')}: Instance=#{@instance}, #{localeDateTime(@sysdate)}" ) %>
 
 <!-- Hints -->
-<% stati = {
+<% statuses = {
      "free" => "This is an “available” RAM block.  It might contain data, but it is not currently in-use by Oracle.",
      "xcur" => "This is a RAM block that has been acquired in exclusive current mode. According the  Oracle documentation, if a buffer state is exclusive current (XCUR), an instance owns the resource in exclusive mode.",
      "scur" => "a current mode block, shared with other instances",
      "cr" =>   "This mode indicates a 'cloned' RAM block (a 'stale' block), that was once in xcur mode. The instance has shared access to the block and can only perform reads.  The cr state means the owning instance can perform a consistent read of the block, if the instance holds an older version of the data.",
      "read" => "The buffer is reserved for a block that is currently being read from disk.",
      "mrec" => "in media recovery mode",
-     "irec" => "in instance (crahs) recovery mode",
+     "irec" => "in instance (crash) recovery mode",
      "pi"   => "Buffer state ‘PI’ indicates that block access mode is NULL. It means that the instance has made changes to the block but retains copies of past images."
    } %>
 
@@ -20,7 +20,7 @@
 
   column_options =
 [
-  {:caption=>"Status",        :data=>proc{|rec| rec.status },               :title=>'Status', :data_title=>proc{|rec| stati[rec.status]}, data_style: total_data_style},
+  {:caption=>"Status",        :data=>proc{|rec| rec.status },               :title=>'Status', :data_title=>proc{|rec| statuses[rec.status]}, data_style: total_data_style},
   {:caption=>"Size (MB)",     :data=>proc{|rec| fn(rec.mb_total, 3)},       :title=>'Size in MBytes',       :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.mb_total)}"}, data_style: total_data_style},
   {:caption=>"Blocks",        :data=>proc{|rec| fn(rec.blocks)},            :title=>'Number of DB blocks',  :align=>:right, data_style: total_data_style},
   {:caption=>"%",             :data=>proc{|rec| fn(rec.blocks*100.0/@total_status_blocks,2)},:title=>"Percentage of total cache", :align=>:right, data_style: total_data_style},

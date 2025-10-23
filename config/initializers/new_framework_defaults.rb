@@ -19,7 +19,7 @@ Rails.application.config.active_record.belongs_to_required_by_default = true
 
 # Do not halt callback chains when a callback returns false. Previous versions had true.
 # DEPRECATION WARNING: ActiveSupport.halt_callback_chains_on_return_false= is deprecated and will be removed in Rails 5.2. (called from <main> at /Users/pramm/Documents/Projekte/rammpeter.github/Panoramaconfig/initializers/new_framework_defaults.rb:21)
-# therfore commented out, 24.10.2017
+# therefore commented out, 24.10.2017
 #ActiveSupport.halt_callback_chains_on_return_false = false
 
 # Configure SSL options to enable HSTS with subdomains. Previous versions had false.

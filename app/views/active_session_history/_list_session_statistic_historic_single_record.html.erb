@@ -10,7 +10,7 @@
    }
 
 
-   @header = "Active Sesson History:<br/>#{t(:active_session_history_list_session_statistic_historic_single_record_caption, :default=>'Single snapshot records for')}: "
+   @header = "Active Session History:<br/>#{t(:active_session_history_list_session_statistic_historic_single_record_caption, :default=>'Single snapshot records for')}: "
    @repeat_action = :list_session_statistic_historic_single_record
 
    grouping_content =  "<span title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"
@@ -123,13 +123,13 @@
                          :title=>t(:active_session_history_list_session_statistic_single_record_link_sid_hint, :default=>"Show active session history for blocking session-ID")
          )
         # Start thread with blocked session if unique, else start thtread with blocking session
-        blocked_session_unqiue = rec.instance_number_cnt == 1 && rec.session_id_cnt == 1 && rec.session_serial_no_cnt == 1    # Single record or all records grouped for one session
+        blocked_session_unique = rec.instance_number_cnt == 1 && rec.session_id_cnt == 1 && rec.session_serial_no_cnt == 1    # Single record or all records grouped for one session
         retval << ' '
         retval << ajax_submit('Thread', {
                               action:                     :list_ash_dependency_thread,
-                              blocked_inst_id:            blocked_session_unqiue ? rec.instance_number    : rec.blocking_inst_id,
-                              blocked_session:            blocked_session_unqiue ? rec.session_id         : rec.blocking_session,
-                              blocked_session_serial_no:  blocked_session_unqiue ? rec.session_serial_no  : rec.blocking_session_serial_no,
+                              blocked_inst_id:            blocked_session_unique ? rec.instance_number    : rec.blocking_inst_id,
+                              blocked_session:            blocked_session_unique ? rec.session_id         : rec.blocking_session,
+                              blocked_session_serial_no:  blocked_session_unique ? rec.session_serial_no  : rec.blocking_session_serial_no,
                               sample_time:                localeDateTime(rec.start_rounded_sample_time),
                               min_snap_id:                @groupfilter[:Min_Snap_ID],
                               max_snap_id:                @groupfilter[:Max_Snap_ID],
@@ -235,8 +235,8 @@
   column_options <<  {:caption=>"PL / SQL",         :data=>proc{|rec| show_alt(link_plsql_object(rec), rec.peo_object_name_cnt)}, :title=>t(:active_session_history_list_session_statistic_historic_single_record_plsql_hint, :default=>'PL/SQL: entry object and current object') }
   column_options <<  {:caption=>"Tx. ID",           :data=>link_transaction,                                            :title=>"Transaction ID that the session was working on at the time of sampling", :data_title=>proc{|rec| data_title_alt(rec.tx_id_cnt) }}
   column_options <<  {:caption=>"Mode",             :data=>proc{|rec| show_alt(rec.modus, rec.modus_cnt)},              :title=>"Mode in which session is executed", :data_title=>proc{|rec| data_title_alt(rec.modus_cnt) } }                                             if get_db_version >= "11.2"
-  column_options <<  {:caption=>"Program",          :data=>proc{|rec| show_alt(rec.program, rec.program_cnt) },         :title=>"Programm", :data_title=>proc{|rec| data_title_alt(rec.program_cnt) } }  if get_db_version < "11.2"
-  column_options <<  {:caption=>"Program / Machine / Port",:data=>proc{|rec| "#{show_alt(rec.program, rec.program_cnt)}, #{show_alt(link_machine_ip_info(@update_area, rec.machine), rec.machine_cnt)}: #{show_alt(rec.port, rec.port_cnt)}".html_safe },  :title=>"Programm and machine and port on client", :data_title=>proc{|rec| data_title_alt((rec.program_cnt+rec.machine_cnt+rec.port_cnt)/3) }}                         if get_db_version >= "11.2"
+  column_options <<  {:caption=>"Program",          :data=>proc{|rec| show_alt(rec.program, rec.program_cnt) },         :title=>"Program", :data_title=>proc{|rec| data_title_alt(rec.program_cnt) } }  if get_db_version < "11.2"
+  column_options <<  {:caption=>"Program / Machine / Port",:data=>proc{|rec| "#{show_alt(rec.program, rec.program_cnt)}, #{show_alt(link_machine_ip_info(@update_area, rec.machine), rec.machine_cnt)}: #{show_alt(rec.port, rec.port_cnt)}".html_safe },  :title=>"Program and machine and port on client", :data_title=>proc{|rec| data_title_alt((rec.program_cnt+rec.machine_cnt+rec.port_cnt)/3) }}                         if get_db_version >= "11.2"
   column_options <<  {:caption=>"Client-ID",        :data=>proc{|rec| show_alt(rec.client_id, rec.client_id_cnt)},      :title=>"Client-ID"}
   column_options <<  {:caption=>"Service",          :data=>proc{|rec| show_alt(rec.service_name, rec.service_name_cnt)},:title=>"SQL*Net-Service"}
   column_options <<  {:caption=>"PGA (kByte)",      :data=>proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  :title=>"#{@time_groupby==:single ? 'Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken': 'Maximum amount of PGA memory (in kBytes) consumed by one single session at one time'} ", :align=>:right}         if get_db_version >= "11.2"

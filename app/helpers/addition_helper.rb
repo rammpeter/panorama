@@ -2,7 +2,7 @@
 
 module AdditionHelper
 
-  # Suppress partition types from beeing named
+  # Suppress partition types from being named
   def compact_object_type_sql_case(object_type_name)
     "CASE
        WHEN #{object_type_name} = 'INDEX PARTITION'    THEN 'INDEX'

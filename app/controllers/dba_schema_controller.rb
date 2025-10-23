@@ -1597,7 +1597,7 @@ class DbaSchemaController < ApplicationController
                                  ) col_len ON col_len.Index_Owner = i.Owner AND col_len.Index_Name = i.Index_Name
                  LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Index_Name, COUNT(*) Ref_Constraints_Cnt
                                   FROM   (SELECT ic.Index_Name, cc.Constraint_Name
-                                          FROM   Ref_Cons_Columns cc /* Check colums of ref. constraints for each index */
+                                          FROM   Ref_Cons_Columns cc /* Check columns of ref. constraints for each index */
                                           LEFT OUTER JOIN Ind_Columns ic ON ic.Column_Name = cc.Column_Name /* Column position does not matter for FK-constraints */
                                           GROUP BY ic.Index_Name, cc.Constraint_Name
                                           HAVING COUNT(*) = MAX(cc.Max_Position) /* Columns of an index starting left are matching all columns of an constraint */

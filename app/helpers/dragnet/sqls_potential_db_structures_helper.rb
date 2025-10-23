@@ -214,7 +214,7 @@ Chained rows causes additional reads of rows in separate DB-blocks while accessi
 There are two types:
 
 1. true chained rows:
-A record doesn't compeletely fit into one DB-block, the columns of the record are stored in several DB blocks.
+A record doesn't completely fit into one DB-block, the columns of the record are stored in several DB blocks.
 Both the Full Scan and Index RowID scans read further linked DB blocks when accessing paged out columns in the linked blocks (incrementing of 'table fetch continued rows').
 
 2. migrated rows:
@@ -315,7 +315,7 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('===========================================');
   DBMS_OUTPUT.PUT_LINE('Detection of chained rows: connected as user='||SYS_CONTEXT ('USERENV', 'SESSION_USER'));
   DBMS_OUTPUT.PUT_LINE('Sample-size='||Sample_Size||' rows');
-  DBMS_OUTPUT.PUT_LINE('There might be incorrect results for partioned and/or compressed tables');
+  DBMS_OUTPUT.PUT_LINE('There might be incorrect results for partitioned and/or compressed tables');
   DBMS_OUTPUT.PUT_LINE('===========================================');
   SELECT Statistic# INTO StatNum FROM v$StatName WHERE Name='consistent gets';
   FOR Rec IN (SELECT Owner, Table_Name, Num_Rows
@@ -400,7 +400,7 @@ Usable with Oracle 11g and above only.'),
                                     FROM   DBA_Hist_Active_Sess_History h
                                     WHERE  SQL_Plan_Line_ID IS NOT NULL
                                     AND    Sample_Time > SYSDATE - ?
-                                    AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                                    AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                                     GROUP BY DBID, Instance_Number, SQL_ID, SQL_Plan_Hash_Value, SQL_Plan_Line_ID
                                    ) h ON h.DBID = p.DBID AND h.SQL_ID=p.SQL_ID AND h.SQL_Plan_Hash_Value=p.Plan_Hash_Value AND h.SQL_Plan_Line_ID=p.ID
                             LEFT OUTER JOIN DBA_All_Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
@@ -508,7 +508,7 @@ ORDER BY DECODE(ic.Index_Name, NULL, 1, 0), t.Num_Rows DESC
             ]
         },
         {
-            :name  => t(:dragnet_helper_144_name, :default=>'Possibly compressable but currently uncompressed LOB-segments'),
+            :name  => t(:dragnet_helper_144_name, :default=>'Possibly compressible but currently uncompressed LOB-segments'),
             :desc  => t(:dragnet_helper_144_desc, :default=>"Compression of Securefile-LOBs allows decrease of storage requirement if LOB-content allows significant compression.
 Activation requires recreation of table a'la CREATE TABLE NewTab LOB(ColName) STORE AS SECUREFILE (COMPRESS HIGH) AS SELECT * FROM OrgTab;
 Licensing of Advanced Compression Option is required for usage of LOB-Compression."),

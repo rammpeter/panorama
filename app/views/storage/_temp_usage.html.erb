@@ -45,20 +45,20 @@
 
   column_options =
     [
-      {:caption=>"I",           :data=>proc{|rec| rec.inst_id },                              :title=>"RAC-Instance"},
-      {:caption=>"SID, SN",     :data=>proc{|rec| link_column_sid(rec) },                     :title=>"SID, Serial-Number"},
-      {:caption=>'SQL-ID',      :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.child_number) },                     :title=>"SQL-ID of current or last executed SQL"},
-      {:caption=>"User",        :data=>proc{|rec| rec.username },                             :title=>"DB-User-Name"},
-      {:caption=>"Status",      :data=>proc{|rec| rec.status },                               :title=>"Session-Status"},
-      {:caption=>"OS-User",     :data=>proc{|rec| rec.osuser },                               :title=>"OS-User-Name"},
-      {:caption=>"Process",     :data=>proc{|rec| rec.process },                              :title=>"OS-Process-ID"},
-      {:caption=>"Machine",     :data=>proc{|rec| link_machine_ip_info(@update_area, rec.machine) },        :title=>"Client-Maschine"},
-      {:caption=>"Program",     :data=>proc{|rec| rec.program },                              :title=>"Client-Programm"},
+      {:caption=>"I",           :data=>proc{|rec| rec.inst_id },                              :title=>"RAC instance"},
+      {:caption=>"SID, SN",     :data=>proc{|rec| link_column_sid(rec) },                     :title=>"SID, Serial number"},
+      {:caption=>'SQL-ID',      :data=>proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.child_number) }, :title=>"SQL-ID of current or last executed SQL"},
+      {:caption=>"User",        :data=>proc{|rec| rec.username },                             :title=>"DB user name"},
+      {:caption=>"Status",      :data=>proc{|rec| rec.status },                               :title=>"Session status"},
+      {:caption=>"OS-User",     :data=>proc{|rec| rec.osuser },                               :title=>"OS user name"},
+      {:caption=>"Process",     :data=>proc{|rec| rec.process },                              :title=>"OS process ID"},
+      {:caption=>"Machine",     :data=>proc{|rec| link_machine_ip_info(@update_area, rec.machine) }, :title=>"Client machine"},
+      {:caption=>"Program",     :data=>proc{|rec| rec.program },                              :title=>"Client program"},
       {:caption=>"Last Active", :data=>proc{|rec| localeDateTime(rec.last_call)},  :title=>"Start of last active-state of session"},
-      {:caption=>"TS",          :data=>proc{|rec| rec.tablespace },                           :title=>"Tablespace-Name"},
-      {:caption=>"Seg.type",    :data=>proc{|rec| rec.segtype },                              :title=>"Segment-Type"},
-      {:caption=>"Extents",     :data=>proc{|rec| formattedNumber(rec.extents) },             :title=>"Anzahl Extents",   :align=>"right"},
-      {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks) },              :title=>"Anzahl Blöcke",    :align=>"right"},
+      {:caption=>"TS",          :data=>proc{|rec| rec.tablespace },                           :title=>"Tablespace name"},
+      {:caption=>"Seg.type",    :data=>proc{|rec| rec.segtype },                              :title=>"Segment type"},
+      {:caption=>"Extents",     :data=>proc{|rec| formattedNumber(rec.extents) },             :title=>"Number of extents",   :align=>"right"},
+      {:caption=>"Blocks",      :data=>proc{|rec| formattedNumber(rec.blocks) },              :title=>"Number of blocks",    :align=>"right"},
       {:caption=>"MB",          :data=>proc{|rec| formattedNumber(rec.blocks*PanoramaConnection.db_blocksize/(1024.0*1024.0),2) },                               :title=>"Megabytes",        :align=>"right"},
     ]
 

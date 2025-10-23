@@ -198,7 +198,7 @@ class AdditionController < ApplicationController
     end
     output << "];"
 
-    diagram_caption = "Top 10 Objekte im DB-Cache von #{@time_selection_start} bis #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
+    diagram_caption = "Top 10 objects in DB cache between #{@time_selection_start} and #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
 
     unique_id = get_unique_area_id
     plot_area_id = "plot_area_#{unique_id}"
@@ -676,7 +676,7 @@ class AdditionController < ApplicationController
           time_selection_start: @time_selection_start,
           time_selection_end:   @time_selection_end,
           update_area:          @update_area
-      }, :title=>"Show objects of this column for gather date and selection criterias")
+      }, :title=>"Show objects of this column for gather date and selection criteria")
     end
 
     link_total_mbytes = proc do |rec|
@@ -688,15 +688,15 @@ class AdditionController < ApplicationController
           time_selection_start: @time_selection_start,
           time_selection_end:   @time_selection_end,
           update_area:          @update_area
-      }, :title=>"Show all objects for gather date and selection criterias")
+      }, :title=>"Show all objects for gather date and selection criteria")
     end
 
 
     column_options =
         [
             {:caption=>"Gather date",     :data=>proc{|rec| localeDateTime(rec[:gather_date])},   :title=>"Timestamp of object size snapshot", :plot_master_time=>true},
-            {:caption=>"Total MB",        :data=>link_total_mbytes,                               :title=>"Total size for filter criterias in MBytes", :align=>"right" },
-            {:caption=>"Total incr. MB",  data: proc{|rec| fn(rec[:total_increase])},             :title=>"Total increase since last snapshot for filter criterias in MBytes", :align=>"right" },
+            {:caption=>"Total MB",        :data=>link_total_mbytes,                               :title=>"Total size for filter criteria in MBytes", :align=>"right" },
+            {:caption=>"Total incr. MB",  data: proc{|rec| fn(rec[:total_increase])},             :title=>"Total increase since last snapshot for filter criteria in MBytes", :align=>"right" },
         ]
 
     columns.each do |key, value|
@@ -1026,7 +1026,7 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
 
   def remove_string_literals(sql)
     without_escaped = sql.gsub(/''/m, '')                                       # remove all escaped single quotes
-    result = without_escaped.gsub(/'[^']*'/m, '')                               # Remove all string literals betweeen single quotes
+    result = without_escaped.gsub(/'[^']*'/m, '')                               # Remove all string literals between single quotes
     result
   end
 

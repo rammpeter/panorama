@@ -32,7 +32,7 @@ Therefore primary key columns should not occur in SET-clause of UPDATE statement
           ",
       },
       {
-        :name  => t(:dragnet_helper_167_name, :default=>'Possibly probematic NULL-handling in bind variables (:A1 IS NULL OR Column = :A1)'),
+        :name  => t(:dragnet_helper_167_name, :default=>'Possibly problematic NULL-handling in bind variables (:A1 IS NULL OR Column = :A1)'),
         :desc  => t(:dragnet_helper_167_desc, :default=>"\
 To disable filtering on a certain column with NULL as bound value you often find a syntax like:
 

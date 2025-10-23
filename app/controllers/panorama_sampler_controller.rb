@@ -19,7 +19,7 @@ class PanoramaSamplerController < ApplicationController
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @modus = :edit
     @config = PanoramaSamplerConfig.get_config_entry_by_id(params[:id].to_i).get_cloned_config_hash
-    @config[:password] = nil                                                    # Password set ony if changed
+    @config[:password] = nil                                                    # Password set only if changed
     render_partial :edit_config
   end
 

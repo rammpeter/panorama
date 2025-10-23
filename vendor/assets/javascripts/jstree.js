@@ -2906,18 +2906,18 @@
 		},
 		/**
 		 * select a node
-		 * @name select_node(obj [, supress_event, prevent_open])
+		 * @name select_node(obj [, suppress_event, prevent_open])
 		 * @param {mixed} obj an array can be used to select multiple nodes
-		 * @param {Boolean} supress_event if set to `true` the `changed.jstree` event won't be triggered
+		 * @param {Boolean} suppress_event if set to `true` the `changed.jstree` event won't be triggered
 		 * @param {Boolean} prevent_open if set to `true` parents of the selected node won't be opened
 		 * @trigger select_node.jstree, changed.jstree
 		 */
-		select_node : function (obj, supress_event, prevent_open, e) {
+		select_node : function (obj, suppress_event, prevent_open, e) {
 			var dom, t1, t2, th;
 			if($.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.select_node(obj[t1], supress_event, prevent_open, e);
+					this.select_node(obj[t1], suppress_event, prevent_open, e);
 				}
 				return true;
 			}
@@ -2944,7 +2944,7 @@
 				 * @param {Object} event the event (if any) that triggered this select_node
 				 */
 				this.trigger('select_node', { 'node' : obj, 'selected' : this._data.core.selected, 'event' : e });
-				if(!supress_event) {
+				if(!suppress_event) {
 					/**
 					 * triggered when selection changes
 					 * @event
@@ -2960,17 +2960,17 @@
 		},
 		/**
 		 * deselect a node
-		 * @name deselect_node(obj [, supress_event])
+		 * @name deselect_node(obj [, suppress_event])
 		 * @param {mixed} obj an array can be used to deselect multiple nodes
-		 * @param {Boolean} supress_event if set to `true` the `changed.jstree` event won't be triggered
+		 * @param {Boolean} suppress_event if set to `true` the `changed.jstree` event won't be triggered
 		 * @trigger deselect_node.jstree, changed.jstree
 		 */
-		deselect_node : function (obj, supress_event, e) {
+		deselect_node : function (obj, suppress_event, e) {
 			var t1, t2, dom;
 			if($.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
-					this.deselect_node(obj[t1], supress_event, e);
+					this.deselect_node(obj[t1], suppress_event, e);
 				}
 				return true;
 			}
@@ -2994,18 +2994,18 @@
 				 * @param {Object} event the event (if any) that triggered this deselect_node
 				 */
 				this.trigger('deselect_node', { 'node' : obj, 'selected' : this._data.core.selected, 'event' : e });
-				if(!supress_event) {
+				if(!suppress_event) {
 					this.trigger('changed', { 'action' : 'deselect_node', 'node' : obj, 'selected' : this._data.core.selected, 'event' : e });
 				}
 			}
 		},
 		/**
 		 * select all nodes in the tree
-		 * @name select_all([supress_event])
-		 * @param {Boolean} supress_event if set to `true` the `changed.jstree` event won't be triggered
+		 * @name select_all([suppress_event])
+		 * @param {Boolean} suppress_event if set to `true` the `changed.jstree` event won't be triggered
 		 * @trigger select_all.jstree, changed.jstree
 		 */
-		select_all : function (supress_event) {
+		select_all : function (suppress_event) {
 			var tmp = this._data.core.selected.concat([]), i, j;
 			this._data.core.selected = this._model.data['#'].children_d.concat();
 			for(i = 0, j = this._data.core.selected.length; i < j; i++) {
@@ -3021,17 +3021,17 @@
 			 * @param {Array} selected the current selection
 			 */
 			this.trigger('select_all', { 'selected' : this._data.core.selected });
-			if(!supress_event) {
+			if(!suppress_event) {
 				this.trigger('changed', { 'action' : 'select_all', 'selected' : this._data.core.selected, 'old_selection' : tmp });
 			}
 		},
 		/**
 		 * deselect all selected nodes
-		 * @name deselect_all([supress_event])
-		 * @param {Boolean} supress_event if set to `true` the `changed.jstree` event won't be triggered
+		 * @name deselect_all([suppress_event])
+		 * @param {Boolean} suppress_event if set to `true` the `changed.jstree` event won't be triggered
 		 * @trigger deselect_all.jstree, changed.jstree
 		 */
-		deselect_all : function (supress_event) {
+		deselect_all : function (suppress_event) {
 			var tmp = this._data.core.selected.concat([]), i, j;
 			for(i = 0, j = this._data.core.selected.length; i < j; i++) {
 				if(this._model.data[this._data.core.selected[i]]) {
@@ -3048,7 +3048,7 @@
 			 * @param {Array} selected the current selection
 			 */
 			this.trigger('deselect_all', { 'selected' : this._data.core.selected, 'node' : tmp });
-			if(!supress_event) {
+			if(!suppress_event) {
 				this.trigger('changed', { 'action' : 'deselect_all', 'selected' : this._data.core.selected, 'old_selection' : tmp });
 			}
 		},

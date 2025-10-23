@@ -56,7 +56,7 @@ class SQL_Worksheet  {
                     cursor_pos_line = cursor_pos_line - (current_stmt_end_line+1);  // new position cursor in rest of content_lines
                 }
             } while (current_stmt_end_line != null && current_stmt_end_line < prev_cursor_pos_line);
-            if (current_stmt_end_line != null){                                 // remove follwing SQLs if exist
+            if (current_stmt_end_line != null){                                 // remove following SQLs if exist
                 content_lines.length = current_stmt_end_line + 1;               // cut the rest of the array lines
             }
             // remove empty content_lines

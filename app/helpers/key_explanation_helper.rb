@@ -32,7 +32,7 @@ module KeyExplanationHelper
   def explain_data_access(operation_options)
     unless @@data_access
       @@data_access = {
-        'BUFFER SORT'                         => "The result of the previous operation is sorted before beeing used in the next operation",
+        'BUFFER SORT'                         => "The result of the previous operation is sorted before being used in the next operation",
         'COLLECTION ITERATOR PICKLER FETCH'   => "Fetch data from collection iterator pickler like TABLE() cast of collection or XMLTABLE",
         'EXTENDED DATA LINK FULL'             => "Execution through data link on another container of this instance with it's own container-specific process",
         'GENERATE CUBE'                       => "Generate subtotals for all combinations of the specified dimensions at GROUP BY CUBE",
@@ -134,7 +134,7 @@ module KeyExplanationHelper
        'KL' => 'LOB KSI Lock',
        'KK' => 'thread kick',
        'KQ' => 'ASM Attributes Enqueue',
-       'MM' => 'mount defintion global enqueue',
+       'MM' => 'mount definition global enqueue',
        'MO' => 'MMON restricted session',
        'MR' => 'media recovery',
        'MX' => 'ksz synch',
@@ -218,7 +218,7 @@ module KeyExplanationHelper
   def explain_wait_event(event)
     unless @@wait_events
       @@wait_events = {
-          'acknowledge over PGA limit'                          => "Check MOS note 2138882.1.\nThe \"acknowlege over PGA limit\" is a new wait event that was introduced with PGA_AGGREGATE_LIMIT in 12.1, and it will force a process that wants more PGA to wait a bit if the  instance is getting close to hitting the limit.\nThe hope is some other process will release memory and avoid the ORA-4036 error.\nPGA_AGGREGATE_LIMIT specifies a limit on the aggregate PGA memory consumed by the instance. By default, PGA_AGGREGATE_LIMIT is set to the greater of 2 GB, 200% of PGA_AGGREGATE_TARGET, and 3 MB times the PROCESSES parameter. It will be set below 200% of PGA_AGGREGATE_TARGET if it is larger than 90% of the physical memory size minus the total SGA size, but not below 100% of PGA_AGGREGATE_TARGET.\n\nEach of the following will independently increase the default PGA_AGGREGATE_LIMIT value:\n\n(1) Increasing PGA_AGGREGATE_TARGET.\n(2) Increasing PROCESSES parameter.\n(3) Setting underscore parameter \"_pga_limit_target_perc\" to a value greater than the default value.",
+          'acknowledge over PGA limit'                          => "Check MOS note 2138882.1.\nThe \"acknowledge over PGA limit\" is a new wait event that was introduced with PGA_AGGREGATE_LIMIT in 12.1, and it will force a process that wants more PGA to wait a bit if the  instance is getting close to hitting the limit.\nThe hope is some other process will release memory and avoid the ORA-4036 error.\nPGA_AGGREGATE_LIMIT specifies a limit on the aggregate PGA memory consumed by the instance. By default, PGA_AGGREGATE_LIMIT is set to the greater of 2 GB, 200% of PGA_AGGREGATE_TARGET, and 3 MB times the PROCESSES parameter. It will be set below 200% of PGA_AGGREGATE_TARGET if it is larger than 90% of the physical memory size minus the total SGA size, but not below 100% of PGA_AGGREGATE_TARGET.\n\nEach of the following will independently increase the default PGA_AGGREGATE_LIMIT value:\n\n(1) Increasing PGA_AGGREGATE_TARGET.\n(2) Increasing PROCESSES parameter.\n(3) Setting underscore parameter \"_pga_limit_target_perc\" to a value greater than the default value.",
           'asynch descriptor resize'                            => "Wait event 'asynch descriptor resize' is set when the number of asynchronous descriptors reserved inside the OS kernel has to be readjusted.\nIt is signaled when the number of asynchronous I/O's submitted by a process has to be increased.\nMany Unix Kernels (for example: Linux kernel) do not allow the limit to be increased when there are outstanding I/O's; all outstanding I/O's must be resolved before the limit is increased.\nThis event is shown when the kernel wants to increase the limit and is waiting for all the outstanding I/O's to be resolved so that the increase can be implemented.\nIf you see this wait event often, it might be a good idea to install the fix for Bug: 9829397 ASYNC DESCRIPTOR RESIZE.",
           'buffer busy waits'                                   => "Buffer busy waits occur when an Oracle session needs to access a block in the buffer cache, but cannot because the buffer copy of the data block is locked.\nThis buffer busy wait condition can happen for either of the following reasons:\n1. The block is being read into the buffer by another session, so the waiting session must wait for the block read to complete.\n2. Another session has the buffer block locked in a mode that is incompatible with the waiting sessions request.",
           'cell interconnect retransmit during physical read'   => "This wait event appears during retransmission for an I/O of a single-block or multiblock read.\nThe cell hash number in the P1 column in the V$SESSION_WAIT view is the same cell identified for cell single block physical read and cell multiblock physical read.\nThe P2 column contains the subnet number to the cell, and the P3 column contains the number of bytes processed during the I/O read operation.",
@@ -243,7 +243,7 @@ module KeyExplanationHelper
           'cursor: mutex X'                                     => 'The session requests the mutex for a cursor object in exclusive mode, and it must wait because the resource is busy. The mutex is busy because either the mutex is being held in exclusive mode by another session or the mutex is being held shared by one or more sessions. The existing mutex holder(s) must release the mutex before the mutex can be granted exclusively. Possible reasons: build new child cursor, capture SQL bind data, modify cursor related statistics',
           'cursor: pin S'                                       => 'A session waits on this event when it wants to update a shared mutex pin and another session is currently in the process of updating a shared mutex pin for the same cursor object.  This wait event should rarely be seen because a shared mutex pin update is very fast. Possible reason: Massive parse while executing the cursor. Solution: Diversify frequent used SQL-ID (e.g. by machine name in comment) ',
           'cursor: pin S wait on X'                             => 'A session waits for this event when it is requesting a shared mutex pin and another session is holding an exclusive mutex pin on the same cursor object.',
-          'cursor: pin X'                                       => 'Wants exlusively pin a cursor in cache. Possible reasons: create the cursor, alter the cursor',
+          'cursor: pin X'                                       => 'Wants exclusively pin a cursor in cache. Possible reasons: create the cursor, alter the cursor',
           'db file parallel read'                               => "This happens during recovery.\nIt can also happen during buffer prefetching, as an optimization (rather than performing multiple single-block reads).\nDatabase blocks that must be changed as part of recovery are read in parallel from the database.",
           'db file sequential read'                             => 'A single-block read (i.e., index fetch by ROWID)',
           'db file scattered read'                              => 'A multiblock read (a full-table scan, OPQ, sorting)',
@@ -445,7 +445,7 @@ module KeyExplanationHelper
           'gc cr grant congested'             => 'Whenever any instance request for any data block in any mode, this request will be served by MASTER NODE of that data block.Meanwhile requesting instance is waiting for approval from master instance to perform physical IO to read data block from DISK.',
           'gc cr multi block request'         => "This event is a multi-block read, also known as 'db file scattered read',\na full scan read that is usually a full-table scan or a fast-full index scan.\nIn RAC, this event can indicate an overloaded network connection between the RAC nodes,\nand general network issues because of the work processing the large-table full-table scan.",
           'gc cr request'                     => 'These are placeholder requests which should which should be mapped to one of the detailed events once the LMS responds',
-          'gc current block 2-way'            => 'an instance requests authorization for a block to be accessed in current mode to modify a block, the instance mastering the resource receives the request. The master has the current version of the block and sends the current copy of the block to the requestor via Cache Fusion and keeps a Past Image (.PI)',
+          'gc current block 2-way'            => 'an instance requests authorization for a block to be accessed in current mode to modify a block, the instance mastering the resource receives the request. The master has the current version of the block and sends the current copy of the block to the requester via Cache Fusion and keeps a Past Image (.PI)',
           'gc current block 3-way'            => 'More than 2 RAC-Instances: 1. message to master of block. 2. message from master to holder of block. 3. transfer block from holder to requester',
           'gc current block congested'        => 'If LMS process did not process a request within 1ms than LMS marks the response to that block with the congestion wait event. Root cause: LMS is suffering CPU scheduling, LMS is suffering resources like memory ( paging ). As LMS processes are RT processes OS scheduling delays should be minimal',
           'gc current grant 2-way'            => 'Indicates that no current block was received because it was not cached in any instance. Instead a global grant was given, enabling the requesting instance to read the block from disk or modify it.',
@@ -562,7 +562,7 @@ module KeyExplanationHelper
           'gcs res hash bucket'   => 'Status info of cached data blocks for Global Cache Service (GCS)',
           'gcs resources'         => 'Status info of cached data blocks for Global Cache Service (GCS)',
           'gcs shadows'           => 'Status info of cached data blocks for Global Cache Service (GCS)',
-          'KGLH0'                 => 'Kernel generic library heap 0: session specific environment informations for child cursors',
+          'KGLH0'                 => 'Kernel generic library heap 0: session specific environment information for child cursors',
           'shared_io_pool'        => 'Used for handling of LOB secure files',
           'SQLA'                  => 'SQL area (parsed SQL statements)',
       }
@@ -816,7 +816,7 @@ module KeyExplanationHelper
     "db block gets from pmem" => "Number of direct-mapped blocks accessed in CURRENT mode from PMEM, via regular path",
     "db block gets from pmem (fastpath)" => "Number of direct-mapped blocks accessed in CURRENT mode from PMEM, via fast path",
     "DB CPU" => "Amount of CPU time (in TIMEUNIT) used by the database server",
-    "DB time" => "Amount of time (in TIMEUNIT) spent by DB processes (forground and background)",
+    "DB time" => "Amount of time (in TIMEUNIT) spent by DB processes (foreground and background)",
     "DBWR checkpoint buffers written" => "Number of buffers that were written for checkpoints",
     "DBWR checkpoints" => "Number of times the DBWR was asked to scan the cache and write all blocks marked for a checkpoint or the end of recovery. This statistic is always larger than \"background checkpoints completed\".",
     "DBWR lru scans" => "Number of times that DBWR scans the LRU queue looking for buffers to write. This count includes scans to fill a batch being written for another purpose (such as a checkpoint).",

@@ -297,8 +297,8 @@ module ExplainPlanHelper
     qb_names_in_plan = {}
     qb_plus_object_aliases_in_plan = {}
     plan_array.each do |p|
-      p['hint_usage'] = ''                                                      # Ensure this hash element is defined if further prcessing is cancelled due to empty other_xml
-      p['wrong_hint_usage'] = false                                             # Ensure this hash element is defined if further prcessing is cancelled due to empty other_xml
+      p['hint_usage'] = ''                                                      # Ensure this hash element is defined if further processing is cancelled due to empty other_xml
+      p['wrong_hint_usage'] = false                                             # Ensure this hash element is defined if further processing is cancelled due to empty other_xml
       other_xml = p.other_xml unless p.other_xml.nil?
       qb_names_in_plan[p.qblock_name] = true unless p.qblock_name.nil?          # remember the used query block names
       qb_plus_object_aliases_in_plan["#{p.qblock_name}:#{p.object_alias}"]  = true unless p.object_alias.nil?    # remember the used combination of qb name and  object aliases

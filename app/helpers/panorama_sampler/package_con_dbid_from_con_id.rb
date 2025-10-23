@@ -9,7 +9,7 @@ CREATE OR REPLACE PACKAGE panorama_owner.Con_DBID_From_Con_ID IS
 
   PROCEDURE Init;
 
-  /* Call from outside the package to ensure select on v$Containes gets valid result */
+  /* Call from outside the package to ensure select on v$Contains gets valid result */
   PROCEDURE Learn(p_Con_ID IN NUMBER, p_Con_DBID IN NUMBER);
 
   FUNCTION Get(p_Con_ID IN NUMBER) RETURN NUMBER;

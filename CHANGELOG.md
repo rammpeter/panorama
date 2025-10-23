@@ -26,12 +26,12 @@
 - 2024-08-07 Show configuration of Exadata I/O resource manager
 - 2023-11-05 Show and hide additional colmns in execution plan
 - 2023-11-04 Fix Javascript memory leaks which lead to OOM in browser after frequent usage
-- 2023-10-25 Dashboard can show now top x groups of various criterias instead of only wait classes
+- 2023-10-25 Dashboard can show now top x groups of various criteria instead of only wait classes
 - 2023-10-19 Windows on Arm64 supported now after switching to jRuby 9.4.4.0
 - 2023-09-19 Visualize referential integrity relations by GraphViz for each table
 - 2023-09-19 Evaluation of unified audit trail added
 - 2023-08-17 Show client driver and client driver version in session list
-- 2023-06-05 New dragnet selection to detect empty ununsed partitions
+- 2023-06-05 New dragnet selection to detect empty unused partitions
 - 2023-05-22 Export and import of Panorama-Sampler config data possible now
 - 2023-03-14 New menu entry "Optimizer hints" with relation between hints and features
 - 2022-11-07 Bugfix: Panorama-Sampler rebuilds unuable indexes after shrinking space in reaction to errors

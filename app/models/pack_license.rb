@@ -67,7 +67,7 @@ class PackLicense
     else
       if PanoramaConnection.autonomous_database?                                # Use CDB-prefix for autonomous DB (Access on DBA_Hist leads to session termination)
         # TODO: CDB_OR_DBA
-        # sql.gsub!(/DBA_Hist/i, 'CDB_Hist') unless sql['NO_CDB_TRANSFORMATION']  # Translate only if not supressed
+        # sql.gsub!(/DBA_Hist/i, 'CDB_Hist') unless sql['NO_CDB_TRANSFORMATION']  # Translate only if not suppressed
       end
     end
     sql
@@ -99,7 +99,7 @@ class PackLicense
 
     while !sql_up.nil? && sql_up[search_string]                                 # iterate over all matches of searchstring
       sql_up = sql_up[sql_up.index(search_string), sql_up.length]               # Reduce SQL to match of search_string + succeeding chars
-      allowed = false                                                           # not allowd if no match in allowed_array found
+      allowed = false                                                           # not allowed if no match in allowed_array found
       allowed_array.each do |allowed_string|
         allowed = true if sql_up[0, allowed_string.length] == allowed_string.upcase
       end

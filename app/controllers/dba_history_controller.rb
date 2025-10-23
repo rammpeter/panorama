@@ -163,7 +163,7 @@ class DbaHistoryController < ApplicationController
     render_partial
   end # list_segment_stat_historic_sum
 
-  # Anzeige einzelner Snaphots
+  # Anzeige einzelner Snapshots
   def list_segment_stat_hist_detail
     @instance       = prepare_param_instance
     @dbid           = prepare_param_dbid
@@ -535,7 +535,7 @@ class DbaHistoryController < ApplicationController
     end
 
     unless sql_statement                                                           # No SQL text found in history ?
-      sga_exists = sql_select_first_row ["SELECT Inst_ID FROM gv$SQLArea WHERE SQL_ID=? #{" ORDER BY DECODE(Inst_ID, #{@instance}, 0, 1)" if @instance}", @sql_id] # First record in result with current instance if exsists
+      sga_exists = sql_select_first_row ["SELECT Inst_ID FROM gv$SQLArea WHERE SQL_ID=? #{" ORDER BY DECODE(Inst_ID, #{@instance}, 0, 1)" if @instance}", @sql_id] # First record in result with current instance if exists
       if sga_exists
         redirect_to url_for(:controller => :dba_sga,
                             :action     => :list_sql_detail_sql_id,
@@ -683,7 +683,7 @@ class DbaHistoryController < ApplicationController
           op  NUMBER PATH '@op',    -- operation
           dis NUMBER PATH '@dis',   -- display
           par NUMBER PATH '@par',   -- parent
-          prt NUMBER PATH '@prt',   -- unkown
+          prt NUMBER PATH '@prt',   -- unknown
           dep NUMBER PATH '@dep',   -- depth
           skp NUMBER PATH '@skp'    -- skip
         ) (+) AS X
@@ -1202,7 +1202,7 @@ FROM (
     render_partial
   end
 
-  # Anzeige Snaphots aus DBA_Hist_Sysstat
+  # Anzeige Snapshots aus DBA_Hist_Sysstat
   def list_system_statistics_historic
     @instance  = prepare_param_instance
     @stat_class_bit = params[:stat_class][:bit]    # Bit-wert fuer Test auf Statistic-Klasse
@@ -1532,7 +1532,7 @@ FROM (
 
     @column_options =
     [
-      {:caption=>"Intervall",   :data=>proc{|rec| localeDateTime(rec[:begin_time]) }, :title=>"Beginn des Zeitintervalls", :plot_master_time=>true }
+      {:caption=>"Interval",   :data=>proc{|rec| localeDateTime(rec[:begin_time]) }, :title=>"Begin of interval period", :plot_master_time=>true }
     ]
     columns.each do |key, value|
       @column_options << {:caption=>value[:metric_name], :data=>proc{|rec| formattedNumber(rec[key] ? rec[key][:value] : 0, 2) }, :title=>"#{value[:metric_name]}: #{value[:metric_unit]}", :data_title=>proc{|rec| rec[key] ? "#{value[:metric_name]}: #{value[:metric_unit]}: min.value=#{formattedNumber(rec[key][:minvalue],2)}, max.value=#{formattedNumber(rec[key][:maxvalue],2)}" : ""}, :align=>"right" }
@@ -2127,7 +2127,7 @@ FROM (
 
     @report.gsub!(/http:/, 'https:') if request.original_url['https://']        # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
 
-    @report.sub!(/<head>/, "<he ad><title>Performace Hub Report</title>")
+    @report.sub!(/<head>/, "<he ad><title>Performance Hub Report</title>")
     render :json => { action: 'show_in_new_tab', result: @report}.to_json
   end
 
@@ -2281,7 +2281,7 @@ FROM (
     snap_corrected_warning = ''
     if min_snap_id == max_snap_id
       min_snap_id -= 1
-      snap_corrected_warning = "\n-- End snapshot ID (#{max_snap_id}) must be greater than begin snapshot ID ((#{max_snap_id}).\n-- Therfore begin snapshot ID has been adjusted to #{min_snap_id}!\n\n"
+      snap_corrected_warning = "\n-- End snapshot ID (#{max_snap_id}) must be greater than begin snapshot ID ((#{max_snap_id}).\n-- Therefore begin snapshot ID has been adjusted to #{min_snap_id}!\n\n"
     end
 
     dbms_sqltune = get_db_version >= '18' ? 'DBMS_SQLSET' : 'DBMS_SQLTUNE'      # DBMS_SQLSET contains similar functions like DBMS_SQLTUNE but without requiring Tuning Pack

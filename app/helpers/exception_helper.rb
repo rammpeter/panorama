@@ -7,7 +7,7 @@ module ExceptionHelper
   # Log the stacktrace of an exception
   # @param [Exception] exception: Exception to log
   # @param [Integer] line_number_limit : Amount of lines to log, nil = all
-  # @param [Symbol] log_mode: mode for log outout, :debug, :info or :error
+  # @param [Symbol] log_mode: mode for log output, :debug, :info or :error
   # @return [Integer] the number of characters logged
   def self.log_exception_backtrace(exception, line_number_limit=nil, log_mode: :error)
     ExceptionHelper.log_memory_state(log_mode: log_mode)
@@ -22,7 +22,7 @@ module ExceptionHelper
   end
 
   # Raise an exception with original backtrace but extended message
-  # @param [Exception] exception: Original catched exception
+  # @param [Exception] exception: Original caught exception
   # @param [String] msg: Message to add to original exception
   # @param [String] log_location: Location info for error logging. Log error only if != nil
   # @return: nothing, raises exception
@@ -41,7 +41,7 @@ module ExceptionHelper
     case RbConfig::CONFIG['host_os']
     when 'linux' then
       meminfo[:total_memory]      = { name: 'Total OS Memory (GB)',      value: gb_value_for_linux('MemTotal') }
-      meminfo[:available_memory]  = { name: 'Available OS Memory (GB)',  value: gb_value_for_linux('MemAvailable') }   # Real avail. mem. for application. Max-OS: phys. mem. used to ensure valid test becaus real mem avail is not available
+      meminfo[:available_memory]  = { name: 'Available OS Memory (GB)',  value: gb_value_for_linux('MemAvailable') }   # Real avail. mem. for application. Max-OS: phys. mem. used to ensure valid test because real mem avail is not available
       meminfo[:free_memory]       = { name: 'Free Memory OS (GB)',       value: gb_value_for_linux('MemFree') }   # free mem. may be much smaller than real avail. mem. for app.
       meminfo[:total_swap]        = { name: 'Total OS Swap (GB)',        value: gb_value_for_linux('SwapTotal') }
       meminfo[:free_swap]         = { name: 'Free OS Swap (GB)',         value: gb_value_for_linux('SwapFree') }

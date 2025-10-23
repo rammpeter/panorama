@@ -125,7 +125,7 @@
               </td>
             </tr>
 
-            <tr title="Keep time in hours before housekeeping for the 1-second samples of ASH (comparable to v$Active_Session_History). These samples are condensed to 10 seconds and stored at each AWR-snapshot, but it may make sense to keep them available for a limited time also after AWR-snaphots.">
+            <tr title="Keep time in hours before housekeeping for the 1-second samples of ASH (comparable to v$Active_Session_History). These samples are condensed to 10 seconds and stored at each AWR-snapshot, but it may make sense to keep them available for a limited time also after AWR-snapshots.">
               <td>Keep time for 1-second ASH samples (hours)</td>
               <td style="text-align: center"><%= text_field_tag(:config_ash_1sec_sample_keep_hours, @config[:ash_1sec_sample_keep_hours], :name=>'config[ash_1sec_sample_keep_hours]', size: 20, :style => "text-align: right;") %></td>
             </tr>

@@ -142,7 +142,7 @@ WITH   Procs AS (SELECT /*+ NO_MERGE MATERIALIZE */ p.Object_ID, p.SubProgram_ID
                        JOIN   DBA_Hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
                        WHERE  s.Sample_Time < (SELECT Min_Sample_Time FROM Ash_Time a WHERE a.Inst_ID = s.Instance_Number)  /* Nur Daten lesen, die nicht in gv$Active_Session_History vorkommen */
                        AND    ss.Begin_Interval_Time > SYSDATE - ?
-                       AND    s.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                       AND    s.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                        UNION ALL
                        SELECT 1 Sample_Cycle, Top_Level_SQL_ID, SQL_ID, Top_Level_SQL_OpCode, PLSQL_ENTRY_OBJECT_ID, PLSQL_ENTRY_SUBPROGRAM_ID, PLSQL_OBJECT_ID, PLSQL_SUBPROGRAM_ID
                        FROM   gv$Active_Session_History

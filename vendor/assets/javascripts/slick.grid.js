@@ -1613,7 +1613,7 @@ if (typeof Slick === "undefined") {
               if (options.forceFitColumns) {
                 shrinkLeewayOnRight = 0;
                 stretchLeewayOnRight = 0;
-                // colums on right affect maxPageX/minPageX
+                // columns on right affect maxPageX/minPageX
                 for (j = i + 1; j < columns.length; j++) {
                   c = columns[j];
                   if (c.resizable) {

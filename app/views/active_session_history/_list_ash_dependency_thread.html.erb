@@ -129,7 +129,7 @@
   end
 
   column_options = []
-  column_options <<  {caption: 'Level',            data: proc{|rec| rec.order_level },                title: "Level / depth of depedency thread ( 1 = direkt blocking session) " }
+  column_options <<  {caption: 'Level',            data: proc{|rec| rec.order_level },                title: "Level / depth of dependency thread ( 1 = direkt blocking session) " }
   column_options <<  {caption: 'I',                data: proc{|rec| rec.instance_number },            title: "Instance of blocking session", align: :right } if PanoramaConnection.rac?
   column_options <<  {caption: "Con-ID",           data: proc{|rec| rec.con_id},                      title: "Container-ID for pluggable database" } if get_current_database[:cdb]
   column_options <<  {caption: 'Sample-Time',      data: proc{|rec| localeDateTime(rec.rounded_sample_time)}, title: "Snapshot time of sample\nRounded to 1 second if source is v$Active_Session_History\nRounded to 10 seconds if source is DBA_Hist_Active_Sess_History" }
@@ -150,8 +150,8 @@
   column_options <<  {caption: 'PL / SQL',         data: link_plsql_object,                           title: t(:active_session_history_list_session_statistic_historic_single_record_plsql_hint, :default=>'PL/SQL: entry object and current object') }
   column_options <<  {caption: 'Tx. ID',           data: link_transaction,                            title: "Transaction ID that the session was working on at the time of sampling"}
   column_options <<  {caption: 'Mode',             data: proc{|rec| rec.modus },                      title: "Mode in which session is executed"}                                             if get_db_version >= "11.2"
-  column_options <<  {caption: 'Program',          data: proc{|rec| rec.program },                    title: "Programm" }  if get_db_version < "11.2"
-  column_options <<  {caption: 'Program / Machine / Port', data: proc{|rec| "#{rec.program}, #{link_machine_ip_info(@update_area, rec.machine)}: #{rec.port}".html_safe },  :title=>"Programm and machine and port on client"}   if get_db_version >= "11.2"
+  column_options <<  {caption: 'Program',          data: proc{|rec| rec.program },                    title: "Program" }  if get_db_version < "11.2"
+  column_options <<  {caption: 'Program / Machine / Port', data: proc{|rec| "#{rec.program}, #{link_machine_ip_info(@update_area, rec.machine)}: #{rec.port}".html_safe },  :title=>"Program and machine and port on client"}   if get_db_version >= "11.2"
   column_options <<  {caption: "Client-ID",        data: proc{|rec| rec.client_id},                   title: "Client-ID"}
   column_options <<  {caption: "Service",          data: proc{|rec| rec.service_name},                title: "SQL*Net-Service"}
   column_options <<  {caption: "PGA (kByte)",      data: proc{|rec| fn(rec.pga_allocated/1024) if rec.pga_allocated},  title: "Amount of PGA memory (in kBytes) consumed by this session at the time the sample was taken", :align=>:right}         if get_db_version >= "11.2"

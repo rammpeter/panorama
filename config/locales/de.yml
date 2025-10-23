@@ -760,12 +760,12 @@
   dragnet_helper_11_desc: |-
     Für Partitionierte Tabellen Indizes nach Möglichkeit auch partitionieren (LOCAL), insbesondere dann wenn die Partitionen unterschiedlich aktuelle Dateninhalte physisch trennen.
     Durch Partitionierung kann oftmals der BLevel des Index reduziert werden.
-    Für Unqiue Indizes gilt dies nur dann, wenn das Partitionierungskriterium mit den ersten Feld(ern) des Index übereinstimmt.
+    Für Unique Indizes gilt dies nur dann, wenn das Partitionierungskriterium mit den ersten Feld(ern) des Index übereinstimmt.
     Negativ wirkt sich allerdings der n-fache Zugriff auf Index bei Suche aus, wenn Partition-Key ungleich dem indizierten Feld ist und Partition-Key nicht Bestandteil des Filters ist.
 
   dragnet_helper_12_name:                                   Local-Partitionierung von Unique Indizes mit Partition-Key=Index-Spalte
   dragnet_helper_12_desc: |-
-    Auch unqiue Indizes lassen sich local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
+    Auch unique Indizes lassen sich local partitionieren, wenn der Partition-Key in identischer Folge Bestandteil des Index ist.
     Somit kann auch für Zugriffe über diese Indizes Partition-Pruning auf Index-Ebene genutzt werden sowie möglicherweise der BLevel des Index reduziert werden.
 
   dragnet_helper_13_name:                                   Local-Partitionierung von Indizes mit Overhead im Zugriff
@@ -945,7 +945,7 @@
   dragnet_helper_67_param_2_name:                           Spalten mit NULL-Values einbeziehen? (YES/NO)
 
   dragnet_helper_68_desc: |-
-    Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNSED COLUMNS oder Neuaufbau der Tabelle.
+    Für Unused gesetzte Spalten lohnt möglicherweise Reorganisation per ALTER TABLE DROP UNUSED COLUMNS oder Neuaufbau der Tabelle.
   dragnet_helper_68_name:                                   Unused markierte jedoch nicht physisch gelöschte Spalten
 
   dragnet_helper_69_desc: |-
@@ -1267,7 +1267,7 @@
 
   dragnet_helper_114_desc: |-
     Nutzung von Literalen statt Bindevariablen mit hoher Anzahl unterschiedlicher Literale führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-    Auch wenn die Folgen durch Setzen von cursor_sharing != EXCACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
+    Auch wenn die Folgen durch Setzen von cursor_sharing != EXACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
     Die eindeutige Empfehlung ist: Bindevariablen benutzen!
     Die Abfrage sucht über identische Syntax der ersten x Zeichen des SQL nach Statements die sich nur in den Literalen unterscheiden.
     Optional muss die Länge des untersuchten Substrings variert werden.
@@ -1441,7 +1441,7 @@
 
   dragnet_helper_133_desc: |-
     Nutzung von Literalen statt Bindevariablen mit hoher Anzahl unterschiedlicher Literale führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-    Auch wenn die Folgen durch Setzen von cursor_sharing != EXCACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
+    Auch wenn die Folgen durch Setzen von cursor_sharing != EXACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
     Die eindeutige Empfehlung ist: Bindevariablen benutzen!
     Die Abfrage sucht über identische Ausführungspläne per Plan-Hash-Value aus Active Session History.
     Die Nutzung von force-matching-signature anstatt plan-hash-value für die Erkennung ist riskant, da ASH oft ungenaue Werte sampelt für for force-matching-signature.
@@ -1463,7 +1463,7 @@
 
   dragnet_helper_135_desc: |-
     Nutzung von Literalen statt Bindevariablen mit hoher Anzahl unterschiedlicher Literale führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-    Auch wenn die Folgen durch Setzen von cursor_sharing != EXCACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
+    Auch wenn die Folgen durch Setzen von cursor_sharing != EXACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
     Die eindeutige Empfehlung ist: Bindevariablen benutzen!
     Die Abfrage sucht über identische Ausführungspläne per Force-Matching-Signature (oder Plan-Hash-Value wenn Force-Matching-Signature = 0) aus SGA.
   dragnet_helper_135_name: |-
@@ -1520,7 +1520,7 @@
 
   dragnet_helper_142_desc: |-
     Nutzung von Literalen statt Bindevariablen mit hoher Anzahl unterschiedlicher Literale führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-    Auch wenn die Folgen durch Setzen von cursor_sharing != EXCACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
+    Auch wenn die Folgen durch Setzen von cursor_sharing != EXACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
     Die eindeutige Empfehlung ist: Bindevariablen benutzen!
     Die Abfrage sucht über identische Ausführungspläne per Force-Matching-Signature (oder Plan-Hash-Value wenn Force-Matching-Signature = 0) aus AWR-Historie.
   dragnet_helper_142_name: |-
@@ -1574,7 +1574,7 @@
 
   dragnet_helper_148_desc: |-
     Nutzung von Literalen statt Bindevariablen mit hoher Anzahl unterschiedlicher Literale führt zu hohen Parse-Zahlen und Flutung der SQL-Area in der SGA.
-    Auch wenn die Folgen durch Setzen von cursor_sharing != EXCACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
+    Auch wenn die Folgen durch Setzen von cursor_sharing != EXACT reduziert werden können, bleibt eine hohe Speicheranforderung in SGA für das Matchen der SQLs mit den korrepondierenden SQLs mit ersetzten Bindevariablen.
     Die eindeutige Empfehlung ist: Bindevariablen benutzen!
     Die Abfrage sucht über identische Ausführungspläne per Plan-Hash-Value aus gv$SQL.
   dragnet_helper_148_name: |-
@@ -1662,7 +1662,7 @@
 
   dragnet_helper_156_desc: |-
     Die Anzahl Soft-Parses über JDBC-thin Verbindungen lässt vermuten, dass der client-seitige JDBC Statement Cache nicht benutzt wird oder die Einstellung zu niedrig ist.
-    Das client-seitige JDBC Statement Caching erlaubt eine Anzahl der hochfrequent genutzten SQL-Cursoren offen zu halten an der DB-Verbindung auch wenn das JDBC statment handle in der Applikation geschlossen wird.
+    Das client-seitige JDBC Statement Caching erlaubt eine Anzahl der hochfrequent genutzten SQL-Cursoren offen zu halten an der DB-Verbindung auch wenn das JDBC statement handle in der Applikation geschlossen wird.
     Dies erlaubt die Erhöhunt der Applikationsperformance und Reduktion der Soft Parse Aktivität auch wenn die Applikation selbst nicht in der Lage ist die frequent genutzten Cursoren offen zu halten.
     Nicht in der Lage zu sein die frequent genutzten Cursoren offen zu halten ist oft der Fall wenn die Applikation OR-mapper Frameworks benutzt.
 

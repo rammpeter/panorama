@@ -10,7 +10,7 @@ module SlickgridHelper
   def strip_inner_html(content)
     #
     # Stripping html from string is expensive operation
-    # Rails provides santitize and strip_tags which is slightly slow
+    # Rails provides sanitize and strip_tags which is slightly slow
     # Nokogiri is 2 times faster than strip_tags, but should only be called if string contains tags
     content = Nokogiri::HTML(content).text if content['<'] && content['>']
 
@@ -335,7 +335,7 @@ module SlickgridHelper
         output << "#{col[:name]}: '#{escape_js_chars stripped_celldata}',"
         if (title && title != '') || (style && style != '') || (celldata != stripped_celldata) || col[:pct_total_value]
           metadata << "#{col[:name]}: {"
-          metadata << "title:    '#{ecape_js_chars_without_br title}',"    if title && title != ''    # \n erhalten bei esacpe, da das vom tooltip so dargestellt werden kann
+          metadata << "title:    '#{ecape_js_chars_without_br title}',"    if title && title != ''    # \n erhalten bei escape, da das vom tooltip so dargestellt werden kann
           metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
           metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
           metadata << "pct_total_value: #{col[:pct_total_value].call(rec)}," if col[:pct_total_value]  # show pct as transparent fill level

@@ -100,7 +100,7 @@ FROM   (SELECT s.DBID, s.Instance_Number, s.SQL_ID, h.Samples, h.Max_ASH_User_ID
                         WHERE  SQL_ID IS NOT NULL
                         AND    ss.Begin_Interval_Time > SYSDATE - ?
                         AND    Program = 'JDBC Thin Client'
-                        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                         GROUP BY h.DBID, h.Instance_Number, SQL_ID, User_ID, Module, Action, Machine, Service_Hash
                        )
                 GROUP BY DBID, Instance_Number, SQL_ID
@@ -122,7 +122,7 @@ ORDER BY Parse_Calls_Total DESC
 
   def jdbc_statement_cache_desc_default
     'The number of soft parses on JDBC thin connections suggests that client-side JDBC statement caching is not being used or the statement cache setting may be too low.
-     JDBC client-side statement caching allows to keep a number of frequently used SQL cursors open at the DB connection even if the JDBC statment handle in the application is closed.
+     JDBC client-side statement caching allows to keep a number of frequently used SQL cursors open at the DB connection even if the JDBC statement handle in the application is closed.
      This allows to improve application performance and reduce soft parse activity even if application itself is unable to keep frequently used cursors open.
      To be unable to keep frequently used cursors open is often the case if the application uses OR-mapper frameworks.
 

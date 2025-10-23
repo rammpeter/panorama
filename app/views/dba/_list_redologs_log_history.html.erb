@@ -8,7 +8,7 @@
              update_area:           @update_area,
              instance:              @instance,
              time_selection_start:  localeDateTime(rec.min_first_time),
-             time_selection_end:    (rec.next_time.nil? ? @time_selection_end : localeDateTime(rec.next_time)),   # use real ent time for last record because of mssing successor
+             time_selection_end:    (rec.next_time.nil? ? @time_selection_end : localeDateTime(rec.next_time)),   # use real ent time for last record because of missing successor
              time_groupby:          :single
            },
      :title => "Show single records for period"

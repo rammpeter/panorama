@@ -128,7 +128,7 @@ module DragnetHelper
             :entries  => dragnet_sqls_logwriter_redo
         },
         {
-            :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on appliction behaviour'),
+            :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on application behaviour'),
             :entries  => [ {   :name    => t(:dragnet_helper_group_view_issues, :default=>'Potential for improvement in DB-Views'),
                                :entries => [{
                                                 :name    => t(:dragnet_helper_group_cascading_views, :default=>'Views with cascading dependiencies (multiple hierarchy)'),

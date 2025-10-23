@@ -9,7 +9,7 @@ module Dragnet::UnnecessaryHighExecutionFrequencyHelper
             :name  => t(:dragnet_helper_87_name, :default=>'Excessive number of cache buffer accesses'),
             :desc  => t(:dragnet_helper_87_desc, :default=>'Access on DB-blocks in DB-cache(db-block-gets, consistent reads) may be critical by provoking "cache buffers chains"-latch waits if:
 - excessive access targets to one or less DB-blocks reading or writing (Hot blocks im buffer-cache)
-- excessive read access on many DB-blocks (may be critical even even if these blocks are widely spreaded in cache and are not hot blocks)
+- excessive read access on many DB-blocks (may be critical even even if these blocks are widely spread in cache and are not hot blocks)
 For both constellations problematic statements can be identified by number of block access between two AWR-snapshots.
 '),
             :sql=> "WITH SQLText AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, SQL_ID, SQL_Text FROM DBA_Hist_SQLText)

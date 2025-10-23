@@ -409,7 +409,7 @@ class DashboardData {
     cancel_timeout(){
         if (this.current_timeout) {
             this.log('clearTimeout '+this.current_timeout);
-            clearTimeout(this.current_timeout);                                 // remove current aktive timeout first before
+            clearTimeout(this.current_timeout);                                 // remove current active timeout first before
             this.current_timeout = null;
         }
     }

@@ -67,7 +67,7 @@ END Panorama_Sampler_Block_Locks;
                        ELSE s.Wait_Time_Micro/1000000 END Seconds_In_Wait,
                        l.ID1,
                        l.ID2,
-                       /* Request!=0 indicates waiting for resource determinded by ID1, ID2 */
+                       /* Request!=0 indicates waiting for resource determined by ID1, ID2 */
                        l.Request Request,
                        l.lmode                Lock_Mode,
                        s.Blocking_Instance    Blocking_Instance_Number,

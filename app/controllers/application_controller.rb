@@ -88,9 +88,9 @@ class ApplicationController < ActionController::Base
       end
       set_connection_info_for_request(current_database)
     rescue StandardError => e                                                   # Problem bei Zugriff auf verschlüsselte Cookies
-      Rails.logger.error('ApplicationController.begin_request') { "Error '#{e.message}' occured" }
+      Rails.logger.error('ApplicationController.begin_request') { "Error '#{e.message}' occurred" }
       ExceptionHelper.log_exception_backtrace(e)
-      raise "Error '#{e.message}' occured. Please close browser session and start again!"
+      raise "Error '#{e.message}' occurred. Please close browser session and start again!"
     end
 
     raise PopupMessageException.new(t(:application_connection_no_db_chosen, default: 'No DB chosen! Please connect to DB by link in right upper corner. (Browser-cookies are required)')) if current_database.nil?

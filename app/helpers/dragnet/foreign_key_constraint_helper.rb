@@ -7,9 +7,9 @@ module Dragnet::ForeignKeyConstraintHelper
     [
         {
             :name  => t(:dragnet_helper_5_name, :default=> 'Coverage of foreign-key relations by indexes (detection of potentially missing indexes)'),
-            :desc  => t(:dragnet_helper_5_desc, :default=> 'Protection of colums with foreign key references by index can be necessary for:
+            :desc  => t(:dragnet_helper_5_desc, :default=> 'Protection of columns with foreign key references by index can be necessary for:
 - Ensure delete performance of referenced table (suppress FullTable-Scan)
-- Supress lock propagation (shared lock on index instead of table)'),
+- Suppress lock propagation (shared lock on index instead of table)'),
             :sql=> "WITH Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Constraint_name, Constraint_Type, r_Owner, r_Constraint_Name
                                          FROM   DBA_Constraints
                                          WHERE  Owner NOT IN (#{system_schema_subselect})

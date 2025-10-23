@@ -350,7 +350,7 @@ module ActiveSessionHistoryHelper
   )
     awr_filter = nil if  awr_filter == ''
     sga_filter = nil if  sga_filter == ''
-    # if used within existing CTE, don't double WITH, only if first WITH element "WITH" must preceed
+    # if used within existing CTE, don't double WITH, only if first WITH element "WITH" must proceed
     "
      #{"WITH" unless with_cte_alias }
           ASH_Time AS (SELECT /*+ NO_MERGE MATERIALIZE */ i.Inst_ID, NVL(Min_Sample_Time, SYSTIMESTAMP) Min_Sample_Time

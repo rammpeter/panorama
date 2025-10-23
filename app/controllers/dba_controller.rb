@@ -92,7 +92,7 @@ class DbaController < ApplicationController
                 #{get_db_version < '11.1' ? "s.Seconds_In_Wait" : "DECODE(s.State, 'WAITING', s.Wait_Time_Micro, s.Time_Since_Last_Wait_Micro)/1000000"} WaitingForTime,
                 l.ctime                                                     Lock_Held_Seconds,
                 SUBSTR(l.ID1||':'||l.ID2,1,12)                              ID1ID2,
-                /* Request!=0 indicates waiting for resource determinded by ID1, ID2 */
+                /* Request!=0 indicates waiting for resource determined by ID1, ID2 */
                 TO_CHAR(l.Request)                                          Request,
                 TO_CHAR(l.lmode)                                            LockMode,
                 RowNum      /* fuer Ajax-Aktualisierung der Zeile */        Row_Num,
@@ -163,7 +163,7 @@ class DbaController < ApplicationController
                      DECODE(bs.State, 'WAITING', bs.Wait_Time_Micro/1000000) Blocking_Seconds_Waiting,
                      l.ID1,
                      l.ID2,
-                     /* Request!=0 indicates waiting for resource determinded by ID1, ID2 */
+                     /* Request!=0 indicates waiting for resource determined by ID1, ID2 */
                      l.Request Request,
                      l.lmode   LockMode,
                      s.Blocking_Instance    Blocking_Instance_Number,
@@ -1297,7 +1297,7 @@ oradebug setorapname diag
              o.Data_Object_ID                                            WaitingForData_Object_ID,
              l.ctime Seconds_In_Lock,
              l.ID1, l.ID2,
-             /* Request!=0 indicates waiting for resource determinded by ID1, ID2 */
+             /* Request!=0 indicates waiting for resource determined by ID1, ID2 */
              TO_CHAR(l.Request)                                          Request,
              TO_CHAR(l.lmode)                                            LockMode,
              bs.Inst_ID                                                  Blocking_Instance_Number,

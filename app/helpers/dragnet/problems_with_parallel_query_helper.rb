@@ -261,7 +261,7 @@ This Selection lists all statements with 'PARALLEL_FROM_SERIAL'-processing after
         },
         {
             :name  => t(:dragnet_helper_63_name, :default=>'Parallel Query: Degree of parallelism (number of attached PQ servers) higher than limit for single SQL execution'),
-            :desc  => t(:dragnet_helper_63_desc, :default=>'Number of avilable PQ servers is a limited resource, so default degree of parallelism is often to high for production use, especially on multi-core machines.
+            :desc  => t(:dragnet_helper_63_desc, :default=>'Number of available PQ servers is a limited resource, so default degree of parallelism is often to high for production use, especially on multi-core machines.
 Overallocation of PQ servers may result in serial processing og other SQLs estimated to process in parallel.'),
             :sql=>   "SELECT Instance_Number, SQL_ID, MIN(Sample_Time) First_Occurrence, MAX(Sample_Time) Last_Occurrence,
                              COUNT(DISTINCT QC_Session_ID)    Different_Coordinator_Sessions,
@@ -278,7 +278,7 @@ Overallocation of PQ servers may result in serial processing og other SQLs estim
                               FROM dba_hist_active_sess_history
                               WHERE  QC_Session_ID IS NOT NULL
                               AND    Sample_Time > SYSDATE - ?
-                              AND    DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+                              AND    DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                               GROUP BY Instance_Number, QC_Instance_ID, qc_session_id, QC_Session_Serial#, Sample_ID, SQL_ID
                               HAVING count(*) > ?
                              ) g
@@ -316,10 +316,10 @@ The operations below that execution plan line are not really executed in paralle
         },
         {
             :name  => t(:dragnet_helper_134_name, :default=>'Problematic usage of parallel query for short running SQLs (Current SGA)'),
-            :desc  => t(:dragnet_helper_134_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for excuting the SQL iteself.
+            :desc  => t(:dragnet_helper_134_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for executing the SQL itself.
 Additional problems may be caused by the limited amount of PQ-processes for frequently executed SQLs
 as well as by the basically recording of SQL Monitor reports for each PQ execution.
-Therfore for SQLs with runtime in seconds or less you should always avoid using parallel query.
+Therefore for SQLs with runtime in seconds or less you should always avoid using parallel query.
 This selection considers SQLs in the current SGA'),
             :sql=> "SELECT Inst_ID, SQL_ID, Parsing_Schema_Name, Executions, Elapsed_Time/1000000 Elapsed_Time_Secs,
                            CASE WHEN Executions > 0 THEN ROUND(Elapsed_Time/1000000/Executions, 5) END Elapsed_Time_Secs_per_Exec,
@@ -336,10 +336,10 @@ This selection considers SQLs in the current SGA'),
         },
         {
           :name  => t(:dragnet_helper_170_name, :default=>'Problematic usage of parallel query for short running SQLs (by SQL Monitor)'),
-          :desc  => t(:dragnet_helper_170_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for excuting the SQL iteself.
+          :desc  => t(:dragnet_helper_170_desc, :default=>'For short running SQL the effort for starting parallel query processes is often higher than for executing the SQL itself.
 Additional problems may be caused by the limited amount of PQ-processes for frequently executed SQLs
 as well as by the basically recording of SQL Monitor reports for each PQ execution.
-Therfore for SQLs with runtime in seconds or less you should always avoid using parallel query.
+Therefore for SQLs with runtime in seconds or less you should always avoid using parallel query.
 This selection considers SQLs from SQL Monitor recordings in gv$SQL_Monitor and DBA_Hist_Reports'),
           min_db_version: '12.1',
           :sql=> "\
@@ -413,7 +413,7 @@ FROM   (
         AND    SQL_Plan_Options = 'BUFFERED'
         AND    h.Sample_ID < m.Min_Sample_ID
         AND    h.Sample_Time > SYSDATE - ?
-        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multipe different DBIDs/ConIDs */
+        AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
         GROUP BY h.Instance_Number, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID, h.User_ID
         UNION ALL
         SELECT h.Inst_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID,

@@ -13,7 +13,7 @@ class ActiveSessionHistoryController < ApplicationController
   def include_session_statistic_historic_default_select_list
     retval = " MIN(Sample_Time)             First_Occurrence,
                MAX(Sample_Time)             Last_Occurrence,
-               -- So komisch wegen Konvertierung Tiemstamp nach Date für Subtraktion
+               -- So komisch wegen Konvertierung Timestamp nach Date für Subtraktion
                (TO_DATE(TO_CHAR(MAX(Sample_Time)+#{client_tz_offset_days}, '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}') -
                TO_DATE(TO_CHAR(MIN(Sample_Time)+#{client_tz_offset_days}, '#{sql_datetime_second_mask}'), '#{sql_datetime_second_mask}'))*(24*60*60) Sample_Dauer_Secs"
 

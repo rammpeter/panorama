@@ -81,7 +81,7 @@ SELECT /* DB-Tools Ramm nicht genutzte Indizes */ * FROM (
         {
             :name  => t(:dragnet_helper_14_name, :default=> 'Detection of indexes with only one or little key values in index'),
             :desc  => t(:dragnet_helper_14_desc, :default=> 'Indexes with only one or little key values may be unnecessary.
-                       Exception: Indexes with only one key value may be usefull for differentiation between NULL and NOT NULL.
+                       Exception: Indexes with only one key value may be useful for differentiation between NULL and NOT NULL.
                        Indexes with only one key value and no NULLs in indexed columns my be definitely removed.
                        If used for ensurance of foreign keys you can often relinquish on these index because resulting FullTableScan on referencing table
                        in case of delete on referenced table may be accepted.'),
@@ -328,7 +328,7 @@ If none of the four reasons really requires the existence, the index can be remo
                                      JOIN Ind_Columns ic ON ic.Table_Owner = cc.Owner AND ic.Table_Name = cc.Table_Name  AND ic.Column_Name = cc.Column_Name /* Position of column in index does not matter for constraint */
                                      GROUP BY ic.Index_Owner, ic.Index_Name, c.Constraint_Name
                                      HAVING COUNT(DISTINCT ic.Column_Name) = MAX(cc.Column_Count) /* All constraint columns are covered by index columns, index may have additional columns */
-                                     AND    MAX(ic.Column_Position) = MAX(cc.Column_Count)               /* All additional columns of index are right from contraint columns */
+                                     AND    MAX(ic.Column_Position) = MAX(cc.Column_Count)               /* All additional columns of index are right from constraint columns */
                                     ) uc ON uc.Index_Owner = u.Owner AND uc.Index_Name = u.Index_Name
                     JOIN (SELECT /*+ NO_MERGE */ Owner, Segment_Name, ROUND(SUM(bytes)/(1024*1024),1) MBytes,
                                  CASE WHEN COUNT(DISTINCT TableSpace_Name) > 1 THEN '< '||COUNT(DISTINCT TableSpace_Name)||' different >' ELSE MIN(TableSpace_Name) END TableSpace_Name
@@ -449,7 +449,7 @@ Due to the poor selectivity such indexes are mostly not useful for access optimi
                     ORDER BY Rows_Origin DESC NULLS LAST",
             :parameter=>[
                          {:name=> t(:dragnet_helper_6_param_1_name, :default=>'Max. number of rows in referenced table'), :size=>8, :default=>100, :title=> t(:dragnet_helper_6_param_1_hint, :default=>'Max. number of rows in referenced table')},
-                         {:name=> t(:dragnet_helper_6_param_2_name, :default=>'Min. number of rows in referencing table'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_6_param_2_hint, :default=>'Minimun number of rows in referencing table')},
+                         {:name=> t(:dragnet_helper_6_param_2_name, :default=>'Min. number of rows in referencing table'), :size=>8, :default=>100000, :title=> t(:dragnet_helper_6_param_2_hint, :default=>'Minimum number of rows in referencing table')},
             ]
         },
         {
@@ -509,7 +509,7 @@ If column order of the multi-column index can be changed then the additional sin
                     ORDER BY i.Num_Rows * ica.Avg_Col_Len DESC  /* Order by saving after removal of ica-index */
             ",
             :parameter=>[
-                {:name=> t(:dragnet_helper_143_param_1_name, :default=>'Min. rows per key for first column of index'), :size=>10, :default=>100000, :title=> t(:dragnet_helper_143_param_1_hint, :default=>'Minimun number of rows per key for first column of multi-column index')},
+                {:name=> t(:dragnet_helper_143_param_1_name, :default=>'Min. rows per key for first column of index'), :size=>10, :default=>100000, :title=> t(:dragnet_helper_143_param_1_hint, :default=>'Minimum number of rows per key for first column of multi-column index')},
                 {:name=> t(:dragnet_helper_143_param_2_name, :default=>'Max. rows per key for second column of index'), :size=>10, :default=>1000,  :title=> t(:dragnet_helper_143_param_2_hint, :default=>'Maximun number of rows per key for second column of multi-column index')},
             ]
         },

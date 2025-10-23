@@ -201,7 +201,7 @@ May be it their value is redundant to other columns of that table. In this case 
         },
         {
             :name  => t(:dragnet_helper_68_name, :default=>'Unused marked but not physical deleted columns'),
-            :desc  => t(:dragnet_helper_68_desc, :default=>'For as unused marked columns it may be worth to reorganize the table by ALTER TABLE DROP UNSED COLUMNS or recreation of table.
+            :desc  => t(:dragnet_helper_68_desc, :default=>'For as unused marked columns it may be worth to reorganize the table by ALTER TABLE DROP UNUSED COLUMNS or recreation of table.
 '),
             :sql=> 'SELECT /* DB-Tools Ramm Unused gesetzte Spalten ohne ALTER TABLE DROP UNUSED COLUMNS*/ cs.*, t.Num_Rows
                       FROM   DBA_Unused_Col_Tabs cs

@@ -67,7 +67,7 @@ column_options =
   {:caption=> 'Buckets',           :data=>proc{|rec| link_histogram(fn(rec.num_buckets), rec)},:title=> 'Number of buckets in histogram for the column',     :align=>:right},
   {:caption=> 'Histogram',         :data=>proc{|rec| link_histogram(rec.histogram, rec)},      :title=> 'Indicates existence/type of histogram'},
   {:caption=> 'Comments',          :data=>proc{|rec| rec.comments},                            :title=> 'Comments'},
-  {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segement for LOB columns'},
+  {:caption=> 'LOB segment',       :data=>proc{|rec| link_lob(rec)},                           :title=> 'Name of LOB segment for LOB columns'},
 ]
 
    column_options << {:caption=> 'EQ',                :data=>proc{|rec| fn(rec.equality_preds)},                  :title=> 'Number of usage as equality predicate, from sys.Col_Usage$',       :data_title=>proc{|rec| "%t, last timestamp=#{localeDateTime(rec.timestamp)}"}} if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?
@@ -329,7 +329,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
        "%t"
      else
        "%t\n\nThe Avg_Row_Len of DBA_Tables or DBA_All_Tables states #{fn(rec.avg_row_len)} bytes
-But this value also includes #{fn rec.sum_col_len_metadata_only} bytes for the length of metatdata only columns like extended stats, virtual columns or function based indexes.
+But this value also includes #{fn rec.sum_col_len_metadata_only} bytes for the length of metadata only columns like extended stats, virtual columns or function based indexes.
 So the real value would be #{fn rec.avg_row_len} - #{fn rec.sum_col_len_metadata_only} = #{fn(rec.avg_row_len - rec.sum_col_len_metadata_only)} bytes"
      end
    end
@@ -625,7 +625,7 @@ So the real value would be #{fn rec.avg_row_len} - #{fn rec.sum_col_len_metadata
         action:                 :list_segment_stat_hist_detail,
         owner:                  @owner,
         object_name:            @table_name,
-    }, :title => "Show segement statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{@table_name}")
+    }, :title => "Show segment statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{@table_name}")
     %>
   </div>
 

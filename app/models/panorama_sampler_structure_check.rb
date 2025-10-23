@@ -22,7 +22,7 @@ class PanoramaSamplerStructureCheck
 
     case sampler_config.get_structure_check(domain)
     when :running then
-      err_msg = "Previous structure check for domain #{domain} not yet finshed, no structure check is done now"
+      err_msg = "Previous structure check for domain #{domain} not yet finished, no structure check is done now"
       sampler_config.set_error_message(err_msg)
       msg  = "ID=#{sampler_config.get_id} (#{sampler_config.get_name}): #{err_msg}"
       Rails.logger.error('PanoramaSamplerStructureCheck.do_check') { msg }
@@ -154,7 +154,7 @@ class PanoramaSamplerStructureCheck
   def initialize(sampler_config)
     @sampler_config = sampler_config
     @sampler_config = PanoramaSamplerConfig.new(@sampler_config) if @sampler_config.class == Hash
-    raise "PanoramaSamplerStructureCheck.intialize: Parameter class Hash or PanoramaSamplerConfig required, got #{@sampler_config.class}" if @sampler_config.class != PanoramaSamplerConfig
+    raise "PanoramaSamplerStructureCheck.initialize: Parameter class Hash or PanoramaSamplerConfig required, got #{@sampler_config.class}" if @sampler_config.class != PanoramaSamplerConfig
   end
 
   def log(message)
@@ -162,7 +162,7 @@ class PanoramaSamplerStructureCheck
   end
 
 =begin
-  Expexted structure, should contain structure of highest Oracle version:
+  Expected structure, should contain structure of highest Oracle version:
   [
       {
         table_name: ,
@@ -1494,7 +1494,7 @@ ORDER BY Column_ID
 
 
 =begin
-  Expexted structure, should contain structure of highest Oracle version:
+  Expected structure, should contain structure of highest Oracle version:
  [
      {
          view_name: ,
@@ -1766,7 +1766,7 @@ ORDER BY Column_ID
     end
 
     begin
-      PanoramaConnection.sql_execute "PURGE RECYCLEBIN"                           # Free ressources after drop table, avoid ORA-10632 especially for 19.10-SE2
+      PanoramaConnection.sql_execute "PURGE RECYCLEBIN"                           # Free resources after drop table, avoid ORA-10632 especially for 19.10-SE2
     rescue Exception => e
       Rails.logger.error('PanoramaSamplerStructureCheck.remove_tables_internal') { "#{e.class}:#{e.message} at PURGE RECYCLEBIN"}
     end
@@ -1938,7 +1938,7 @@ ORDER BY Column_ID
   end
 
   # Check table for existing primary key index and PK constraint
-  # @param [Hash] table Table definitiion
+  # @param [Hash] table Table definition
   # @param [Boolean] use_using_index Should the USING INDEX clause be used, sometimes ORA-01735 is raised using this clause
   def check_table_pkey(table, use_using_index: true)
     ############ Check Primary Key

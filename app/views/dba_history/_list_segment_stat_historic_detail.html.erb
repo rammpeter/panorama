@@ -12,7 +12,7 @@ column_options =
     {:caption=>"ITL",                       :data=>proc{|rec| formattedNumber(rec.itl_waits_delta)},                  :title=>"ITL waits",           :align=>'right'},
     {:caption=>"Row lock waits",            :data=>proc{|rec| formattedNumber(rec.row_lock_waits_delta)},             :title=>"Row Lock Waits",      :align=>'right'},
     {:caption=>"Global cache buffer busy waits",    :data=>proc{|rec| formattedNumber(rec.gc_buffer_busy_delta)},     :title=>"GC Buffer Busy waits",:align=>'right'},
-    {:caption=>"GC CR blocks received",     :data=>proc{|rec| formattedNumber(rec.gc_cr_blocks_received_delta)},      :title=>"Global cache blocks received in consistend mode",:align=>'right'},
+    {:caption=>"GC CR blocks received",     :data=>proc{|rec| formattedNumber(rec.gc_cr_blocks_received_delta)},      :title=>"Global cache blocks received in consistent mode",:align=>'right'},
     {:caption=>"GC CU blocks received",     :data=>proc{|rec| formattedNumber(rec.gc_cu_blocks_received_delta)},      :title=>"Global cache blocks received in current mode",:align=>'right'},
     {:caption=>"Space used (MB)",           :data=>proc{|rec| formattedNumber(rec.space_used_total_mb, 2)},           :title=>"Space used in MByte",:align=>'right'},
     {:caption=>"Space allocated (MB)",      :data=>proc{|rec| formattedNumber(rec.space_allocated_total_mb, 2)},      :title=>"Space allocated in MByte",:align=>'right'},

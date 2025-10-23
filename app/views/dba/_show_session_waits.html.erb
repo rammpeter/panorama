@@ -28,7 +28,7 @@
   column_options << {:caption=>"I",                :data=>proc{|rec| rec.inst_id},                        :title=>"RAC-Instance"} if PanoramaConnection.rac?
   column_options << {:caption=>"Wait Event",       :data=>proc{|rec| rec.event},                          :title=>"Wait Event", :data_title=>proc{|rec| "%t: #{explain_wait_event(rec.event)}"} }
   column_options << {:caption=>"Wait Class",       :data=>proc{|rec| rec.wait_class},                     :title=>"Wait Class"}
-  column_options << {:caption=>"State",            :data=>proc{|rec| rec.state},                          :title=>"State: All values exept \"WAITING\" mean \"ON CPU\". Event is the last event in this case", :data_title=>proc{|rec| explain_wait_state(rec.state)} }
+  column_options << {:caption=>"State",            :data=>proc{|rec| rec.state},                          :title=>"State: All values except \"WAITING\" mean \"ON CPU\". Event is the last event in this case", :data_title=>proc{|rec| explain_wait_state(rec.state)} }
   column_options << {:caption=>"Sum. Seconds",     :data=>proc{|rec| fn(rec.sum_wait_time_seconds, 3)},   :title=>"Seconds in Wait (Sum)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.sum_wait_time_seconds)}"}, :align=>"right"}
   column_options << {:caption=>"Max. Seconds",     :data=>proc{|rec| fn(rec.max_wait_time_seconds, 3)},   :title=>"Seconds in Wait (Maximum of one session)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.max_wait_time_seconds)}"}, :align=>"right"}
   column_options << {:caption=>"User",             :data=>show_username,                                  :title=>'Number of different usernames in gv$Session (or name if only on username)'}

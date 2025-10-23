@@ -44,7 +44,7 @@ END Panorama_Sampler_Snapshot;
       SELECT NVL(MAX(Sample_ID), 0) INTO v_last_snap_max_ash_sample_id FROM panorama_owner.Internal_Active_Sess_History WHERE Instance_Number = p_Instance;
     END IF;
 
-    -- Rember the current value for next snapshot
+    -- Remember the current value for next snapshot
     UPDATE panorama_owner.Panorama_ASH_Counter SET last_snap_max_ash_sample_id = v_current_max_ash_sample_id WHERE Instance_Number = p_Instance;
 
     INSERT INTO panorama_owner.Internal_Active_Sess_History (
@@ -486,7 +486,7 @@ END Panorama_Sampler_Snapshot;
   PROCEDURE Snap_SQLStat(p_Snap_ID IN NUMBER, p_DBID IN NUMBER, p_Instance IN NUMBER, p_Begin_Interval_Time IN DATE, p_SQL_Min_No_of_Execs IN NUMBER, p_SQL_Min_Runtime_MilliSecs IN NUMBER) IS
   BEGIN
     -- Child cursors created in this snapshot period should count full in delta because they are not counted in previous snapshot's total values
-    -- Child cursors created in former snapshots shoud only count with the difference new total - old total, but not smaller than 0
+    -- Child cursors created in former snapshots should only count with the difference new total - old total, but not smaller than 0
     INSERT INTO panorama_owner.Panorama_SQLStat (Snap_ID, DBID, Instance_Number, SQL_ID, Plan_Hash_Value, OPTIMIZER_COST, OPTIMIZER_MODE, OPTIMIZER_ENV_HASH_VALUE, SHARABLE_MEM,
         LOADED_VERSIONS, VERSION_COUNT, MODULE, ACTION, SQL_PROFILE, FORCE_MATCHING_SIGNATURE, PARSING_SCHEMA_ID, PARSING_SCHEMA_NAME, PARSING_USER_ID,
         FETCHES_TOTAL, FETCHES_DELTA, END_OF_FETCH_COUNT_TOTAL, END_OF_FETCH_COUNT_DELTA, SORTS_TOTAL, SORTS_DELTA, EXECUTIONS_TOTAL, EXECUTIONS_DELTA,

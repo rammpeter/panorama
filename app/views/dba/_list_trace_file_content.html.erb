@@ -64,7 +64,7 @@ PARSING IN CURSOR:
 dep = recursive depth of cursor(0-parent,>0-child)
 uid = user id
 oct = oracle command type no OCI
-lid = user id owning the statement e.g. package(libary user id)
+lid = user id owning the statement e.g. package(library user id)
 tim = the time the parse began
 hv = hash value
 ad = sql address of cursor
@@ -136,7 +136,7 @@ Times are in microseconds
   caption << "  </div>"
   if @counts.lines_in_period > @max_trace_file_lines_to_show
 
-    caption << "  <div class=\"flex-row-element\" title=\"Choose wether the first n lines or the last n lines of the file are shown.\">"
+    caption << "  <div class=\"flex-row-element\" title=\"Choose whether the first n lines or the last n lines of the file are shown.\">"
     caption << "    First lines "
     caption <<      radio_button_tag(:first_or_last_lines, :first, @first_or_last_lines == 'first')
     caption << "    Last lines "

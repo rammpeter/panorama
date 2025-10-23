@@ -109,7 +109,7 @@ class WorkerThreadTest < ActiveSupport::TestCase
   test "do_sampling_other_than_AWR_ASH" do
     assert_nothing_raised do
       @connection_users.each do |connection_user|                                 # Use different user for connect
-        sleep(1)                                                                  # Ensure that at least 1 second is between executions to supress unique key violations
+        sleep(1)                                                                  # Ensure that at least 1 second is between executions to suppress unique key violations
         [:OBJECT_SIZE, :CACHE_OBJECTS, :BLOCKING_LOCKS ].each do |domain|
           if domain != :AWR_ASH
             @sampler_config = prepare_panorama_sampler_thread_db_config(connection_user)

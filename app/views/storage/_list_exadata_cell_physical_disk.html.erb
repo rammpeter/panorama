@@ -31,7 +31,7 @@
   end
 
 
-  def calc_phys_detailled_status(rec)
+  def calc_phys_detailed_status(rec)
     case
       when rec.predfailstatus     != 'FALSE' then rec.predfailstatus
       when rec.poorperfstatus     != 'FALSE' then rec.poorperfstatus
@@ -63,7 +63,7 @@
           {:caption=>'Disk Status',           :data=>proc{|rec| rec.status},                                          :title=>"Disk status"},
           {:caption=>'Phys. disk ID',         :data=>proc{|rec| rec.id},                                      :title=>"ID of physical disk"},
           {:caption=>'Key 500',               :data=>proc{|rec| rec.key_500},                                 },
-          {:caption=>'Phys. detailled status',:data=>proc{|rec| calc_phys_detailled_status(rec)},             :title=>"Phys. detailled status", :data_title=>proc{|rec| "%t:\nPred. fail status = '#{rec.predfailstatus}'\nPoor perf. status = '#{rec.poorperfstatus}'\nWT caching status = '#{rec.wtcachingstatus}'\nPeer fail status = '#{rec.peerfailstatus}'\nCritical status = '#{rec.criticalstatus}'"}             },
+          { :caption=>'Phys. detailed status', :data=>proc{|rec| calc_phys_detailed_status(rec)}, :title=>"Phys. detailed status", :data_title=>proc{|rec| "%t:\nPred. fail status = '#{rec.predfailstatus}'\nPoor perf. status = '#{rec.poorperfstatus}'\nWT caching status = '#{rec.wtcachingstatus}'\nPeer fail status = '#{rec.peerfailstatus}'\nCritical status = '#{rec.criticalstatus}'"}             },
           {:caption=>'Err. cmd. timeout count', :data=>proc{|rec| fn rec.errcmdtimeoutcount},                 :align=>:right},
           {:caption=>'Err. hard read count',  :data=>proc{|rec| fn rec.errhardreadcount},                     :align=>:right},
           {:caption=>'Err. hard write count', :data=>proc{|rec| fn rec.errhardwritecount},                    :align=>:right},

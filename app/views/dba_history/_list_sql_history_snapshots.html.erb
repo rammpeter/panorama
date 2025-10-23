@@ -37,7 +37,7 @@ column_options =
           {:caption=>"CPU",            :data=>proc{|rec| formattedNumber(rec.cpu_time_secs) },                 :title=>"CPU-time total in seconds, sum over all PQ-Processes",        data_title: proc{|rec| "%t\n#{seconds_explain(rec.cpu_time_secs)}" }, :align=>"right" },
           {:caption=>"App.",           :data=>proc{|rec| formattedNumber(rec.application_wait_time_secs) },    :title=>"Application wait time in seconds, incl. row lock waits",      data_title: proc{|rec| "%t\n#{seconds_explain(rec.application_wait_time_secs)}" }, :align=>"right" },
           {:caption=>"Con.",           :data=>proc{|rec| formattedNumber(rec.concurrency_wait_time_secs) },    :title=>"Concurrency Wait Time (sec)",                                 data_title: proc{|rec| "%t\n#{seconds_explain(rec.concurrency_wait_time_secs)}" }, :align=>"right" },
-          {:caption=>"Clu.",           :data=>proc{|rec| formattedNumber(rec.cluster_wait_time_secs) },        :title=>"Cluster-Wait-Time im RAC in Sekunden, Summe über alle PQ-Prozesse", data_title: proc{|rec| "%t\n#{seconds_explain(rec.cluster_wait_time_secs)}" }, :align=>"right" },
+          {:caption=>"Clu.",           :data=>proc{|rec| formattedNumber(rec.cluster_wait_time_secs) },        :title=>"Cluster wait time in RAC in seconds, Sum over all PQ processes", data_title: proc{|rec| "%t\n#{seconds_explain(rec.cluster_wait_time_secs)}" }, :align=>"right" },
           {:caption=>"I/O",            :data=>proc{|rec| formattedNumber(rec.user_io_wait_time_secs) },        :title=>"User-IO Wait Time (sec)",                                     data_title: proc{|rec| "%t\n#{seconds_explain(rec.user_io_wait_time_secs)}" }, :align=>"right" },
           {:caption=>"PL/ SQL",        :data=>proc{|rec| formattedNumber(rec.plsql_exec_time_secs) },          :title=>"PL/SQL Exec Time (sec)",                                      data_title: proc{|rec| "%t\n#{seconds_explain(rec.plsql_exec_time_secs)}" }, :align=>"right" },
           {:caption=>"Disk Reads",     :data=>proc{|rec| formattedNumber(rec.disk_reads) },                    :title=>"Number of DB-blocks read from disk", :align=>"right" },
@@ -93,7 +93,7 @@ caption << (ajax_form(:controller => :dba_history, :action        => :list_sql_h
   form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id)
   form_output << "  </div>"
 
-  form_output << dbid_selection.gsub(/\n/, '\\n')                               # suppress real line feed in javascript strings, esacped with \n
+  form_output << dbid_selection.gsub(/\n/, '\\n')                               # suppress real line feed in javascript strings, escaped with \n
 
   form_output << "&nbsp;"
   form_output << "  <div class=\"flex-row-element\" title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"

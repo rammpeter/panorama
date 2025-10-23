@@ -30,7 +30,7 @@ class SpecAdditionsTest < PlaywrightSystemTestCase
     # click point 1.6
     page.first(:xpath, "//a[contains(@id, '_0_5_anchor')]").click
     assert_ajax_success
-    assert_text 'Protection of colums with foreign key references by index can be necessary for'
+    assert_text 'Protection of columns with foreign key references by index can be necessary for'
 
     # Click "Show SQL"                                       ^
     page.first(:xpath, "//input[contains(@type, 'submit') and contains(@name, 'commit_show')]").click

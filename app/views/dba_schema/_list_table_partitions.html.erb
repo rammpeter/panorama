@@ -19,7 +19,7 @@
     end
 
     link_space_usage = proc do |rec, value|
-      if rec.subpartition_count && rec.subpartition_count > 0                                    # show space only for non-subpartitoned
+      if rec.subpartition_count && rec.subpartition_count > 0                                    # show space only for non-subpartitioned
         value
       else
         ajax_link(value,

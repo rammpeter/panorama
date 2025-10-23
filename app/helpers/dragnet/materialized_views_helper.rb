@@ -10,13 +10,13 @@ module Dragnet::MaterializedViewsHelper
             :desc  => t(:dragnet_helper_149_desc, :default=>"\
 Materialized view logs may grow unlimited under several conditions:
 1. There is no materialized view registered at this MV-log that consumes the recorded changes
-2. There is one ore more materialized view registered which does not consume the recorded changes by executing MV-refresh
+2. There is one or more materialized view registered which does not consume the recorded changes by executing MV-refresh
 3. There are only fragments remaining from MV registration in DBA_Snapshot_Logs (sys.slog$) but no registered MV in DBA_Registered_MViews (sys.reg_snap$)
 
 Depending on the reason there are several solutions to fix this issue:
 1. Drop the useless MV-log by issuing DROP MATERIALIZED VIEW LOG ON <master table>
 2. Unregister the not responding MV by calling DMBS_MVIEW.UNREGISTER_MVIEW
-3. Remove the orphaned snaphot log by issuing DBMS_MVIEW.Purge_Log or DELETE FROM sys.slog$ WHERE SnapID = x
+3. Remove the orphaned snapshot log by issuing DBMS_MVIEW.Purge_Log or DELETE FROM sys.slog$ WHERE SnapID = x
 
 DBMS_MVIEW.Purge_Log removes the MV Log-Records of the oldest (regarding last refresh) registered MViews und decouples the registered MView from the MV-Log.
 So no MV Log records are kept for this MView in the future until next complete refresh restores complete registration at MV log.

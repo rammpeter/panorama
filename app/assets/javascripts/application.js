@@ -214,12 +214,12 @@ function expand_sql_id_hint(id, sql_id){
 
 /**
  * Write detailed exception info to browser console.
- * @param exception     Catched exception object.
+ * @param exception     Caught exception object.
  * @param xhr           Complete request object.
  */
 function log_exception_to_console(exception, xhr){
     console.log(' ');
-    console.log('>>>>>>>>>>> Exception catched <<<<<<<<<<<');
+    console.log('>>>>>>>>>>> Exception caught <<<<<<<<<<<');
     console.log('Message: ' + exception.message);
     console.log('Line: ' + exception.line + ' Column: '+ exception.column);
     console.log('Source URL: '+ exception.sourceURL);
@@ -294,7 +294,7 @@ function process_json_response(data){
 //   controller:    Controller-name
 //   action:        Action-name
 //   payload:       data for transfer as JSON-object
-//   options:       object with serveral options
+//   options:       object with several options
 //      element:                    DOM-Element on_click is called for (this in on_click) to bind slickgrid refresh
 //      retain_status_message:      Don't hide status bar
 function ajax_html(update_area, controller, action, payload, options){
@@ -447,7 +447,7 @@ function code_mirror_from_textarea(id, cm_options, options){
     cm_wrapper.resize(function(){cm.setSize('100%', cm_wrapper.height()); });   // Ensure that CodeMirror checks itself if vertical scrollbar is needed
     //setTimeout(function(){
         if (cm_wrapper.height() > max_height){
-            cm.setSize('100%', max_height);                                     // CodeMirror must set the height, otherwhise scrollbar will not work
+            cm.setSize('100%', max_height);                                     // CodeMirror must set the height, otherwise scrollbar will not work
         }
     //},0);
 }

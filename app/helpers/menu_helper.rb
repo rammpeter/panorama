@@ -4,7 +4,7 @@ require 'menu_extension_helper'
 
 module MenuHelper
   include MenuExtensionHelper   # Helper-File, das von diese Engine nutzenden Apps überschrieben/überblendet werden kann
-#  include ActionView::Helpers::TranslationHelper    # Include at test-helper only, otherwhise generation of content has problems
+#  include ActionView::Helpers::TranslationHelper    # Include at test-helper only, otherwise generation of content has problems
 
 
   # Bereitstellung Menü-Einträge als Array von hashes, Hash mit Spezialhandling-DB als Parameter

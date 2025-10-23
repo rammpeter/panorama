@@ -91,7 +91,7 @@
     {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
     {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
     {caption: 'Blocking session',   data: proc{|rec| link_session_details(@update_area, rec.blocking_instance, rec.blocking_session, rec.blocking_serial_no)}, title: 'Session that is blocking this session', data_title: proc{|rec| "%t\n\nBlocking session status = #{rec.blocking_session_status}"}},
-    {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of depenency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
+    {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of dependency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
     {caption: "Tx. ID",             data: link_tx_id,                                       title: "Transaction-ID if session has an active transaction", data_title: tx_id_data_title},
     {caption: "SQL ID",             data: proc{|rec| link_sql_id(@update_area, @instance, rec.sql_id, childno: rec.sql_child_number)}, title: "Currently executed SQL ID"},
     {caption: "SQL exec ID",        data: proc{|rec| fn(rec.sql_exec_id)},                  title: "SQL execution ID", align: :right},
@@ -125,7 +125,7 @@
       {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
       {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
       {caption: 'Blocking session',   data: proc{|rec| link_session_details(@update_area, rec.blocking_instance, rec.blocking_session, rec.blocking_serial_no)}, title: 'Session that is blocking this session', data_title: proc{|rec| "%t\n\nBlocking session status = #{rec.blocking_session_status}"}},
-      {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of depenency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
+      {caption: 'Final blocking session', data: proc{|rec| link_session_details(@update_area, rec.final_blocking_instance, rec.final_blocking_session, rec.final_blocking_serial_no)}, title: 'Final session on top of dependency tree that is blocking this session', data_title: proc{|rec| "%t\n\nFinal blocking session status = #{rec.final_blocking_session_status}"}},
     ]
   %>
   <div>
