@@ -22,7 +22,7 @@
       :Min_Snap_ID            => @min_snap_id,
       :Max_Snap_ID            => @max_snap_id,
     }
-    retval << ajax_link("#{rec.instance_number}:#{rec.session_id}, #{rec.session_serial_no}",
+    retval << ajax_link("#{rec.session_id}, #{rec.session_serial_no}",
                                 {:action       => :list_session_statistic_historic_grouping,
                                  :groupfilter  => groupfilter,
                                  :groupby      => 'Session/Sn.',
@@ -45,7 +45,7 @@
       )
     end
 
-    retval
+    retval.html_safe
   end
 
   link_column_object = proc do |rec|

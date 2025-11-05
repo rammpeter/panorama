@@ -1059,8 +1059,8 @@ class ActiveSessionHistoryController < ApplicationController
                      JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
                     ),
       #{ash_select(awr_filter: "DBID = ? AND Snap_ID BETWEEN ? AND ?
-                                AND #{rounded_sample_time_sql(10)} = #{rounded_sample_time_sql(10, "TO_DATE(?, '#{sql_datetime_second_mask}')")} /* compare rounded to 10 seconds */",
-                   sga_filter: "#{rounded_sample_time_sql(1)} = TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */",
+                                AND #{rounded_sample_time_sql(10)}+#{client_tz_offset_days}  = #{rounded_sample_time_sql(10, "TO_DATE(?, '#{sql_datetime_second_mask}')")} /* compare rounded to 10 seconds */",
+                   sga_filter: "#{rounded_sample_time_sql(1)}+#{client_tz_offset_days} = TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */",
                    select_rounded_sample_time: true,
                    with_cte_alias: 'TSel'
                   )}

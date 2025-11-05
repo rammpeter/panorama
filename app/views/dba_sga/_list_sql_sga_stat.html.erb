@@ -18,7 +18,7 @@ def show_both_values(name, param, decimals, title="", show_per_result_row=false,
   execs     = @sql.executions.to_i     == 0 ? 1 : @sql.executions.to_i;         # Suppress division by 0
 
   if show_per_result_row && @sql.rows_processed.to_i > 0                        # Suppress division by 0
-    per_res_row = "\n\n#{formattedNumber(param/@sql.rows_processed.to_i, decimals+2)} per result row"
+    per_res_row = "\n\n#{formattedNumber(param/@sql.rows_processed.to_i, decimals+3)} per result row"
   else
     per_res_row = ''
   end

@@ -280,7 +280,7 @@ END Panorama_Sampler_ASH;
       WHERE  s.Status = 'ACTIVE'
       AND    s.Wait_Class != 'Idle'
       AND    s.SID        != USERENV('SID')  -- dont record the own session that assumes always active this way
-      #{"AND s.Con_ID IN (SELECT /*+ NO_MERGE */ Con_ID FROM v$Containers) /* Consider sessions of Con-IDs to sample only */ " if PanoramaConnection.db_version >= '12.1'}
+      #{"AND (s.Con_ID = 0 OR s.Con_ID IN (SELECT /*+ NO_MERGE */ Con_ID FROM v$Containers) /* Consider sessions of Con-IDs to sample only */ )" if PanoramaConnection.db_version >= '12.1'}
       ORDER BY s.SID  -- sorted order needed for suppression of doublettes in next step
       ;
 

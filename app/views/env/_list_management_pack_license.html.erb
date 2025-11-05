@@ -28,7 +28,7 @@
         </div>
 
 
-        <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_panorama_sampler_hint, :default=>"Panorama will use it's own sampled workload history produced by process \"Panorama-Sampler\".\nIt will not access Oracle's 'Diagnostic Pack' or 'Tuning Pack' if you choose this option.\nThis function \"Panorama-Sampler\" is usable for all database editions including Standard-Edition.\nYou can choose this option only if AWR/ASH-sampling for Panorama-Sampler is activated for your database instance.") %>">
+        <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_panorama_sampler_hint, :default=>"Panorama will use it's own sampled workload history produced by process \"Panorama-Sampler\".\nIt will not access Oracle's 'Diagnostic Pack' or 'Tuning Pack' if you choose this option.\nThis function \"Panorama-Sampler\" is usable for all database editions including Standard-Edition.\n\nYou can choose this option only if AWR/ASH-sampling for Panorama-Sampler is activated for your database instance\nand the first snapshot succeeded.") %>">
           <%= radio_button_tag(:management_pack_license, :panorama_sampler, get_current_database[:management_pack_license] == :panorama_sampler,
                                :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'panorama_sampler', update_area: '#{params[:update_area]}'} );",
                                :disabled => !PackLicense.management_pack_selectable(:panorama_sampler, @control_management_pack_access)
