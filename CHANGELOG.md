@@ -1,5 +1,8 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
+
+## Release 2.19.1
+- 2025-11-05 Respect time zone delay between DB and Panorama-Server for blocking thread
 - 2025-09-10 History of init.ora parameters added to "DBA General / Database configuration / Init parameters"
 
 ## Release 2.18.4
