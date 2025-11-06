@@ -61,6 +61,7 @@ gem 'rexml'
 gem 'jar-dependencies', '0.5.4' # Fix: You have already activated jar-dependencies 0.5.4, but your Gemfile requires jar-dependencies 0.5.5.
 gem 'psych', '5.2.3'
 gem 'io-console', '0.8.0'
+gem 'date', '3.4.1'
 
 group :development do
   # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
