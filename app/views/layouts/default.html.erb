@@ -93,6 +93,32 @@
               "If you do not agree with this opinion, please refrain from using this tool."
           show_popup_message(msg);
       }
+
+      function submit_onclick(){
+          // Get the value of the form field
+          let pw = $("#database_password").val();
+
+          const publicKeyPEM = `<%= Encryption.ssh_public_key %>`;
+
+          // Convert the PEM-formatted public key to a Forge public key object
+          const publicKey = forge.pki.publicKeyFromPem(publicKeyPEM);
+
+          // Encrypt the message using RSA-OAEP
+          const encrypted = publicKey.encrypt(pw, 'RSA-OAEP', {
+              md: forge.md.sha256.create(),
+              mgf1: forge.mgf1.create(forge.md.sha256.create())
+          });
+
+          // Convert the encrypted message to a Base64 string
+          const encryptedBase64 = forge.util.encode64(encrypted);
+
+          // Set the modified value back to the form field
+          $("#database_encrypted_password").val(encryptedBase64);
+
+          // hide the native password
+          // TODO: Uncomment
+          //  $("#database_password").val('');
+      }
   </script>
 
 
@@ -188,11 +214,10 @@
       </tr>
       <tr>
         <td class="login_dialog_lhead">Password</td>
-        <td align="center"><%= password_field( 'database', 'password', style: 'width: 60%;', :title=>"Oracle-Password" ) %> </td>
-      </tr>
-      <tr id="login_dialog_authorization" style="display:none; ">
-        <td class="login_dialog_lhead">Autorisierung</td>
-        <td align="center"><%= password_field( 'database', 'authorization', :title=>t(:login_authorization_hint, :default=>"Additional authoriztion for special applications (like NOA)") ) %> </td>
+        <td align="center">
+          <%= password_field( 'database', 'password', style: 'width: 60%;', :title=>"Oracle-Password" ) %>
+          <%= hidden_field('database', 'encrypted_password') %>
+        </td>
       </tr>
       <tr>
         <td class="login_dialog_lhead"><%= t :login_role_caption, :default=>"Role" %></td>
@@ -221,7 +246,7 @@
       <tr>
         <td colspan="2" align="center">
           <%= hidden_field_tag('browser_tab_id', @browser_tab_id, id: 'browser_tab_id_new') %>
-          <%= submit_tag t(:login_submit_caption, :default=>"Login"), :id => "submit_login_dialog" %>
+          <%= submit_tag t(:login_submit_caption, :default=>"Login"), :id => "submit_login_dialog", onclick: "submit_onclick();"  %>
         </td>
       </tr>
     </table>
@@ -299,7 +324,6 @@
         console.log(msg);
         alert(msg);
     }
-
 </script>
 
 </body>

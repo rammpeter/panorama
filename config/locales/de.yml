@@ -1968,7 +1968,6 @@
 
   list_sql_detail_sql_id_childno_active_session_history_title: Anzeige der "Active Session History"-Einträge dieser SQL-ID
 
-  login_authorization_hint:                                 Zusätzliche Autorisierung für spezielle Applikationen (z.B. NOA)
   login_caption:                                            Bitte gespeicherte Anmeldung auswählen oder<br>konkrete Anmeldeinformationen eingeben
   login_database_host_hint:                                 Host-Name bzw. IP-Adresse
   login_database_sid_hint:                                  SID oder Service-Name der Datenbank

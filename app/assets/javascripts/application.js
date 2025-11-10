@@ -29,6 +29,8 @@
 //= require codemirror/search.js
 //= require codemirror/searchcursor.js
 //= require jquery.contextMenu.js
+// https://github.com/digitalbazaar/forge RSA encryption
+//= require forge.min.js
 //= require_tree .
 
 "use strict";
