@@ -29,8 +29,8 @@ Bundler.require(*Rails.groups)
 
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.19.1'
-  RELEASE_DATE = Date.parse('2025-11-05')
+  VERSION = '2.19.2'
+  RELEASE_DATE = Date.parse('2025-11-11')
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month

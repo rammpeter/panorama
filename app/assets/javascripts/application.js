@@ -501,6 +501,23 @@ function show_status_bar_message(message, delay_ms){
     status_bar_timeout = setTimeout(function(){ hide_status_bar(); }, delay_ms);
 }
 
+/**
+ * Encrypt a secret using RSA asynchronous encryption
+ * @param {String} secret The value to encrypt
+ * @param {String} public_key_pem The public key in PEM format
+ * @return {String}
+ */
+function rsa_encrypt(secret, public_key_pem){
+    // Convert the PEM-formatted public key to a Forge public key object
+    const publicKey = forge.pki.publicKeyFromPem(public_key_pem);
+
+    // Encrypt the message using 'RSAES-PKCS1-V1_5' which should also be the default and is corrsponding with OpenSSL::PKey::RSA::PKCS1_PADDING in Ruby
+    const encrypted = publicKey.encrypt(secret, 'RSAES-PKCS1-V1_5');
+
+    // Convert the encrypted message to a Base64 string
+    return forge.util.encode64(encrypted);
+}
+
 function initialize_combobox_filter(select_id, filter_id){
     var opts = $('#'+select_id+' option').map(function () {
         return [[this.value, $(this).text()]];

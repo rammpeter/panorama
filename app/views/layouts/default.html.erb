@@ -95,29 +95,15 @@
       }
 
       function submit_onclick(){
-          // Get the value of the form field
-          let pw = $("#database_password").val();
+          let public_key = `<%= Encryption.ssh_public_key %>`
 
-          const publicKeyPEM = `<%= Encryption.ssh_public_key %>`;
+          // Set the encrypted values in the hidden fields
+          $("#database_encrypted_user").val(rsa_encrypt($("#database_user").val(), public_key));
+          $("#database_encrypted_password").val(rsa_encrypt($("#database_password").val(), public_key));
 
-          // Convert the PEM-formatted public key to a Forge public key object
-          const publicKey = forge.pki.publicKeyFromPem(publicKeyPEM);
-
-          // Encrypt the message using RSA-OAEP
-          const encrypted = publicKey.encrypt(pw, 'RSA-OAEP', {
-              md: forge.md.sha256.create(),
-              mgf1: forge.mgf1.create(forge.md.sha256.create())
-          });
-
-          // Convert the encrypted message to a Base64 string
-          const encryptedBase64 = forge.util.encode64(encrypted);
-
-          // Set the modified value back to the form field
-          $("#database_encrypted_password").val(encryptedBase64);
-
-          // hide the native password
-          // TODO: Uncomment
-          //  $("#database_password").val('');
+          // hide the native user and password in browser field
+          $("#database_user").val('');
+          $("#database_password").val('');
       }
   </script>
 
@@ -210,7 +196,10 @@
       </tr>
       <tr>
         <td class="login_dialog_lhead">User</td>
-        <td align="center"><%= text_field( 'database', 'user', style: 'width: 60%;', :title=>"Oracle-User" )  %></td>
+        <td align="center">
+          <%= text_field( 'database', 'user', style: 'width: 60%;', :title=>"Oracle-User" )  %>
+          <%= hidden_field('database', 'encrypted_user') %>
+        </td>
       </tr>
       <tr>
         <td class="login_dialog_lhead">Password</td>

@@ -28,7 +28,7 @@ class AdminController < ApplicationController
   def admin_logon
     origin_controller = prepare_param :origin_controller
     origin_action     = prepare_param :origin_action
-    master_password   = prepare_param :master_password
+    master_password =  Encryption.decrypt_browser_password(params[:encrypted_master_password])
 
     if master_password == Panorama::Application.config.panorama_master_password
       $master_password_wrong_count=0                                            # reset delay for wrong password

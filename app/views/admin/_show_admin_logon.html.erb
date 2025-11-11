@@ -11,6 +11,20 @@
     <br/>
     Master-password
     <%= password_field_tag(:master_password, "", :size=>40, :title=>"Master password for Panorama.\nMust match the password given in environment variable PANORAMA_MASTER_PASSWORD at startup of Panorama-server") %>
-    <%= submit_tag('Login', :title =>"Authenticate for administrative tasks" ) %>
+    <%= hidden_field_tag(:encrypted_master_password) %>
+    <%= submit_tag('Login', :title =>"Authenticate for administrative tasks", onclick: "submit_onclick();") %>
   </div>
 <% end %>
+
+<script type="text/javascript">
+    function submit_onclick(){
+        let public_key = `<%= Encryption.ssh_public_key %>`
+
+        // Set the encrypted values in the hidden fields
+        $("#encrypted_master_password").val(rsa_encrypt($("#master_password").val(), public_key));
+
+        // hide the native user and password in browser field
+        $("#master_password").val('');
+    }
+
+</script>

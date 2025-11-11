@@ -1,4 +1,5 @@
 require 'openssl'
+require 'base64'
 
 class Encryption
   attr_reader :ssh_public_key
@@ -28,6 +29,22 @@ class Encryption
     self.get_instance.ssh_public_key
   end
 
+  def self.decrypt_browser_password(encrypted_password)
+    self.get_instance.decrypt_browser_password_internal(encrypted_password)
+  end
+
+
+  # Decrypt RSA encrypted passwords
+  # @param [String] encrypted_password The encrypted password in base64
+  # @return [String] the encrypted password
+  def decrypt_browser_password_internal(encrypted_password)
+    native = Base64.strict_decode64(encrypted_password)
+    private_key = OpenSSL::PKey::RSA.new(@ssh_private_key)
+    # Use the default OpenSSL::PKey::RSA::PKCS1_PADDING which is corresponding with 'RSAES-PKCS1-V1_5' in forge.encrypt
+    decrypted_data = private_key.private_decrypt(native, OpenSSL::PKey::RSA::PKCS1_PADDING)
+    decrypted_data
+  end
+
   private
   def self.get_salted_encryption_key(salt)
     #     "#{salt}#{Rails.application.secrets.secret_key_base}"       # Position of key after switch to config/secrets.yml
@@ -48,5 +65,4 @@ class Encryption
     # Private key in PEM format
     @ssh_private_key = key.to_pem
   end
-
 end

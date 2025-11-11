@@ -309,8 +309,11 @@ class EnvController < ApplicationController
   # Aufgerufen aus dem Anmelde-Dialog für DB mit Angabe der Login-Info
   def set_database_by_params
     check_for_valid_cookie
+    params[:database][:user] = Encryption.decrypt_browser_password(params[:database][:encrypted_user])
+
+    decrypted_password = Encryption.decrypt_browser_password(params[:database][:encrypted_password])
     # Passwort sofort verschlüsseln als erstes und nur in verschlüsselter Form in session-Hash speichern
-    params[:database][:password]  =  Encryption.encrypt_value(params[:database][:password], cookies[:client_salt])
+    params[:database][:password]  =  Encryption.encrypt_value(decrypted_password, cookies[:client_salt])
 
     #set_I18n_locale(params[:database][:locale])  # locale is set directly before, use this
     set_database(true)
