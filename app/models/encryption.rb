@@ -47,8 +47,7 @@ class Encryption
 
   private
   def self.get_salted_encryption_key(salt)
-    #     "#{salt}#{Rails.application.secrets.secret_key_base}"       # Position of key after switch to config/secrets.yml
-    "#{salt}#{Panorama::Application.config.secret_key_base}"                    # Position of key after switch to config/secrets.yml
+    "#{salt}#{Panorama::Application.config.secret_key_base}"
   end
 
   def initialize

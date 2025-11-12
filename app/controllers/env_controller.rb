@@ -542,7 +542,7 @@ class EnvController < ApplicationController
       if current_database[:save_login] && !Panorama::Application.config.panorama_var_home_user_defined
         add_popup_message("There's no storage location defined for for persistent data!
 That means, this saved login data will be lost at next restart of Panorama backend application!
-To fix this, set environment variable PANORAMA_VAR_HOME to the desired location before starting the backend application")
+To fix this, set config attribute PANORAMA_VAR_HOME to the desired location before starting the backend application")
       end
     end
 

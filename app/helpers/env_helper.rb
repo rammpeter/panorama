@@ -11,58 +11,6 @@ module EnvHelper
   include DatabaseHelper
   include EnvExtensionHelper
 
-
-  # get master_key from file or environment
-  def self.secret_key_base
-    # set default dir so that it is persistent if PANORAMA_VAR_HOME is set outside
-    default_secret_key_base_file = File.join(Panorama::Application.config.panorama_var_home, 'secret_key_base')
-    retval = nil
-
-    if ENV['SECRET_KEY_BASE']                                                   # Env rules over file
-      retval = ENV['SECRET_KEY_BASE']
-      Rails.logger.info('EnvHelper.secret_key_base') { "Secret key base read from environment variable SECRET_KEY_BASE (#{retval.length} chars)"}
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Secret key base from SECRET_KEY_BASE environment variable is too short! Should have at least 128 chars!" } if retval.length < 128
-    end
-
-    if retval.nil? && ENV['SECRET_KEY_BASE_FILE']                                              # User-provided secrets file
-      if File.exist?(ENV['SECRET_KEY_BASE_FILE'])
-        retval = File.read(ENV['SECRET_KEY_BASE_FILE'])
-        Rails.logger.info('EnvHelper.secret_key_base') { "Secret key base read from file '#{ENV['SECRET_KEY_BASE_FILE']}' pointed to by SECRET_KEY_BASE_FILE environment variable (#{retval.length} chars)" }
-        Rails.logger.error('EnvHelper.secret_key_base') { "Secret key base file pointed to by SECRET_KEY_BASE_FILE environment variable is empty!" } if retval.nil? || retval == ''
-        Rails.logger.warn('EnvHelper.secret_key_base') { "Secret key base from file pointed to by SECRET_KEY_BASE_FILE environment variable is too short! Should have at least 128 chars!" } if retval.length < 128
-      else
-        Rails.logger.error('EnvHelper.secret_key_base') { "Secret key base file pointed to by SECRET_KEY_BASE_FILE environment variable does not exist (#{ENV['SECRET_KEY_BASE_FILE']})!" }
-      end
-    end
-
-    if retval.nil? && File.exist?(default_secret_key_base_file)                # look for generated file
-      retval = File.read(default_secret_key_base_file)
-      Rails.logger.info('EnvHelper.secret_key_base') { "Secret key base read from default file location '#{default_secret_key_base_file}' (#{retval.length} chars)" }
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Default location of secret key base file '#{default_secret_key_base_file}' points to a temporary folder because you did not provide a value for PANORAMA_VAR_HOME" } unless Panorama::Application.config.panorama_var_home_user_defined
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Your stored connections and sampler configuration may be lost at next Panorama restart !" } unless Panorama::Application.config.panorama_var_home_user_defined
-      Rails.logger.error('EnvHelper.secret_key_base') { "Secret key base file at default location '#{default_secret_key_base_file}' is empty!" } if retval.nil? || retval == ''
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Secret key base from file at default location '#{default_secret_key_base_file}' is too short! Should have at least 128 chars!" } if retval.length < 128
-    end
-
-    if retval.nil? || retval == ''
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Neither SECRET_KEY_BASE nor SECRET_KEY_BASE_FILE provided nor file exists at default location #{default_secret_key_base_file}!" }
-      Rails.logger.warn('EnvHelper.secret_key_base') { "Encryption key for SECRET_KEY_BASE is initially generated and stored at #{default_secret_key_base_file}!" }
-      Rails.logger.warn('EnvHelper.secret_key_base') { "This key is valid only for the lifetime of this running Panorama instance because you did not provide a value for PANORAMA_VAR_HOME !" } unless Panorama::Application.config.panorama_var_home_user_defined
-      retval = Random.rand 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-      File.write(default_secret_key_base_file, retval)
-    end
-    retval.to_s.strip                                                           # remove whitespaces incl. \n
-  end
-
-  #def init_management_pack_license(current_database)
-  #  if current_database[:management_pack_license].nil?                          # not already set, calculate initial value
-  #    PanoramaConnection.get_management_pack_license_from_db_as_symbol
-  #  else
-  #    current_database[:management_pack_license] # Use old value if already set
-  #  end
-  #end
-
-
   # Einlesen last_logins aus client_info-store
   def read_last_logins
     last_logins = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:last_logins, default: [])

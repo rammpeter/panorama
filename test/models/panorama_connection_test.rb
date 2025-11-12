@@ -15,9 +15,9 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
       ].each do |env_setting|
         env_setting.each do |key, value|
           if value.nil?
-            ENV.delete(key)
+            Panorama::Application.config.max_connection_ppol_size = 100
           else
-            ENV[key] = value.to_s
+            Panorama::Application.config.max_connection_ppol_size = value
           end
         end
         PanoramaConnection.disconnect_aged_connections(-10)                         # disconnect all existing connections, force creation of new connection in next step

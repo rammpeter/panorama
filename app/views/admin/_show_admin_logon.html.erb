@@ -10,7 +10,7 @@
   <div style="text-align: center;">
     <br/>
     Master-password
-    <%= password_field_tag(:master_password, "", :size=>40, :title=>"Master password for Panorama.\nMust match the password given in environment variable PANORAMA_MASTER_PASSWORD at startup of Panorama-server") %>
+    <%= password_field_tag(:master_password, "", :size=>40, :title=>"Master password for Panorama.\nMust match the password given in config attribute PANORAMA_MASTER_PASSWORD at startup of Panorama-server") %>
     <%= hidden_field_tag(:encrypted_master_password) %>
     <%= submit_tag('Login', :title =>"Authenticate for administrative tasks", onclick: "submit_onclick();") %>
   </div>

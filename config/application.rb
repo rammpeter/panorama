@@ -41,6 +41,88 @@ module Panorama
 
   class Application < Rails::Application
 
+    # Log the used settings from environment
+    # @param [String] setting Name of setting
+    # @param [Object] used_value Value of setting
+    def self.log_env_setting(setting, used_value)
+      Rails.logger.info "Environment setting: #{setting} = #{used_value}"
+    end
+
+    # Log a configuration attribute
+    # @param key [String] Name of configuration attribute, should be upper case
+    # @param value [String] Value of configuration attribute
+    # @return [void]
+    def self.log_attribute(key, value, options={})
+      return if value.nil? || value == ''
+      if key['PASSWORD'] || options[:password]
+        outval = '*****'
+      else
+        outval = value
+      end
+      puts "#{key.ljust(40, ' ')} #{outval}"
+    end
+
+    # Set the value of a configuration attribute from environment variable if it exists, otherwise from config file
+    # @param key [Symbol] Name of configuration attribute
+    # @param options [Hash] Options for setting the configuration attribute [:default, :integer, :maximum, :minimum, :accept_empty]
+    # @return [String] The value of the configuration attribute to be used as log output
+    def self.set_attrib_from_env(key, options={})
+      down_key = key.to_s.downcase
+      value = options[:default]
+      value = Panorama::Application.config.send(down_key) if Panorama::Application.config.respond_to?(down_key) # Value already set by config file
+      value = ENV[key] if ENV[key]                                        # Environment over previous config value
+      if options[:integer]
+        raise "#{key} ('#{value}') should contain only a number" if value.is_a?(String) && !(value.match(/^\d+$/))
+        value = value.to_i
+      end
+
+
+      log_value = value
+      if !value.nil?
+        if !options[:maximum].nil? && value > options[:maximum]
+          log_value = "#{options[:maximum]}, configured value #{value} reduced to allowed maximum"
+          value = options[:maximum]
+        end
+
+        if !options[:minimum].nil? && value < options[:minimum]
+          raise "Configuration attribute #{up_key} (#{log_value}) should be at least #{options[:minimum]}"
+        end
+      end
+      Panorama::Application.config.send("#{down_key}=", value)                          # ensure all config methods are defined whether with values or without
+
+      raise "Missing configuration value for '#{key}'! Aborting..." if !options[:accept_empty] && Panorama::Application.config.send(down_key).nil?
+      log_value
+    end
+
+    # Overwrite attribute by possible environment setting and log the resulting value
+    # @param [String|Symbol] key the key
+    # @param [Hash] options Options for setting the configuration attribute [:default, :upcase, :downcase, :integer, :maximum, :minimum, :accept_empty]
+    def self.set_and_log_attrib_from_env(key, options={})
+      key = key.dup.to_s.upcase
+      Panorama::Application.log_attribute(key, set_attrib_from_env(key, options), options)
+    end
+
+    # Load the YAML configuration defined by environment entry PANORAMA_CONFIG_FILE
+    # @param [Logger] logger the logger to use because Rails.logger is not yet active
+    def self.load_config_file(logger)
+      if ENV['PANORAMA_CONFIG_FILE'] && ENV['PANORAMA_CONFIG_FILE'] != ''
+        unless File.exist?(ENV['PANORAMA_CONFIG_FILE'])
+          raise "Config file #{ENV['PANORAMA_CONFIG_FILE']} does not exist! Aborting!"
+        end
+
+        Panorama::Application.log_attribute('PANORAMA_CONFIG_FILE', ENV['PANORAMA_CONFIG_FILE'])
+        run_config = YAML.load_file(ENV['PANORAMA_CONFIG_FILE'])
+        run_config = {} if run_config.nil?
+        raise "Unable to load and parse file #{ENV['PANORAMA_CONFIG_FILE']}! Content of class #{run_config.class}:\n#{run_config}" if run_config.class != Hash
+        run_config.each do |key, value|
+          config.send "#{key.downcase}=", value                                     # copy file content to config at first
+        end
+      else
+        logger.debug('Panorama::Application.load_config_file') { "No config file defined" }
+      end
+    end
+
+
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.1
 
@@ -57,32 +139,19 @@ module Panorama
     logger.info "   - JRuby:         #{JRUBY_VERSION}"
     logger.info "   - Ruby on Rails: #{Rails.version}"
 
-    # Remove ojdbc11.jar if Panorama is running with Java < 11.x
-    # otherwise errors are causewd while loading JDBC driver like
-    # NameError:cannot link Java class oracle.jdbc.OracleDriver oracle/jdbc/OracleDriver has been compiled by a more recent version of the Java Runtime (class file version 55.0), this version of the Java Runtime only recognizes class file versions up to 52.0
-=begin
-    java_version = java.lang.System.getProperty("java.version")
-    puts "############### Test for java version #{java_version}"
-    if java_version.match(/^1.8./) || java_version.match(/^1.9./) || java_version.match(/^10./)
-      begin
-        filename = "#{Panorama::Application.root}/lib/ojdbc11.jar"
-        puts "Removing file '#{filename}' from working directory because it is incompatible with current Java version #{java_version}"
-        File.unlink(filename)
-        logger.info "#{filename} removed because Java version is #{java_version}"
-      rescue Exception => e
-        logger.error('Panorama::Application') { "Error #{e.class}:#{e.message} while removing #{filename} because Java version is #{java_version}" }
-      end
-    end
-=end
+    Panorama::Application.config.secret_key_base = 'nil'                        # discard auto generated value from Rails to detect if config file will change this value
+    Panorama::Application.load_config_file(logger)
 
-    # Verzeichnis für permanent zu schreibende Dateien
-    if ENV['PANORAMA_VAR_HOME']
-      config.panorama_var_home = ENV['PANORAMA_VAR_HOME']
-      config.panorama_var_home_user_defined = true
-    else
-      config.panorama_var_home = "#{Dir.tmpdir}/Panorama"
-      config.panorama_var_home_user_defined = false
-    end
+    Panorama::Application.set_and_log_attrib_from_env(:MAX_CONNECTION_POOL_SIZE, default: 100, integer: true)
+
+    Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_LOG_LEVEL, default: (Rails.env.production? ? :info : :debug))
+    config.log_level = config.panorama_log_level.to_sym
+
+    Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_LOG_SQL, default: 'false')
+
+    def_panorama_var_home = "#{Dir.tmpdir}/Panorama"
+    Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_VAR_HOME, default: def_panorama_var_home)
+    config.panorama_var_home_user_defined = config.panorama_var_home != def_panorama_var_home
 
     unless File.exist?(config.panorama_var_home)  # Ensure that directory exists
       begin
@@ -94,34 +163,19 @@ module Panorama
       end
     end
 
-    logger.info "Panorama writes server side info to folder #{config.panorama_var_home}"
-
     # Password for access on Admin menu, Panorama-Sampler config etc. : admin menu is activated if password is not empty
     # Backward campatibility for previously used environment entry
-    config.panorama_master_password = ENV['PANORAMA_SAMPLER_MASTER_PASSWORD']  ? ENV['PANORAMA_SAMPLER_MASTER_PASSWORD'] : nil
-    config.panorama_master_password = ENV['PANORAMA_MASTER_PASSWORD'] if ENV['PANORAMA_MASTER_PASSWORD'] # currently used env. entry overwrites
+    ENV['PANORAMA_MASTER_PASSWORD'] = ENV['PANORAMA_SAMPLER_MASTER_PASSWORD']  if ENV['PANORAMA_SAMPLER_MASTER_PASSWORD'] && !ENV['PANORAMA_MASTER_PASSWORD']
+
+    Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_MASTER_PASSWORD, accept_empty: true)
 
     # Textdatei zur Erfassung der Panorama-Nutzung
-    # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und Deployment der Applikation überlebt durch Definition von ENV['PANORAMA_VAR_HOME']
+    # Sicherstellen, dass die Datei ausserhalb der Applikation zu liegen kommt und Deployment der Applikation überlebt durch Definition von PANORAMA_VAR_HOME
     config.usage_info_filename = "#{config.panorama_var_home}/Usage.log"
-    raise "PANORAMA_USAGE_INFO_MAX_AGE ('#{ENV['PANORAMA_USAGE_INFO_MAX_AGE']}') should contain only a number" if ENV['PANORAMA_USAGE_INFO_MAX_AGE'] && !(ENV['PANORAMA_USAGE_INFO_MAX_AGE'].match(/^\d+$/))
-    config.usage_info_max_age = (ENV['PANORAMA_USAGE_INFO_MAX_AGE'] || 180).to_i
+    Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_USAGE_INFO_MAX_AGE, default: 180, integer: true)
 
     # File-Store für ActiveSupport::Cache::FileStore
     config.client_info_filename = "#{config.panorama_var_home}/client_info.store"
-
-    # -- begin rails3 relikt
-    # Configure the default encoding used in templates for Ruby 1.9.
-    #config.encoding = "utf-8"
-
-    # Added 15.02.2012, utf8-Problem unter MAcOS nicht gelöst
-    #Encoding.default_internal, Encoding.default_external = ['utf-8'] * 2
-
-    # Configure sensitive parameters which will be filtered from the log file.
-    #config.filter_parameters += [:password]
-
-    # Enable escaping HTML in JSON.
-    #config.active_support.escape_html_entities_in_json = true
 
     # Enable the asset pipeline
     config.assets.enabled = true
@@ -141,12 +195,5 @@ module Panorama
     # Remove dependency on ActionCable, which is not used in Panorama
     # PR, 2025-07-12
     # config.middleware.delete ActionCable::Server::Base
-
-    # Log the used settings from environment
-    # @param [String] setting Name of setting
-    # @param [Object] used_value Value of setting
-    def self.log_env_setting(setting, used_value)
-      Rails.logger.info "Environment setting: #{setting} = #{used_value}"
-    end
   end
 end

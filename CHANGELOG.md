@@ -1,5 +1,6 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
+- 2025-11-12 Configuration can be stored in config file declared by env entry PANORAMA_CONFIG_FILE
 - 2025-11-11 Even if SSL encryption (https) is not used, the user and password credentials are always asynchronously encrypted at network transfer from browser to the Panorama server by a public key where the private key for decryption is only known inside the Panorama server code.
 
 ## Release 2.19.1

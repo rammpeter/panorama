@@ -4,7 +4,7 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 #
-threads_count = ENV.fetch("MAX_CONNECTION_POOL_SIZE") { 100 }.to_i
+threads_count = Panorama::Application.config.max_connection_pool_size
 threads 5, threads_count
 
 # Specifies the `worker_timeout` threshold that Puma will use to wait before
