@@ -13,7 +13,19 @@ begin
     Rails.logger.warn('create_secrets.rb') { "Secret key base from SECRET_KEY_BASE config attribute is too short! Should have at least 128 chars!" } if config.secret_key_base.length < 128
 
   end
-  # Panorama::Application.set_and_log_attrib_from_env(:SECRET_KEY_BASE_FILE, default: File.join(config.panorama_var_home, 'secret_key_base'))
+
+  # get file from command line arguments
+  ARGV.each_with_index do |arg, index|
+    if arg.match(/^\-f/) || arg.match(/^\--file/)
+      if arg.match(/^\-f=/) || arg.match(/^\--file=/)
+        config.secret_key_base_file = arg.split('=').last
+      else
+        config.secret_key_base_file = ARGV[index + 1]
+      end
+      raise "No file declared after command line parameter -f or --file" if config.secret_key_base_file.nil? || config.secret_key_base_file == ''
+    end
+  end
+
   Panorama::Application.set_and_log_attrib_from_env(:SECRET_KEY_BASE_FILE, accept_empty: true) # Check if file is set by config or env
 
   if config.secret_key_base == 'nil' && config.secret_key_base_file               # User-provided secrets file
@@ -24,7 +36,7 @@ begin
       Rails.logger.warn('create_secrets.rb') { "Secret key base from file pointed to by SECRET_KEY_BASE_FILE config attribute is too short! Should have at least 128 chars!" } if new_secret_key_base.length < 128
       config.secret_key_base = new_secret_key_base                                # final set of config, will autogenerate random value if set to nil
     else
-      Rails.logger.error('create_secrets.rb') { "Secret key base file pointed to by SECRET_KEY_BASE_FILE config attribute does not exist (#{config.secret_key_base_file})!" }
+      raise "Configured secret key base file does not exist; '#{config.secret_key_base_file}'!"
     end
   end
 
