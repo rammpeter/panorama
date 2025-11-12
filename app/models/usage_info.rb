@@ -7,7 +7,7 @@ class UsageInfo
   # @param tns [String] The TNS name
   # @return [void]
   def self.write_record(request, real_controller_name, real_action_name, tns)
-    return if Panorama::Application.config.usage_info_max_age == 0
+    return if Panorama::Application.config.panorama_usage_info_max_age == 0
     # Ausgabe Logging-Info in File für Usage-Auswertung
     filename = Panorama::Application.config.usage_info_filename
     client_ip = request.remote_ip

@@ -238,8 +238,8 @@ module ActiveSessionHistoryHelper
         @sga_ash_where_string << sql
         @sga_ash_where_values << value
       when :con_id
-        @sga_ash_where_string << ' AND ' if @sga_ash_where_string != ''          # suppress leading AND
-        @sga_ash_where_string << sql
+        @sga_ash_where_string << ' AND ' if @sga_ash_where_string != ''         # suppress leading AND
+        @sga_ash_where_string << "(Con_ID = 0 OR #{sql})"                       # Show also background processes from CDB with Con_ID = 0
         @sga_ash_where_values << value
       else
         @global_where_string << " AND #{sql}" if sql

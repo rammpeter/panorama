@@ -12,7 +12,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # rails_version = "7.0.0" # requires ruby >= 2.7.0 but jRuby 9.3.2.0 is compatible with ruby 2.6 only
 # see: https://rubygems.org/gems/rails/versions
 # rails_version = "6.1.7.10"
-rails_version = "8.0.3"
+rails_version = "8.0.4"
 #gem 'rails', rails_version
 gem 'activerecord', rails_version
 gem 'activemodel', rails_version
