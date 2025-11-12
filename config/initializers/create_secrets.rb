@@ -14,7 +14,7 @@ begin
 
   end
 
-  # get file from command line arguments
+  # get file from command line arguments, does not really work with rails server yet
   ARGV.each_with_index do |arg, index|
     if arg.match(/^\-f/) || arg.match(/^\--file/)
       if arg.match(/^\-f=/) || arg.match(/^\--file=/)
