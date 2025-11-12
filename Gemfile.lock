@@ -133,7 +133,7 @@ GEM
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0924)
     mini_mime (1.1.5)
-    minitest (5.26.0)
+    minitest (5.26.1)
     net-imap (0.5.12)
       date
       net-protocol
@@ -206,7 +206,7 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
-    reline (0.6.2)
+    reline (0.6.3)
       io-console (~> 0.5)
     rexml (3.4.4)
     ruby-maven (3.9.3)
