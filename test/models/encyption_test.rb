@@ -11,8 +11,8 @@ class EncryptionTest < ActiveSupport::TestCase
   end
 
   test "ssh keys" do
-    pub_key = Encryption.ssh_public_key
-    puts pub_key
+    assert_nothing_raised do
+      Encryption.ssh_public_key
+    end
   end
-
 end

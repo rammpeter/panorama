@@ -29,20 +29,35 @@ class Encryption
     self.get_instance.ssh_public_key
   end
 
+  # Encrypt the same way the bwoser does, only used for test
+  # @param [String] native_password The password
+  # @return [String] The encrypted password
+  def self.encrypt_browser_password(native_password)
+    self.get_instance.encrypt_browser_password_internal(native_password)
+  end
+
   def self.decrypt_browser_password(encrypted_password)
     self.get_instance.decrypt_browser_password_internal(encrypted_password)
   end
 
+  # Encrypt pasword by RSA, only used for test
+  # @param [String] native_password The password
+  # @return [String] the encrypted password
+  def encrypt_browser_password_internal(native_password)
+    public_key = OpenSSL::PKey::RSA.new(@ssh_public_key)
+    encrypted_data = public_key.public_encrypt(native_password, OpenSSL::PKey::RSA::PKCS1_PADDING)
+    Base64.strict_encode64(encrypted_data)
+  end
 
   # Decrypt RSA encrypted passwords
   # @param [String] encrypted_password The encrypted password in base64
-  # @return [String] the encrypted password
+  # @return [String] the decrypted password
   def decrypt_browser_password_internal(encrypted_password)
+    raise "Encryption.decrypt_browser_password_internal: no encrypted password given" unless encrypted_password
     native = Base64.strict_decode64(encrypted_password)
     private_key = OpenSSL::PKey::RSA.new(@ssh_private_key)
     # Use the default OpenSSL::PKey::RSA::PKCS1_PADDING which is corresponding with 'RSAES-PKCS1-V1_5' in forge.encrypt
-    decrypted_data = private_key.private_decrypt(native, OpenSSL::PKey::RSA::PKCS1_PADDING)
-    decrypted_data
+    private_key.private_decrypt(native, OpenSSL::PKey::RSA::PKCS1_PADDING)
   end
 
   private

@@ -20,6 +20,8 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
   test "should connect to test-db with xhr: true" do
     database = get_current_database
+    database[:encrypted_user] = Encryption.encrypt_browser_password(database[:user])
+    database[:encrypted_password] = Encryption.encrypt_browser_password(Encryption.decrypt_value(database[:password], cookies[:client_salt]))
     database[:password] = Encryption.decrypt_value(database[:password], cookies[:client_salt])
 
     # Test with new login parameters

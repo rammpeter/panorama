@@ -11,7 +11,11 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
   def admin_login
     # Set a valid JWT with cookie
-    post '/admin/admin_logon',  :params => {:format=>:html, origin_controller: :admin, origin_action: :master_login, master_password: Panorama::Application.config.panorama_master_password}
+    post '/admin/admin_logon',  :params => {:format=>:html,
+                                            origin_controller: :admin,
+                                            origin_action: :master_login,
+                                            encrypted_master_password: Encryption.encrypt_browser_password(Panorama::Application.config.panorama_master_password)
+    }
     assert_response :redirect, log_on_failure('Should be redirecte to a dummy page after successful logon')
   end
 
@@ -47,12 +51,20 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
   test "admin_logon with xhr: true" do
     # Set a valid JWT with cookie
-    post '/admin/admin_logon',  :params => {:format=>:html, origin_controller: :admin, origin_action: :master_login, master_password: Panorama::Application.config.panorama_master_password}
+    post '/admin/admin_logon',  :params => {:format=>:html,
+                                            origin_controller: :admin,
+                                            origin_action: :master_login,
+                                            encrypted_master_password: Encryption.encrypt_browser_password(Panorama::Application.config.panorama_master_password)
+    }
     assert_response :redirect, log_on_failure('Should be redirecte to a dummy page after successful logon')
 
     # Set a valid JWT with cookie
-    post '/admin/admin_logon',  :params => {:format=>:html, origin_controller: :admin, origin_action: :master_login, master_password: 'false'}
-    assert response.body['show_popup_message'], log_on_failure('Should raise popup dialog due to wrong passworf')
+    post '/admin/admin_logon',  :params => {:format=>:html,
+                                            origin_controller: :admin,
+                                            origin_action: :master_login,
+                                            encrypted_master_password: Encryption.encrypt_browser_password('false')
+    }
+    assert response.body['show_popup_message'], log_on_failure('Should raise popup dialog due to wrong password')
   end
 
   test "admin_logout with xhr: true" do
