@@ -153,12 +153,12 @@ module Panorama
     Panorama::Application.set_and_log_attrib_from_env(:PANORAMA_VAR_HOME, default: def_panorama_var_home)
     config.panorama_var_home_user_defined = config.panorama_var_home != def_panorama_var_home
 
-    unless File.exist?(config.panorama_var_home)  # Ensure that directory exists
+    unless File.directory?(config.panorama_var_home)  # Ensure that directory exists
       begin
         Dir.mkdir config.panorama_var_home
         raise "Directory #{config.panorama_var_home} does not exist and could not be created" unless File.exist?(config.panorama_var_home)
       rescue Exception => e
-        logger.error('Panorama::Application') { "Error #{e.class}:#{e.message} while creating #{config.panorama_var_home}" }
+        logger.error('Panorama::Application') { "Error #{e.class}:#{e.message} while creating the missing directory PANORAMA_VAR_HOME = #{config.panorama_var_home}" }
         exit! 1                                                                 # Ensure application terminates if initialization fails
       end
     end

@@ -7,7 +7,8 @@ Rake::TaskManager.class_eval do
 
   if Rails.env.test?
     Rake.application.delete_task("db:test:load")
-    Rake.application.delete_task("db:test:purge")
+    # raises Don't know how to build task 'db:test:purge' (See the list of available tasks with `bin/rails --tasks`)
+    # Rake.application.delete_task("db:test:purge")
     Rake.application.delete_task("db:abort_if_pending_migrations")
 
     msg = "Test-Environment at #{Time.now}:
