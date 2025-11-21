@@ -1,6 +1,9 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Release 2.19.4
+- 2025-11-21 Bugfix for overflow in PANORAMA_PARAMETER.Value ( size increased from 512 to 4000 )
+
 ## Release 2.19.3
 - 2025.11-18 Bugfix for setting SECRET_KEY_BASE in config file
 

@@ -26,7 +26,7 @@ jobs:
   setup:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Remove orphanded DB containers older than 1 hour from previous runs
         run: |
           docker ps --filter "name=DB*" | grep "hours ago\|days ago|weeks ago" | awk '{print $1}' | xargs -r docker rm -f
@@ -84,7 +84,7 @@ jobs:
     needs: await_tests
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Get version numbers
         run: |
@@ -167,7 +167,7 @@ jobs:
     needs: await_tests
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Get version numbers
         run: |
@@ -206,7 +206,7 @@ jobs:
           bundler-cache: false # runs 'bundle install' and caches installed gems automatically
 
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download artifact
         uses: actions/download-artifact@v5
@@ -225,7 +225,7 @@ jobs:
     needs: test_jar
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download artifact
         uses: actions/download-artifact@v5

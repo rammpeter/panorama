@@ -888,7 +888,7 @@ class PanoramaSamplerStructureCheck
               { column_name:  'INSTANCE_NUMBER',              column_type:   'NUMBER',    not_null: true },
               { column_name:  'PARAMETER_HASH',               column_type:   'NUMBER',    not_null: true },
               { column_name:  'PARAMETER_NAME',               column_type:   'VARCHAR2',  not_null: true, precision: 128 },
-              { column_name:  'VALUE',                        column_type:   'VARCHAR2',  precision: 512 },
+              { column_name:  'VALUE',                        column_type:   'VARCHAR2',  precision: 4000 },
               { column_name:  'ISDEFAULT',                    column_type:   'VARCHAR2',  precision: 9 },
               { column_name:  'ISMODIFIED',                   column_type:   'VARCHAR2',  precision: 10 },
               { column_name:  'CON_DBID',                     column_type:   'NUMBER',    not_null: true },
