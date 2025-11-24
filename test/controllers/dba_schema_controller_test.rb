@@ -108,6 +108,7 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
         {owner: 'SYS',      object_name: 'A%'},                                # (Wildcard with multiple hit)
         {owner: 'SYS',      object_name: 'TAB$'},                              # Table
         {owner: 'SYS',      object_name: 'COL$'},                              # Table
+        {owner: @object_owner, object_name: @lob_table_name},                  # Table without analyze info, tests e.g. for num_rows=NULL
         {owner: nil,        object_name: 'ALL_TABLES'},                        # View
         {owner: 'SYS',      object_name: 'WRH$_ACTIVE_SESSION_HISTORY'},       # partitioned Table
         {owner: 'PUBLIC',   object_name: 'V$ARCHIVE'},                         # Synonym
