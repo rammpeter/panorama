@@ -707,7 +707,7 @@ class StorageController < ApplicationController
                      u.SSOldErrCnt, u.NoSpaceErrCnt, u.ActiveBlks, u.UnexpiredBlks, u.ExpiredBlks, u.Tuned_UndoRetention,
                      t.Block_Size
               FROM   DBA_Hist_UndoStat u
-              LEFT OUTER JOIN DBA_Hist_Parameter p ON p.DBID = u.DBID AND p.Snap_ID = u.Snap_ID AND p.Instance_Number = u.Instance_Number AND p.Parameter_Hash = 2692150816 /* undo_tablespace */ #{"AND p.Con_DBID = u.Con_DBID" if get_db_version >= '12.1'}
+              LEFT OUTER JOIN DBA_Hist_Parameter p ON p.DBID = u.DBID AND p.Snap_ID = u.Snap_ID AND p.Instance_Number = u.Instance_Number AND LOWER(p.Parameter_Name) = 'undo_tablespace' #{"AND p.Con_DBID = u.Con_DBID" if get_db_version >= '12.1'}
               LEFT OUTER JOIN DBA_Tablespaces t ON t.Tablespace_Name = p.Value
               WHERE  u.Begin_Time BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
               AND    u.DBID = ?

@@ -1,6 +1,9 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Release 2.19.5
+- 2025-11-24 Bugfix for issue #26: Error while opening UNDO usage historic nil can't be coerced into Integer
+
 ## Release 2.19.4
 - 2025-11-21 Bugfix for overflow in PANORAMA_PARAMETER.Value ( size increased from 512 to 4000 )
 
