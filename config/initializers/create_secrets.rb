@@ -52,9 +52,9 @@ begin
 
   if config.secret_key_base == 'nil' || config.secret_key_base == ''
     Rails.logger.warn('create_secrets.rb') { "Neither SECRET_KEY_BASE nor SECRET_KEY_BASE_FILE provided nor file exists at default location #{default_file}!" }
-    Rails.logger.warn('create_secrets.rb') { "Encryption key for SECRET_KEY_BASE is initially generated and stored at #{default_file}!" }
-    Rails.logger.warn('create_secrets.rb') { "This key is valid only for the lifetime of this running Panorama instance because you did not provide a value for PANORAMA_VAR_HOME !" } unless config.panorama_var_home_user_defined
     config.secret_key_base = Random.rand(99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999).to_s
+    Rails.logger.warn('create_secrets.rb') { "Encryption key for SECRET_KEY_BASE is initially generated with #{config.secret_key_base.length} chars and stored at #{default_file}!" }
+    Rails.logger.warn('create_secrets.rb') { "This key is valid only for the lifetime of this running Panorama instance because you did not provide a value for PANORAMA_VAR_HOME !" } unless config.panorama_var_home_user_defined
     File.write(default_file, config.secret_key_base)
   end
 rescue Exception => e

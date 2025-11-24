@@ -62,7 +62,6 @@ class Encryption
 
   private
   def self.get_salted_encryption_key(salt)
-    puts " BASE: #{Panorama::Application.config.secret_key_base}"
     "#{salt}#{Panorama::Application.config.secret_key_base}"
   end
 
