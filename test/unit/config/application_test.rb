@@ -13,15 +13,15 @@ class ApplicationTest < ActionView::TestCase
 
       [
         {
-          PANORAMA_CONFIG_FILE_NAME: nil,
+          PANORAMA_CONFIG_FILE: nil,
           PANORAMA_VAR_HOME: nil,
         },
         {
-          PANORAMA_CONFIG_FILE_NAME: config_file_name,
+          PANORAMA_CONFIG_FILE: config_file_name,
           PANORAMA_VAR_HOME: "#{Dir.tmpdir}/test_panorama_var_home",
         },
         {
-          PANORAMA_CONFIG_FILE_NAME: config_file_name,
+          PANORAMA_CONFIG_FILE: config_file_name,
           PANORAMA_VAR_HOME: nil,
         }
       ].each do |new_env|
