@@ -1,6 +1,10 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Release 2.19.6
+- 2025-12-04 Bugfix: Representation of escaped html chars fixed for optimizer hints in execution plan
+- 2025-12-04 Cardinality estimation marked orange in execution plan if real number of gotten rows differs more than 10:1
+
 ## Release 2.19.5
 - 2025-11-24 Bugfix for issue #26: Error while opening UNDO usage historic nil can't be coerced into Integer
 

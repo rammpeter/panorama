@@ -313,11 +313,11 @@ module SlickgridHelper
         end
 
         # Title ermitteln
-        title = String.new
+        title = String.new                                                      # default, may be replaced by other non-frozen String
         if col[:data_title]
           begin
-            title << col[:data_title].call(rec).to_s if col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
-            title << eval_with_rec("\"#{col[:data_title]}\"", rec)  unless col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
+            title = col[:data_title].call(rec).to_s.dup if col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
+            title = eval_with_rec("\"#{col[:data_title]}\"", rec).dup  unless col[:data_title].class == Proc # Ersetzungen im string a'la "#{}" ermoeglichen
           rescue Exception => e
             ExceptionHelper.reraise_extended_exception(e, "processing data_title-rule for column #{col[:caption]}")
           end

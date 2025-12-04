@@ -216,8 +216,8 @@ module ExplainPlanHelper
           rec.children.each do |hint|
             plan_additions << ({
               :record_type  => 'Hint_Usage',
-              :attribute    => my_html_escape("<#{hint.name}>"),
-              :value        => my_html_escape(hint.children.to_s)
+              :attribute    => "<#{hint.name}>",
+              :value        => hint.children.to_s
             }.extend SelectHashHelper)
           end
         when 'display_map' then
@@ -238,21 +238,21 @@ module ExplainPlanHelper
             plan_additions << ({
               :record_type  => 'QB Registry',
               :attribute    => nil,
-              :value        => my_html_escape(qb.children.to_s)
+              :value        => qb.children.to_s
             }.extend SelectHashHelper)
           end
         else
           plan_additions << ({
             record_type: rec.name,
             attribute:   nil,
-            value:       my_html_escape(rec.children.to_s)
+            value:       rec.children.to_s
           }.extend SelectHashHelper)
         end
       rescue Exception => e
         plan_additions << ({
           :record_type  => 'Exception while processing XML document',
           :attribute => e.message,
-          :value => my_html_escape(other_xml).gsub(/&lt;info/, "<br/>&lt;info").gsub(/&lt;hint/, "<br/>&lt;hint")
+          :value => other_xml.gsub(/<info/, "\n<info").gsub(/<hint/, "\n<;hint")
         }.extend SelectHashHelper)
       end
     end
@@ -370,10 +370,10 @@ module ExplainPlanHelper
       hint_usage.each do |hint|
         p['wrong_hint_usage'] = true if hint[:attributes].select{|attr| ['EU', 'NU', 'PE', 'UR'].include?(attr[:value].to_s)}.count > 0
         p['hint_usage'] << "<s>" if p['wrong_hint_usage']                   # Strike through hint if it is not used
-        p['hint_usage'] << my_html_escape(hint[:hint_text])                 # Escape special characters in hint text to avoid XSS
+        p['hint_usage'] << hint[:hint_text]
         p['hint_usage'] << "</s>" if p['wrong_hint_usage']                  # Strike through hint if it is not used
         p['hint_usage'] << "\n"
-        p['hint_usage'] << "#{my_html_escape(hint[:hint_reason])}\n" if !hint[:hint_reason].nil? && hint[:hint_reason] != ''
+        p['hint_usage'] << "#{hint[:hint_reason]}\n" if !hint[:hint_reason].nil? && hint[:hint_reason] != ''
         hint[:attributes].each do |attr|
           p['hint_usage'] << case attr[:value].to_s
                              when 'EM' then ''  # Hint supplied by user (EM) is not shown
@@ -390,7 +390,6 @@ module ExplainPlanHelper
         end
         p['hint_usage'] << "\n"
       end
-      p['hint_usage'] =  p['hint_usage']&.html_safe                             # html_safe after all appends are done, otherwise <> will be escaped
     end
 
     # Add the hint usage to the plan lines
@@ -415,7 +414,8 @@ module ExplainPlanHelper
 
   # build data title for columns cost and cardinality
   def cost_card_data_title(rec)
-    "%t\n#{"
+    "%t#{"\n\nmarked orange if the difference between estimated cardinality and real number of gotten rows is greater than 10:1 or vice versa\n" if rec['output_rows']}
+#{"
 Optimizer mode = #{rec.optimizer}"          if rec.optimizer}#{"
 CPU cost = #{fn rec.cpu_cost}"              if rec.cpu_cost}#{"
 IO cost = #{fn rec.io_cost}"                if rec.io_cost}#{"
