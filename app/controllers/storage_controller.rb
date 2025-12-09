@@ -564,7 +564,7 @@ class StorageController < ApplicationController
     prefix = '&nbsp' if prefix == 'NBSP'                                        # use an alias to avoid escape of & tp \\u0026 in ajax call
 
     case
-    when object_type == 'TABLE' || object_type == 'TABLE PARTITION' then
+    when object_type == 'TABLE' || object_type == 'TABLE PARTITION' || object_type == 'TABLE SUBPARTITION' then
         sql = "SELECT /*+ PARALLEL_INDEX(l,2) */ COUNT(*) FROM   #{object_owner}.\"#{object_name.upcase}\""
         sql << " PARTITION (\"#{partition_name.upcase}\")"         if partition_name
         sql << " SUBPARTITION (\"#{subpartition_name.upcase}\")"   if subpartition_name
