@@ -188,6 +188,8 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   test "show_using_sqls with xhr: true" do
     get '/dba_sga/show_using_sqls', :params => {:format=>:html, :ObjectName=>"gv$sql", :update_area=>:hugo }
     assert_response :success
+    get '/dba_sga/show_using_sqls', :params => {:format=>:html, :ObjectName=>"gv$sql", object_type_prefix: 'TABLE', :update_area=>:hugo }
+    assert_response :success
   end
 
   test "list_cursor_memory with xhr: true" do

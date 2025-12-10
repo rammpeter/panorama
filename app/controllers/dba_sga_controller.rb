@@ -1003,9 +1003,10 @@ class DbaSgaController < ApplicationController
   end # list_db_cache_content
 
   def show_using_sqls
-    @object_owner = prepare_param :ObjectOwner
-    @object_name  = prepare_param :ObjectName
-    @instance     = prepare_param_instance
+    @object_owner       = prepare_param :ObjectOwner
+    @object_name        = prepare_param :ObjectName
+    @instance           = prepare_param_instance
+    @object_type_prefix = prepare_param :object_type_prefix                     # LIKE-comparison with following %
 
     wherestr = "p.Object_Name LIKE UPPER(?)".dup
     whereval = [@object_name]
@@ -1018,6 +1019,11 @@ class DbaSgaController < ApplicationController
     if @instance
       wherestr << " AND p.Inst_ID=?"
       whereval << @instance
+    end
+
+    if @object_type_prefix
+      wherestr << " AND p.Object_Type LIKE ?||'%'"
+      whereval << @object_type_prefix
     end
 
     # in Oracle 19.6 Select from gv$SQL ord gv$SQL_Plan shows cardinality of 1 => NESTED LOOP

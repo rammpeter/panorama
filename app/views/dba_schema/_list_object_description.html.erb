@@ -606,7 +606,8 @@ So the real value would be #{fn rec.avg_row_len} - #{fn rec.sum_col_len_metadata
         :controller  => :dba_sga,
         :action      => :show_using_sqls,
         :ObjectOwner => @owner,
-        :ObjectName  => @table_name
+        :ObjectName  => @table_name,
+        # object_type_prefix: 'TABLE'   # object_type_prefix not used because gv$SQLPLan.Object_type is sometimes empty e.g. for conventional load
     }, :title => "List SQLs in SGA (via gv$SQL_Plan) accessing #{@owner}.#{@table_name}")
     %>
   </div>

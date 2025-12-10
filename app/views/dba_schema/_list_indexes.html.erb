@@ -87,6 +87,7 @@
           action:       :show_using_sqls,
           ObjectOwner:  rec.owner,
           ObjectName:   rec.index_name,
+          object_type_prefix: 'INDEX',
           update_area: @update_area,
      }, :title => 'Show SQLs in SGA (gv$SQL_Plan) using this index'
      )}</div><div style=\"float:left\">#{

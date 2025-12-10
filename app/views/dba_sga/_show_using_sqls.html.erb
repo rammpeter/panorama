@@ -41,15 +41,19 @@ column_options =
   {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},        :title=>"Number of rows processed", :align=>"right"},
   {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2)},    :title=>"Number of rows processed per execute", :align=>"right"},
 ]
+
+   caption = "SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)"
+   caption << " for object type like '#{@object_type_prefix}%'" if @object_type_prefix
 %>
 
-<%= gen_slickgrid(@sqls, column_options, {:caption=>"SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)", :max_height=>450, show_pin_icon: 1}) %>
+<%= gen_slickgrid(@sqls, column_options, {caption: caption, :max_height=>450, show_pin_icon: 1}) %>
 
 <%=
     ajax_form(:controller    =>:dba_history,
               :action        => :show_using_sqls_historic,
               :ObjectOwner   =>  @object_owner,
               :ObjectName    => @object_name,
+              object_type_prefix: @object_type_prefix,
               :update_area   => @update_area
              ) do
 %>

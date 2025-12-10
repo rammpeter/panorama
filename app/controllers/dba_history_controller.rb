@@ -1006,6 +1006,7 @@ class DbaHistoryController < ApplicationController
     @object_owner = params[:ObjectOwner]
     @object_owner = nil if @object_owner == ""
     @object_name = params[:ObjectName]
+    @object_type_prefix = prepare_param :object_type_prefix                     # optional LIKE-comparison with following %
 
     where_filter = String.new
     where_values = []
@@ -1013,9 +1014,15 @@ class DbaHistoryController < ApplicationController
       where_filter << " AND s.Instance_Number = ?"
       where_values << @instance
     end
+
     if @object_owner
       where_filter << " AND p.Object_Owner=UPPER(?)"
       where_values << @object_owner
+    end
+
+    if @object_type_prefix
+      where_filter << " AND p.Object_Type LIKE ?||'%'"
+      where_values << @object_type_prefix
     end
 
     @sqls = sql_select_all ["
