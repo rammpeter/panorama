@@ -129,7 +129,7 @@ column_options =
    end
 
    last_analyzed_data_title = proc do |rec|
-     result = "%t"
+     result = "%t".dup
      result << "\n\nLast analyze took place #{fn(rec.last_analyze_age_days, 2)} days ago" if rec.last_analyze_age_days
      result << "\n\nPreferences: #{@stat_prefs.join(' ')}" unless @stat_prefs.empty?
      result << "\n\nMarked orange because analyze info is missing for #{fn(rec.missing_extension_stats)} extended statistic(s)!\n\nExecution of DBMS_STATS.GATHER_TABLE_STATS is needed to fix this." if rec.missing_extension_stats > 0
@@ -277,7 +277,7 @@ column_options =
    end
 
    data_title_rac_master = proc do |rec|
-     title = "%t"
+     title = "%t".dup
      if @rac_attribs
        if @rac_attribs.previous_master_cnt == 1
          if @rac_attribs.previous_master == 32768
