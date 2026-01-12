@@ -30,8 +30,8 @@
 
   column_options_from_me =
       [
-          {:caption=> 'Depending object',      :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},             :title=> 'Object that is depending from me'},
-          {:caption=> 'Type',                  :data=>proc{|rec| rec.type},                                                               :title=> 'Type of object that is depending from me'},
+          {:caption=> 'Depending object',      :data=>proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},             :title=> 'Object that is depending on me'},
+          {:caption=> 'Type',                  :data=>proc{|rec| rec.type},                                                               :title=> 'Type of object that is depending on me'},
           {:caption=> 'Link',                  :data=>proc{|rec| rec.referenced_link_name},                                               :title=> 'Name of the link to the parent object (if remote)'},
           { caption: 'Created',                 data: proc{|rec| localeDateTime(rec.created)},                                            title: "Creation timestamp of object", data_title: proc{|rec| "%t #{rec.owner}.#{rec.name}"} },
           { caption: 'Last DDL',                data: proc{|rec| localeDateTime(rec.last_ddl_time)},                                      title: "Timestamp for the last modification of the object resulting from a DDL statement (including grants and revokes)", data_title: proc{|rec| "%t\nfor #{rec.owner}.#{rec.name}"}},
@@ -44,15 +44,15 @@
 
   column_options_im_from =
   [
-      {:caption=> 'Object dependency',     :data=>proc{|rec| link_object_description(@update_area, rec.referenced_owner, rec.referenced_name, nil, rec.referenced_type)}, :title=> "Object I'm depending from"},
-      {:caption=> 'Type',                  :data=>proc{|rec| rec.referenced_type},                                                    title: "Type of the object I'm depending from"},
+      {:caption=> 'Object dependency',     :data=>proc{|rec| link_object_description(@update_area, rec.referenced_owner, rec.referenced_name, nil, rec.referenced_type)}, :title=> "Object I'm depending on"},
+      {:caption=> 'Type',                  :data=>proc{|rec| rec.referenced_type},                                                    title: "Type of the object I'm depending on"},
       {:caption=> 'Link',                  :data=>proc{|rec| rec.referenced_link_name},                                               title: 'Name of the link to the parent object (if remote)'},
       { caption: 'Created',                 data: proc{|rec| localeDateTime(rec.created)},                                            title: "Creation timestamp of object", data_title: proc{|rec| "%t #{rec.referenced_owner}.#{rec.referenced_name}"}},
       { caption: 'Last DDL',                data: proc{|rec| localeDateTime(rec.last_ddl_time)},                                      title: "Timestamp for the last modification of the object resulting from a DDL statement (including grants and revokes)", data_title: proc{|rec| "%t\nfor #{rec.referenced_owner}.#{rec.referenced_name}"}},
       { caption: 'Spec. TS',                data: proc{|rec| localeDateTime(rec.spec_ts)},                                            title: "Timestamp for the last specification change of the object", data_title: proc{|rec| "%t #{rec.referenced_owner}.#{rec.referenced_name}"}},
       { caption: 'Status',                  data: proc{|rec| rec.status},                                                             title: 'Status of object (from DBA_Objects)', data_title: proc{|rec| "Status of object #{rec.referenced_owner}.#{rec.referenced_name} (from DBA_Objects)"}},
       {:caption=> 'Dependency type',       :data=>proc{|rec| rec.dependency_type},                                                    title: 'Whether the dependency is a REF dependency (REF) or not (HARD)'},
-      {:caption=> 'Objects depending from',:data=>proc{|rec| link_objects_depending(rec)},                                            title: 'Number of objects this object is depending from', :data_title=>proc{|rec| "Number of objects this object #{rec.referenced_owner}.#{rec.referenced_name} is depending from "}},
+      {:caption=> 'Objects depending on',  :data=>proc{|rec| link_objects_depending(rec)},                                            title: 'Number of objects this object is depending on', :data_title=>proc{|rec| "Number of objects this object #{rec.referenced_owner}.#{rec.referenced_name} is depending on "}},
   ]
 
 
@@ -61,7 +61,7 @@
   <div class="flex-row-element">
     <%=
       gen_slickgrid(@dependencies_from_me, column_options_from_me, {
-          :caption => "Objects that are depending from #{@object_type} #{@owner}.#{@object_name}",
+          :caption => "Objects that are depending on #{@object_type} #{@owner}.#{@object_name}",
           :max_height => 450, :width=>:auto
       })
     %>

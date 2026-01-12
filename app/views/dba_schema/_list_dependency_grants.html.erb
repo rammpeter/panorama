@@ -20,8 +20,8 @@
       [
           {caption: 'Level',                data: proc {|rec| rec.d_level},               title: 'Hierarchy-level (depth of dependency)', align: :right},
           {caption: 'Cycle',                data: proc {|rec| rec.connect_by_iscycle},    title: 'Cyclic dependency broken at this relation?'},
-          {caption: 'Depending object',     data: proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},           title: 'Object that is depending from'},
-          {caption: 'Depending type',       data: proc {|rec| rec.type},                  title: 'Type of object that is depending from'},
+          {caption: 'Depending object',     data: proc{|rec| link_object_description(@update_area, rec.owner, rec.name, nil, rec.type)},           title: 'Object that is depending on'},
+          {caption: 'Depending type',       data: proc {|rec| rec.type},                  title: 'Type of object that is depending on'},
           {caption: 'Dependency type',      data: proc{|rec| rec.dependency_type},        title: 'Whether the dependency is a REF dependency (REF) or not (HARD)'},
           {caption: 'Depends on object',    data: proc {|rec| link_object_description(@update_area, rec.referenced_owner, rec.referenced_name, nil, rec.type)}, title: 'Object that it depends on'},
           {caption: 'Link',                 data: proc {|rec| rec.referenced_link_name},  title: 'Name of the link to the parent object (if remote)'},
