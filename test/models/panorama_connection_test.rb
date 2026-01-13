@@ -73,4 +73,13 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
     assert(value.is_a?(Integer), log_on_failure("min_awr_interval should return an Integer, but returned #{value.class}"))
     assert(value >= 1, log_on_failure("min_awr_interval should return a value >= 10, but returned #{value}"))
   end
+
+  test "exec_plsql_with_dbms_output_result" do
+    binds = ['HUGO', 'WALTER', 'FRANZ', 'SANDRO']
+    result = PanoramaConnection.exec_plsql_with_dbms_output_result(
+      "BEGIN DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); END",
+      binds
+    )
+    assert_equal binds, result, log_on_failure('DBMS_OUTPUT result wrong')
+  end
 end

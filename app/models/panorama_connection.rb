@@ -15,6 +15,7 @@ require 'pack_license'
 require 'select_hash_helper'
 require 'exception_helper'
 require 'java'
+java_import 'oracle.jdbc.OracleTypes'  # Oracle-specific Types
 
 # Helper-class to allow usage of method "type_cast"
 class TypeMapper < ActiveRecord::ConnectionAdapters::AbstractAdapter
@@ -731,48 +732,85 @@ class PanoramaConnection
     thread_connection&.unregister_sql_execution
   end
 
-  # Execute a PL/SQL function that returns a CLOB
+  # Execute a PL/SQL function that returns a CLOB, mind the missing semicolon at the end of the command
   # @param function_call [String] the PL/SQL function call to execute, e.g. "DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')"
   # @param binds [Array] the parameters to bind to the function call
-  #   one bind os a Hash "{ java_type: "STRING", value: "some_value" }"
   # @return [String] the result of the function call as a String
   def self.exec_clob_plsql_function(function_call, binds)
-    begin
-      sql = "{ ? = call #{function_call} }";                                      # CallableStatement syntax for functions
-      cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
-      cs.register_out_parameter(1, java.sql.Types::CLOB);                         # Register the first parameter (return value) as an OUT parameter
+    sql = "{ ? = call #{function_call} }";                                      # CallableStatement syntax for functions
+    thread_connection.register_sql_execution(sql)
+    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
+    cs.register_out_parameter(1, java.sql.Types::CLOB);                         # Register the first parameter (return value) as an OUT parameter
 
-      binds.each_with_index do |bind, index|
-        case bind[:java_type]
-        when "STRING"
-          cs.set_string(index + 2, bind[:value])                                  # Set the input parameter, index + 2 because first is OUT parameter
-        when "NUMBER"
-          cs.set_int(index + 2, bind[:value])                                     # Set the input parameter, index + 2 because first is OUT parameter
-        when "DATE"
-          cs.set_date(index + 2, java.sql.Date.value_of(bind[:value]))            # Set the input parameter, index + 2 because first is OUT parameter
-        else
-          raise ArgumentError, "Unsupported java_type: #{bind[:java_type]}"
-        end
-      end
-
-      cs.execute();
-      clob = cs.get_clob(1);                                                      # Result is of class oracle.sql.CLOB
-
-      reader = clob.get_character_stream                                          # oracle.jdbc.driver.OracleClobReader
-      br = java.io.BufferedReader.new(reader)                                     # Wrap in BufferedReader for efficiency
-      line = java.lang.String.new
-      result = String.new
-      while ((line = br.readLine()) != nil) do
-        result << line
-        result << "\n"
-      end
-      result
-    rescue Exception => e
-      Rails.logger.error('DbaSgaController.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occurred" }
-      raise e
-    ensure
-      cs&.close
+    binds.each_with_index do |bind, index|
+      self.bind_java_input_parameter(cs, index + 2, bind)                       # Set the input parameter, index + 2 because first is OUT parameter
     end
+
+    cs.execute();
+    clob = cs.get_clob(1);                                                      # Result is of class oracle.sql.CLOB
+
+    reader = clob.get_character_stream                                          # oracle.jdbc.driver.OracleClobReader
+    br = java.io.BufferedReader.new(reader)                                     # Wrap in BufferedReader for efficiency
+    line = java.lang.String.new
+    result = String.new
+    while ((line = br.readLine()) != nil) do
+      result << line
+      result << "\n"
+    end
+    result
+  rescue Exception => e
+    Rails.logger.error('PanoramaConnection.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occurred" }
+    raise e
+  ensure
+    cs&.close
+    thread_connection&.unregister_sql_execution
+  end
+
+  # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT, mind the missing semicolon at the end of the command
+  # @param code [String] the PL/SQL code to execute, e.g. "BEGIN DBMS_OUTPUT.PUT_LINE(?); END"
+  # @param binds [Array] the parameters to bind to the function call
+  #   one bind as a Hash "{ java_type: "STRING", value: "some_value" }"
+  # @return [Array] the DBMS_OUTPUT result as array of strings
+  def self.exec_plsql_with_dbms_output_result(code, binds)
+    sql = "{ call #{code} }";                                                   # CallableStatement syntax for PL/SQL
+    thread_connection.register_sql_execution(sql)
+
+    self.sql_execute("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")
+
+
+    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
+
+    binds.each_with_index do |bind, index|
+      self.bind_java_input_parameter(cs, index + 1, bind)
+    end
+
+    cs.execute();
+
+    # read the DBMS_OUTPUT buffer now
+    ob_cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call("{ call DBMS_OUTPUT.GET_LINES(?, ?) }")
+    ob_cs.register_out_parameter(1, OracleTypes::ARRAY, "DBMS_OUTPUT.CHARARR");    # oracle.jdbc.OracleTypes::ARRAY needs to be imorted by java_import (no leading keyword "java" in class)
+    ob_cs.register_out_parameter(2, java.sql.Types::INTEGER);
+
+    result = []
+    bulk_size = 100
+    loop do
+      ob_cs.set_int(2, bulk_size)
+      ob_cs.execute();
+      lines = ob_cs.get_array(1).get_array.to_a
+      line_count = ob_cs.get_int(2)
+      result.concat(lines[0, line_count])
+      break if line_count < bulk_size                                                 # No more data to read
+    end
+
+    self.sql_execute("BEGIN DBMS_OUTPUT.DISABLE; END;")
+    result
+  rescue Exception => e
+    Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred" }
+    raise e
+  ensure
+    cs&.close if defined? cs
+    ob_cs&.close if defined? ob_cs
+    thread_connection&.unregister_sql_execution
   end
 
   def self.commit                                                               # only relevant if autocommit is switched off
@@ -1061,6 +1099,23 @@ class PanoramaConnection
     stmt = stmt.dup                                                             # Unfreeze SQL-Statement, so that it can be modified
     stmt.gsub!(/\n[ \n]*\n/, "\n")                                              # Remove empty lines in SQL-text
     stmt
+  end
+
+  # Bind an input parameter in JDBC
+  # @param statement [PreparedStatement | CallableStatement] the statement handle
+  # @param index [Integer] the index to bind
+  # @param bind [Any] the value to bind
+  # @return [void]
+  def self.bind_java_input_parameter(statement, index, bind)
+    if bind.is_a?(String)
+      statement.set_string(index, bind)
+    elsif bind.is_a?(Numeric)
+      statement.set_int(index, bind)
+    elsif bind.is_a?(Date) || bind.is_a?(Time) || bind.is_a?(DateTime)
+      statement.set_date(index, java.sql.Date.value_of(bind))
+    else
+      raise ArgumentError, "Unsupported java_type for Ruby class: #{bind.class}"
+    end
   end
 
   # Execute select direct on JDBC-Connection with logging
