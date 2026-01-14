@@ -1636,6 +1636,8 @@
     Für Funktionen ohne weitere Abhängigkeiten besteht eine hohe Wahrscheinlichkeit, dass sie auch determinstisch sind.
     Diese Selektion zeigt nicht als DETERMINISTIC deklarierte PL/SQL-Funktionen ohne weitere Abhängigkeiten als von sys.STANDARD.
     Zusätzlich werden SQLs aus der SGA angezeigt, die diesen Funktionsnamen in ihrer SQL-Syntax nutzen.
+    
+    Diese Prüfung bewertet keine Package-Funktionen, es werden nur eigenständige Funktionen berücksichtigt.
   dragnet_helper_153_name: |-
     Kandidaten für DETERMINISTIC in user-defined PL/SQL-Funktionen
 
@@ -1892,6 +1894,20 @@
   dragnet_helper_177_param_1_name:                          Minimale Anzahl aufeinanderfolgender ASH-Records innerhalb einer Session
   dragnet_helper_177_param_2_hint:                          Maximale Millisekunden je Execution für das betrachtete SQL um sicherzustellen, dass genügend Executions innerhalb des ASH-Zyklus stattfinden für plausible Statistiken
   dragnet_helper_177_param_2_name:                          Maximale ms pro Execution für das SQL
+
+  dragnet_helper_178_desc: |-
+    Benutzerdefinierte PL/SQL-Funktionen können für nachfolgende Aufrufe mit denselben Parametern in der Sitzung zwischengespeichert werden, wenn sie als deterministisch deklariert sind.
+    Diese Auswahl zeigt PL/SQL-Funktionen, die nicht als DETERMINISTIC deklariert sind, aber in lang laufenden SQL-Anweisungen verwendet werden.
+    
+    Das Ergebnis sollte überprüft werden, ob diese Funktionen als DETERMINISTIC deklariert werden könnten.
+    Dies kann auch dann sinnvoll sein, wenn es innerhalb der Funktion SQL-Selects gibt, die regelmäßig den deterministischen Zustand verhindern.
+    Beispielsweise können Selektionen auf selten geänderten Stammdaten für die Dauer einer SQL-Ausführung als deterministisch betrachtet werden.
+    
+    Diese Prüfung bewertet auch Funktionen in Packages.
+
+  dragnet_helper_178_name:                                  Kandidaten für DETERMINISTIC in Package- und eigenständigen PL/SQL-Funktionen
+  dragnet_helper_178_param_1_hint:                          Mindestlaufzeit in Sekunden für SQL in SGA- und AWR-Berichten, die bei der Auswahl berücksichtigt werden sollen
+  dragnet_helper_178_param_1_name:                          Minimale Laufzeit in Sekunden für SQL-Ausführung
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 

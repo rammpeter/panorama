@@ -77,7 +77,7 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
   test "exec_plsql_with_dbms_output_result" do
     binds = ['HUGO', 'WALTER', 'FRANZ', 'SANDRO']
     result = PanoramaConnection.exec_plsql_with_dbms_output_result(
-      "BEGIN DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); END",
+      "BEGIN DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); END;",
       binds
     )
     assert_equal binds, result, log_on_failure('DBMS_OUTPUT result wrong')

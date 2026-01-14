@@ -766,19 +766,18 @@ class PanoramaConnection
     thread_connection&.unregister_sql_execution
   end
 
-  # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT, mind the missing semicolon at the end of the command
-  # @param code [String] the PL/SQL code to execute, e.g. "BEGIN DBMS_OUTPUT.PUT_LINE(?); END"
+  # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT
+  # @param code [String] the PL/SQL code to execute, e.g. "BEGIN DBMS_OUTPUT.PUT_LINE(?); END;"
   # @param binds [Array] the parameters to bind to the function call
   #   one bind as a Hash "{ java_type: "STRING", value: "some_value" }"
   # @return [Array] the DBMS_OUTPUT result as array of strings
   def self.exec_plsql_with_dbms_output_result(code, binds)
-    sql = "{ call #{code} }";                                                   # CallableStatement syntax for PL/SQL
-    thread_connection.register_sql_execution(sql)
+    thread_connection.register_sql_execution(code)
 
     self.sql_execute("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")
 
 
-    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
+    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(code)
 
     binds.each_with_index do |bind, index|
       self.bind_java_input_parameter(cs, index + 1, bind)
@@ -787,7 +786,7 @@ class PanoramaConnection
     cs.execute();
 
     # read the DBMS_OUTPUT buffer now
-    ob_cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call("{ call DBMS_OUTPUT.GET_LINES(?, ?) }")
+    ob_cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call("BEGIN DBMS_OUTPUT.GET_LINES(?, ?); END;")
     ob_cs.register_out_parameter(1, OracleTypes::ARRAY, "DBMS_OUTPUT.CHARARR");    # oracle.jdbc.OracleTypes::ARRAY needs to be imorted by java_import (no leading keyword "java" in class)
     ob_cs.register_out_parameter(2, java.sql.Types::INTEGER);
 
@@ -805,7 +804,7 @@ class PanoramaConnection
     self.sql_execute("BEGIN DBMS_OUTPUT.DISABLE; END;")
     result
   rescue Exception => e
-    Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred" }
+    Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred at execution of:\n#{code}" }
     raise e
   ensure
     cs&.close if defined? cs

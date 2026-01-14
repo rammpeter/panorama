@@ -119,20 +119,26 @@ class DragnetController < ApplicationController
 
     # Headerzeile des Report erstellen, Parameter ermitteln
     @caption = "#{dragnet_sql[:name]}"
-    command_array = [dragnet_sql[:sql]]
+
+    binds = []
     if dragnet_sql[:parameter]
       @caption << ": "
       dragnet_sql[:parameter].each do |p|   # Binden evtl. Parameter
         bind_value = params[p[:name]]           # Parameter aus Form mit Name erwartet
         bind_value = bind_value.to_i if bind_value.to_i.to_s == bind_value  # if full value can be interpreted as integer then use this
-        command_array << bind_value
+        binds << bind_value
         @caption << " '#{p[:name]}' = #{params[p[:name]]}," if params[p[:name]] && params[p[:name]] != ''  # Ausgabe im Header
       end
       @caption[@caption.length-1] = ' '                                         # replace trailing comma
     end
 
     # Ausführen des SQL
-    @res = sql_select_all command_array
+    @res = if dragnet_sql[:plsql]
+             select_from_dbms_output(dragnet_sql[:sql], binds)
+           else
+             sql_select_all [dragnet_sql[:sql]].concat(binds)
+           end
+
     # Optionales Filtern des Results
     if dragnet_sql[:filter_proc]
       raise "filter_proc muss Klasse proc besitzen für #{dragnet_sql[:name]}" if dragnet_sql[:filter_proc].class.name != 'Proc'
@@ -164,7 +170,20 @@ class DragnetController < ApplicationController
     render_partial
   end
 
-  private
+  # Drop selection from personal list
+  def drop_personal_selection
+    drop_selection = extract_entry_by_entry_id(params[:dragnet_hidden_entry_id])
+
+
+    dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])
+
+    drop_external_selection(dragnet_personal_selection_list, drop_selection[:name])
+
+    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, dragnet_personal_selection_list)
+
+    show_selection                                                              # Show edited selection list again
+  end
+
   # Kompletten Menu-Baum durchsuchen nach Name und raise bei Dopplung
   def look_for_double_names(list, double_names)
     list.each do |l|
@@ -174,7 +193,6 @@ class DragnetController < ApplicationController
     end
   end
 
-  public
   def add_personal_selection
     dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])
 
@@ -212,22 +230,18 @@ class DragnetController < ApplicationController
     end
   end
 
-
-  public
-  # Drop selection from personal list
-  def drop_personal_selection
-    drop_selection = extract_entry_by_entry_id(params[:dragnet_hidden_entry_id])
-
-
-    dragnet_personal_selection_list = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, default: [])
-
-    drop_external_selection(dragnet_personal_selection_list, drop_selection[:name])
-
-    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:dragnet_personal_selection_list, dragnet_personal_selection_list)
-
-    show_selection                                                              # Show edited selection list again
+  # Execute PL/SQL with DBMS_OUTPUT to get result
+  # Each Line of DBMS_OUTPUT should be JSON formatted
+  # @param sql [String] the SQL statement
+  # @param binds [Array] the values to bind
+  # @return [Array]
+  def select_from_dbms_output(sql, binds)
+    string_array = PanoramaConnection.exec_plsql_with_dbms_output_result(sql, binds)
+    result = []
+    string_array.each do |line|
+      result << JSON.parse(line)
+    end
+    result
   end
-
-
 
 end

@@ -179,6 +179,8 @@ ORDER BY Elapsed_Secs_Entry DESC NULLS LAST
 For functions without dependencies there is a high likelihood that they are deterministic.
 This selection shows PL/SQL functions not declared as DETERMINISTIC and without any dependency other than sys.STANDARD.
 In addition SQLs from SGA are shown which uses this function name in their SQL syntax.
+
+This check does not evaluate package functions, only standalone functions are considered.
 "),
             :sql=> "\
 WITH Procs AS  (SELECT /*+ NO_MERGE MATERIALIZE */ p.Owner, p.Object_Name
@@ -207,6 +209,172 @@ LEFT OUTER JOIN SQL_A a ON a.Inst_ID = p.Inst_ID AND a.SQL_ID = p.SQL_ID
 GROUP BY p.Owner, p.Object_Name, p.Inst_ID
 ORDER BY 4 DESC NULLS LAST
            ",
+        },
+        {
+          :name  => t(:dragnet_helper_178_name, :default=>'Candidates for DETERMINISTIC in package and standalone PL/SQL functions'),
+          :desc  => t(:dragnet_helper_178_desc, :default=>"User-defined PL/SQL functions may be cached in session for subsequent calls with same parameters if they are declared as deterministic.
+This selection shows PL/SQL functions not declared as DETERMINISTIC but used in long running SQL statements.
+
+The result should be checked if these functions could be declared DETERMINISTIC.
+This could be useful even if there are SQL selections within the function that regularly prevent the deterministic state.
+E.g. selections on rarely changed master data can be considered deterministic for the duration of a SQL execution.
+
+This check evaluates also functions in packages.
+"),
+          plsql: true,
+          :sql=> "\
+DECLARE
+  TYPE proc_RT IS RECORD(
+    Owner         VARCHAR2(128),
+    Package_Name  VARCHAR2(128),
+    Function_Name VARCHAR2(128)
+  );
+  TYPE Proc_TT IS TABLE OF Proc_RT INDEX BY VARCHAR2(2000);
+  proc_table Proc_TT;
+
+  TYPE Char_Table_Type IS TABLE OF CHAR(1);
+  Char_Table  Char_Table_Type := Char_Table_Type(' ', '(', '!', '=', '<', '>', '+', '-', '*', '/'); -- delimiters chars to search for
+  char_table_count INTEGER  := Char_Table.COUNT;
+
+  Start_Pos   INTEGER;
+  End_pos     INTEGER;
+  Test_Pos    INTEGER;
+  l_text      CLOB;
+  l_match     VARCHAR2(4000);
+  full_match  VARCHAR2(4000);
+  l_json      VARCHAR2(4000);
+  l_count     INTEGER;
+  l_stmts     INTEGER;
+
+  FUNCTION JSON_Esc(p_In VARCHAR2) RETURN VARCHAR2 IS
+  BEGIN
+    RETURN REPLACE(p_In, '\"', '\\\\\"');
+  END JSON_Esc;
+
+  PROCEDURE Log(p_In VARCHAR2) IS
+  BEGIN
+    DBMS_OUTPUT.PUT_LINE(TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF3')||' - ' ||p_In);
+  END;
+
+BEGIN
+  DBMS_OUTPUT.ENABLE(1000000);
+  FOR p_Rec IN (SELECT Owner, Package_Name, Function_Name, Compare_Name
+                FROM   (
+                        SELECT Owner, NULL Package_Name, Object_Name Function_Name, Deterministic, Object_Name Compare_Name
+                        FROM   DBA_Procedures
+                        WHERE  Object_Type = 'FUNCTION'
+                        UNION ALL
+                        SELECT p.Owner, p.Object_Name Package_Name, p.Procedure_Name Function_Name, p.Deterministic, p.Object_Name||'.'||p.Procedure_Name Compare_Name
+                        FROM   DBA_Procedures p
+                        JOIN   DBA_Arguments a ON a.Owner = p.Owner AND a.Package_Name = p.Object_Name AND a.Object_Name = p.Procedure_Name
+                        WHERE  p.Object_Type = 'PACKAGE'
+                        AND    a.Argument_Name IS NULL /* Program is a function with a return value */
+                       )
+                WHERE  Owner NOT IN (SELECT UserName FROM All_Users WHERE Oracle_Maintained = 'Y')
+                AND    Deterministic = 'NO'
+               ) LOOP
+    -- Lookup with function name only
+    proc_table(p_Rec.Compare_Name) := Proc_RT(p_Rec.Owner, p_Rec.Package_Name, p_Rec.Function_Name);
+    -- Lookup with function name qualified with owner
+    proc_table(p_Rec.Owner||'.'||p_Rec.Compare_Name) := Proc_RT(p_Rec.Owner, p_Rec.Package_Name, p_Rec.Function_Name);
+  END LOOP;
+
+  l_stmts := 0;
+  FOR t_Rec IN (SELECT Instance_Number, SQL_ID, Parsing_Schema_Name, SQL_Text, Elapsed_Secs
+                FROM   (
+                        SELECT Instance_Number, SQL_ID, Parsing_Schema_Name,
+                               LTRIM(SQL_Text, CHR(10) || CHR(13) || ' ' || CHR(9)) SQL_Text,  /* remove leading whitespaces from SQL */
+                               SUM(Elapsed_Secs) OVER (PARTITION BY Instance_Number, SQL_ID, Parsing_Schema_Name) Elapsed_Secs,
+                               ROW_NUMBER() OVER (PARTITION BY Instance_Number, SQL_ID, Parsing_Schema_Name ORDER BY 1) AS rn  /* Because of no aggregate functions on CLOB */
+                        FROM   (
+                                SELECT Inst_ID Instance_Number, SQL_ID, UPPER(SQL_FullText) SQL_Text, Parsing_Schema_Name, Elapsed_Time/1000000 Elapsed_Secs
+                                FROM   gv$SQLArea
+                                WHERE   Command_Type != 47 /* No PL/SQL */
+                                UNION ALL
+                                SELECT h.Instance_Number, h.SQL_ID, UPPER(t.SQL_Text) SQL_Text, h.Parsing_Schema_Name, h.Elapsed_Secs
+                                FROM   (SELECT st.Instance_Number, st.SQL_ID, st.Parsing_Schema_Name, SUM(st.Elapsed_Time_Delta)/1000000 Elapsed_Secs
+                                        FROM   DBA_Hist_SQLStat st
+                                        JOIN   DBA_Hist_Snapshot ss ON ss.DBID = st.DBID AND ss.Snap_ID = st.Snap_ID AND ss.Instance_Number = st.Instance_Number
+                                        WHERE  ss.Begin_Interval_Time > SYSDATE - ?
+                                        GROUP BY st.Instance_Number, st.SQL_ID, st.Parsing_Schema_Name
+                                       ) h
+                                JOIN   DBA_Hist_SQLText t ON t.SQL_ID = h.SQL_ID
+                               )
+                        WHERE Elapsed_Secs > ?
+                       )
+                WHERE  RN = 1 /* Select one occurrence of SQL text per SQL-ID only */
+                AND    SQL_Text NOT LIKE 'BEGIN%' /* No command_type in DBA_Hist_SQLStat to filter PL/SQL */
+                AND    SQL_Text NOT LIKE 'DECLARE%'
+               ) LOOP
+    l_stmts := l_stmts + 1;
+    Start_Pos := 1;
+    l_text := t_Rec.SQL_Text;
+    l_Count := 0;
+    -- Log('Start '||t_Rec.SQL_ID);
+    LOOP
+      -- Look for the next delimiter
+      End_pos := 0; -- start value
+      FOR i IN 1..char_table_count LOOP
+        Test_Pos := INSTR(l_text, Char_Table(i), Start_Pos);
+        IF Test_Pos > 0 AND ( End_Pos = 0 OR Test_Pos < End_Pos) THEN
+          End_Pos := Test_Pos;
+        END IF;
+      END LOOP;
+
+      BEGIN
+        IF End_Pos > 0 THEN
+          l_match := SUBSTR(l_text, Start_Pos, End_pos-Start_Pos);
+        ELSE
+          l_match := SUBSTR(l_text, Start_Pos); -- The rest of the string
+        END IF;
+        l_Count := l_Count + 1;
+        -- DBMS_OUTPUT.PUT_LINE(l_match);
+
+        IF proc_Table.EXISTS(l_match) -- Either owner and function name or only function name match
+        THEN
+          -- Get the following parameter for matching function call
+          -- Check if parameters follow immediately (after end_pos are only spaces up to an opening parenthesis)
+          full_match := l_match; -- Default if no parameter list follows
+          IF End_Pos > 0 AND REGEXP_LIKE(SUBSTR(l_text, End_Pos), '^\\s*\\(') THEN -- opening parenthesis directly after or after spaces
+            End_Pos := INSTR(l_text, ')', Start_Pos);
+            IF End_Pos > 0 THEN
+              full_match := SUBSTR(l_text, Start_Pos, End_pos-Start_Pos + 1);
+            ELSE
+              full_match := SUBSTR(l_text, Start_Pos); -- The rest of the string
+            END IF;
+          END IF;
+
+
+          l_json := '{' ||
+                    '\"Instance\": '               || t_Rec.Instance_Number              || ', '   ||
+                    '\"SQL-ID\": \"'               || JSON_Esc(t_Rec.SQL_ID)             || '\", ' ||
+                    '\"Parsing Schema Name\": \"'  || t_Rec.Parsing_Schema_Name          || '\", ' ||
+                    '\"Elapsed Secs\": '           || ROUND(t_Rec.Elapsed_Secs)          || ', '   ||
+                    '\"Owner\": \"'                || proc_Table(l_match).Owner          || '\", ' ||
+                    '\"Package Name\": \"'         || proc_Table(l_match).Package_Name   || '\", ' ||
+                    '\"Function Name\": \"'        || proc_Table(l_match).Function_Name  || '\", ' ||
+                    '\"Match in SQL\": \"'         || JSON_Esc(full_match)               || '\" '  ||
+                    '}';
+          DBMS_OUTPUT.PUT_LINE(l_json);
+        END IF;
+      EXCEPTION
+        WHEN OTHERS THEN
+          IF SQLCODE != -6502 THEN -- End_Pos > 4000 raises ORA-06502: PL/SQL: numeric or value error: character string buffer too small
+            RAISE;
+          END IF;
+      END;
+      EXIT WHEN End_Pos = 0;
+      Start_Pos := End_Pos + 1;
+    END LOOP;
+    -- Log('End '||t_Rec.SQL_ID||'    '||l_Count||' words');
+  END LOOP;
+  -- Log(l_stmts||' Statements');
+END;
+           ",
+          :parameter=>[
+            {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>2, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
+            {:name=>t(:dragnet_helper_178_param_1_name, :default=>'Min. elapsed seconds for SQL execution'), :size=>8, :default=>1000, :title=>t(:dragnet_helper_178_param_1_hint, :default=>'Minimum number of total elapsed seconds for a SQL in SGA and AWR reports to be considered in selection')},
+          ]
         },
     ]
   end
