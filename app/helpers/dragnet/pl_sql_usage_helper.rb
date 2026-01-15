@@ -222,6 +222,7 @@ E.g. selections on rarely changed master data can be considered deterministic fo
 This check evaluates also functions in packages.
 "),
           plsql: true,
+          min_db_version: '19',
           :sql=> "\
 DECLARE
   TYPE proc_RT IS RECORD(
