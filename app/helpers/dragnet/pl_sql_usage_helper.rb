@@ -229,35 +229,33 @@ DECLARE
     Package_Name  VARCHAR2(128),
     Function_Name VARCHAR2(128)
   );
+  proc_rec              proc_RT;
   TYPE Proc_TT IS TABLE OF Proc_RT INDEX BY VARCHAR2(2000);
-  proc_table Proc_TT;
+  proc_table            Proc_TT;
 
   TYPE Char_Table_Type IS TABLE OF CHAR(1);
-  Char_Table  Char_Table_Type := Char_Table_Type(' ', '(', '!', '=', '<', '>', '+', '-', '*', '/'); -- delimiters chars to search for
-  char_table_count INTEGER  := Char_Table.COUNT;
+  Char_Table            Char_Table_Type := Char_Table_Type(' ', '(', '!', '=', '<', '>', '+', '-', '*', '/'); -- delimiters chars to use for tokenization of SQL
+  char_table_count      INTEGER  := Char_Table.COUNT;
 
-  Start_Pos   INTEGER;
-  End_pos     INTEGER;
-  Test_Pos    INTEGER;
-  l_text      CLOB;
-  l_match     VARCHAR2(4000);
-  full_match  VARCHAR2(4000);
-  l_json      VARCHAR2(4000);
-  l_count     INTEGER;
-  l_stmts     INTEGER;
+  Start_Pos             INTEGER;
+  End_pos               INTEGER;
+  Test_Pos              INTEGER;
+  l_text                CLOB;
+  l_match               VARCHAR2(4000);
+  full_match            VARCHAR2(4000);
+  l_json                VARCHAR2(4000);
+  Plan_Line_ID_Access   INTEGER;
+  Plan_Line_ID_Filter   INTEGER;
+  Access_Text           VARCHAR2(4000);
+  Filter_Text           VARCHAR2(4000);
+  Search_Text          VARCHAR2(4000);       -- The text searched in access or filter criteria
 
   FUNCTION JSON_Esc(p_In VARCHAR2) RETURN VARCHAR2 IS
   BEGIN
-    RETURN REPLACE(p_In, '\"', '\\\\\"');
+    RETURN REPLACE(p_In, '\"', '\\\"');
   END JSON_Esc;
 
-  PROCEDURE Log(p_In VARCHAR2) IS
-  BEGIN
-    DBMS_OUTPUT.PUT_LINE(TO_CHAR(SYSTIMESTAMP, 'HH24:MI:SS.FF3')||' - ' ||p_In);
-  END;
-
 BEGIN
-  DBMS_OUTPUT.ENABLE(1000000);
   FOR p_Rec IN (SELECT Owner, Package_Name, Function_Name, Compare_Name
                 FROM   (
                         SELECT Owner, NULL Package_Name, Object_Name Function_Name, Deterministic, Object_Name Compare_Name
@@ -279,7 +277,6 @@ BEGIN
     proc_table(p_Rec.Owner||'.'||p_Rec.Compare_Name) := Proc_RT(p_Rec.Owner, p_Rec.Package_Name, p_Rec.Function_Name);
   END LOOP;
 
-  l_stmts := 0;
   FOR t_Rec IN (SELECT Instance_Number, SQL_ID, Parsing_Schema_Name, SQL_Text, Elapsed_Secs
                 FROM   (
                         SELECT Instance_Number, SQL_ID, Parsing_Schema_Name,
@@ -295,22 +292,19 @@ BEGIN
                                 FROM   (SELECT st.Instance_Number, st.SQL_ID, st.Parsing_Schema_Name, SUM(st.Elapsed_Time_Delta)/1000000 Elapsed_Secs
                                         FROM   DBA_Hist_SQLStat st
                                         JOIN   DBA_Hist_Snapshot ss ON ss.DBID = st.DBID AND ss.Snap_ID = st.Snap_ID AND ss.Instance_Number = st.Instance_Number
-                                        WHERE  ss.Begin_Interval_Time > SYSDATE - ?
+                                        WHERE  ss.Begin_Interval_Time > SYSDATE - ? /* The number of days back in time to consider */
                                         GROUP BY st.Instance_Number, st.SQL_ID, st.Parsing_Schema_Name
                                        ) h
                                 JOIN   DBA_Hist_SQLText t ON t.SQL_ID = h.SQL_ID
                                )
-                        WHERE Elapsed_Secs > ?
+                        WHERE Elapsed_Secs > ? /* The minimum runtime to be considered in query */
                        )
                 WHERE  RN = 1 /* Select one occurrence of SQL text per SQL-ID only */
                 AND    SQL_Text NOT LIKE 'BEGIN%' /* No command_type in DBA_Hist_SQLStat to filter PL/SQL */
                 AND    SQL_Text NOT LIKE 'DECLARE%'
                ) LOOP
-    l_stmts := l_stmts + 1;
     Start_Pos := 1;
     l_text := t_Rec.SQL_Text;
-    l_Count := 0;
-    -- Log('Start '||t_Rec.SQL_ID);
     LOOP
       -- Look for the next delimiter
       End_pos := 0; -- start value
@@ -327,11 +321,10 @@ BEGIN
         ELSE
           l_match := SUBSTR(l_text, Start_Pos); -- The rest of the string
         END IF;
-        l_Count := l_Count + 1;
-        -- DBMS_OUTPUT.PUT_LINE(l_match);
 
         IF proc_Table.EXISTS(l_match) -- Either owner and function name or only function name match
         THEN
+          proc_rec := proc_Table(l_match);      -- For reuse of values
           -- Get the following parameter for matching function call
           -- Check if parameters follow immediately (after end_pos are only spaces up to an opening parenthesis)
           full_match := l_match; -- Default if no parameter list follows
@@ -344,16 +337,45 @@ BEGIN
             END IF;
           END IF;
 
+          -- Get the plan line id and content if used in access or filter predicates
+          -- Take into account that the owner of the object is not stored in access or filter criterias if same as executor
+          Search_Text := '%'||CASE WHEN proc_rec.Package_Name IS NULL THEN '' ELSE proc_rec.Package_Name||'.' END||proc_rec.Function_Name||'%';
+
+          SELECT MIN(ID), MIN(Access_Predicates) KEEP (DENSE_RANK FIRST ORDER BY ID) INTO Plan_Line_ID_Access, Access_Text
+          FROM   gv$SQL_PLan
+          WHERE  SQL_ID = t_Rec.SQL_ID AND REPLACE(UPPER(Access_Predicates), '\"', '') LIKE Search_Text
+          ;
+          IF Plan_Line_ID_Access IS NULL THEN
+            SELECT MIN(ID), MIN(Access_Predicates) KEEP (DENSE_RANK FIRST ORDER BY ID) INTO Plan_Line_ID_Access, Access_Text
+            FROM   DBA_Hist_SQL_PLan
+            WHERE  SQL_ID = t_Rec.SQL_ID AND REPLACE(UPPER(Access_Predicates), '\"', '') LIKE Search_Text
+            ;
+          END IF;
+
+          SELECT MIN(ID), MIN(Filter_Predicates) KEEP (DENSE_RANK FIRST ORDER BY ID) INTO Plan_Line_ID_Filter, Filter_Text
+          FROM   gv$SQL_PLan
+          WHERE  SQL_ID = t_Rec.SQL_ID AND REPLACE(UPPER(Filter_Predicates), '\"', '') LIKE Search_Text
+          ;
+          IF Plan_Line_ID_Filter IS NULL THEN
+            SELECT MIN(ID), MIN(Filter_Predicates) KEEP (DENSE_RANK FIRST ORDER BY ID) INTO Plan_Line_ID_Filter, Filter_Text
+            FROM   DBA_Hist_SQL_PLan
+            WHERE  SQL_ID = t_Rec.SQL_ID AND REPLACE(UPPER(Filter_Predicates), '\"', '') LIKE Search_Text
+            ;
+          END IF;
 
           l_json := '{' ||
-                    '\"Instance\": '               || t_Rec.Instance_Number              || ', '   ||
-                    '\"SQL-ID\": \"'               || JSON_Esc(t_Rec.SQL_ID)             || '\", ' ||
-                    '\"Parsing Schema Name\": \"'  || t_Rec.Parsing_Schema_Name          || '\", ' ||
-                    '\"Elapsed Secs\": '           || ROUND(t_Rec.Elapsed_Secs)          || ', '   ||
-                    '\"Owner\": \"'                || proc_Table(l_match).Owner          || '\", ' ||
-                    '\"Package Name\": \"'         || proc_Table(l_match).Package_Name   || '\", ' ||
-                    '\"Function Name\": \"'        || proc_Table(l_match).Function_Name  || '\", ' ||
-                    '\"Match in SQL\": \"'         || JSON_Esc(full_match)               || '\" '  ||
+                    '\"Instance\": '               || t_Rec.Instance_Number         || ', '   ||
+                    '\"SQL-ID\": \"'               || JSON_Esc(t_Rec.SQL_ID)        || '\", ' ||
+                    '\"Parsing Schema Name\": \"'  || t_Rec.Parsing_Schema_Name     || '\", ' ||
+                    '\"Elapsed Secs\": '           || ROUND(t_Rec.Elapsed_Secs)     || ', '   ||
+                    '\"Owner\": \"'                || proc_rec.Owner                || '\", ' ||
+                    '\"Package Name\": \"'         || proc_rec.Package_Name         || '\", ' ||
+                    '\"Function Name\": \"'        || proc_rec.Function_Name        || '\", ' ||
+                    '\"Match in SQL\": \"'         || JSON_Esc(full_match)          || '\", ' ||
+                    '\"Plan Line ID Access\": '    || CASE WHEN Plan_Line_ID_Access IS NULL THEN 'null' ELSE TO_CHAR(Plan_Line_ID_Access) END || ', '   ||
+                    '\"Access Predicates\": \"'    || JSON_Esc(Access_Text)         || '\", ' ||
+                    '\"Plan Line ID Filter\": '    || CASE WHEN Plan_Line_ID_Filter IS NULL THEN 'null' ELSE TO_CHAR(Plan_Line_ID_Filter) END           || ', '   ||
+                    '\"Filter Predicates\": \"'    || JSON_Esc(Filter_Text)         || '\" ' ||
                     '}';
           DBMS_OUTPUT.PUT_LINE(l_json);
         END IF;
@@ -366,9 +388,7 @@ BEGIN
       EXIT WHEN End_Pos = 0;
       Start_Pos := End_Pos + 1;
     END LOOP;
-    -- Log('End '||t_Rec.SQL_ID||'    '||l_Count||' words');
   END LOOP;
-  -- Log(l_stmts||' Statements');
 END;
            ",
           :parameter=>[

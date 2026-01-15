@@ -1113,7 +1113,7 @@ class PanoramaConnection
     elsif bind.is_a?(Date) || bind.is_a?(Time) || bind.is_a?(DateTime)
       statement.set_date(index, java.sql.Date.value_of(bind))
     else
-      raise ArgumentError, "Unsupported java_type for Ruby class: #{bind.class}"
+      raise ArgumentError, "PanoramaConnection.bind_java_input_parameter: Unsupported java_type for Ruby class: #{bind.class}"
     end
   end
 
