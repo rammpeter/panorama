@@ -45,6 +45,9 @@ class PackLicense
   end
 
   # Filter SQL string or array for unlicensed Table Access
+  # @param sql [Array|String] the statement to check
+  # @param management_pack_license [Symbol] one of the four values
+  # @return [String] The transformed SQL if no license exception has been raised
   def self.filter_sql_for_pack_license(sql, management_pack_license: PanoramaConnection.management_pack_license)
     case sql.class.name
       when 'Array' then

@@ -689,25 +689,25 @@ class PanoramaConnection
 
   def self.sql_execute(sql, query_name = 'sql_execute')
     # raise 'binds are not yet supported for sql_execute' if sql.class != String
-    transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for license violation and possible statement transformation
     stmt, binds = sql_prepare_binds(transformed_sql)   # Transform SQL and split SQL and binds
     sql_execute_native(sql: stmt, binds: binds, query_name: query_name)
   end
 
   # Execute with direct AR binds
+  # Without query_timeout because long lasting ASH sampling is executed with this method
   def self.sql_execute_native(sql:, binds:, query_name: 'sql_execute_native')
     check_for_open_connection                                                   # ensure opened Oracle-connection
-    # Without query_timeout because long lasting ASH sampling is executed with this method
-    thread_connection.register_sql_execution(sql)
+    transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for license violation and possible statement transformation
+    thread_connection.register_sql_execution(transformed_sql)
     begin
-      get_connection.exec_update(sql, query_name, binds)
+      get_connection.exec_update(transformed_sql, query_name, binds)
     rescue Exception => e
       if e.message['ORA-10632']
-        Rails.logger.error('PanoramaConnection.sql_execute_native') { "#{e.class}:#{e.message}! Retrying execution of SQL\n#{sql}" }
+        Rails.logger.error('PanoramaConnection.sql_execute_native') { "#{e.class}:#{e.message}! Retrying execution of SQL\n#{transformed_sql}" }
         sleep(10)
         # reexecute the SQL in case of ORA-10632: invalid rowid
         # this can happen at CREATE TABLE with ENABLE ROW MOVEMENT, especially for 19.10 SE2
-        get_connection.exec_update(sql, query_name, binds)
+        get_connection.exec_update(transformed_sql, query_name, binds)
       else
         raise
       end
@@ -722,9 +722,8 @@ class PanoramaConnection
       end
     end
 
-
     # Ensure stacktrace of first exception is show
-    msg = "Error while executing SQL:\n#{PanoramaConnection.get_nested_exception_message(e)}\nSQL-Statement:\n#{sql}\n#{bind_text.length > 0 ? "Bind-Values:\n#{bind_text}" : ''}"
+    msg = "Error while executing SQL:\n#{PanoramaConnection.get_nested_exception_message(e)}\nSQL-Statement:\n#{transformed_sql}\n#{bind_text.length > 0 ? "Bind-Values:\n#{bind_text}" : ''}"
     new_ex = Exception.new(msg)
     new_ex.set_backtrace(e.backtrace)
     raise new_ex
@@ -772,12 +771,12 @@ class PanoramaConnection
   #   one bind as a Hash "{ java_type: "STRING", value: "some_value" }"
   # @return [Array] the DBMS_OUTPUT result as array of strings
   def self.exec_plsql_with_dbms_output_result(code, binds)
-    thread_connection.register_sql_execution(code)
+    transformed_code = PackLicense.filter_sql_for_pack_license(code)  # Check for license violation and possible statement transformation
+    thread_connection.register_sql_execution(transformed_code)
 
     self.sql_execute("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")
 
-
-    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(code)
+    cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(transformed_code)
 
     binds.each_with_index do |bind, index|
       self.bind_java_input_parameter(cs, index + 1, bind)
@@ -804,7 +803,7 @@ class PanoramaConnection
     self.sql_execute("BEGIN DBMS_OUTPUT.DISABLE; END;")
     result
   rescue Exception => e
-    Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred at execution of:\n#{code}" }
+    Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred at execution of:\n#{transformed_code}" }
     raise e
   ensure
     cs&.close if defined? cs
