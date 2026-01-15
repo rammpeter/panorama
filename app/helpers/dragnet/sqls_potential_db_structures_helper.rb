@@ -262,6 +262,7 @@ This selection shows the relevance of access on chained rows compared to total a
                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }
             ]
         },
+        # TODO: Use PanoramaConnection.exec_plsql_with_dbms_output_result for execution
         {
             :name  => t(:dragnet_helper_69_name, :default=>'Detection of chained rows of tables'),
             :desc  => t(:dragnet_helper_69_desc, :default=>'chained rows causes additional read of migrated rows in separate DB-blocks while accessing a record which is not completely contained in current block.

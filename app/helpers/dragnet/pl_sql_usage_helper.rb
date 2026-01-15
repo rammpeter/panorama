@@ -374,7 +374,7 @@ BEGIN
                     '\"Match in SQL\": \"'         || JSON_Esc(full_match)          || '\", ' ||
                     '\"Plan Line ID Access\": '    || CASE WHEN Plan_Line_ID_Access IS NULL THEN 'null' ELSE TO_CHAR(Plan_Line_ID_Access) END || ', '   ||
                     '\"Access Predicates\": \"'    || JSON_Esc(Access_Text)         || '\", ' ||
-                    '\"Plan Line ID Filter\": '    || CASE WHEN Plan_Line_ID_Filter IS NULL THEN 'null' ELSE TO_CHAR(Plan_Line_ID_Filter) END           || ', '   ||
+                    '\"Plan Line ID Filter\": '    || CASE WHEN Plan_Line_ID_Filter IS NULL THEN 'null' ELSE TO_CHAR(Plan_Line_ID_Filter) END || ', '   ||
                     '\"Filter Predicates\": \"'    || JSON_Esc(Filter_Text)         || '\" ' ||
                     '}';
           DBMS_OUTPUT.PUT_LINE(l_json);
