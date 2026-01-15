@@ -689,7 +689,7 @@ class PanoramaConnection
 
   def self.sql_execute(sql, query_name = 'sql_execute')
     # raise 'binds are not yet supported for sql_execute' if sql.class != String
-    stmt, binds = sql_prepare_binds(transformed_sql)   # Transform SQL and split SQL and binds
+    stmt, binds = sql_prepare_binds(sql)   # Transform SQL and split SQL and binds
     sql_execute_native(sql: stmt, binds: binds, query_name: query_name)
   end
 
