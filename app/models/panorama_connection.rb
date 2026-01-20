@@ -771,6 +771,7 @@ class PanoramaConnection
   #   one bind as a Hash "{ java_type: "STRING", value: "some_value" }"
   # @return [Array] the DBMS_OUTPUT result as array of strings
   def self.exec_plsql_with_dbms_output_result(code, binds)
+    raise "PanoramaConnection.exec_plsql_with_dbms_output_result not supported for DB rel. < 19" if db_version < '19'
     transformed_code = PackLicense.filter_sql_for_pack_license(code)  # Check for license violation and possible statement transformation
     thread_connection.register_sql_execution(transformed_code)
 
