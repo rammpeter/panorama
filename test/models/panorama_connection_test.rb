@@ -76,7 +76,7 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
 
   test "exec_plsql_with_dbms_output_result" do
     assert_nothing_raised do
-      if get_db_version >= '19'
+      if PanoramaConnection.db_version >= '19'
         binds = ['HUGO', 'WALTER', 'FRANZ', 'SANDRO']
         result = PanoramaConnection.exec_plsql_with_dbms_output_result(
           "BEGIN DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); DBMS_OUTPUT.PUT_LINE(?); END;",
