@@ -765,7 +765,7 @@ class PanoramaConnection
     thread_connection&.unregister_sql_execution
   end
 
-  # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT
+  # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT, valid for rel. 19 ++
   # @param code [String] the PL/SQL code to execute, e.g. "BEGIN DBMS_OUTPUT.PUT_LINE(?); END;"
   # @param binds [Array] the parameters to bind to the function call
   #   one bind as a Hash "{ java_type: "STRING", value: "some_value" }"
