@@ -2647,4 +2647,73 @@ END;
     render_partial
   end
 
+  def show_cpu_count_history_graph
+    instance    = prepare_param_instance
+    update_area = prepare_param :update_area
+    xstart_ms   = prepare_param_int :xstart_ms
+    xend_ms     = prepare_param_int :xend_ms
+
+    caption = "CPU count at the end of AWR snapshots for"
+    caption << " instance=#{instance} and"
+    where_string = String.new
+    where_values = []
+
+    if xstart_ms && xstart_ms                                                   # Second call with range
+      start_time = localeDateTime(Time.at(xstart_ms/1000).utc)
+      end_time   = localeDateTime(Time.at(xend_ms/1000).utc)
+      where_string << " AND ss.End_Interval_Time BETWEEN TO_TIMESTAMP(?, '#{sql_datetime_mask(start_time)}') AND TO_TIMESTAMP(?, '#{sql_datetime_mask(end_time)}') "
+      where_values << start_time
+      where_values << end_time
+      caption << " #{start_time} .. #{end_time}"
+    else
+      caption << " the whole AWR retention time"
+    end
+    caption << "<br/>Select a time period in graph for details."
+
+    unique_id           = get_unique_area_id
+    next_update_area_id = get_unique_area_id
+
+    data = sql_select_iterator ["\
+      SELECT ss.End_Interval_Time, o.Value
+      FROM   DBA_Hist_OSStat o
+      JOIN   DBA_Hist_Snapshot ss ON ss.DBID = o.DBID AND ss.Instance_Number = o.Instance_Number AND ss.Snap_ID = o.Snap_ID
+      WHERE  o.DBID         = (SELECT DBID FROM v$Database)
+      AND    o.Stat_Name = 'NUM_CPUS'
+      AND    o.Instance_Number = ?
+      #{where_string}
+      ORDER BY ss.End_Interval_Time", instance].concat(where_values)
+
+    plotselected_handler = "(xstart_ms,xend_ms)=>{
+    let json_data            = { instance: #{instance} };
+    json_data['xstart_ms']   = xstart_ms;
+    json_data['xend_ms']     = xend_ms;
+    json_data['update_area'] = '#{next_update_area_id}';
+
+    ajax_html('#{next_update_area_id}', 'dba_history', 'show_cpu_count_history_graph', json_data);
+    }"
+
+    output = String.new
+    output << "(function(){"
+    output << "let data_array = [{ label: 'CPU count', data: ["
+    data.each do |d|
+      output << "[#{milliSec1970(d.end_interval_time)}, #{d.value}],"
+    end
+    output << " ] } ];"
+
+    output << "let options = {
+plot_diagram: {locale: '#{get_locale}'},
+selection: {mode: 'x', color: 'gray', shape: 'bevel', minSize: 4},
+plotselected_handler: #{plotselected_handler}
+};"
+    output << "plot_diagram('#{unique_id}', '#{update_area}', '#{caption}', data_array, options);"
+    output << "jQuery('##{update_area}').append('<div id=\"#{next_update_area_id}\"></div>');"
+    output << "})();"
+
+    respond_to do |format|
+      format.js {render :js => output }
+    end
+
+  end
+
 end #DbaHistoryController
+

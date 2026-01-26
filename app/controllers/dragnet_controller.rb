@@ -239,7 +239,18 @@ class DragnetController < ApplicationController
     string_array = PanoramaConnection.exec_plsql_with_dbms_output_result(sql, binds)
     result = []
     string_array.each do |line|
-      result << JSON.parse(line)
+      begin
+        # The JSON object should be in one line without line feed between the JSON elements
+        result << JSON.parse(
+          line
+            .gsub("\n", '\n')
+            .gsub("\t", '\t')
+            .gsub("\r", '')
+        )
+      rescue JSON::ParserError => e
+        Rails.logger.error('DragnetController.select_from_dbms_output') { "#{e.class} : #{e.message}\n#{line}" }
+        raise
+      end
     end
     result
   end

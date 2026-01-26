@@ -101,6 +101,17 @@
         retval
       end
 
+      link_cpu_count = proc do |rec|
+        ajax_link(fn(rec.cpu_count),
+                  {controller:  :dba_history,
+                   action:      :show_cpu_count_history_graph,
+                   instance:    rec.inst_id,
+                   update_area: @update_area,
+                  },
+                  title: "Show history of CPU count for instance #{rec.inst_id}"
+        )
+      end
+
       link_services = proc do |rec|
         ajax_link(fn(rec.service_count),
                   {action:      :list_services,
@@ -132,7 +143,7 @@
           {:caption=>"Character-set", :data=>proc{|rec| rec.nls_characterset },               :title=>"Character set of database", :data_title=>proc{|rec| "%t: NChar_Character_Set=#{rec.nls_nchar_characterset}"}},
           {:caption=>"Cp.",           :data=>show_compatible,                                 :title=>"Optimizer compatible mode of instance (from #{PanoramaConnection.system_parameter_table[1..-1]})", data_title: data_title_compatible},
           {:caption=>"Instance role", :data=>proc{|rec| rec["instance_role"] },               :title=>"Instance role for data guard"},
-          {:caption=>"CPU cnt.",      :data=>proc{|rec| rec.cpu_count },                      :title=>"Number of CPUs counted for instance (from #{PanoramaConnection.system_parameter_table})", data_title: cpu_count_data_title, align: :right},
+          {:caption=>"CPU cnt.",      :data=>link_cpu_count,                                  :title=>"Number of CPUs counted for instance (from #{PanoramaConnection.system_parameter_table})", data_title: cpu_count_data_title, align: :right},
           {:caption=>"Phys. memory (GB)", :data=>proc{|rec| fn(rec.phys_mem_gb, 3) },         :title=>"Physical server memory in Gigabyte (from gv$OSStat)", data_title: phys_mem_data_title, align: :right},
           {:caption=>"Resource manager plan", :data=>proc{|rec| rec.resource_manager_plan },  :title=>"Resource manager plan that is currently active.\nEmpty if resource manager is deactivated."},
           {:caption=>"Srv.",          :data=>link_services,                                   :title=>"Number of TNS services for this instance\n(from gv$Services)", :align=>:right},
