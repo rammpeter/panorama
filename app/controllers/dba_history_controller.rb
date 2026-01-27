@@ -2653,7 +2653,9 @@ END;
     xstart_ms   = prepare_param_int :xstart_ms
     xend_ms     = prepare_param_int :xend_ms
 
-    caption = "CPU count at the end of AWR snapshots for"
+    db_info = sql_select_first_row "SELECT Name, DBID FROM v$Database"
+
+    caption = "DB &#39;#{db_info.name}&#39;: CPU count at the end of AWR snapshots for"
     caption << " instance=#{instance} and"
     where_string = String.new
     where_values = []
@@ -2677,11 +2679,11 @@ END;
       SELECT ss.End_Interval_Time, o.Value
       FROM   DBA_Hist_OSStat o
       JOIN   DBA_Hist_Snapshot ss ON ss.DBID = o.DBID AND ss.Instance_Number = o.Instance_Number AND ss.Snap_ID = o.Snap_ID
-      WHERE  o.DBID         = (SELECT DBID FROM v$Database)
+      WHERE  o.DBID         = ?
       AND    o.Stat_Name = 'NUM_CPUS'
       AND    o.Instance_Number = ?
       #{where_string}
-      ORDER BY ss.End_Interval_Time", instance].concat(where_values)
+      ORDER BY ss.End_Interval_Time", db_info.dbid, instance].concat(where_values)
 
     plotselected_handler = "(xstart_ms,xend_ms)=>{
     let json_data            = { instance: #{instance} };
