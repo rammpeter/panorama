@@ -181,11 +181,9 @@ class AdditionController < ApplicationController
       end
     end
 
-
-
     # JavaScript-Array aufbauen mit Daten
     output = String.new
-    output << "jQuery(function($){"
+    output << "(function(){"
     output << "var data_array = ["
     headers.each do |key, value|
       output << "  { label: '#{key}',"
@@ -198,16 +196,16 @@ class AdditionController < ApplicationController
     end
     output << "];"
 
-    diagram_caption = "Top 10 objects in DB cache between #{@time_selection_start} and #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
+    diagram_caption = "Top 10 objects in DB cache (by total no. of blocks) between #{@time_selection_start} and #{@time_selection_end} #{"Instance=#{@instance}" if @instance}"
 
     unique_id = get_unique_area_id
     plot_area_id = "plot_area_#{unique_id}"
     output << "plot_diagram('#{unique_id}', '#{plot_area_id}', '#{diagram_caption}', data_array, {plot_diagram: {locale: '#{get_locale}'}, yaxis: { min: 0 } });"
-    output << "});"
+    output << "})();"
 
     html="
       <div id='#{plot_area_id}'></div>
-      <script type='test/javascript'>
+      <script type='text/javascript'>
         #{ output}
       </script>
       ".html_safe
