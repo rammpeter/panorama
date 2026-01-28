@@ -29,15 +29,15 @@ Bundler.require(*Rails.groups)
 
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.19.8'
-  RELEASE_DATE = Date.parse('2026-01-22')
+  VERSION = '2.19.8'                                  if !defined? Panorama::VERSION
+  RELEASE_DATE = Date.parse('2026-01-22')       if !defined? Panorama::RELEASE_DATE
 
-  RELEASE_DAY   = "%02d" % RELEASE_DATE.day
-  RELEASE_MONTH = "%02d" % RELEASE_DATE.month
-  RELEASE_YEAR  = "%04d" % RELEASE_DATE.year
+  RELEASE_DAY   = "%02d" % RELEASE_DATE.day           if !defined? Panorama::RELEASE_DAY
+  RELEASE_MONTH = "%02d" % RELEASE_DATE.month         if !defined? Panorama::RELEASE_MONTH
+  RELEASE_YEAR  = "%04d" % RELEASE_DATE.year          if !defined? Panorama::RELEASE_YEAR
 
   # How long should a client browser session be kept alive after the last request?
-  MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST = 8.hours
+  MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST = 8.hours   if !defined? Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST
 
   class Application < Rails::Application
 
