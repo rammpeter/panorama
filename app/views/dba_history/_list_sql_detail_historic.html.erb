@@ -173,8 +173,9 @@ Hash-value over total optimizer environment + Number of different optimizer envi
         :parsing_schema_name  => @parsing_schema_name,
         min_snap_id:          @sql.min_snap_id,
         max_snap_id:          @sql.max_snap_id,
-        :time_selection_start => localeDateTime(@sql.first_occurrence),         # show ASH for the whole AWR snapshot instead of requested period which may be only one second (@time_selection_start)
-        :time_selection_end   => localeDateTime(@sql.last_occurrence),          # show ASH for the whole AWR snapshot instead of requested period which may be only one second (@time_selection_end)
+        # show ASH for the whole AWR snapshot instead of requested period which may be only one second (@time_selection_start)
+        :time_selection_start => @sql.first_occurrence.nil? ? @time_selection_start : localeDateTime(@sql.first_occurrence),
+        :time_selection_end   => @sql.last_occurrence.nil?  ? @time_selection_end   : localeDateTime(@sql.last_occurrence),
     }, :title => "Show execution plan(s) in given time period")
     %>
   </div>
