@@ -2,7 +2,7 @@
 # Peter Ramm, 28.12.2016
 
 # Usage:
-# Build image:                    > docker build -t rammpeter/panorama .
+# Build image:                    > docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t rammpeter/panorama .
 # Create container from image:    > docker run --name panorama -p 8080:8080 -d rammpeter/panorama
 
 # create container with tnsnames.ora from host and timezone set
@@ -39,7 +39,7 @@ COPY ${BACKEND_SRC_PATH} .
 
 # Not nneded because done again st last stage
 # RUN  microdnf update
-RUN  microdnf install wget tar gzip curl bash tzdata git
+RUN  microdnf install wget tar gzip curl bash tzdata git make gcc
 # RUN  microdnf install wget tar gzip curl bash tzdata make clang git
 RUN  echo "### install jruby" && \
      (cd /opt && wget https://repo1.maven.org/maven2/org/jruby/jruby-dist/$JRUBY_VERSION/jruby-dist-$JRUBY_VERSION-bin.tar.gz) && \
