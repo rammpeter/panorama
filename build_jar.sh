@@ -21,7 +21,11 @@ then
   #### Configure all for rake asssets:precompile
   # Restore the original Gemfile.lock content for rake execution
   bundle config unset without
-  bundle install --jobs 4
+  # Force bundle install to work serially: Possible needed Gems are not available in parallel streams like
+  # ruby-maven,
+  # Possible alternative: manual installation before parallel bundle install
+  # bundle install --jobs 4
+  bundle install --jobs 4 || echo "############# parallel bundle install failed ! Trying serial" && bundle install
   echo "Compile assets"
   bundle exec rake assets:precompile
   if [ $? -ne 0 ]
