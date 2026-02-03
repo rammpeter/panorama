@@ -47,7 +47,7 @@ bundle install --jobs 4
 export RAILS_ENV=production
 
 
-# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.2.gem
+# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.4.gem
 gem install jarbler
 
 
