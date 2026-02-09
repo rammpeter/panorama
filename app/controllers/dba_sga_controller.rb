@@ -1683,15 +1683,20 @@ class DbaSgaController < ApplicationController
   end
 
   def list_plan_baseline_dbms_xplan
-    baselines = sql_select_all ["SELECT Plan_Table_Output FROM TABLE(DBMS_XPLAN.display_sql_plan_baseline(?, ?))", params[:sql_handle], params[:plan_name]]
-    baseline = String.new
+    @sql_handle = prepare_param :sql_handle
+    @plan_name  = prepare_param :plan_name
+
+    baselines = sql_select_all ["SELECT Plan_Table_Output FROM TABLE(DBMS_XPLAN.display_sql_plan_baseline(?, ?))", @sql_handle, @plan_name]
+    @baseline = String.new
     baselines.each do |b|
-      baseline << my_html_escape(b.plan_table_output)
-      baseline << "<br/>"
+      @baseline << my_html_escape(b.plan_table_output)
+      @baseline << "<br/>"
     end
-    respond_to do |format|
-      format.html {render :html => "<pre class='yellow-panel' style='white-space: pre-wrap;'>#{baseline}</pre>".html_safe }
-    end
+
+    render_partial
+    #respond_to do |format|
+    #      format.html {render :html => "<pre class='yellow-panel' style='white-space: pre-wrap;'>#{baseline}</pre>".html_safe }
+    #end
   end
 
   def list_sql_plan_baseline_sqltext

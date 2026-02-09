@@ -1,0 +1,4 @@
+<%= render_page_caption("DBMS_XPLAN.display_sql_plan_baseline for handle = '#{@sql_handle}', plan name = '#{@plan_name}'") %>
+
+
+<pre class='yellow-panel' style='white-space: pre-wrap;'><%= @baseline.html_safe %></pre>
