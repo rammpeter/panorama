@@ -539,19 +539,25 @@ AND    pxs.SID IS NULL
         {
             :name  => t(:dragnet_helper_145_name, :default=>'Possibly missing guaranty of uniqueness by unique index or unique / primary key constraint'),
             :desc  => t(:dragnet_helper_145_desc, :default=>"If an implicit expectation for uniqueness of a column exists, then this should be safeguarded by an unique index or unique constraint.
-This list shows all all columns with unique values at the time of last analysis if neither unique index nor unique constraint exists for this column.
+This list shows all all columns used as access or filter predicates with unique values at the time of last analysis if neither unique index nor unique constraint exists for this column.
             "),
             :sql=>  "
-WITH Constraints  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Table_Name, Constraint_Type FROM DBA_Constraints WHERE Constraint_Type IN ('P', 'U')),
-     Indexes      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name FROM DBA_Indexes WHERE Uniqueness = 'UNIQUE'),
-     Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Column_name FROM DBA_Cons_Columns WHERE Position = 1),
-     Ind_Columns  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Column_name FROM DBA_Ind_Columns WHERE Column_Position = 1)
-SELECT tc.Owner, tc.Table_Name, tc.Column_Name, t.Num_Rows, tc.Num_Distinct, tc.Num_Nulls, tc.Num_Distinct+tc.Num_Nulls Distinct_and_Nulls
-FROM   DBA_Tab_Columns tc
-JOIN   DBA_All_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+WITH Constraints  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Table_Name, Constraint_Type FROM DBA_Constraints WHERE Constraint_Type IN ('P', 'U') AND Owner NOT IN (#{system_schema_subselect})),
+     Indexes      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name FROM DBA_Indexes WHERE Uniqueness = 'UNIQUE' AND Owner NOT IN (#{system_schema_subselect})),
+     Cons_Columns AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Column_name FROM DBA_Cons_Columns WHERE Position = 1 AND Owner NOT IN (#{system_schema_subselect})),
+     Ind_Columns  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Index_Owner, Index_Name, Column_name FROM DBA_Ind_Columns WHERE Column_Position = 1 AND Index_Owner NOT IN (#{system_schema_subselect})),
+     Tab_Columns  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Column_Name, Column_ID, Num_Distinct, Num_Nulls FROM DBA_Tab_Columns WHERE Owner NOT IN (#{system_schema_subselect})),
+     All_Tables   AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name, Num_Rows FROM DBA_All_Tables WHERE Owner NOT IN (#{system_schema_subselect})),
+     Objects      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Object_Name, Object_ID FROM DBA_Objects WHERE Object_Type = 'TABLE' AND Owner NOT IN (#{system_schema_subselect})),
+     Col_Usage    AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM sys.Col_Usage$ WHERE (equality_preds + equijoin_preds + nonequijoin_preds + range_preds + like_preds +null_preds) > 0)
+SELECT tc.Owner, tc.Table_Name, tc.Column_Name, t.Num_Rows, tc.Num_Distinct, tc.Num_Nulls, tc.Num_Distinct+tc.Num_Nulls Distinct_and_Nulls,
+       cu.Equality_Preds, cu.equijoin_preds, cu.nonequijoin_preds, cu.range_preds, cu.like_preds, cu.null_preds
+FROM   Tab_Columns tc
+JOIN   All_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+JOIN   Objects o    ON o.Owner = t.Owner AND o.Object_Name = t.Table_Name
+JOIN   Col_Usage cu ON cu.Obj# = o.Object_ID AND cu.IntCol# = tc.Column_ID
 WHERE  tc.Num_Distinct + tc.Num_Nulls >= t.Num_Rows
 AND    tc.Num_Distinct > 1
-AND    tc.Owner NOT IN (#{system_schema_subselect})
 AND    (tc.Owner, tc.Table_Name, tc.Column_Name) NOT IN (
             SELECT i.Table_Owner, i.Table_Name, ic.Column_Name
             FROM   Ind_Columns ic

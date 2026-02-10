@@ -1547,7 +1547,7 @@
 
   dragnet_helper_145_desc: |-
     Wenn implizit eine Erwartung auf Eindeutigkeit einer Spalte besteht, sollte diese auch per Unique Index bzw. Unique Constraint abgesichert werden.
-    Es werden alle im Datenzustand zum Zeitpunkt der letzten Analyse eindeutigen Spalten angelistet, für die weder Unique Index noch Unique Constraint oder Primary Key Konstraint existieren.
+    Es werden alle im Datenzustand zum Zeitpunkt der letzten Analyse eindeutigen Spalten angelistet, die als Filter- oder Zugriffsprädikat verwendet werden und für die weder Unique Index noch Unique Constraint oder Primary Key Konstraint existieren.
   dragnet_helper_145_name: |-
     Evtl. fehlende Absicherung von Eindeutigkeiten per Unique Index bzw. Unique / Primary Key Constraint
 

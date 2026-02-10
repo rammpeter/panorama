@@ -72,7 +72,7 @@ class ApplicationController < ActionController::Base
     # Ausschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
     if (controller_name == 'env' && ['index', 'get_tnsnames_content', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name)) ||
-      (controller_name == 'usage' && ['info', 'detail_sum', 'single_record', 'ip_info', 'connection_pool', 'client_info_store_sizes', 'client_info_detail', 'browser_tab_ids'].include?(action_name)) ||
+      (controller_name == 'admin' && ['show_usage_history', 'usage_detail_sum', 'usage_single_record', 'ip_info', 'connection_pool', 'client_info_store_sizes', 'client_info_detail', 'browser_tab_ids'].include?(action_name)) ||
       (controller_name == 'panorama_sampler' && ['monitor_sampler_status'].include?(action_name))
       return
     end
