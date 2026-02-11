@@ -427,7 +427,10 @@
   dba_sga_list_sql_detail_execution_plan_cu_title:          Durchschn. Anzahl Buffer gets in current mode (meist für Insert/Update/Delete) der Operation je Ausführung des SQL, kumulativ inlusive aller untergeordneten Operationen
   dba_sga_list_sql_detail_execution_plan_disk_reads_title:  Durchsch. Anzahl physische Disk-Reads der Operation je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_disk_writes_title: Durchsch. Anzahl physische Disk-Writes der Operation je Ausführung des SQL
-  dba_sga_list_sql_detail_execution_plan_elapsed_title:     Durchschn. Dauer der Operation in ms je Ausführung des SQL
+  dba_sga_list_sql_detail_execution_plan_elapsed_title: |    
+    Durchschn. Dauer der Operation in ms je Ausführung des SQL
+    einschliesslich der Dauer der untergeordneten Zeilen
+  dba_sga_list_sql_detail_execution_plan_elapsed_per_line_title: Durchschn. Dauer der Operation in ms der einzelnen Plan-Zeile je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_rows_title:        Durchschn. Anzahl produzierte Rows der Operation je Ausführung des SQL
   dba_sga_list_sql_detail_execution_plan_starts_title:      Durchschnittliche Anzahl Starts der Operation je Ausführung des SQL
 

@@ -40,6 +40,26 @@ module ExplainPlanHelper
     end
   end
 
+  # Strip the calculated time down to single plan line
+  # @param [Array] plan_array The list of plan lines
+  def calculate_elapsed_time_per_plan_line(plan_array)
+    if plan_array.length > 0 && plan_array[0]['elapsed_time']
+      times = {}
+      plan_array.each do |p|                                                    # get the sum of children's elapsed time
+        times[p.parent_id] = 0 unless times.has_key?(p.parent_id)
+        times[p.parent_id] += p.elapsed_time                                    # children's time to substract from line's elapsed time
+      end
+      plan_array.each do |p|
+        if times.has_key?(p.id)
+          p['elapsed_time_per_line'] = p.elapsed_time - times[p.id]
+          p['elapsed_time_per_line'] = 0 if p['elapsed_time_per_line'] < 0      # fix rounding issues
+        else
+          p['elapsed_time_per_line'] = p.elapsed_time
+        end
+      end
+    end
+  end
+
   # @param plan_lines Array with plan lines
   # @param display_map_records XML structure of display maps in array records
   # @return plan line ids to process and show

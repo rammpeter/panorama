@@ -20,29 +20,31 @@
     sql_starts = mp[:plans][0].starts if mp[:plans][0] && mp[:plans][0].starts && mp[:plans][0].starts > 0
 
     @min_sample_time     = nil
-    if @include_ash_in_sql
-      @sum_io_requests = 0
-      @sum_interconnect_io_bytes = 0
-      @sum_cpu_seconds = 0                             # Anzahl der Samples
-      @sum_waiting_seconds = 0                         # Anzahl der Samples
-      @sum_db_time_seconds = 0
-      @use_starts, @use_output_rows, @use_cr_buffer_gets, @use_cu_buffer_gets, @use_disk_reads, @use_disk_writes, @use_elapsed_times = nil
+    @sum_io_requests = 0
+    @sum_interconnect_io_bytes = 0
+    @sum_cpu_seconds = 0                             # Anzahl der Samples
+    @sum_waiting_seconds = 0                         # Anzahl der Samples
+    @sum_db_time_seconds = 0
+    @sum_elapsed_time_per_line = 0
+    @use_starts, @use_output_rows, @use_cr_buffer_gets, @use_cu_buffer_gets, @use_disk_reads, @use_disk_writes, @use_elapsed_times = nil
 
-      mp[:plans].each do |p|
-        @sum_io_requests           += p.io_requests             if p.io_requests
-        @sum_interconnect_io_bytes += p.interconnect_io_bytes   if p.interconnect_io_bytes
-        @sum_cpu_seconds           += p.cpu_seconds             if p.cpu_seconds
-        @sum_waiting_seconds       += p.waiting_seconds         if p.waiting_seconds
-        @sum_db_time_seconds       += p.db_time_seconds         if p.db_time_seconds
-        @min_sample_time           =  p.min_sample_time         if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time  # Kleinste Aufzeichnung eines Samples
-        @use_starts                = p.starts                  if p.starts
-        @use_output_rows           = p.output_rows             if p.output_rows
-        @use_cr_buffer_gets        = p.cr_buffer_gets          if p.cr_buffer_gets
-        @use_cu_buffer_gets        = p.cu_buffer_gets          if p.cu_buffer_gets
-        @use_disk_reads            = p.disk_reads              if p.disk_reads
-        @use_disk_writes           = p.disk_writes             if p.disk_writes
-        @use_elapsed_times         = p.elapsed_time            if p.elapsed_time
+    mp[:plans].each do |p|
+      if @include_ash_in_sql
+        @sum_io_requests           += p.io_requests           if p.io_requests
+        @sum_interconect_io_bytes += p.interconnect_io_bytes  if p.interconnect_io_bytes
+        @sum_cpu_seconds           += p.cpu_seconds           if p.cpu_seconds
+        @sum_waiting_seconds       += p.waiting_seconds       if p.waiting_seconds
+        @sum_db_time_seconds       += p.db_time_seconds       if p.db_time_seconds
+        @min_sample_time           =  p.min_sample_time       if @min_sample_time.nil? || p.min_sample_time && p.min_sample_time < @min_sample_time # Kleinste Aufzeichnung eines Samples
       end
+      @use_starts                = p.starts                 if p.starts
+      @use_output_rows           = p.output_rows            if p.output_rows
+      @use_cr_buffer_gets        = p.cr_buffer_gets         if p.cr_buffer_gets
+      @use_cu_buffer_gets        = p.cu_buffer_gets         if p.cu_buffer_gets
+      @use_disk_reads            = p.disk_reads             if p.disk_reads
+      @use_disk_writes           = p.disk_writes            if p.disk_writes
+      @use_elapsed_times         = p.elapsed_time           if p.elapsed_time
+      @sum_elapsed_time_per_line += p['elapsed_time_per_line'] if p['elapsed_time_per_line']
     end
 
     analyzed_spec_title = proc do |rec|
@@ -169,8 +171,8 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     end
 
 
-    stat_val = proc do |value, scale|
-      fn(value.to_f/sql_starts, scale, true) if value
+    stat_val = proc do |value, scale, suppress_0_value = true|
+      fn(value.to_f/sql_starts, scale, suppress_0_value) if value
     end
 
     column_options = []
@@ -207,7 +209,8 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     column_options << {:caption=>"CU",          :data=>proc{|rec| stat_val.call(rec.cu_buffer_gets, 0) }, :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.cu_buffer_gets, 2)}\nTotal = #{fn(rec.cu_buffer_gets) }\nLast = #{fn(rec.last_cu_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cu_title, :default=>'Avg, number of buffer gets in current mode (mostly for insert/update/delete) for operation per execution of SQL, cumulative incl. all subordinated operations') } if @use_cu_buffer_gets
     column_options << {:caption=>"Disk R",      :data=>proc{|rec| stat_val.call(rec.disk_reads, 0) },     :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.disk_reads, 2)    }\nTotal = #{fn(rec.disk_reads)     }\nLast = #{fn(rec.last_disk_reads)}" },          :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_reads_title, :default=>'Avg. number of physical disk reads for operation per execution of SQL') } if @use_disk_reads
     column_options << {:caption=>"Disk W",      :data=>proc{|rec| stat_val.call(rec.disk_writes, 0) },    :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.disk_writes, 2)   }\nTotal = #{fn(rec.disk_writes)    }\nLast = #{fn(rec.last_disk_writes)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_writes_title, :default=>'Avg. number of physical disk writes for operation per execution of SQL')  } if @use_disk_writes
-    column_options << {:caption=>"Ela.",        :data=>proc{|rec| stat_val.call(rec.elapsed_time, 3) },   :align=>:right, :data_title=>proc{|rec| "%t: Total=#{fn(rec.elapsed_time,3) } ms, Last=#{fn(rec.last_elapsed_time,3)} ms" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_title, :default=>'Avg. runtime of operation in ms per execution of SQL') } if @use_elapsed_times
+    column_options << {caption: "Ela. per line",:data=>proc{|rec| stat_val.call(rec.elapsed_time_per_line, 3, true) },   :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.elapsed_time_per_line, 6, false)} ms\n#{fn(rec.elapsed_time_per_line*100.0/@sum_elapsed_time_per_line, 2) rescue nil} % of the sum of this column for all lines" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_per_line_title, :default=>'Avg. runtime of operation in ms for this plan line per execution of SQL'), show_pct_col_sum_background: true } if @use_elapsed_times
+    column_options << {:caption=>"Ela. total",  :data=>proc{|rec| stat_val.call(rec.elapsed_time, 3) },   :align=>:right, :data_title=>proc{|rec| "%t:\nValue = #{stat_val.call(rec.elapsed_time, 6) } ms\nTotal = #{fn(rec.elapsed_time,3) } ms\nLast = #{fn(rec.last_elapsed_time,3)} ms" },:title=>t(:dba_sga_list_sql_detail_execution_plan_elapsed_title, :default=>"Avg. runtime of operation in ms per execution of SQL\nincluding the elapsed time of the children lines") } if @use_elapsed_times
 
      column_options.each do |c|
        c[:data_style] = proc do|rec|

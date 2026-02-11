@@ -505,6 +505,7 @@ class DbaSgaController < ApplicationController
                                                    show_adaptive_plans:    @show_adaptive_plans
       )
       calculate_execution_order_in_plan(mp[:plans])                             # Calc. execution order by parent relationship
+      calculate_elapsed_time_per_plan_line(mp[:plans])                          # Strip the calculated time down to single plan line
       hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 

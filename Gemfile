@@ -62,7 +62,6 @@ gem 'rexml'
 # gem 'jar-dependencies', '0.5.4' # Fix: You have already activated jar-dependencies 0.5.4, but your Gemfile requires jar-dependencies 0.5.5.
 # gem 'psych', '5.2.3'
 # gem 'io-console', '0.8.0'
-# gem 'date', '3.4.1'
 
 group :development do
   # Ensure that the whole rails is installed in development environment, but not used in dev exec., especially to call "rails server"
@@ -78,6 +77,10 @@ group :development do
 
   # Needed to build executable lock_jars for jar-dependencies
   gem 'ruby-maven', '~> 3.9'
+
+  # For dev use the same version as in default system gems, to prevent at debug: Uncaught exception: You have already activated date 3.4.1, but your Gemfile requires date 3.5.1.
+  gem 'date', '3.4.1'
+
 
   # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
   #gem 'date'
