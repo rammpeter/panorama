@@ -511,8 +511,8 @@ function rsa_encrypt(secret, public_key_pem){
     // Convert the PEM-formatted public key to a Forge public key object
     const publicKey = forge.pki.publicKeyFromPem(public_key_pem);
 
-    // Encrypt the message using 'RSAES-PKCS1-V1_5' which should also be the default and is corrsponding with OpenSSL::PKey::RSA::PKCS1_PADDING in Ruby
-    const encrypted = publicKey.encrypt(secret, 'RSAES-PKCS1-V1_5');
+    // Encrypt the message using 'RSAES-OAEP' which should also be the default and is corrsponding with OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING in Ruby
+    const encrypted = publicKey.encrypt(secret, 'RSAES-OAEP');
 
     // Convert the encrypted message to a Base64 string
     return forge.util.encode64(encrypted);
