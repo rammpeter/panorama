@@ -146,13 +146,13 @@ class AdditionControllerTest < ActionDispatch::IntegrationTest
           assert_response :success
         end
 
-        ['Segment_Type', 'Tablespace_Name', 'Owner'].each do |gruppierung_tag|
+        [:Segment_Type, :Tablespace_Name, :Owner].each do |gruppierung_tag|
           post '/addition/list_object_increase',  :params => { :format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                                                :tablespace=>{"name"=>tablespace}, "schema"=>{"name"=>schema}, :gruppierung=>{"tag"=>gruppierung_tag}, timeline: 1, :update_area=>:hugo }
+                                                                tablespace: {name: tablespace}, schema: {name: schema}, gruppierung: {tag: gruppierung_tag}, timeline: 1, :update_area=>:hugo }
           assert_response :success
 
           post '/addition/list_object_increase_objects_per_time',  :params => { :format=>:html, gather_date: @gather_date, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end,
-                                                                Tablespace_Name: tablespace, Owner: schema, gruppierung_tag => 'Hugo', timeline: 1, :update_area=>:hugo }
+                                                                Tablespace_Name: tablespace, Owner: schema, gruppierung_tag: 'Hugo', timeline: 1, :update_area=>:hugo }
           assert_response :success
         end
       end

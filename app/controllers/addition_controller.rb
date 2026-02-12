@@ -617,6 +617,10 @@ class AdditionController < ApplicationController
     @update_area = get_unique_area_id
     groupby = params[:gruppierung][:tag]
 
+    additional_link_attribute = {}
+    additional_link_attribute[:Tablespace_Name] =  @tablespace_name if @tablespace_name
+    additional_link_attribute[:Owner]           = @schema_name      if @schema_name
+
     sql_groupby = groupby
     sql_groupby = compact_object_type_sql_case(groupby) if groupby == 'Segment_Type'
 
@@ -665,28 +669,25 @@ class AdditionController < ApplicationController
     end
 
     link_mbytes = proc do |rec, key, value|
+
       ajax_link(fn(value, 2), {
           action:               :list_object_increase_objects_per_time,
           gather_date:          localeDateTime(rec[:gather_date]),
-          groupby =>            key,                                            # filter criteria for column
-          Tablespace_Name:      @tablespace_name,                               # optional filter criteria from previous dialog
-          Owner:                @schema_name,                                   # optional filter criteria from previous dialog
+          groupby.to_sym =>     key,                                            # filter criteria for column
           time_selection_start: @time_selection_start,
           time_selection_end:   @time_selection_end,
           update_area:          @update_area
-      }, :title=>"Show objects of this column for gather date and selection criteria")
+      }.merge(additional_link_attribute), :title=>"Show objects of this column for gather date and selection criteria")
     end
 
     link_total_mbytes = proc do |rec|
       ajax_link(fn(rec[:total], 2), {
           action:               :list_object_increase_objects_per_time,
           gather_date:          localeDateTime(rec[:gather_date]),
-          Tablespace_Name:      @tablespace_name,                               # optional filter criteria from previous dialog
-          Owner:                @schema_name,                                   # optional filter criteria from previous dialog
           time_selection_start: @time_selection_start,
           time_selection_end:   @time_selection_end,
           update_area:          @update_area
-      }, :title=>"Show all objects for gather date and selection criteria")
+      }.merge(additional_link_attribute), :title=>"Show all objects for gather date and selection criteria")
     end
 
 
