@@ -31,7 +31,7 @@
     mp[:plans].each do |p|
       if @include_ash_in_sql
         @sum_io_requests           += p.io_requests           if p.io_requests
-        @sum_interconect_io_bytes += p.interconnect_io_bytes  if p.interconnect_io_bytes
+        @sum_interconnect_io_bytes += p.interconnect_io_bytes if p.interconnect_io_bytes
         @sum_cpu_seconds           += p.cpu_seconds           if p.cpu_seconds
         @sum_waiting_seconds       += p.waiting_seconds       if p.waiting_seconds
         @sum_db_time_seconds       += p.db_time_seconds       if p.db_time_seconds
