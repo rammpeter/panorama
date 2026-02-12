@@ -45,7 +45,7 @@ class Encryption
   # @return [String] the encrypted password
   def encrypt_browser_password_internal(native_password)
     public_key = OpenSSL::PKey::RSA.new(@ssh_public_key)
-    encrypted_data = public_key.public_encrypt(native_password, OpenSSL::PKey::RSA::PKCS1_PADDING)
+    encrypted_data = public_key.public_encrypt(native_password, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
     Base64.strict_encode64(encrypted_data)
   end
 
