@@ -56,8 +56,8 @@ class Encryption
     raise "Encryption.decrypt_browser_password_internal: no encrypted password given" unless encrypted_password
     native = Base64.strict_decode64(encrypted_password)
     private_key = OpenSSL::PKey::RSA.new(@ssh_private_key)
-    # Use the default OpenSSL::PKey::RSA::PKCS1_PADDING which is corresponding with 'RSAES-PKCS1-V1_5' in forge.encrypt
-    private_key.private_decrypt(native, OpenSSL::PKey::RSA::PKCS1_PADDING)
+    # Use the default OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING which is corresponding with 'RSAES-OAEP' in forge.encrypt
+    private_key.private_decrypt(native, OpenSSL::PKey::RSA::PKCS1_OAEP_PADDING)
   end
 
   private
