@@ -140,6 +140,7 @@ jobs:
           docker rm -f panorama-ci-test
 
       - name: Final push Docker image
+        if: github.ref_name == 'master'
         run: |
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
@@ -219,6 +220,7 @@ jobs:
           ruby test/test_panorama_jar.rb
 
   deploy_jar:
+    if: github.ref_name == 'master'
     permissions:
       contents: write # Allow creation of releaes and upload assets
     runs-on: self-hosted
