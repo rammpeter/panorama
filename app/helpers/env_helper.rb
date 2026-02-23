@@ -200,7 +200,8 @@ module EnvHelper
     tnsnames
   rescue Exception => e
     Rails.logger.error('EnvHelper.read_tnsnames_internal') { "Error processing #{file_name}: #{e.message}" }
-    tnsnames
+    ExceptionHelper.log_exception_backtrace(e)
+    tnsnames                                                                    # return the already processed entries before the error
   end
 
   def check_awr_for_time_drift
