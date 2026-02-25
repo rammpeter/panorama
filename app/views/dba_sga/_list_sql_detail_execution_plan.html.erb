@@ -161,10 +161,12 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
 
     cardinality_data_style = proc do |rec|
       retval = ""
-      unless rec.output_rows.nil? || rec.cardinality.nil?
-        real_rows_per_exec = rec.output_rows.to_f/sql_starts
-        real_rows_per_exec = 1 if real_rows_per_exec < 1                        # Simulate the same behaviour like it is for estimated cardinality (avoid vaule 0)
-        factor = real_rows_per_exec / rec.cardinality
+      unless rec.output_rows.nil? || rec.cardinality.nil? || rec.starts.nil? || rec.starts == 0
+        real_rows_per_start = rec.output_rows.to_f/rec.starts
+        # puts "#{rec.id} output_rows = #{rec.output_rows} sql_starts = #{sql_starts} starts = #{rec.starts} real = #{real_rows_per_exec}"
+        real_rows_per_start = 1 if real_rows_per_start < 1                        # Simulate the same behaviour like it is for estimated cardinality (avoid vaule 0)
+        factor = real_rows_per_start.to_f / rec.cardinality
+        # puts "#{rec.id} #{factor}"
         retval = "background-color: orange;" if factor < 0.1 || factor > 10
       end
       retval
@@ -204,7 +206,7 @@ Last specification change = #{localeDateTime(rec.last_spec_ts)}"
     column_options << {:caption=>'PGA max.',    :data=>proc{|rec| fn(rec.max_pga_ash_mb) },                     :title=>'Maximum amount of PGA in MB allocated by one session (incl. PQ-server) during execution of this plan line (from ASH)', data_title: memory_title, :align=>:right }  if @include_ash_in_sql
     column_options << {:caption=>"Proj.",       :data=>proc{|rec| expand_compare_spaces(rec.projection) },       :title=>"Projection: table- and index-columns gotten by this operation", :max_wrap_width=>80, :style=>"word-wrap: break-word;", :data_title=>proc{|rec| "%t:\n#{expand_compare_spaces(rec.projection) }"} } if explain_plan_col_setting['Projection']
     column_options << {:caption=>"Starts",      :data=>proc{|rec| stat_val.call(rec.starts, 0) },         :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.starts, 2)        }\nTotal = #{fn(rec.starts)         }\nLast = #{fn(rec.last_starts)}" },              :title=>t(:dba_sga_list_sql_detail_execution_plan_starts_title, :default=>'Avg. number of operation starts per execution of SQL') } if @use_starts
-    column_options << {:caption=>"Rows",        :data=>proc{|rec| stat_val.call(rec.output_rows, 0) },    :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.output_rows, 2)   }\nTotal = #{fn(rec.output_rows)    }\nLast = #{fn(rec.last_output_rows)}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_rows_title, :default=>'Avg. number of rows for operation per execution of SQL') } if @use_output_rows
+    column_options << {:caption=>"Rows",        :data=>proc{|rec| stat_val.call(rec.output_rows, 0) },    :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.output_rows, 2)   }\nTotal = #{fn(rec.output_rows)    }\nLast = #{fn(rec.last_output_rows)}\nRows per start = #{fn(rec.output_rows.to_f/rec.starts, 1) rescue nil}" },         :title=>t(:dba_sga_list_sql_detail_execution_plan_rows_title, :default=>'Avg. number of rows for operation per execution of SQL') } if @use_output_rows
     column_options << {:caption=>"CR",          :data=>proc{|rec| stat_val.call(rec.cr_buffer_gets, 0) }, :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.cr_buffer_gets, 2)}\nTotal = #{fn(rec.cr_buffer_gets) }\nLast = #{fn(rec.last_cr_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cr_title, :default=>'Avg, number of buffer gets in consistent mode (mostly for query) for operation per execution of SQL, cumulative incl. all subordinated operations') } if @use_cr_buffer_gets
     column_options << {:caption=>"CU",          :data=>proc{|rec| stat_val.call(rec.cu_buffer_gets, 0) }, :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.cu_buffer_gets, 2)}\nTotal = #{fn(rec.cu_buffer_gets) }\nLast = #{fn(rec.last_cu_buffer_gets)}" },      :title=>t(:dba_sga_list_sql_detail_execution_plan_cu_title, :default=>'Avg, number of buffer gets in current mode (mostly for insert/update/delete) for operation per execution of SQL, cumulative incl. all subordinated operations') } if @use_cu_buffer_gets
     column_options << {:caption=>"Disk R",      :data=>proc{|rec| stat_val.call(rec.disk_reads, 0) },     :align=>:right, :data_title=>proc{|rec| "%t\nValue = #{stat_val.call(rec.disk_reads, 2)    }\nTotal = #{fn(rec.disk_reads)     }\nLast = #{fn(rec.last_disk_reads)}" },          :title=>t(:dba_sga_list_sql_detail_execution_plan_disk_reads_title, :default=>'Avg. number of physical disk reads for operation per execution of SQL') } if @use_disk_reads
