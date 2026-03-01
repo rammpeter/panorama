@@ -925,9 +925,10 @@ class PanoramaConnection
 
           if @@connection_pool.count >= Panorama::Application.config.max_connection_pool_size
             if retry_count < 5
-              Rails.logger.info('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Maximum number of active concurrent database sessions for Panorama reached (#{Panorama::Application.config.max_connection_pool_size})!\nWaiting one second until retry." }
+              sleep_secs = [2 ** retry_count * 0.2, 10].min                      # Exponential backoff: 0.2, 0.4, 0.8, 1.6, 3.2 seconds, capped at 10
+              Rails.logger.info('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Maximum number of active concurrent database sessions for Panorama reached (#{Panorama::Application.config.max_connection_pool_size})!\nWaiting #{sleep_secs} seconds until retry." }
               retry_count += 1
-              sleep 1
+              sleep sleep_secs
             else
               Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Maximum number of active concurrent database sessions for Panorama reached (#{Panorama::Application.config.max_connection_pool_size})!" }
               dump_connection_pool_to_log
