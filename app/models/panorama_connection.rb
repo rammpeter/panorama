@@ -515,7 +515,6 @@ class PanoramaConnection
   def self.db_current_time;                 Time.now + check_for_open_connection.time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection.stat_id_consistent_gets;           end
   def self.table_directory_entry_size;      check_for_open_connection.table_directory_entry_size;        end
-  def self.table_directory_entry_size;      check_for_open_connection.table_directory_entry_size;        end
   def self.transaction_fixed_header_size;   check_for_open_connection.transaction_fixed_header_size;     end
   def self.transaction_variable_header_size;check_for_open_connection.transaction_variable_header_size;  end
   def self.unsigned_byte_4_size;            check_for_open_connection.unsigned_byte_4_size;              end
@@ -1012,7 +1011,7 @@ class PanoramaConnection
 
   def self.get_decrypted_password
     decrypted_password = Encryption.decrypt_value(get_threadlocal_config[:password], get_threadlocal_config[:client_salt])
-    raise "PanoramaConenction.get_decrypted_password: Result = nil after decryption" if decrypted_password.nil?
+    raise "PanoramaConnection.get_decrypted_password: Result = nil after decryption" if decrypted_password.nil?
     decrypted_password
   rescue Exception => e
     output = "Stack-Trace for #{e.class}:#{e.message}\n"
