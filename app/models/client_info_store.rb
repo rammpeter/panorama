@@ -47,7 +47,7 @@ class ClientInfoStore
   def self.write_to_browser_tab_client_info_store(client_key, browser_tab_id, values)
     browser_tab_ids = self.read_for_client_key(client_key,:browser_tab_ids)             # read full tree with all browser-tab-specific connections
     if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
-      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids.keys}"}
+      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids&.keys}"}
       raise "No session state available at Panorama-Server! Please reload the browser page."
     end
     values.each do |key, value|

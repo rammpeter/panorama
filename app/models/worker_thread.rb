@@ -197,7 +197,7 @@ class WorkerThread
       rescue Exception => x
         Rails.logger.error('WorkerThread.create_snapshot_internal') { "#{x.class} in exception handler for ID=#{@sampler_config.get_id} (#{@sampler_config.get_name}) and domain=#{domain}\n#{x.message}" }
         ExceptionHelper.log_exception_backtrace(x, 40)
-        @sampler_config.set_error_message("Error #{e.message} during WorkerThread.create_snapshot_internal for domain=#{domain}")
+        @sampler_config.set_error_message("Error #{x.message} during WorkerThread.create_snapshot_internal for domain=#{domain}")
         PanoramaConnection.destroy_connection                                   # Ensure this connection with errors will not be reused
         raise x
       end

@@ -41,8 +41,7 @@ class UsageInfo
         file.rewind
         file.truncate(0)
 
-        temp_file = File.open(temp_filename, 'r')
-        begin
+        File.open(temp_filename, 'r') do |temp_file|
           min_age = DateTime.now - 180
           while true
             line = temp_file.readline
@@ -54,7 +53,7 @@ class UsageInfo
             end
           end
         rescue EOFError
-          temp_file.close
+          # expected end of file, block close ensures temp_file is always closed
         end
       end
     else
