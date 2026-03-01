@@ -57,7 +57,7 @@ class ApplicationController < ActionController::Base
 
     begin
       I18n.locale = get_locale(default: 'en')                                   # fuer laufende Action Sprache aktivieren
-    rescue
+    rescue StandardError
       I18n.locale = 'en'                                                        # wenn Problem bei Lesen des Cookies auftreten, dann Default verwenden
     end
 
