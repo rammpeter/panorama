@@ -458,7 +458,7 @@ class PanoramaConnection
   def self.disconnect_aged_connections(min_age_for_disconnect_idle)
     @@connection_pool_mutex.synchronize do
       @@connection_pool.clone.each do |conn|                                    # clone to ensure eqch connection is checked even if Array-nodes are removed between
-        config = conn.jdbc_connection.instance_variable_get(:@config)
+        config = conn.get_config_from_jdbc_connection
         if !conn.used_in_thread && conn.last_used_time < Time.now - min_age_for_disconnect_idle
           Rails.logger.info "Disconnect DB connection because last used is older than #{min_age_for_disconnect_idle} seconds: URL='#{config[:url]}' user='#{config[:username]}' last used=#{conn.last_used_time} last action='#{conn.last_used_action_name}' SID=#{conn.sid}"
           destroy_connection_in_mutexed_pool(conn)
@@ -525,7 +525,7 @@ class PanoramaConnection
 
   # should be called from within synchronized mutex
   def self.destroy_connection_in_mutexed_pool(destroy_conn)
-    config = destroy_conn.jdbc_connection.instance_variable_get(:@config)
+    config = destroy_conn.get_config_from_jdbc_connection
     thread = Thread.new{PanoramaConnection.destroy_jdbc_connection_in_thread(destroy_conn, config)}  # Schedule disconnect of connection in separate thread because it may block
     thread.name = 'PanoramaConnection.destroy_jdbc_connection_in_thread'
     @@connection_pool.delete(destroy_conn)
@@ -899,7 +899,7 @@ class PanoramaConnection
     @@connection_pool_mutex.synchronize do
       # Check if there is a free connection in pool
       @@connection_pool.each do |conn|                                          # Iterate over connections in pool
-        connection_config = conn.jdbc_connection.instance_variable_get(:@config)  # Active JDBC connection config
+        connection_config = conn.get_config_from_jdbc_connection                   # Active JDBC connection config
         if retval.nil? &&                                                       # Searched connection, not already in use
             !conn.used_in_thread &&
             connection_config[:url] == jdbc_thin_url &&
@@ -1081,7 +1081,7 @@ class PanoramaConnection
     pos = 0
     Rails.logger.info "Connection pool contains #{@@connection_pool.count} entries:"
     @@connection_pool.each do |conn|
-      config = conn.jdbc_connection.instance_variable_get(:@config)
+      config = conn.get_config_from_jdbc_connection
       Rails.logger.info "#{pos}: URL = '#{config[:url]}' User = '#{config[:username]}' Last used = '#{conn.last_used_time}' Used in thread = #{conn.used_in_thread}"
       pos += 1
     end
