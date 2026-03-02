@@ -44,3 +44,6 @@ test/ansible/test.yml
 vendor/.DS_Store
 vendor/assets/.DS_Store
 vendor/assets/javascripts/.DS_Store
+/hs_err_*.log
+/hugo
+/db/schema.rb
