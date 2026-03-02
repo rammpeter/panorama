@@ -9,7 +9,7 @@
           {:caption=>'Job name',                        :data=>proc{|rec| rec.job_name},                            :title=>'Name of the maintenance job'},
           {:caption=>'Job status',                      :data=>proc{|rec| rec.job_status},                          :title=>'Status of the maintenance job'},
           {:caption=>'Job start time',                  :data=>proc{|rec| localeDateTime(rec.job_start_time)},      :title=>'Start time of the maintenance job'},
-          {:caption=>'Job duration',                    :data=>proc{|rec| fn(rec.job_duration_secs)},               :title=>'Duration of the maintenance job (seconds)', :align=>:right},
+          {:caption=>'Job duration',                    :data=>proc{|rec| fn(rec.job_duration_secs)},               :title=>'Duration of the maintenance job (seconds)', data_title: proc{|rec| "%t\n#{seconds_explain(rec.job_duration_secs)}"}, :align=>:right},
           {:caption=>'Job error',                       :data=>proc{|rec| rec.job_error},                           :title=>'Error code for the job (if any)'},
           {:caption=>'Job info',                        :data=>proc{|rec| rec.job_info},                            :title=>'Additional information about the job'},
       ]

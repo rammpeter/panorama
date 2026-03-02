@@ -3,7 +3,7 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
-      "fingerprint": "1da17f75fe40e939b644ce0abe3861777382e022587984751b01b92d5055cfe2",
+      "fingerprint": "26d4b0d6da6c1ef403693bc1d9dd7c0f182c5cd8510bccf4b364e16d9400b64e",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/helpers/exception_helper.rb",
@@ -14,14 +14,14 @@
       "location": {
         "type": "method",
         "class": "ExceptionHelper",
-        "method": "s(:self).gb_value_for_linux"
+        "method": "self.gb_value_for_linux"
       },
       "user_input": "key",
       "confidence": "Medium",
       "cwe_id": [
         77
       ],
-      "note": ""
+      "note": "key is a hardcoded developer constant (e.g. 'MemTotal'), never user input"
     },
     {
       "warning_type": "Mass Assignment",
@@ -141,7 +141,7 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
-      "fingerprint": "8e8063661496b55f21a3702e27fbbf55b747b3f1dd6af01ed981bba733c07cc9",
+      "fingerprint": "7b60801dac94e3a3fd85d89a57a1159a0bd56c715d38964807c399075122ad44",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/helpers/exception_helper.rb",
@@ -152,14 +152,79 @@
       "location": {
         "type": "method",
         "class": "ExceptionHelper",
-        "method": "s(:self).gb_value_for_darwin"
+        "method": "self.gb_value_for_darwin"
       },
       "user_input": "key_darwin",
       "confidence": "Medium",
       "cwe_id": [
         77
       ],
-      "note": ""
+      "note": "key_darwin is a hardcoded developer constant (e.g. 'vm.swapusage'), never user input"
+    },
+    {
+      "warning_type": "Dangerous Eval",
+      "warning_code": 13,
+      "fingerprint": "73d9fb08c7c204b43b2ed398c29769c92891facdcd5f0ab786145131ae5f2e6a",
+      "check_name": "Evaluation",
+      "message": "Dynamic code evaluation",
+      "file": "app/helpers/slickgrid_helper.rb",
+      "line": 45,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_eval/",
+      "code": "eval(input)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "SlickgridHelper",
+        "method": "eval_with_rec"
+      },
+      "user_input": null,
+      "confidence": "Weak",
+      "cwe_id": [
+        913,
+        95
+      ],
+      "note": "input is always a developer-written column definition string from ERB column_options; no user data flows into this eval"
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "7fd487616fa21c86efeef2350a44e515e4af54475fb6e968bb80ed8ae306eaca",
+      "check_name": "MassAssignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
+      "file": "app/views/dba_schema/_show_audit_rules.html.erb",
+      "line": 117,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "dba_schema/_show_audit_rules"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": "params forwarded to render_async sub-request for navigation only, not used for DB writes"
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 121,
+      "fingerprint": "edf687f759ec9765bd5db185dbc615c80af77d6e7e19386fc42934e7a80307af",
+      "check_name": "EOLRuby",
+      "message": "Support for Ruby 0.0.3 ended on 2015-02-23",
+      "file": ".ruby-version",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        1104
+      ],
+      "note": "False positive: brakeman misparses 'jruby-10.0.3.0' as Ruby '0.0.3'. Actual runtime is JRuby 10.0.3.0 (current)"
     },
     {
       "warning_type": "Mass Assignment",
@@ -185,6 +250,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-02-22 12:18:13 +0100",
-  "brakeman_version": "6.1.2"
+  "updated": "2026-03-02 09:04:25 +0100",
+  "brakeman_version": "8.0.2"
 }
