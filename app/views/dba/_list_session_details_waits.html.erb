@@ -86,7 +86,7 @@
   column_options =
   [
     {:caption=>"Wait Event",       :data=>show_event,                                         :title=>"Wait event", :data_title=>show_event_data_title},
-    {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(@instance, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{@instance}_#{@sid}") }, :title=>param_title},
+    {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(@instance, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{@instance}_#{@sid}", @update_area) }, :title=>param_title},
     {:caption=>"Wait Class",       :data=>show_class,                                         :title=>"Wait class", data_title: show_class_data_title},
     {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
     {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
@@ -120,7 +120,7 @@
       {:caption=>"Req",              :data=>proc{|rec| rec.req_degree},                         :title=>"Requested PQ-degree", :align=>:right},
       {:caption=>"Dgr",              :data=>proc{|rec| rec.degree},                             :title=>"Real PQ-degree", :align=>:right},
       {:caption=>"Wait Event",       :data=>show_event,                                         :title=>"Wait event", :data_title=>show_event_data_title },
-      {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw,  rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.inst_id}_#{rec.sid}") }, :title=>param_title},
+      {:caption=>"Parameter",        :data=>proc{|rec| link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw,  rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.inst_id}_#{rec.sid}", @update_area) }, :title=>param_title},
       {:caption=>"Wait Class",       :data=>show_class,                                         :title=>"Wait class", data_title: show_class_data_title},
       {:caption=>"Wait time (ms)",   :data=>proc{|rec| fn(rec.wait_time_ms)},                   :title=>"Milliseconds in current wait event", data_title: proc{|rec| "%t\n#{seconds_explain(rec.wait_time_ms.to_f/1000)}"}, :align=>:right},
       {:caption=>"State",            :data=>proc{|rec| rec.state},                              :title=>"Status", :data_title=>proc{|rec| explain_wait_state(rec.state)}},
