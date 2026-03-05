@@ -6,7 +6,7 @@
   end
 
   def list_sql_text(rec)
-    ajax_link(rec.sql_text.html_safe,
+    ajax_link(rec.sql_text,
                             {:controller   => :dba_sga,
                              :action       => :list_sql_translation_sql_text,
                              :owner        => rec.owner,

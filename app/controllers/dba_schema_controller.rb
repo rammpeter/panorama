@@ -3240,8 +3240,8 @@ class DbaSchemaController < ApplicationController
   end
 
   def list_object_nach_file_und_block
-    @object = object_nach_file_und_block(params[:fileno], params[:blockno])
-    #@object = "[Kein Object gefunden für Parameter FileNo=#{params[:fileno]}, BlockNo=#{params[:blockno]}]" unless @object
+    @file   = prepare_param :fileno
+    @block = prepare_param :blockno
     render_partial
   end
 

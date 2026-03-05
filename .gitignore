@@ -47,3 +47,5 @@ vendor/assets/javascripts/.DS_Store
 /hs_err_*.log
 /hugo
 /db/schema.rb
+/config/master.key
+/config/credentials.yml.enc

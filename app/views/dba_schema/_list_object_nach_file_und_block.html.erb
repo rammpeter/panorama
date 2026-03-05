@@ -1,6 +1,5 @@
+<% update_area = get_unique_area_id %>
 <br>
-<% if @object %>
-<%= @object %>
-<% else %>
-<%= 'nothing found' %>
-<% end %>
+<%= object_nach_file_und_block(update_area, @file, @block).html_safe %>
+
+<div id = "<%= update_area %>"></div>
