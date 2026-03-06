@@ -73,7 +73,7 @@ module DbaHelper
       end
     end
 
-    result = nil if result.empty?
+    return nil if result.empty?
     result.html_safe
   end
 
