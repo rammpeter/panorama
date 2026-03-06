@@ -307,7 +307,6 @@ class ActiveSessionHistoryController < ApplicationController
     render_partial :list_session_statistic_historic_single_record
   end # list_session_statistic_historic_single_record
 
-
   # Generische Funktion zum Anlisten der verdichteten Einzel-Records eines Gruppierungskriteriums nach GroupBy
   def list_session_statistic_historic_grouping
     window_width = prepare_param_int :window_width
