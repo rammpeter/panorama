@@ -1,5 +1,12 @@
 <% update_area = get_unique_area_id %>
 <br>
-<%= object_nach_file_und_block(update_area, @file, @block).html_safe %>
+<%=
+  result = object_nach_file_und_block(update_area, @file, @block)
+  if result.nil?
+    "No data found for file #{@file} and block #{@block}"
+  else
+    result.html_safe
+  end
+%>
 
 <div id = "<%= update_area %>"></div>
