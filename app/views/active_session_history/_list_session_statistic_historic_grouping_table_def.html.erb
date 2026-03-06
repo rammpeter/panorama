@@ -283,9 +283,9 @@
                               }
     end
 
-    create_context_menu_entry(60, context_menu_entries, command_menu_entries, 'cuis-chart-area')
-    create_context_menu_entry(10, context_menu_entries, command_menu_entries, 'cui-chart-area')
-    create_context_menu_entry(1, context_menu_entries, command_menu_entries,  'cui-chart-line')
+    create_context_menu_entry(@group_seconds[:coarse], context_menu_entries, command_menu_entries, 'cuis-chart-area')
+    create_context_menu_entry(@group_seconds[:medium], context_menu_entries, command_menu_entries, 'cui-chart-area')
+    create_context_menu_entry(@group_seconds[:fine],   context_menu_entries, command_menu_entries,  'cui-chart-line')
 
 
     gen_slickgrid(@sessions,
@@ -319,8 +319,8 @@
 
 %>
 
-<%= @link_timeline.call(60) %>
-<%= @link_timeline.call(10) %>
-<%= @link_timeline.call( 1) %>
+<%= @link_timeline.call(@group_seconds[:coarse]) %>
+<%= @link_timeline.call(@group_seconds[:medium]) %>
+<%= @link_timeline.call(@group_seconds[:fine]) %>
 
 

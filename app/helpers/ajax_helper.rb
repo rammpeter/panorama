@@ -144,8 +144,9 @@ module AjaxHelper
     html_options['data-type'.to_sym] = html_options['data-type'.to_sym].to_sym         # Use content as Symbol, not String
     html_options[:onsubmit] = "bind_ajax_html_response(jQuery(this), '#{url[:update_area]}');#{html_options[:onsubmit]}"
 
-    url[:controller] = controller_name unless url[:controller]
+    url[:controller]     = controller_name unless url[:controller]
     url[:browser_tab_id] = @browser_tab_id                                      # Unique identifier for browser tab
+    url[:window_width]   = prepare_param_int :window_width                      # Use from previous request
 
     raise 'ajax_form: key=:controller missing in parameter url'   unless url[:controller]
     raise 'ajax_form: key=:action missing in parameter url'       unless url[:action]
