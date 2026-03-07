@@ -323,7 +323,7 @@ class ActiveSessionHistoryController < ApplicationController
     seconds_covered = (Time.parse(time_selection_end) - Time.parse(time_selection_start)).to_i
     # Check if 1-sec samples are available
     sga_ash_record_exist = sql_select_one(["SELECT COUNT(*)
-                                            FROM   (SELECT s.*, s.Inst_ID Instance_Number
+                                            FROM   (SELECT s.Inst_ID Instance_Number, #{get_ash_default_select_list}
                                                     FROM   gv$Active_Session_History s
                                                    ) s
                                             WHERE  RowNum < 2
