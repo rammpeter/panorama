@@ -72,7 +72,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       instance = instances[counter % instances.length]
       filter   = filters[counter % filters.length]
 
-      post :list_session_statistic_historic, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby, instance: instance, filter: filter, :update_area=>:hugo }
+      post :list_session_statistic_historic, :params => {:format=>:html, :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :groupby=>groupby, instance: instance, filter: filter, :update_area=>:hugo, window_width: 1200 }
       assert_response_success_or_management_pack_violation('list_session_statistic_historic')
       counter += 1
     end
@@ -92,12 +92,12 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
       # Test mit realem Wert
       add_filter[groupby] = bind_value_from_key_rule(groupby)
-      post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo }
+      post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo, window_width: 1200 }
       assert_response_success_or_management_pack_violation('list_session_statistic_historic_grouping groupby => value')
 
       # Test mit NULL als Filterkriterium
       add_filter[groupby]= nil
-      post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo }
+      post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo, window_width: 1200 }
       assert_response_success_or_management_pack_violation('list_session_statistic_historic_grouping groupby => nil')
 
       counter += 1
@@ -106,7 +106,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "refresh_time_selection with xhr: true" do
     session_statistics_key_rules.each do |groupby, value|
-      post :refresh_time_selection, :params => {:format=>:html, :groupfilter=>@groupfilter, :groupby=>groupby, repeat_controller: :active_session_history, :repeat_action => :list_session_statistic_historic_grouping, :update_area=>:hugo }
+      post :refresh_time_selection, :params => {:format=>:html, :groupfilter=>@groupfilter, :groupby=>groupby, repeat_controller: :active_session_history, :repeat_action => :list_session_statistic_historic_grouping, :update_area=>:hugo, window_width: 1200 }
       assert_response :redirect, 'refresh_time_selection'
     end
   end
@@ -184,14 +184,19 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
   end
 
   test "list_prepared_active_session_history with xhr: true" do
-    post :list_prepared_active_session_history, :params => {:format=>:html, :groupby=>"SQL-ID",
-         :groupfilter => {
-                         :DBID     => get_dbid,
-                         :Instance => PanoramaConnection.instance_number,
-                         "SQL-ID"  => @@hist_sql_id
-         },
-         :time_selection_start => @time_selection_start,
-         :time_selection_end   => @time_selection_end, :update_area=>:hugo }
+    post :list_prepared_active_session_history,
+         :params => {
+           :format=>:html, :groupby=>"SQL-ID",
+           :groupfilter => {
+             :DBID     => get_dbid,
+             :Instance => PanoramaConnection.instance_number,
+             "SQL-ID"  => @@hist_sql_id
+           },
+           :time_selection_start => @time_selection_start,
+           :time_selection_end   => @time_selection_end,
+           window_width: 1200,
+           :update_area=>:hugo
+         }
     assert_response_success_or_management_pack_violation('list_prepared_active_session_history')
   end
 
@@ -200,7 +205,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     assert_response_success_or_management_pack_violation('list_blocking_locks_historic')
 
     post :list_ash_dependency_thread, :params => { format: :html, blocked_inst_id: 1, blocked_session: 7379, blocked_session_serial_no: 55500, max_snap_id: 45113, min_snap_id: 45113, sample_time: @time_selection_start, update_area: 'hugo'}
-    assert_response_success_or_management_pack_violation('list_ash_dependecy_thread')
+    assert_response_success_or_management_pack_violation('list_ash_dependency_thread')
   end
 
   test "list_blocking_locks_historic_event_dependency with xhr: true" do
