@@ -118,90 +118,66 @@ module EnvHelper
   def read_tnsnames_internal(file_name)
     tnsnames = {}
 
-    fullstring = File.read(file_name)
-    fullstring.encode!(fullstring.encoding, :universal_newline => true)         # Ensure that Windows-Linefeeds 0D0A are replaced by 0A
+    fullstring = File.read(file_name, encoding: 'UTF-8')
+    unless fullstring.valid_encoding?
+      Rails.logger.info('EnvHelper.read_tnsnames_internal') { "File #{file_name} is not valid UTF-8, trying to read with ISO-8859-1 encoding" }
+      fullstring = File.read(file_name, encoding: 'ISO-8859-1')
+      unless fullstring.valid_encoding?
+        Rails.logger.error('EnvHelper.read_tnsnames_internal') { "File #{file_name} is not valid UTF-8 or ISO-8859-1, cannot read tnsnames.ora file" }
+        return {}
+      end
+    end
+
+    fullstring.encode!(fullstring.encoding, {
+      universal_newline: true,                                                  # Ensure that Windows-Linefeeds 0D0A are replaced by 0A
+      invalid: :replace,
+      undef: :replace,
+      replace: ''
+    }
+    )
     fullstring.upcase!
+    fullstring.gsub!(/#.*$/, '')                                                # Remove comments starting with # until end of line
 
-    # Test for IFILE insertions
-    fullstring_ifile = fullstring.clone                                         # local copy
-    while true
-      start_pos_ifile = fullstring_ifile.index('IFILE')
-      break unless start_pos_ifile
-      fullstring_ifile = fullstring_ifile[start_pos_ifile+5, 1000000]           # remove all before and including IFILE
+    fullstring.scan(/^\s*IFILE\s*=\s*(.+)$/i).each do |ifile_match|
+      ifile_path = ifile_match[0].strip
+      # Relativer Pfad: relativ zur aktuellen Datei auflösen
+      ifile_path = File.expand_path(ifile_path, File.dirname(file_name))
 
-      while fullstring_ifile[0].match '[= ]'                                    # remove = and blanks before filename
-        fullstring_ifile = fullstring_ifile[1, 1000000]                         # remove first char of string
-      end
-
-      start_pos_ifile = fullstring_ifile.index("\n")
-      if start_pos_ifile.nil?
-        ifile_name = fullstring_ifile[0, 1000000]
-      else
-        ifile_name = fullstring_ifile[0, start_pos_ifile]
-      end
-
-      tnsnames.merge!(read_tnsnames_internal(ifile_name))
+      Rails.logger.error('EnvHelper.read_tnsnames_internal') { "IFILE specified in tnsnames.ora but file not found at #{ifile_path}" } unless File.exist?(ifile_path)
+      tnsnames.merge!(read_tnsnames_internal(ifile_path)) if File.exist?(ifile_path)
     end
 
-    while true
-      # Ermitteln TNSName
-      start_pos_description = fullstring.index('DESCRIPTION')
-      break unless start_pos_description                                        # Abbruch, wenn kein weitere DESCRIPTION im String
-      tns_name = fullstring[0..start_pos_description-1]
-      while tns_name[tns_name.length-1,1].match '[=,\(, ,\n,\r]'                # Zeichen nach dem TNSName entfernen
-        tns_name = tns_name[0, tns_name.length-1]                               # Letztes Zeichen des Strings entfernen
-      end
-      while tns_name.index("\n")                                                # Alle Zeilen vor der mit DESCRIPTION entfernen
-        tns_name = tns_name[tns_name.index("\n")+1, 10000]                      # Wert akzeptieren nach Linefeed wenn enthalten
-      end
-      fullstring = fullstring[start_pos_description + 10, 1000000]              # Rest des Strings fuer weitere Verarbeitung
 
-      next if tns_name[0,1] == "#"                                              # Auskommentierte Zeile
+    # Alias finden: Wort am Zeilenanfang gefolgt von =
+    fullstring.scan(/^\s*(\w[\w.\-]*)\s*=\s*(\(.*?\n(?=\s*\w[\w.\-]*\s*=|\z))/mi).each do |alias_name, body|
+      # Klammern normalisieren – Zeilenumbrüche/Whitespace komprimieren
+      body = body.gsub(/\s+/, ' ').strip
 
-      hostName, start_pos_host = extract_attr('HOST', fullstring)
-      port,     start_pos_port = extract_attr('PORT', fullstring)
+      # Ersten HOST, PORT, SERVICE_NAME extrahieren (bei Failover = erster Eintrag)
+      host         = body[/HOST\s*=\s*([^\)]+)/i, 1]&.strip
+      port         = body[/PORT\s*=\s*([^\)]+)/i, 1]&.strip
+      service_name = body[/SERVICE_NAME\s*=\s*([^\)]+)/i, 1]&.strip
 
-      if hostName.nil? || port.nil?
-        Rails.logger.error('EnvHelper.read_tnsnames_internal') { "tnsnames.ora: cannot determine host and port for '#{tns_name}'" }
-        next
-      end
-
-      hostName.downcase!
-
-      if start_pos_host < start_pos_port
-        fullstring = fullstring[start_pos_port + 5 + port.length, 1000000]
-      else
-        fullstring = fullstring[start_pos_host + 5 + hostName.length, 1000000]
-      end
-
-      # ermitteln SID oder alternativ Instance_Name oder Service_Name
-      sid_tag_length = 4
-      sid_usage = :SID
-      start_pos_sid = fullstring.index('SID=')                                  # i.d.R. folgt unmittelbar ein "="
-      start_pos_sid = fullstring.index('SID ') if start_pos_sid.nil? || fullstring.index('DESCRIPTION')<start_pos_sid    # evtl. " " zwischen SID und "=" and "SID=" of next entry found
-      if start_pos_sid.nil? || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_sid) # Alle weiteren Treffer muessen vor der naechsten Description liegen
-        sid_tag_length = 12
+      # Typ bestimmen und Fallback auf SID
+      if service_name
         sid_usage = :SERVICE_NAME
-        start_pos_sid = fullstring.index('SERVICE_NAME')
+      else
+        service_name = body[/\bSID\s*=\s*([^\)]+)/i, 1]&.strip
+        Rails.logger.error('EnvHelper.read_tnsnames_internal') { "tnsnames.ora: cannot determine service_name or sid for '#{alias_name}'" } if service_name.nil?
+        sid_usage = :SID
       end
-      # Naechster Block mit Description beginnen wenn kein SID enthalten oder in naechster Description gefunden
-      if start_pos_sid==nil || (fullstring.index('DESCRIPTION') && fullstring.index('DESCRIPTION')<start_pos_sid) # Alle weiteren Treffer muessen vor der naechsten Description liegen
-        Rails.logger.error('EnvHelper.read_tnsnames_internal') { "tnsnames.ora: cannot determine sid or service_name for '#{tns_name}'" }
-        next
-      end
-      fullstring = fullstring[start_pos_sid + sid_tag_length, 1000000]               # Rest des Strings fuer weitere Verarbeitung
 
-      sidName = fullstring[0..fullstring.index(')')-1]
-      sidName = sidName.delete(' ').delete('=')   # Entfernen Blank u.s.w.
+      alias_name.strip!
 
-      # Kompletter Record gefunden
-      tnsnames[tns_name] = {:hostName => hostName, :port => port, :sidName => sidName, :sidUsage =>sid_usage }
+      tnsnames[alias_name] = {
+        hostName: host,
+        port:     port,
+        sidName:  service_name,
+        sidUsage: sid_usage,
+      }
     end
+
     tnsnames
-  rescue Exception => e
-    Rails.logger.error('EnvHelper.read_tnsnames_internal') { "Error processing #{file_name}: #{e.message}" }
-    ExceptionHelper.log_exception_backtrace(e)
-    tnsnames                                                                    # return the already processed entries before the error
   end
 
   def check_awr_for_time_drift
