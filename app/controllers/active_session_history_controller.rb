@@ -321,14 +321,18 @@ class ActiveSessionHistoryController < ApplicationController
     time_selection_start = params[:groupfilter][:time_selection_start].gsub("\u2011", "-")
     time_selection_end = params[:groupfilter][:time_selection_end].gsub("\u2011", "-")
     seconds_covered = (Time.parse(time_selection_end) - Time.parse(time_selection_start)).to_i
-    # Check if 1-sec samples are available
+
+    # Check if 1-sec samples are available in considered time range
+    # Pick only end time and instance from used filters for check
+    sga_ash_instance_filter = @sga_ash_where_string.include?('Instance_Number = ?') ? @sga_ash_where_values[@sga_ash_where_string.index('Instance_Number = ?')] : nil
     sga_ash_record_exist = sql_select_one(["SELECT COUNT(*)
-                                            FROM   (SELECT s.Inst_ID Instance_Number, #{get_ash_default_select_list}
-                                                    FROM   gv$Active_Session_History s
-                                                   ) s
+                                            FROM   gv$Active_Session_History s
                                             WHERE  RowNum < 2
-                                            AND    #{@sga_ash_where_string}#{@global_where_string}
-                                           "].concat(@sga_ash_where_values).concat(@global_where_values||[]))
+                                            AND Sample_Time <= TO_DATE(?, '#{sql_datetime_mask(time_selection_end)}')
+                                            #{" AND Instance_Number = ?" if sga_ash_instance_filter}
+                                           ", time_selection_end].concat(sga_ash_instance_filter ? [sga_ash_instance_filter] : [])
+    )
+
     @group_seconds = {}
     # Spread the accuracy of 3 steps by factor 4
     @group_seconds[:fine] = (seconds_covered / (window_width / 2)).round
