@@ -1,6 +1,9 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Relese 2.19.9
+- 2026-03-07 Distance of graph points for "Session waits historic" adjusted according to windows width, so that the graph is more readable
+
 ## Release 2.19.6
 - 2025-12-04 Bugfix: Representation of escaped html chars fixed for optimizer hints in execution plan
 - 2025-12-04 Cardinality estimation marked orange in execution plan if real number of gotten rows differs more than 10:1
