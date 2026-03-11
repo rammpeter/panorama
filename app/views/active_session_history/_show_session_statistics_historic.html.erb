@@ -2,7 +2,11 @@
 
 <%= render_page_caption("Session-Statistics #{t(:from, :default=>'from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_Active_Sess_History')} #{t(:and, :default=>'and')} #{PanoramaConnection.adjust_table_name('gv$Active_Session_History')}") %>
 
-<%= ajax_form(:controller=>:active_session_history, :action=>:list_session_statistic_historic, :update_area=>@update_area) do %>
+<%= ajax_form(controller:   :active_session_history,
+              action:       :list_session_statistic_historic,
+              update_area:  @update_area
+    ) do
+%>
   <div class="flex-row-container">
     <%= include_start_end_timepicker %>
 

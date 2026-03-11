@@ -75,7 +75,6 @@ class ActiveSessionHistoryController < ApplicationController
       ORDER BY 1
      "].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat([@dbid]).concat(@global_where_values))
 
-
     # Anzeige der Filterbedingungen im Caption des Diagrammes
     @filter = String.new
     @groupfilter.each do |key, value|
@@ -128,7 +127,6 @@ class ActiveSessionHistoryController < ApplicationController
     retval << "COUNT(DISTINCT #{column}) #{alias_name}_Cnt"
   end
 
-
   public
 
   # Anlisten der Einzel-Records eines Gruppierungskriteriums
@@ -159,7 +157,6 @@ class ActiveSessionHistoryController < ApplicationController
 
     where_from_groupfilter(params[:groupfilter], nil)
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
-
 
     @time_groupby = params[:time_groupby].to_sym if params[:time_groupby]
 
@@ -310,13 +307,67 @@ class ActiveSessionHistoryController < ApplicationController
     render_partial :list_session_statistic_historic_single_record
   end # list_session_statistic_historic_single_record
 
-
   # Generische Funktion zum Anlisten der verdichteten Einzel-Records eines Gruppierungskriteriums nach GroupBy
   def list_session_statistic_historic_grouping
+    window_width = prepare_param_int :window_width
+    raise "ActiveSessionHistoryController.list_session_statistic_historic_grouping: Missing parameter :window_width" unless window_width
+    # eplace the Windows-like representation of a hyphen (the Unicode Non-Breaking Hyphen, U+2011, which has a UTF-8 encoding of 0xE28091) with the standard ASCII hyphen (0x2D)
+
     where_from_groupfilter(params[:groupfilter], params[:groupby])
     @dbid = params[:groupfilter][:DBID]        # identische DBID verwenden wie im groupfilter bereits gesetzt
 
-    record_modifier = proc{|rec|
+
+    # For calculation of pixel per point in timeline diagramm - should be dynamically calculated based on window_width and time range
+    time_selection_start = params[:groupfilter][:time_selection_start].gsub("\u2011", "-")
+    time_selection_end = params[:groupfilter][:time_selection_end].gsub("\u2011", "-")
+    seconds_covered = (Time.parse(time_selection_end) - Time.parse(time_selection_start)).to_i
+
+    # Check if 1-sec samples are available in considered time range
+    # Pick only end time and instance from used filters for check
+    sga_ash_instance_filter = @sga_ash_where_string.include?('Instance_Number = ?') ? @sga_ash_where_values[@sga_ash_where_string.index('Instance_Number = ?')] : nil
+    sga_ash_record_exist = sql_select_one(["SELECT COUNT(*)
+                                            FROM   gv$Active_Session_History s
+                                            WHERE  RowNum < 2
+                                            AND Sample_Time <= TO_DATE(?, '#{sql_datetime_mask(time_selection_end)}')
+                                            #{" AND Instance_Number = ?" if sga_ash_instance_filter}
+                                           ", time_selection_end].concat(sga_ash_instance_filter ? [sga_ash_instance_filter] : [])
+    )
+
+    @group_seconds = {}
+    # Spread the accuracy of 3 steps by factor 4
+    @group_seconds[:fine] = (seconds_covered / (window_width / 2)).round
+    @group_seconds[:fine] = 1  if @group_seconds[:fine] < 1 && sga_ash_record_exist > 0
+    @group_seconds[:fine] = 10 if @group_seconds[:fine] < 10 && sga_ash_record_exist == 0
+
+    # round :medium and :coarse to full minute, hour etc. for better readability of diagramm
+    round_group_seconds = proc do | val|
+      val = 10 if val < 13
+      val = 15 if val >= 13 && val < 20
+      val = 30 if val >= 20 && val < 40
+      val = 60 if val >= 40 && val < 90
+      val = 120 if val >= 90 && val < 180                                       # 2 minutes if >= 1.5 minutes and < 3 minutes
+      val = 300 if val >= 180 && val < 450                                      # 5 minutes if >= 3 minutes and < 7.5 minutes
+      val = 600 if val >= 450 && val < 720                                      # 10 minutes if >= 7.5 minutes and < 12 minutes
+      val = 900 if val >= 720 && val < 1200                                     # 15 minutes if >= 12 minutes and < 20 minutes
+      val = 1800 if val >= 1200 && val < 2700                                   # 30 minutes if >= 20 minutes and < 45 minutes
+      val = 3600 if val >= 2700 && val < 5400                                   # 60 minutes if >= 45 minutes and < 90 minutes
+      val = 7200 if val >= 5400 && val < 10800                                  # 2 hours if >= 1.5 hours < 3 hours
+      val = 14400 if val >= 10800 && val < 18000                                # 4 hours if >= 3 hours and < 5 hours
+      val = 21600 if val >= 18000 && val < 25200                                # 6 hours if >= 5 hours and < 7 hours
+      val = 28800 if val >= 25200 && val < 36000                                # 8 hours if >= 7 hours and < 10 hours
+      val = 43200 if val >= 36000 && val < 64800                                # 12 hours if >= 10 hours and < 18 hours
+      val = 86400 if val >= 64800 && val < 129600                               # 24 hours if >= 18 hours and < 36 hours
+      val = 172800 if val >= 129600 && val < 259200                             # 48 hours if >= 36 hours and < 72 hours
+      val = 604800 if val >= 259200 && val < 1296000                            # 7 days if >= 72 hours and < 15 days
+      val = 1209600 if val >= 1296000 && val < 2592000                          # 14 days if >= 15 days and < 30 days
+      val
+    end
+
+    @group_seconds[:medium] = round_group_seconds.call(@group_seconds[:fine]   * 4)
+    @group_seconds[:coarse] = round_group_seconds.call(@group_seconds[:medium] * 4)
+
+
+    record_modifier = proc { |rec|
       # Erweitern der Daten um Informationen, die nicht im originalen Statement selektiert werden können,
       # da die Tabellen nicht auf allen DB zur Verfügung stehen
       if @groupby=='Module' || @groupby=='Action'
@@ -693,7 +744,6 @@ class ActiveSessionHistoryController < ApplicationController
         ORDER BY Waiting_Active_Seconds DESC
        "].concat(with_bindings).concat([@dbid, @dbid])
 
-
     render_partial :list_blocking_locks_historic_event_dependency
   end
 
@@ -1035,7 +1085,6 @@ class ActiveSessionHistoryController < ApplicationController
         LEFT OUTER JOIN DBA_Users u   ON u.User_ID = o.User_ID
         ORDER BY o.Max_Seconds_in_Wait + o.Seconds_in_Wait_Sample + cs.Max_Sec_in_Wait_Blocked_Total + c.Seconds_in_Wait_Blocked_Sample DESC"].concat(wherevalues)
 
-
     render_partial
   end
 
@@ -1110,9 +1159,7 @@ class ActiveSessionHistoryController < ApplicationController
     list_temp_usage_historic    # weiterleitung Event
   end
 
-
-
-  def list_temp_usage_historic                                                  # Methode kann nur ab Version 11.2 aufgerufen werden
+  def list_temp_usage_historic # Methode kann nur ab Version 11.2 aufgerufen werden
     where_from_groupfilter(params[:groupfilter], nil)
     @dbid = params[:groupfilter][:DBID]                                         # identische DBID verwenden wie im groupfilter bereits gesetzt
 
@@ -1314,9 +1361,7 @@ class ActiveSessionHistoryController < ApplicationController
       ORDER BY #{group_by_value}
                                   "].concat(@dba_hist_where_values).concat(@sga_ash_where_values).concat(@global_where_values).concat([@groupfilter[:time_selection_start], @groupfilter[:time_selection_end]])
 
-
     render_partial :list_pga_usage_historic
   end
-
 
 end

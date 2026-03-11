@@ -93,6 +93,10 @@ class EnvControllerTest <  ActionDispatch::IntegrationTest
 
 
   def exec_menu_entry_action(menu_entry)
+    if management_pack_license == :panorama_sampler
+      PanoramaSamplerStructureCheck.do_check(prepare_panorama_sampler_thread_db_config, :AWR)         # Ensure that structures are existing
+    end
+
     menu_entry[:content].each do |m|
       exec_menu_entry_action(m) if m[:class] == "menu"       # Rekursives Abtauchen in Menüstruktur
       if m[:class] == "item" && !controller_action_defined?(m[:controller], m[:action])

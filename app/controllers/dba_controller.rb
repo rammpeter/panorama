@@ -1387,13 +1387,16 @@ oradebug setorapname diag
 
   # Ermitteln Object aus Parametern von v$session_wait
   def show_session_details_waits_object
-    @object = object_nach_wait_parameter(params[:instance], params[:event],
+    detail_update_area = prepare_param :detail_update_area
+
+    @object = object_nach_wait_parameter(detail_update_area, params[:instance], params[:event],
             params[:p1], params[:p1raw], params[:p1text],
             params[:p2], params[:p2raw], params[:p2text],
             params[:p3], params[:p3raw], params[:p3text]
           )
+    @object = my_html_escape(@object) unless @object.html_safe?
     respond_to do |format|
-      format.html {render :html => my_html_escape(@object).html_safe }
+      format.html {render :html => @object.html_safe }
     end
   end
 

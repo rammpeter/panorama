@@ -2,7 +2,7 @@
   @update_area = get_unique_area_id
 
   link_column_object = proc do |rec|
-    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.row_num}")
+    link_wait_params(rec.inst_id, rec.event, rec.p1, rec.p1text, rec.p1raw, rec.p2, rec.p2text, rec.p2raw, rec.p3, rec.p3text, rec.p3raw, "#{@update_area}_#{rec.row_num}", @update_area)
   end
 
 

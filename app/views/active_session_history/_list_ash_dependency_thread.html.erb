@@ -106,7 +106,7 @@
 
 
   local_link_wait_params = proc do |rec|
-     link_wait_params(rec.instance_number, rec.event, rec.p1, rec.p1text, nil, rec.p2, rec.p2text, nil, rec.p3, rec.p3text, nil, "#{@update_area}_#{rec.sample_id}#{rec.instance_number}_#{rec.session_id}")
+     link_wait_params(rec.instance_number, rec.event, rec.p1, rec.p1text, nil, rec.p2, rec.p2text, nil, rec.p3, rec.p3text, nil, "#{@update_area}_#{rec.sample_id}#{rec.instance_number}_#{rec.session_id}", @update_area)
   end
 
 

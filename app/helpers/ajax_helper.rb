@@ -144,8 +144,9 @@ module AjaxHelper
     html_options['data-type'.to_sym] = html_options['data-type'.to_sym].to_sym         # Use content as Symbol, not String
     html_options[:onsubmit] = "bind_ajax_html_response(jQuery(this), '#{url[:update_area]}');#{html_options[:onsubmit]}"
 
-    url[:controller] = controller_name unless url[:controller]
+    url[:controller]     = controller_name unless url[:controller]
     url[:browser_tab_id] = @browser_tab_id                                      # Unique identifier for browser tab
+    url[:window_width]   = prepare_param_int :window_width                      # Use from previous request
 
     raise 'ajax_form: key=:controller missing in parameter url'   unless url[:controller]
     raise 'ajax_form: key=:action missing in parameter url'       unless url[:action]
@@ -201,15 +202,19 @@ module AjaxHelper
   end
 
   # Erzeugen eines Links aus den konkreten Wait-Parametern mit aktueller Erläuterung sowie link auf aufwendige Erklärung
-
-  def link_wait_params(instance, event, p1, p1text, p1raw, p2, p2text, p2raw, p3, p3text, p3raw, unique_div_identifier)
-      (""+  # Wenn kein String als erster Operand, funktioniert html_safe nicht auf Result !!!
+  # @param [Integer] instance
+  # ...
+  # @param [String] unique_div_identifier Unique identifier for div where the wait explanation is rendered
+  # @param [String] detail_update_area Optional div identifier for update of details, if wait explanation contains link to details
+  def link_wait_params(instance, event, p1, p1text, p1raw, p2, p2text, p2raw, p3, p3text, p3raw, unique_div_identifier, detail_update_area=nil)
+    (""+  # Wenn kein String als erster Operand, funktioniert html_safe nicht auf Result !!!
        ajax_link("P1: #{p1text} = #{p1} P2: #{p2text} = #{p2} P3: #{p3text} = #{p3}", {
-                               :controller => :dba,
-                               :action     => :show_session_details_waits_object,
-                               :update_area => unique_div_identifier,
-                               :instance    => instance,
-                               :event=>event,
+                               controller:          :dba,
+                               action:              :show_session_details_waits_object,
+                               update_area:         unique_div_identifier,
+                               detail_update_area:  detail_update_area,
+                               instance:            instance,
+                               event:               event,
                                :p1=>p1, :p1text=>p1text,
                                :p2=>p2, :p2text=>p2text,
                                :p3=>p3, :p3text=>p3text

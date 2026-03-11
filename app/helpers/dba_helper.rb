@@ -2,7 +2,7 @@
 module DbaHelper
   
   # Ermitteln Object-Bezeichnung nach File-No. und Block-No.  
-  def object_nach_file_und_block(fileno, blockno, instance=nil)
+  def object_nach_file_und_block(update_area, fileno, blockno, instance=nil)
     # Erster Test, das Objekt ueber den DB-Cache zu identifizieren (schneller)
 
     wherestr = String.new
@@ -13,9 +13,11 @@ module DbaHelper
       whereval << instance
     end
 
-    result = sql_select_all ["\
-      SELECT /*+ ORDERED USE_NL(b o) */ /* Panorama-Tool Ramm */
-             o.Owner||'.'||o.Object_Name||':'||o.SubObject_Name||' ('||o.Object_Type||')'  Value  
+    result = String.new
+
+    object = sql_select_first_row ["\
+      SELECT /*+ ORDERED USE_NL(b o) */
+             o.Owner, o.Object_Name, o.SubObject_Name, o.Object_Type
       FROM   gv$bh b
       JOIN   DBA_Objects o ON o.data_object_id = b.objd
       WHERE  b.objd           < power(2,22)
@@ -28,30 +30,59 @@ module DbaHelper
     fileno.to_i, blockno.to_i
     ].concat(whereval)
 
-    # Zweiter Versuch über DBA_Extents, wenn gesuchter Block nicht im Cache
-    if result.length == 0
-      result = sql_select_all ["\
+    unless object.nil?
+      print_val = "#{object.owner}.#{object.object_name}".dup
+      print_val << ":#{object.subobject_name}" if object.subobject_name
+      print_val << " (#{object.object_type})"
+      if update_area
+        result << link_object_description(update_area, object.owner, object.object_name, print_val, object.object_type)
+      else
+        result << print_val
+      end
+    else
+      # Zweiter Versuch über DBA_Extents, wenn gesuchter Block nicht im Cache
+      object = sql_select_first_row ["\
         SELECT /* Panorama-Tool Ramm */
-               Owner||'.'||SEGMENT_NAME||':'||Partition_Name||' ('||Segment_Type||')'  Value  
-        FROM   DBA_Extents e                                            
-        WHERE  e.File_ID = ?                                            
-        AND    ? BETWEEN e.BLOCK_ID AND e.BLOCK_ID + e.BLOCKS -1", 
-      fileno.to_i, blockno.to_i
-      ]
+               Owner, Segment_Name, Partition_Name, Segment_Type
+        FROM   DBA_Extents e
+        WHERE  e.File_ID = ?
+        AND    ? BETWEEN e.BLOCK_ID AND e.BLOCK_ID + e.BLOCKS -1",
+                               fileno.to_i, blockno.to_i
+                              ]
+      unless object.nil?
+        print_val = "#{object.owner}.#{object.segment_name}".dup
+        print_val << ":#{object.partition_name}" if object.partition_name
+        print_val << " (#{object.segment_type})"
+        if update_area
+          object_type = case object.segment_type
+                        when "INDEX PARTITION"      then "INDEX"
+                        when "INDEX SUBPARTITION"   then "INDEX"
+                        when "LOBINDEX"             then "INDEX"
+                        when "LOB PARTITION"        then "LOB"
+                        when "LOB SUBPARTITION"     then "LOB"
+                        when "LOBSEGMENT"           then "LOB"
+                        when "TABLE PARTITION"      then "TABLE"
+                        when "TABLE SUBPARTITION"   then "TABLE"
+                        else object.segment_type
+                        end
+
+          result << link_object_description(update_area, object.owner, object.segment_name, print_val, object_type)
+        else
+          result << print_val
+        end
+      end
     end
-    if result.length > 0
-      result[0].value
-    else 
-      nil   # Kein ergebnis gefunden
-    end
+
+    return nil if result.empty?
+    result.html_safe
   end
 
   # Ermitteln des Betroffenen Objektes aus Parametern von v$session_wait
-  def object_nach_wait_parameter(instance, event, p1, p1raw, p1text, p2, p2raw, p2text, p3, p3raw, p3text)
+  def object_nach_wait_parameter(detail_update_area, instance, event, p1, p1raw, p1text, p2, p2raw, p2text, p3, p3raw, p3text)
     wordsize = PanoramaConnection.db_wordsize    # Wortbreite in Byte
     case
     when (p1text=="file#" || p1text=="file number") && (p2text=="block#" || p2text=="first dba") then
-      result = object_nach_file_und_block(p1, p2, instance)
+      result = object_nach_file_und_block(detail_update_area, p1, p2, instance)
       result = "Nothing found for p1=#{p1}, p2=#{p2}, instance=#{instance}" unless result
       result
     when p1text=="address" && p2text=="number" && p3text=='tries' then
