@@ -157,6 +157,6 @@ assert_response :success
 ActionCable, ActionMailer, ActiveStorage, ActionText are not loaded. Do not add dependencies on them.
 
 ### Runtime
-- Java 21+ required; JRuby 10.0.3.0 (see `.ruby-version`)
+- Java 21+ required; JRuby 10.0.4.0 (see `.ruby-version`)
 - Oracle JDBC drivers are bundled in `lib/ojdbc*.jar` — no separate install needed
 - Key env vars at runtime: `PANORAMA_VAR_HOME` (writable state dir), `PANORAMA_MASTER_PASSWORD` (optional encryption key)
