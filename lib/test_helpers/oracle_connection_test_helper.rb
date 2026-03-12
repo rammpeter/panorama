@@ -87,7 +87,9 @@ class ActiveSupport::TestCase
 
     begin
       snapshots = sql_select_one "SELECT COUNT(*) FROM Panorama_Snapshot"
-    rescue ActiveRecord::StatementInvalid, Java::OracleJdbc::OracleDatabaseException   # Table does not yet exist
+    rescue                                                                      # Table does not yet exist
+      # Don't catch specific class because Java::OracleJdbc::OracleDatabaseException seems not to be catchable by rescue
+      Rails.logger.warn('ensure_panorama_sampler_tables_exist_with_content') { ""}
       PanoramaSamplerStructureCheck.do_check(sampler_config, :ASH)              # Must be first if tables do not exist, but packages
       PanoramaSamplerStructureCheck.do_check(sampler_config, :AWR)              # AWR package depends on ASH tables, so check ASH first
       snapshots = sql_select_one "SELECT COUNT(*) FROM Panorama_Snapshot"
