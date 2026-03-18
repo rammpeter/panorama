@@ -18,9 +18,9 @@ END Panorama_Sampler_Block_Locks;
   PROCEDURE Create_Block_Locks_Snapshot(p_LongLocksSeconds IN NUMBER /*, p_MinBlockMilliSeconds IN NUMBER */) IS
     v_Waiting_For_PK_Column_Name  panorama_owner.Panorama_Blocking_Locks.Waiting_For_PK_Column_Name%TYPE;
     v_Waiting_For_PK_Value        panorama_owner.Panorama_Blocking_Locks.Waiting_For_PK_Value%TYPE;
-    v_TableName                   VARCHAR2(30);
+    v_TableName                   VARCHAR2(128);
     v_First                       BOOLEAN;
-    v_PKey_Cols                   VARCHAR2(300);
+    v_PKey_Cols                   VARCHAR2(4000);
     v_Blocking_RowID              UROWID;
     v_Snapshot_Timestamp          DATE;
     TABLE_DOES_NOT_EXIST          EXCEPTION;
