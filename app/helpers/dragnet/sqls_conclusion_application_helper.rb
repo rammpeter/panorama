@@ -541,6 +541,7 @@ AND    pxs.SID IS NULL
             :desc  => t(:dragnet_helper_145_desc, :default=>"If an implicit expectation for uniqueness of a column exists, then this should be safeguarded by an unique index or unique constraint.
 This list shows all all columns used as access or filter predicates with unique values at the time of last analysis if neither unique index nor unique constraint exists for this column.
             "),
+            not_executable: PanoramaConnection.autonomous_database?, # This selection is not executable in autonomous DB because of the missing access on Col_Usage$ view.
             :sql=>  "
 WITH Constraints  AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, Table_Name, Constraint_Type FROM DBA_Constraints WHERE Constraint_Type IN ('P', 'U') AND Owner NOT IN (#{system_schema_subselect})),
      Indexes      AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Index_Name, Table_Owner, Table_Name FROM DBA_Indexes WHERE Uniqueness = 'UNIQUE' AND Owner NOT IN (#{system_schema_subselect})),

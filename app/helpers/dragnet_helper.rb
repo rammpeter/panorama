@@ -53,7 +53,7 @@ module DragnetHelper
   #   :entries        Array von Hashes mit selber Struktur (rekursiv), wenn belegt, dann gilt Element als Menü-Knoten
   #   :sql            SQL-Statement zur Ausführung
   #   :min_db_version Optional minimum DB version
-  #   :not_executable Optional mark entry as not executable SQL
+  #   :not_executable Optional mark entry as not executable SQL (true | false, default: false)
   #   :plsql          Execute as anonymous PL/SQL with JSON result per DBMS_OUTPUT
   #   :suppress_error_for_code Ignore errors if this code is contained in error message
   #   :parameter      Array von Hashes mit folgender Struktur
