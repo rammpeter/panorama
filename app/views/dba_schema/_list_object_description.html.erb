@@ -631,7 +631,7 @@ So the real value would be #{fn rec.avg_row_len} - #{fn rec.sum_col_len_metadata
     %>
   </div>
 
-  <% if get_cached_panorama_object_sizes_exists %>
+  <% if PanoramaConnection.panorama_object_sizes_exists? %>
     <div class="flex-row-element">
       <%= ajax_submit('Size evolution', {
           update_area:            @update_area,

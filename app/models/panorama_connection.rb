@@ -483,6 +483,23 @@ class PanoramaConnection
     @@connection_pool
   end
 
+  # Check for existence and readability of a table
+  def self.panorama_table_exists?(table_name)
+    return false if PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].nil?
+    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].upcase}'", table_name.upcase]) > 0
+  end
+
+
+  # Check existence and readability of the sampler table
+  # Execute only once per connection
+  def panorama_object_sizes_exists?
+    unless defined?(@panorama_object_sizes_exists) && !@panorama_object_sizes_exists.nil?
+      @panorama_object_sizes_exists = PanoramaConnection.panorama_table_exists?('Panorama_Object_Sizes')
+    end
+    @panorama_object_sizes_exists
+  end
+
+
   def self.all_awr_dbids;                   check_for_open_connection.all_awr_dbids;                     end
   def self.autonomous_database?;            check_for_open_connection.autonomous_database?;              end
   def self.block_common_header_size;        check_for_open_connection.block_common_header_size;          end
@@ -503,6 +520,7 @@ class PanoramaConnection
   # Use PackLicense.tuning_pack_licensed? etc. instead of this method
   def self.management_pack_license;         PanoramaConnection.get_threadlocal_config[:management_pack_license]; end
   def self.min_awr_interval;                check_for_open_connection.min_awr_interval;                  end
+  def self.panorama_object_sizes_exists?;   check_for_open_connection.panorama_object_sizes_exists?;     end
   def self.pdbs;                            check_for_open_connection.pdbs;                              end
   def self.pid;                             check_for_open_connection.pid;                               end
   def self.rac?;                            check_for_open_connection.cluster_database.upcase == 'TRUE'; end

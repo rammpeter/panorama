@@ -146,10 +146,6 @@ class PanoramaSamplerStructureCheck
     panorama_sampler_data
   end
 
-  def self.panorama_table_exists?(table_name)
-    return false if PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].nil?
-    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].upcase}'", table_name.upcase]) > 0
-  end
 
   def initialize(sampler_config)
     @sampler_config = sampler_config

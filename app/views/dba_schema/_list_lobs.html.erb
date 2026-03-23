@@ -56,7 +56,7 @@
         }, :title => "Show segment statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{rec.segment_name}"
         )}</div>"
 
-    if get_cached_panorama_object_sizes_exists
+    if PanoramaConnection.panorama_object_sizes_exists?
       retval <<
         "<div style=\"float:left\">#{
           ajax_submit('Size evolution', {

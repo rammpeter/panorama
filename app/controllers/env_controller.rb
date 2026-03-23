@@ -289,7 +289,6 @@ class EnvController < ApplicationController
       # TODO: encrypt password with session specific key
       raise "No saved login info found at position #{params[:saved_logins_id]}" if params[:database].nil?
       params[:database][:query_timeout] = 360 unless params[:database][:query_timeout]  # Initialize if stored login dies not contain query_timeout
-      params.delete(:cached_panorama_object_sizes_exists)                       # Reset cached info so first access reads new state from database
       raise "env_controller.set_database_by_id: No database found to login! Please use direct login!" unless params[:database]
       set_database
     end

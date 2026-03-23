@@ -16,7 +16,7 @@ module MenuHelper
             {class: 'menu', caption: 'DB-Locks', content: [
                 {class: 'item', caption: t(:menu_current_caption, :default => 'Current'), controller: :dba, action: 'show_locks', hint: t(:menu_dba_locks_hint, :default => 'shows current locking state incl. blocking sessions')},
                 {class: 'item', caption: t(:menu_dba_blocking_locks_historic_caption, :default => 'Blocking locks historic from ASH'), controller: 'active_session_history', action: 'show_blocking_locks_historic', hint: t(:menu_dba_blocking_locks_historic_hint, :default => 'Show historic blocking locks information from Active Session History')},
-                {class: 'item', caption: t(:menu_dba_blocking_locks_historic_panorama_caption, :default => 'Blocking locks historic from Panorama-Sampler'), controller: :addition, action: :show_blocking_locks_history, hint: t(:menu_dba_blocking_locks_historic_panorama_hint, :default => 'Show historic blocking locks information from Panorama-Sampler'), condition: PanoramaSamplerStructureCheck.panorama_table_exists?('Panorama_Blocking_Locks')},
+                {class: 'item', caption: t(:menu_dba_blocking_locks_historic_panorama_caption, :default => 'Blocking locks historic from Panorama-Sampler'), controller: :addition, action: :show_blocking_locks_history, hint: t(:menu_dba_blocking_locks_historic_panorama_hint, :default => 'Show historic blocking locks information from Panorama-Sampler'), condition: PanoramaConnection.panorama_table_exists?('Panorama_Blocking_Locks')},
             ]
             },
             {:class => 'menu', :caption => 'Redo-Logs', :content => [
@@ -82,7 +82,7 @@ module MenuHelper
                 {:class=> 'item', :caption=>t(:menu_current_caption, :default=> 'Current'),         :controller=>:dba,                     :action=> 'show_session_waits',                  :hint=>t(:menu_wait_session_current_hint, :default=> 'All current session waits')   },
                 {:class=> 'item', :caption=>t(:menu_historic_caption, :default=> 'Historic'),      :controller=> 'active_session_history',  :action=> 'show_session_statistics_historic',    :hint=>t(:menu_wait_session_historic_hint, :default=> 'Prepared active session history from DBA_Hist_Active_Sess_History') },
                 {:class=> 'item', :caption=>'CPU-Usage / DB-Time',    :controller=> :dba_waits,  :action=> :show_cpu_usage_historic,    :hint=>t(:menu_wait_session_cpu_hint, :default=> "Historic CPU-Usage and DB-Time from DBA_Hist_Active_Sess_History.\nShows you the difference between real CPU-usage and waiting for CPU\nif you don't have Resource Manager activated.\nDifference means you have more sessions waiting for CPU than your system's number of CPU-cores.") },
-                {class: 'item', caption: t(:menu_wait_longterm_trend_caption, :default=>'Long-term trend'), controller: :longterm_trend, action: :show_longterm_trend, hint: t(:menu_wait_longterm_trend_hint, :default=>'Long-term trend recording of session waits'), condition: PanoramaSamplerStructureCheck.panorama_table_exists?('LongTerm_Trend')},
+                {class: 'item', caption: t(:menu_wait_longterm_trend_caption, :default=>'Long-term trend'), controller: :longterm_trend, action: :show_longterm_trend, hint: t(:menu_wait_longterm_trend_hint, :default=>'Long-term trend recording of session waits'), condition: PanoramaConnection.panorama_table_exists?('LongTerm_Trend')},
               ]
             },
             { :class=> 'menu', :caption=> 'Segment Statistics', :content=>[
@@ -155,7 +155,7 @@ module MenuHelper
             ]
             },
             {:class=> 'item', :caption=> 'Tablespace-Objects',  :controller=>:dba_schema,       :action=>:show_object_size,  :hint=>t(:menu_dba_schema_ts_objects_hint, :default=> 'DB-objects by size, utilization and wastage') },
-            {class: 'item', caption: t(:menu_addition_size_evolution_caption, :default => 'Object size evolution'), controller: 'addition', action: 'show_object_increase', hint: t(:menu_addition_size_evolution_hint, :default => 'Evolution of object sizes in considered time period'), condition: get_cached_panorama_object_sizes_exists},
+            {class: 'item', caption: t(:menu_addition_size_evolution_caption, :default => 'Object size evolution'), controller: 'addition', action: 'show_object_increase', hint: t(:menu_addition_size_evolution_hint, :default => 'Evolution of object sizes in considered time period'), condition: PanoramaConnection.panorama_object_sizes_exists?},
             {:class=> 'item', :caption=> 'Describe object',     :controller=>:dba_schema,       :action=>:describe_object,  :hint=>'Describe database object (table, index, materialized view ...)' },
             {:class=> 'item', :caption=> 'Invalid objects',     :controller=>:dba_schema,       :action=>:invalid_objects,  :hint=>'List invalid objects (from DBA_Objects and DBA_Indexes)' },
             {:class=> 'item', :caption=> 'Recycle bin',     :controller=>:storage,       :action=>:list_recycle_bin,  :hint=>'Show content of recycle bin' },
@@ -215,7 +215,7 @@ module MenuHelper
             { :class=> 'menu', :caption=> 'DB-Cache', :content=>[
                 {:class=> 'item', :caption=>t(:menu_sga_pga_cache_usage_caption,  :default=> 'DB-cache usage current'),  :controller=> 'dba_sga',     :action=> 'db_cache_content',              :hint=>t(:menu_sga_pga_cache_usage_hint,  :default=> 'Current content of DB-cache') },
                 {:class=> 'item', :caption=>t(:menu_sga_pga_cache_advice_caption, :default=> 'DB-cache advice'), :controller=> 'dba_sga',     :action=> 'show_db_cache_advice_historic', :hint=>t(:menu_sga_pga_cache_advice_hint, :default=>"Historic view on what-happens-if-analysis for change of cache size") },
-                {:class=> 'item', :caption=>t(:menu_sga_pga_cache_usage_historic_caption, :default=>'DB-cache usage historic'), :controller=> 'addition', :action=> 'db_cache_ressourcen',     :hint=>t(:menu_sga_pga_cache_usage_historic_hint, :default=>'Historic view on DB-cache usage by Panorama_Cache_Objects'), condition: PanoramaSamplerStructureCheck.panorama_table_exists?('Panorama_Cache_Objects') }
+                {:class=> 'item', :caption=>t(:menu_sga_pga_cache_usage_historic_caption, :default=>'DB-cache usage historic'), :controller=> 'addition', :action=> 'db_cache_ressourcen',     :hint=>t(:menu_sga_pga_cache_usage_historic_hint, :default=>'Historic view on DB-cache usage by Panorama_Cache_Objects'), condition: PanoramaConnection.panorama_table_exists?('Panorama_Cache_Objects') }
                 ]
             },
             { :class=> 'menu', :caption=>t(:menu_sga_pga_object_usage_caption, :default=> 'Object usage by SQL'), :content=>[
