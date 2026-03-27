@@ -28,7 +28,7 @@
 <%
   @get_groupfilter = proc do |rec, groupby_column, groupby_value|
     groupfilter = @groupfilter.clone                                            # Sicherstellen ,dass Nachfolger noch relevanten Filter bekommen
-    groupfilter.merge({ groupby_column => groupby_value})
+    groupfilter.merge({ groupby_column.to_sym => groupby_value})
   end
 
 
