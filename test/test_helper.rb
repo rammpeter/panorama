@@ -84,7 +84,11 @@ class ActiveSupport::TestCase
 
     connect_oracle_db_internal(test_config)   # aus lib/test_helpers/oracle_connection_test_helper
     @db_version = PanoramaConnection.db_version                                 # Store db_version outside PanoramaConnection
-    Rails.logger.info('ActiveSupport::TestCase.connect_oracle_db') { "#{Time.now} : Starting Test with configuration #{test_config} DB-Version = #{@db_version}" }
+    test_config_to_print = test_config.clone
+    test_config_to_print.each do |key, value|
+      test_config_to_print[key] = '****' if key.to_s.include?('password') || key.to_s.include?('salt')
+    end
+    Rails.logger.info('ActiveSupport::TestCase.connect_oracle_db') { "#{Time.now} : Starting Test with configuration #{test_config_to_print} DB-Version = #{@db_version}" }
 
 
     unless $first_log_written
