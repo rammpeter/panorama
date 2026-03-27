@@ -1,6 +1,7 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+## Relese 2.19.10
 - 2026-03-23 Run and show optimizer trace from SQL details page for SQLs from SGA
 
 ## Relese 2.19.9
