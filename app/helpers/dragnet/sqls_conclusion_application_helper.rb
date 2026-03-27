@@ -171,14 +171,15 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'ALTER PACKAGE' FROM DUAL UNION ALL
                           SELECT 'ALTER PACKAGE BODY' FROM DUAL UNION ALL
                           SELECT 'ALTER PLUGGABLE DATABASE' FROM DUAL UNION ALL
-                          SELECT 'ALTER PROCEDURE' FROM DUAL UNION ALL
+                          SELECT 'ALTER% PROCEDURE' FROM DUAL UNION ALL /* includes ALTER ANY PROCEDURE */
                           SELECT 'ALTER PROFILE' FROM DUAL UNION ALL
                           SELECT 'ALTER ROLE' FROM DUAL UNION ALL
                           SELECT 'ALTER ROLLBACK SEGMENT' FROM DUAL UNION ALL
                           SELECT 'ALTER SEQUENCE' FROM DUAL UNION ALL
+                          SELECT 'ALTER% SQL TRANSLATION PROFILE' FROM DUAL UNION ALL /* includes ALTER ANY ... */
                           SELECT 'ALTER SYNONYM' FROM DUAL UNION ALL
                           SELECT 'ALTER SYSTEM' FROM DUAL UNION ALL
-                          SELECT 'ALTER TABLE' FROM DUAL UNION ALL
+                          SELECT 'ALTER% TABLE' FROM DUAL UNION ALL /* includes ALTER ANY ... */
                           SELECT 'ALTER TABLESPACE' FROM DUAL UNION ALL
                           SELECT 'ALTER TRACING' FROM DUAL UNION ALL
                           SELECT 'ALTER TRIGGER' FROM DUAL UNION ALL
@@ -202,7 +203,8 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'CREATE INDEX' FROM DUAL UNION ALL
                           SELECT 'CREATE INDEXTYPE' FROM DUAL UNION ALL
                           SELECT 'CREATE JAVA' FROM DUAL UNION ALL
-                          SELECT 'CREATE LIBRARY' FROM DUAL UNION ALL
+                          SELECT 'CREATE% JOB' FROM DUAL UNION ALL      /* includes CREATE ANY ... */
+                          SELECT 'CREATE% LIBRARY' FROM DUAL UNION ALL  /* includes CREATE ANY ... */
                           SELECT 'CREATE LOCKDOWN PROFILE' FROM DUAL UNION ALL
                           SELECT 'CREATE MATERIALIZED VIEW' FROM DUAL UNION ALL
                           SELECT 'CREATE MATERIALIZED VIEW LOG' FROM DUAL UNION ALL
@@ -212,7 +214,7 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'CREATE PACKAGE BODY' FROM DUAL UNION ALL
                           SELECT 'CREATE PFILE' FROM DUAL UNION ALL
                           SELECT 'CREATE PLUGGABLE DATABASE' FROM DUAL UNION ALL
-                          SELECT 'CREATE PROCEDURE' FROM DUAL UNION ALL
+                          SELECT 'CREATE% PROCEDURE' FROM DUAL UNION ALL /* includes CREATE ANY ... */
                           SELECT 'CREATE PROFILE' FROM DUAL UNION ALL
                           SELECT 'CREATE RESTORE POINT' FROM DUAL UNION ALL
                           SELECT 'CREATE ROLE' FROM DUAL UNION ALL
@@ -221,8 +223,9 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'CREATE SCHEMA SYNONYM' FROM DUAL UNION ALL
                           SELECT 'CREATE SEQUENCE' FROM DUAL UNION ALL
                           SELECT 'CREATE SPFILE' FROM DUAL UNION ALL
+                          SELECT 'CREATE% SQL TRANSLATION PROFILE' FROM DUAL UNION ALL /* includes CREATE ANY ... */
                           SELECT 'CREATE SYNONYM' FROM DUAL UNION ALL
-                          SELECT 'CREATE TABLE' FROM DUAL UNION ALL
+                          SELECT 'CREATE% TABLE' FROM DUAL UNION ALL    /* includes CREATE ANY TABLE */
                           SELECT 'CREATE TABLESPACE' FROM DUAL UNION ALL
                           SELECT 'CREATE TRIGGER' FROM DUAL UNION ALL
                           SELECT 'CREATE TYPE' FROM DUAL UNION ALL
@@ -250,15 +253,16 @@ WITH Policies AS (SELECT /*+ NO_MERGE MATERIALIZE */ * FROM Audit_Unified_Polici
                           SELECT 'DROP PACKAGE' FROM DUAL UNION ALL
                           SELECT 'DROP PACKAGE BODY' FROM DUAL UNION ALL
                           SELECT 'DROP PLUGGABLE DATABASE' FROM DUAL UNION ALL
-                          SELECT 'DROP PROCEDURE' FROM DUAL UNION ALL
+                          SELECT 'DROP% PROCEDURE' FROM DUAL UNION ALL  /* includes DROP ANY */
                           SELECT 'DROP PROFILE' FROM DUAL UNION ALL
                           SELECT 'DROP RESTORE POINT' FROM DUAL UNION ALL
                           SELECT 'DROP ROLE' FROM DUAL UNION ALL
                           SELECT 'DROP ROLLBACK SEGMENT' FROM DUAL UNION ALL
                           SELECT 'DROP SCHEMA SYNONYM' FROM DUAL UNION ALL
                           SELECT 'DROP SEQUENCE' FROM DUAL UNION ALL
+                          SELECT 'DROP% SQL TRANSLATION PROFILE' FROM DUAL UNION ALL /* includes DROP ANY ... */
                           SELECT 'DROP SYNONYM' FROM DUAL UNION ALL
-                          SELECT 'DROP TABLE' FROM DUAL UNION ALL
+                          SELECT 'DROP% TABLE' FROM DUAL UNION ALL /* includes DROP ANY ... */
                           SELECT 'DROP TABLESPACE' FROM DUAL UNION ALL
                           SELECT 'DROP TRIGGER' FROM DUAL UNION ALL
                           SELECT 'DROP TYPE' FROM DUAL UNION ALL
@@ -292,7 +296,7 @@ SELECT eo.Audit_Option Suggested_Audit_Action,
        CASE WHEN COUNT(DISTINCT co.Success)             > 1 THEN '< '||COUNT(DISTINCT co.Success)             ||' >' ELSE MIN(co.Success)  END        Success,
        CASE WHEN COUNT(DISTINCT co.Failure)             > 1 THEN '< '||COUNT(DISTINCT co.Failure)             ||' >' ELSE MIN(co.Failure)  END        Failure
 FROM   Expected_Options eo
-LEFT OUTER JOIN Current_Options co ON co.Audit_Option = eo.Audit_Option
+LEFT OUTER JOIN Current_Options co ON co.Audit_Option LIKE eo.Audit_Option /* let CREATE ANY ... also be detected */
 GROUP BY eo.Audit_Option
 HAVING SUM(CASE WHEN NVL(co.Accepted, 'NO') = 'YES' THEN 1 ELSE 0 END) = 0 /* No record with accepted = 'YES' among the results */
 ORDER BY eo.Audit_Option

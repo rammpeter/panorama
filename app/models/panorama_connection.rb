@@ -704,6 +704,7 @@ class PanoramaConnection
     result.first[1]           # Value des Key/Value-Tupels des ersten Elememtes im Hash
   end
 
+  # Execute SQL statement
   def self.sql_execute(sql, query_name = 'sql_execute')
     # raise 'binds are not yet supported for sql_execute' if sql.class != String
     stmt, binds = sql_prepare_binds(sql)   # Transform SQL and split SQL and binds

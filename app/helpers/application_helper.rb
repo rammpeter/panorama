@@ -554,8 +554,9 @@ module ApplicationHelper
     {
         :name =>       :recall_params_info,
         :caption =>    t(:addition_copy_recall_params_caption, :default=>'Copy request parameters to clipboard'),
-        :hint =>       t(:addition_copy_recall_params_hint, :default=>"Copy request parameter to clipboard which allows you to reconstruct/replay this page later\nCall menu 'Spec. additions / Execute with given parameters' and paste this info to reconstruct your page at later time."),
+        :hint =>       t(:addition_copy_recall_params_hint, :default=>"Copy request parameter to clipboard which allows you to reconstruct/replay this page later\nCall menu &#39Spec. additions / Execute with given parameters&#39 and paste this info to reconstruct your page at later time."),
         :icon_class => 'cui-copy',
+        show_icon_in_caption: true,
         :action =>     "copy_to_clipboard('#{request.parameters.except(:update_area, :browser_tab_id).to_json.gsub("'", '&#39;')}');  alert('#{t(:addition_copy_recall_params_answer, :default=>"Current request parameters are copied to clipboard.\nUse menu \"Spec. additions / Execute with given parameters\" to paste this parameters").gsub("\n", '\\n')}');"
     }
   end

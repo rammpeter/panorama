@@ -1,6 +1,8 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+- 2026-03-23 Run and show optimizer trace from SQL details page for SQLs from SGA
+
 ## Relese 2.19.9
 - 2026-03-07 Distance of graph points for "Session waits historic" adjusted according to windows width, so that the graph is more readable
 - 2026-03-07 Bugfix: Accept tnsnames.ora in encoding other than UTF-8, especially for Windows

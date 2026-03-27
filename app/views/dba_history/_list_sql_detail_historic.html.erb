@@ -35,7 +35,12 @@ end
 %>
 
 
-<%= render_page_caption("#{t(:dba_history_list_sql_detail_historic_caption, :default=>'Statement details from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')} #{@time_selection_start} #{t(:until, :default=>'until')} #{@time_selection_end} : Instance = #{@instance.nil? ? 'All' : @instance}, SQL-ID = '#{@sql_id}'", get_recall_params_info_for_render_page_caption) %>
+<%=
+  command_menu = [
+    get_recall_params_info_for_render_page_caption,
+  ]
+  render_page_caption("#{t(:dba_history_list_sql_detail_historic_caption, :default=>'Statement details from')} #{PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat')} #{@time_selection_start} #{t(:until, :default=>'until')} #{@time_selection_end} : Instance = #{@instance.nil? ? 'All' : @instance}, SQL-ID = '#{@sql_id}'", command_menu)
+%>
 
 <table id="<%= "#{@table_id_prefix}_main" %>" style="width: 100%;" >
   <tr>

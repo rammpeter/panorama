@@ -1,4 +1,17 @@
-<%= render_page_caption("#{t(:dba_sga_list_sql_sga_stat_caption, :default=>'Statement details of current SGA from')} #{@modus}: Instance = #{@sql.inst_id}, SQL-ID = '#{@sql.sql_id}'#{", Child-No. = #{@sql.child_number}" if @modus=='GV$SQL'} ", get_recall_params_info_for_render_page_caption) %>
+<%=
+  command_menu = [get_recall_params_info_for_render_page_caption]
+  if @modus == "GV$SQL"
+    command_menu << {
+      :name =>       :optimizer_parse_trace,
+      :caption =>    "Create optimizer parsing trace",
+      :hint =>       "Create and show a trace file with details of optimizer parse process for this SQL",
+      :icon_class => 'cui-money-bill-alt',
+      show_icon_in_caption: true,
+      :action =>     "ajax_html('#{@update_area}', 'dba', 'optimizer_parse_trace', { 'sql_id': '#{@sql.sql_id}', 'child_number': #{@sql.child_number} });"
+    }
+  end
+  render_page_caption("#{t(:dba_sga_list_sql_sga_stat_caption, :default=>'Statement details of current SGA from')} #{@modus}: Instance = #{@sql.inst_id}, SQL-ID = '#{@sql.sql_id}'#{", Child-No. = #{@sql.child_number}" if @modus=='GV$SQL'} ", command_menu)
+%>
 
 
 <%

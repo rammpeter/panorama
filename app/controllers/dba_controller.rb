@@ -1868,6 +1868,24 @@ oradebug setorapname diag
     render_partial
   end
 
+  # Generator a trace file of optimizer parse process
+  # The SQL must be in v$SQL of the current instance
+  def optimizer_parse_trace
+    @sql_id       = prepare_param :sql_id
+    @child_number = prepare_param_int :child_number
+    @file_suffix  = "Panorama_optimizer_trace_#{get_unique_area_id}"
+
+    PanoramaConnection.sql_execute ["\
+      BEGIN
+        DBMS_SQLDIAG.DUMP_TRACE(p_sql_ID => ?, p_Child_Number => ?, p_Component => 'Compiler', p_File_ID => ?);
+      END;", @sql_id, @child_number, @file_suffix]
+
+    params[:filename_incl_filter] = @file_suffix
+    params[:time_selection_start] = localeDateTime(Time.now - 86400)
+    params[:time_selection_end]   = localeDateTime(Time.now + 86400)
+    list_trace_files
+  end
+
   def list_trace_files
     save_session_time_selection
     @filename_incl_filter         = prepare_param(:filename_incl_filter)
@@ -1919,7 +1937,7 @@ oradebug setorapname diag
       ORDER BY Max(Timestamp)
     ", @time_selection_start, @time_selection_end].concat(where_values)
 
-    render_partial
+    render_partial :list_trace_files
   rescue Exception => e
     if e.message['ORA-00942']
       show_popup_message("Access on view 'gv$Diag_Trace_File_Contents' not possible. You need SELECT_CATALOG_ROLE for access!")
