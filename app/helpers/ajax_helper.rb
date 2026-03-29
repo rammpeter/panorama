@@ -111,9 +111,9 @@ module AjaxHelper
             # vertical line as separator
             output << "&nbsp;&nbsp;<span style=\"font-size: larger; border-left: 1px solid #000; height: 100%;\"></span>&nbsp;"
           else
-            output << "<div style='margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;#{cmd[:icon_style]}'
-                          title='#{cmd[:hint]}' onclick='#{cmd[:action]}'>
-                       <span class='#{cmd[:icon_class]}'></span>
+            output << "<div style=\"margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;#{cmd[:icon_style]}\"
+                          title=\"#{cmd[:hint]}\" onclick=\"#{ cmd[:action].gsub('"', '&quot;') }\">
+                       <span class=\"#{cmd[:icon_class]}\"></span>
                      </div>"
           end
         end
