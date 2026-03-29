@@ -1868,7 +1868,7 @@ oradebug setorapname diag
     render_partial
   end
 
-  # Generator a trace file of optimizer parse process
+  # Generate a trace file of optimizer parse process
   # The SQL must be in v$SQL of the current instance
   def optimizer_parse_trace
     @sql_id       = prepare_param :sql_id

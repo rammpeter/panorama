@@ -9,6 +9,13 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
     #@routes = Engine.routes         # Suppress routing error if only routes for dummy application are active
     set_session_test_db_context
 
+    if !defined? @sga_sql_id
+      sql_row = sql_select_first_row "SELECT SQL_ID, Child_Number FROM v$sql WHERE SQL_Text LIKE '%seg$%' AND Object_Status = 'VALID' ORDER BY Executions DESC, First_Load_Time"
+      raise "DbaControllerTest.setup: No SQL found for test" if sql_row.nil?
+      @sga_sql_id = sql_row.sql_id
+      @sga_child_number = sql_row.child_number
+    end
+
     initialize_min_max_snap_id_and_times
     @autonomous = PanoramaConnection.autonomous_database?
   end
@@ -271,6 +278,26 @@ class DbaControllerTest < ActionDispatch::IntegrationTest
       end
       post '/dba/refresh_dashboard_ash', :params => {:format=>:html, :update_area=>:hugo, instance: instance, hours_to_cover: 0.5, groupby: key, topx: 10, last_refresh_time_string: last_refresh_time_string, smallest_timestamp_ms: smallest_timestamp_ms, window_width: 1024 }
       assert_response management_pack_license == :none ? :error : :success, log_on_failure("refresh_dashboard_ash failed for key #{key} and instance #{instance}")
+    end
+  end
+
+  test "optimizer_parse_trace with xhr: true" do
+    assert_nothing_raised do
+      # DBMS_SQLDIAG.DUMP_TRACE requires Oracle >= 12.2 and access on gv$Diag_Trace_File_Contents
+      # Access on trace files is not possible on autonomous DBs
+      if get_db_version >= '12.2' && !PanoramaConnection.autonomous_database?
+        # Get a valid SQL-ID and child_number from the SGA
+        post '/dba/optimizer_parse_trace', params: { format:       :html,
+                                                     sql_id:       @sga_sql_id,
+                                                     child_number: @sga_child_number,
+                                                     update_area:  :hugo
+        }
+        if @response.body['ORA-01031']
+          Rails.logger.debug('DBAControllerTest.optimizer_parse_trace') { "No access to DBMS_SQLDIAG.DUMP_TRACE, cannot test optimizer_parse_trace" }
+        else
+          assert_response :success
+        end
+      end
     end
   end
 

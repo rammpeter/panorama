@@ -557,7 +557,7 @@ module ApplicationHelper
         :hint =>       t(:addition_copy_recall_params_hint, :default=>"Copy request parameter to clipboard which allows you to reconstruct/replay this page later\nCall menu &#39Spec. additions / Execute with given parameters&#39 and paste this info to reconstruct your page at later time."),
         :icon_class => 'cui-copy',
         show_icon_in_caption: true,
-        :action =>     "copy_to_clipboard('#{request.parameters.except(:update_area, :browser_tab_id).to_json.gsub("'", '&#39;')}');  alert('#{t(:addition_copy_recall_params_answer, :default=>"Current request parameters are copied to clipboard.\nUse menu \"Spec. additions / Execute with given parameters\" to paste this parameters").gsub("\n", '\\n')}');"
+        :action =>     "copy_to_clipboard('#{request.parameters.except(:update_area, :browser_tab_id).to_json.gsub("'", '&#39;').gsub('"', "&quot;")}');  show_popup_message('#{t(:addition_copy_recall_params_answer, :default=>"Current request parameters are copied to clipboard.\nUse menu \"Spec. additions / Execute with given parameters\" to paste this parameters").gsub("\n", '\\n').gsub('"', "&quot;")}');"
     }
   end
 
@@ -588,7 +588,11 @@ module ApplicationHelper
     PanoramaConnection.sql_select_iterator(sql, modifier: modifier, query_name: query_name, convert_tz: convert_tz)
   end
 
-  # Select genau erste Zeile
+  # Select exactly the first line of a result
+  # @param [String, Array] sql The sql with optional bind parameters
+  # @param [String] query_name The name for log output
+  # @param [Boolean] convert_tz Should the time zone of date or time values be converted to the browser client timezone
+  # @return [Hash,nil]
   def sql_select_first_row(sql, query_name: 'sql_select_first_row', convert_tz: true)
     PanoramaConnection.sql_select_first_row(sql, query_name: query_name, convert_tz: convert_tz)
   end

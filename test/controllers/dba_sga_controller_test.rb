@@ -10,11 +10,12 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
 
     initialize_min_max_snap_id_and_times
 
-    if !defined? @@hist_sql_id
+    if !defined? @sga_sql_id
       sql_row = sql_select_first_row "SELECT SQL_ID, Child_Number, Parsing_Schema_Name FROM v$sql WHERE SQL_Text LIKE '%seg$%' AND Object_Status = 'VALID' ORDER BY Executions DESC, First_Load_Time"
-      @@hist_sql_id = sql_row.sql_id
-      @@sga_child_number = sql_row.child_number
-      @@hist_parsing_schema_name = sql_row.parsing_schema_name
+      raise "DbaSgaControllerTest.setup: No SQL found for test" if sql_row.nil?
+      @sga_sql_id = sql_row.sql_id
+      @sga_child_number = sql_row.child_number
+      @hist_parsing_schema_name = sql_row.parsing_schema_name
     end
     @instance = PanoramaConnection.instance_number
   end
@@ -80,15 +81,15 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_sql_detail_sql_id_childno with xhr: true" do
-    get '/dba_sga/list_sql_detail_sql_id_childno', :params => {:format=>:html, :instance => @instance, :sql_id => @@hist_sql_id, child_number: @@sga_child_number, :update_area=>:hugo  }
+    get '/dba_sga/list_sql_detail_sql_id_childno', :params => {:format=>:html, :instance => @instance, :sql_id => @sga_sql_id, child_number: @sga_child_number, :update_area=>:hugo  }
     assert_response :success
   end
 
   test "list_sql_detail_sql_id with xhr: true" do
-    get  '/dba_sga/list_sql_detail_sql_id' , :params => {:format=>:html, :instance =>@instance, :sql_id => @@hist_sql_id, :update_area=>:hugo }
+    get  '/dba_sga/list_sql_detail_sql_id' , :params => {:format=>:html, :instance =>@instance, :sql_id => @sga_sql_id, :update_area=>:hugo }
     assert_response :success
 
-    get  '/dba_sga/list_sql_detail_sql_id' , :params => {:format=>:html, :sql_id => @@hist_sql_id, :update_area=>:hugo }
+    get  '/dba_sga/list_sql_detail_sql_id' , :params => {:format=>:html, :sql_id => @sga_sql_id, :update_area=>:hugo }
     assert_response :success
 
     post '/dba_sga/list_sql_profile_detail', :params => {:format=>:html, :profile_name=>'Hugo', :update_area=>:hugo }
@@ -97,43 +98,43 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_sql_detail_execution_plan with xhr: true" do
-    post '/dba_sga/list_sql_detail_execution_plan' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_sql_detail_execution_plan' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
-    post '/dba_sga/list_sql_detail_execution_plan' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, child_number: 1, child_address: 'ABC', update_area: :hugo }
+    post '/dba_sga/list_sql_detail_execution_plan' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, child_number: 1, child_address: 'ABC', update_area: :hugo }
     assert_response :success
   end
 
   test "list_sql_child_cursors with xhr: true" do
-    post '/dba_sga/list_sql_child_cursors' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_sql_child_cursors' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
   end
 
   test "list_bind_variables_per_sql with xhr: true" do
-    post '/dba_sga/list_bind_variables', :params => {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_bind_variables', :params => {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
 
-    post '/dba_sga/list_bind_variables', :params => {format: :html, instance: @instance, sql_id: @@hist_sql_id, child_number: 0, child_address: 'ABC', update_area: :hugo }
+    post '/dba_sga/list_bind_variables', :params => {format: :html, instance: @instance, sql_id: @sga_sql_id, child_number: 0, child_address: 'ABC', update_area: :hugo }
     assert_response :success
   end
 
 
   test "list_open_cursor_per_sql with xhr: true" do
-    get '/dba_sga/list_open_cursor_per_sql', :params => {:format=>:html, :instance=> @instance, :sql_id => @@hist_sql_id, :update_area=>:hugo }
+    get '/dba_sga/list_open_cursor_per_sql', :params => {:format=>:html, :instance=> @instance, :sql_id => @sga_sql_id, :update_area=>:hugo }
     assert_response :success
   end
 
   test "list_dbms_xplan_display with xhr: true" do
-    post '/dba_sga/list_dbms_xplan_display' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_dbms_xplan_display' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
   end
 
   test "list_dbms_xplan_display_multiple_children with xhr: true" do
-    post '/dba_sga/list_dbms_xplan_display_multiple_children' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_dbms_xplan_display_multiple_children' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
   end
 
   test "list_sql_shared_cursor with xhr: true" do
-    post '/dba_sga/list_sql_shared_cursor' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, update_area: :hugo }
+    post '/dba_sga/list_sql_shared_cursor' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, update_area: :hugo }
     assert_response :success
   end
 
@@ -142,7 +143,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
       { child_number: nil,            show_defaults: true},
       { child_number: @child_number,  show_defaults: false}
     ].each do |v|
-      post '/dba_sga/list_sql_optimizer_env' , params: {format: :html, instance: @instance, sql_id: @@hist_sql_id, child_number: v[:child_number], show_defaults: v[:show_defaults], update_area: :hugo }
+      post '/dba_sga/list_sql_optimizer_env' , params: {format: :html, instance: @instance, sql_id: @sga_sql_id, child_number: v[:child_number], show_defaults: v[:show_defaults], update_area: :hugo }
       assert_response :success
     end
   end
@@ -193,12 +194,12 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "list_cursor_memory with xhr: true" do
-    get '/dba_sga/list_cursor_memory', :params => {:format=>:html, :instance=> @instance, :sql_id=>@@hist_sql_id, :update_area=>:hugo }
+    get '/dba_sga/list_cursor_memory', :params => {:format=>:html, :instance=> @instance, :sql_id=>@sga_sql_id, :update_area=>:hugo }
     assert_response :success
   end
 
   test "compare_execution_plans with xhr: true" do
-    post '/dba_sga/list_compare_execution_plans', :params => {:format=>:html, :instance_1=> @instance, :sql_id_1=>@@hist_sql_id, :child_number_1 =>@@sga_child_number, :instance_2=> @instance, :sql_id_2=>@@hist_sql_id, :child_number_2 =>@@sga_child_number, :update_area=>:hugo }
+    post '/dba_sga/list_compare_execution_plans', :params => {:format=>:html, :instance_1=> @instance, :sql_id_1=>@sga_sql_id, :child_number_1 =>@sga_child_number, :instance_2=> @instance, :sql_id_2=>@sga_sql_id, :child_number_2 =>@sga_child_number, :update_area=>:hugo }
     assert_response :success
   end
 
@@ -253,7 +254,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     if get_db_version >= '12.1'
-      [nil, @@hist_sql_id].each do |translation_sql_id|
+      [nil, @sga_sql_id].each do |translation_sql_id|
         post '/dba_sga/show_sql_translations', :params => {:format=>:html, :translation_sql_id=>translation_sql_id, :update_area=>:hugo }
         assert_response :success
       end
@@ -267,7 +268,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "influence_sql_plan with xhr: true" do
-    post '/dba_sga/influence_sql_plan', :params => {:format=>:html, sql_id: @@hist_sql_id, :update_area=>:hugo }
+    post '/dba_sga/influence_sql_plan', :params => {:format=>:html, sql_id: @sga_sql_id, :update_area=>:hugo }
     assert_response :success
   end
 
@@ -278,8 +279,8 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
           [nil, true].each do |fixed_user|
             post '/dba_sga/show_sql_translations', :params => {:format      => :html,
                                                                :location    => location,
-                                                               :sql_id      => @@hist_sql_id,
-                                                               :user_name   => @@hist_parsing_schema_name,
+                                                               :sql_id      => @sga_sql_id,
+                                                               :user_name   => @hist_parsing_schema_name,
                                                                :fixed_user  => fixed_user,
                                                                :update_area => :hugo
             }
@@ -293,7 +294,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
   test "generate_sql_patch with xhr: true" do
     assert_nothing_raised do
       if get_db_version >= '12.1'
-        post '/dba_sga/generate_sql_patch', :params => {format: :html, sql_id: @@hist_sql_id, update_area: :hugo }
+        post '/dba_sga/generate_sql_patch', :params => {format: :html, sql_id: @sga_sql_id, update_area: :hugo }
         assert_response :success
       end
     end
