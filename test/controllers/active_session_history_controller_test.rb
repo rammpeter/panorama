@@ -91,12 +91,12 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       end
 
       # Test mit realem Wert
-      add_filter[groupby] = bind_value_from_key_rule(groupby)
+      add_filter[groupby.to_sym] = bind_value_from_key_rule(groupby)
       post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo, window_width: 1200 }
       assert_response_success_or_management_pack_violation('list_session_statistic_historic_grouping groupby => value')
 
       # Test mit NULL als Filterkriterium
-      add_filter[groupby]= nil
+      add_filter[groupby.to_sym]= nil
       post :list_session_statistic_historic_grouping, :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo, window_width: 1200 }
       assert_response_success_or_management_pack_violation('list_session_statistic_historic_grouping groupby => nil')
 
@@ -125,7 +125,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
     additional_filters = additional_ash_filter_conditions.keys                  # Test all additional filter values that are not grouping criteria in session_statistics_key_rules
     additional_filters_index = 0
     session_statistics_key_rules.each do |groupby, value|
-      add_filter = {groupby => bind_value_from_key_rule(groupby)}               # Filter from grouping criteria
+      add_filter = {groupby.to_sym => bind_value_from_key_rule(groupby)}               # Filter from grouping criteria
 
       additional_filters_index += 1
       additional_filters_index = 0 if additional_filters_index >= additional_filters.count  # loop through values of additional_ash_filter_conditions
@@ -139,7 +139,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
   test "list_session_statistic_historic_timeline with xhr: true" do
     session_statistics_key_rules.each do |groupby, value|
-      add_filter = {groupby => bind_value_from_key_rule(groupby)}
+      add_filter = {groupby.to_sym => bind_value_from_key_rule(groupby)}
       post :list_session_statistic_historic_timeline, :params => {:format=>:html, :groupby=>groupby,
            :groupfilter=>@groupfilter.merge(add_filter),
            :top_values => ["1", "2", "3"], :group_seconds=>60, :update_area=>:hugo }
@@ -156,7 +156,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
       session_statistics_key_rules.each do |outer_filter, value|
         time_groupby = grouping_options[loop_count % grouping_options.length]   # there are less grouping_options than session_statistics_key_rules
         temp_ts      = temp_tss[loop_count % temp_tss.length]
-        add_filter = {outer_filter => bind_value_from_key_rule(outer_filter), Temp_TS: temp_ts }
+        add_filter = {outer_filter.to_sym => bind_value_from_key_rule(outer_filter), Temp_TS: temp_ts }
         post :list_temp_usage_historic, :params => {:format=>:html, :time_groupby=>time_groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo }
         assert_response_success_or_management_pack_violation("list_temp_usage_historic outer_filter=#{outer_filter} time_groupby=#{time_groupby}")
         loop_count += 1
@@ -171,7 +171,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
 
       session_statistics_key_rules.each do |outer_filter, value|
         time_groupby = grouping_options[loop_count % grouping_options.length]   # there are less grouping_options than session_statistics_key_rules
-        add_filter = {outer_filter => bind_value_from_key_rule(outer_filter)}
+        add_filter = {outer_filter.to_sym => bind_value_from_key_rule(outer_filter)}
         post :list_pga_usage_historic, :params => {:format=>:html, :time_groupby=>time_groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo }
         assert_response_success_or_management_pack_violation("list_pga_usage_historic outer_filter=#{outer_filter} time_groupby=#{time_groupby}")
         loop_count += 1
