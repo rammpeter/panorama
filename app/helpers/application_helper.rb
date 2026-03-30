@@ -602,6 +602,56 @@ module ApplicationHelper
     PanoramaConnection.sql_select_one(sql, query_name: query_name)
   end
 
+  # Render a SlickGrid for a single table or view
+  # @param [String] owner Name of the owner if not SYS
+  # @param [String] object_name Name of table or view
+  # @param [String] filter SQL-Where-Clause without 'WHERE' for filtering the table content, optional
+  # @param [Array] binds Array of bind variables for filter, optional
+  # @param [String] caption
+  # @param [Array] exclude_columns The column names to exclude
+  # @param [Integer] max_height The maximum height of the grid in pixel
+  # @return [String] the html output for the grid
+  def render_single_table_grid(owner: 'SYS', object_name:, filter: nil, binds: [], caption: nil, exclude_columns: [], max_height: 450)
+    sql = "SELECT * FROM #{dba_or_cdb(object_name)}".dup
+    unless filter.nil? || filter.strip == ''
+      sql << " WHERE #{filter}"
+    end
+    result = sql_select_iterator([sql].concat(binds))
+
+    columns = sql_select_all ["SELECT LOWER(tc.Column_Name) Column_Name, tc.Data_Type, cc.Comments
+                               FROM   DBA_Tab_Columns tc
+                               LEFT JOIN DBA_Col_Comments cc ON cc.Owner = tc.Owner AND cc.Table_Name = tc.Table_Name AND cc.Column_Name = tc.Column_Name
+                               WHERE tc.Owner = UPPER(?) AND tc.Table_Name = UPPER(?)
+                               ORDER BY tc.Column_ID", owner, object_name]
+
+    column_options = []
+    exclude_columns.map!(&:downcase)
+    columns.each do |column|
+      unless exclude_columns.include?(column.column_name)
+        co = { caption: column.column_name.capitalize.gsub("_", " "), title: column.comments}
+        co[:data] = case
+                    when column.data_type == 'NUMBER' then
+                      proc{|rec| fn(rec[column.column_name])}
+                    when column.data_type == 'DATE' || column.data_type == 'TIMESTAMP' then
+                      proc{|rec| localeDateTime(rec[column.column_name])}
+                    else
+                      proc{|rec| rec[column.column_name]}
+                    end
+        column_options << co
+      end
+    end
+
+    volatile_binds = binds.dup
+    filter.gsub!("?") { binds.shift }
+    caption = caption || "Content of #{object_name}#{" for #{filter}" if filter}"
+
+    gen_slickgrid(result, column_options, {
+      caption:        caption,
+      max_height:     max_height,
+      show_pin_icon:  1
+    })
+  end
+
   # Switch between DBA_xxx and CDB_xxx for CDBs
   def dba_or_cdb(tablename)
     if PanoramaConnection.is_cdb?

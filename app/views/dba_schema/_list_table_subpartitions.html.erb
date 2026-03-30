@@ -122,6 +122,7 @@
                :owner       => @owner,
                :table_name  => @table_name,
                partition_name: rec.subpartition_name,
+               partition_schema: 'SUBPARTITION',
                :update_area => @update_area,
               },
               :title=>'Show historic gather_table_stats-operations for table-subpartition'

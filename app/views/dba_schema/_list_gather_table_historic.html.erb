@@ -1,5 +1,7 @@
+<% @update_area = get_unique_area_id %>
+<%= @stat_grid_html %>
 <%
-  @update_area = get_unique_area_id
+
 
   show_notes = proc do |rec|
     output = String.new

@@ -1,6 +1,8 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+- 2026-03-30 Show content of DBA_Tab_Statistics for tables and partitions after link on last analayzed date
+
 ## Relese 2.19.11
 - 2026-03-23 Run and show optimizer trace from SQL details page for SQLs from SGA
 

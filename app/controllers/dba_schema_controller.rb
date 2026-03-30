@@ -3249,11 +3249,14 @@ class DbaSchemaController < ApplicationController
     @owner              = params[:owner]
     @table_name         = params[:table_name]
     @partition_name     = prepare_param :partition_name
+    partition_schema    = prepare_param :partition_schema     # PARTITION | SUBPARTITION | nil
 
     @operations = analyze_operations(@owner, @table_name, @partition_name)
 
-    where_string = String.new
+    where_string            = String.new
+    stat_grid_where_string  = String.new
     where_values = []
+    stat_grid_where_values = []
 
     if @partition_name
       where_string << " AND o.Subobject_Name = ?"
@@ -3261,6 +3264,24 @@ class DbaSchemaController < ApplicationController
     else
       where_string << " AND SubObject_Name IS NULL"
     end
+
+    stat_grid_exclude_columms = ['owner', 'table_name']
+    case partition_schema
+    when 'PARTITION' then
+      stat_grid_where_string = " AND Partition_Name = ?"
+      stat_grid_where_values << @partition_name
+    when 'SUBPARTITION' then
+      stat_grid_where_string = " AND SubPartition_Name = ?"
+      stat_grid_where_values << @partition_name
+    end
+
+    @stat_grid_html = render_single_table_grid(object_name: "DBA_Tab_Statistics",
+                                               filter: "Owner = ? AND Table_Name = ?#{stat_grid_where_string}",
+                                               binds: [@owner, @table_name].concat(stat_grid_where_values),
+                                               exclude_columns: stat_grid_exclude_columms,
+                                               max_height: 200
+    )
+
     @tab_history = sql_select_all ["SELECT t.*, o.Subobject_Name
                                     FROM   DBA_Objects o
                                     JOIN   sys.WRI$_OPTSTAT_TAB_HISTORY t ON t.Obj# = o.Object_ID
