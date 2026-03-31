@@ -536,7 +536,7 @@ class PanoramaSamplerConfig
 
   #  Call inside Mutex.synchronize only
   def self.write_config_array_to_store
-    raise "PanoramaSamplerConfig.write_config_array_to_store: Mutex @@config_access_mutex is not locked before call" unless @@config_access_mutex.locked?
+    raise "PanoramaSamplerConfig.write_config_array_to_store: Mutex @@config_access_mutex is not locked before call" unless @@config_access_mutex.owned?
     ClientInfoStore.write(client_info_store_key, @@config_array.map{|config| config.get_cloned_config_hash})  # Store config array as Hash-Array
   rescue Exception =>e
     ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'PanoramaSamplerConfig.write_config_array_to_store')

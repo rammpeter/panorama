@@ -774,6 +774,7 @@ class PanoramaConnection
       result << line
       result << "\n"
     end
+    br.close
     result
   rescue Exception => e
     Rails.logger.error('PanoramaConnection.exec_clob_plsql_function') { "Error '#{e.class} : #{e.message}' occurred" }

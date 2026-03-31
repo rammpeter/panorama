@@ -24,14 +24,14 @@ class AdminController < ApplicationController
   end
 
   # Logon with valid master password and get JWT
-  $master_password_wrong_count=0
+  @@master_password_wrong_count=0
   def admin_logon
     origin_controller = prepare_param :origin_controller
     origin_action     = prepare_param :origin_action
     master_password =  Encryption.decrypt_browser_password(params[:encrypted_master_password])
 
     if master_password == Panorama::Application.config.panorama_master_password
-      $master_password_wrong_count=0                                            # reset delay for wrong password
+      @@master_password_wrong_count=0                                            # reset delay for wrong password
       expire_time = 8.hours.from_now
       token = JWT.encode({exp: expire_time.to_i}, jwt_secret, 'HS256')
       cookies[:master] = {value: token, expires: expire_time, httponly: true}
@@ -42,8 +42,8 @@ class AdminController < ApplicationController
                   )
     else
       cookies.delete :master                                                   # remove the invalid cookie
-      sleep $master_password_wrong_count
-      $master_password_wrong_count += 1
+      sleep @@master_password_wrong_count
+      @@master_password_wrong_count += 1
       show_popup_message('Wrong value entered for master password')
     end
   end
@@ -99,6 +99,8 @@ class AdminController < ApplicationController
         end
       end
     rescue EOFError
+      # Do nothing
+    ensure
       file.close
     end
 
@@ -165,6 +167,7 @@ class AdminController < ApplicationController
         end
       end
     rescue EOFError
+    ensure
       file.close
     end
 
@@ -217,6 +220,7 @@ class AdminController < ApplicationController
         end
       end
     rescue EOFError
+    ensure
       file.close
     end
 

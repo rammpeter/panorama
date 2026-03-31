@@ -85,7 +85,7 @@ module Panorama
         end
 
         if !options[:minimum].nil? && value < options[:minimum]
-          raise "Configuration attribute #{up_key} (#{log_value}) should be at least #{options[:minimum]}"
+          raise "Configuration attribute #{key} (#{log_value}) should be at least #{options[:minimum]}"
         end
       end
       Panorama::Application.config.send("#{down_key}=", value)                          # ensure all config methods are defined whether with values or without

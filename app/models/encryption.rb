@@ -7,9 +7,14 @@ class Encryption
   public
 
   @@instance = nil
+  @@instance_mutex = Mutex.new
   # @return [Encryption] The singleton instance
   def self.get_instance
-    @@instance = Encryption.new if @@instance == nil
+    if @@instance == nil
+      @@instance_mutex.synchronize do
+        @@instance = Encryption.new
+      end
+    end
     @@instance
   end
 
