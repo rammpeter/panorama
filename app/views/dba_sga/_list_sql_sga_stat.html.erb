@@ -6,8 +6,9 @@
     hint:       "Create and show a trace file with details of optimizer parse process for this SQL",
     icon_class: 'cui-money-bill-alt',
     show_icon_in_caption: @modus == "GV$SQL",                                 # Show icon only if function is valid
-    action:     if @modus == "GV$SQL"
-                  "ajax_html('#{@update_area}', 'dba', 'optimizer_parse_trace', { 'sql_id': '#{@sql.sql_id}', 'child_number': #{@sql.child_number} });"
+    action:     case
+                when @instance != PanoramaConnection.instance_number then "show_popup_message('Please connect to RAC instance #{@instance} to create an optimizer trace for this SQL');"
+                when @modus == "GV$SQL" then "ajax_html('#{@update_area}', 'dba', 'optimizer_parse_trace', { 'sql_id': '#{@sql.sql_id}', 'child_number': #{@sql.child_number} });"
                 else
                   "show_popup_message('Please use SQL detail view at child level (gv$SQL) for a specific child of this SQL to create an optimizer trace');"
                 end
