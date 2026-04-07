@@ -102,18 +102,6 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:windows, :jruby]
 
-
-# Build Panorama.war with warbler (./build_war.sh), Use warbler directly from git
-# gem install specific_install
-# gem specific_install https://github.com/jruby/warbler.git
-
-# Adding warbler this waay sadly doesn't install the executable warble
-#group :development do
-#  gem 'warbler', :git => 'https://github.com/jruby/warbler.git'
-#end
-
-
-# Fix Debugging issue with JRuby 10:
-# https://youtrack.jetbrains.com/issue/RUBY-34161/Debug-fails-to-start-for-JRuby-10.0.0
-# Replace ./pramm/Applications/RubyMine.app/Contents/plugins/ruby/rb/gems/ruby-debug-base-0.11.0-java.gem
-# with  https://github.com/mohamedhafez/ruby-debug/releases/download/0.11.0.jruby-10/ruby-debug-base-0.11.0-java.gem
+# Exclude gems that are not really needed but may cause
+# fixes problems like: You have already activated erb 4.0.4, but your Gemfile requires erb 6.0.2.
+gem 'rdoc', require: false

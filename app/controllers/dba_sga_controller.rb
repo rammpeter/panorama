@@ -1159,7 +1159,7 @@ class DbaSgaController < ApplicationController
              CASE WHEN r.Creator_Count > 1 THEN '< '||r.Creator_Count||' >' ELSE (SELECT UserName FROM DBA_Users WHERE User_ID = r.Max_User_ID) END Creator,
              r.*
       FROM   gv$Result_Cache_Objects d
-      LEFT OUTER JOIN (SELECT dd.Inst_ID, dd.depend_ID, r.Status Result_Status, r.Name Result_Name, r.Namespace Result_Namespace,
+      LEFT OUTER JOIN (SELECT dd.Inst_ID, dd.depend_ID, r.Status Result_Status, r.Name Result_Name, RAWTOHEX(r.Name) Result_Hex_Name, r.Namespace Result_Namespace,
                                COUNT(*)                     Result_Count,
                                SUM(Space_Overhead)/1024     Space_Overhead_KB,
                                SUM(Space_Unused)/1024       Space_Unused_KB,
