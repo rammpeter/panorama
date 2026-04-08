@@ -270,17 +270,28 @@ DEPENDENCIES
   activerecord-nulldb-adapter
   activerecord-oracle_enhanced-adapter!
   activesupport (= 8.0.5)
+  benchmark
   brakeman
   date (= 3.4.1)
+  erb
+  io-console
+  irb
+  jar-dependencies
   jbuilder (~> 2.7)
   jwt
   listen (~> 3.3)
+  minitest
   playwright-ruby-client
+  pp
+  prettyprint
+  prism
+  psych
   puma
   rack-mini-profiler (~> 2.0)
   rails (= 8.0.5)
   railties (= 8.0.5)
   rdoc
+  reline
   rexml
   ruby-maven (~> 3.9)
   sass-rails (>= 6)

@@ -43,11 +43,18 @@ fi
 bundle config set --local without 'development test'
 bundle install --jobs 4
 
+# Remove unneeded dependencies to reduce the size of the jar file, this is done by excluded_gems
+# bundle clean --force
+# for gem in `grep -v '^#' excluded_gems.txt | grep -v '^$'`
+# do
+#   echo "Remove $gem from installed gems"rm -rf
+#   bundle exec gem uninstall $gem --force --executables
+# done
+
 # Ensures that after no test or development dependecies are initialized at 'bundle exec rake assets:precompile'
 export RAILS_ENV=production
 
-
-# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.4.gem
+# gem install --local /Users/pramm/Documents/Projekte/rammpeter.github/jarbler/jarbler-0.4.6.gem
 gem install jarbler
 
 

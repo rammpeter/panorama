@@ -102,6 +102,9 @@ end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:windows, :jruby]
 
-# Exclude gems that are not really needed but may cause
+# Exclude gems that are not really needed but may cause trouble
 # fixes problems like: You have already activated erb 4.0.4, but your Gemfile requires erb 6.0.2.
-gem 'rdoc', require: false
+no_require = File.readlines('excluded_gems.txt').map(&:strip).reject{|s| s.empty? || s.start_with?('#') }
+no_require.each do |name|
+  gem name, require: false
+end

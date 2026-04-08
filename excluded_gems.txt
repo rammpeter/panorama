@@ -1,0 +1,15 @@
+# This is a list of Gems that should be excluded from Panorama.jar
+# In Gemfile they are with "gem name, require: false"
+# In build.sh they are removed after bundle install
+benchmark
+erb
+io-console
+irb
+jar-dependencies
+minitest
+pp
+prettyprint
+prism
+psych
+reline
+rdoc

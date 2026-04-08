@@ -5,6 +5,11 @@
 Jarbler::Config.new do |config|
   config.compile_ruby_files = false
 
+  # Exclude gems that are not really needed but may cause trouble
+  # fixes problems like: You have already activated erb 4.0.4, but your Gemfile requires erb 6.0.2.
+  no_require = File.readlines('excluded_gems.txt').map(&:strip).reject{|s| s.empty? || s.start_with?('#') }
+  config.excluded_gems = no_require
+
   # Name of the generated jar file 
   config.jar_name = 'Panorama.jar'
 
@@ -19,7 +24,7 @@ Jarbler::Config.new do |config|
 
   # Application directories or files to include in the jar file
   # config.includes = ["app", "bin", "config", "config.ru", "db", "Gemfile", "Gemfile.lock", "lib", "log", "public", "script", "vendor", "tmp"]
-  # config.includes << "additional"
+  config.includes << "excluded_gems.txt"
 
   # Application directories or files to exclude from the jar file
   # config.excludes = ["tmp/cache", "tmp/pids", "tmp/sockets", "vendor/bundle", "vendor/cache", "vendor/ruby"]
