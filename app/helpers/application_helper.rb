@@ -641,7 +641,6 @@ module ApplicationHelper
       end
     end
 
-    volatile_binds = binds.dup
     filter.gsub!("?") { binds.shift }
     caption = caption || "Content of #{object_name}#{" for #{filter}" if filter}"
 

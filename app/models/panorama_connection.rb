@@ -294,7 +294,7 @@ class PanoramaConnection
       begin
         cloud_identity = PanoramaConnection.direct_select_one(@jdbc_connection, "SELECT Cloud_Identity FROM v$Containers WHERE RowNum < 2")
         @autonomous_database = cloud_identity['cloud_identity'].include?('AUTONOMOUSDATABASE')    # The DATABASE_OCID shout contain this String for autonomous DBs
-      rescue Exception => e
+      rescue Exception
         @autonomous_database = false                                            # not autonomous database because cloud_identity is not available
       end
     end

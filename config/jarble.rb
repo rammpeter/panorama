@@ -15,7 +15,8 @@ Jarbler::Config.new do |config|
 
   # Compile JarMain class so that the resulting Panorama.jar is compatible with Java 8 and above
   # Works only up to JRuby < 10.0.0.0 which requires Java 21 or above
-  config.java_opts = '-source 1.8 -target 1.8'
+  # config.java_opts = '-source 1.8 -target 1.8'
+  config.java_opts = '--release 21'
 
   config.executable             = 'bin/rails'
   config.executable_params      = %w(server -e production -p 8080)

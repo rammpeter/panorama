@@ -39,7 +39,7 @@ namespace :ci_preparation do
         stmt = conn.prepareStatement("SELECT 1 FROM DUAL");
         resultSet = stmt.executeQuery;
         resultSet.next
-        result = resultSet.getInt(1)
+        resultSet.getInt(1)
         break                                                                 # finished successful
       rescue Exception=> e
         exception_text = "#{e.class}: #{e.message}"

@@ -47,7 +47,7 @@ bundle install --jobs 4
 # bundle clean --force
 # for gem in `grep -v '^#' excluded_gems.txt | grep -v '^$'`
 # do
-#   echo "Remove $gem from installed gems"rm -rf
+#   echo "Remove $gem from installed gems"
 #   bundle exec gem uninstall $gem --force --executables
 # done
 
