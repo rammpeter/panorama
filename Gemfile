@@ -76,7 +76,7 @@ group :development do
   gem 'sass-rails', '>= 6'
 
   # Needed to build executable lock_jars for jar-dependencies
-  gem 'ruby-maven', '~> 3.9'
+  # gem 'ruby-maven', '~> 3.9'
 
   # For dev use the same version as in default system gems, to prevent at debug: Uncaught exception: You have already activated date 3.4.1, but your Gemfile requires date 3.5.1.
   gem 'date', '3.4.1'

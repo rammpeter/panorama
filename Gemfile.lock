@@ -215,9 +215,6 @@ GEM
     reline (0.6.3)
       io-console (~> 0.5)
     rexml (3.4.4)
-    ruby-maven (3.9.3)
-      ruby-maven-libs (~> 3.9.9)
-    ruby-maven-libs (3.9.9)
     ruby-plsql (0.8.0)
     sass-rails (6.0.0)
       sassc-rails (~> 2.1, >= 2.1.1)
@@ -293,7 +290,6 @@ DEPENDENCIES
   rdoc
   reline
   rexml
-  ruby-maven (~> 3.9)
   sass-rails (>= 6)
   sprockets-rails
   tzinfo-data
@@ -371,8 +367,6 @@ CHECKSUMS
   rdoc (7.2.0) sha256=8650f76cd4009c3b54955eb5d7e3a075c60a57276766ebf36f9085e8c9f23192
   reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
   rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
-  ruby-maven (3.9.3) sha256=f79b8b56fa1cfcffd966d6e7b7afe81d66f1d087ea0536fb51ea10278e72a604
-  ruby-maven-libs (3.9.9) sha256=d03f665b231a6a4731a117282a3598b62a2ad75fa01918df3eaeba3a8df3d9b1
   ruby-plsql (0.8.0) sha256=3cbf0a2f31ecf449a08f64bb0688bb3fc5bffdd7a4ab949ce54f01cbe0b9f465
   sass-rails (6.0.0) sha256=e0b6448ea1c7929fd5929fc7a8eb2d78045e44cc82fc0765a249d3fa1c5810d3
   sassc (2.4.0) sha256=4c60a2b0a3b36685c83b80d5789401c2f678c1652e3288315a1551d811d9f83e
