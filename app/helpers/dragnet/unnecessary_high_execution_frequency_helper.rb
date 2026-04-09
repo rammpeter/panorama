@@ -58,9 +58,10 @@ For both constellations problematic statements can be identified by number of b
         },
         {
             :name  => t(:dragnet_helper_88_name, :default=>'Frequent access on small objects'),
-            :desc  => t(:dragnet_helper_88_desc, :default=>'For frequent executed SELECT-statements on small objects it may be worth to cache this content instead of accessong by SQL.
+            :desc  => t(:dragnet_helper_88_desc, :default=>'For frequent executed SELECT-statements on small objects it may be worth to cache this content in the application instead of repeated access by SQL.
 This reduces CPU-contention and the risk of „Cache Buffers Chains“ latch-waits.
-Stored functions with function result caching or selects/subselects with result caching may be used for this purpose.
+A remote application will benefit from suppressed network roundtrips too.
+Stored functions with function result caching or selects/subselects with result caching may also be used for this purpose.
 '),
             :sql=>  "SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
                       FROM  (

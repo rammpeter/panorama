@@ -103,7 +103,7 @@
 %>
 
 <%= gen_slickgrid(@locks, column_options, {
-        :caption => "Sessions at #{@snapshot_timestamp} directly locked by Instance=#{@blocking_instance}, SID=#{@blocking_sid}, Serial_No=#{@blocking_serial_no}",
+        :caption => "Locks of sessions at #{@snapshot_timestamp} directly locked by Instance=#{@blocking_instance}, SID=#{@blocking_sid}, Serial_No=#{@blocking_serial_no}",
         :max_height => 450,
         show_pin_icon: 1,
         update_area:   @update_area
