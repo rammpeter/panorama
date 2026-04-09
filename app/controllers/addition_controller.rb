@@ -280,6 +280,7 @@ class AdditionController < ApplicationController
       FROM   (
               SELECT Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
                      COUNT(DISTINCT SID) Blocked_Sessions_Total,
+                     MAX(SID) Single_Blocked_Session,
                      COUNT(DISTINCT CASE WHEN cLevel=1 THEN SID ELSE NULL END) Blocked_Sessions_Direct,
                      MAX(CASE WHEN cLevel=1 THEN SID ELSE NULL END)            Single_Blocked_Session_Direct,
                      SUM(Seconds_In_Wait)                                      Seconds_in_wait_Total,
@@ -391,10 +392,15 @@ class AdditionController < ApplicationController
     @blocking_serial_no  = params[:blocking_serial_no]
 
     @locks= sql_select_all ["\
-      WITH TSel AS (SELECT /*+ NO_MERGE */ *
-                    FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks l
-                    WHERE  l.Snapshot_Timestamp = TO_DATE(?, '#{sql_datetime_second_mask}')
-                    AND    l.Blocking_SID IS NOT NULL  -- keine langdauernden Locks beruecksichtigen
+      WITH TSel AS (SELECT *
+                    FROM   (
+                            SELECT /*+ NO_MERGE */ l.*,
+                                   COUNT(*) OVER (PARTITION BY Instance_Number, SID) Locked_Object_Count
+                            FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks l
+                            WHERE  Snapshot_Timestamp = TO_DATE(?, '#{sql_datetime_second_mask}')
+                            AND    Blocking_SID IS NOT NULL   /* keine langdauernden Locks beruecksichtigen */
+                           )
+                    WHERE  Request > 0                /* only the blocking line among other locks */
                    )
       SELECT o.Instance_Number, o.Sid, o.Serial_No, o.Seconds_In_Wait, o.SQL_ID, o.SQL_Child_Number,
              o.Prev_SQL_ID, o.Prev_Child_Number, o.Event, o.Status, o.Client_Info, o.Module, o.Action, o.user_name, o.program,
@@ -406,7 +412,7 @@ class AdditionController < ApplicationController
                 Object_Name||' ('||(SELECT Object_Name FROM DBA_Objects WHERE Object_ID=TO_NUMBER(SUBSTR(Object_Name, 7, 10)) )||')'
                ELSE Object_Name
              END Object_Name,
-             o.Lock_Type, o.ID1, o.ID2, o.request, o.lock_mode, o.Blocking_Object_Owner, o.Blocking_Object_Name,
+             o.Lock_Type, o.ID1, o.ID2, o.request, o.lock_mode, o.Locked_Object_Count, o.Blocking_Object_Owner, o.Blocking_Object_Name,
              CAST(o.Blocking_RowID AS VARCHAR2(18)) Blocking_RowID, o.Waiting_For_PK_Column_Name, o.Waiting_For_PK_Value,
              cs.*,
              (SELECT COUNT(*) FROM TSel li
@@ -441,6 +447,24 @@ class AdditionController < ApplicationController
     render_partial
   end
 
+  def list_blocking_locks_objects_locked
+    @snapshot_timestamp = prepare_param :snapshot_timestamp
+    @instance           = prepare_param :instance
+    @sid                = prepare_param :sid
+    @serial_no          = prepare_param :serial_no
+
+    @locks = sql_select_all ["\
+      SELECT *
+      FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks
+      WHERE  Snapshot_Timestamp = TO_DATE(?, '#{sql_datetime_second_mask}')
+      AND    Instance_Number = ?
+      AND    SID = ?
+      AND    Serial_No = ?",
+      @snapshot_timestamp, @instance, @sid, @serial_no
+    ]
+
+    render_partial
+  end
   def list_blocking_locks_history_single_record
     where_from_blocking_locks_groupfilter(params[:groupfilter], nil)
 

@@ -73,6 +73,18 @@
     retval.html_safe
   end
 
+  link_locked_objects = proc do |rec|
+    ajax_link(fn(rec.locked_object_count), {
+      action:             :list_blocking_locks_objects_locked,
+      snapshot_timestamp: @snapshot_timestamp,
+      instance:            rec.instance_number,
+      sid:                rec.sid,
+      serial_no:          rec.serial_no,
+      update_area:        @update_area
+    }, title: "Show all objects locked by this session at this time"
+    )
+  end
+
   column_options =
   [
     {:caption=>"I.",              :data=>proc{|rec| rec.instance_number},                                     :title=>"Instance of blocked session"},
@@ -93,6 +105,7 @@
     {:caption=>"ID1, ID2",        :data=>proc{|rec| "#{rec.id1}, #{rec.id2}"},         :title=>"ID1, ID2 of object the blocked session is waiting for"},
     {:caption=>"R",               :data=>proc{|rec| rec.request},                      :title=>"requested lock mode", :data_title=>proc{|rec| "%t\n#{lock_modes(rec.request.to_s)}"}},
     {:caption=>"L",               :data=>proc{|rec| rec.lock_mode},                    :title=>"held lock mode", :data_title=>proc{|rec| "%t\n#{lock_modes(rec.lock_mode.to_s)}"} },
+    {:caption=>"Locked objects", :data=>link_locked_objects,                           :title=>"Number of objects locked by this session at this time", align: :right },
     {:caption=>"Blocking Object", :data=>proc{|rec|  link_object_description(@update_area, rec.blocking_object_owner, rec.blocking_object_name) },  :title=>"Schema and name of blocking object"},
     {:caption=>"RowID / Primary Key", :data=>proc{|rec| "#{rec.blocking_rowid} #{rec.waiting_for_pk_column_name} = #{rec.waiting_for_pk_value}"}, :title=>"RowID as well as primary key columns and values of blocking object"},
 =begin
@@ -103,7 +116,7 @@
 %>
 
 <%= gen_slickgrid(@locks, column_options, {
-        :caption => "Locks of sessions at #{@snapshot_timestamp} directly locked by Instance=#{@blocking_instance}, SID=#{@blocking_sid}, Serial_No=#{@blocking_serial_no}",
+        :caption => "Sessions at #{@snapshot_timestamp} that are directly locked by Instance=#{@blocking_instance}, SID=#{@blocking_sid}, Serial_No=#{@blocking_serial_no}",
         :max_height => 450,
         show_pin_icon: 1,
         update_area:   @update_area

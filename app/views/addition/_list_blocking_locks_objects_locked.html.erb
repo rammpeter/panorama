@@ -1,0 +1,30 @@
+<%
+  @update_area = get_unique_area_id
+
+  link_object_name = proc do |rec|
+    if rec.object_name[':'] # RBS
+      rec.object_name
+    else
+      owner = rec.object_name.split('.')[0]
+      name = rec.object_name.split('.')[1]
+      link_object_description(@update_area, owner, name)
+    end
+  end
+
+  column_options =
+    [
+      {:caption=>"Locked time",     :data=>proc{|rec| fn(rec.seconds_in_wait)},          :title=>"Number of seconds this object was locked", :align=>"right", data_title: proc{|rec| "%t\n#{seconds_explain(rec.seconds_in_wait)}"}},
+      {:caption=>"Object name",     :data=>link_object_name,                              :title=>"Name of locked object"},
+      {:caption=>"Lock type",       :data=>proc{|rec| rec.lock_type},                    :title=>"Lock type of blocked session", :data_title=>'#{lock_types(rec.lock_type)}'},
+      {:caption=>"ID1, ID2",        :data=>proc{|rec| "#{rec.id1}, #{rec.id2}"},         :title=>"ID1, ID2 of object the blocked session is waiting for"},
+      {:caption=>"Request mode",    :data=>proc{|rec| rec.request},                      :title=>"requested lock mode", :data_title=>proc{|rec| "%t\n#{lock_modes(rec.request.to_s)}"}},
+      {:caption=>"Lock mode",       :data=>proc{|rec| rec.lock_mode},                    :title=>"held lock mode", :data_title=>proc{|rec| "%t\n#{lock_modes(rec.lock_mode.to_s)}"} },
+    ]
+%>
+
+<%= gen_slickgrid(@locks, column_options, {
+    caption:        "Objects locked by session '#{@sid}/#{@serial_no}' at #{@snapshot_timestamp} on instance = #{@instance}",
+    max_height:     450,
+    show_pin_icon:  1,
+    update_area:    @update_area
+}) %>
