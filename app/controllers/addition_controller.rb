@@ -281,6 +281,7 @@ class AdditionController < ApplicationController
               SELECT Root_Snapshot_Timestamp, Root_Blocking_Instance_Number, Root_Blocking_SID, Root_Blocking_Serial_No,
                      COUNT(DISTINCT SID) Blocked_Sessions_Total,
                      COUNT(DISTINCT CASE WHEN cLevel=1 THEN SID ELSE NULL END) Blocked_Sessions_Direct,
+                     MAX(CASE WHEN cLevel=1 THEN SID ELSE NULL END)            Single_Blocked_Session_Direct,
                      SUM(Seconds_In_Wait)                                      Seconds_in_wait_Total,
                      CASE WHEN COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name) > 1 THEN   -- Nur anzeigen wenn eindeutig
                        '< '||COUNT(DISTINCT Root_Blocking_Object_Owner||Root_Blocking_Object_Name)||' >'
