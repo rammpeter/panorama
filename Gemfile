@@ -97,6 +97,11 @@ end
 group :test do
   # alternative to selenium
   gem 'playwright-ruby-client'
+  gem 'minitest', '~> 5.20', require: false
+  # gem 'minitest', '5.26.0'  # Rel. 6.0.1 causes ArgumentError: wrong number of arguments (given 3, expected 1..2) at minitest-6.0.1/lib/minitest.rb:472
+  # Probem fixed by change minitest.rb:472 "run self, method_name, reporter" to "Runnable.run self, method_name, reporter"
+  # https://github.com/minitest/minitest/issues/1063
+
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
@@ -106,5 +111,7 @@ gem 'tzinfo-data', platforms: [:windows, :jruby]
 # fixes problems like: You have already activated erb 4.0.4, but your Gemfile requires erb 6.0.2.
 no_require = File.readlines('excluded_gems.txt').map(&:strip).reject{|s| s.empty? || s.start_with?('#') }
 no_require.each do |name|
-  gem name, require: false
+  unless ['minitest'].include?(name)
+    gem name, require: false
+  end
 end

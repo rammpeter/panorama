@@ -29,8 +29,8 @@ Bundler.require(*Rails.groups)
 
 module Panorama
   # VERSION and RELEASE_DATE should have fix syntax and positions because they are parsed from other sites
-  VERSION = '2.19.11'                                 if !defined? Panorama::VERSION
-  RELEASE_DATE = Date.parse('2026-03-29')         if !defined? Panorama::RELEASE_DATE
+  VERSION = '2.19.12'                                 if !defined? Panorama::VERSION
+  RELEASE_DATE = Date.parse('2026-04-14')         if !defined? Panorama::RELEASE_DATE
 
   RELEASE_DAY   = "%02d" % RELEASE_DATE.day           if !defined? Panorama::RELEASE_DAY
   RELEASE_MONTH = "%02d" % RELEASE_DATE.month         if !defined? Panorama::RELEASE_MONTH
@@ -124,7 +124,13 @@ module Panorama
 
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
+    config.load_defaults 8.0
+
+    # Ensure that models, helpers etc. are in load path and may be found by require
+    config.add_autoload_paths_to_load_path = true
+
+    # Workaround to ensure that application...js is loaded completely to prevent ERR_CONTENT_LENGTH_MISMATCH in Chrome, Edge etc.
+    config.middleware.delete Rack::Sendfile
 
     logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 
