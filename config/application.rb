@@ -129,9 +129,6 @@ module Panorama
     # Ensure that models, helpers etc. are in load path and may be found by require
     config.add_autoload_paths_to_load_path = true
 
-    # Workaround to ensure that application...js is loaded completely to prevent ERR_CONTENT_LENGTH_MISMATCH in Chrome, Edge etc.
-    config.middleware.delete Rack::Sendfile
-
     logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 
     # Settings in config/environments/* take precedence over those specified here.
