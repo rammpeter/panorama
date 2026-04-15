@@ -15,6 +15,10 @@ else
   worker_timeout 300
 end
 
+# Avoid ERR_CONTENT_LENGTH_MISMATCH in Chromium browsers (Chrome, Edge) if Puma cancels delivering application.js
+first_data_timeout 300
+persistent_timeout 300
+
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT") { 3000 }
 

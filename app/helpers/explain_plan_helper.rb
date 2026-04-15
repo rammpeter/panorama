@@ -458,6 +458,10 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     result
   end
 
+  def filter_predicates_title(rec)
+
+  end
+
   def parallel_short(rec)
     case rec.other_tag
     when 'PARALLEL_COMBINED_WITH_PARENT' then 'PCWP'
