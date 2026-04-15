@@ -447,11 +447,23 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
     "
   end
 
+  # Erweitern Zuweisungen und Vergleiche um Spaces, damit an dieser Stelle umgebrochen werden kann
+  def expand_compare_spaces(origin)
+    return nil unless origin
+    ["=", "!=", "<>", "<=", ">="].each do |search_str|                          # Iteration über mit Space zu expandierende Ausdrücke
+      match_string = /[^ |!|<|>]#{search_str}[^ |!|<|>]/                        # Ausschluss von Vorgängern/Nachfolgern
+      while origin.match(match_string)                                          # noch Treffer zu finden?
+        origin.sub!(match_string, origin.match(match_string)[0].sub(search_str, " #{search_str} "))     # Expandieren mit Spaces
+      end
+    end
+    origin
+  end
+
   # build data title for column access predicates
   def access_predicates_data_title(rec)
     result = "%t\n".dup
-    result << "#{expand_compare_spaces(rec.access_predicates)}"
-    result << "\nNumber of columns with matching predicates = #{rec.search_columns}"  if rec.search_columns
+    result << "\n#{expand_compare_spaces(rec.access_predicates)}"
+    result << "\n\nNumber of columns with matching predicates = #{rec.search_columns}"  if rec.search_columns&.> 0
     result << "\n\npartition start = #{rec.partition_start}"                          if rec.partition_start
     result << "\npartition stop = #{rec.partition_stop}"                              if rec.partition_stop
     result << "\npartition ID = #{rec.partition_id}"                                  if rec.partition_id
@@ -459,7 +471,16 @@ partition ID = #{rec.partition_id}"         if rec.partition_id}
   end
 
   def filter_predicates_title(rec)
-
+    result = "%t".dup
+    result << "\n\n#{expand_compare_spaces rec.filter_predicates}"
+    if rec.operation['INDEX']
+      result << "\n\nAccess conditions that are repeated in filter conditions are not used for index access via B-tree."
+      result << "\nInstead, they are filtering the result of the B-tree access row by row."
+      result << "\nThis may happen for example due to additional columns between in the index that are not part of the access criteria"
+      result << "\nor due to inaccurate matching conditions like > or <"
+      result << "\nor due to the use of functions on indexed columns in the predicates."
+    end
+    result
   end
 
   def parallel_short(rec)
