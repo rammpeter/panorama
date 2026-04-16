@@ -1,15 +1,28 @@
 <%
+  pct_used_data_style = proc do |rec|
+    pct = rec.last_number*100.0/rec.max_value rescue nil
+    "background-color: coral;" if rec.cycle_flag == 'N' && pct && pct > 90
+  end
+
    column_options =
            [
-                   {:caption=> 'Min. value',        :data=>proc{|rec| rec.min_value},               :title=> 'Minimum value of the sequence', :align=>:right},
-                   {:caption=> 'Max. value',        :data=>proc{|rec| rec.max_value},               :title=> 'Maximum value of the sequence', :align=>:right},
-                   {:caption=> 'Increment',         :data=>proc{|rec| rec.increment_by},            :title=> 'Value by which sequence is incremented', :align=>:right},
+                   {:caption=> 'Min. value',        :data=>proc{|rec| fn(rec.min_value)},           :title=> 'Minimum value of the sequence', :align=>:right},
+                   {:caption=> 'Max. value',        :data=>proc{|rec| fn(rec.max_value)},           :title=> 'Maximum value of the sequence', :align=>:right},
+                   {:caption=> 'Increment',         :data=>proc{|rec| fn(rec.increment_by)},        :title=> 'Value by which sequence is incremented', :align=>:right},
                    {:caption=> 'Cycle',             :data=>proc{|rec| rec.cycle_flag},              :title=> 'Does sequence wrap around on reaching limit?'},
                    {:caption=> 'Order',             :data=>proc{|rec| rec.cycle_flag},              :title=> 'Are sequence numbers generated in order?'},
                    {:caption=> 'Cache',             :data=>proc{|rec| rec.cache_size},              :title=> 'Number of sequence numbers to cache'},
-                   {:caption=> 'Last number',       :data=>proc{|rec| rec.last_number},             :title=> 'Last sequence number written to disk'},
+                   {:caption=> 'Last number',       :data=>proc{|rec| fn(rec.last_number)},         :title=> 'Last sequence number written to disk', align: :right},
+                   {:caption=> 'Pct. used',         :data=>proc{|rec| fn((rec.last_number*100.0/rec.max_value rescue nil), 1)},  :title=> 'Percentage of max. value used by last value', data_style: pct_used_data_style, align: :right},
+                   {caption: 'Creation date',          data: proc{|rec| localeDateTime(rec.created)},        title: 'Timestamp for the creation of the object'},
+                   {caption: 'Last DDL time',          data: proc{|rec| localeDateTime(rec.last_ddl_time)},  title: 'Timestamp for the last modification of the object and dependent objects resulting from a DDL statement (including grants and revokes)'},
+                   {caption: 'Last spec. change',      data: proc{|rec| localeDateTime(rec.spec_ts)},        title: 'Timestamp of last specification change of the object'},
+                   {caption: 'Status',                 data: proc{|rec| rec.status},                         title: 'Status of the object', data_style: proc{|rec| "background-color: orange;" if rec.status != 'VALID'}},
            ]
 %>
+ROUND(rec.last_number*100.0/rec.max_value, 1) "Pct. of max. value reached",
+
+
 
 <%= gen_slickgrid(@seqs, column_options, {
         :caption => "Details for sequence #{@owner}.#{@object_name}",

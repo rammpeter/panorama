@@ -915,7 +915,12 @@ class DbaSchemaController < ApplicationController
         @owner      = res.table_owner
         @table_name = res.table_name
       when "SEQUENCE"
-        @seqs = sql_select_all ["SELECT * FROM DBA_Sequences WHERE Sequence_Owner = ? AND Sequence_Name = ?", @owner, @object_name]
+        @seqs = sql_select_all ["\
+          SELECT s.*, o.Created, o.Last_DDL_Time, TO_DATE(o.Timestamp, 'YYYY-MM-DD:HH24:MI:SS') Spec_TS, o.Status
+          FROM   DBA_Sequences s
+          JOIN   DBA_Objects o ON o.Owner = s.Sequence_Owner AND o.Object_Name = s.Sequence_Name AND o.Object_Type = 'SEQUENCE'
+          WHERE  s.Sequence_Owner = ? AND s.Sequence_Name = ?
+        ", @owner, @object_name]
         render_partial "list_sequence_description"
         return
       when 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'FUNCTION', 'TYPE', 'TYPE BODY'
