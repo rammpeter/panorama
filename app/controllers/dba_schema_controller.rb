@@ -1761,6 +1761,7 @@ class DbaSchemaController < ApplicationController
     leaf_blocks  = params[:leaf_blocks]
 
     object_id = sql_select_one ["SELECT Object_ID FROM DBA_Objects WHERE Owner = ? AND Object_Name = ?", @index_owner, @index_name]
+    raise "DbaSchemaController.list_current_index_stats: Object #{@index_owner}.#{@index_name} not found in DBA_Objects" if object_id.nil?
 
     consistent_gets_before = get_session_consistent_gets
 
