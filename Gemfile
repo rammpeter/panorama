@@ -92,6 +92,9 @@ group :development do
 
   gem 'brakeman'
 
+  # Needed for the Debugger. Fix: LoadError: cannot load such file -- ostruct
+  gem 'ostruct'
+
 end
 
 group :test do

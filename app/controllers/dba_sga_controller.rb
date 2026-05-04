@@ -1028,7 +1028,7 @@ class DbaSgaController < ApplicationController
     end
 
     # in Oracle 19.6 Select from gv$SQL ord gv$SQL_Plan shows cardinality of 1 => NESTED LOOP
-    @sqls = sql_select_iterator ["
+    @sqls = sql_select_all ["
        SELECT /*+ USE_HASH(p s) */ s.Inst_ID, SUBSTR(s.SQL_TEXT,1,100) SQL_Text,
               s.Executions, s.Fetches, TO_DATE(s.First_Load_Time, 'YYYY-MM-DD/HH24:MI:SS') First_load_time,
               s.Parsing_Schema_Name,
@@ -1044,15 +1044,31 @@ class DbaSgaController < ApplicationController
               s.ROWS_PROCESSED,
               s.Rows_Processed / DECODE(s.EXECUTIONS, 0, 1, s.EXECUTIONS) Rows_Processed_PER_EXECUTE,
               s.SQL_ID, s.Child_Number,
-              p.operation, p.options, p.access_predicates, p.Search_Columns, p.Filter_Predicates, p.Cost, p.Cardinality, p.CPU_Cost, p.IO_Cost, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time
+              p.operation, p.options, p.access_predicates, p.Search_Columns, p.Filter_Predicates, p.Cost, p.Cardinality, p.CPU_Cost, p.IO_Cost, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
+              pp.Filter_Predicates Parent_Filter
        FROM gV$SQL_Plan p
-       JOIN gv$SQL s     ON (    s.SQL_ID          = p.SQL_ID
-                             AND s.Plan_Hash_Value = p.Plan_Hash_Value
-                             AND s.Inst_ID         = p.Inst_ID
-                             AND s.Child_Number    = p.Child_Number
-                            )
+       JOIN gv$SQL s     ON  s.SQL_ID          = p.SQL_ID
+                         AND s.Plan_Hash_Value = p.Plan_Hash_Value
+                         AND s.Inst_ID         = p.Inst_ID
+                         AND s.Child_Number    = p.Child_Number
+       /* Show the possible parent table access line of an index access */
+       LEFT OUTER JOIN gV$SQL_Plan pp ON  pp.Inst_ID          = p.Inst_ID
+                                      AND pp.SQL_ID           = p.SQL_ID
+                                      AND pp.Child_Number     = p.Child_Number
+                                      AND pp.Plan_Hash_Value  = p.Plan_Hash_Value
+                                      AND pp.ID               = p.Parent_ID
+                                      AND pp.Operation        = 'TABLE ACCESS'
+                                      AND pp.Options          LIKE 'BY INDEX ROWID%'
+                                      AND p.Operation         LIKE 'INDEX%'
+                                      AND (p.Options LIKE 'RANGE SCAN%' OR p.Options LIKE 'SKIP SCAN%')
+                                      /* Ensure that the parent line is an table access for the table of the index */
+                                      AND pp.Object_Name = (SELECT i.Table_Name FROM DBA_Indexes i WHERE i.Owner = p.Object_Owner AND i.Index_Name = p.Object_Name)
        WHERE #{wherestr}
        ORDER BY s.Elapsed_Time DESC"].concat whereval
+
+    @access_used          = @sqls.select {|s| !s.access_predicates.nil?}.count > 0
+    @search_columns_used  = @sqls.select {|s| s.search_columns > 0 }.count > 0
+    @parent_filter_used   = @sqls.select {|s| !s.parent_filter.nil?}.count > 0
     render_partial
   end
 

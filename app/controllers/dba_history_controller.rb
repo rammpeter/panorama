@@ -1008,8 +1008,10 @@ class DbaHistoryController < ApplicationController
     @object_name = params[:ObjectName]
     @object_type_prefix = prepare_param :object_type_prefix                     # optional LIKE-comparison with following %
 
-    where_filter = String.new
-    where_values = []
+    where_filter      = String.new
+    with_where_filter = String.new
+    where_values      = []
+    with_where_values = []
     if @instance
       where_filter << " AND s.Instance_Number = ?"
       where_values << @instance
@@ -1017,7 +1019,9 @@ class DbaHistoryController < ApplicationController
 
     if @object_owner
       where_filter << " AND p.Object_Owner=UPPER(?)"
+      with_where_filter <<  " AND i.Owner =UPPER(?)"
       where_values << @object_owner
+      with_where_values << @object_owner
     end
 
     if @object_type_prefix
@@ -1030,7 +1034,14 @@ SELECT /* Panorama-Tool Ramm */
        (SELECT TO_CHAR(SUBSTR(SQL_Text,1,100)) FROM DBA_Hist_SQLText t WHERE t.DBID=sql.DBID AND t.SQL_ID=sql.SQL_ID) SQL_Text,
        sql.*
 FROM (
+        /* Ensure that the parent line is an table access for the table of the index */
+        WITH Parent_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, SQL_ID, Plan_Hash_Value, ID, Filter_Predicates
+                             FROM DBA_Hist_SQL_Plan pp
+                             WHERE pp.Operation = 'TABLE ACCESS' AND pp.Options LIKE 'BY INDEX ROWID%'
+                             AND   pp.Object_Name = (SELECT i.Table_Name FROM DBA_Indexes i WHERE i.Index_Name = ? #{with_where_filter})
+                            )
         SELECT p.DBID, p.SQL_ID, s.Instance_Number, Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag, p.Access_Predicates, p.Search_Columns, p.Filter_Predicates,
+               pp.Filter_Predicates Parent_Filter,
                COUNT(DISTINCT s.Snap_ID)          Sample_Count,
                COUNT(DISTINCT s.Plan_Hash_Value)  Plans,
                COUNT(DISTINCT s.Instance_number)  Instance_Count,
@@ -1063,13 +1074,27 @@ FROM (
                 WHERE  DBID = ?
                 GROUP BY Instance_Number, DBID
                ) snap_limit ON snap_limit.DBID = s.DBID AND snap_limit.Instance_Number = s.Instance_Number
+       /* Show the possible parent table access line of an index access */
+       LEFT OUTER JOIN Parent_Plan pp ON  pp.DBID          = p.DBID
+                                      AND pp.SQL_ID           = p.SQL_ID
+                                      AND pp.Plan_Hash_Value  = p.Plan_Hash_Value
+                                      AND pp.ID               = p.Parent_ID
+                                      AND p.Operation LIKE 'INDEX%'
+                                      AND (p.Options LIKE 'RANGE SCAN%' OR p.Options LIKE 'SKIP SCAN%')
         WHERE  p.Object_Name  LIKE UPPER(?) #{where_filter}
         AND    s.Snap_ID >= NVL(snap_limit.StartMin, snap_limit.StartMax)
         AND    s.Snap_ID <= NVL(snap_limit.EndMax,   snap_limit.EndMin)
-        GROUP BY p.DBID, p.SQL_ID, s.Instance_Number, s.Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag, p.Access_Predicates, p.Search_Columns, p.Filter_Predicates
+        GROUP BY p.DBID, p.SQL_ID, s.Instance_Number, s.Parsing_Schema_Name, p.Operation, p.Options, p.Other_Tag, p.Access_Predicates, p.Search_Columns, p.Filter_Predicates, pp.Filter_Predicates
       ) sql
       ORDER BY sql.Elapsed_Time_Secs DESC",
-    @time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid, @object_name].concat(where_values)
+                            @object_name]
+                             .concat(with_where_values)
+                             .concat([@time_selection_start, @time_selection_start, @time_selection_end, @time_selection_end, @dbid, @object_name])
+                             .concat(where_values)
+
+    @access_used          = @sqls.select {|s| !s.access_predicates.nil?}.count > 0
+    @search_columns_used  = @sqls.select {|s| s.search_columns > 0 }.count > 0
+    @parent_filter_used   = @sqls.select {|s| !s.parent_filter.nil?}.count > 0
 
     render_partial :list_sql_area_historic
 
