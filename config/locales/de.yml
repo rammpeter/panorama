@@ -1073,7 +1073,8 @@
 
   dragnet_helper_89_desc: |-
     Bei größeren Results je Execution lohnt sich der Array-Zugriff auf mehrere Records  je Fetch statt Einzelzugriff.
-    Damit moderate Reduktion von CPU-Belastung und Laufzeit
+    Damit nur moderate Reduktion von CPU-Belastung und Laufzeit.
+    Aber es reduziert die Anzahl Netzwerk-Roundtrips zwischen DB und Applikation, was insbesondere bei Remote-Verbindungen zu deutlicher Laufzeit-Reduktion führen kann.
   dragnet_helper_89_name: |-
     Unnötig hohe Fetch-Anzahl wegen fehlender Array-Nutzung: Auswertung SGA
 

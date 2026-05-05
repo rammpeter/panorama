@@ -63,55 +63,57 @@ This reduces CPU-contention and the risk of „Cache Buffers Chains“ latch-wai
 A remote application will benefit from suppressed network roundtrips too.
 Stored functions with function result caching or selects/subselects with result caching may also be used for this purpose.
 '),
-            :sql=>  "SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
-                      FROM  (
-                               SELECT /*+ NO_MERGE ORDERED */ s.DBID, s.SQL_ID, MIN(snap.Begin_Interval_Time) First_Occurrence, MAX(snap.End_Interval_Time) Last_Occurrence,
-                                      s.Plan_Hash_Value, s.Instance_number \"Instance\",
-                                      NVL(MIN(Parsing_Schema_Name), '[UNKNOWN]') \"UserName\", /* sollte immer gleich sein in Gruppe */
-                                      MAX(Buffer_Gets_Delta)                                         \"max. BufferGets betw.snapshots\",
-                                      SUM(Executions_Delta)                                          \"Executions\",
-                                      ROUND(SUM(Elapsed_Time_Delta)/1000000,4)                       \"Elapsed Time (Sec)\",
-                                      ROUND(SUM(ELAPSED_TIME_Delta/1000000) / DECODE(SUM(EXECUTIONS_Delta),
-                                          0, 1, SUM(EXECUTIONS_Delta)),6)                            \"Elapsed Time per Execute (Sec)\",
-                                      SUM(CPU_Time_Delta)/1000000                                    \"CPU-Time (Secs)\",
-                                      SUM(Disk_Reads_Delta)                                          \"Disk Reads\",
-                                      ROUND(SUM(DISK_READS_delta) / DECODE(SUM(EXECUTIONS_Delta),
-                                          0, 1, SUM(EXECUTIONS_Delta)),6)                            \"Disk Reads per Execute\",
-                                      ROUND(SUM(Executions_Delta) / DECODE(SUM(Disk_Reads_Delta),
-                                          0, 1, SUM(Disk_Reads_Delta)),6)                            \"Executions per Disk Read\",
-                                      SUM(Buffer_Gets_Delta)                                         \"Buffer Gets\",
-                                      ROUND(SUM(BUFFER_GETS_delta) / DECODE(SUM(EXECUTIONS_Delta),
-                                          0, 1, SUM(EXECUTIONS_delta)),2)                            \"Buffer Gets per Execution\",
-                                      ROUND(SUM(BUFFER_GETS_delta) / DECODE(SUM(Rows_Processed_Delta),
-                                          0, 1, SUM(Rows_Processed_Delta)),2)                        \"Buffer Gets per Result-Row\",
-                                      SUM(Rows_Processed_Delta)                                      \"Rows Processed\",
-                                      ROUND(SUM(Rows_Processed_Delta) / DECODE(SUM(EXECUTIONS_Delta),
-                                          0, 1, SUM(EXECUTIONS_Delta)),2)                            \"Rows Processed per Execute\",
-                                      ROUND(SUM(ClWait_Delta)/1000000,4)                             \"Cluster Wait-Time (Sec)\",
-                                      ROUND(SUM(IOWait_Delta)/1000000,4)                             \"I/O Wait-Time (Sec)\",
-                                      ROUND(SUM(CCWait_Delta)/1000000,4)                             \"Concurrency Wait-Time (Sec)\",
-                                      ROUND(SUM(PLSExec_Time_Delta)/1000000,4)                       \"PL/SQL Wait-Time (Sec)\"
-                               FROM   dba_hist_snapshot snap
-                               JOIN   DBA_Hist_SQLStat s ON (s.Snap_ID=snap.Snap_ID AND s.DBID=snap.DBID AND s.instance_number=snap.Instance_Number)
-                               WHERE  snap.Begin_Interval_time > SYSDATE - ?
-                               GROUP BY s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_number
-                               HAVING SUM(Executions_Delta) > ?
-                               ) s
-                            JOIN   DBA_Hist_SQL_Plan p ON (p.DBID=s.DBID AND p.SQL_ID=s.SQL_ID AND p.Plan_Hash_Value=s.Plan_Hash_Value)
-                            JOIN   (SELECT Owner, Table_Name Name, Num_Rows FROM DBA_All_Tables WHERE Num_Rows < 100000
-                                    UNION ALL
-                                    SELECT Owner, Index_Name Name, Num_Rows FROM DBA_Indexes WHERE Num_Rows < 100000
-                                   ) obj ON (obj.Owner = p.Object_Owner AND obj.Name = p.Object_Name)
-                            JOIN   DBA_Hist_SQLText t  ON (t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID)
-                      WHERE Owner NOT IN (#{system_schema_subselect})
-                      ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
+            :sql=>  "\
+WITH Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Table_Name Name, Num_Rows
+                 FROM   DBA_All_Tables
+                 WHERE  Num_Rows < 100000
+                 UNION ALL
+                 SELECT Owner, Index_Name Name, Num_Rows
+                 FROM   DBA_Indexes
+                 WHERE  Num_Rows < 100000
+                )
+SELECT /*+ USE_NL(t) \"DB-Tools Ramm Zugriff kleiner Objekte\" */ obj.Owner, Obj.Name, obj.Num_Rows, s.*, t.SQL_Text \"SQL-Text\"
+FROM   (
+        SELECT /*+ NO_MERGE ORDERED */ s.SQL_ID, MIN(snap.Begin_Interval_Time) First_Occurrence, MAX(snap.End_Interval_Time) Last_Occurrence,
+               s.Plan_Hash_Value, s.Instance_number \"Instance\",
+               NVL(MIN(Parsing_Schema_Name), '[UNKNOWN]') \"UserName\", /* sollte immer gleich sein in Gruppe */
+               MAX(Buffer_Gets_Delta)                                         \"max. BufferGets betw.snapshots\",
+               SUM(Executions_Delta)                                          \"Executions\",
+               ROUND(SUM(Elapsed_Time_Delta)/1000000,4)                       \"Elapsed Time (Sec)\",
+               ROUND(SUM(ELAPSED_TIME_Delta/1000000) / DECODE(SUM(EXECUTIONS_Delta), 0, 1, SUM(EXECUTIONS_Delta)),6) \"Elapsed Time per Execute (Sec)\",
+               SUM(CPU_Time_Delta)/1000000                                    \"CPU-Time (Secs)\",
+               SUM(Disk_Reads_Delta)                                          \"Disk Reads\",
+               ROUND(SUM(DISK_READS_delta) / DECODE(SUM(EXECUTIONS_Delta), 0, 1, SUM(EXECUTIONS_Delta)),6) \"Disk Reads per Execute\",
+               ROUND(SUM(Executions_Delta) / DECODE(SUM(Disk_Reads_Delta), 0, 1, SUM(Disk_Reads_Delta)),6) \"Executions per Disk Read\",
+               SUM(Buffer_Gets_Delta)                                         \"Buffer Gets\",
+               ROUND(SUM(BUFFER_GETS_delta) / DECODE(SUM(EXECUTIONS_Delta), 0, 1, SUM(EXECUTIONS_delta)),2) \"Buffer Gets per Execution\",
+               ROUND(SUM(BUFFER_GETS_delta) / DECODE(SUM(Rows_Processed_Delta), 0, 1, SUM(Rows_Processed_Delta)),2) \"Buffer Gets per Result-Row\",
+               SUM(Rows_Processed_Delta)                                      \"Rows Processed\",
+               ROUND(SUM(Rows_Processed_Delta) / DECODE(SUM(EXECUTIONS_Delta), 0, 1, SUM(EXECUTIONS_Delta)),2) \"Rows Processed per Execute\",
+               ROUND(SUM(ClWait_Delta)/1000000,4)                             \"Cluster Wait-Time (Sec)\",
+               ROUND(SUM(IOWait_Delta)/1000000,4)                             \"I/O Wait-Time (Sec)\",
+               ROUND(SUM(CCWait_Delta)/1000000,4)                             \"Concurrency Wait-Time (Sec)\",
+               ROUND(SUM(PLSExec_Time_Delta)/1000000,4)                       \"PL/SQL Wait-Time (Sec)\",
+               s.DBID
+        FROM   dba_hist_snapshot snap
+        JOIN   DBA_Hist_SQLStat s ON (s.Snap_ID=snap.Snap_ID AND s.DBID=snap.DBID AND s.instance_number=snap.Instance_Number)
+        WHERE  snap.Begin_Interval_time > SYSDATE - ?
+        GROUP BY s.DBID, s.SQL_ID, s.Plan_Hash_Value, s.Instance_number
+        HAVING SUM(Executions_Delta) > ?
+       ) s
+JOIN   DBA_Hist_SQL_Plan p  ON p.DBID=s.DBID AND p.SQL_ID=s.SQL_ID AND p.Plan_Hash_Value=s.Plan_Hash_Value
+JOIN   Objects obj          ON obj.Owner = p.Object_Owner AND obj.Name = p.Object_Name
+JOIN   DBA_Hist_SQLText t   ON t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID
+WHERE Owner NOT IN (#{system_schema_subselect})
+ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LAST",
             :parameter=>[{:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
                          {:name=>t(:dragnet_helper_88_param_1_name, :default=>'Minimum number of executions'), :size=>8, :default=>100, :title=>t(:dragnet_helper_88_param_1_hint, :default=>'Minimum number of executions for consideration in selection')}]
         },
         {
             :name  => t(:dragnet_helper_89_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of SGA'),
             :desc  => t(:dragnet_helper_89_desc, :default=>'For larger results per execution it is worth to access multiple records per fetch with bulk operation instead of single fetches.
-This earns little reduction of CPU-contention and runtime.
+This results in only a slight reduction in CPU usage and SQL runtime.
+But for remote clients it reduces the number of network roundtrips which may last longer than the fetch operation at DB itself.
 '),
             :sql=> "SELECT * FROM (
                               SELECT Inst_ID, Parsing_Schema_Name \"Parsing schema name\",

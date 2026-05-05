@@ -49,6 +49,9 @@ function SlickGridExtended(container_id, options){
     // ###################### Begin Constructor-Code #######################
     var thiz = this;                                                            // Persistieren Objekt-Zeiger über Constructor hinaus, da this in privaten Methoden nicht mehr gültig ist
 
+    const debug = new URLSearchParams(window.location.search).has('debug');     // Check if URL was something like https://myapp.com?debug to activate debug logging
+    trace_log('SlickGridExtended: initializing with container_id='+container_id);
+
     // Ermitteln der Breite eines Scrollbars (nur einmal je Session wirklich ausführen, sonst gecachten wert liefern)
     var scrollbarWidth_internal_cache   = null;   // Ergebnis von scrollbarWidth zur Wiederverwendung
     var js_test_cell                    = null;                                 // Objekt zum Test der realen string-Breite für td, wird bei erstem Zugriff initialisiert
@@ -457,11 +460,22 @@ function SlickGridExtended(container_id, options){
     }   // initialize_slickgrid
 
     /**
+     * Show log messages if URL was http://myapp?debug
+     * @param message
+     */
+    function trace_log(message){
+        if (debug){
+            console.log(container_id + ": " + message);
+        }
+    };
+
+    /**
      * Event-handler if column has been resized
      *
      * @param grid  SlickGrid-Object
      */
     function processColumnsResized(grid){
+        trace_log("processColumnsResized: called");
         for (var col_index in grid.getColumns()){
             var column = grid.getColumns()[col_index];
             // Value of column.previousWidth contains fractions since last Slickgrid release
@@ -617,8 +631,9 @@ function SlickGridExtended(container_id, options){
                 }
             }
         });
-        trace_log('calculate_header_height = '+header_height);
-        return header_height - 4;                                               // reduced by padding-top because scrollheight counts inside padding
+        header_height -= 4;
+        trace_log('calculate_header_height: return value = ' + header_height);
+        return header_height;                                               // reduced by padding-top because scrollheight counts inside padding
     }
 
     /**
@@ -692,7 +707,7 @@ function SlickGridExtended(container_id, options){
                 }
             });
         }
-        trace_log('calculate_row_height = '+row_height);
+        trace_log('calculate_row_height: return value = ' + row_height);
         return row_height;
     }
 
@@ -711,8 +726,8 @@ function SlickGridExtended(container_id, options){
             while (current_table_width < current_grid_width){                   // noch Platz am rechten Rand, kann auch nach wrap einer Spalte verbleiben
                 var wrapped_column_found = false;
                 columns.forEach(function(column) {
-                    if (column.width < column.max_nowrap_width)
-                        wrapped_column_found = true;
+                    if (column.width < column.max_nowrap_width && !column.fixedWidth) // fixed colums could not be expanded
+                        wrapped_column_found = true;                            // a wrapped column that should be expanded first
                     if (!column.fixedWidth)
                         all_columns_fixed = false;
                     if (current_table_width < current_grid_width && !column.fixedWidth &&
@@ -760,7 +775,7 @@ function SlickGridExtended(container_id, options){
         var column;
         var h_padding       = 10;                                               // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
 
-        trace_log(caller+": start calculate_current_grid_column_widths ");
+        trace_log("calculate_current_grid_column_widths: start with caller = '"+ caller + "'");
 
         viewport_div.css('overflow', '');                                        // Default-Einstellung des SlickGrid für Scrollbar entfernen
 
@@ -792,7 +807,7 @@ function SlickGridExtended(container_id, options){
         current_table_width = this.fill_unused_column_space(options, columns, current_table_width, current_grid_width);   // Enlarge columns up to current_grid_width if possible
 
         var needs_horizontal_scrollbar = current_table_width-scrollbarWidth() > current_grid_width - 1;
-        trace_log(caller+": needs_horizontal_scrollbar = "+ needs_horizontal_scrollbar);
+        trace_log("calculate_current_grid_column_widths: caller = '" + caller+ "' needs_horizontal_scrollbar = "+ needs_horizontal_scrollbar);
 
         var row_height = this.calculate_row_height(columns, options);       // get row height based on previously set column width
 
@@ -812,7 +827,7 @@ function SlickGridExtended(container_id, options){
             total_scroll_height = options['maxHeight'];                         // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
 
         var needs_vertical_scrollbar = total_scroll_height < total_height;
-        trace_log(caller+": needs_vertical_scrollbar = "+ needs_vertical_scrollbar);
+        trace_log("calculate_current_grid_column_widths: caller = '" + caller+"' needs_vertical_scrollbar = "+ needs_vertical_scrollbar);
 
         if (!needs_vertical_scrollbar)                                          // use unused space for vertical scrollbar for columns
             current_table_width = this.fill_unused_column_space(options, columns, current_table_width-scrollbarWidth(), current_grid_width);
@@ -839,9 +854,9 @@ function SlickGridExtended(container_id, options){
         viewport_div.css('overflow-y', (needs_vertical_scrollbar ? 'scroll' : 'hidden'));                           // force remove vertical scrollbar if not needed (especially for Safari)
 
         columns.forEach(function(column) {
-            trace_log(column.name+ ': width='+column.width);
+            trace_log("calculate_current_grid_column_widths: " + column.name+ ': width='+column.width);
         });
-        trace_log(caller+": end calculate_current_grid_column_widths");
+        trace_log("calculate_current_grid_column_widths: caller = '"+ caller+"' end");
     };
 
     /**
@@ -1255,7 +1270,7 @@ function SlickGridExtended(container_id, options){
         $('body').append(div);
         scrollbarWidth_internal_cache = div.innerHeight() - div.find("#scrollbarWidth_testdiv").height();
         $(div).remove();
-        trace_log("measured scrollbarWidth = "+scrollbarWidth_internal_cache);
+        trace_log("scrollbarWidth: return value = "+scrollbarWidth_internal_cache);
         return scrollbarWidth_internal_cache;
     }
     /**
@@ -1731,12 +1746,6 @@ function HTMLFormatter(row, cell, value, columnDef, dataContext){
     return output;
 }
 
-
-function trace_log(msg){
-    if (false){
-        console.log(msg);                                                           // Aktivieren trace-Ausschriften
-    }
-}
 /**
  * Übersetzungsliste
  *
