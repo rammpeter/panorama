@@ -518,9 +518,9 @@ function SlickGridExtended(container_id, options){
         if (value === "")
             return 0;
         if (options['locale'] === 'en'){                                               // globale Option vom Aufrufer
-            return parseFloat(value.replace(/,/g));
+            return parseFloat(value.replace(/,/g, ""));
         } else {
-            return parseFloat(value.replace(/\./g).replace(/,/,"."));
+            return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
         }
     };
 
@@ -1163,11 +1163,9 @@ function SlickGridExtended(container_id, options){
             data_row['id'] = data_index;                                        // Data-Array fortlaufend durchnumerieren
             if (!data[data_index]['metadata'])
                 data[data_index]['metadata'] = {columns: {}};                   // Metadata-Objekt anlegen wenn noch nicht existiert
-            for (var col_index in columns){                                     // Iteration über Columns
-                var col = columns[col_index];
-                if (!data_row['metadata']['columns'][col['field']])
-                    data_row['metadata']['columns'][col['field']] = {};         // Metadata für alle Spalten anlegen  TODO: warum?
-            }
+            columns.filter(c => !data_row['metadata']['columns'][c.field]).forEach(col => {
+                data_row['metadata']['columns'][col.field] = {};         // Metadata für alle Spalten anlegen  TODO: warum?
+            });
         }
     }
     /**
@@ -1280,10 +1278,10 @@ function SlickGridExtended(container_id, options){
             if (celldata === '')
                 return 0;
             if (options['locale'] === 'de'){
-                return parseFloat(celldata.replace(/\./g).replace(/,/,"."));   // Deutsche nach englische Float-Darstellung wandeln (Dezimatrenner, Komma)
+                return parseFloat(celldata.replace(/\./g, "").replace(/,/,"."));   // Deutsche nach englische Float-Darstellung wandeln (Dezimatrenner, Komma)
             }
             if (options['locale'] === 'en'){
-                return parseFloat(celldata.replace(/,/g));                   // Englische Float-Darstellung wandeln, Tausend-Separator entfernen
+                return parseFloat(celldata.replace(/,/g, ""));                   // Englische Float-Darstellung wandeln, Tausend-Separator entfernen
             }
             return "Error: unsupported locale "+options['locale'];
         }
@@ -1308,14 +1306,14 @@ function SlickGridExtended(container_id, options){
         }
 
         // Spaltenheader der Spalte mit class 'plottable' versehen oder wegnehmen wenn bereits gesetzt (wenn Column geschalten wird)
-        for (var col_index in columns){
-            if (columns[col_index]['id'] === column_id){
-                if (columns[col_index]['plottable'] === 1)
-                    columns[col_index]['plottable'] = 0;
+        columns.forEach((column, _col_index) => {
+            if (column.id === column_id){
+                if (column.plottable === 1)
+                    column.plottable = 0;
                 else
-                    columns[col_index]['plottable'] = 1
+                    column.plottable = 1
             }
-        }
+        });
 
         var plot_master_column_index = null;                                    // Spalten-Nr. der Plotmaster-Spalte
         var plot_master_column_id = null;                                       // Spalten-Name der Plotmaster-Spalte
@@ -1664,8 +1662,8 @@ function HTML_Formatter_prepare(slickGrid, row, cell, value, columnDef, dataCont
 function html_formatter_background_style(slickGrid, columnDef, column_metadata, value) {
     let total_value = null;
 
-    if (columnDef['show_pct_col_sum_background'] && columnDef['column_sum'] > 0 )
-        total_value = columnDef['column_sum'];
+    if (columnDef.show_pct_col_sum_background && columnDef.column_sum > 0 )
+        total_value = columnDef.column_sum;
 
     if ('pct_total_value' in column_metadata)
         total_value = parseFloat(column_metadata.pct_total_value);
