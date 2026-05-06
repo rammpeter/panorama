@@ -277,8 +277,8 @@ function SlickGridExtended(container_id, options){
             grid.render();
         });
 
-
-        $(grid.getHeaderRow()).on("change keyup", ":input",  function (_e) {
+        // type "input" instead of "change keyup" reacts on Paste/Cut/Autofill
+        $(grid.getHeaderRow()).on("input", ":input",  function (_e) {
             var columnId = $(this).data("columnId");
             if (columnId != null) {
                 columnFilters[columnId] = $.trim($(this).val());
