@@ -40,11 +40,12 @@
 
 
 // global gültige Variable im js, wird von EnvController.setDatabase gesetzt entsprechend der Spracheinstellung
+// Top-level globals must stay `var` — server-emitted JS (e.g. env_controller#set_database) eval'd via process_ajax_success may redeclare these (`var session_locale = ...`).  `let` would throw "Can't create duplicate variable".
 var session_locale = "en";
 var indicator_call_stack_depth = 0;                                             // only last returning ajax call is closing indicator
 
 function log_stack(message){
-    var e = new Error();
+    let e = new Error();
     console.log('===================' + message + '==================');
     console.log(e.stack);
 }
@@ -118,7 +119,7 @@ function closeAllTooltips(self_tooltip){
 
 // copy text to clipboard, must be executed from mouse action
 function copy_to_clipboard(text){
-    var copy_elem = jQuery('<textarea id="copy_to_clipboard_text_area">'+text+'</textarea>');
+    let copy_elem = jQuery('<textarea id="copy_to_clipboard_text_area">'+text+'</textarea>');
 
     copy_elem.css('position', 'absolute');                                      // Ensure that current scroll position is not changed
 
@@ -126,7 +127,7 @@ function copy_to_clipboard(text){
     //copy_elem.focus();                                                        // not really necessary to work in Firefox. Needed by other browsers?
     copy_elem.select();
 
-    var successful = true;
+    let successful = true;
     try {
         successful = document.execCommand('copy');
     }
@@ -162,14 +163,14 @@ function register_tooltip(jquery_object){
 
 // DOM-Tree auf doppelte ID's testen
 async function check_dom_for_duplicate_ids() {
-    var idDictionary = {};
+    let idDictionary = {};
     jQuery('[id]').each(function() {
         idDictionary[this.id] === undefined ? idDictionary[this.id] = 1 : idDictionary[this.id] ++;
     });
-    for (var id in idDictionary) {
-        if (idDictionary[id] > 1) {
-            var test_elem = jQuery('#'+id);
-            console.warn("Duplicate html-IDs in Dom-Tree:\nID " + id + " was used " + (idDictionary[id]) + " times: "+test_elem.html());
+    for (const [id, count] of Object.entries(idDictionary)) {
+        if (count > 1) {
+            const test_elem = jQuery('#'+id);
+            console.warn("Duplicate html-IDs in Dom-Tree:\nID " + id + " was used " + count + " times: "+test_elem.html());
             console.log("====================================================================================");
             test_elem.each(function(index, element) {
                 console.log(jQuery(element).html());
@@ -182,7 +183,7 @@ async function check_dom_for_duplicate_ids() {
 
 
 
-var SQL_shortText_Cache = {};                                                   // Cache für SQL-IDs
+var SQL_shortText_Cache = {};                                                   // Cache für SQL-IDs (var: top-level global, see comment near session_locale)
 
 
 // Erweitern des Hints für SQL-ID um SQL-Text
@@ -309,9 +310,9 @@ function ajax_html(update_area, controller, action, payload, options){
             process_ajax_success(data, xhr, update_area, options);              // Fill target div with html-response
 
             if (options.element){                                               // refresh only if valid element is given in call
-                var obj = jQuery(options.element);
+                let obj = jQuery(options.element);
                 if (obj.parents(".slick-cell").length > 0){                     // ajax wurde aus einer slickgrid-Zelle heraus aufgerufen
-                    var grid_extended = obj.parents('.slickgrid_top').data('slickgridextended');
+                    let grid_extended = obj.parents('.slickgrid_top').data('slickgridextended');
                     if (!grid_extended){
                         console.log("No slickgridextended found in data for "+obj.parents(".slick-cell").html());
                     } else {
@@ -354,13 +355,13 @@ function bind_ajax_callbacks() {
             hideIndicator(ajaxSettings.url);
             jQuery("#error_dialog_status").html('Error : '+thrownError+'<br>Status: '+jqXHR.status+' ('+jqXHR.statusText+')<br/><br/>');
 
-            var error_dialog_content = jQuery("#error_dialog_content");
+            let error_dialog_content = jQuery("#error_dialog_content");
 
             if (typeof jqXHR.responseText === 'undefined'){                        // Server nicht erreichbar
 //            if (jqXHR.responseText == undefined){                               // Server nicht erreichbar
                 error_dialog_content.text('Panorama-Server is not available');
             } else {
-                if (jqXHR.responseText.search('Error at Panorama server ') === -1 && jqXHR.status != 500) {      // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
+                if (jqXHR.responseText.search('Error at Panorama server ') === -1 && jqXHR.status !== 500) {     // Error kommt nicht vom Server, sondern aus JavaScript des Browsers
                     log_stack('Error:' + thrownError);
                     error_dialog_content.text(jqXHR.responseText);              // Inhalt escapen vor Anzeige, damit nicht interpretiert wird
                 } else {
@@ -379,8 +380,8 @@ function bind_ajax_callbacks() {
 }
 
 function rpad(org_string, max_length, compare_obj_id){
-    var obj = jQuery('#length_control_dummy');
-    var compare_obj = jQuery('#'+compare_obj_id);
+    let obj = jQuery('#length_control_dummy');
+    let compare_obj = jQuery('#'+compare_obj_id);
     obj.css('font-size',    compare_obj.css('font-size'));      // Attribute anpassen mit Zielobjekt
     obj.css('font-family',  compare_obj.css('font-family'));    // Attribute anpassen mit Zielobjekt
     obj.html(org_string);
@@ -394,25 +395,25 @@ function rpad(org_string, max_length, compare_obj_id){
 // Sicherstellen, dass Menü in einer Zeile darstellbar ist, einklappen wenn zu eng
 // aufgerufen über resize-Event
 function check_menu_width() {
-    var menu_ul =  jQuery('.sf-menu');
-    var main_menu = jQuery('#main_menu');
+    let menu_ul =  jQuery('.sf-menu');
+    let main_menu = jQuery('#main_menu');
 
-    var menu_width = main_menu.width();
+    let menu_width = main_menu.width();
     if (menu_ul.data('unshrinked_menu_width') !== undefined)
         menu_width = menu_ul.data('unshrinked_menu_width');
 
-    var tns_width  =  jQuery('#head_links').width();
-    var total_width = jQuery('body').width();
+    let tns_width  =  jQuery('#head_links').width();
+    let total_width = jQuery('body').width();
 
-    var matches = menu_width + tns_width < total_width-10;
-    var menu_shrinked = jQuery('.sf-small-ul').length > 0;
-    var menu_content;
+    let matches = menu_width + tns_width < total_width-10;
+    let menu_shrinked = jQuery('.sf-small-ul').length > 0;
+    let menu_content;
 
     if (!matches && !menu_shrinked) {     // menu einklappen
         menu_ul.data('unshrinked_menu_width', menu_width);                      // merken der ursprünglichen Breites des Menus
         menu_content = menu_ul.html();
         // cuis-menu shows three horizontal stripes
-        var newMenu = jQuery('<li><a class="sf-with-ul" id="menu_node_0" href="#"><span class="cuis-menu"></span></a><ul class="sf-small-ul"></ul></li>');
+        let newMenu = jQuery('<li><a class="sf-with-ul" id="menu_node_0" href="#"><span class="cuis-menu"></span></a><ul class="sf-small-ul"></ul></li>');
         menu_ul.html(newMenu);
         jQuery('.sf-small-ul').html(menu_content);
     }
@@ -478,10 +479,10 @@ function show_popup_message(message){
 
 }
 
-var status_bar_timeout;
+var status_bar_timeout;                                                         // var: top-level global, see comment near session_locale
 
 function hide_status_bar(){
-    var status_bar = jQuery('#status_bar');
+    let status_bar = jQuery('#status_bar');
 
     status_bar.css('display', 'none');
 
@@ -519,12 +520,12 @@ function rsa_encrypt(secret, public_key_pem){
 }
 
 function initialize_combobox_filter(select_id, filter_id){
-    var opts = $('#'+select_id+' option').map(function () {
+    let opts = $('#'+select_id+' option').map(function () {
         return [[this.value, $(this).text()]];
     });
     $('#'+filter_id).keyup(function () {
-        var rxp = new RegExp($('#'+filter_id).val(), 'i');
-        var optlist = $('#'+select_id).empty();
+        let rxp = new RegExp($('#'+filter_id).val(), 'i');
+        let optlist = $('#'+select_id).empty();
         opts.each(function () {
             if (rxp.test(this[1])) {
                 optlist.append($('<option/>').attr('value', this[0]).text(this[1]));
@@ -540,12 +541,12 @@ function initialize_combobox_filter(select_id, filter_id){
  */
 function isSiteOnline(url,callback) {
     // try to load favicon
-    var timer = setTimeout(function(){
+    let timer = setTimeout(function(){
         // timeout after 5 seconds
         callback(false);
     },5000)
 
-    var img = document.createElement("img");
+    let img = document.createElement("img");
     img.onload = function() {
         clearTimeout(timer);
         callback(true);
@@ -616,7 +617,7 @@ function wait_class_color(wait_class){
  * @param current_release current release of Panorama
  */
 function check4update(div_id, current_release){
-    var update_div = jQuery('#'+div_id);
+    let update_div = jQuery('#'+div_id);
 
     // Send a GET request to the GitHub API to fetch the releases
     fetch(`https://api.github.com/repos/rammpeter/Panorama/releases`)
@@ -630,7 +631,7 @@ function check4update(div_id, current_release){
             } else {
                 // Extract the latest release tag from the response
                 const latestReleaseTag = data[0].tag_name.substring(1);
-                if (latestReleaseTag != current_release)
+                if (latestReleaseTag !== current_release)
                     update_div.html('<div style="color: red;">There is an update available: <a href="https://github.com/rammpeter/Panorama" target="_blank">'+'Version '+latestReleaseTag+'</a></div>');
                 else
                     update_div.html('You are using the latest release');
@@ -648,7 +649,7 @@ function check4update(div_id, current_release){
  */
 function ensureGraphVizLoaded(callback){
     if (typeof Viz === 'undefined'){
-        var script = document.createElement('script');
+        let script = document.createElement('script');
         script.src = 'viz-standalone.js';
         script.async = true;
         script.onload = callback;
