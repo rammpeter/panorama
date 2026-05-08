@@ -714,7 +714,6 @@ class SlickGridExtended {
         init_option('enableColumnReorder',  false);
         init_option('width',                'auto');
         init_option('locale',               'en');
-        init_option('sort_method',          'QuickSort');
     }
 
     /**
@@ -971,81 +970,34 @@ class SlickGridExtended {
         let dataView = grid.getData();
 
         grid.onSort.subscribe(function(e, args) {
-            let col = args.sortCol;
-            let field = col.field;
+            const col = args.sortCol;
+            const field = col.field;
 
-            function convert_german_date(value){
-                let tag_zeit = value.split(" ");
-                let dat = tag_zeit[0].split(".");
-                return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
-            }
-
-            function quickSort(){
-                let sortFunc = function(a,b){
-                    if (a[field] < b[field])
-                        return -1;
-                    if (a[field] > b[field])
-                        return 1;
-                    if (a[field] === b[field])
-                        return 0;
+            // Native Array.sort is stable since ES2019 (Chrome 70+, Safari 12+) — preserves prior order for equal values, no need for hand-written stable sort.
+            let sortFunc;
+            if (col['sort_type'] === "float") {
+                sortFunc = (a, b) => self.parseFloatLocale(a[field]) - self.parseFloatLocale(b[field]);
+            } else if (col['sort_type'] === "date" && options['locale'] === 'de'){
+                const convert_german_date = (value) => {
+                    const tag_zeit = value.split(" ");
+                    const dat = tag_zeit[0].split(".");
+                    return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
                 };
-
-                if (col['sort_type'] === "float") {
-                    sortFunc  = function(a, b) {
-                        return self.parseFloatLocale(a[field]) - self.parseFloatLocale(b[field]);
-                    }
-                } else if (col['sort_type'] === "date" && options['locale'] === 'de'){
-                    sortFunc  = function(a, b){
-                        let fa = convert_german_date(a[field]);
-                        let fb = convert_german_date(b[field]);
-                        if (fa < fb)
-                            return -1;
-                        if (fa > fb)
-                            return 1;
-                        if (fa === fb)
-                            return 0;
-                    }
-                }
-                dataView.getItems().sort(sortFunc);
-            }
-
-            function bubbleSort(){
-                let data_array = dataView.getItems();
-
-                let sort_smaller = function(value1, value2){return value1<value2;};
-
-                if (col['sort_type'] === "float"){
-                    sort_smaller = function(value1, value2){
-                        return self.parseFloatLocale(value1) < self.parseFloatLocale(value2);
-                    }
-                }
-
-                if (col['sort_type'] === "date" && options['locale'] === 'de'){
-                    sort_smaller = function(value1, value2){
-                        return convert_german_date(value1) < convert_german_date(value2);
-                    }
-                }
-
-                function swap(a,b) {
-                    let temp=data_array[a];
-                    data_array[a]=data_array[b];
-                    data_array[b]=temp;
-                }
-
-                for(var m=data_array.length-1; m>0; m--){
-                    for(var n=0; n<m; n++){
-                        if (sort_smaller(data_array[n+1][field], data_array[n][field]))
-                            swap(n,n+1);
-                    }
-                }
-            }
-            if (grid.getOptions()['sort_method'] === 'QuickSort'){
-                quickSort();
-            } else if (grid.getOptions()['sort_method'] === 'BubbleSort'){
-                bubbleSort();
+                sortFunc = (a, b) => {
+                    const fa = convert_german_date(a[field]);
+                    const fb = convert_german_date(b[field]);
+                    if (fa < fb) return -1;
+                    if (fa > fb) return 1;
+                    return 0;
+                };
             } else {
-                alert('Option "sort_method" with unsupported value "'+grid.getOptions()['sort_type']+'"');
+                sortFunc = (a, b) => {
+                    if (a[field] < b[field]) return -1;
+                    if (a[field] > b[field]) return 1;
+                    return 0;
+                };
             }
+            dataView.getItems().sort(sortFunc);
 
             if (!args.sortAsc)
                 dataView.getItems().reverse();
@@ -1312,12 +1264,6 @@ class SlickGridExtended {
                         }
                         self._plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, null);
                     });
-                }
-
-                if (options['sort_method'] === 'QuickSort'){
-                    add_default_item_to_context_menu("sort_method_QuickSort", 'cui-calculator', function(){ options.sort_method = 'BubbleSort'; } );
-                } else {
-                    add_default_item_to_context_menu("sort_method_BubbleSort", 'cui-calculator', function(){ options.sort_method = 'QuickSort'; } );
                 }
 
                 function create_additional_menu_entries(local_items, entry_array){
@@ -1704,22 +1650,6 @@ function get_slickgrid_translations() {
         'slickgrid_context_menu_switch_col_from_diagram': {
             'en': 'Remove column from diagram',
             'de': 'Spalte aus Diagramm ausblenden'
-        },
-        'slickgrid_context_menu_sort_method_QuickSort': {
-            'en': 'Switch column sort method to bubble sort',
-            'de': 'Sortier-Methode auf Bubble-Sort wechseln'
-        },
-        'slickgrid_context_menu_sort_method_BubbleSort': {
-            'en': 'Switch column sort method to quick sort',
-            'de': 'Sortier-Methode auf Quick-Sort wechseln'
-        },
-        'slickgrid_context_menu_sort_method_QuickSort_hint': {
-            'en': 'Switch sort method for table columns to bubble sort.\nSorts slower but remains last sort order for equal values of current sort-column.\nAllows multi-column sort by subsequent sorting of columns',
-            'de': 'Wechsel der Sortier-Methode für Tabellenspalten auf Bubble-Sort.\nSortiert langsamer, aber erhält die vorherige Sortierfolge bei gleichen Werten der aktuellen Sortierspalte.\nErlaubt somit mehrspaltiges Sortieren durch aufeinanderfolgendes Klicken der zu sortierenden Spalten)'
-        },
-        'slickgrid_context_menu_sort_method_BubbleSort_hint': {
-            'en': 'Switch sort method for table columns to quick sort.\n Sorts faster but ignores previous sort order for equal values of current sort-column',
-            'de': 'Wechsel der Sortier-Methode für Tabellenspalten auf Quick-Sort.\nSortiert schnell, aber ignoriert die vorherige Sortierung bei gleichen Werten der aktuellen Sortierspalte'
         },
         'slickgrid_filter_hint_not_numeric': {
             'en': 'Filter by containing string',
