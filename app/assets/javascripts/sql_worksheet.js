@@ -20,15 +20,15 @@ class SQL_Worksheet  {
         $(this.cm.getWrapperElement()).parent().find(".ui-resizable-se").remove(); // Entfernen des rechten unteren resize-Cursors
 
         $(this.cm.getWrapperElement()).bind("keydown", function(event) {
-            if (event.ctrlKey == true && event.key == 'Enter'){
+            if (event.ctrlKey && event.key === 'Enter'){
                 sql_worksheet.exec_worksheet_sql();
                 return false;
             }
-            if (event.ctrlKey == true && event.key == 'e'){
+            if (event.ctrlKey && event.key === 'e'){
                 sql_worksheet.explain_worksheet_sql();
                 return false;
             }
-            if (event.altKey == true && event.key == 'Enter'){
+            if (event.altKey && event.key === 'Enter'){
                 sql_worksheet.sql_in_sga();
                 return false;                                                       // suppress default alt#Enter-Handling
             }
@@ -39,7 +39,7 @@ class SQL_Worksheet  {
     get_sql_at_cursor_position(){
         let return_sql;
         let selection = this.cm.getSelection();
-        if (selection != ''){
+        if (selection !== ''){
             return_sql = selection.trim();                                      // Use selection but remove whitespaces
         } else {
             let content             = this.cm.getValue();
@@ -50,18 +50,18 @@ class SQL_Worksheet  {
             do {
                 prev_cursor_pos_line = cursor_pos_line;                         // remember prev. cursor_pos_line after shift for comparison in while
                 current_stmt_end_line = this.find_stmt_end(content_lines);
-                if (current_stmt_end_line != null && current_stmt_end_line < cursor_pos_line){ // remove trailing SQLs if not current SQL
+                if (current_stmt_end_line !== null && current_stmt_end_line < cursor_pos_line){ // remove trailing SQLs if not current SQL
                     for (var i=0; i<=current_stmt_end_line; i++)
                         content_lines.shift();
                     cursor_pos_line = cursor_pos_line - (current_stmt_end_line+1);  // new position cursor in rest of content_lines
                 }
-            } while (current_stmt_end_line != null && current_stmt_end_line < prev_cursor_pos_line);
-            if (current_stmt_end_line != null){                                 // remove following SQLs if exist
+            } while (current_stmt_end_line !== null && current_stmt_end_line < prev_cursor_pos_line);
+            if (current_stmt_end_line !== null){                                // remove following SQLs if exist
                 content_lines.length = current_stmt_end_line + 1;               // cut the rest of the array lines
             }
             // remove empty content_lines
             for (let i=0; i<content_lines.length; i++){
-                if (content_lines[i].trim() == ''){
+                if (content_lines[i].trim() === ''){
                     content_lines.splice(i, 1);
                     i--;
                 }   // remove empty lines
@@ -81,7 +81,7 @@ class SQL_Worksheet  {
         for (let i=0; i<content_lines.length; i++){
             let trimmed_line = content_lines[i].trim();
             let last_char = trimmed_line[trimmed_line.length-1];
-            if (last_char == ';' || trimmed_line == '/'){
+            if (last_char === ';' || trimmed_line === '/'){
                 return i;
             }
         }
@@ -100,7 +100,7 @@ class SQL_Worksheet  {
         tab_obj.click();                                                        // bring tab in foreground
 
         var sql_statement = this.get_sql_at_cursor_position();
-        if (sql_statement == 'PL/SQL') {
+        if (sql_statement === 'PL/SQL') {
             show_popup_message("The code under the cursor is a multiline PL/SQL or create statement!<br/>Please select the whole code block to execute in editor and try again.");
         } else {
             setTimeout(function(){
