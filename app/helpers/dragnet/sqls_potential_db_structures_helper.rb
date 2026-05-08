@@ -149,10 +149,10 @@ ORDER BY Size_MB DESC NULLS LAST
             :name  => t(:dragnet_helper_140_name, :default=> 'Tables with PCT_FREE > 0 but without update-DML'),
             :desc  => t(:dragnet_helper_140_desc, :default=> "For tables without updates you may consider setting PCTFREE=0 and free this space by reorganizing this table.
 Free space in DB-blocks declared by PCT_FREE may be used for:
-- Reducing the risk of chained rows due to expansion of row-size by by update-statements
+- Reducing the risk of chained rows due to expansion of rowsize by update statements
 - Reducing the risk of ITL-waits by allowing the expansion of the ITL-list above INI_TRANS entries
 This selection shows candidates without any update statements since last analyze.
-If you can exclude the need for allowing concurrent transactions in ITL-list above INI_TRANS then the recommendation is to set PCT_FREE=0.
+If you don't need concurrent transactions in ITL-list above INI_TRANS then the recommendation is to set PCT_FREE=0.
 "),
             :sql=> "\
 WITH Tab_Modifications AS (SELECT /*+ NO_MERGE MATERIALIZE */ Table_Owner, Table_Name, Partition_Name, SubPartition_Name,
@@ -418,7 +418,7 @@ Usable with Oracle 11g and above only.'),
         },
         {
             :name  => t(:dragnet_helper_127_name, :default=>'Possibly expensive TABLE ACCESS BY INDEX ROWID with additional filter predicates on table'),
-            :desc  => t(:dragnet_helper_127_desc, :default=>'If in a SQL a table has additional filter conditions that are not covered by the used index you may consider to extend the index by these filter conditions.
+            :desc  => t(:dragnet_helper_127_desc, :default=>'If in a SQL a table has additional filter conditions that are not covered by the used index you may consider extending the index by these filter conditions.
 This would ensure that you do the more expensive TABLE ACCESS BY ROWID only if that table row matches all your access conditions checked by the index.
 This selection considers current SGA'),
             :sql=> "

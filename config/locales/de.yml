@@ -1649,7 +1649,7 @@
     FullTableScan-Zugriffe sind dann kritisch, wenn nur kleine Anteile einer Tabelle für die Selektion relevant sind, andererseits sinnvoll bei Verarbeitung kompletter Tabelleninhalte.
     Fehl am Platze sind FullTableScans i.d.R. in OLTP-artigen Zugriffen (kleine Zugriffszeit, häufige Zugriffe).
     Durch Etablieren eines Index kann Laufzeit evtl. deutlich verringert werden.
-    Ermittelt über hohe Laufzeit für den Full Scan und geringe erwartete Anzahl Records des Full Scans (über Kardinalität des Optimizers).
+    Sortiert über hohe Laufzeit für den Full Scan und geringe erwartete Anzahl Records des Full Scans (über Kardinalität des Optimizers).
     Diese Selektion erfordert Nutzung der AWR-Historie über Diagnostics Pack.
   dragnet_helper_154_name: |-
     Full Table Scans mit geringer Kardinalität: evtl. fehlende Indizes

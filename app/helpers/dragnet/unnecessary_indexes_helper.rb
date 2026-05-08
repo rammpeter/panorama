@@ -537,7 +537,7 @@ WITH Constraints AS (SELECT /*+ NO_MERGE MATERIALIZE */ Owner, Constraint_Name, 
                   GROUP BY Owner, Segment_Name
                  )
 SELECT c.Owner, c.Table_Name, cc.Column_Name PKey_Column, c.Constraint_Name, t.Num_Rows,
-       si.Size_MB Size_MB_PK_Index, (t.Num_Rows * tc.Avg_Col_Len)/(1024*1024) Size_MB_PK_Column,
+       si.Size_MB Size_MB_PK_Index, ROUND((t.Num_Rows * tc.Avg_Col_Len)/(1024*1024), 2) Size_MB_PK_Column,
        uc.Constraint_Name Alternative_Unique_Constraint, ui.Index_Name Alternative_Unique_Index
 FROM   (
         SELECT /*+ NO_MERGE */ Owner, Constraint_Name, Table_Name, MIN(Column_Name) Column_Name

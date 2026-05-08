@@ -48,7 +48,7 @@ ORDER BY i.Num_Rows DESC NULLS LAST, s.Elapsed_Secs DESC NULLS LAST",
         },
         {
             :name  => t(:dragnet_helper_72_name, :default=>'Full table scans  with less result records: possibly missing indexes '),
-            :desc  => t(:dragnet_helper_72_desc, :default=>'Access by full table scan is critical if only small parts of table are relevant for selection, otherwise are adequate for processing of whole table data.
+            :desc  => t(:dragnet_helper_72_desc, :default=>'Access by full table scan is often suboptimal if only a small part of a table is selected.
 They are out of place for OLTP-like access (small access time, many executions).
 Placing an index may reduce runtime significant.
 Calculated by high runtime and less result records.
@@ -118,17 +118,16 @@ ORDER BY Elapsed_Time_Secs * Num_Rows * NVL(Seconds_Active, 1)/DECODE(Rows_per_E
         },
         {
             :name  => t(:dragnet_helper_154_name, :default=>'Full table scans  with small cardinality: possibly missing indexes '),
-            :desc  => t(:dragnet_helper_154_desc, :default=>"Access by full table scan is critical if only small parts of table are relevant for selection, otherwise are adequate for processing of whole table data.
+            :desc  => t(:dragnet_helper_154_desc, :default=>"Access by full table scan is often suboptimal if only a small part of a table is selected.
 They are out of place for OLTP-like access (small access time, many executions).
 Placing an index may reduce runtime significant.
-Calculated by high runtime of full scan and small expected number of records from full scan (by optimizer's cardinality).
+Sorted by high runtime of full scan and small expected number of records from full scan (by optimizer's cardinality).
 This selection requires usage of AWR history with Diagnostics Pack.
 "),
             :sql=> "\
 SELECT h.Instance_Number \"Inst.\", u.UserName \"SQL User\", h.SQL_ID, p.Object_Owner Owner, p.Object_Name, p.Object_Type \"Object Type\", h.SQL_Plan_Line_ID \"Plan Line ID\",
        p.Operation, p.Options, h.Elapsed_Secs \"Elapsed Secs.\", p.Cardinality, t.Num_Rows \"Num Rows Table\", t.Partitioned,
-       NVL(gp.Access_Predicates, '< no plan in SGA >') Access_Predicates,
-       NVL(gp.Filter_Predicates, '< no plan in SGA >') Filter_Predicates
+       gp.Access_Predicates, NVL(gp.Filter_Predicates, '< no plan in SGA >') Filter_Predicates
 FROM   (SELECT /*+ NO_MERGE */ ss.DBID, ss.Instance_Number, h.User_ID, h.SQL_ID, h.SQL_Plan_Hash_Value, h.SQL_Plan_Line_ID, COUNT(*) * 10 Elapsed_Secs
         FROM   DBA_Hist_Snapshot ss
         JOIN   DBA_Hist_Active_Sess_History h ON h.DBID = ss.DBID AND h.Instance_Number = ss.Instance_Number AND h.Snap_ID = ss.Snap_ID

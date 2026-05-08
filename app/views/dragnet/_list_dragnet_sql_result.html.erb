@@ -14,7 +14,6 @@ if @res.count > 0
           caption:      key.gsub('_', ' '),                                     # allow wrap of column header in slickgrid
           col_ref:      key,                                                    # Reference in result set because original caption is modified
           title:        key,
-          data_title:   proc{|rec| "%t\n\n#{my_html_escape(rec[key])}"},                        # Tooltip
         }
         raise "Problem with column #{i} of SQL result! Column header is empty.\nSQL columns identifier may not be processable by ActiveRecord." if key.nil?
       end
@@ -111,7 +110,7 @@ if @res.count > 0
                               end
                            }
         # Check for link on index_name
-        when ['index_name'].include?(col[:col_ref].downcase)
+        when ['index_name', 'index_to_change', 'index_to_remove'].include?(col[:col_ref].downcase)
         then
           col[:data] = proc{|rec|
                               index_name = rec[col[:col_ref]]
@@ -126,6 +125,7 @@ if @res.count > 0
                               owner = rec['owner']                if rec['owner']           && !owner
                               owner = rec['Owner']                if rec['Owner']           && !owner
                               owner = rec['Owner']                if rec['Owner']           && !owner
+                              owner = rec['table_owner']          if rec['table_owner']     && !owner
                               if owner
                                 link_object_description(:exec_dragnet_sql_detail_area, owner, my_html_escape(index_name), my_html_escape(rec[col[:col_ref]]))
                               else
@@ -164,6 +164,13 @@ if @res.count > 0
         else
             col[:data] = proc{|rec| my_html_escape(rec[col[:col_ref]]) }
         end
+
+        col[:data_title] = case
+                           when col[:col_ref].downcase['mbytes'] then
+                             proc{|rec| "%t\n\n#{size_explain(rec[col[:col_ref]])}"}
+                           else
+                             proc{|rec| "%t\n#{my_html_escape(rec[col[:col_ref]])}"}
+                           end
       end
 %>
 

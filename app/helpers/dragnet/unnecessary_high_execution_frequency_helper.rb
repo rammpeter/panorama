@@ -58,7 +58,7 @@ For both constellations problematic statements can be identified by number of b
         },
         {
             :name  => t(:dragnet_helper_88_name, :default=>'Frequent access on small objects'),
-            :desc  => t(:dragnet_helper_88_desc, :default=>'For frequent executed SELECT-statements on small objects it may be worth to cache this content in the application instead of repeated access by SQL.
+            :desc  => t(:dragnet_helper_88_desc, :default=>'For frequent executed SELECT-statements on small objects it may be worth caching this content in the application instead of repeated access by SQL.
 This reduces CPU-contention and the risk of „Cache Buffers Chains“ latch-waits.
 A remote application will benefit from suppressed network roundtrips too.
 Stored functions with function result caching or selects/subselects with result caching may also be used for this purpose.
@@ -111,7 +111,7 @@ ORDER BY s.\"Executions\"/DECODE(obj.Num_Rows, 0, 1, obj.Num_Rows) DESC NULLS LA
         },
         {
             :name  => t(:dragnet_helper_89_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of SGA'),
-            :desc  => t(:dragnet_helper_89_desc, :default=>'For larger results per execution it is worth to access multiple records per fetch with bulk operation instead of single fetches.
+            :desc  => t(:dragnet_helper_89_desc, :default=>'For larger results per execution it is worth accessing multiple records per fetch with bulk operation instead of single fetches.
 This results in only a slight reduction in CPU usage and SQL runtime.
 But for remote clients it reduces the number of network roundtrips which may last longer than the fetch operation at DB itself.
 '),
@@ -140,7 +140,7 @@ But for remote clients it reduces the number of network roundtrips which may las
         },
         {
             :name  => t(:dragnet_helper_90_name, :default=>'Unnecessary high fetch count because of missing usage of array-fetch: evaluation of AWH history'),
-            :desc  => t(:dragnet_helper_90_desc, :default=>'For larger results per execution it is worth to access multiple records per fetch with bulk operation instead of single fetches.
+            :desc  => t(:dragnet_helper_90_desc, :default=>'For larger results per execution it is worth accessing multiple records per fetch with bulk operation instead of single fetches.
 This earns little reduction of CPU-contention and runtime.
 '),
             :sql=> "SELECT s.*, (SELECT SQL_Text FROM DBA_Hist_SQLText t WHERE t.DBID=s.DBID AND t.SQL_ID=s.SQL_ID AND RowNum < 2) SQL_Text
