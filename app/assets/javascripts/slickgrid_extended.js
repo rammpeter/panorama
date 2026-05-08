@@ -45,50 +45,160 @@ function createSlickGridExtended(container_id, data, columns, options, additiona
  * @param {Node}              container_id  ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix).  This Container should not have additional styles (margin, padding, etc.)
  * @param {Object}      options         Grid options.
  **/
-function SlickGridExtended(container_id, options){
-    // ###################### Begin Constructor-Code #######################
-    var thiz = this;                                                            // Persistieren Objekt-Zeiger über Constructor hinaus, da this in privaten Methoden nicht mehr gültig ist
+class SlickGridExtended {
+    constructor(container_id, options){
+        this.container_id = container_id;
+        this.options      = options;
 
-    const debug = new URLSearchParams(window.location.search).has('debug');     // Check if URL was something like https://myapp.com?debug to activate debug logging
-    trace_log('SlickGridExtended: initializing with container_id='+container_id);
+        this._debug = new URLSearchParams(window.location.search).has('debug'); // Check if URL was something like https://myapp.com?debug to activate debug logging
+        this._trace_log('SlickGridExtended: initializing with container_id='+container_id);
 
-    // Ermitteln der Breite eines Scrollbars (nur einmal je Session wirklich ausführen, sonst gecachten wert liefern)
-    var scrollbarWidth_internal_cache   = null;   // Ergebnis von scrollbarWidth zur Wiederverwendung
-    var columnFilters                   = {};                                   // aktuelle Filter-Kriterien der Daten
-    this.grid                           = null;                                 // Referenz auf SlickGrid-Objekt, belegt erst in initSlickGridExtended
-    this.data_items                     = null;
+        this._scrollbarWidth_cache = null;                                      // cache for _scrollbarWidth
+        this._columnFilters        = {};                                        // current filter criteria
+        this.grid                  = null;                                      // SlickGrid object, set in initSlickGridExtended
+        this.data_items            = null;
 
-    this.gridContainer = jQuery('#'+container_id);                              // Puffern des jQuery-Objektes
-    this.gridContainer.addClass('slickgrid_top');                               // css-Klasse setzen zur Wiedererkennung
+        this.gridContainer = jQuery('#'+container_id);
+        this.gridContainer.addClass('slickgrid_top');
+    } // Ende constructor
 
-    // ###################### Ende Constructor-Code #######################
+    /**
+     * Parsen eines numerischen Wertes aus der landesspezifischen Darstellung mit Komma und Dezimaltrenner
+     * @param value String-Darstellung
+     * @returns float-value
+     */
+    parseFloatLocale(value){
+        if (value === "")
+            return 0;
+        if (this.options['locale'] === 'en'){                                   // globale Option vom Aufrufer
+            return parseFloat(value.replace(/,/g, ""));
+        } else {
+            return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
+        }
+    }
+
+    /**
+     * Ausgabe eines numerischen Wertes in der landesspezifischen Darstellung mit Komma
+     * @param {number} value Float-Wert
+     * @param {number} precision Round by
+     * @returns String-value
+     */
+    printFloatLocale(value, precision){
+        var rounded_value = Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+        if (this.options['locale'] === 'en'){                                   // globale Option vom Aufrufer
+            return String(rounded_value);
+        } else {
+            return String(rounded_value).replace(/\./g, ",");
+        }
+    }
+
+    /**
+     * Ermitteln Column-Objekt nach Name
+     *
+     * @param name  Column name
+     * @returns {*}
+     */
+    getColumnByName(name){
+        for (var col_index in this.all_columns) {
+            var column = this.all_columns[col_index];
+            if (column.name === name){
+                return column;
+            }
+        }
+        return null;                                                            // nichts gefunden
+    }
+
+    /**
+     * Get width of parent element that controls maximum width of grid
+     */
+    get_grid_parent_width(){
+        var grid_parent_width;
+        if (this.gridContainer.parents().hasClass('flex-row-element'))
+            grid_parent_width = this.gridContainer.parents('.flex-row-element').parent().prop('clientWidth');  // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
+        else
+            grid_parent_width = this.gridContainer.parent().prop('clientWidth');  // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
+        return grid_parent_width;
+    }
+
+    // ###################### Private helper methods (promoted from constructor closures) #######################
+
+    /**
+     * Show log messages if URL was http://myapp?debug
+     */
+    _trace_log(message){
+        if (this._debug){
+            console.log(this.container_id + ": " + message);
+        }
+    }
+
+    /**
+     * Calculate width of a scrollbar (cached)
+     */
+    _scrollbarWidth(){
+        if (this._scrollbarWidth_cache)
+            return this._scrollbarWidth_cache;
+        var div = $('<div style="width:50px;overflow-x:scroll;"><div id="scrollbarWidth_testdiv">Hugoplusadditionalinfo</div></div>');
+        $('body').append(div);
+        this._scrollbarWidth_cache = div.innerHeight() - div.find("#scrollbarWidth_testdiv").height();
+        $(div).remove();
+        this._trace_log("_scrollbarWidth: return value = "+this._scrollbarWidth_cache);
+        return this._scrollbarWidth_cache;
+    }
+
+    /**
+     * Get height of a single line in test cell
+     */
+    _single_line_height(){
+        this.js_test_cell.innerHTML = '1';
+        return this.js_test_cell.scrollHeight;
+    }
+
+    /**
+     * Translate key into string according to options[:locale]
+     */
+    _locale_translate(key){
+        var sl_locale = this.options['locale'];
+
+        if (get_slickgrid_translations()[key]){
+            if (get_slickgrid_translations()[key][sl_locale]){
+                return get_slickgrid_translations()[key][sl_locale];
+            } else {
+                if (get_slickgrid_translations()[key]['en'])
+                    return get_slickgrid_translations()[key]['en'];
+                else
+                    return 'No default translation (en) available for key "'+key+'"';
+            }
+        } else {
+            return 'No translation available for key "'+key+'"';
+        }
+    }
+
+    // ###################### Public methods (promoted from constructor closures) #######################
 
     /**
      * Helper zur Initialisierung des Objektes
-     * @param container_id              ID of DOM-Container node to create the grid in. (without jQuery-Selector prefix).  This Container should not have additional styles (margin, padding, etc.)
+     * @param container_id              ID of DOM-Container node to create the grid in.
      * @param data                      An array of objects for databinding.
      * @param columns                   An array of column definitions.
      * @param options                   Grid options.
-     * @param additional_context_menu   additional_context_menu Array with additional context menu entries as object
-     *                             { caption: "Menu-Label", hint: "MouseOver-Hint", icon_class: "cui-x", action:  function(t){ ActionName } }
+     * @param additional_context_menu   Additional menu entries as object array
      */
-    this.initSlickGridExtended = function(container_id, data, columns, options, additional_context_menu){
+    initSlickGridExtended(container_id, data, columns, options, additional_context_menu){
         var col_index;
         var column;
         this.all_columns = columns;                                             // Column-Deklaration in der Form wie dem SlickGrid übergeben inkl. hidden columns
 
         const viewable_columns = columns.filter(c => !c.hidden);
 
-        init_test_cells();                                                      // hidden DIV-Elemente fuer Groessentest aufbauen
-        init_columns_and_calculate_header_column_width(viewable_columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
-        init_data(data, columns);                                               // data im fortlaufende id erweitern, auch für hidden columns
-        init_options(options);                                                  // Options um Defaults erweitern
+        this._init_test_cells();                                                // hidden DIV-Elemente fuer Groessentest aufbauen
+        this._init_columns_and_calculate_header_column_width(viewable_columns, container_id);  // columns um Defaults und Weiten-Info der Header erweitern
+        this._init_data(data, columns);                                         // data im fortlaufende id erweitern, auch für hidden columns
+        this._init_options(options);                                            // Options um Defaults erweitern
 
         this.data_items = data;                                                 // direkt access to data structure
         var dataView = new Slick.Data.DataView();
         dataView.setItems(data);
-        options["searchFilter"] = slickgrid_filter_item_row;                    // merken filter-Funktion für Aktivierung über Menü
-        //dataView.setFilter(slickgrid_filter_item_row);
+        options["searchFilter"] = this._slickgrid_filter_item_row.bind(this);   // bind because SlickGrid calls it as bare function
 
         if (options['maxHeight']) {
             if (!jQuery.isNumeric(options['maxHeight'])) {                       // Expression set instead of numeric value for pixel
@@ -134,7 +244,7 @@ function SlickGridExtended(container_id, options){
 
         this.gridContainer
             .data('slickgrid', this.grid)                                       // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
-            .data('slickgridextended', this)                                    // speichern Link auf JS-Objekt für Zugriff auf slickgrid-Objekt über DOM
+            .data('slickgridextended', this)
             .css('margin-top', '2px')
             .css('margin-bottom', '2px')
             .addClass('slick-shadow')
@@ -142,496 +252,56 @@ function SlickGridExtended(container_id, options){
 
         // Grid durch Schieber am unteren Ende horizontal resizable gestalten
         this.gridContainer.resizable({
-            stop: function( event, ui ) {
+            stop: (event, ui) => {
                 ui.element
-                    .css('width', '')                                           // durch Resize gesetzte feste Weite wieder entfernen, da sonst Weiterleitung resize des Parents nicht wirkt
+                    .css('width', '')                                           // durch Resize gesetzte feste Weite wieder entfernen
                     .css('top', '')
                     .css('left', '')
                 ;
-                finish_vertical_resize();                                       // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
+                this._finish_vertical_resize();                                 // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
             }
-        })
-        ;
-        this.gridContainer.find(".ui-resizable-e").remove();                    // Entfernen des rechten resizes-Cursors
+        });
+        this.gridContainer.find(".ui-resizable-e").remove();                    // Entfernen des rechten resize-Cursors
         this.gridContainer.find(".ui-resizable-se").remove();                   // Entfernen des rechten unteren resize-Cursors
 
-        initialize_slickgrid(this.grid);                                        // einmaliges Initialisieren des SlickGrid
+        this._initialize_slickgrid(this.grid);                                  // einmaliges Initialisieren des SlickGrid
 
-        build_slickgrid_context_menu(container_id, additional_context_menu);    // Aufbau Context-Menu fuer Liste
-
-    };
-
-
-    /**
-     * initialer Aufbau des SlickGrid-Objektes
-     *
-     * @param {Object} grid  SlickGrid-object
-     */
-    function initialize_slickgrid(grid){
-        var dataView = grid.getData();
-
-        grid.onSort.subscribe(function(e, args) {
-            var col = args.sortCol;
-            var field = col.field;
-
-            function convert_german_date(value){                                // de-Datum in sortierbaren string konvetieren
-                var tag_zeit = value.split(" ");
-                var dat = tag_zeit[0].split(".");
-                return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
-            }
-
-            // Quicksort-Funktion zum schnellen sortieren
-            function quickSort(){
-
-                var sortFunc = function(a,b){                                       // Default für String
-                    if (a[field] < b[field])
-                        return -1;
-                    if (a[field] > b[field])
-                        return 1;
-                    if (a[field] === b[field])
-                        return 0;
-                };
-
-                if (col['sort_type'] === "float") {
-                    sortFunc  = function(a, b) {
-                        return thiz.parseFloatLocale(a[field]) - thiz.parseFloatLocale(b[field]);
-                    }
-                } else if (col['sort_type'] === "date" && options['locale'] === 'de'){
-                    sortFunc  = function(a, b){
-                        var fa = convert_german_date(a[field]);
-                        var fb = convert_german_date(b[field]);
-                        if (fa < fb)
-                            return -1;
-                        if (fa > fb)
-                            return 1;
-                        if (fa === fb)
-                            return 0;
-                    }
-                }
-                dataView.getItems().sort(sortFunc);
-            }
-
-
-            // Bubblesort-Funktion zur Erhaltung der vorherigen Sortierung innerhalb gleicher Werte als Ersatz für Array.sort
-            function bubbleSort(){
-                var data_array = dataView.getItems();
-
-                var sort_smaller = function(value1, value2){return value1<value2;};     // Default-Sortier-Funktion für String
-
-                if (col['sort_type'] === "float"){
-                    sort_smaller = function(value1, value2){
-                        return thiz.parseFloatLocale(value1) < thiz.parseFloatLocale(value2);
-                    }
-                }
-
-                if (col['sort_type'] === "date" && options['locale'] === 'de'){              // englisches Date lässt sich als String sortieren
-                    sort_smaller = function(value1, value2){
-                        return convert_german_date(value1) < convert_german_date(value2);
-                    }
-                }
-
-                function swap(a,b) {
-                    var temp=data_array[a];
-                    data_array[a]=data_array[b];
-                    data_array[b]=temp;
-                }
-
-                for(var m=data_array.length-1; m>0; m--){
-                    for(var n=0; n<m; n++){
-                        if (sort_smaller(data_array[n+1][field], data_array[n][field]))
-                            swap(n,n+1);
-                    }
-                }
-            }
-            if (grid.getOptions()['sort_method'] === 'QuickSort'){
-                quickSort();
-            } else if (grid.getOptions()['sort_method'] === 'BubbleSort'){
-                bubbleSort();
-            } else {
-                alert('Option "sort_method" with unsupported value "'+grid.getOptions()['sort_type']+'"');
-            }
-
-            if (!args.sortAsc)
-                dataView.getItems().reverse();
-            dataView.refresh();                                                     // DataView mit sortiertem Inhalt synchr.
-            grid.invalidate();
-            grid.render();
-        });
-
-
-        grid.onHeaderCellRendered.subscribe(function(node, column){
-            jQuery(column.node).css('height', column.grid.getOptions()['headerHeight']);        // Höhe der Header-Zeile setzen nach dem initialen setzen der Höhe durch slickgrid
-        });
-
-        grid.onColumnsResized.subscribe(function(){
-            processColumnsResized(this);
-        });
-
-        dataView.onRowCountChanged.subscribe(function (_e, _args) {                   // benötigt für Search-Filter
-            grid.updateRowCount();
-            grid.render();
-        });
-
-        dataView.onRowsChanged.subscribe(function (e, args) {                       // benötigt für Search-Filter
-            grid.invalidateRows(args.rows);
-            grid.render();
-        });
-
-        // type "input" instead of "change keyup" reacts on Paste/Cut/Autofill
-        $(grid.getHeaderRow()).on("input", ":input",  function (_e) {
-            var columnId = $(this).data("columnId");
-            if (columnId != null) {
-                columnFilters[columnId] = $.trim($(this).val());
-                dataView.refresh();
-            }
-        });
-
-
-        grid.onHeaderRowCellRendered.subscribe(function(e, args) {                  // Zeichnen der Zeile mit Filter-Eingaben
-
-            function input_hint(column_id){                                         // Ermitteln spezifischer Hints für numerisch oder nicht
-                if (grid.getColumns()[grid.getColumnIndex(column_id)].sort_type === "float" )
-                    return locale_translate("slickgrid_filter_hint_numeric");
-                else
-                    return locale_translate("slickgrid_filter_hint_not_numeric");
-            }
-
-            $(args.node).empty();
-            $("<input type='text' style='font-size: 12px; width: 100%;' title='"+input_hint(args.column.id)+"'>")
-                .data("columnId", args.column.id)
-                .val(columnFilters[args.column.id])
-                .appendTo(args.node);
-        });
-
-        grid.onDblClick.subscribe(function(e, args){
-            show_full_cell_content(jQuery(grid.getCellNode(args['row'], args['cell'])).children().html());  // Anzeige des Zell-Inhaltes
-        });
-
-        // set caption and additional menu actions
-        if (options['caption'] && options['caption'] !== ""){
-            let caption = jQuery("<div id='caption_"+container_id+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
-
-            let caption_left_box  = jQuery("<span class='slick_header_left_box'></span>");
-            let caption_right_box = jQuery("<span class='slick_header_right_box'></span>");
-            caption.append(caption_left_box);
-            caption.append('<span class="slick_header_middle_box">'+options['caption']+'</span>');                                 // Add header text itself
-            caption.append(caption_right_box);
-
-            // add default command menu entries
-            if (!options['command_menu_entries']){
-                options['command_menu_entries'] = [];
-            }
-
-            options['command_menu_entries'].reverse();                          // allow pushed element to be at first position
-            options['command_menu_entries'].push({
-                name:                   'toggle_search_filter',
-                caption:                locale_translate("slickgrid_context_menu_search_filter"),
-                hint:                   locale_translate("slickgrid_context_menu_search_filter_hint"),
-                icon_class: 'cui-magnifying-glass',
-                show_icon_in_caption:   'only',
-                action:                 "jQuery('#"+container_id+"').data('slickgridextended').switch_slickgrid_filter_row();"
-            });
-            options['command_menu_entries'].reverse();                          // restore previous order of elements
-
-
-            if (options['show_pin_icon']){
-                options['command_menu_entries'].push({
-                    name:                  'pin_grid_global',
-                    caption:                'Pin table',
-                    hint:                   locale_translate('slickgrid_pin_global_hint'),
-                    icon_class:             'cui-pin',
-                    show_icon_in_caption:   'right',
-                    action:                 "jQuery('#"+container_id+"').data('slickgridextended').pin_grid(true);",
-                    unvisible:              true
-                });
-                options['command_menu_entries'].push({
-                    name:                  'pin_grid_local',
-                    caption:                'Pin table',
-                    hint:                   locale_translate('slickgrid_pin_local_hint'),
-                    icon_class:             'cui-pin',
-                    show_icon_in_caption:   'right',
-                    action:                 "jQuery('#"+container_id+"').data('slickgridextended').pin_grid(false);"
-                });
-            }
-
-            options['command_menu_entries'].push({
-                name:                   'remove_table_from_page',
-                caption:                'Close table',
-                hint:                   locale_translate('slickgrid_close_hint'),
-                icon_class:             'cui-x',
-                show_icon_in_caption:   'right',
-                action:                 "jQuery('#"+container_id+"').data('slickgridextended').remove_grid();"
-            });
-
-
-            let show_command_entry_menu = false;                            // assume not showing menu until menu entry requests this
-            for (let cmd_index in options['command_menu_entries']) {
-                let cmd = options['command_menu_entries'][cmd_index];
-                if (cmd['show_icon_in_caption'] !== 'only' && cmd['show_icon_in_caption'] !== 'right'){
-                    show_command_entry_menu = true;
-                }
-            }
-
-            if (show_command_entry_menu) {                                  // Showing menu not suppressed for at least one entry
-                let command_menu_id = 'cmd_menu_'+container_id;
-
-                caption_left_box.append('<div style="margin-left:5px; margin-right:5px; display: inline-block;" class="slick-shadow">' +
-                    '<div id="'+command_menu_id+'" style="padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer;" title="'+locale_translate('slickgrid_menu_hint')+'">' +
-                    '\u2261' + // 3 waagerechte Striche ≡
-                    '</div></div>'
-                );
-                jQuery("#"+command_menu_id).bind('click' , function( event) {
-                    jQuery("#"+command_menu_id).trigger("contextmenu", event);
-                    return false;
-                });
-
-                jQuery('#' + command_menu_id).parent().contextMenu({
-                    selector: 'div',
-                    build: function ($trigger, _e) {
-                        let command_menu_items = {};
-
-                        function create_command_menu_entries(local_items, entry_array){
-                            for (let entry_index in entry_array){
-                                let entry = entry_array[entry_index];
-                                if (entry.show_icon_in_caption !== 'only' && entry.show_icon_in_caption !== 'right') {
-                                    let new_item = {
-                                        name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
-                                        isHtmlName: true,
-                                    };
-                                    if (entry.items !== undefined){                       // Submenu
-                                        let submenu_items = {};
-                                        create_command_menu_entries(submenu_items, entry.items);
-                                        new_item.items = submenu_items;
-                                    } else {
-                                        new_item.callback = new Function(entry.action);
-                                    }
-                                    local_items[entry.caption] = new_item;
-                                }
-                            }
-                        }
-                        create_command_menu_entries(command_menu_items, options.command_menu_entries);
-
-                        return { items: command_menu_items };
-                    }
-                });
-            }
-
-            // Check for icons in left box of caption line
-            for (let cmd_index in options['command_menu_entries']) {
-                let cmd = options['command_menu_entries'][cmd_index];
-                if (cmd['show_icon_in_caption'] && cmd['show_icon_in_caption'] !== 'right' ){   // show icon in caption line of grid ?
-                    caption_left_box.append('<div style="margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;" '+
-                        'title="'+cmd['hint'] + '" onclick="'+ cmd['action'] +'">' +
-                        '<span class="'+cmd['icon_class']+'"></span>' +
-                        '</div>');
-                }
-            }
-
-
-            // Check for icons in right box of caption
-            for (let cmd_index in options['command_menu_entries']) {
-                let cmd = options['command_menu_entries'][cmd_index];
-                if (cmd['show_icon_in_caption'] === 'right' ){              // show icon in caption line of grid but right ?
-                    caption_right_box.append('<span id="'+container_id+'_header_left_box_'+cmd['name']+'"'+
-                        ' style="margin-right:3px; margin-top:4px; cursor: pointer;'+((cmd['unvisible']) ? 'display: none;' : '')+'"'+
-                        ' title="'+cmd['hint'] + '" onclick="'+ cmd['action'] +'">' +
-                        '<span class="'+cmd['icon_class']+'"></span>' +
-                        '</span>');
-                }
-            }
-        }
-
-        dataView.setFilter(options["data_filter"]);                             // optinaler Filter auf Daten
-
-    }   // initialize_slickgrid
-
-    /**
-     * Show log messages if URL was http://myapp?debug
-     * @param message
-     */
-    function trace_log(message){
-        if (debug){
-            console.log(container_id + ": " + message);
-        }
+        this._build_slickgrid_context_menu(container_id, additional_context_menu);  // Aufbau Context-Menu fuer Liste
     }
-
-    /**
-     * Event-handler if column has been resized
-     *
-     * @param grid  SlickGrid-Object
-     */
-    function processColumnsResized(grid){
-        trace_log("processColumnsResized: called");
-        for (var col_index in grid.getColumns()){
-            var column = grid.getColumns()[col_index];
-            // Value of column.previousWidth contains fractions since last Slickgrid release
-            if (Math.round(column.previousWidth) !== Math.round(column.width)){ // Breite dieser Spalte wurde resized durch drag
-                column.fixedWidth = column.width;                               // Diese spalte von Kalkulation der Spalten ausnehmen
-            }
-        }
- //       grid.getOptions()["rowHeight"] = 1;                                   //Neuberechnung der wirklich benötigten Höhe auslösen
-        thiz.calculate_current_grid_column_widths("processColumnsResized");
-        //grid.render();                                                        // Grid neu berechnen und zeichnen
-    }
-
-    /**
-     * Aufbau der Zellen zur Ermittlung Höhe und Breite
-     */
-    function init_test_cells(){
-        // DIVs anlegen am Ende des Grids für Test der resultierenden Breite von Zellen für slickGrid
-        var test_cell_id                = 'test_cell'               +container_id;
-        var test_cell_wrap_id           = 'test_cell_wrap'          +container_id;
-        var test_cell_height_id         = 'test_cell_height'        +container_id;
-        var test_cell_header_id         = 'test_cell_header'        +container_id;
-        var test_cell_header_name_id    = 'test_cell_header_name'   +container_id;
-        var test_cells_outer = jQuery(
-            '<div>'+
-            //Tables für Test der resultierenden Hoehe und Breite von Zellen für slickGrid
-            // Zwei table für volle Zeichenbreite
-            '<div class="slick-inner-cell" style="visibility:hidden; position:absolute; left: 0; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; height: 1px; overflow: hidden;"></div></nobr></div>'+
-            // Zwei table für umgebrochene Zeichenbreite
-            '<div  class="slick-inner-cell" id="' + test_cell_wrap_id + '" style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height:'+jQuery(window).height()/2+'px; padding: 0; margin: 0; word-wrap: normal;"></div>' +
-            '</div>'+
-            '<div  class="slick-inner-cell" id="' + test_cell_height_id + '" style="visibility:hidden; position:absolute; left: 0; z-index: -1; height:1px; padding: 0; margin: 0; word-wrap: normal;"></div>' +
-            '</div>'+
-            '<div id="'+test_cell_header_id+'" class="ui-state-default slick-header-column slick-header-sortable"   style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height: 1px; margin: 0; word-wrap: normal;">'+
-            '  <span class="slick-column-name" id="'+ test_cell_header_name_id +'"></span>' +
-            '  <span class="slick-sort-indicator"></span>' +
-            '</div>'
-        );
-
-        thiz.gridContainer.after(test_cells_outer);                                  // am lokalen Grid unterbringen
-
-        thiz.js_test_cell               = document.getElementById(test_cell_id);        // Objekt zum Test der realen string-Breite
-        thiz.js_test_cell_wrap          = document.getElementById(test_cell_wrap_id);   // Objekt zum Test der realen string-Breite
-        thiz.js_test_cell_height        = document.getElementById(test_cell_height_id); // Objekt zum Test der realen string-Breite
-        thiz.js_test_cell_header        = document.getElementById(test_cell_header_id);
-        thiz.js_test_cell_header_name   = document.getElementById(test_cell_header_name_id);
-    }
-
-    /**
-     * Parsen eines numerischen Wertes aus der landesspezifischen Darstellung mit Komma und Dezimaltrenner
-     * @param value String-Darstellung
-     * @returns float-value
-     */
-    this.parseFloatLocale = function(value){
-        if (value === "")
-            return 0;
-        if (options['locale'] === 'en'){                                               // globale Option vom Aufrufer
-            return parseFloat(value.replace(/,/g, ""));
-        } else {
-            return parseFloat(value.replace(/\./g, "").replace(/,/,"."));
-        }
-    };
-
-    /**
-     * Ausgabe eines numerischen Wertes in der landesspezifischen Darstellung mit Komma
-     * @param {number} value Float-Wert
-     * @param {number} precision Round by
-     * @returns String-value
-     */
-    this.printFloatLocale = function(value, precision){
-        var rounded_value = Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
-        if (options['locale'] === 'en'){                                               // globale Option vom Aufrufer
-            return String(rounded_value);
-        } else {
-            return String(rounded_value).replace(/\./g, ",");
-        }
-    };
-
-
-    /**
-     * Ermitteln Column-Objekt nach Name
-     *
-     * @param name  Column name
-     * @returns {*}
-     */
-    this.getColumnByName = function(name){
-        for (var col_index in thiz.all_columns) {
-            var column = thiz.all_columns[col_index];
-            if (column.name === name){
-                return column;
-            }
-        }
-        return null;                                                            // nichts gefunden
-    };
-
-    /**
-     * Translate key into string according to options[:locale]
-     *
-     * @param key
-     */
-    var locale_translate = function(key){
-        var sl_locale = options['locale'];
-
-        if (get_slickgrid_translations()[key]){
-            if (get_slickgrid_translations()[key][sl_locale]){
-                return get_slickgrid_translations()[key][sl_locale];
-            } else {
-                if (get_slickgrid_translations()[key]['en'])
-                    return get_slickgrid_translations()[key]['en'];
-                else
-                    return 'No default translation (en) available for key "'+key+'"';
-            }
-        } else {
-            return 'No translation available for key "'+key+'"';
-        }
-    };
 
     // privileged function fuer Zugriff von aussen
-    this.ext_locale_translate = function(key){ return locale_translate(key); };
-
-
-    /**
-     * Filtern einer Zeile des Grids gegen aktuelle Filter
-     * @param item          data array row
-     * @returns {boolean}   show row according to filter
-     */
-    function slickgrid_filter_item_row(item) {
-         for (var columnId in columnFilters) {
-            if (columnId !== undefined && columnFilters[columnId] !== "") {
-                var c = thiz.grid.getColumns()[thiz.grid.getColumnIndex(columnId)];
-                if (c.sort_type === "float" &&  item[c.field] !== columnFilters[columnId]) {
-                    return false;
-                }
-                if (c.sort_type !== "float" &&  (item[c.field].toUpperCase().match(columnFilters[columnId].toUpperCase())) == null ) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    ext_locale_translate(key){ return this._locale_translate(key); }
 
     /**
      * Calculate height of header row
      */
-    this.calculate_header_height = function(columns){
+    calculate_header_height(columns){
         // Hoehen von Header so setzen, dass der komplette Inhalt dargestellt wird
         var header_height = 1
 
         columns.forEach(column => {
             if (column.header_wrap_height > header_height){                     // Check only if max. height of header cell may increase options['headerHeight']
-                thiz.js_test_cell_header_name.innerHTML = column.name;
-                thiz.js_test_cell_header.style.width = (column.width-9)+'px';   // column width reduced by 2*padding=4 + 1*border=1
-                if (thiz.js_test_cell_header.scrollHeight > header_height){
-                    header_height = thiz.js_test_cell_header.scrollHeight;
+                this.js_test_cell_header_name.innerHTML = column.name;
+                this.js_test_cell_header.style.width = (column.width-9)+'px';   // column width reduced by 2*padding=4 + 1*border=1
+                if (this.js_test_cell_header.scrollHeight > header_height){
+                    header_height = this.js_test_cell_header.scrollHeight;
                 }
             }
         });
         header_height -= 4;
-        trace_log('calculate_header_height: return value = ' + header_height);
+        this._trace_log('calculate_header_height: return value = ' + header_height);
         return header_height;                                               // reduced by padding-top because scrollheight counts inside padding
     }
 
     /**
      * Calculate row height
      */
-    this.calculate_row_height= function(columns, options){
+    calculate_row_height(columns, options){
         const row_height_addition = 2;                                          // 1px border-top + 1px border-bottom  hinzurechnen
         var row_height = options['rowHeight']
 
         if (options["line_height_single"]){
-            row_height = single_line_height() + 7;
+            row_height = this._single_line_height() + 7;
         } else {                                                                // Volle notwendige Höhe errechnen
             // Hoehen von Cell so setzen, dass der komplette Inhalt dargestellt wird, aber wenigstens eine Zeile im Ganzen sichtbar bleibt
 
@@ -665,7 +335,7 @@ function SlickGridExtended(container_id, options){
                 if (row_height > max_visible_row_height)
                     row_height = max_visible_row_height;                        // Reduzieren auf Limit wenn die Zeile zu hoch würde
             }
-            slick_inner_cells.each(function(){                                  // Iteration über alle Zellen des Grid falls diese schon sichtbar sind
+            slick_inner_cells.each(function(){                                  // Iteration über alle Zellen des Grid falls diese schon sichtbar sind  (this = jQuery iteration element, NOT class instance)
                 var slick_inner_cell = jQuery(this);
                 var scrollHeight = slick_inner_cell.prop("scrollHeight");           // virtuelle Höhe des Inhaltes
 
@@ -694,18 +364,14 @@ function SlickGridExtended(container_id, options){
                 }
             });
         }
-        trace_log('calculate_row_height: return value = ' + row_height);
+        this._trace_log('calculate_row_height: return value = ' + row_height);
         return row_height;
     }
 
     /**
      * Fill unused space in column width until total width reaches current_grid_width
-     * @param {object} options
-     * @param {object[]} columns
-     * @param {number} current_table_width
-     * @param {number} current_grid_width
      */
-    this.fill_unused_column_space = function(options, columns, current_table_width, current_grid_width){
+    fill_unused_column_space(options, columns, current_table_width, current_grid_width){
         // Evtl. Zoomen der Spalten wenn noch mehr Platz rechts vorhanden
         if (options.width === '' || options.width === '100%'){                  // automatische volle Breite des Grid
             var wrapped_columns_remaining = true;                                // assume there are wrapped columns to enlarge at first
@@ -736,24 +402,10 @@ function SlickGridExtended(container_id, options){
     }
 
     /**
-     * Get width of parent element that controls maximum width of grid
-     */
-    this.get_grid_parent_width = function(){
-        var grid_parent_width;
-        if (this.gridContainer.parents().hasClass('flex-row-element'))
-            grid_parent_width = this.gridContainer.parents('.flex-row-element').parent().prop('clientWidth');  // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
-        else
-            grid_parent_width = this.gridContainer.parent().prop('clientWidth');  // erstmal maximale Breit als Client annehmen, wird für auto-Breite später auf das notwendige reduziert
-        return grid_parent_width;
-    }
-
-    /**
      * Berechnung der aktuell möglichen Spaltenbreiten in Abhängigkeit des Parent und anpassen slickGrid
      * Setzen / Löschen der Scrollbars je nach dem wie sie benötigt werden
-     * Diese Funktion muss gegen rekursiven Aufruf geschützt werden,recursive from Height set da sie durch diverse Events getriggert wird
-     * @param {string} caller  Herkunfts-String
      */
-    this.calculate_current_grid_column_widths = function(caller){
+    calculate_current_grid_column_widths(caller){
         var options = this.grid.getOptions();
         var viewport_div = this.gridContainer.find('.slick-viewport.slick-viewport-top.slick-viewport-left');
 
@@ -762,7 +414,7 @@ function SlickGridExtended(container_id, options){
         var max_table_width = 0;                                                // max. Summe aller Spaltenbreiten (komplett mit Scrollbereich)
         var h_padding       = 10;                                               // Horizontale Erweiterung der Spaltenbreite: padding-right(2) + padding-left(2) + border-left(1) + Karrenz(1)
 
-        trace_log("calculate_current_grid_column_widths: start with caller = '"+ caller + "'");
+        this._trace_log("calculate_current_grid_column_widths: start with caller = '"+ caller + "'");
 
         viewport_div.css('overflow', '');                                        // Default-Einstellung des SlickGrid für Scrollbar entfernen
 
@@ -771,7 +423,7 @@ function SlickGridExtended(container_id, options){
             max_table_width += column.width;
         });
 
-        var current_table_width = max_table_width + scrollbarWidth();           // Assume vertical scrollbar is needed, fixed later if no vertical scrollbar
+        var current_table_width = max_table_width + this._scrollbarWidth();     // Assume vertical scrollbar is needed, fixed later if no vertical scrollbar
 
         // Check for possible wrap in column to reduce width of grid
         var more_wrap_possible = true;                                          // Assume more wraps are possible
@@ -793,8 +445,8 @@ function SlickGridExtended(container_id, options){
 
         current_table_width = this.fill_unused_column_space(options, columns, current_table_width, current_grid_width);   // Enlarge columns up to current_grid_width if possible
 
-        var needs_horizontal_scrollbar = current_table_width-scrollbarWidth() > current_grid_width - 1;
-        trace_log("calculate_current_grid_column_widths: caller = '" + caller+ "' needs_horizontal_scrollbar = "+ needs_horizontal_scrollbar);
+        var needs_horizontal_scrollbar = current_table_width-this._scrollbarWidth() > current_grid_width - 1;
+        this._trace_log("calculate_current_grid_column_widths: caller = '" + caller+ "' needs_horizontal_scrollbar = "+ needs_horizontal_scrollbar);
 
         var row_height = this.calculate_row_height(columns, options);       // get row height based on previously set column width
 
@@ -804,7 +456,7 @@ function SlickGridExtended(container_id, options){
             + 8                                                             // padding top und bottom=4 des Headers
             + 2                                                             // border=1 top und bottom des headers
             + (row_height * this.grid.getDataLength() )                     // Höhe aller Datenzeilen
-            + (needs_horizontal_scrollbar ? scrollbarWidth() : 0)
+            + (needs_horizontal_scrollbar ? this._scrollbarWidth() : 0)
             + (options["showHeaderRow"] ? options["headerRowHeight"] : 0)
             + 1                                                             // Karrenz wegen evtl. Rundungsfehler
         ;
@@ -814,16 +466,16 @@ function SlickGridExtended(container_id, options){
             total_scroll_height = options['maxHeight'];                         // Limitieren der Höhe auf Vorgabe wenn sonst überschritten
 
         var needs_vertical_scrollbar = total_scroll_height < total_height;
-        trace_log("calculate_current_grid_column_widths: caller = '" + caller+"' needs_vertical_scrollbar = "+ needs_vertical_scrollbar);
+        this._trace_log("calculate_current_grid_column_widths: caller = '" + caller+"' needs_vertical_scrollbar = "+ needs_vertical_scrollbar);
 
         if (!needs_vertical_scrollbar)                                          // use unused space for vertical scrollbar for columns
-            current_table_width = this.fill_unused_column_space(options, columns, current_table_width-scrollbarWidth(), current_grid_width);
+            current_table_width = this.fill_unused_column_space(options, columns, current_table_width-this._scrollbarWidth(), current_grid_width);
 
 
         this.gridContainer.data('last_resize_width', this.get_grid_parent_width()); // Merken der aktuellen Breite des Parents, um unnötige resize-Events zu vermeiden
 
         if (options['width'] === "auto"){
-            var vertical_scrollbar_width = needs_vertical_scrollbar ? scrollbarWidth() : 0;
+            var vertical_scrollbar_width = needs_vertical_scrollbar ? this._scrollbarWidth() : 0;
             if (max_table_width+vertical_scrollbar_width < current_grid_width)
                 this.gridContainer.css('width', max_table_width+vertical_scrollbar_width);  // Grid kann noch breiter dargestellt werden
             else
@@ -840,400 +492,34 @@ function SlickGridExtended(container_id, options){
         viewport_div.css('overflow-x', (needs_horizontal_scrollbar ? 'scroll' : 'hidden') );
         viewport_div.css('overflow-y', (needs_vertical_scrollbar ? 'scroll' : 'hidden'));                           // force remove vertical scrollbar if not needed (especially for Safari)
 
+        const trace_log_inner = (msg) => this._trace_log(msg);
         columns.forEach(function(column) {
-            trace_log("calculate_current_grid_column_widths: " + column.name+ ': width='+column.width);
+            trace_log_inner("calculate_current_grid_column_widths: " + column.name+ ': width='+column.width);
         });
-        trace_log("calculate_current_grid_column_widths: caller = '"+ caller+"' end");
-    };
-
-    /**
-     * Calculate column-specific attributes for xy-position ov event
-     * @param container_id  DOM-ID of grid-container
-     * @param event the triggered event
-     */
-    function set_column_attributes_for_event(container_id, event){
-        var cell = $(event.target);
-        thiz.last_slickgrid_contexmenu_col_header = null;                        // Initialisierung, um nachfolgend Treffer zu testen
-
-        if (cell.parents(".slickgrid_header_"+container_id).length > 0){        // Mouse-Event fand in Unterstruktur des Spalten-Headers statt
-            cell = cell.parents(".slickgrid_header_"+container_id);             // Zeiger auf Spaltenheader stellen
-        }
-        if (cell.hasClass("slickgrid_header_"+container_id)){                   // Mouse-Event fand direkt im Spalten-Header oder innerhalb statt
-            thiz.last_slickgrid_contexmenu_col_header = cell;
-            thiz.last_slickgrid_contexmenu_column_name = cell.data('column')['field']
-        }
-        if (cell.parents(".slick-cell").length > 0){                        // Mouse-Event fand in Unterstruktur der Zelle statt
-            cell = cell.parents(".slick-cell");                             // Zeiger auf äußerstes DIV der Zelle stellen
-        }
-        if (cell.hasClass("slick-cell")){                                   // Mouse-Event fand in äußerstem DIV der Zelle oder innerhalb statt
-            var slick_header = thiz.gridContainer.find('.slick-header-columns');
-            cell = cell.find(".slick-inner-cell");                          // Inneren DIV mit Spalten-Info suchen
-            thiz.last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');  // merken der Header-Spalte des mouse-Events;
-            thiz.last_slickgrid_contexmenu_column_name = cell.attr('column');
-            thiz.last_slickgrid_contexmenu_field_content = cell.text();
-        }
-    }
-
-    /**
-     * Create context-Menu für slickgrid, Parameter: DOM-ID, Array with Entry-Hashes
-     * @param {string} container_id Element to bind the context menu to
-     * @param {object[]} additional_menu_entries Additional menu entries to show in context menu
-     */
-    function build_slickgrid_context_menu(container_id,  additional_menu_entries){
-        jQuery('#'+container_id).contextMenu({
-            selector: 'div', // the selector for the items to show the menu
-            build: function($trigger, e) {
-                // this callback is executed every time the menu is to be shown
-                // its results are destroyed every time the menu is hidden
-                // e is the original contextmenu event, containing e.pageX and e.pageY (amongst other data)
-                let options = thiz.grid.getOptions();
-                set_column_attributes_for_event(container_id, e);
-
-                // define the context menu header
-                let header_line;
-                if (thiz.last_slickgrid_contexmenu_col_header) {                         // konkrete Spalte ist bekannt
-                    header_line = 'Column: <b>'+thiz.last_slickgrid_contexmenu_col_header.text()+'</b>';
-                } else {
-                    header_line = '<span style="background-color: red; color: black;">&nbsp;Column/cell not exactly hit! Please retry.&nbsp;</span>';
-                }
-                let items = {
-                    header: {
-                        name: header_line,
-                        isHtmlName: true,
-                        disabled: true // Disable the header item to make it unselectable
-                    },
-                };
-
-                /**
-                 * Add item to context menu
-                 * @param items The items object a new item should be added to
-                 * @param label The label of the new item
-                 * @param icon_class The icon class of the new item
-                 * @param click_action The click action of the new item
-                 * @param hint The title of the new item
-                 */
-                function add_item_to_context_menu(items, label, icon_class, click_action, hint){
-                    items[label] = {
-                        name: "<span class='"+icon_class+"' style='float:left'></span><span title='"+hint+ "'>&nbsp;"+label+"</span>",
-                        isHtmlName: true,
-                        callback: click_action,
-                    };
-                }
-
-                function add_default_item_to_context_menu(name, icon_class, click_action){
-                    add_item_to_context_menu(items, locale_translate("slickgrid_context_menu_"+name), icon_class, click_action, locale_translate("slickgrid_context_menu_"+name+"_hint"));
-                }
-
-                add_default_item_to_context_menu("sort_column", 'cui-sort-ascending', function(){ thiz.last_slickgrid_contexmenu_col_header.click();} );                  // Menu-Eintrag Sortieren
-                if (thiz.grid.getOptions().showHeaderRow) {
-                    add_default_item_to_context_menu("hide_filter", 'cui-magnifying-glass', function(){ thiz.switch_slickgrid_filter_row();} );
-                } else {
-                    add_default_item_to_context_menu("show_filter", 'cui-magnifying-glass', function(){ thiz.switch_slickgrid_filter_row();} );
-                }
-                add_default_item_to_context_menu("export_csv", 'cui-file-xls', function(){ grid2CSV(container_id);} );
-                add_default_item_to_context_menu("column_sum", 'cui-settings', function(){ show_column_stats(thiz.last_slickgrid_contexmenu_column_name);} );
-                add_default_item_to_context_menu("field_content", 'cui-zoom-in', function(){ show_full_cell_content(thiz.last_slickgrid_contexmenu_field_content);} );
-
-
-                if (options.line_height_single)
-                    add_default_item_to_context_menu("line_height_full", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; thiz.calculate_current_grid_column_widths("context menu line_height_single"); } );
-                else
-                    add_default_item_to_context_menu("line_height_single", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; thiz.calculate_current_grid_column_widths("context menu line_height_single"); } );
-
-                if (options['plotting']){
-                    if (thiz.last_slickgrid_contexmenu_col_header) {            // konkrete Spalte ist bekannt
-                        let column = thiz.grid.getColumns()[thiz.grid.getColumnIndex(thiz.last_slickgrid_contexmenu_column_name)];
-                        if (column.plottable) {                                 // Column should be shown in diagram
-                            add_default_item_to_context_menu("switch_col_from_diagram", 'cui-chart-line', function(){
-                                plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, thiz.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
-                            });
-                        } else {
-                            add_default_item_to_context_menu("switch_col_into_diagram", 'cui-chart-line', function(){
-                                plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, thiz.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
-                            });
-                        }
-                    }
-
-                    add_default_item_to_context_menu("remove_all_from_diagram", 'cui-trash', function(){
-                        let columns = thiz.grid.getColumns();
-                        for (let col_index in columns){
-                            columns[col_index].plottable = 0;
-                        }
-                        plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, null);  // Diagramm neu zeichnen
-                    });
-                }
-
-                if (options['sort_method'] === 'QuickSort'){
-                    add_default_item_to_context_menu("sort_method_QuickSort", 'cui-calculator', function(){ options.sort_method = 'BubbleSort'; } );
-                } else {
-                    add_default_item_to_context_menu("sort_method_BubbleSort", 'cui-calculator', function(){ options.sort_method = 'QuickSort'; } );
-                }
-
-                /**
-                 * Add the additional menu entries to the items structure
-                 * @param local_items The items object a new item should be added to, can be a sub menu
-                 * @param entry_array The array of entries to add
-                 */
-                function create_additional_menu_entries(local_items, entry_array){
-                    for (let entry_index in entry_array){
-                        let entry = entry_array[entry_index];
-                        if (entry.items !== undefined){                       // Submenu
-                            let submenu_items = {};
-                            create_additional_menu_entries(submenu_items, entry.items);
-                            local_items[entry.label] = {
-                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
-                                isHtmlName: true,
-                                items: submenu_items
-                            }
-                        } else {                                                // Menu entry
-                            add_item_to_context_menu(local_items, entry.caption, entry.icon_class, entry.action, entry.hint)
-                        }
-                    }
-                }
-                create_additional_menu_entries(items, additional_menu_entries);
-
-                return {
-                    items: items
-                };
-            }
-        });
+        this._trace_log("calculate_current_grid_column_widths: caller = '"+ caller+"' end");
     }
 
     /**
      * Ein- / Ausblenden der Filter-Inputs in Header-Rows des Slickgrids
      */
-    this.switch_slickgrid_filter_row = function(){
-        var options = thiz.grid.getOptions();
+    switch_slickgrid_filter_row(){
+        var options = this.grid.getOptions();
         if (options["showHeaderRow"]) {
-            thiz.grid.setHeaderRowVisibility(false);
-            thiz.grid.getData().setFilter(options["data_filter"]);              // Ruecksetzen auf externen data_filter falls gesetzt, sonst null
+            this.grid.setHeaderRowVisibility(false);
+            this.grid.getData().setFilter(options["data_filter"]);              // Ruecksetzen auf externen data_filter falls gesetzt, sonst null
         } else {
-            thiz.grid.setHeaderRowVisibility(true);
-            thiz.grid.getData().setFilter(options["searchFilter"]);
+            this.grid.setHeaderRowVisibility(true);
+            this.grid.getData().setFilter(options["searchFilter"]);
         }
-        thiz.grid.setColumns(thiz.grid.getColumns());                                     // Auslösen/Provozieren des Events onHeaderRowCellRendered für slickGrid
-        thiz.calculate_current_grid_column_widths("switch_slickgrid_filter_row");  // Höhe neu berechnen
-    };
-
-    function grid2CSV(grid_id) {
-        function escape(cell){
-            return cell.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/;/g, "\\;");
-        }
-
-        try {
-            var grid_div = jQuery("#"+grid_id);
-            var grid = grid_div.data("slickgrid");
-            var data = "";
-
-
-            //Header
-            grid_div.find(".slick-header-columns").children().each(function(index, element) {
-                data += '"'+escape(jQuery(element).text())+'";'
-            });
-            data += "\n";
-
-            // Zellen
-            var grid_data    = grid.getData().getItems();
-            var grid_columns = grid.getColumns();
-
-            for (var data_index in grid_data){
-                for (var col_index in grid_columns){
-                    data += '"'+escape(grid_data[data_index][grid_columns[col_index]['field']])+'";'
-                }
-                data += "\n"
-            }
-
-
-            var byteNumbers = new Uint8Array(data.length);
-
-            for (var i = 0; i < data.length; i++)
-            {
-                byteNumbers[i] = data.charCodeAt(i);
-            }
-            var blob = new Blob([byteNumbers], {type: "text/csv"});
-
-            // Construct the uri
-            var uri = URL.createObjectURL(blob);
-
-            // Construct the <a> element
-            var link = document.createElement("a");
-            link.download = 'Panorama_Export.csv';
-            link.href = uri;
-
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup the DOM
-            document.body.removeChild(link);
-            //delete link;
-
-        } catch(e) {
-            alert('Error in grid2CSV: '+(e.message === undefined ? 'No error message provided' : e.message)+'! Eventually using FireFox will help.');
-        }
-//            document.location.href = 'data:Application/download,' + encodeURIComponent(data);     // vorherige Variante
-    }
-
-    // Anzeige der Statistik aller Zeilen der Spalte (Summe etc.)
-    function show_column_stats(column_name){
-        var column          = thiz.grid.getColumns()[thiz.grid.getColumnIndex(column_name)];
-        var data            = thiz.grid.getData().getItems();
-        var sum             = 0;
-        var average         = null;
-        var count           = 0;
-        var distinct        = {};
-        var distinct_count  = 0;
-        for (var row_index in data){
-            sum += thiz.parseFloatLocale(data[row_index][column_name]);
-            count ++;
-            distinct[data[row_index][column_name]] = 1;     // Wert in hash merken
-        }
-        for (var i in distinct) {
-            distinct_count += 1;
-        }
-
-        if (count > 0)
-            average = sum/count;
-        show_full_cell_content("Sum = "+sum+"<br/>Average = "+average+"<br/>Count = "+count+"<br/>Count distinct = "+distinct_count, 'Column: '+column.name);
+        this.grid.setColumns(this.grid.getColumns());                                     // Auslösen/Provozieren des Events onHeaderRowCellRendered für slickGrid
+        this.calculate_current_grid_column_widths("switch_slickgrid_filter_row");  // Höhe neu berechnen
     }
 
     /**
-     * Anzeige des kompletten Inhaltes der Zelle
-     *
-     * @param {string} content
-     * @param {string} title
+     * Speichern Inhalt und Erneutes Berechnen der Breite und Höhe einer Zelle nach Änderung ihres Inhaltes
      */
-    function show_full_cell_content(content, title=''){
-        // remove a-tags from content
-        var wrapped = jQuery("<div>" + content + "</div>");
-        wrapped.find("a").replaceWith(function() { return jQuery(this).html(); });
-        content = wrapped.html();
-
-        var div_id = 'slickgrid_extended_alert_box';
-
-        // create div for dialog at body if not exists
-        if (!jQuery('#'+div_id).length){
-            jQuery('body').append('<div id="'+div_id+'"></div>');
-        }
-        jQuery("#"+div_id)
-            .html(content)
-            .dialog({
-                    title:      title,
-                    draggable:  true,
-                    width:      jQuery(window).width()*0.5,
-                    maxHeight:  jQuery(window).height()*0.9,
-                    beforeClose:function(){jQuery('#'+div_id).children().remove(); }     // clear div before close dialog
-            })
-        ;
-
-    }
-
-    /**
-     * Setzen/Limitieren der Höhe des Grids auf maximale Höhe des Inhaltes
-     */
-    function adjust_real_grid_height(){
-        // Einstellen der wirklich notwendigen Höhe des Grids (einige Browser wie Safari brauchen zum Aufbau des Grids Platz für horizontalen Scrollbar, auch wenn dieser am Ende nicht sichtbar wird
-        var total_height = thiz.gridContainer.data('total_height');             // gespeicherte Inhaltes-Höhe aus calculate_current_grid_column_widths
-        //console.log('adjust_real_grid_height: total_height old='+total_height+' thiz.gridContainer.height()='+thiz.gridContainer.height());
-        if (total_height < thiz.gridContainer.height())                         // Sicherstellen, dass Höhe des Containers nicht größer als Höhe des Grids mit allen Zeilen sichtbar
-            thiz.gridContainer.height(total_height);
-    }
-
-    /**
-     * Justieren des Grids nach Abschluss der Resize-Operation mit unterem Schieber
-     */
-    function finish_vertical_resize(){
-        // Ab jetzt die gesetzte Höhe als Vorgabewert verwenden
-        var options = thiz.grid.getOptions();
-        options['maxHeight'] = thiz.gridContainer.height();
-        thiz.grid.setOptions(options);
-
-        thiz.calculate_current_grid_column_widths('finish_vertical_resize');    // Neuberechnen breiten (neue Situation bzgl. vertikalem Scrollbar)
-        adjust_real_grid_height();                                              // Limitieren Höhe
-
-    }
-
-    /**
-     *  data im fortlaufende id erweitern
-     * @param data
-     * @param columns
-     */
-    function init_data(data, columns){
-        for (var data_index in data){
-            var data_row = data[data_index];
-            data_row['id'] = data_index;                                        // Data-Array fortlaufend durchnumerieren
-            if (!data[data_index]['metadata'])
-                data[data_index]['metadata'] = {columns: {}};                   // Metadata-Objekt anlegen wenn noch nicht existiert
-            columns.filter(c => !data_row['metadata']['columns'][c.field]).forEach(col => {
-                data_row['metadata']['columns'][col.field] = {};         // Metadata für alle Spalten anlegen  TODO: warum?
-            });
-        }
-    }
-    /**
-     * Ermittlung Spaltenbreite der Header auf Basis der konketen Inhalte
-     *
-     * @param columns
-     * @param container_id
-     */
-    function init_columns_and_calculate_header_column_width(columns, container_id){
-        function init_column(column, key, value){
-            if (!column[key])
-                column[key] = value;                            // Default-Attribut der Spalte, braucht damit nicht angegeben werden
-        }
-
-        var column;                                                             // aktuell betrachtete Spalte
-
-        // Ermittlung max. Zeichenbreite ohne Umbrüche
-        for (var col_index in columns){
-            column = columns[col_index];
-
-            init_column(column, 'formatter',    HTMLFormatter);                 // Default-Formatter, braucht damit nicht angegeben werden
-            init_column(column, 'sortable',     true);
-            init_column(column, 'sort_type',    'string');                      // Sort-Type. TODO Ermittlung nach JavaScript verschieben
-            init_column(column, 'field',        column.id);                  // Field-Referenz in data-Record muss nicht angegeben werden wenn identisch
-            init_column(column, 'minWidth',     5);                             // Default von 30 reduzieren
-            init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
-            init_column(column, 'slickgridExtended', thiz);                     // Referenz auf SlickGridExtended fuer Nutzung ausserhalb
-            init_column(column, 'position',     col_index);
-
-            thiz.js_test_cell_header.style.width = '';
-            thiz.js_test_cell_header_name.innerHTML = column.name;
-            column.header_nowrap_width  = thiz.js_test_cell_header.scrollWidth; // genutzt für Test auf Umbruch des Headers, dann muss Höhe der Header-Zeile angepasst werden
-
-            thiz.js_test_cell_header.style.width = '1px';
-            column.max_wrap_width      = thiz.js_test_cell_header.scrollWidth-10;  // min. Breite mit Umbruch muss trotzdem noch den Sort-Pfeil darstellen können
-            column.header_wrap_height  = thiz.js_test_cell_header.scrollHeight;                      // max. height of header cell if all words are wrapped
-
-
-            column.max_nowrap_width    = column.max_wrap_width;                 // Normbreite der Spalte mit Mindestbreite des Headers initialisieren (lieber Header umbrechen als Zeilen einer anderen Spalte)
-        }
-    }
-    /**
-     * Options um Defaults erweitern
-     *
-     * @param options
-     */
-    function init_options(options){
-        function init_option(key, value){
-            if (!options[key])
-                options[key] = value;                            // Default-Attribut der Option, braucht damit nicht angegeben werden
-        }
-
-        init_option('enableCellNavigation', true);
-        init_option('headerRowHeight',      30);                // Höhe der optionalen Filter-Zeile
-        init_option('enableColumnReorder',  false);
-        init_option('width',                'auto');
-        init_option('locale',               'en');
-        init_option('sort_method',          'QuickSort');                       // QuickSort (Array.sort) oder BubbleSort
-    }
-    /**
-     * Speichern Inhalt und Erneutes Berechnen der Breite und Höhe einer Zelle nach Änderung ihres Inhaltes + Aktualisieren der Anzeige,
-     * um kompletten neuen Content zeigen zu können (nicht abgeschnitten)
-     *
-     * @param obj jQuery-Objekt auf dem innerhalb einer Zelle ein ajax-Call ausgelöst wurde
-     */
-    this.save_new_cell_content = function(obj){
+    save_new_cell_content(obj){
         var inner_cell = obj.parents(".slick-inner-cell");
-        // var grid_table = inner_cell.parents(".slickgrid_top");                      // Grid-Table als jQuery-Objekt
         var column = null;
         for (var column_index in this.grid.getColumns()){
             if (this.grid.getColumns()[column_index]['field'] === inner_cell.attr('column'))
@@ -1244,181 +530,27 @@ function SlickGridExtended(container_id, options){
         this.grid.getData().getItems()[inner_cell.attr("row")]["metadata"]["columns"][inner_cell.attr("column")]["fulldata"] = inner_cell.html(); // Voller html-Inhalt der Zelle
 
         this.calc_cell_dimensions(inner_cell.html(), column);     // Neu-Berechnen der max. Größen durch getürkten Aufruf der Zeichenfunktion
-        this.calculate_current_grid_column_widths('recalculate_cell_dimension'); // Neuberechnung der Zeilenhöhe, Spaltenbreite etc. auslösen, auf jeden Fall, da sich die Höhe verändert haben kann
-    };
-
-
-    function scrollbarWidth() {
-        if (scrollbarWidth_internal_cache)
-            return scrollbarWidth_internal_cache;
-        var div = $('<div style="width:50px;overflow-x:scroll;"><div id="scrollbarWidth_testdiv">Hugoplusadditionalinfo</div></div>');
-        // Append our div, do our calculation and then remove it
-        $('body').append(div);
-        scrollbarWidth_internal_cache = div.innerHeight() - div.find("#scrollbarWidth_testdiv").height();
-        $(div).remove();
-        trace_log("scrollbarWidth: return value = "+scrollbarWidth_internal_cache);
-        return scrollbarWidth_internal_cache;
+        this.calculate_current_grid_column_widths('recalculate_cell_dimension'); // Neuberechnung der Zeilenhöhe, Spaltenbreite etc. auslösen
     }
-    /**
-     * Zeichnen eines Diagrammes mit den Daten einer slickgrid-Spalte
-     *
-     * @param table_id          ID der Table
-     * @param plot_area_id      jQuery-Selector des DIVs fuer Plotting
-     * @param caption           Kopfzeile
-     * @param column_id         Name der Spalte, die ein/ausgeschalten wird
-     * @param multiple_y_axes
-     * @param show_y_axes
-     */
-    function plot_slickgrid_diagram(table_id, plot_area_id, caption, column_id, multiple_y_axes, show_y_axes) {
-        var options = thiz.grid.getOptions();
-        var columns = thiz.grid.getColumns();                          // JS-Objekt mit Spalten-Struktur gespeichert an DOM-Element, Originaldaten des Slickgrid, daher kein Speichern nötig
-        var data    = thiz.grid.getData().getItems();                  // JS-Aray mit Daten-Struktur gespeichert an DOM-Element, Originaldaten des Slickgrid, daher kein Speichern nötig
 
-        function get_numeric_content(celldata){ // Ermitteln des numerischen html-Inhaltes einer TD-Zelle bzw. ihrer Kinder, wenn weitere enthalten sind
-            if (celldata === '')
-                return 0;
-            if (options['locale'] === 'de'){
-                return parseFloat(celldata.replace(/\./g, "").replace(/,/,"."));   // Deutsche nach englische Float-Darstellung wandeln (Dezimatrenner, Komma)
-            }
-            if (options['locale'] === 'en'){
-                return parseFloat(celldata.replace(/,/g, ""));                   // Englische Float-Darstellung wandeln, Tausend-Separator entfernen
-            }
-            return "Error: unsupported locale "+options['locale'];
-        }
-
-        function get_date_content(celldata){ // Ermitteln des html-Inhaltes einer TD-Zelle bzw. ihrer Kinder, wenn weitere enthalten sind, als Date
-            var parsed_field;
-            if (options['locale'] === 'de'){
-                var all_parts = celldata.split(" ");
-                var date_parts = all_parts[0].split(".");
-                parsed_field = date_parts[2]+"/"+date_parts[1]+"/"+date_parts[0]+" "+all_parts[1];   // Datum ISO neu zusammengsetzt + Zeit
-            }
-            if (options['locale'] === 'en'){
-                // change "-" or unbreakable hyphen to "/", because only this way can be parsed in constructor
-                parsed_field= celldata.replace(/-/g,"/").replace(/\u2011/g, "/");
-            }
-            return new Date(parsed_field+" GMT");
-        }
-
-        //Sortieren eines DataArray nach dem ersten Element des inneren Arrays (X-Achse)
-        function data_array_sort(a,b){
-            return a[0] - b[0];
-        }
-
-        // Spaltenheader der Spalte mit class 'plottable' versehen oder wegnehmen wenn bereits gesetzt (wenn Column geschalten wird)
-        columns.forEach((column, _col_index) => {
-            if (column.id === column_id){
-                if (column.plottable === 1)
-                    column.plottable = 0;
-                else
-                    column.plottable = 1
-            }
-        });
-
-        var plot_master_column_index = null;                                    // Spalten-Nr. der Plotmaster-Spalte
-        var plot_master_column_id = null;                                       // Spalten-Name der Plotmaster-Spalte
-        var plot_master_time_column_index=null;                                 // Spalten-Nr. der Plotmaster-Spalte, wenn diese Zeit als Inhalt hat
-        var plotting_column_count = 0;                                          // Anzahl der zu zeichnenden Spalten
-        for (let column_index in columns) {
-            let column = columns[column_index];                                 // konkretes Spalten-Objekt aus DOM
-            if (column.plot_master){                                            // ermitteln der Spalte, die plot_master für X-Achse ist
-                if (plot_master_column_index){ alert("Only one column may have attribute 'plot_master'");}
-                plot_master_column_index = column_index;
-                plot_master_column_id = column.id;
-            }
-            if (column.plot_master_time){                         // ermitteln der Spalte, die plot_master für X-Achse ist mit Zeit als Inhalt
-                if (plot_master_time_column_index){ alert("Only one column may have attribute 'plot_master_time'");}
-                plot_master_column_index = column_index;
-                plot_master_column_id = column.id;
-                plot_master_time_column_index=column_index;
-            }
-            if (column.plottable === 1){
-                plotting_column_count++;
-            }
-        }
-        if (plot_master_column_index == null){
-            alert('Error: No <th>-column has class "plot_master"! Exactly one column of this class is expected!');
-        }
-
-        var x_axis_time = false;                                                    // Defaut, wenn keine plot_master_time gesetzt werden
-        var data_array = [];
-        var plotting_index = 0;
-        var smallest_y_value = 0;
-        // Iteration ueber plotting-Spalten
-        for (let column_index in columns) {
-            let column = columns[column_index];                                     // konkretes Spalten-Objekt aus DOM
-            if (column.plottable===1){                                            // nur fuer zu zeichnenden Spalten ausführen
-                var col_data_array = [];
-                // Iteration ueber alle Records der Tabelle
-                var max_column_value = 0;                                           // groessten Wert der Spalte ermitteln für notwendige Breite der Anzeige
-                for (var data_index in data){                                       // Iteration über Daten
-                    var x_val = null;
-                    var y_val = null;
-                    // Aufbau eines Tupels aus Plot_master und plottable-Spalte
-                    // Plottable-Spalte
-                    y_val = get_numeric_content(data[data_index][column.id]);
-                    if (y_val > max_column_value)              // groessten wert der Spalte ermitteln
-                        max_column_value = y_val;
-                    if (y_val < smallest_y_value)                               // look for smallest value
-                        smallest_y_value = y_val;
-                    // Plot-Master-Spalte
-                    if (plot_master_time_column_index){
-                        x_val = get_date_content(data[data_index][plot_master_column_id]).getTime();       // Zeit in ms seit 1970
-                        x_axis_time = true;       // mindestens ein plot_master_time gesetzt werden
-                    } else {
-                        x_val = get_numeric_content(data[data_index][plot_master_column_id]);
-                    }
-                    col_data_array.push( [ x_val, y_val ]);
-                }
-                col_data_array.sort(data_array_sort);                           // Data_Array der Spalte nach X-Achse sortieren
-                var col_attr = {label:column.name,
-                    delete_callback: thiz.plot_chart_delete_callback,                // aufgerufen von plot_diagram beim Entfernen einer Kurve aus Diagramm
-                    data: col_data_array
-                };
-                data_array.push(col_attr);   // Erweiterung des primären arrays
-                plotting_index = plotting_index + 1;  // Weiterzaehlen Index
-            }
-        }
-
-        var yaxis_options = { show: show_y_axes };
-        if (smallest_y_value === 0)
-            yaxis_options.min = 0;                                              // allow drawing of negative values if they exist
-
-        plot_diagram(
-            table_id,
-            plot_area_id,
-            caption,
-            data_array,
-            {   plot_diagram: { locale: options['locale'], multiple_y_axes: multiple_y_axes},
-//                yaxis:        { min: 0, show: show_y_axes },
-                yaxis:        yaxis_options,
-                xaxes: (x_axis_time ? [{ mode: 'time'}] : [{}])
-            }
-        );
-    } // plot_slickgrid_diagram
     /**
      * Callback aus plot_diagram wenn eine Kurve entfernt wurde, denn plottable der Spalte auf 0 drehen
-     *
-     * @param legend_label
      */
-    this.plot_chart_delete_callback = function(legend_label){
-        var columns = thiz.grid.getColumns();
+    plot_chart_delete_callback(legend_label){
+        var columns = this.grid.getColumns();
         for (var column_index in columns) {
             if (columns[column_index]['name'] === legend_label) {
                 columns[column_index]['plottable'] = 0;                         // diese Spalte beim nächsten plot_diagram nicht mehr mit zeichnen
             }
         }
-    };
+    }
 
     /**
      * Berechnen der Dimensionen einer konkreten Zelle, native Javascript instead of jQuery because it's heavy frequented
-     *
-     * @param test_html     content of column cell to measure. single cell or <br>-separated list of cell values
-     * @param column        column-object for test
      */
-    this.calc_cell_dimensions = function(test_html, column){
-        var js_test_cell        = thiz.js_test_cell;
-        var js_test_cell_wrap   = thiz.js_test_cell_wrap;
+    calc_cell_dimensions(test_html, column){
+        var js_test_cell        = this.js_test_cell;
+        var js_test_cell_wrap   = this.js_test_cell_wrap;
 
         js_test_cell.innerHTML = test_html;                                 // Test-DOM nowrapped mit voll dekoriertem Inhalt füllen
 
@@ -1434,62 +566,51 @@ function SlickGridExtended(container_id, options){
                 else
                     column.max_wrap_width  = js_test_cell_wrap.scrollWidth;
             }
-            js_test_cell_wrap.innerHTML = '';                           // leeren der Testzelle, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
+            js_test_cell_wrap.innerHTML = '';                           // leeren der Testzelle
         }
-        js_test_cell.innerHTML = '';                                    // leeren der Testzelle, ansonsten könnten z.B. Ziel-DOM-ID's mehrfach existierem
-    };
-
-    /**
-     * Ermittlung der Zeilenhöhe fuer einzeilige Darstellung
-     * @returns {*}
-     */
-    function single_line_height() {
-        thiz.js_test_cell.innerHTML = '1';
-
-        return thiz.js_test_cell.scrollHeight;
+        js_test_cell.innerHTML = '';                                    // leeren der Testzelle
     }
 
-    // public function to pin all elements of grid
-    // Move Grid to another new parent to prevent it from being overwritten by parent reload
-    // this requires all belonging elements of slickgrid (incl. external javascript etc.) are within the parent
-    // Parameter: pin_at_toplevel   - boolean
-    this.pin_grid = function(pin_at_toplevel){
-        if (!options['top_level_container_id']){
+    /**
+     * Pin all elements of grid (move grid to another new parent to prevent it from being overwritten by parent reload)
+     */
+    pin_grid(pin_at_toplevel){
+        if (!this.options['top_level_container_id']){
             throw "Value for SlickGridExtended-option 'top_level_container_id' ist needed to process pin_grid"
         }
 
-        if (options['update_area']){
-            jQuery('#'+ options['update_area']).children().remove();
+        if (this.options['update_area']){
+            jQuery('#'+ this.options['update_area']).children().remove();
         }
 
-        var grid_parent = thiz.gridContainer.parent();
+        var grid_parent = this.gridContainer.parent();
 
         let target_for_pinned;
         let pin_button_outer_span;
         let new_title;
 
         if (pin_at_toplevel){
-            target_for_pinned = jQuery('#'+options['top_level_container_id']);
-            pin_button_outer_span = jQuery('#'+container_id+'_header_left_box_pin_grid_global');
-            new_title = locale_translate('slickgrid_pinned_global_hint');
-            jQuery('#'+container_id+'_header_left_box_pin_grid_local').css('display', 'none');      // hide local pin button if global was hit
+            target_for_pinned = jQuery('#'+this.options['top_level_container_id']);
+            pin_button_outer_span = jQuery('#'+this.container_id+'_header_left_box_pin_grid_global');
+            new_title = this._locale_translate('slickgrid_pinned_global_hint');
+            jQuery('#'+this.container_id+'_header_left_box_pin_grid_local').css('display', 'none');      // hide local pin button if global was hit
             pin_button_outer_span.css('background-color', 'lightgray');         // mark pin button special as global pin
         } else {
             target_for_pinned = grid_parent;
-            pin_button_outer_span = jQuery('#'+container_id+'_header_left_box_pin_grid_local');
-            new_title = locale_translate('slickgrid_pinned_local_hint');
-            jQuery('#'+container_id+'_header_left_box_pin_grid_global').css('display', 'inline');      // show global pin button after local pin
+            pin_button_outer_span = jQuery('#'+this.container_id+'_header_left_box_pin_grid_local');
+            new_title = this._locale_translate('slickgrid_pinned_local_hint');
+            jQuery('#'+this.container_id+'_header_left_box_pin_grid_global').css('display', 'inline');      // show global pin button after local pin
 
-            for (let i = 1; i < options['show_pin_icon']; i++) {                // step up for parents according to number of parent_tree_depth
+            for (let i = 1; i < this.options['show_pin_icon']; i++) {                // step up for parents according to number of parent_tree_depth
                 target_for_pinned = target_for_pinned.parent();
             }
-            if (target_for_pinned.attr('id') === options['top_level_container_id']){
-                thiz.pin_grid(true);                                            // treat as top level pin if called from directly from first page after menu action
+            if (target_for_pinned.attr('id') === this.options['top_level_container_id']){
+                this.pin_grid(true);                                            // treat as top level pin if called from directly from first page after menu action
                 return;
             }
         }
 
-        var new_parent = jQuery('<div id="pinned_container_'+container_id+'"></div>').insertBefore(target_for_pinned);
+        var new_parent = jQuery('<div id="pinned_container_'+this.container_id+'"></div>').insertBefore(target_for_pinned);
         new_parent.append(grid_parent.children());                                  // move all elements of grid's parent to new paren
 
         var pin_button_span = pin_button_outer_span.find('.cui-pin');
@@ -1502,25 +623,793 @@ function SlickGridExtended(container_id, options){
         ;
 
         // set new title for close button: closes also descendants
-        jQuery('#'+container_id+'_header_left_box_remove_table_from_page').attr('title', locale_translate('slickgrid_close_descendants_hint'));
+        jQuery('#'+this.container_id+'_header_left_box_remove_table_from_page').attr('title', this._locale_translate('slickgrid_close_descendants_hint'));
 
+        this.pinned = true;                                                     // remember pinned-status for close-handling
+    }
 
-        thiz.pinned = true;                                                     // remember pinned-status for close-handling
-    };
-
-
-    this.remove_grid = function(){
-        if (thiz.pinned){                                                       // remove whole parent div including descendants of grid
-            jQuery('#'+container_id).parent().remove();
+    remove_grid(){
+        if (this.pinned){                                                       // remove whole parent div including descendants of grid
+            jQuery('#'+this.container_id).parent().remove();
         } else {                                                                // remove detailed elements of grid from parent
-            jQuery('#caption_'+container_id).remove();
-            jQuery('#'+container_id).remove();
-            jQuery('#menu_'+container_id).remove();
+            jQuery('#caption_'+this.container_id).remove();
+            jQuery('#'+this.container_id).remove();
+            jQuery('#menu_'+this.container_id).remove();
         }
     }
 
+    // ###################### Promoted inner helper methods #######################
+
+    /**
+     * Aufbau der Zellen zur Ermittlung Höhe und Breite
+     */
+    _init_test_cells(){
+        const container_id = this.container_id;
+        var test_cell_id                = 'test_cell'               +container_id;
+        var test_cell_wrap_id           = 'test_cell_wrap'          +container_id;
+        var test_cell_height_id         = 'test_cell_height'        +container_id;
+        var test_cell_header_id         = 'test_cell_header'        +container_id;
+        var test_cell_header_name_id    = 'test_cell_header_name'   +container_id;
+        var test_cells_outer = jQuery(
+            '<div>'+
+            '<div class="slick-inner-cell" style="visibility:hidden; position:absolute; left: 0; z-index: -1; padding: 0; margin: 0; height: 20px; width: 90%;"><nobr><div id="' + test_cell_id + '" style="width: 1px; height: 1px; overflow: hidden;"></div></nobr></div>'+
+            '<div  class="slick-inner-cell" id="' + test_cell_wrap_id + '" style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height:'+jQuery(window).height()/2+'px; padding: 0; margin: 0; word-wrap: normal;"></div>' +
+            '</div>'+
+            '<div  class="slick-inner-cell" id="' + test_cell_height_id + '" style="visibility:hidden; position:absolute; left: 0; z-index: -1; height:1px; padding: 0; margin: 0; word-wrap: normal;"></div>' +
+            '</div>'+
+            '<div id="'+test_cell_header_id+'" class="ui-state-default slick-header-column slick-header-sortable"   style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height: 1px; margin: 0; word-wrap: normal;">'+
+            '  <span class="slick-column-name" id="'+ test_cell_header_name_id +'"></span>' +
+            '  <span class="slick-sort-indicator"></span>' +
+            '</div>'
+        );
+
+        this.gridContainer.after(test_cells_outer);
+        this.js_test_cell               = document.getElementById(test_cell_id);
+        this.js_test_cell_wrap          = document.getElementById(test_cell_wrap_id);
+        this.js_test_cell_height        = document.getElementById(test_cell_height_id);
+        this.js_test_cell_header        = document.getElementById(test_cell_header_id);
+        this.js_test_cell_header_name   = document.getElementById(test_cell_header_name_id);
+    }
+
+    /**
+     * data im fortlaufende id erweitern
+     */
+    _init_data(data, columns){
+        for (var data_index in data){
+            var data_row = data[data_index];
+            data_row['id'] = data_index;
+            if (!data[data_index]['metadata'])
+                data[data_index]['metadata'] = {columns: {}};
+            columns.filter(c => !data_row['metadata']['columns'][c.field]).forEach(col => {
+                data_row['metadata']['columns'][col.field] = {};
+            });
+        }
+    }
+
+    /**
+     * Ermittlung Spaltenbreite der Header auf Basis der konkreten Inhalte
+     */
+    _init_columns_and_calculate_header_column_width(columns, container_id){
+        function init_column(column, key, value){
+            if (!column[key])
+                column[key] = value;
+        }
+
+        var column;
+        for (var col_index in columns){
+            column = columns[col_index];
+
+            init_column(column, 'formatter',    HTMLFormatter);
+            init_column(column, 'sortable',     true);
+            init_column(column, 'sort_type',    'string');
+            init_column(column, 'field',        column.id);
+            init_column(column, 'minWidth',     5);
+            init_column(column, 'headerCssClass', 'slickgrid_header_'+container_id);
+            init_column(column, 'slickgridExtended', this);
+            init_column(column, 'position',     col_index);
+
+            this.js_test_cell_header.style.width = '';
+            this.js_test_cell_header_name.innerHTML = column.name;
+            column.header_nowrap_width  = this.js_test_cell_header.scrollWidth;
+
+            this.js_test_cell_header.style.width = '1px';
+            column.max_wrap_width      = this.js_test_cell_header.scrollWidth-10;
+            column.header_wrap_height  = this.js_test_cell_header.scrollHeight;
+
+            column.max_nowrap_width    = column.max_wrap_width;
+        }
+    }
+
+    /**
+     * Options um Defaults erweitern
+     */
+    _init_options(options){
+        function init_option(key, value){
+            if (!options[key])
+                options[key] = value;
+        }
+
+        init_option('enableCellNavigation', true);
+        init_option('headerRowHeight',      30);
+        init_option('enableColumnReorder',  false);
+        init_option('width',                'auto');
+        init_option('locale',               'en');
+        init_option('sort_method',          'QuickSort');
+    }
+
+    /**
+     * Calculate column-specific attributes for xy-position of event
+     */
+    _set_column_attributes_for_event(container_id, event){
+        var cell = $(event.target);
+        this.last_slickgrid_contexmenu_col_header = null;
+
+        if (cell.parents(".slickgrid_header_"+container_id).length > 0){
+            cell = cell.parents(".slickgrid_header_"+container_id);
+        }
+        if (cell.hasClass("slickgrid_header_"+container_id)){
+            this.last_slickgrid_contexmenu_col_header = cell;
+            this.last_slickgrid_contexmenu_column_name = cell.data('column')['field']
+        }
+        if (cell.parents(".slick-cell").length > 0){
+            cell = cell.parents(".slick-cell");
+        }
+        if (cell.hasClass("slick-cell")){
+            var slick_header = this.gridContainer.find('.slick-header-columns');
+            cell = cell.find(".slick-inner-cell");
+            this.last_slickgrid_contexmenu_col_header = slick_header.children('[id$=\"'+cell.attr('column')+'\"]');
+            this.last_slickgrid_contexmenu_column_name = cell.attr('column');
+            this.last_slickgrid_contexmenu_field_content = cell.text();
+        }
+    }
+
+    /**
+     * Filtern einer Zeile des Grids gegen aktuelle Filter
+     */
+    _slickgrid_filter_item_row(item){
+        for (var columnId in this._columnFilters) {
+            if (columnId !== undefined && this._columnFilters[columnId] !== "") {
+                var c = this.grid.getColumns()[this.grid.getColumnIndex(columnId)];
+                if (c.sort_type === "float" &&  item[c.field] !== this._columnFilters[columnId]) {
+                    return false;
+                }
+                if (c.sort_type !== "float" &&  (item[c.field].toUpperCase().match(this._columnFilters[columnId].toUpperCase())) == null ) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Anzeige des kompletten Inhaltes der Zelle
+     */
+    _show_full_cell_content(content, title=''){
+        var wrapped = jQuery("<div>" + content + "</div>");
+        wrapped.find("a").replaceWith(function() { return jQuery(this).html(); });
+        content = wrapped.html();
+
+        var div_id = 'slickgrid_extended_alert_box';
+        if (!jQuery('#'+div_id).length){
+            jQuery('body').append('<div id="'+div_id+'"></div>');
+        }
+        jQuery("#"+div_id)
+            .html(content)
+            .dialog({
+                    title:      title,
+                    draggable:  true,
+                    width:      jQuery(window).width()*0.5,
+                    maxHeight:  jQuery(window).height()*0.9,
+                    beforeClose:function(){jQuery('#'+div_id).children().remove(); }
+            })
+        ;
+    }
+
+    /**
+     * Statistik aller Zeilen der Spalte
+     */
+    _show_column_stats(column_name){
+        var column          = this.grid.getColumns()[this.grid.getColumnIndex(column_name)];
+        var data            = this.grid.getData().getItems();
+        var sum             = 0;
+        var average         = null;
+        var count           = 0;
+        var distinct        = {};
+        var distinct_count  = 0;
+        for (var row_index in data){
+            sum += this.parseFloatLocale(data[row_index][column_name]);
+            count ++;
+            distinct[data[row_index][column_name]] = 1;
+        }
+        for (var i in distinct) {
+            distinct_count += 1;
+        }
+
+        if (count > 0)
+            average = sum/count;
+        this._show_full_cell_content("Sum = "+sum+"<br/>Average = "+average+"<br/>Count = "+count+"<br/>Count distinct = "+distinct_count, 'Column: '+column.name);
+    }
+
+    /**
+     * Setzen/Limitieren der Höhe des Grids auf maximale Höhe des Inhaltes
+     */
+    _adjust_real_grid_height(){
+        var total_height = this.gridContainer.data('total_height');
+        if (total_height < this.gridContainer.height())
+            this.gridContainer.height(total_height);
+    }
+
+    /**
+     * Justieren des Grids nach Abschluss der Resize-Operation mit unterem Schieber
+     */
+    _finish_vertical_resize(){
+        var options = this.grid.getOptions();
+        options['maxHeight'] = this.gridContainer.height();
+        this.grid.setOptions(options);
+
+        this.calculate_current_grid_column_widths('finish_vertical_resize');
+        this._adjust_real_grid_height();
+    }
+
+    /**
+     * Event-handler if column has been resized
+     */
+    _processColumnsResized(grid){
+        this._trace_log("processColumnsResized: called");
+        for (var col_index in grid.getColumns()){
+            var column = grid.getColumns()[col_index];
+            if (Math.round(column.previousWidth) !== Math.round(column.width)){
+                column.fixedWidth = column.width;
+            }
+        }
+        this.calculate_current_grid_column_widths("processColumnsResized");
+    }
+
+    /**
+     * Zeichnen eines Diagrammes mit den Daten einer slickgrid-Spalte
+     */
+    _plot_slickgrid_diagram(table_id, plot_area_id, caption, column_id, multiple_y_axes, show_y_axes){
+        const self = this;
+        var options = self.grid.getOptions();
+        var columns = self.grid.getColumns();
+        var data    = self.grid.getData().getItems();
+
+        function get_numeric_content(celldata){
+            if (celldata === '')
+                return 0;
+            if (options['locale'] === 'de'){
+                return parseFloat(celldata.replace(/\./g, "").replace(/,/,"."));
+            }
+            if (options['locale'] === 'en'){
+                return parseFloat(celldata.replace(/,/g, ""));
+            }
+            return "Error: unsupported locale "+options['locale'];
+        }
+
+        function get_date_content(celldata){
+            var parsed_field;
+            if (options['locale'] === 'de'){
+                var all_parts = celldata.split(" ");
+                var date_parts = all_parts[0].split(".");
+                parsed_field = date_parts[2]+"/"+date_parts[1]+"/"+date_parts[0]+" "+all_parts[1];
+            }
+            if (options['locale'] === 'en'){
+                parsed_field= celldata.replace(/-/g,"/").replace(/‑/g, "/");
+            }
+            return new Date(parsed_field+" GMT");
+        }
+
+        function data_array_sort(a,b){
+            return a[0] - b[0];
+        }
+
+        columns.forEach((column, _col_index) => {
+            if (column.id === column_id){
+                if (column.plottable === 1)
+                    column.plottable = 0;
+                else
+                    column.plottable = 1
+            }
+        });
+
+        var plot_master_column_index = null;
+        var plot_master_column_id = null;
+        var plot_master_time_column_index=null;
+        var plotting_column_count = 0;
+        for (let column_index in columns) {
+            let column = columns[column_index];
+            if (column.plot_master){
+                if (plot_master_column_index){ alert("Only one column may have attribute 'plot_master'");}
+                plot_master_column_index = column_index;
+                plot_master_column_id = column.id;
+            }
+            if (column.plot_master_time){
+                if (plot_master_time_column_index){ alert("Only one column may have attribute 'plot_master_time'");}
+                plot_master_column_index = column_index;
+                plot_master_column_id = column.id;
+                plot_master_time_column_index=column_index;
+            }
+            if (column.plottable === 1){
+                plotting_column_count++;
+            }
+        }
+        if (plot_master_column_index == null){
+            alert('Error: No <th>-column has class "plot_master"! Exactly one column of this class is expected!');
+        }
+
+        var x_axis_time = false;
+        var data_array = [];
+        var plotting_index = 0;
+        var smallest_y_value = 0;
+        for (let column_index in columns) {
+            let column = columns[column_index];
+            if (column.plottable===1){
+                var col_data_array = [];
+                var max_column_value = 0;
+                for (var data_index in data){
+                    var x_val = null;
+                    var y_val = null;
+                    y_val = get_numeric_content(data[data_index][column.id]);
+                    if (y_val > max_column_value)
+                        max_column_value = y_val;
+                    if (y_val < smallest_y_value)
+                        smallest_y_value = y_val;
+                    if (plot_master_time_column_index){
+                        x_val = get_date_content(data[data_index][plot_master_column_id]).getTime();
+                        x_axis_time = true;
+                    } else {
+                        x_val = get_numeric_content(data[data_index][plot_master_column_id]);
+                    }
+                    col_data_array.push( [ x_val, y_val ]);
+                }
+                col_data_array.sort(data_array_sort);
+                var col_attr = {label:column.name,
+                    delete_callback: self.plot_chart_delete_callback,
+                    data: col_data_array
+                };
+                data_array.push(col_attr);
+                plotting_index = plotting_index + 1;
+            }
+        }
+
+        var yaxis_options = { show: show_y_axes };
+        if (smallest_y_value === 0)
+            yaxis_options.min = 0;
+
+        plot_diagram(
+            table_id,
+            plot_area_id,
+            caption,
+            data_array,
+            {   plot_diagram: { locale: options['locale'], multiple_y_axes: multiple_y_axes},
+                yaxis:        yaxis_options,
+                xaxes: (x_axis_time ? [{ mode: 'time'}] : [{}])
+            }
+        );
+    }
+
+    /**
+     * Create context-Menu für slickgrid
+     */
+    /**
+     * initialer Aufbau des SlickGrid-Objektes
+     */
+    _initialize_slickgrid(grid){
+        const self = this;
+        const options = self.options;
+        const container_id = self.container_id;
+        var dataView = grid.getData();
+
+        grid.onSort.subscribe(function(e, args) {
+            var col = args.sortCol;
+            var field = col.field;
+
+            function convert_german_date(value){
+                var tag_zeit = value.split(" ");
+                var dat = tag_zeit[0].split(".");
+                return dat[2]+dat[1]+dat[0]+(tag_zeit[1] ? tag_zeit[1] : "");
+            }
+
+            function quickSort(){
+                var sortFunc = function(a,b){
+                    if (a[field] < b[field])
+                        return -1;
+                    if (a[field] > b[field])
+                        return 1;
+                    if (a[field] === b[field])
+                        return 0;
+                };
+
+                if (col['sort_type'] === "float") {
+                    sortFunc  = function(a, b) {
+                        return self.parseFloatLocale(a[field]) - self.parseFloatLocale(b[field]);
+                    }
+                } else if (col['sort_type'] === "date" && options['locale'] === 'de'){
+                    sortFunc  = function(a, b){
+                        var fa = convert_german_date(a[field]);
+                        var fb = convert_german_date(b[field]);
+                        if (fa < fb)
+                            return -1;
+                        if (fa > fb)
+                            return 1;
+                        if (fa === fb)
+                            return 0;
+                    }
+                }
+                dataView.getItems().sort(sortFunc);
+            }
+
+            function bubbleSort(){
+                var data_array = dataView.getItems();
+
+                var sort_smaller = function(value1, value2){return value1<value2;};
+
+                if (col['sort_type'] === "float"){
+                    sort_smaller = function(value1, value2){
+                        return self.parseFloatLocale(value1) < self.parseFloatLocale(value2);
+                    }
+                }
+
+                if (col['sort_type'] === "date" && options['locale'] === 'de'){
+                    sort_smaller = function(value1, value2){
+                        return convert_german_date(value1) < convert_german_date(value2);
+                    }
+                }
+
+                function swap(a,b) {
+                    var temp=data_array[a];
+                    data_array[a]=data_array[b];
+                    data_array[b]=temp;
+                }
+
+                for(var m=data_array.length-1; m>0; m--){
+                    for(var n=0; n<m; n++){
+                        if (sort_smaller(data_array[n+1][field], data_array[n][field]))
+                            swap(n,n+1);
+                    }
+                }
+            }
+            if (grid.getOptions()['sort_method'] === 'QuickSort'){
+                quickSort();
+            } else if (grid.getOptions()['sort_method'] === 'BubbleSort'){
+                bubbleSort();
+            } else {
+                alert('Option "sort_method" with unsupported value "'+grid.getOptions()['sort_type']+'"');
+            }
+
+            if (!args.sortAsc)
+                dataView.getItems().reverse();
+            dataView.refresh();
+            grid.invalidate();
+            grid.render();
+        });
+
+        grid.onHeaderCellRendered.subscribe(function(node, column){
+            jQuery(column.node).css('height', column.grid.getOptions()['headerHeight']);
+        });
+
+        grid.onColumnsResized.subscribe(function(){
+            self._processColumnsResized(this);
+        });
+
+        dataView.onRowCountChanged.subscribe(function (_e, _args) {
+            grid.updateRowCount();
+            grid.render();
+        });
+
+        dataView.onRowsChanged.subscribe(function (e, args) {
+            grid.invalidateRows(args.rows);
+            grid.render();
+        });
+
+        $(grid.getHeaderRow()).on("input", ":input",  function (_e) {
+            var columnId = $(this).data("columnId");                            // this = jQuery input element, NOT class instance
+            if (columnId != null) {
+                self._columnFilters[columnId] = $.trim($(this).val());
+                dataView.refresh();
+            }
+        });
+
+        grid.onHeaderRowCellRendered.subscribe(function(e, args) {
+
+            function input_hint(column_id){
+                if (grid.getColumns()[grid.getColumnIndex(column_id)].sort_type === "float" )
+                    return self._locale_translate("slickgrid_filter_hint_numeric");
+                else
+                    return self._locale_translate("slickgrid_filter_hint_not_numeric");
+            }
+
+            $(args.node).empty();
+            $("<input type='text' style='font-size: 12px; width: 100%;' title='"+input_hint(args.column.id)+"'>")
+                .data("columnId", args.column.id)
+                .val(self._columnFilters[args.column.id])
+                .appendTo(args.node);
+        });
+
+        grid.onDblClick.subscribe(function(e, args){
+            self._show_full_cell_content(jQuery(grid.getCellNode(args['row'], args['cell'])).children().html());
+        });
+
+        if (options['caption'] && options['caption'] !== ""){
+            let caption = jQuery("<div id='caption_"+container_id+"' class='slick-caption slick-shadow'></div>").insertBefore('#'+container_id);
+
+            let caption_left_box  = jQuery("<span class='slick_header_left_box'></span>");
+            let caption_right_box = jQuery("<span class='slick_header_right_box'></span>");
+            caption.append(caption_left_box);
+            caption.append('<span class="slick_header_middle_box">'+options['caption']+'</span>');
+            caption.append(caption_right_box);
+
+            if (!options['command_menu_entries']){
+                options['command_menu_entries'] = [];
+            }
+
+            options['command_menu_entries'].reverse();
+            options['command_menu_entries'].push({
+                name:                   'toggle_search_filter',
+                caption:                self._locale_translate("slickgrid_context_menu_search_filter"),
+                hint:                   self._locale_translate("slickgrid_context_menu_search_filter_hint"),
+                icon_class: 'cui-magnifying-glass',
+                show_icon_in_caption:   'only',
+                action:                 "jQuery('#"+container_id+"').data('slickgridextended').switch_slickgrid_filter_row();"
+            });
+            options['command_menu_entries'].reverse();
 
 
+            if (options['show_pin_icon']){
+                options['command_menu_entries'].push({
+                    name:                  'pin_grid_global',
+                    caption:                'Pin table',
+                    hint:                   self._locale_translate('slickgrid_pin_global_hint'),
+                    icon_class:             'cui-pin',
+                    show_icon_in_caption:   'right',
+                    action:                 "jQuery('#"+container_id+"').data('slickgridextended').pin_grid(true);",
+                    unvisible:              true
+                });
+                options['command_menu_entries'].push({
+                    name:                  'pin_grid_local',
+                    caption:                'Pin table',
+                    hint:                   self._locale_translate('slickgrid_pin_local_hint'),
+                    icon_class:             'cui-pin',
+                    show_icon_in_caption:   'right',
+                    action:                 "jQuery('#"+container_id+"').data('slickgridextended').pin_grid(false);"
+                });
+            }
+
+            options['command_menu_entries'].push({
+                name:                   'remove_table_from_page',
+                caption:                'Close table',
+                hint:                   self._locale_translate('slickgrid_close_hint'),
+                icon_class:             'cui-x',
+                show_icon_in_caption:   'right',
+                action:                 "jQuery('#"+container_id+"').data('slickgridextended').remove_grid();"
+            });
+
+
+            let show_command_entry_menu = false;
+            for (let cmd_index in options['command_menu_entries']) {
+                let cmd = options['command_menu_entries'][cmd_index];
+                if (cmd['show_icon_in_caption'] !== 'only' && cmd['show_icon_in_caption'] !== 'right'){
+                    show_command_entry_menu = true;
+                }
+            }
+
+            if (show_command_entry_menu) {
+                let command_menu_id = 'cmd_menu_'+container_id;
+
+                caption_left_box.append('<div style="margin-left:5px; margin-right:5px; display: inline-block;" class="slick-shadow">' +
+                    '<div id="'+command_menu_id+'" style="padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer;" title="'+self._locale_translate('slickgrid_menu_hint')+'">' +
+                    '≡' +
+                    '</div></div>'
+                );
+                jQuery("#"+command_menu_id).bind('click' , function( event) {
+                    jQuery("#"+command_menu_id).trigger("contextmenu", event);
+                    return false;
+                });
+
+                jQuery('#' + command_menu_id).parent().contextMenu({
+                    selector: 'div',
+                    build: function ($trigger, _e) {
+                        let command_menu_items = {};
+
+                        function create_command_menu_entries(local_items, entry_array){
+                            for (let entry_index in entry_array){
+                                let entry = entry_array[entry_index];
+                                if (entry.show_icon_in_caption !== 'only' && entry.show_icon_in_caption !== 'right') {
+                                    let new_item = {
+                                        name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
+                                        isHtmlName: true,
+                                    };
+                                    if (entry.items !== undefined){
+                                        let submenu_items = {};
+                                        create_command_menu_entries(submenu_items, entry.items);
+                                        new_item.items = submenu_items;
+                                    } else {
+                                        new_item.callback = new Function(entry.action);
+                                    }
+                                    local_items[entry.caption] = new_item;
+                                }
+                            }
+                        }
+                        create_command_menu_entries(command_menu_items, options.command_menu_entries);
+
+                        return { items: command_menu_items };
+                    }
+                });
+            }
+
+            for (let cmd_index in options['command_menu_entries']) {
+                let cmd = options['command_menu_entries'][cmd_index];
+                if (cmd['show_icon_in_caption'] && cmd['show_icon_in_caption'] !== 'right' ){
+                    caption_left_box.append('<div style="margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;" '+
+                        'title="'+cmd['hint'] + '" onclick="'+ cmd['action'] +'">' +
+                        '<span class="'+cmd['icon_class']+'"></span>' +
+                        '</div>');
+                }
+            }
+
+
+            for (let cmd_index in options['command_menu_entries']) {
+                let cmd = options['command_menu_entries'][cmd_index];
+                if (cmd['show_icon_in_caption'] === 'right' ){
+                    caption_right_box.append('<span id="'+container_id+'_header_left_box_'+cmd['name']+'"'+
+                        ' style="margin-right:3px; margin-top:4px; cursor: pointer;'+((cmd['unvisible']) ? 'display: none;' : '')+'"'+
+                        ' title="'+cmd['hint'] + '" onclick="'+ cmd['action'] +'">' +
+                        '<span class="'+cmd['icon_class']+'"></span>' +
+                        '</span>');
+                }
+            }
+        }
+
+        dataView.setFilter(options["data_filter"]);
+    }
+
+    _build_slickgrid_context_menu(container_id, additional_menu_entries){
+        const self = this;
+        jQuery('#'+container_id).contextMenu({
+            selector: 'div',
+            build: function($trigger, e) {
+                let options = self.grid.getOptions();
+                self._set_column_attributes_for_event(container_id, e);
+
+                let header_line;
+                if (self.last_slickgrid_contexmenu_col_header) {
+                    header_line = 'Column: <b>'+self.last_slickgrid_contexmenu_col_header.text()+'</b>';
+                } else {
+                    header_line = '<span style="background-color: red; color: black;">&nbsp;Column/cell not exactly hit! Please retry.&nbsp;</span>';
+                }
+                let items = {
+                    header: {
+                        name: header_line,
+                        isHtmlName: true,
+                        disabled: true
+                    },
+                };
+
+                function add_item_to_context_menu(items, label, icon_class, click_action, hint){
+                    items[label] = {
+                        name: "<span class='"+icon_class+"' style='float:left'></span><span title='"+hint+ "'>&nbsp;"+label+"</span>",
+                        isHtmlName: true,
+                        callback: click_action,
+                    };
+                }
+
+                function add_default_item_to_context_menu(name, icon_class, click_action){
+                    add_item_to_context_menu(items, self._locale_translate("slickgrid_context_menu_"+name), icon_class, click_action, self._locale_translate("slickgrid_context_menu_"+name+"_hint"));
+                }
+
+                add_default_item_to_context_menu("sort_column", 'cui-sort-ascending', function(){ self.last_slickgrid_contexmenu_col_header.click();} );
+                if (self.grid.getOptions().showHeaderRow) {
+                    add_default_item_to_context_menu("hide_filter", 'cui-magnifying-glass', function(){ self.switch_slickgrid_filter_row();} );
+                } else {
+                    add_default_item_to_context_menu("show_filter", 'cui-magnifying-glass', function(){ self.switch_slickgrid_filter_row();} );
+                }
+                add_default_item_to_context_menu("export_csv", 'cui-file-xls', function(){ self._grid2CSV(container_id);} );
+                add_default_item_to_context_menu("column_sum", 'cui-settings', function(){ self._show_column_stats(self.last_slickgrid_contexmenu_column_name);} );
+                add_default_item_to_context_menu("field_content", 'cui-zoom-in', function(){ self._show_full_cell_content(self.last_slickgrid_contexmenu_field_content);} );
+
+                if (options.line_height_single)
+                    add_default_item_to_context_menu("line_height_full", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; self.calculate_current_grid_column_widths("context menu line_height_single"); } );
+                else
+                    add_default_item_to_context_menu("line_height_single", 'cui-text-height', function(){ options.line_height_single = !options.line_height_single; self.calculate_current_grid_column_widths("context menu line_height_single"); } );
+
+                if (options['plotting']){
+                    if (self.last_slickgrid_contexmenu_col_header) {
+                        let column = self.grid.getColumns()[self.grid.getColumnIndex(self.last_slickgrid_contexmenu_column_name)];
+                        if (column.plottable) {
+                            add_default_item_to_context_menu("switch_col_from_diagram", 'cui-chart-line', function(){
+                                self._plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, self.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
+                            });
+                        } else {
+                            add_default_item_to_context_menu("switch_col_into_diagram", 'cui-chart-line', function(){
+                                self._plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, self.last_slickgrid_contexmenu_column_name, options.multiple_y_axes, options.show_y_axes);
+                            });
+                        }
+                    }
+
+                    add_default_item_to_context_menu("remove_all_from_diagram", 'cui-trash', function(){
+                        let columns = self.grid.getColumns();
+                        for (let col_index in columns){
+                            columns[col_index].plottable = 0;
+                        }
+                        self._plot_slickgrid_diagram(container_id, options.plot_area_id, options.caption, null);
+                    });
+                }
+
+                if (options['sort_method'] === 'QuickSort'){
+                    add_default_item_to_context_menu("sort_method_QuickSort", 'cui-calculator', function(){ options.sort_method = 'BubbleSort'; } );
+                } else {
+                    add_default_item_to_context_menu("sort_method_BubbleSort", 'cui-calculator', function(){ options.sort_method = 'QuickSort'; } );
+                }
+
+                function create_additional_menu_entries(local_items, entry_array){
+                    for (let entry_index in entry_array){
+                        let entry = entry_array[entry_index];
+                        if (entry.items !== undefined){
+                            let submenu_items = {};
+                            create_additional_menu_entries(submenu_items, entry.items);
+                            local_items[entry.label] = {
+                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
+                                isHtmlName: true,
+                                items: submenu_items
+                            }
+                        } else {
+                            add_item_to_context_menu(local_items, entry.caption, entry.icon_class, entry.action, entry.hint)
+                        }
+                    }
+                }
+                create_additional_menu_entries(items, additional_menu_entries);
+
+                return {
+                    items: items
+                };
+            }
+        });
+    }
+
+    _grid2CSV(grid_id){
+        function escape(cell){
+            return cell.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/;/g, "\\;");
+        }
+
+        try {
+            var grid_div = jQuery("#"+grid_id);
+            var grid = grid_div.data("slickgrid");
+            var data = "";
+
+            grid_div.find(".slick-header-columns").children().each(function(index, element) {
+                data += '"'+escape(jQuery(element).text())+'";'
+            });
+            data += "\n";
+
+            var grid_data    = grid.getData().getItems();
+            var grid_columns = grid.getColumns();
+
+            for (var data_index in grid_data){
+                for (var col_index in grid_columns){
+                    data += '"'+escape(grid_data[data_index][grid_columns[col_index]['field']])+'";'
+                }
+                data += "\n"
+            }
+
+            var byteNumbers = new Uint8Array(data.length);
+            for (var i = 0; i < data.length; i++) {
+                byteNumbers[i] = data.charCodeAt(i);
+            }
+            var blob = new Blob([byteNumbers], {type: "text/csv"});
+            var uri = URL.createObjectURL(blob);
+
+            var link = document.createElement("a");
+            link.download = 'Panorama_Export.csv';
+            link.href = uri;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch(e) {
+            alert('Error in grid2CSV: '+(e.message === undefined ? 'No error message provided' : e.message)+'! Eventually using FireFox will help.');
+        }
+    }
 } // Ende SlickGridExtended
 
 
