@@ -1,294 +1,311 @@
 "use strict";
 
-// Zeichnen eines Diagrammes auf Basis des flot-Pugins
+// Zeichnen eines Diagrammes auf Basis des flot-Plugins
 // Peter Ramm, 25.10.2015
+//
+// Factory + Class-based implementation.
+//
+// Options structure (passed to flot-Plugin's plot()):
+//   plot_diagram:    { locale: 'en', multiple_y_axes: false }
+//   xaxes:           [{ mode: 'time' }]
+//   yaxis:           { show: true [, min: 0] }
+//   series:          { lines: { show: true }, points: { show: true } }
+//   selection:       { mode: 'x', color: 'gray', shape: 'bevel', minSize: 4 }
+//   legend:          { labelFormatter: (label, series) => '<a href="#'+label+'">'+label+'</a>' }
+//   plotselected_handler: function(xstart, xend) — called with timestamps in ms since 1970
 
-
-// Faktory-Methode zur Erzeugung und Initialisierung eines Objektes
-// Parameter:
-// Unique-ID fuer Bildung der Canvas-ID
-// DOM-ID of DIV for plotting
-// Kopfzeile
-// Daten-Array
-// Options: mehrdimensionales Object, Inhalte werden durchgereicht bis zur Methode "plot" des flot.old-Plugins
-//   Defaults sind:
-//      plot_diagram:   { locale: "en" }}
-//      plot_diagram:   { multiple_y_axes: false}}  // mehrere y-Achsen anzeigen?
-//      xaxes:          [{ mode: 'time'}],      // Ist X-Achse ein Zeitstempel oder Nummer
-//      yaxis:          { show: true },         // Anzeige der Y-Achse
-//      series:         {lines: { show: true }, points: { show: true }},
-
-//   Weitere Einstellungen fuer options
-//      yaxis:          { min: 0 }              // Minimaler Wert
-//      selection: {
-//                 mode: "x",
-//                 color: 'gray',
-//                 //shape: "round" or "miter" or "bevel",
-//                 shape: "bevel",
-//                 minSize: 4
-//      }
-//      legend: {
-//                  labelFormatter: function with labelFormatter for legend: (label, series) => { return '<a href="#' + label + '">' + label + '</a>'; }
-//      }
-//      plotselected_handler:   function(start, end) with parameters as ms since 1970: (xstart, xend)=>{ ... }
 
 /**
- * Factory method to initially create a plot diagram from outside
- * @param unique_id A generated unique id for the elements of the diagram
- * @param parent_id The DOM element where the diagram should be placed, should be a div that is empty for the first call
- * @param caption
- * @param data_array
- * @param options
- * @returns {plot_diagram_class}
+ * Factory: create + return a plot diagram. Destroys any previous diagram in parent_id.
  */
 function plot_diagram(unique_id, parent_id, caption, data_array, options){
     jQuery.contextMenu('destroy', '#' + parent_id);                             // remove the previous context menu registration
     jQuery('#'+parent_id).off();                                                //  Remove all handlers from the element
     jQuery('#'+parent_id).children().remove();                                  //  Remove the DOM element of the whole diagram below
-    let p = new plot_diagram_class(unique_id, parent_id, caption, data_array, options);
-    p.initialize();
-    return p;
+    return new plot_diagram_class(unique_id, parent_id, caption, data_array, options);
 }
 
 /**
- * Refresh an existing diagram with new data, async because it may be called from a context menu event handler
- * @param pd The plot_diagram object to refresh
+ * Refresh an existing diagram with new data, async because it may be called from a context menu event handler.
  */
 function refresh_existing_diagram(pd){
-    // Execute async because it may be called from a context menu event handler
     setTimeout(
-        function() {
-            plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, pd.getOptions());
-        },
-        1);
+        () => plot_diagram(pd.unique_id, pd.parent_id, pd.caption, pd.data_array, pd.getOptions()),
+        1
+    );
 }
 
-/**
- * Class to create a plot diagram
- * @param unique_id
- * @param parent_id
- * @param caption
- * @param data_array
- * @param options
- */
-function plot_diagram_class(unique_id, parent_id, caption, data_array, options) {
-    let thiz                        = this;
-    // allow access on attributes from outside
-    this.unique_id                  = unique_id;
-    this.parent_id                  = parent_id;
-    this.caption                    = caption;
-    this.data_array                 = data_array;
-    // Doo not provide the options from constructor because they are replaced later
 
-    let plot_area_id        = "diagram_"+unique_id;
-    let plot_area = jQuery("<div id='"+plot_area_id+"'></div>").appendTo("#"+parent_id);       // add a new div for the diagram
+class plot_diagram_class {
+    constructor(unique_id, parent_id, caption, data_array, options){
+        // Public attributes
+        this.unique_id  = unique_id;
+        this.parent_id  = parent_id;
+        this.caption    = caption;
+        this.data_array = data_array;
 
-    var canvas_id              = "canvas_" + unique_id;
-    var head_id                = "head_" + canvas_id;
-    var updateLegendTimeout     = null;
-    var latestPosition          = null;
-    var legend_values           = null;         // Liste der letzten Spalten der Legende für Werte
-    var legend_indexes           = {};           // Hash mit 'legend-name': index in Legende
-    var legendXAxis             = null;         // erzeugt in initialize
-    var previousToolTipPoint    = null;
-    var toolTipID               = canvas_id+"_ToolTip";
-    var plot                    = null;           //jQuery.plot(jQuery('#'+canvas_id), erzeugt in initialize()
+        // Internal IDs and state
+        this.plot_area_id = `diagram_${unique_id}`;
+        this.canvas_id    = `canvas_${unique_id}`;
+        this.head_id      = `head_${this.canvas_id}`;
+        this.toolTipID    = `${this.canvas_id}_ToolTip`;
+        this._updateLegendTimeout  = null;
+        this._latestPosition       = null;
+        this._legend_values        = null;                                      // last legend column with current values
+        this._legend_indexes       = {};                                        // map { legend-name: index in legend }
+        this._legendXAxis          = null;                                      // jQuery handle, set in registerLegend
+        this._previousToolTipPoint = null;
+        this._plot                 = null;                                      // jQuery.plot(...) handle, set below
 
-    // Initialisierung des Objektes, ab jetzt ist this gültig
-    this.initialize = function(){
-        // options mit Defaults versehen
+        this.plot_area = jQuery(`<div id='${this.plot_area_id}'></div>`).appendTo(`#${parent_id}`);
+
         if (options === undefined)
             options = {};
 
-
-        var default_options = {
+        const default_options = {
             plot_diagram:   { locale: 'en', multiple_y_axes: false },
-            series:         {stack: false, lines: { show: true, fill: false }, points: { show: true }},
+            series:         { stack: false, lines: { show: true, fill: false }, points: { show: true } },
             crosshair:      { mode: "x" },
             grid:           { hoverable: true, autoHighlight: false },
             yaxis:          { show: true },
-            xaxes:          [{ mode: 'time'}],
-            legend:         { position: "ne"},
+            xaxes:          [{ mode: 'time' }],
+            legend:         { position: "ne" },
             canvas_height:  450
         };
 
-        // Punkte für Werte nicht anzeigen, wenn mehr als x Einzelwerte auf x-Achse
-        jQuery.each(data_array, function(i,val){
+        // Hide point markers if any series has more than 100 values
+        jQuery.each(data_array, (_i, val) => {
             if (val.data.length > 100)
                 default_options.series.points.show = false;
         });
 
-        /* deep merge defaults and options, without modifying defaults */
-        options = jQuery.extend(true, {}, default_options,options);
+        // deep merge defaults and options, without modifying defaults
+        this.options = jQuery.extend(true, {}, default_options, options);
+        const opts = this.options;                                              // local alias to keep the rendering block readable
 
-        // interne Struktur des gegebenen DIV anlegen mit 2 DIVs
-
-        plot_area
+        this.plot_area
             .css("background-color", "white")
-            .addClass('plot_diagram')               // Ermitteln aller aktiven Diagramme
-            .data('plot_diagram', this)             // Zugriff auf Objekt über DOM
-            .html('<div id="'+head_id+'" class="slick-shadow" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>'+
-            '<div id="'+canvas_id+'" class="slick-shadow" style="float:left; width:100%; height: '+options.canvas_height+'px; background-color: white; margin-bottom: 10px; "></div>'
-        )
-            .resize(function(){ resize_plot_diagrams();});     // Registrieren fuer Event
-        // Header-Bereich belegen
-        jQuery('#'+head_id)
-            .html('<div style="float:left; padding:3px;">'+caption+'</div><div align = "right"><input class="close_diagram_'+unique_id+'" type="button" title="Diagramm Schliessen" value="X"></div>')
-            .css('margin-top', '5px')
-            .find(".close_diagram_"+unique_id).click(function(){remove_diagram()});
+            .addClass('plot_diagram')                                           // marks all active diagrams for resize_plot_diagrams()
+            .data('plot_diagram', this)                                         // access object via DOM
+            .html(
+                `<div id="${this.head_id}" class="slick-shadow" style="float:left; width:100%; background-color: white; padding-bottom: 5px;"></div>` +
+                `<div id="${this.canvas_id}" class="slick-shadow" style="float:left; width:100%; height: ${opts.canvas_height}px; background-color: white; margin-bottom: 10px;"></div>`
+            )
+            .resize(() => resize_plot_diagrams());
 
-        // Unterschiedliche IDs fuer Y-Achsen vergeben, wenn separat darzustellen
-        jQuery.each(data_array, function(i,val){
-            if (options.plot_diagram.multiple_y_axes===true)
-                val.yaxis = data_array.length-i;
-            else
-                val.yaxis = 1;
+        // Header area
+        jQuery(`#${this.head_id}`)
+            .html(`<div style="float:left; padding:3px;">${caption}</div><div align="right"><input class="close_diagram_${unique_id}" type="button" title="Diagramm Schliessen" value="X"></div>`)
+            .css('margin-top', '5px')
+            .find(`.close_diagram_${unique_id}`).click(() => this._remove_diagram());
+
+        // Assign distinct y-axes if multiple_y_axes is on
+        jQuery.each(data_array, (i, val) => {
+            val.yaxis = opts.plot_diagram.multiple_y_axes === true ? data_array.length - i : 1;
         });
 
-        let canvas = jQuery('#'+canvas_id);
-        plot = jQuery.plot(canvas, data_array, options);     // Ausgabe des Diagrammes auf Canvas
+        const canvas = jQuery(`#${this.canvas_id}`);
+        this._plot = jQuery.plot(canvas, data_array, opts);                     // draw
 
-        // bind plotselected handler to canvas for horizontal (x) selection
-        if (options.plotselected_handler){
-            canvas.bind( "plotselected", ( event, ranges)=>{
-                options.plotselected_handler(ranges.xaxis.from, ranges.xaxis.to);
+        if (opts.plotselected_handler){
+            canvas.bind("plotselected", (event, ranges) => {
+                opts.plotselected_handler(ranges.xaxis.from, ranges.xaxis.to);
             });
         }
 
-        // canvas durch Schieber am unteren Ende horizontal resizable gestalten
+        // Make canvas vertically resizable via the bottom slider
         canvas.resizable({});
-        canvas.find(".ui-resizable-e").remove();                    // Entfernen des rechten resizes-Cursors
-        canvas.find(".ui-resizable-se").remove();                   // Entfernen des rechten unteren resize-Cursors
+        canvas.find(".ui-resizable-e").remove();                                // hide right resize cursor
+        canvas.find(".ui-resizable-se").remove();                               // hide bottom-right resize cursor
 
         if (data_array.length === 0){
-            return;                                   // Aufbereitung des Diagrammes verlassen wenn gar keine Daten zum Zeichnen
+            return;                                                             // nothing more to do if there's no data
         }
 
+        this._build_context_menu();
+        this.registerLegend();
+    } // constructor
 
-        // ############ Context-Menü
-        jQuery('#' + parent_id).contextMenu({
-            //selector: '#' + plot_area_id, // the selector for the items to show the menu
+
+    get_plot()   { return this._plot;   }
+    getOptions() { return this.options; }
+
+
+    _build_context_menu(){
+        const opts          = this.options;
+        const plot_area_id  = this.plot_area_id;
+
+        function add_item_to_context_menu(items, label, icon_class, click_action, hint){
+            items[label] = {
+                name: `<span class='${icon_class}' style='float:left'></span><span title='${hint}'>&nbsp;${label}</span>`,
+                isHtmlName: true,
+                callback: click_action,
+            };
+        }
+
+        // !!! Don't directly reference the plot object in event handlers because this may result in memory leaks.
+        // Look up the instance via DOM each time.
+        jQuery(`#${this.parent_id}`).contextMenu({
             selector: 'div',
-            build: function ($trigger, e) {
-                // this callback is executed every time the menu is to be shown
-                // its results are destroyed every time the menu is hidden
-                // e is the original contextmenu event, containing e.pageX and e.pageY (amongst other data)
-
-                // !!! Don't directly reference the plot object in event handlers because this may result in memory leaks !!!
-                let items = {
+            build: ($trigger, _e) => {
+                const items = {
                     header: {
                         name: '<b>Diagram</b>',
                         isHtmlName: true,
-                        disabled: true // Disable the header item to make it unselectable
+                        disabled: true
                     }
                 };
 
-                /**
-                 * Add item to context menu
-                 * @param items The items object a new item should be added to
-                 * @param label The label of the new item
-                 * @param icon_class The icon class of the new item
-                 * @param click_action The click action of the new item
-                 * @param hint The title of the new item
-                 */
-                function add_item_to_context_menu(items, label, icon_class, click_action, hint){
-                    items[label] = {
-                        name: "<span class='"+icon_class+"' style='float:left'></span><span title='"+hint+ "'>&nbsp;"+label+"</span>",
-                        isHtmlName: true,
-                        callback: click_action,
-                    };
-                }
-
                 add_item_to_context_menu(items,
-                    options.yaxis.show ? locale_translate('diagram_y_axis_hide_name') : locale_translate('diagram_y_axis_show_name'),
+                    opts.yaxis.show ? this._locale_translate('diagram_y_axis_hide_name') : this._locale_translate('diagram_y_axis_show_name'),
                     'cui-expand-left',
-                    function(t){
-                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
-                        let options = pd.getOptions();
-                        options.yaxis.show = !options.yaxis.show;
+                    () => {
+                        const pd = jQuery(`#${plot_area_id}`).data('plot_diagram');
+                        const o = pd.getOptions();
+                        o.yaxis.show = !o.yaxis.show;
                         refresh_existing_diagram(pd);
                     },
-                        options.yaxis.show ? locale_translate('diagram_y_axis_hide_hint') : locale_translate('diagram_y_axis_show_hint')
+                    opts.yaxis.show ? this._locale_translate('diagram_y_axis_hide_hint') : this._locale_translate('diagram_y_axis_show_hint')
                 );
 
                 add_item_to_context_menu(items,
-                    options.plot_diagram.multiple_y_axes ? locale_translate('diagram_all_on_name') : locale_translate('diagram_all_off_name'),
+                    opts.plot_diagram.multiple_y_axes ? this._locale_translate('diagram_all_on_name') : this._locale_translate('diagram_all_off_name'),
                     'cui-sort-numeric-up',
-                    function(t){
-                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
-                        let options = pd.getOptions();
-                        options.plot_diagram.multiple_y_axes = !options.plot_diagram.multiple_y_axes;
+                    () => {
+                        const pd = jQuery(`#${plot_area_id}`).data('plot_diagram');
+                        const o = pd.getOptions();
+                        o.plot_diagram.multiple_y_axes = !o.plot_diagram.multiple_y_axes;
                         refresh_existing_diagram(pd);
                     },
-                    options.plot_diagram.multiple_y_axes ? locale_translate('diagram_all_on_hint') : locale_translate('diagram_all_off_hint')
+                    opts.plot_diagram.multiple_y_axes ? this._locale_translate('diagram_all_on_hint') : this._locale_translate('diagram_all_off_hint')
                 );
 
                 add_item_to_context_menu(items,
-                    options.series.stack ? locale_translate('diagram_unstack_name') : locale_translate('diagram_stack_name'),
+                    opts.series.stack ? this._locale_translate('diagram_unstack_name') : this._locale_translate('diagram_stack_name'),
                     'cuis-chart-area',
-                    function(t){
-                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
-                        let options = pd.getOptions();
-                        options.series.stack = !options.series.stack;
-                        options.series.lines.fill = options.series.stack;
-                        if (options.series.stack)
-                            options.plot_diagram.multiple_y_axes = false;
+                    () => {
+                        const pd = jQuery(`#${plot_area_id}`).data('plot_diagram');
+                        const o = pd.getOptions();
+                        o.series.stack = !o.series.stack;
+                        o.series.lines.fill = o.series.stack;
+                        if (o.series.stack)
+                            o.plot_diagram.multiple_y_axes = false;
                         refresh_existing_diagram(pd);
                     },
-                    options.series.stack ? locale_translate('diagram_unstack_hint') : locale_translate('diagram_stack_hint')
+                    opts.series.stack ? this._locale_translate('diagram_unstack_hint') : this._locale_translate('diagram_stack_hint')
                 );
 
                 add_item_to_context_menu(items,
-                    options.series.points.show ? locale_translate('diagram_hide_points_name') : locale_translate('diagram_show_points_name'),
+                    opts.series.points.show ? this._locale_translate('diagram_hide_points_name') : this._locale_translate('diagram_show_points_name'),
                     'cui-sort-numeric-up',
-                    function(t){
-                        let pd = jQuery('#'+plot_area_id).data('plot_diagram');     // get the plot_diagram object from the DOM element, avoid memory leaks
-                        let options = pd.getOptions();
-                        options.series.points.show = !options.series.points.show;
+                    () => {
+                        const pd = jQuery(`#${plot_area_id}`).data('plot_diagram');
+                        const o = pd.getOptions();
+                        o.series.points.show = !o.series.points.show;
                         refresh_existing_diagram(pd);
                     },
-                    options.series.points.show ? locale_translate('diagram_hide_points_hint') : locale_translate('diagram_show_points_hint')
+                    opts.series.points.show ? this._locale_translate('diagram_hide_points_hint') : this._locale_translate('diagram_show_points_hint')
                 );
 
-                return {
-                    items: items
-                };
+                return { items };
+            }
+        });
+    }
+
+
+    registerLegend(){
+        this._updateLegendTimeout = null;                                       // ensure timeout is rescheduled
+
+        // ############ Bind events
+        jQuery(`#${this.canvas_id}`).bind("plothover", (event, pos, item) => {
+            this._latestPosition = pos;
+            if (!this._updateLegendTimeout)
+                this._updateLegendTimeout = setTimeout(() => this._updateLegend(), 50);     // throttle updateLegend for crosshair + legend refresh
+            if (item) {
+                if (this._previousToolTipPoint !== item.dataIndex) {
+                    this._previousToolTipPoint = item.dataIndex;
+                    $(`#${this.toolTipID}`).remove();
+                    this._showTooltip(item.pageX, item.pageY, `${item.series.label}= ${item.datapoint[1].toFixed(2)}`);
+                }
+            } else {
+                $(`#${this.toolTipID}`).remove();
+                this._previousToolTipPoint = null;
             }
         });
 
 
-        this.registerLegend();                                                  // erstmaliger Aufruf, des weiteren neuer Aufruf nach Resize
-        return plot;                                                            // get the original flot chart
-    };   // end initialize
+        // ############ Crosshair display
+        const x_legend_title = this.options.xaxes[0].mode === "time" ? "Time" : 'X';
 
-    this.get_plot = function(){
-        return plot;
-    }
+        const legend_div = jQuery(`#${this.canvas_id} .legend`);
+        legend_div.children('div').detach();                                    // remove a sizing-only div before legend_table
+        legend_div.find("table").addClass('legend_table');
 
-    /**
-     * Get the options of the diagram, options from constructor are replaced in the meantime
-     * @returns {*}
-     */
-    this.getOptions = function(){
-        return options;
-    }
+        if (jQuery(`#${this.canvas_id} .legendXAxis`).length === 0) {           // first call only — not on resize
+            // value column + close-button column
+            legend_div.find("tr").each((index, elem) => {
+                const tr = jQuery(elem);
+                const legend_name = jQuery(tr.children('td')[1]).text();        // strip possible decoration from labelFormatter
+                this._legend_indexes[legend_name] = index;
+                tr.append("<td align='right' class='legend_value'></td>");
 
-    function pad2(number){          // Vornullen auffuellen für Datum etc.
-        var str=''+number;
-        if (str.length < 2){
-            str = '0' + str;
+                tr.append(`<td><a href='#' title='${this._locale_translate('diagram_remove_chart')}' style='color:red' onclick='delete_single_plot_chart("${this.plot_area_id}", ${index}); return false;'>X</a></td>`);
+            });
+
+            // x-axis row
+            legend_div.find("tbody").append(`<tr><td></td><td>${x_legend_title}</td><td class='legendXAxis'></td><td></td></tr>`);
         }
-        return str;
+        this._legendXAxis   = jQuery(`#${this.canvas_id} .legendXAxis`);
+        this._legend_values = jQuery(`#${this.canvas_id} .legend_value`);
+
+        // Add titles to multiple y-axis scales
+        if (this.options.plot_diagram.multiple_y_axes === true){
+            jQuery.each(this.data_array, (i, val) => {
+                jQuery(`#${this.canvas_id} .y${this.data_array.length - i}Axis`).attr("title", val.label);
+            });
+        }
+
+        legend_div.draggable();
     }
 
-    function remove_diagram(){      // Komplettes Diagramm entfernen
-        data_array.length = 0;                                                  // Remove the array content but preserve the array object
-        jQuery('#'+parent_id).children().remove();                              // Area putzen
+
+    delete_single_chart(legend_index){
+        // resolve the legend-name from index in legend table
+        let legend_name = '';
+        for (const [name, idx] of Object.entries(this._legend_indexes)){
+            if (idx === legend_index){
+                legend_name = name;
+            }
+        }
+
+        // find and remove the matching curve from data_array (may be sorted differently)
+        for (const [data_index, entry] of this.data_array.entries()) {
+            if (entry.label === legend_name){
+                if (entry['delete_callback']){
+                    entry['delete_callback'](legend_name);                      // notify caller if callback provided
+                }
+                this.data_array.splice(data_index, 1);
+                refresh_existing_diagram(this);
+                return;                                                         // splice mutates — exit immediately
+            }
+        }
     }
 
-    // ############ MouseOver-Hint Anzeige aktualisieren
-    function showTooltip(x, y, contents) {
-        $('<div id="'+toolTipID+'">' + contents + '</div>').css( {
+
+    // ###################### Private helpers ######################
+
+    _pad2(number){                                                              // zero-pad to 2 digits
+        const str = `${number}`;
+        return str.length < 2 ? `0${str}` : str;
+    }
+
+    _remove_diagram(){
+        this.data_array.length = 0;                                             // clear contents but keep the array reference
+        jQuery(`#${this.parent_id}`).children().remove();
+    }
+
+    _showTooltip(x, y, contents){
+        $(`<div id="${this.toolTipID}">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 5,
@@ -300,263 +317,96 @@ function plot_diagram_class(unique_id, parent_id, caption, data_array, options) 
         }).appendTo("body").fadeIn(300);
     }
 
+    _updateLegend(){
+        this._updateLegendTimeout = null;
+        const pos = this._latestPosition;
 
-    function updateLegend() {
-        updateLegendTimeout = null;
-        var pos = latestPosition;
-
-        var axes = plot.getAxes();
+        const axes = this._plot.getAxes();
         if (pos.x < axes.xaxis.min || pos.x > axes.xaxis.max ||
             pos.y < axes.yaxis.min || pos.y > axes.yaxis.max)
             return;
 
-        var i, j, dataset = plot.getData();
-        for (i = 0; i < dataset.length; ++i) {                                  // Iteration ueber die Kurven des Diagramms
-            var series = dataset[i];
+        const dataset = this._plot.getData();
+        for (let i = 0; i < dataset.length; ++i) {                              // iterate curves
+            const series = dataset[i];
 
             // find the nearest points, x-wise
+            let j;
             for (j = 0; j < series.data.length; ++j)
                 if (series.data[j][0] > pos.x)
                     break;
 
-            // now interpolate
-            var y, p1 = series.data[j - 1], p2 = series.data[j];
-            if (p1 == null)
+            // interpolate
+            const p1 = series.data[j - 1];
+            const p2 = series.data[j];
+            let y;
+            if (p1 === undefined)
                 y = p2[1];
-            else if (p2 == null)
+            else if (p2 === undefined)
                 y = p1[1];
             else
                 y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
 
-            // Index des Labels in Legende aus legend_indexes lesen und dort Wert platzieren (Sortierung der Legende kann variieren)
-            jQuery(legend_values[legend_indexes[series.label]]).html(y.toFixed(2));
+            // place value at the legend-index of this series (legend order can differ)
+            jQuery(this._legend_values[this._legend_indexes[series.label]]).html(y.toFixed(2));
         }
-        // Zeitpunkt des Crosshairs in X-Axis anzeigen
-        if (options.xaxes[0].mode === "time"){
-            var time = new Date(pos.x);
-            legendXAxis.html(pad2(time.getUTCDate())+"."+pad2(time.getUTCMonth()+1)+"."+time.getUTCFullYear()+" "+pad2(time.getUTCHours())+":"+pad2(time.getUTCMinutes())+':'+pad2(time.getUTCSeconds()));   // Anzeige des aktuellen wertes der X-Achse
+
+        // Show crosshair x-position as time or number
+        if (this.options.xaxes[0].mode === "time"){
+            const t = new Date(pos.x);
+            this._legendXAxis.html(`${this._pad2(t.getUTCDate())}.${this._pad2(t.getUTCMonth()+1)}.${t.getUTCFullYear()} ${this._pad2(t.getUTCHours())}:${this._pad2(t.getUTCMinutes())}:${this._pad2(t.getUTCSeconds())}`);
         } else {
-            legendXAxis.html(pos.x);
+            this._legendXAxis.html(pos.x);
         }
     }
 
-    this.registerLegend = function(){
-        updateLegendTimeout = null;                                             // Sicherstellen, dass Timeout neu aufgeseztz wird
-
-        // ############ Events binden
-        jQuery('#'+canvas_id).bind("plothover",  function (event, pos, item) {
-            latestPosition = pos;
-            if (!updateLegendTimeout)
-                updateLegendTimeout = setTimeout(updateLegend, 50);     // Zeitverzögertes Ausfrufen von updateLegend für crosshair und Aktualisierung Legende
-            if (item) {
-                if (previousToolTipPoint !== item.dataIndex) {
-                    previousToolTipPoint = item.dataIndex;
-                    $("#"+toolTipID).remove();
-                    // Label ist schon durch Crosshair mit Anfangs-Wert belegt, diesen durch aktuellen ersetzen
-                    showTooltip(item.pageX, item.pageY, item.series.label + "= " + item.datapoint[1].toFixed(2)   );
-                }
-            }
-            else {
-                $("#"+toolTipID).remove();
-                previousToolTipPoint = null;
-            }
-
-        });
-
-
-        // ############ crosshair.Anzeige aktualisieren
-
-        // Legendenzeile für X-Achse hinzufügen
-        var x_legend_title;
-        if (options.xaxes[0].mode === "time"){
-            x_legend_title = "Time";
-        } else {
-            x_legend_title = 'X';
+    _locale_translate(key){
+        const t = get_plot_diagram_translations();
+        const locale = this.options.plot_diagram.locale;
+        if (t[key]){
+            if (t[key][locale])  return t[key][locale];
+            if (t[key]['en'])    return t[key]['en'];
+            return `No default translation (en) available for key "${key}"`;
         }
+        return `No translation available for key "${key}"`;
+    }
+} // plot_diagram_class
 
-        var legend_div = jQuery('#'+canvas_id+" .legend");
 
-        legend_div.children('div').detach();                                    // Entfernen eines Div ohne Funktion vor der legend_table, das sonst in der Größe mitgerführt werden müsste
-        legend_div.find("table").addClass('legend_table');
-        if (jQuery('#'+canvas_id+" .legendXAxis").length === 0) {                // bei erstmaligem aufruf Zeile hinzufügen, nicht bei jedem Resize
-
-            // Spalte zufügen für die Werte-Anzeige und für Schliesser
-            legend_div.find("tr").each(function(index, elem){
-                var tr = jQuery(elem);
-                var legend_name = jQuery(tr.children('td')[1]).text();          // strip possible decoration from labelFormatter
-                legend_indexes[legend_name] = index;                            // Position zum Name der Kurve in der Legende merken
-                tr.append("<td align='right' class='legend_value'></td>");
-
-                //var escaped_legend_name = $("<div>").text(legend_name).html();
-                tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='delete_single_plot_chart(\""+plot_area_id+"\", "+index+"); return false;'>X</a></td>");
-                //tr.append("<td><a href='#' title='"+locale_translate('diagram_remove_chart')+"' style='color:red' onclick='thiz.delete_single_chart("+index+"); return false;'>X</a></td>");
-            });
-
-            // Zeile für Anzeige des Zeitstempels zufügen
-            legend_div.find("tbody").append("<tr><td></td><td>" + x_legend_title + "</td><td class='legendXAxis'></td><td></td></tr>");
-        }
-        legendXAxis         = jQuery('#'+canvas_id+" .legendXAxis");             // merken für wiederholte Verwendung
-        legend_values       = jQuery('#'+canvas_id+" .legend_value");            // Liste der letzten Spalten merken für wiederholte Verwendung
-
-        // Titel zu Skalen der spalten hinzufuegen, wenn multiple y-Achsen angezeigt werden
-        if (options.plot_diagram.multiple_y_axes===true){
-
-            jQuery.each(data_array, function(i,val){
-                jQuery('#'+canvas_id+" .y"+(data_array.length-i)+"Axis").attr("title", val.label);
-            });
-        }
-
-//        jQuery('#'+canvas_id+" .legend").draggable().css("left", -9).css("top", canvas_height*-1+9); // Legende verschiebbar gestalten, da dann mit position:relative gearbeitet wird, muss neu positioniert werden
-        legend_div.draggable();
+function get_plot_diagram_translations(){
+    return {
+        'diagram_y_axis_show_name':   { 'en': 'Show y-axis',                                                      'de': 'y-Achse(n) anzeigen' },
+        'diagram_y_axis_show_hint':   { 'en': 'Show all scale values of y-axis',                                  'de': 'Skalenwerte der Y-Achse(n) anzeigen' },
+        'diagram_y_axis_hide_name':   { 'en': 'Hide y-axis',                                                      'de': 'y-Achse(n) ausblenden' },
+        'diagram_y_axis_hide_hint':   { 'en': 'Hide scale values of y-axis',                                      'de': 'Skalenwerte der Y-Achse(n) ausblenden' },
+        'diagram_all_on_name':        { 'en': 'All column curves with one scale for y-axis',                      'de': 'Alle Spalten-Kurven in einer y-Achse darstellen' },
+        'diagram_all_on_hint':        { 'en': 'Show all column curves with only one scale for y-axis',            'de': 'Alle Spalten-Kurven in einer y-Achse darstellen' },
+        'diagram_all_off_name':       { 'en': 'Own y-axis per curve (100% scale)',                                'de': 'Eigene y-Achse je Kurve (100% Wertebereich)' },
+        'diagram_all_off_hint':       { 'en': 'Own y-axis for every column curve (each with 100% scale)',         'de': 'Eigene y-Achse je Spalten-Kurve (jede Kurve hat 100% des Wertebereich)' },
+        'diagram_stack_name':         { 'en': 'Stack single charts',                                              'de': 'Stapeln der einzelnen Kurven' },
+        'diagram_stack_hint':         { 'en': 'Shows values for single charts and sum simultaneously',            'de': 'Erlaubt gleichzeitige Sicht auf Einzelwerte und Summe' },
+        'diagram_unstack_name':       { 'en': 'Unstack single charts',                                            'de': 'Entstapeln der einzelnen Kurven' },
+        'diagram_unstack_hint':       { 'en': 'Each chart shows own values in y-axis',                            'de': 'Jede Kurve zeigt ihre eigenen Werte auf Y-Achse' },
+        'diagram_hide_points_hint':   { 'en': "Don't show single values as circle on chart",                      'de': 'Einzelwerte nicht als Kreis auf der Kurve anzeigen' },
+        'diagram_show_points_hint':   { 'en': 'Show single values as circle on chart',                            'de': 'Einzelwerte als Kreis auf der Kurve anzeigen' },
+        'diagram_hide_points_name':   { 'en': "Don't show single values as circle",                               'de': 'Einzelwerte nicht als Kreis zeigen' },
+        'diagram_show_points_name':   { 'en': 'Show single values as circle',                                     'de': 'Einzelwerte als Kreis zeigen' },
+        'diagram_remove_chart':       { 'en': 'Remove this chart from diagram',                                   'de': 'Diese Kurve aus dem Diagramm entfernen' },
+        'diagram_remove_chart_confirm': { 'en': 'Remove chart',                                                   'de': 'Entfernen der Kurve' },
+        'diagram_save_to_image_name': { 'en': 'Save chart to image',                                              'de': 'Speichern als Bild' },
+        'diagram_save_to_image_hint': { 'en': 'Save complete chart to image',                                     'de': 'Speichern des ganzen Diagrammes als Bild' }
     };
-
-    this.delete_single_chart = function(legend_index){
-
-        // ermitteln des legenden-Namen über Index in table
-        var legend_name = '';
-        jQuery.each(legend_indexes, function(index, value){
-            if (value === legend_index){
-                legend_name = index;
-            }
-        });
-
-        //if (!confirm(locale_translate('diagram_remove_chart_confirm')+' "'+legend_name+'"?' ) )
-        //    return;
-
-        // Finden der korrespondierenden Kurve im Data-Array (kann anders sortiert sein) und entfernen dieser
-        for (var data_index in data_array) {
-            if (data_array[data_index].label === legend_name){
-                if (data_array[data_index]['delete_callback']){
-                    data_array[data_index]['delete_callback'](legend_name);     // deregistrieren der Spalte beim Aufrufer wenn callback hinterlegt
-                }
-                data_array.splice(data_index, 1);                               // Entfernen des Elements aus Data_Array
-                refresh_existing_diagram(this);                                 // Redraw the diagram
-                //plot_diagram(unique_id, parent_id, caption, data_array, options);    // Neuzeichnen des Diagramm
-            }
-        }
-    };
-
-
-    /**
-     * Translate key into string according to options[:locale]
-     * @param key
-     */
-    function locale_translate(key){
-        if (get_translations()[key]){
-            if (get_translations()[key][options.plot_diagram.locale]){
-                return get_translations()[key][options.plot_diagram.locale];
-            } else {
-                if (get_translations()[key]['en'])
-                    return get_translations()[key]['en'];
-                else
-                    return 'No default translation (en) available for key "'+key+'"';
-            }
-        } else {
-            return 'No translation available for key "'+key+'"';
-        }
-    }
-
-    function get_translations() {
-        return {
-            'diagram_y_axis_show_name': {
-                'en': 'Show y-axis',
-                'de': 'y-Achse(n) anzeigen'
-            },
-            'diagram_y_axis_show_hint': {
-                'en': 'Show all scale values of y-axis',
-                'de': 'Skalenwerte der Y-Achse(n) anzeigen'
-            },
-            'diagram_y_axis_hide_name': {
-                'en': 'Hide y-axis',
-                'de': 'y-Achse(n) ausblenden'
-            },
-            'diagram_y_axis_hide_hint': {
-                'en': 'Hide scale values of y-axis',
-                'de': 'Skalenwerte der Y-Achse(n) ausblenden'
-            },
-            'diagram_all_on_name': {
-                'en': 'All column curves with one scale for y-axis',
-                'de': 'Alle Spalten-Kurven in einer y-Achse darstellen'
-            },
-            'diagram_all_on_hint': {
-                'en': 'Show all column curves with only one scale for y-axis',
-                'de': 'Alle Spalten-Kurven in einer y-Achse darstellen'
-            },
-            'diagram_all_off_name': {
-                'en': 'Own y-axis per curve (100% scale)',
-                'de': 'Eigene y-Achse je Kurve (100% Wertebereich)'
-            },
-            'diagram_all_off_hint': {
-                'en': 'Own y-axis for every column curve (each with 100% scale)',
-                'de': 'Eigene y-Achse je Spalten-Kurve (jede Kurve hat 100% des Wertebereich)'
-            },
-            'diagram_stack_name': {
-                'en': 'Stack single charts',
-                'de': 'Stapeln der einzelnen Kurven'
-            },
-            'diagram_stack_hint': {
-                'en': 'Shows values for single charts and sum simultaneously',
-                'de': 'Erlaubt gleichzeitige Sicht auf Einzelwerte und Summe'
-            },
-            'diagram_unstack_name': {
-                'en': 'Unstack single charts',
-                'de': 'Entstapeln der einzelnen Kurven'
-            },
-            'diagram_unstack_hint': {
-                'en': 'Each chart shows own values in y-axis',
-                'de': 'Jede Kurve zeigt ihre eigenen Werte auf Y-Achse'
-            },
-            'diagram_hide_points_hint': {
-                'en': "Don't show single values as circle on chart",
-                'de': 'Einzelwerte nicht als Kreis auf der Kurve anzeigen'
-            },
-            'diagram_show_points_hint': {
-                'en': 'Show single values as circle on chart',
-                'de': 'Einzelwerte als Kreis auf der Kurve anzeigen'
-            },
-            'diagram_hide_points_name': {
-                'en': "Don't show single values as circle",
-                'de': 'Einzelwerte nicht als Kreis zeigen'
-            },
-            'diagram_show_points_name': {
-                'en': 'Show single values as circle',
-                'de': 'Einzelwerte als Kreis zeigen'
-            },
-            'diagram_remove_chart': {
-                'en': 'Remove this chart from diagram',
-                'de': 'Diese Kurve aus dem Diagramm entfernen'
-            },
-            'diagram_remove_chart_confirm': {
-                'en': 'Remove chart',
-                'de': 'Entfernen der Kurve'
-            },
-            'diagram_save_to_image_name': {
-                'en': 'Save chart to image',
-                'de': 'Speichern als Bild'
-            },
-            'diagram_save_to_image_hint': {
-                'en': 'Save complete chart to image',
-                'de': 'Speichern des ganzen Diagrammes als Bild'
-            }
-        };
-    }
-
-} // plot_diagram
+}
 
 
 function resize_plot_diagrams(){
-    jQuery('.plot_diagram').each(function(index, element) {
-            var Container = jQuery(element);
-            Container.data('plot_diagram').registerLegend();
-        }
-    );
+    jQuery('.plot_diagram').each((_index, element) => {
+        jQuery(element).data('plot_diagram').registerLegend();
+    });
 }
 
-// Entfernen einer konkreten Kurve
+// Remove a specific curve (called from inline onclick in the legend table)
 function delete_single_plot_chart(plot_area_id, index){
-    jQuery('#'+plot_area_id).data('plot_diagram').delete_single_chart(index);   // Weitergabe Event an Methode des plot_diagram-Objektes
+    jQuery(`#${plot_area_id}`).data('plot_diagram').delete_single_chart(index);
     return false;
 }
-
-
-

@@ -933,7 +933,7 @@ class SlickGridExtended {
                 }
                 col_data_array.sort(data_array_sort);
                 const col_attr = {label: column.name,
-                    delete_callback: self.plot_chart_delete_callback,
+                    delete_callback: self.plot_chart_delete_callback.bind(self),  // bind because plot_diagram calls it as bare function
                     data: col_data_array
                 };
                 data_array.push(col_attr);
