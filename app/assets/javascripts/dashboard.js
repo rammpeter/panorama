@@ -113,7 +113,7 @@ class DashboardData {
         let groupby_alias           = response_data.groupby_alias;              // the field :sql_alias key in session_statistics_key_rules, used as column_name in SQL
         let timestamps              = {};                                       // Object with key = sample_time_string and value = ms since 1970
         let data_to_add             = {};
-        let initial_data_load       = this.ash_data_array.length == 0;          // initial or delta load
+        let initial_data_load       = this.ash_data_array.length === 0;         // initial or delta load
         let min_refresh_time_string = null;
         let max_refresh_time_string = null;
 
@@ -125,7 +125,7 @@ class DashboardData {
         }
 
         new_ash_data.forEach((d) => {
-            if (this.last_refresh_time_string == null || this.last_refresh_time_string < d.sample_time_string)
+            if (this.last_refresh_time_string === null || this.last_refresh_time_string < d.sample_time_string)
                 this.last_refresh_time_string = d.sample_time_string;           // greatest known timestamp from ASH
             timestamps[d.sample_time_string] = new Date(d.sample_time_string + " GMT").getTime(); // remember all used timestamps
             if (data_to_add[d[groupby_alias]] === undefined){
@@ -165,7 +165,7 @@ class DashboardData {
 
         // copy values and generate 0-records for gaps in time series
         for (const [key, value] of Object.entries(data_to_add)) {               // iterate over groups of delta
-            let group_object = this.ash_data_array.find(o => o.label == key)
+            let group_object = this.ash_data_array.find(o => o.label === key)
             if (group_object === undefined){                                    // create empty object in ash_data_array is not exists
                 group_object = { label: key, data: []}
                 // generate 0 records for previous timestamps if wait class is new in delta
@@ -328,7 +328,7 @@ class DashboardData {
             let period_start_ms = previous_timestamps[0];
             if (period_start_ms === undefined)                                  // no previous data exists at first call -> use start of delta
                 period_start_ms = min_time_ms;
-            let whole_period_session_sum = ash_data_array_to_show.filter(col=>col.label == label)[0].session_sum;
+            let whole_period_session_sum = ash_data_array_to_show.filter(col=>col.label === label)[0].session_sum;
             let whole_period_seconds = (max_time_ms - period_start_ms)/1000;
             tooltip += whole_period_session_sum.toFixed(0) + " seconds spent within this "+this.groupby+" '"+label+"' in the whole shown period of " + whole_period_seconds +" seconds.\n"
             tooltip += "Average "+ (whole_period_session_sum/whole_period_seconds).toFixed(2) +" sessions have been active in the whole shown period.\n\n"
@@ -364,7 +364,7 @@ class DashboardData {
         if (!initial_data_load)
             this.diagram.get_plot().setSelection( { xaxis: { from: min_time_ms, to: max_time_ms}}, true);
 
-        if (this.refresh_cycle_minutes != 0 && this.selected_refresh_cycle() != '0'){                     // not started with refresh cycle=off and refresh cycle not changed to off in the meantime
+        if (this.refresh_cycle_minutes !== 0 && this.selected_refresh_cycle() !== '0'){                     // not started with refresh cycle=off and refresh cycle not changed to off in the meantime
             this.log('timeout set');
             this.current_timeout = setTimeout(function(){ this.draw_refreshed_data(this.canvas_id, 'timeout')}.bind(this), 1000*60*this.refresh_cycle_minutes);  // schedule for next cycle
         }
@@ -382,10 +382,10 @@ class DashboardData {
     }
 
     draw_refreshed_data(current_canvas_id, caller){
-        if ($('#'+current_canvas_id).length == 0)                               // is dashboard page still open and timeout for the right dashboard?
+        if ($('#'+current_canvas_id).length === 0)                              // is dashboard page still open and timeout for the right dashboard?
             return;                                                             // end refresh now
 
-        if (caller == 'timeout' && this.selected_refresh_cycle() == '0')        // imediately stop timeout processing if refresh is set to off
+        if (caller === 'timeout' && this.selected_refresh_cycle() === '0')      // imediately stop timeout processing if refresh is set to off
             return;
 
         this.log("draw_refreshed_data "+caller);
@@ -427,7 +427,7 @@ class DashboardData {
 // - groupby: group criterial name like 'Wait Class'
 refresh_dashboard = function(options){
     if (dashboard_data !== undefined) {
-        if (dashboard_data.canvas_id != options.canvas_id)                              // check if dashboard_data belongs to the current element
+        if (dashboard_data.canvas_id !== options.canvas_id)                             // check if dashboard_data belongs to the current element
             discard_dashboard_data();                                           // throw away old content
     }
 
