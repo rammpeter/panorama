@@ -54,7 +54,7 @@ FROM   (SELECT s.Inst_ID, s.SQL_ID, h.Samples, h.Max_ASH_User_ID, h.Max_ASH_Modu
                                MAX(Service_Hash) OVER (PARTITION BY Inst_ID, SQL_ID ORDER BY COUNT(*) DESC) Max_ASH_Service_Hash
                         FROM   gv$Active_Session_History h
                         WHERE  SQL_ID IS NOT NULL
-                        AND    Program = 'JDBC Thin Client'
+                        AND    Program = ?
                         GROUP BY Inst_ID, SQL_ID, User_ID, Module, Action, Machine, Service_Hash
                        )
                 GROUP BY Inst_ID, SQL_ID
@@ -63,10 +63,13 @@ FROM   (SELECT s.Inst_ID, s.SQL_ID, h.Samples, h.Max_ASH_User_ID, h.Max_ASH_Modu
 JOIN   gv$Services sv ON sv.Inst_ID = x.Inst_ID AND sv.Name_Hash = x.Max_ASH_Service_Hash
 JOIN   All_Users u    ON u.User_ID = x.Max_ASH_User_ID
 GROUP BY u.UserName, x.Max_ASH_Module, x.Max_ASH_Action, x.Max_ASH_Machine, sv.Name
-HAVING SUM(Parse_Calls) > SUM(Executions)/?
+HAVING SUM(Parse_Calls) * 100 / SUM(Executions) > ?
 ORDER BY Parse_Calls_Total DESC
         ",
-        parameter: [{name: t(:dragnet_helper_156_param1_name, default: 'Parse count % of execution count'), size: 8, default: 10, title: t(:dragnet_helper_156_param1_hint, default: 'Parse count in % compared to execution count') }]
+        parameter: [
+          {name: t(:dragnet_helper_156_param2_name, default: 'Program name in ASH'), size: 30, default: 'JDBC Thin Client', title: t(:dragnet_helper_156_param2_hint, default: 'The used program name in Active Session History. If not explicitely set the default is "JDBC Thin Client"') },
+          {name: t(:dragnet_helper_156_param1_name, default: 'Min. parse count % of execution count'), size: 8, default: 10, title: t(:dragnet_helper_156_param1_hint, default: 'Minimum number of parse counts in % compared to the execution count') },
+        ]
       },
       {
         name: t(:dragnet_helper_157_name, :default=>'JDBC client statement cache probably not used (Evaluation of AWR history)'),
@@ -99,7 +102,7 @@ FROM   (SELECT s.DBID, s.Instance_Number, s.SQL_ID, h.Samples, h.Max_ASH_User_ID
                         JOIN   DBA_Hist_Snapshot ss ON ss.DBID = h.DBID AND ss.Instance_Number = h.Instance_Number AND ss.Snap_ID = h.Snap_ID
                         WHERE  SQL_ID IS NOT NULL
                         AND    ss.Begin_Interval_Time > SYSDATE - ?
-                        AND    Program = 'JDBC Thin Client'
+                        AND    Program = ?
                         AND    h.DBID = #{get_dbid}  /* do not count multiple times for multiple different DBIDs/ConIDs */
                         GROUP BY h.DBID, h.Instance_Number, SQL_ID, User_ID, Module, Action, Machine, Service_Hash
                        )
@@ -109,12 +112,13 @@ FROM   (SELECT s.DBID, s.Instance_Number, s.SQL_ID, h.Samples, h.Max_ASH_User_ID
 LEFT OUTER JOIN   gv$Services sv ON sv.Inst_ID = x.Instance_Number AND sv.Name_Hash = x.Max_ASH_Service_Hash
 LEFT OUTER JOIN   All_Users u    ON u.User_ID = x.Max_ASH_User_ID
 GROUP BY x.DBID, u.UserName, x.Max_ASH_Module, x.Max_ASH_Action, x.Max_ASH_Machine, sv.Name
-HAVING SUM(Parse_Calls_Delta) > SUM(Executions_Delta)/?
+HAVING SUM(Parse_Calls_Delta)*100 / SUM(Executions_Delta) > ?
 ORDER BY Parse_Calls_Total DESC
         ",
         parameter: [
           {name: t(:dragnet_helper_param_history_backward_name, default: 'Consideration of history backward in days'), size: 8, default: 8, title: t(:dragnet_helper_param_history_backward_hint, default: 'Number of days in history backward from now for consideration') },
-          {name: t(:dragnet_helper_156_param1_name, default: 'Parse count % of execution count'), size: 8, default: 10, title: t(:dragnet_helper_156_param1_hint, default: 'Parse count in % compared to execution count') }
+          {name: t(:dragnet_helper_156_param2_name, default: 'Program name in ASH'), size: 30, default: 'JDBC Thin Client', title: t(:dragnet_helper_156_param2_hint, default: 'The used program name in Active Session History. If not explicitely set the default is "JDBC Thin Client"') },
+          {name: t(:dragnet_helper_156_param1_name, default: 'Min. parse count % of execution count'), size: 8, default: 10, title: t(:dragnet_helper_156_param1_hint, default: 'Minumum number of parse counts in % compared to the execution count') }
         ]
       },
     ]
