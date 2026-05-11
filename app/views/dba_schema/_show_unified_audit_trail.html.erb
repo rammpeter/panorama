@@ -1,4 +1,6 @@
 <% @update_area=get_unique_area_id %>
+<% @grouping_id=get_unique_area_id %>
+<% @top_x_id=get_unique_area_id %>
 
 <%= render_page_caption("Audit Trail records from UNIFIED_AUDIT_TRAIL") %>
 
@@ -49,7 +51,7 @@
     </div>
     <div class="flex-row-element" title="Group result by time cycle (none for not grouping)">     <!-- special IE-Hack because of bug http://bugs.jqueryui.com/ticket/8798  -->
       &nbsp;Grouping<br/>
-      <select name="grouping">
+      <select name="grouping" id="<%= @grouping_id %>">
         <option selected value='none'>[none]</option>
         <option value='SS'>Second</option>
         <option value='MI'>Minute</option>
@@ -59,12 +61,24 @@
     </div>
     <div class="flex-row-element" title="Count for top x hits to show as columns (only relevant if 'Grouping' is not 'none')">
       &nbsp;Top x for group<br/>
-      <%= text_field_tag(:top_x, "5", :size=>5, style: "text-align:right;") %>
+      <%= text_field_tag(:top_x, "5", :size=>5, style: "text-align:right;", id: @top_x_id) %>
     </div>
     <div class="flex-row-element">
       <%= submit_tag("Show audit trail", :title => "Show audit trail records\n\nUse grouping by time unit if you expect large amount of audit records!") %>
     </div>
   </div>
 <% end %>
-<div id="<%= @update_area %>"></div>
 
+<script type="text/javascript">
+  (function() {
+    function toggleTopXForGrouping() {
+      var disableTopX = jQuery('#<%= @grouping_id %>').val() === 'none';
+      jQuery('#<%= @top_x_id %>').prop('disabled', disableTopX);
+    }
+
+    jQuery('#<%= @grouping_id %>').on('change', toggleTopXForGrouping);
+    toggleTopXForGrouping();
+  })();
+</script>
+
+<div id="<%= @update_area %>"></div>

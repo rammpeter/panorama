@@ -148,6 +148,12 @@ input[type=text], [type=password], [type=number] {
   border-width: 1px;
 }
 
+input:disabled {
+  background-color: lightgray;
+  cursor: not-allowed;
+}
+
+
 input[type=submit], [type=button] {
   font-size: 12px;
   font-family: sans-serif;
