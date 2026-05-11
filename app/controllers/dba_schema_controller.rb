@@ -3021,30 +3021,22 @@ class DbaSchemaController < ApplicationController
       where_values << @session_id
     end
 
-    if @os_user
-      where_string << " AND UPPER(OS_UserName) LIKE UPPER('%'||?||'%')"
-      where_values << @os_user
+    check_like = proc do |value, colname|
+      if value
+        where_string << if value['%']
+                          " AND UPPER(#{colname}) LIKE UPPER(?)"
+                        else
+                          " AND UPPER(#{colname}) = UPPER(?)"
+                        end
+        where_values << value
+      end
     end
 
-    if @db_user
-      where_string << " AND UPPER(DBUserName) LIKE UPPER('%'||?||'%')"
-      where_values << @db_user
-    end
-
-    if @machine
-      where_string << " AND UPPER(UserHost) LIKE UPPER('%'||?||'%')"
-      where_values << @machine
-    end
-
-    if @object_name
-      where_string << " AND UPPER(Object_Name) LIKE UPPER('%'||?||'%')"
-      where_values << @object_name
-    end
-
-    if @action_name
-      where_string << " AND UPPER(Action_name) LIKE UPPER('%'||?||'%')"
-      where_values << @action_name
-    end
+    check_like.call(@os_user, 'OS_UserName')
+    check_like.call(@db_user, 'DBUserName')
+    check_like.call(@machine, 'UserHost')
+    check_like.call(@object_name, 'Object_Name')
+    check_like.call(@action_name, 'Action_name')
 
     if @terminal
       where_string << " AND Terminal = ?"
