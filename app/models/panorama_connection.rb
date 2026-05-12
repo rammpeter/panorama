@@ -914,6 +914,7 @@ class PanoramaConnection
   end
 
   # get existing free connection from pool or create new connection
+  # @return [PanoramaConnection]
   def self.retrieve_from_pool_or_create_new_connection
     retval = nil
     @@connection_pool_mutex.synchronize do
