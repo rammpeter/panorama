@@ -1685,7 +1685,7 @@
   dragnet_helper_156_param1_name:                           Min. Anzahl Parses in % zu Executions
   dragnet_helper_156_param1_hint:                           Minimale Anzahl Parses in % im Verhältnis zu Anzahl Executions
   dragnet_helper_156_param2_name:                           Programm-Name in ASH
-  dragnet_helper_156_param2_hint:                           Gesetzter Programm-Name in Active Session History. Wenn nicht explizit gesetzte, ist der Default "JDBC Thin Client"
+  dragnet_helper_156_param2_hint:                           Aufgezeichneter Programm-Name in Active Session History. Wenn nicht explizit gesetzte, ist der Default "JDBC Thin Client"
 
   dragnet_helper_157_name:                                  JDBC Client Statement Cache vermutlich nicht genutzt (Auswertung der AWR-Historie)
 
