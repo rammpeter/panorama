@@ -6,7 +6,7 @@ module Dragnet::CascadingViewsHelper
   def cascading_views
     [
         {
-            :name  => t(:dragnet_helper_97_name, :default=>'Cascading views (views with dependency from other views)'),
+            :name  => t(:dragnet_helper_97_name, :default=>'Cascading views (views with dependency on other views)'),
             :desc  => t(:dragnet_helper_97_desc, :default=>'Views with dependencies from other views (possibly with multilevel dependency hierarchy) have the risk
 to select data from unnecessesary objects which are not relevant for executing SQL statement.
 This way the optimizer is not able to detect irrelevant parts of view neither to remove this parts from execution plan.
@@ -28,7 +28,7 @@ Sensible architecture pattern is, to use views only in one dimension without fur
            "
         },
         {
-            :name  => t(:dragnet_helper_98_name, :default=>'SQLs using Cascading views (views with dependency from other views), evaluation of current SGA'),
+            :name  => t(:dragnet_helper_98_name, :default=>'SQLs using Cascading views (views with dependency on other views), evaluation of current SGA'),
             :desc  => t(:dragnet_helper_98_desc, :default=>'Views with dependencies from other views (possibly with multilevel dependency hierarchy) have the risk
 to select data from unnecessesary objects which are not relevant for executing SQL statement.
 This way the optimizer is not able to detect irrelevant parts of view neither to remove this parts from execution plan.
@@ -70,7 +70,7 @@ Sensible architecture pattern is, to use views only in one dimension without fur
 
         },
         {
-            :name  => t(:dragnet_helper_99_name, :default=>'SQLs using Cascading views (views with dependency from other views), evaluation of AWH History'),
+            :name  => t(:dragnet_helper_99_name, :default=>'SQLs using Cascading views (views with dependency on other views), evaluation of AWH History'),
             :desc  => t(:dragnet_helper_99_desc, :default=>'Views with dependencies from other views (possibly with multilevel dependency hierarchy) have the risk
 to select data from unnecessesary objects which are not relevant for executing SQL statement.
 This way the optimizer is not able to detect irrelevant parts of view neither to remove this parts from execution plan.

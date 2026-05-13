@@ -110,7 +110,7 @@ if @res.count > 0
                               end
                            }
         # Check for link on index_name
-        when ['index_name', 'index_to_change', 'index_to_remove'].include?(col[:col_ref].downcase)
+        when ['index_name', 'index_to_change', 'index_to_remove', 'index_1', 'index_2'].include?(col[:col_ref].downcase)
         then
           col[:data] = proc{|rec|
                               index_name = rec[col[:col_ref]]
