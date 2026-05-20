@@ -1657,7 +1657,7 @@ class DbaSchemaController < ApplicationController
 
 
     columns = sql_select_all ["\
-        SELECT ic.Index_Name, ic.Column_Name, ie.Column_Expression
+        SELECT ic.Index_Name, ic.Column_Name, ic.Descend, ie.Column_Expression
         FROM   DBA_Ind_Columns ic
         LEFT OUTER JOIN DBA_Ind_Expressions ie ON ie.Index_Owner = ic.Index_Owner AND ie.Index_Name=ic.Index_Name AND ie.Column_Position = ic.Column_Position
         WHERE  ic.Table_Owner = ?
@@ -1680,7 +1680,7 @@ class DbaSchemaController < ApplicationController
         end
       end
 
-      i[:column_names] = columns.select { |c| c.index_name == i.index_name }.map { |c| c.column_expression || c.column_name }.join(', ')
+      i[:column_names] = columns.select { |c| c.index_name == i.index_name }.map { |c| "#{c.column_expression || c.column_name}#{" #{c.descend}" if c.descend != 'ASC'}" }.join(', ')
       i[:expression_aliases] = columns.select { |c| c.index_name == i.index_name && c.column_expression }.map { |c| c.column_name }.join(', ')
 
       if i.partition_number&.> 0
