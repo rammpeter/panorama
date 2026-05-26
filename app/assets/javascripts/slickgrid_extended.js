@@ -136,6 +136,7 @@ class SlickGridExtended {
         this.gridContainer.find(".ui-resizable-e").remove();
         this.gridContainer.find(".ui-resizable-se").remove();
 
+        this._define_column_header_shortnames();                                // Define short names for plot_diagram etc.
         this._initialize_slickgrid(this.grid);
         this._build_slickgrid_context_menu(container_id, additional_context_menu);
     } // Ende constructor
@@ -701,6 +702,21 @@ class SlickGridExtended {
     }
 
     /**
+     * Iterate over rendered header DOM elements, read the plain-text label via jQuery.text()
+     * and store it as short_name on the matching column definition object.
+     * Matching is done via SlickGrid's .data('column') reference attached to each header element.
+     */
+    _define_column_header_shortnames(){
+        this.gridContainer.find('.slick-header-column').each(function(){
+            const $header = jQuery(this);
+            const column  = $header.data('column');
+            if (column) {
+                column.short_name = $header.find('.slick-column-name').text().trim();
+            }
+        });
+    }
+
+    /**
      * Options um Defaults erweitern
      */
     _init_options(options){
@@ -932,7 +948,7 @@ class SlickGridExtended {
                     col_data_array.push([ x_val, y_val ]);
                 }
                 col_data_array.sort(data_array_sort);
-                const col_attr = {label: column.name,
+                const col_attr = {label: column.short_name,
                     delete_callback: self.plot_chart_delete_callback.bind(self),  // bind because plot_diagram calls it as bare function
                     data: col_data_array
                 };
@@ -1205,6 +1221,7 @@ class SlickGridExtended {
 
                 let header_line;
                 if (self.last_slickgrid_contexmenu_col_header) {
+                    // self.last_slickgrid_contexmenu_col_header.text() could be replaced by column.short_name
                     header_line = 'Column: <b>'+self.last_slickgrid_contexmenu_col_header.text()+'</b>';
                 } else {
                     header_line = '<span style="background-color: red; color: black;">&nbsp;Column/cell not exactly hit! Please retry.&nbsp;</span>';
