@@ -604,30 +604,37 @@ class AdditionController < ApplicationController
   def list_object_increase_detail
     @row_count_changes = params[:row_count_changes] == '1'
 
-    @incs = sql_select_all ["
+    @incs = sql_select_all ["\
+      WITH Snapshots AS (SELECT Owner, Segment_Name, Segment_Type, Gather_Date,
+                                SUM(Bytes) Bytes, MIN(Num_Rows) Num_Rows,                  -- num_rows per record are over all tablespaces
+                                MAX(Tablespace_Name) KEEP (DENSE_RANK LAST ORDER BY Bytes) Greatest_TS,
+                                COUNT(DISTINCT Tablespace_Name)                            Tablespaces
+                         FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Object_Sizes
+                         WHERE  Gather_Date BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+                         #{@wherestr}
+                         GROUP BY Owner, Segment_Name, Segment_Type, Gather_Date -- group over all tablespaces
+                        ),
+           Period AS (SELECT Min(Gather_Date) Glob_Min_Gather_Date, Max(Gather_Date) Glob_Max_Gather_Date FROM Snapshots)
       SELECT s.*,
              End_Mbytes - Start_MBytes       Aenderung_Abs,
-             (End_MBytes/Start_MBytes-1)*100 Aenderung_Pct
+             CASE WHEN Start_MBytes > 0 THEN (End_MBytes/Start_MBytes-1)*100 END Aenderung_Pct
       FROM   (
               SELECT Owner, Segment_Name, Segment_Type,
                      CASE WHEN Segment_Type LIKE 'LOB%' THEN (SELECT Table_Name||'.'||Column_Name FROM DBA_Lobs l WHERE l.Owner = s.Owner AND l.Segment_Name = s.Segment_Name) END Name_Addition,
                      MAX(Greatest_TS) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) Last_TS,
                      MAX(Tablespaces) KEEP (DENSE_RANK LAST ORDER BY Gather_Date) Tablespaces,
-                     MIN(Bytes/(1024*1024))KEEP (DENSE_RANK FIRST ORDER BY Gather_Date)  Start_Mbytes,
-                     MAX(Bytes/(1024*1024))KEEP (DENSE_RANK LAST  ORDER BY Gather_Date)  End_Mbytes,
-                     MIN(Num_Rows) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date)          Start_Num_Rows,
-                     MAX(Num_Rows) KEEP (DENSE_RANK LAST  ORDER BY Gather_Date)          End_Num_Rows,
+                     CASE WHEN MIN(Gather_Date) = MIN(p.Glob_Min_Gather_Date) THEN
+                       MIN(Bytes/(1024*1024))KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) ELSE 0 END Start_Mbytes,
+                     CASE WHEN MAX(Gather_Date) = MAX(p.Glob_Max_Gather_Date) THEN
+                       MAX(Bytes/(1024*1024))KEEP (DENSE_RANK LAST  ORDER BY Gather_Date) ELSE 0 END End_Mbytes,
+                     CASE WHEN MIN(Gather_Date) = MIN(p.Glob_Min_Gather_Date) THEN
+                       MIN(Num_Rows) KEEP (DENSE_RANK FIRST ORDER BY Gather_Date) ELSE 0 END Start_Num_Rows,
+                     CASE WHEN MAX(Gather_Date) = MAX(p.Glob_Max_Gather_Date) THEN
+                       MAX(Num_Rows) KEEP (DENSE_RANK LAST  ORDER BY Gather_Date) ELSE 0 END End_Num_Rows,
                      MIN(Gather_Date) Min_Gather_Date,
                      MAX(Gather_Date) Max_Gather_Date
-              FROM   (SELECT Owner, Segment_Name, Segment_Type, Gather_Date,
-                             SUM(Bytes) Bytes, MIN(Num_Rows) Num_Rows,                  -- num_rows per record are over all tablespaces
-                             MAX(Tablespace_Name) KEEP (DENSE_RANK LAST ORDER BY Bytes) Greatest_TS,
-                             COUNT(DISTINCT Tablespace_Name)                            Tablespaces
-                      FROM   #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Object_Sizes
-                      WHERE  Gather_Date BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
-                      #{@wherestr}
-                      GROUP BY Owner, Segment_Name, Segment_Type, Gather_Date -- group over all tablespaces
-                     ) s
+              FROM   Snapshots s
+              CROSS JOIN Period p
               GROUP BY Owner, Segment_Name, Segment_Type
              ) s
       WHERE  NVL(Start_MBytes, 0) != NVL(End_MBytes, 0)
