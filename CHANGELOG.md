@@ -210,7 +210,7 @@
 - 2015-10-26 Repeat last called menu action without deep-dive in menu-structures by clicking icon right to menu
 - 2015-10-26 Active Session History: Show tablespace name as object name if no current object exists. Helps to recognize action in UNDO-TS.
 - 2015-10-26 List captured bind values also for datatype TIMESTAMP
-- 2015-10-26 Replace WM_CONCAT with LISTAGG for database release 11.2 and above beacause WM_CONCAT is not supported beginning with 12c
+- 2015-10-26 Replace WM_CONCAT with LISTAGG for database release 11.2 and above because WM_CONCAT is not supported beginning with 12c
 - 2015-10-26 Replace sys.User$ with DBA_Users because access on sys.User$ is not part of SELECT ANY DICTIONARY beginning with 12c
 - 2015-10-26 Dragnet investigation for parallel degradation (FORCE SERIAL)
 - 2015-07-16 Show load of parallel query slaves within coordinator session in Active Session History

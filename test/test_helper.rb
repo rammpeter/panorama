@@ -147,7 +147,7 @@ class ActiveSupport::TestCase
 
     sampler_config[:id]                             = 1
     sampler_config[:name]                           = 'Test-Config'
-    sampler_config[:client_salt]                    = Panorama::Application.config.panorama_master_password  # identic doubled like WorkerThread.initialized
+    sampler_config[:client_salt]                    = Panorama::Application.config.panorama_master_password  # identical doubled like WorkerThread.initialized
     sampler_config[:management_pack_license]        = management_pack_license   # use same management_pack_license as all other tests
     sampler_config[:owner]                          = sampler_config[:user]     # assume owner = connected user for test
 
@@ -179,7 +179,7 @@ class ActiveSupport::TestCase
 
   def assert_response_success_or_management_pack_violation(comment = '', expected_error_licenses = [:none])
     if expected_error_licenses.include?(management_pack_license)
-      sleep(0.5)                                                                # ensure moderate allocation of new DB-sessions beacause current session is destroyed
+      sleep(0.5)                                                                # ensure moderate allocation of new DB-sessions because current session is destroyed
       assert_response(:error, "Expected :error but response is #{@response.response_code}: #{comment}")
     else
       assert_response(:success, "Expected :success but response is #{@response.response_code}: #{comment}")

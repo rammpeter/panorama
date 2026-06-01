@@ -13,7 +13,7 @@ class ActiveSupport::TestCase
 
   # Add more helper methods to be used by all tests here...
 
-  # Sicherstellen, dass immer auf ein aktuelles Sessin-Objekt zurückgegriffern werden kann
+  # Sicherstellen, dass immer auf ein aktuelles Session-Objekt zurückgegriffern werden kann
   def session
     @session
   end

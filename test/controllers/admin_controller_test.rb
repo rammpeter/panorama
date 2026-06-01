@@ -26,7 +26,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
   def usage_file_exists?
     File.open(Panorama::Application.config.usage_info_filename, "r")
-    Rails.logger.info "UsageControllerTest.usage_file_exists?: Test excuted because usage #{Panorama::Application.config.usage_info_filename} file exists. PWD = #{Dir.pwd}"
+    Rails.logger.info "UsageControllerTest.usage_file_exists?: Test executed because usage #{Panorama::Application.config.usage_info_filename} file exists. PWD = #{Dir.pwd}"
     true
   rescue Exception
     Rails.logger.info "UsageControllerTest.usage_file_exists?: Test skipped because usage #{Panorama::Application.config.usage_info_filename} file does not exist. PWD = #{Dir.pwd}"

@@ -16,7 +16,9 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
   end
 
   test "validate" do
+    original_master_password = Panorama::Application.config.panorama_master_password
     Panorama::Application.config.panorama_master_password = 'not_hugo' # awr_ash_snapshot_cycle requires this
+    begin
     [
         { name: :user,                                value: nil},
         { name: :user,                                value: ''},
@@ -56,7 +58,9 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
         PanoramaSamplerConfig.validate_entry(config_hash)
       end
     end
-    Panorama::Application.config.panorama_master_password = 'hugo' # reset to previous value for next tests
+    ensure
+      Panorama::Application.config.panorama_master_password = original_master_password # reset to previous value for next tests
+    end
   end
 
   test "export JSON" do

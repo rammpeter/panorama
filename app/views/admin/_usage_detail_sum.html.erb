@@ -6,7 +6,7 @@
                  :controller  => :admin,                                    # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
                  :action      => :usage_detail_sum,
                  :groupkey    => groupkey,
-                 :filter      => @filter.merge({"#{@groupkey}" =>  rec.Groupkey}),
+                 :filter      => @filter.merge({@groupkey.to_sym => rec.Groupkey}),
                  :update_area => @update_area
                },
         :title=>"List details per #{groupkey}")
@@ -32,7 +32,7 @@
        ajax_link(value, {
                  :controller  => :admin,                                    # Default-URL-Prefix is already usage, so prevent URL usage/usage/action
                  :action      => :usage_single_record,
-                 :filter      => @filter.merge({"#{@groupkey}" =>  rec.Groupkey}),
+                 :filter      => @filter.merge({@groupkey.to_sym => rec.Groupkey}),
                  :update_area => @update_area
                },
         :title=>"Show single records per request execution")

@@ -234,7 +234,7 @@ class AdminController < ApplicationController
     # Check if valid IP address to avoid execution of arbitrary commands
     IPAddr.new(ip_address) rescue raise "Invalid IP address given"
 
-    output = "<h3>Info zu IP-Adresse #{ip_address}</h3>
+    output = "<h3>Info for IP-address #{ip_address}</h3>
 <h4>nslookup:</h4>
 #{my_html_escape `nslookup #{ip_address} `}
 <h4>nmblookup -A:</h4>
