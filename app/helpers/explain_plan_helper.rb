@@ -40,23 +40,35 @@ module ExplainPlanHelper
     end
   end
 
-  # Strip the calculated time down to single plan line
+  # Strip the calculated value down to single plan line
   # @param [Array] plan_array The list of plan lines
-  def calculate_elapsed_time_per_plan_line(plan_array)
-    if plan_array.length > 0 && plan_array[0]['elapsed_time']
-      times = {}
-      plan_array.each do |p|                                                    # get the sum of children's elapsed time
-        times[p.parent_id] = 0 unless times.has_key?(p.parent_id)
-        times[p.parent_id] += p.elapsed_time                                    # children's time to substract from line's elapsed time
-      end
-      plan_array.each do |p|
-        if times.has_key?(p.id)
-          p['elapsed_time_per_line'] = p.elapsed_time - times[p.id]
-          p['elapsed_time_per_line'] = 0 if p['elapsed_time_per_line'] < 0      # fix rounding issues
-        else
-          p['elapsed_time_per_line'] = p.elapsed_time
+  def calculate_values_per_plan_line(plan_array)
+    # Calculate the difference between parent and children for a column
+    calc_col = proc do |col_name|
+      if plan_array[0][col_name]                                                # Only calculate if column exists in the plan lines
+        children_sum = {}                                                       # Hash with sum of children values for each parent
+
+        plan_array.each do |p|                                                  # get the sum of children's value
+          children_sum[p.parent_id] = 0 unless children_sum.has_key?(p.parent_id)
+          children_sum[p.parent_id] += p[col_name]                              # children's time to substract from line's elapsed time
+        end
+        plan_array.each do |p|
+          if children_sum.has_key?(p.id)
+            p[col_name + '_per_line'] = p[col_name] - children_sum[p.id]
+            p[col_name + '_per_line'] = 0 if p[col_name + '_per_line'] < 0      # fix rounding issues
+          else
+            p[col_name + '_per_line'] = p[col_name]                             # without parent
+          end
         end
       end
+    end
+    
+    if plan_array.length > 0
+      calc_col.call('cr_buffer_gets')
+      calc_col.call('cu_buffer_gets')
+      calc_col.call('disk_reads')
+      calc_col.call('disk_writes')
+      calc_col.call('elapsed_time')
     end
   end
 

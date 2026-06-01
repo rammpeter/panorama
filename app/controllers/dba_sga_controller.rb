@@ -406,8 +406,11 @@ class DbaSgaController < ApplicationController
           p.Other_Tag, p.Other_XML, p.Other, Version_Orange_Count, Version_Red_Count, Child_Number,
           Depth, Access_Predicates, Filter_Predicates, Projection, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
           ID, Parent_ID, Executions, p.Search_Columns,
-          Last_Starts, Starts, Last_Output_Rows, Output_Rows, Last_CR_Buffer_Gets, CR_Buffer_Gets,
-          Last_CU_Buffer_Gets, CU_Buffer_Gets, Last_Disk_Reads, Disk_Reads, Last_Disk_Writes, Disk_Writes,
+          Last_Starts, Starts, Last_Output_Rows, Output_Rows,
+          Last_CR_Buffer_Gets, CR_Buffer_Gets,
+          Last_CU_Buffer_Gets, CU_Buffer_Gets,
+          Last_Disk_Reads, Disk_Reads,
+          Last_Disk_Writes, Disk_Writes,
           Last_Elapsed_Time/1000 Last_Elapsed_Time, Elapsed_Time/1000 Elapsed_Time,
           p.Cost, p.Cardinality, p.CPU_Cost, p.IO_Cost, p.Bytes, p.Partition_Start, p.Partition_Stop, p.Partition_ID, p.Time,
           p.Policy, p.Estimated_Optimal_Size, p.Estimated_Onepass_Size, p.Last_Memory_Used, p.Last_Execution, p.Last_Degree,
@@ -505,7 +508,7 @@ class DbaSgaController < ApplicationController
                                                    show_adaptive_plans:    @show_adaptive_plans
       )
       calculate_execution_order_in_plan(mp[:plans])                             # Calc. execution order by parent relationship
-      calculate_elapsed_time_per_plan_line(mp[:plans])                          # Strip the calculated time down to single plan line
+      calculate_values_per_plan_line(mp[:plans])                          # Strip the calculated time down to single plan line
       hint_usage_from_other_xml(mp[:plans])                                     # Extract hint usage from other_tag
     end
 
