@@ -47,16 +47,22 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
     @connection_users.each do |connection_user|                                 # Use different user for connect
       prepare_panorama_sampler_thread_db_config connection_user
       config = PanoramaConnection.get_threadlocal_config
+      original_management_pack_license = config[:management_pack_license]       # Save to restore after test, config is a reference on a global singleton
 
-      config[:management_pack_license] = :none
-      PanoramaConnection.set_connection_info_for_request(config)
-      # TODO: CDB_OR_DBA
-      #    assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'CDB_Hist_SQLStat' : 'DBA_Hist_SQLStat')
-      assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'DBA_Hist_SQLStat' : 'DBA_Hist_SQLStat')
+      begin
+        config[:management_pack_license] = :none
+        PanoramaConnection.set_connection_info_for_request(config)
+        # TODO: CDB_OR_DBA
+        #    assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'CDB_Hist_SQLStat' : 'DBA_Hist_SQLStat')
+        assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'DBA_Hist_SQLStat' : 'DBA_Hist_SQLStat')
 
-      config[:management_pack_license] = :panorama_sampler
-      PanoramaConnection.set_connection_info_for_request(config)
-      assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), "#{config[:panorama_sampler_schema]}.Panorama_SQLStat")
+        config[:management_pack_license] = :panorama_sampler
+        PanoramaConnection.set_connection_info_for_request(config)
+        assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), "#{config[:panorama_sampler_schema]}.Panorama_SQLStat")
+      ensure
+        config[:management_pack_license] = original_management_pack_license
+        PanoramaConnection.set_connection_info_for_request(config)
+      end
     end
   end
 
