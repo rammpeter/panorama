@@ -72,11 +72,13 @@ module ApplicationHelper
     ClientInfoStore.read_from_browser_tab_client_info_store(get_decrypted_client_key, @browser_tab_id, :current_database)
   end
 
+  @@set_cached_dbid_mutex = Mutex.new                                           # make set_cached_dbid an atomic operation
   def set_cached_dbid(dbid)                                                     # Current or previous DBID of connected database
-    Rails.logger.debug('ApplicationHelper.set_cached_dbid'){ "Chosen_dbid set = #{dbid}"}
-    @buffered_dbid = nil                                                        # throe away previous value
-    set_current_database(get_current_database.merge({chosen_dbid: dbid.to_i}))
-    # write_to_client_info_store(:dbid, dbid.to_i)
+    @@set_cached_dbid_mutex.synchronize do
+      Rails.logger.debug('ApplicationHelper.set_cached_dbid'){ "Chosen_dbid set = #{dbid}"}
+      @buffered_dbid = nil                                                      # throe away previous value
+      set_current_database(get_current_database.merge({chosen_dbid: dbid.to_i}))
+    end
   end
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
