@@ -83,6 +83,8 @@ module ApplicationHelper
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
     @buffered_dbid = get_current_database[:chosen_dbid] if !defined?(@buffered_dbid) || @buffered_dbid.nil?
+    Rails.logger.error('ApplicationHelper.get_dbid'){ "get_dbid returns nil! get_current_database = #{get_current_database}"} if @buffered_dbid.nil?
+    raise "ApplicationHelper.set_cached_dbid not set, see log file for reason." if @buffered_dbid.nil?
     @buffered_dbid
   end
 
