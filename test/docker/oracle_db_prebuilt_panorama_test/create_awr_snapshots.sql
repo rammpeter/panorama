@@ -33,7 +33,7 @@ DECLARE
 
   PROCEDURE Switch_Container(target_name IN VARCHAR2) IS
   BEGIN
-    IF target_name != Current_Container THEN
+    IF target_name <> Current_Container THEN
       EXECUTE IMMEDIATE 'ALTER SESSION SET container = '||target_name;
       Current_Container := target_name;
     END IF;
@@ -67,10 +67,10 @@ BEGIN
     SELECT Name INTO PDB_Name FROM v$Containers WHERE Name NOT IN ('CDB$ROOT', 'PDB$SEED');
 
     Create_AWR_Snapshots_Safe(Original_Container);
-    IF Original_Container != 'CDB$ROOT' THEN
+    IF Original_Container <> 'CDB$ROOT' THEN
       Create_AWR_Snapshots_Safe('CDB$ROOT');
     END IF;
-    IF PDB_Name != Original_Container THEN
+    IF PDB_Name <> Original_Container THEN
       Create_AWR_Snapshots_Safe(PDB_Name);
     END IF;
     Switch_Container(Original_Container);                                       -- restore original container
