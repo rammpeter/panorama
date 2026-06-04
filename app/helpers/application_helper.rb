@@ -76,7 +76,7 @@ module ApplicationHelper
   def set_cached_dbid(dbid)                                                     # Current or previous DBID of connected database
     @@set_cached_dbid_mutex.synchronize do
       Rails.logger.debug('ApplicationHelper.set_cached_dbid'){ "Chosen_dbid set = #{dbid}"}
-      @buffered_dbid = nil                                                      # throe away previous value
+      @buffered_dbid = nil                                                      # throw away previous value
       set_current_database(get_current_database.merge({chosen_dbid: dbid.to_i}))
     end
   end

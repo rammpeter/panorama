@@ -272,6 +272,7 @@ class ActiveSupport::TestCase
     all_awr_dbids.each do |awr_dbid|
       unless four_valid_snaps_found?(snaps)
         Rails.logger.debug('ActiveSupport::TestCase.initialize_min_max_snap_id_and_times') { "No four subsequent snapshots with same startup_time found for DBID=#{get_dbid}, trying alternative DBID=#{awr_dbid['dbid']} now." }
+        Raise "ActiveSupport::TestCase.initialize_min_max_snap_id_and_times: DBID is nil for awr_dbid = #{awr_dbid}" if awr_dbid['dbid'].nil?
         set_cached_dbid(awr_dbid['dbid'])                                       # Set this DBID as current chosen DBID for subsequent tests
         snaps = sql_select_first_row [two_snaps_sql, get_dbid]
       end
