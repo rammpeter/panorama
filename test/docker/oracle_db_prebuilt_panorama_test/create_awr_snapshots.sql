@@ -4,9 +4,11 @@ prompt Creating AWR snapshots. May last at least 5 minutes!
 SET SERVEROUTPUT ON;
 
 DECLARE
-  Dummy     NUMBER;
-  PDB_Name  VARCHAR2(30);
-  Is_PDB    NUMBER;
+  Dummy              NUMBER;
+  PDB_Name           VARCHAR2(30);
+  Is_PDB             NUMBER;
+  Current_Container  VARCHAR2(30);
+  Original_Container VARCHAR2(30);
 
   PROCEDURE Create_AWR_Snapshots(pdb_name IN VARCHAR2) IS
   BEGIN
@@ -29,7 +31,26 @@ DECLARE
     END LOOP;
   END Create_AWR_Snapshots;
 
+  PROCEDURE Switch_Container(target_name IN VARCHAR2) IS
+  BEGIN
+    IF target_name != Current_Container THEN
+      EXECUTE IMMEDIATE 'ALTER SESSION SET container = '||target_name;
+      Current_Container := target_name;
+    END IF;
+  END Switch_Container;
+
+  PROCEDURE Create_AWR_Snapshots_Safe(target_name IN VARCHAR2) IS
+  BEGIN
+    Switch_Container(target_name);
+    Create_AWR_Snapshots(target_name);
+  EXCEPTION
+    WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE('Skipping AWR snapshots for container='||target_name||' because of '||SQLERRM);
+  END Create_AWR_Snapshots_Safe;
+
 BEGIN
+  Current_Container  := SYS_CONTEXT('USERENV', 'CON_NAME');
+  Original_Container := Current_Container;
   Is_PDB := 0;                                                                  -- is not a PDB
   BEGIN
     EXECUTE IMMEDIATE 'SELECT COUNT(*) from v$pdbs' INTO Dummy;
@@ -39,18 +60,20 @@ BEGIN
   EXCEPTION
     WHEN OTHERS THEN NULL;
   END;
-
   IF Is_PDB =0 THEN
-    Create_AWR_Snapshots('Non-PDB');
+    Create_AWR_Snapshots(Original_Container);
   ELSE
     -- Assuming there is only one user container
     SELECT Name INTO PDB_Name FROM v$Containers WHERE Name NOT IN ('CDB$ROOT', 'PDB$SEED');
 
-    EXECUTE IMMEDIATE 'ALTER SESSION SET container = CDB$ROOT';  -- we are just in this container after sqlplus / as sysdba
-    Create_AWR_Snapshots('CDB$ROOT');
-    EXECUTE IMMEDIATE 'ALTER SESSION SET container = '||PDB_Name;
-    Create_AWR_Snapshots(PDB_Name);
-    EXECUTE IMMEDIATE 'ALTER SESSION SET container = CDB$ROOT';  -- restore to CDB$ROOT
+    Create_AWR_Snapshots_Safe(Original_Container);
+    IF Original_Container != 'CDB$ROOT' THEN
+      Create_AWR_Snapshots_Safe('CDB$ROOT');
+    END IF;
+    IF PDB_Name != Original_Container THEN
+      Create_AWR_Snapshots_Safe(PDB_Name);
+    END IF;
+    Switch_Container(Original_Container);                                       -- restore original container
   END IF;
 END;
 /
