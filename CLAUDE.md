@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Runtime Requirements
 
-- **JRuby 10.0.3.0** (requires Java 21+); use `chruby` or `ruby-install` to switch versions
+- **JRuby 10.1.0.0** (requires Java 21+); use `chruby` or `ruby-install` to switch versions
 - **Java 21+** (for development and running the app)
 - Oracle database accessible for real tests (see test env vars below)
 

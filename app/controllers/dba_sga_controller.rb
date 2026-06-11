@@ -137,8 +137,8 @@ class DbaSgaController < ApplicationController
                     c.Child_Count, c.Plans
                     #{modus=="GV$SQL" ? ", s.Child_Number, RAWTOHEX(s.Child_Address) Child_Address" : ", c.Child_Number, c.Child_Address, s.Version_Count" }
             FROM   #{modus} s
-            JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
-            JOIN Plans c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
+            LEFT OUTER JOIN DBA_USERS u ON u.User_ID = s.Parsing_User_ID
+            LEFT OUTER JOIN Plans c ON c.Inst_ID=s.Inst_ID AND c.SQL_ID=s.SQL_ID
             WHERE 1 = 1 -- damit nachfolgende Klauseln mit AND beginnen können
                 #{where_string}
                 #{" AND Rows_Processed>0" if top_sort == 'BufferGetsPerRow'}
@@ -2452,8 +2452,9 @@ END;
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
 --   - 'decription'  describe purpose of SQL-patch
 
--- ############# To establish SQL patch execute this as SYSDBA #############
--- on Pluggable database execute it connected to PDB, not CDB
+-- Execute this as SQL owner or SYSDBA
+-- On Pluggable database execute it connected to PDB, not CDB
+-- Keep in mind that the SQL cursor must be present in SGA (V$SQL) to create a SQL patch this way
 
 #{ "-- Drop already existing SQL-Patch for this SQL before applying new patch
 EXEC DBMS_SQLDiag.Drop_SQL_Patch('#{existing_patch_for_sql}');
