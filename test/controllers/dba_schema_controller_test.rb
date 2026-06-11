@@ -467,4 +467,118 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  test 'show_db_user_ddl' do
+    get '/dba_schema/show_db_user_ddl', params: {format: :html, username: @object_owner, update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_plsql_description' do
+    post '/dba_schema/list_plsql_description', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE', update_area: :hugo }
+    assert_response :success
+
+    post '/dba_schema/list_plsql_description', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE BODY', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_synonym' do
+    post '/dba_schema/list_synonym', params: {format: :html, owner: 'PUBLIC', object_name: 'V$SESSION', object_type: 'SYNONYM', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_view_description' do
+    post '/dba_schema/list_view_description', params: {format: :html, owner: 'SYS', object_name: 'DBA_USERS', object_type: 'VIEW', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_lob_subpartitions' do
+    if @edition == :enterprise && defined?(@lob_part_lob_name)
+      get '/dba_schema/list_lob_subpartitions', params: {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, lob_name: @lob_part_lob_name, update_area: :hugo }
+      assert_response :success
+    end
+  end
+
+  test 'list_histogram' do
+    # DBA_Tab_Col_Statistics has no Data_Type or Num_Rows — use DBA_Tab_Columns instead
+    col = sql_select_first_row ["SELECT c.Owner, c.Table_Name, c.Column_Name, c.Data_Type, t.Num_Rows, c.Histogram
+                                 FROM   DBA_Tab_Columns c
+                                 JOIN   DBA_Tables t ON t.Owner = c.Owner AND t.Table_Name = c.Table_Name
+                                 WHERE  c.Owner = 'SYS' AND c.Table_Name = 'AUD$' AND c.Histogram != 'NONE' AND RowNum < 2"]
+    if col
+      post '/dba_schema/list_histogram', params: {format: :html, owner: col.owner, table_name: col.table_name,
+                                                  column_name: col.column_name, data_type: col.data_type,
+                                                  num_rows: col.num_rows.to_i, histogram: col.histogram, update_area: :hugo }
+      assert_response :success
+    end
+
+    post '/dba_schema/list_histogram', params: {format: :html, owner: 'SYS', table_name: 'AUD$',
+                                                column_name: 'ACTION#', data_type: 'NUMBER',
+                                                num_rows: 0, histogram: 'NONE', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_dependency_grants' do
+    post '/dba_schema/list_dependency_grants', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'show_visual_references' do
+    get '/dba_schema/show_visual_references', params: {format: :html, owner: 'SYS', table_name: 'AUD$', update_area: :hugo }
+    assert_response :success
+
+    get '/dba_schema/show_visual_references', params: {format: :html, owner: 'SYS', table_name: 'AUD$', level: 2, direction: 'both', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'show_visual_dependencies' do
+    post '/dba_schema/show_visual_dependencies', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE', update_area: :hugo }
+    assert_response :success
+
+    post '/dba_schema/show_visual_dependencies', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: 'PACKAGE', level: 2, direction: 'R', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_audit_unified_policies' do
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        get '/dba_schema/list_audit_unified_policies', params: {format: :html, update_area: :hugo }
+        assert_response :success
+
+        get '/dba_schema/list_audit_unified_policies', params: {format: :html, object_type: 'TABLE', owner: 'SYS', object_name: 'AUD$', update_area: :hugo }
+        assert_response :success
+      end
+    end
+  end
+
+  test 'list_gather_table_historic' do
+    # DBMS_STATS.Get_Prefs raises ORA-06502 on Oracle Free for all tables — skip on that edition
+    skip 'DBMS_STATS.Get_Prefs not supported on Oracle Free edition' if @edition == :free
+    post '/dba_schema/list_gather_table_historic', params: {format: :html, owner: 'SYS', table_name: 'AUD$', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_gather_index_historic' do
+    # DBMS_STATS.Get_Prefs raises ORA-06502 on Oracle Free for all tables — skip on that edition
+    skip 'DBMS_STATS.Get_Prefs not supported on Oracle Free edition' if @edition == :free
+    idx = sql_select_first_row ["SELECT Owner, Index_Name FROM DBA_Indexes WHERE Owner = 'SYS' AND Last_Analyzed IS NOT NULL AND RowNum < 2"]
+    if idx
+      post '/dba_schema/list_gather_index_historic', params: {format: :html, owner: idx.owner, index_name: idx.index_name, update_area: :hugo }
+      assert_response :success
+    end
+  end
+
+  test 'render_audit_rules_button' do
+    get '/dba_schema/render_audit_rules_button', params: {format: :html, owner: 'SYS', object_name: 'AUD$', object_type: 'TABLE', update_area_button_action: :hugo, update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'list_distinct_values' do
+    post '/dba_schema/list_distinct_values', params: {format: :html, owner: @object_owner, table_name: @lob_table_name, column_name: 'ID', update_area: :hugo }
+    assert_response :success
+  end
+
+  test 'show_compression_check' do
+    get '/dba_schema/show_compression_check', params: {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, update_area: :hugo }
+    assert_response :success
+  end
 end
