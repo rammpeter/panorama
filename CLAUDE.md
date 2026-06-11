@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Workflow Rules
+
+- **Always ask for confirmation before running `git commit` or `git push`.**
+
 ## Project Overview
 
 **Panorama** is a web-based Oracle database performance analysis tool built with Rails 8 on JRuby 10. It is distributed as a standalone executable JAR (`Panorama.jar`) and as a Docker image. The app connects directly to Oracle databases at runtime — there are no migrations and no persistent local database.
