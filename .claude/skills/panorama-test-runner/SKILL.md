@@ -9,6 +9,27 @@ This skill helps run tests in the Panorama project — a Rails 8 / JRuby 10 app 
 
 ## Prerequisites
 
+### Colima (Docker runtime on macOS)
+
+Tests that spin up Docker containers (e.g. Oracle in a container) need a running Docker daemon. On macOS, Colima provides this. Check and start it before running tests:
+
+```bash
+# Check status
+colima status
+
+# Start if not running
+colima start
+```
+
+If `colima start` takes too long or you need a specific profile, use:
+```bash
+colima start --cpu 4 --memory 8
+```
+
+Docker commands (`docker ps`, `docker run`) will fail silently or with a socket error if Colima is stopped — always verify it's up first.
+
+### JRuby
+
 Tests require **JRuby 10.1.0.0** (needs Java 21+). Switch to it with `chruby jruby-10.1.0.0` if needed.
 
 Most tests need a live Oracle database configured via environment variables (see below). Tests that call `connect_oracle_db` will fail without one. Pure model/unit tests can run without a DB.
@@ -58,6 +79,7 @@ Tests for licensed Oracle features (Diagnostics Pack, Tuning Pack) may fail with
 
 ## Common failure patterns
 
+- **Docker socket error / `docker ps` fails** → Colima is not running. Run `colima start`.
 - **`connect_oracle_db` fails** → Oracle env vars not set or DB unreachable. Check `TEST_HOST`/`TEST_TNS`, `TEST_USERNAME`, `TEST_PASSWORD`.
 - **Wrong Ruby version** → JRuby 10.1.0.0 required. Run `ruby -v` and switch with `chruby`.
 - **Asset errors in integration tests** → Run `bundle exec rake assets:precompile` first.
