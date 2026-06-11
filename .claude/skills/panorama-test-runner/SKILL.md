@@ -28,6 +28,28 @@ colima start --cpu 4 --memory 8
 
 Docker commands (`docker ps`, `docker run`) will fail silently or with a socket error if Colima is stopped — always verify it's up first.
 
+### Oracle container "ora23.9"
+
+The standard local test database runs as a Docker container named `ora23.9` (Oracle Free 23.9, port 1521). Check and start it after Colima is running:
+
+```bash
+# Check if the container is running
+docker ps --filter "name=ora23.9" --format "{{.Names}} {{.Status}}"
+
+# If it shows nothing or "Exited", start it:
+docker start ora23.9
+```
+
+The container takes ~30–60 seconds to become ready after starting. Wait until the Oracle listener is accepting connections before running tests. You can poll readiness with:
+
+```bash
+until docker exec ora23.9 healthcheck.sh >/dev/null 2>&1; do sleep 5; done && echo "Oracle ready"
+# or simply wait and verify the port is open:
+until nc -z localhost 1521; do sleep 5; done && echo "Port 1521 open"
+```
+
+If the container doesn't exist at all (first time setup), it must be created from the prebuilt image — check the project's Docker setup documentation.
+
 ### JRuby
 
 Tests require **JRuby 10.1.0.0** (needs Java 21+). Switch to it with `chruby jruby-10.1.0.0` if needed.
@@ -80,6 +102,7 @@ Tests for licensed Oracle features (Diagnostics Pack, Tuning Pack) may fail with
 ## Common failure patterns
 
 - **Docker socket error / `docker ps` fails** → Colima is not running. Run `colima start`.
+- **`connect_oracle_db` fails but env vars are set** → Container `ora23.9` may be stopped. Run `docker start ora23.9` and wait ~60s.
 - **`connect_oracle_db` fails** → Oracle env vars not set or DB unreachable. Check `TEST_HOST`/`TEST_TNS`, `TEST_USERNAME`, `TEST_PASSWORD`.
 - **Wrong Ruby version** → JRuby 10.1.0.0 required. Run `ruby -v` and switch with `chruby`.
 - **Asset errors in integration tests** → Run `bundle exec rake assets:precompile` first.
