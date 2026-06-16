@@ -32,8 +32,8 @@
    view_options << {caption: 'Cont. default',     data: proc{|rec| rec.containers_default}, title: "Indicates whether the view is enabled for CONTAINERS() by default (YES) or not (NO)"} if get_db_version >= "12.1"
    view_options << {caption: 'Cont. map',         data: proc{|rec| rec.container_map}, title: "Indicates whether the view is enabled for use with the container_map database property (YES) or not (NO)"} if get_db_version >= "12.1"
    view_options << {caption: 'Ext. data link',    data: proc{|rec| rec.extended_data_link}, title: "IIndicates whether the view is enabled for fetching an extended data link from the root (YES) or not (NO)"} if get_db_version >= "12.1"
-   view_options << {caption: 'Sens. col.',        data: proc{|rec| rec.has_sensitive_column}, title: "Indicates whether the view has one or more sensitive columns (YES) or not (NO)"} if get_db_version >= "12.1"
-   view_options << {caption: 'Admit null',        data: proc{|rec| rec.admit_null},         title: "Indicates whether the view admits null CON_ID data (YES) or not (NO)"} if get_db_version >= "12.1"
+   view_options << {caption: 'Sens. col.',        data: proc{|rec| rec.has_sensitive_column}, title: "Indicates whether the view has one or more sensitive columns (YES) or not (NO)"} if get_db_version >= "18"
+   view_options << {caption: 'Admit null',        data: proc{|rec| rec.admit_null},         title: "Indicates whether the view admits null CON_ID data (YES) or not (NO)"} if get_db_version >= "19"
    view_options << {caption: 'Duality view',      data: proc{|rec| rec.duality_view},       title: "Indicates whether the view is a JSON-relational duality view (YES) or not (NO)"} if get_db_version >= "23.1"
 
 %>

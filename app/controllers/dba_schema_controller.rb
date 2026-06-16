@@ -3294,40 +3294,24 @@ class DbaSchemaController < ApplicationController
         LEFT OUTER JOIN DBA_Tab_Col_Statistics s ON s.Owner = e.Owner AND s.Table_Name = e.Table_Name AND s.Column_Name = e.Extension_Name
         WHERE  e.Owner = ? AND e.Table_Name = ?", @owner, @table_name]
 
-      @prefs = sql_select_all ["\
-        WITH prefs AS (SELECT 'APPROXIMATE_NDV_ALGORITHM' Name, 'REPEAT OR HYPERLOGLOG' Default_Value FROM DUAL UNION ALL
-                       SELECT 'AUTO_STAT_EXTENSIONS',           'OFF'                                 FROM Dual UNION ALL
-                       SELECT 'AUTO_TASK_STATUS',               'OFF'                                 FROM Dual UNION ALL
-                       SELECT 'AUTO_TASK_MAX_RUN_TIME',         '3600'                                FROM Dual UNION ALL
-                       SELECT 'AUTO_TASK_INTERVAL',             '900'                                 FROM Dual UNION ALL
-                       SELECT 'AUTOSTATS_TARGET',               'AUTO'                                FROM Dual UNION ALL
-                       SELECT 'CASCADE',                        'DBMS_STATS.AUTO_CASCADE'             FROM Dual UNION ALL
-                       SELECT 'CONCURRENT',                     'OFF'                                 FROM Dual UNION ALL
-                       SELECT 'DEGREE',                         'NULL'                                FROM Dual UNION ALL
-                       SELECT 'ESTIMATE_PERCENT',               'DBMS_STATS.AUTO_SAMPLE_SIZE'         FROM Dual UNION ALL
-                       SELECT 'GLOBAL_TEMP_TABLE_STATS',        'SESSION'                             FROM Dual UNION ALL
-                       SELECT 'GRANULARITY',                    'AUTO'                                FROM Dual UNION ALL
-                       SELECT 'INCREMENTAL',                    'FALSE'                               FROM Dual UNION ALL
-                       SELECT 'INCREMENTAL_LEVEL',              'PARTITION'                           FROM Dual UNION ALL
-                       SELECT 'INCREMENTAL_STALENESS',          'ALLOW_MIXED_FORMAT'                  FROM Dual UNION ALL
-                       SELECT 'METHOD_OPT',                     'FOR ALL COLUMNS SIZE AUTO'           FROM Dual UNION ALL
-                       SELECT 'NO_INVALIDATE',                  'DBMS_STATS.AUTO_INVALIDATE'          FROM Dual UNION ALL
-                       SELECT 'OPTIONS',                        'GATHER'                              FROM Dual UNION ALL
-                       SELECT 'PREFERENCE_OVERRIDES_PARAMETER', 'FALSE'                               FROM Dual UNION ALL
-                       SELECT 'PUBLISH',                        'TRUE'                                FROM Dual UNION ALL
-                       SELECT 'STALE_PERCENT',                  '10'                                  FROM Dual UNION ALL
-                       SELECT 'STAT_CATEGORY',                  'OBJECT_STATS, REALTIME_STATS'        FROM Dual UNION ALL
-                       SELECT 'TABLE_CACHED_BLOCKS',            '1'                                   FROM Dual UNION ALL
-                       SELECT 'WAIT_TIME_TO_UPDATE_STATS',      '15'                                  FROM DUAL
-                      )
-        SELECT *
-        FROM   (
-                SELECT p.Name, p.Default_Value, DBMS_Stats.Get_Prefs(p.Name, ?, ?) Value, DECODE(tp.Preference_Name, NULL, 'Y', 'N') Global
-                FROM   prefs p
-                LEFT OUTER JOIN DBA_Tab_Stat_Prefs tp ON tp.Owner = ? AND tp.Table_Name = ? AND tp.Preference_Name = p.Name
-               )
-        WHERE  Value != Default_Value
-      ", @owner, @table_name, @owner, @table_name]
+
+      prefs = sql_select_all ["\
+        WITH LocalStat AS (SELECT Preference_Name Name, Preference_Value Value
+                           FROM   DBA_Tab_Stat_Prefs
+                           WHERE  Owner = ? AND Table_Name = ?
+                          )
+        SELECT Name, Value, 'N' Global
+        FROM   LocalStat
+        UNION ALL
+        SELECT SName Name, NVL(Spare4, TO_CHAR(SVal1)) Value, 'Y' Global
+        FROM   sys.optstat_hist_control$
+        WHERE  SName NOT IN (SELECT Name FROM LocalStat)
+        ORDER BY Name
+      ", @owner, @table_name]
+    end
+
+    @prefs = prefs.select do |p|
+      dbms_stats_prefs_defaults[p.name] != p.value
     end
 
     render_partial

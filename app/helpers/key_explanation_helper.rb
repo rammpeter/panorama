@@ -1429,5 +1429,52 @@ module KeyExplanationHelper
     desc ? desc : "No description available for time model statistic \"#{stat_name}\""
   end
 
+  DBMS_STAT_PREFS_DEFAULTS = {
+    'ANDV_ALGO_INTERNAL_OBSERVE'  => 'FALSE',
+    'APPROXIMATE_NDV'             => 'TRUE',
+    'APPROXIMATE_NDV_ALGORITHM'   => 'REPEAT OR HYPERLOGLOG',
+    'AUTO_STAT_EXTENSIONS'        => 'OFF',
+    'AUTO_TASK_STATUS'            => 'OFF',
+    'AUTO_TASK_MAX_RUN_TIME'      => '3600',
+    'AUTO_TASK_INTERVAL'          => '900',
+    'AUTOSTATS_TARGET'            => 'AUTO',
+    'CASCADE'                     => 'DBMS_STATS.AUTO_CASCADE',
+    'COORDINATOR_TRIGGER_SHARD'   => 'FALSE',
+    'CONCURRENT'                  => 'OFF',
+    'DEBUG'                       => '0',
+    'DEGREE'                      => 'NULL',
+    'ENABLE_HYBRID_HISTOGRAMS'    => '3',
+    'ENABLE_TOP_FREQ_HISTOGRAMS'  => '3',
+    'ESTIMATE_PERCENT'            => 'DBMS_STATS.AUTO_SAMPLE_SIZE',
+    'GATHER_AUTO'                 => 'AFTER_LOAD',
+    'GATHER_SCAN_RATE'            => 'HADOOP_ONLY',
+    'GLOBAL_TEMP_TABLE_STATS'     => 'SESSION',
+    'GRANULARITY'                 => 'AUTO',
+    'INCREMENTAL'                 => 'FALSE',
+    'INCREMENTAL_INTERNAL_CONTROL' => 'TRUE',
+    'INCREMENTAL_LEVEL'           => 'PARTITION',
+    'INCREMENTAL_STALENESS'       => 'ALLOW_MIXED_FORMAT',
+    'JOB_OVERHEAD'                => '-1',
+    'JOB_OVERHEAD_PERC'           => '1',
+    'MAINTAIN_STATISTICS_STATUS'  => 'FALSE',
+    'METHOD_OPT'                  => 'FOR ALL COLUMNS SIZE AUTO',
+    'NO_INVALIDATE'               => 'DBMS_STATS.AUTO_INVALIDATE',
+    'OPTIONS'                     => 'GATHER',
+    'PREFERENCE_OVERRIDES_PARAMETER' => 'FALSE',
+    'PUBLISH'                     => 'TRUE',
+    'ROOT_TRIGGER_PDB'            => 'FALSE',
+    'SCAN_RATE'                   => '0',
+    'SPD_RETENTION_WEEKS'         => '53',
+    'STALE_PERCENT'               => '10',
+    'STAT_CATEGORY'               => 'OBJECT_STATS, REALTIME_STATS',
+    'STATS_RETENTION'             => '5',
+    'SYS_FLAGS'                   => '1',
+    'TABLE_CACHED_BLOCKS'         => '1',
+    'TRACE'                       => '0',
+    'WAIT_TIME_TO_UPDATE_STATS'   => '15'
+  }
+  def dbms_stats_prefs_defaults
+    DBMS_STAT_PREFS_DEFAULTS
+  end
 
 end

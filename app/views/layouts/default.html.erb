@@ -13,7 +13,13 @@
   <title>Panorama</title>
   <%= stylesheet_link_tag "application", media: "all" %>
 
-  <%= javascript_include_tag "application" %>
+  <!--
+    Direct script tag to ensure that the application.js is loaded completely each time the server was restarted
+    because Win11 sometimes does not load the application.js completely and then the page is not rendered correctly.
+    javascript_include_tag "application"
+  -->
+  <script src="<%= asset_path('application.js') %>?reload=<%= Panorama::BOOT_ID %>"></script>
+
   <!-- rails requires an authenticity token to do form posts back to the server.
        This helps protect your site against CSRF attacks.
        In order to handle this requirement the driver looks for two meta tags that must be defined in your page's head.
