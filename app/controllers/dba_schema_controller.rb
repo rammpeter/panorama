@@ -2595,7 +2595,12 @@ class DbaSchemaController < ApplicationController
     end
 
     @audit_unified_enabled_policies = sql_select_all ["\
-        WITH Enabled AS (SELECT Policy_Name, Enabled_Option, Entity_Name, Entity_Type, Success, Failure FROM Audit_Unified_Enabled_Policies),
+        WITH Enabled AS (SELECT Policy_Name,
+                                #{'Enabled_Opt ' if get_db_version < '18'}Enabled_Option,
+                                #{'User_Name ' if get_db_version < '18'}Entity_Name,
+                                #{'NULL ' if get_db_version < '18'}Entity_Type,
+                                Success, Failure
+                          FROM Audit_Unified_Enabled_Policies),
              Policies AS (SELECT Policy_Name, COUNT(*) Policy_Count
                                  #{get_db_version >= '19.11' ? ", COUNT(DISTINCT Oracle_Supplied) Oracle_Supplied_Cnt, MIN(Oracle_Supplied) Min_Oracle_Supplied" : ", 0 Oracle_Supplied_Cnt, NULL Min_Oracle_Supplied" }
                           FROM   Audit_Unified_Policies p
@@ -2707,7 +2712,13 @@ class DbaSchemaController < ApplicationController
               COUNT(DISTINCT CASE WHEN e.Success        IS NULL THEN 'Off' ELSE e.Success        END) Success_Cnt,              MIN(e.Success)            Min_Success,
               COUNT(DISTINCT CASE WHEN e.Failure        IS NULL THEN 'Off' ELSE e.Failure        END) Failure_Cnt,              MIN(e.Failure)            Min_Failure
         FROM   Audit_Unified_Policies p
-        LEFT OUTER JOIN Audit_Unified_Enabled_Policies e ON e.Policy_Name = p.Policy_Name
+        LEFT OUTER JOIN (SELECT Policy_Name,
+                                #{'Enabled_Opt ' if get_db_version < '18'}Enabled_Option,
+                                #{'User_Name ' if get_db_version < '18'}Entity_Name,
+                                #{'NULL ' if get_db_version < '18'}Entity_Type,
+                                Success, Failure
+                         FROM   Audit_Unified_Enabled_Policies
+                        ) e ON e.Policy_Name = p.Policy_Name
         #{where_string}
         GROUP BY Audit_Option, Audit_Option_Type
         ORDER BY Audit_Option
@@ -2762,7 +2773,13 @@ class DbaSchemaController < ApplicationController
     @policies = sql_select_iterator ["\
       SELECT p.*, e.Enabled_Option, e.Entity_Name, e.Entity_Type, e.Success, e.Failure
       FROM   Audit_Unified_Policies p
-      LEFT OUTER JOIN Audit_Unified_Enabled_Policies e ON e.Policy_Name = p.Policy_Name
+      LEFT OUTER JOIN (SELECT Policy_Name,
+                              #{'Enabled_Opt ' if get_db_version < '18'}Enabled_Option,
+                              #{'User_Name ' if get_db_version < '18'}Entity_Name,
+                              #{'NULL ' if get_db_version < '18'}Entity_Type,
+                              Success, Failure
+                       FROM   Audit_Unified_Enabled_Policies
+                      ) e ON e.Policy_Name = p.Policy_Name
       #{where_string}
       ORDER BY p.Policy_Name, p.Object_Schema, p.Object_Name, p.Audit_Option"].concat(where_values)
     render_partial
