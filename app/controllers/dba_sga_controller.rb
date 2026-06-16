@@ -1054,6 +1054,8 @@ class DbaSgaController < ApplicationController
                          AND s.Plan_Hash_Value = p.Plan_Hash_Value
                          AND s.Inst_ID         = p.Inst_ID
                          AND s.Child_Number    = p.Child_Number
+       LEFT OUTER JOIN DBA_Indexes ix ON  ix.Owner      = p.Object_Owner
+                                      AND ix.Index_Name = p.Object_Name
        /* Show the possible parent table access line of an index access */
        LEFT OUTER JOIN gV$SQL_Plan pp ON  pp.Inst_ID          = p.Inst_ID
                                       AND pp.SQL_ID           = p.SQL_ID
@@ -1065,7 +1067,7 @@ class DbaSgaController < ApplicationController
                                       AND p.Operation         LIKE 'INDEX%'
                                       AND (p.Options LIKE 'RANGE SCAN%' OR p.Options LIKE 'SKIP SCAN%')
                                       /* Ensure that the parent line is an table access for the table of the index */
-                                      AND pp.Object_Name = (SELECT i.Table_Name FROM DBA_Indexes i WHERE i.Owner = p.Object_Owner AND i.Index_Name = p.Object_Name)
+                                      AND pp.Object_Name = ix.Table_Name
        WHERE #{wherestr}
        ORDER BY s.Elapsed_Time DESC"].concat whereval
 
