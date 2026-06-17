@@ -2127,7 +2127,7 @@ class DbaSchemaController < ApplicationController
               START WITH Referenced_Owner = ?
                      AND Referenced_Name  = ?
              ) d
-      JOIN   DBA_Tab_Privs p ON p.Owner = d.Owner AND p.Table_Name = d.Name AND p.Type = d.Type
+      JOIN   DBA_Tab_Privs p ON p.Owner = d.Owner AND p.Table_Name = d.Name #{"AND p.Type = d.Type" if get_db_version >= '12.1'}
       LEFT OUTER JOIN DBA_Users u ON u.UserName = p.Grantee
       LEFT OUTER JOIN DBA_Roles r ON r.Role = p.Grantee
     ",  @owner, @object_name]
