@@ -189,6 +189,13 @@ module Panorama
     # Addition 2018-09-01 Find fonts in asset pipeline. Location in vendor/assets does not function
     config.assets.paths << Rails.root.join("app", "assets", "fonts")
 
+    # Minify JavaScript at asset precompile time.
+    # Terser is required (not Uglifier) because the app's JS uses ES6 (const, arrow functions, template literals).
+    # Set globally so it applies regardless of the RAILS_ENV used by build_jar.sh during assets:precompile.
+    # Runs only at precompile; with config.assets.compile = false it is never invoked at runtime.
+    # ExecJS uses Node.js on the build machine as the JS runtime (build-time dependency only).
+    config.assets.js_compressor = :terser
+
     # Don't disable submit button after click
     config.action_view.automatically_disable_submit_tag = false
 

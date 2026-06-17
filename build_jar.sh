@@ -27,6 +27,11 @@ then
   # bundle install --jobs 4
   bundle install --jobs 4 || echo "############# parallel bundle install failed ! Trying serial" && bundle install
   echo "Compile assets"
+  node -v >/dev/null
+  if [ $? -ne 0 ]; then
+    echo "Node.js is not installed but needed by terser. Please install Node.js to compile assets."
+    exit 1
+  fi
   bundle exec rake assets:precompile
   if [ $? -ne 0 ]
   then

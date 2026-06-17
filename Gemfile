@@ -75,6 +75,11 @@ group :development do
   # Use SCSS for stylesheets
   gem 'sass-rails', '>= 6'
 
+  # JavaScript minification at asset precompile time (config.assets.js_compressor = :terser).
+  # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
+  # (not bundled into the JAR, since assets are already precompiled there).
+  gem 'terser'
+
   # Needed to build executable lock_jars for jar-dependencies
   # gem 'ruby-maven', '~> 3.9'
 
