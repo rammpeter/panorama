@@ -75,11 +75,6 @@ group :development do
   # Use SCSS for stylesheets
   gem 'sass-rails', '>= 6'
 
-  # JavaScript minification at asset precompile time (config.assets.js_compressor = :terser).
-  # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
-  # (not bundled into the JAR, since assets are already precompiled there).
-  gem 'terser'
-
   # Needed to build executable lock_jars for jar-dependencies
   # gem 'ruby-maven', '~> 3.9'
 
@@ -109,6 +104,14 @@ group :test do
   # gem 'minitest', '5.26.0'  # Rel. 6.0.1 causes ArgumentError: wrong number of arguments (given 3, expected 1..2) at minitest-6.0.1/lib/minitest.rb:472
   # Probem fixed by change minitest.rb:472 "run self, method_name, reporter" to "Runnable.run self, method_name, reporter"
   # https://github.com/minitest/minitest/issues/1063
+
+end
+
+group :development, :test do
+  # JavaScript minification at asset precompile time (config.assets.js_compressor = :terser).
+  # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
+  # (not bundled into the JAR, since assets are already precompiled there).
+  gem 'terser'
 
 end
 
