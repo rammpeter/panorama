@@ -57,7 +57,12 @@ Rails.application.configure do
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
-  config.assets.debug = true
+  # NOTE: Disabled because sprockets 4.2.2 raises
+  #   "undefined method '[]' for nil" in SourceMapProcessor#call (line 41)
+  # when generating per-asset source maps for assets whose metadata[:map] is nil
+  # (e.g. some SCSS assets). Re-enable only after upgrading sprockets to a
+  # version that handles a nil source map gracefully.
+  config.assets.debug = false
 
   # Suppress logger output for asset requests.
   config.assets.quiet = true
