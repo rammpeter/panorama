@@ -67,7 +67,7 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
 
   test "min_awr_interval" do
     # Ensure that structures are existing
-    PanoramaSamplerStructureCheck.do_check(@sampler_config, :AWR) if PanoramaConnection.management_pack_license == :panorama_sampler
+    #     PanoramaSamplerStructureCheck.do_check(@sampler_config, :AWR) if PanoramaConnection.management_pack_license == :panorama_sampler
 
     value = PanoramaConnection.min_awr_interval
     assert(value.is_a?(Integer), log_on_failure("min_awr_interval should return an Integer, but returned #{value.class}"))

@@ -127,6 +127,12 @@ class ActiveSupport::TestCase
   setup do
     @test_start_time = Time.now
     Rails.logger.info('ActiveSupport::TestCase.setup') { "#{@test_start_time} : start of test #{self.class}.#{self.name}" } # set timestamp in test.logs
+
+    if management_pack_license == :panorama_sampler && (!defined?(@@awr_sampler_ensured) || !@@awr_sampler_ensured)
+      @@awr_sampler_ensured = true                                      # ensure that AWR Sampler is only ensured once per test class run, because it is time consuming
+      # Ensure that especially PANORAMA_SNAPSHOT exists as precondition for several tests
+      PanoramaSamplerStructureCheck.do_check(prepare_panorama_sampler_thread_db_config, :AWR)         # Ensure that structures are existing
+    end
   end
 
   teardown do
