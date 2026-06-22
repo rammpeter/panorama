@@ -3,6 +3,15 @@
 <% @modus = "GV$SQLArea" # Ab jetzt Summen-Info anzeigen%>
 <%= render :partial=>"list_sql_sga_stat" %>
 
+<%=
+  render_async(:dba_sga, :list_pga_sql_workareas, {
+    sql_id:    @sql.sql_id,
+    child_no:  nil,
+    update_area: @update_area
+  })
+%>
+
+
 <% @modus = "GV$SQLArea" # Ab jetzt wieder Summen-Info anzeigen%>
 <%= render :partial=>"list_sql_sga_stat_footer" %>
 

@@ -43,7 +43,7 @@
    column_options << {:caption=>"Logon time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"}
    column_options << {:caption=>"Service name",   :data=>proc{|rec| rec.service_name},    :title=>"Name of TNS service"}
    column_options << {:caption=>"Enc.",           :data=>proc{|rec| "#{rec.network_encryption} #{rec.network_checksumming}"}, :title=>"Use of network encryption and checksumming?\nBased on gv$Session_Connect_Info.Network_Service_Banner", data_title: proc{|rec| "%t\n\nNetwork service banners =\n#{rec.network_service_banners}"}}
-   column_options << {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"}
+   column_options << {:caption=>"Last active / inactive switch",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"If the session STATUS is currently ACTIVE, then the value represents the timestamp where the session has become active.\n\nIf the session STATUS is currently INACTIVE, then the value represents the timestamp where the session has become inactive."}
    column_options << {:caption=>'Tx. ID',         :data=>link_tx_id,                      :title=>"Transaction-ID if session has an active transaction", data_title: tx_id_data_title}
    column_options << {:caption=>'Auth. type',     :data=>proc{|rec| rec.authentication_type}, :title=>'How the user was authenticated. See V$SESSION_CONNECT_INFO.Authentication_Type'}
    column_options << {:caption=>'Client char set',     :data=>proc{|rec| rec.client_charset},     :title=>'Client character set as specified in the NLS_LANG environment variable or in the OCIEnvNlsCreate() call; Unknown if the Oracle client is older than release 11.1 or the connection is through the JDBC thin driver'} if get_db_version >= '11.2'
@@ -87,7 +87,7 @@
        {:caption=>"Process",        :data=>proc{|rec| rec.process},         :title=>"Client process ID"},
        {:caption=>"Program",        :data=>proc{|rec| rec.program},         :title=>"Client program"},
        {:caption=>"Logon-time",     :data=>proc{|rec| localeDateTime(rec.logon_time)},  :title=>"Logon-time of session"},
-       {:caption=>"Last active start",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"Start of last ACTIVE-phase"},
+       {:caption=>"Last active / inactive switch",:data=>proc{|rec| localeDateTime(rec.last_call)}, :title=>"If the session STATUS is currently ACTIVE, then the value represents the timestamp where the session has become active.\n\nIf the session STATUS is currently INACTIVE, then the value represents the timestamp where the session has become inactive."},
      ]
 
     %>

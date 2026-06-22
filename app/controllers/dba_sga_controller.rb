@@ -602,19 +602,6 @@ class DbaSgaController < ApplicationController
     @sql_statement        = get_sga_sql_statement(@instance, @sql_id)
     @sql_bind_count       = get_sql_bind_count(@instance, @sql_id, @child_number, @child_address)
     @execution_plan_count, @plan_object_count = get_execution_plan_count(@instance, @sql_id, @child_number, @child_address)
-
-    # PGA-Workarea-Nutzung
-    @workareas = sql_select_all ["\
-      SELECT /* Panorama Ramm */ w.*,
-             s.Serial# Serial_No,
-             sq.Serial# QCSerial_No
-      FROM   gv$SQL_Workarea_Active w
-      JOIN   gv$Session s ON s.Inst_ID=w.Inst_ID AND s.SID=w.SID
-      LEFT OUTER JOIN gv$Session sq ON sq.Inst_ID=w.QCInst_ID AND sq.SID=w.QCSID
-      WHERE  w.SQL_ID = ?
-      ORDER BY w.QCSID, w.SID
-      ",  @sql_id]
-
     @open_cursors         = get_open_cursor_count(@instance, @sql_id)
 
     if @sql
@@ -699,6 +686,29 @@ class DbaSgaController < ApplicationController
     end
 
     render_partial :list_sql_detail_sql_id
+  end
+  def list_pga_sql_workareas
+    @sql_id       = prepare_param :sql_id
+    @child_number = prepare_param_int :child_number
+    @update_area  = prepare_param :update_area    # render subviews in the given area
+
+    # PGA-Workarea-Nutzung
+    @workareas = sql_select_all ["\
+    SELECT /* Panorama Ramm */ w.*,
+           s.Serial# Serial_No,
+           s.SQL_Child_Number,
+           s.Status,
+           SYSDATE - s.Last_Call_ET/86400 Last_Call,
+           sq.Serial# QCSerial_No
+    FROM   gv$SQL_Workarea_Active w
+    JOIN   gv$Session s ON s.Inst_ID=w.Inst_ID AND s.SID=w.SID
+    LEFT OUTER JOIN gv$Session sq ON sq.Inst_ID=w.QCInst_ID AND sq.SID=w.QCSID
+    /* s.SQL_Child_Number is valid / not null only during execution of the SQL. The workarea may remain until close of cursor. */
+    WHERE  w.SQL_ID = ?#{" AND (s.SQL_Child_Number IS NULL OR s.SQL_Child_Number = ?)" if @child_number}
+    ORDER BY w.QCSID, w.SID
+    ",  @sql_id].concat(@child_number.nil? ? [] : [@child_number])
+
+    render_partial :list_pga_sql_workareas
   end
 
   def list_sql_child_cursors
