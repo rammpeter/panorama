@@ -2392,6 +2392,7 @@ Oldest remaining ASH record in SGA is from #{localeDateTime(min_ash_time)} but c
               FROM   (
                       SELECT Inst_ID, SQL_ID,
                              COUNT(DISTINCT SQL_Child_Number) SQL_Child_Count,
+                             MIN(SQL_Child_Number)        Min_SQL_Child_Number,
                              COUNT(*) Wait_Time_Secs,
                              COUNT(DISTINCT QInst_ID||','||QSession_ID||','||QSession_Serial_No) Sessions,
                              COUNT(DISTINCT PQ_Session)   PQ_Sessions,

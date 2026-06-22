@@ -81,9 +81,10 @@
 
   link_sql_sql = proc do |rec|
     link_sql_id(@update_area, rec.inst_id, rec.sql_id,
-                additional_onclick_js: refresh_off,
-                time_selection_start: localeDateTime(rec.first_occurrence),
-                time_selection_end:   localeDateTime(rec.last_occurrence)
+                childno:                rec.sql_child_count == 1 ? rec.min_sql_child_number : nil,
+                additional_onclick_js:  refresh_off,
+                time_selection_start:   localeDateTime(rec.first_occurrence),
+                time_selection_end:     localeDateTime(rec.last_occurrence)
     )
   end
 
