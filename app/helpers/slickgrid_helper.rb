@@ -18,7 +18,7 @@ module SlickgridHelper
     # content.gsub(%r{</?[^>]+?>}, '').
     #    gsub('&nbsp;', ' ').
     #    gsub('&amp;', '&')
-    content.gsub('&nbsp;', ' ').gsub('&amp;', '&')
+    content&.gsub('&nbsp;', ' ')&.gsub('&amp;', '&')
   end
 
   def internal_escape(input)
@@ -77,7 +77,16 @@ module SlickgridHelper
         #   full_cell_value     Wert der Zelle in dataContext['metadata']['columns'][columnDef['field']['fulldata'], sonst identisch mit cell_value
         #   columnDef:    Spaltendefinition
         #   dataContext:  komplette Zeile aus data-Array
-        output << " field_decorator_function: function(slickGrid, row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{col[:field_decorator_function]}}," if col[:field_decorator_function]
+        if col[:field_decorator_function]
+          body = if col[:field_decorator_function].is_a?(String)
+                   col[:field_decorator_function]
+                 elsif col[:field_decorator_function].is_a?(Proc)
+                   col[:field_decorator_function].call
+                 else
+                   raise "Unsupported type #{col[:field_decorator_function].class} for field_decorator_function"
+                 end
+          output << " field_decorator_function: function(slickGrid, row_no, cell_no, cell_value, full_cell_value, columnDef, dataContext){ #{body}},"
+        end
 
         output << ' plot_master_time: 1,'           if col[:plot_master_time]
         output << " max_wrap_width_allowed: #{col[:max_wrap_width]}," if col[:max_wrap_width]
@@ -101,10 +110,17 @@ module SlickgridHelper
     output
   end
 
+  def prepare_command_menu_entries(command_menu_entries)
+    command_menu_entries.each do |entry|
+      entry[:action] = entry[:action]&.gsub("\n", '\\n')&.gsub('"', "&quot;")&.gsub("'", '&#39;')
+    end
+    command_menu_entries.to_json
+  end
+
   def prepare_js_global_options_for_slickgrid(table_id, global_options)
     output = '{'.dup
     output << "\n  caption:                 '#{global_options[:caption]}',"
-    output << "\n  command_menu_entries:    #{global_options[:command_menu_entries].to_json},"    if global_options[:command_menu_entries]
+    output << "\n  command_menu_entries:    #{prepare_command_menu_entries(global_options[:command_menu_entries])},"    if global_options[:command_menu_entries]
     output << "\n  data_filter:             #{global_options[:data_filter]},"      if global_options[:data_filter]
     output << "\n  line_height_single:      #{global_options[:line_height_single]},"
     output << "\n  locale:                  '#{get_locale}',"
@@ -339,8 +355,9 @@ module SlickgridHelper
           metadata << "style:    '#{escape_js_chars style}',"    if style && style != ''
           metadata << "fulldata: '#{escape_js_chars celldata}'," if celldata != stripped_celldata  # fulldata nur speichern, wenn html-Tags die Zell-Daten erweitern
           metadata << "pct_total_value: #{col[:pct_total_value].call(rec)}," if col[:pct_total_value]  # show pct as transparent fill level
-          metadata << '},'
+          metadata << "},\n"
         end
+        output << " \n"
       end
       output << "\nmetadata: { columns: { #{metadata} } }," if metadata != ''
       output << "},\n"
@@ -349,7 +366,7 @@ module SlickgridHelper
 
     output << "var options = #{prepare_js_global_options_for_slickgrid(table_id, global_options)};"      # Global Options definieren
     output << "var columns = #{prepare_js_columns_for_slickgrid(table_id, column_options)};"      # JS-columns definieren
-
+    output << "\n"
     ################### Context-Menu ########################
     output << "let additional_menu_entries = ["
     context_menu_entries = global_options[:context_menu_entries]
