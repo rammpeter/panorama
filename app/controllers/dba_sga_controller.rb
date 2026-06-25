@@ -1718,7 +1718,7 @@ class DbaSgaController < ApplicationController
     @sql_handle = prepare_param :sql_handle
     @plan_name  = prepare_param :plan_name
 
-    baselines = sql_select_all ["SELECT Plan_Table_Output FROM TABLE(DBMS_XPLAN.display_sql_plan_baseline(?, ?))", @sql_handle, @plan_name]
+    baselines = sql_select_all ["SELECT Plan_Table_Output FROM TABLE(DBMS_XPLAN.display_sql_plan_baseline(?, ?, format=>'ADVANCED'))", @sql_handle, @plan_name]
     @baseline = String.new
     baselines.each do |b|
       @baseline << my_html_escape(b.plan_table_output)
