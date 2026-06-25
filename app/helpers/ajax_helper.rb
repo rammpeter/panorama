@@ -33,52 +33,66 @@ module AjaxHelper
   end
 
   # render menu button with submenu
+  # @param [Array] command_array Array of Hash
+  #             Array of Hashes with commands for list, Keys:
+  #                 :name,
+  #                 :caption,
+  #                 :hint,
+  #                 :icon_class,
+  #                 :icon_style,
+  #                 :action (JS-function)
+  #             Add separator like this:
+  #               { name: :separator },
+  #             Add submenu: { entries: [{ :name ...}]}
+
+  # @return [String] the prepared html
   def render_command_array_menu(command_array)
+    print_entry_list = proc do |entries|
+      items = []        # Javascript notation for single object element without trailing komma
+      entries.each do |entry|
+        item = String.new
+        if entry[:name] == :separator
+          item << "separator_#{entry[:caption]}: { name: '---' }"
+        else
+          lf_sq_escape = proc do |text|
+            text&.gsub("\n", '-LINEFEED-')&.gsub("'", "-SINGLEQUOTE-")
+          end
+
+          item << "#{entry[:name]}: {
+                     name: \"<span class='#{entry[:icon_class]}' style='float:left'></span><span title='#{lf_sq_escape.call(entry[:hint])}'>&nbsp;#{lf_sq_escape.call(entry[:caption])}</span>\",
+                     isHtmlName: true,\n"
+          if entry[:entries]
+            item << "    items: [\n"
+            item << print_entry_list.call(entry[:entries])
+            item << "    ]\n"
+          else
+            # item << "callback: function(){ alert('HUGO'); }\n"
+            item << "callback: function(){ #{entry[:action].gsub("\n", '-LINEFEED-')} }\n"
+          end
+          item << "}"
+        end
+        items << item
+      end
+      items.join(",\n")
+    end
+
+    items_string = "{\n" + print_entry_list.call(command_array) + "\n}"
+
     output = String.new
     div_id = get_unique_area_id                                                 # Basis for DOM-IDs
+    # Use workaround for escaping backticks between Ruby and JS with own keyword
+    click_func = "\
+  render_command_array_menu('#{div_id}', event, `#{items_string&.gsub('`', '-BACKTICK-')}`);
+  return true;
+"
+    click_func.gsub!('"') { '\&quot;' }
+
     output << "<span style=\"margin-left:5px;   \" class=\"slick-shadow\" >"
-    output << "<span id=\"#{div_id}\" style=\"padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer; \">"
+    output << "<span id=\"#{div_id}\" style=\"padding-left: 10px; padding-right: 10px; background-color: #E0E0E0; cursor: pointer; \" onclick=\"#{click_func}\">"
     output << "\u2261" # 3 waagerechte Striche ≡
     output << "</span></span>"
     output << "&nbsp;\n"   # Space before following icons
-    # Construction context-menu
-    output << "<script type=\"text/javascript\">\n"
-
-    output << "jQuery(\"##{div_id}\").bind('click' , function( event) {
-                                jQuery(\"##{div_id}\").trigger(\"contextmenu\", event);
-                                return false;
-                    });\n"
-    output << "\jQuery('##{div_id}').parent().contextMenu({
-                                           selector: '##{div_id}',
-                                           build: function ($trigger, e) {
-                let items = {};\n"
-
-    print_entry_list = proc do |entries|
-      entries.each do |entry|
-        if entry[:name] == :separator
-          output << "items['separator_#{entry[:caption]}'] = { name: '---' };\n"
-        else
-          output << "items['#{entry[:name]}'] = {
-                     name: \"<span class='"+entry[:icon_class]+"' style='float:left'></span><span title='"+entry[:hint].gsub(/\n/, '\n')+ "'>&nbsp;"+entry[:caption]+"</span>\",
-                     isHtmlName: true,\n"
-          if entry[:entries]
-            output << "    items: [\n"
-            print_entry_list.call(entry[:entries])
-            output << "    ]\n"
-          else
-            output << "callback: function(){ #{entry[:action]} }\n"
-          end
-          output << "};\n"
-        end
-      end
-    end
-
-    print_entry_list.call(command_array)
-
-    output << "return {items: items};\n"
-    output << "}});\n"
-    output << "</script>\n"
-    output.html_safe
+    output
   end
 
   # Render header line with caption
@@ -112,7 +126,7 @@ module AjaxHelper
             output << "&nbsp;&nbsp;<span style=\"font-size: larger; border-left: 1px solid #000; height: 100%;\"></span>&nbsp;"
           else
             output << "<div style=\"margin-left:5px; margin-top:4px; cursor: pointer; display: inline-block;#{cmd[:icon_style]}\"
-                          title=\"#{cmd[:hint]}\" onclick=\"#{ cmd[:action].gsub('"', '&quot;') }\">
+                          title=\"#{cmd[:hint]}\" onclick=\"#{ cmd[:action].gsub('"', '&quot;').gsub("\n", '\\n') }\">
                        <span class=\"#{cmd[:icon_class]}\"></span>
                      </div>"
           end
