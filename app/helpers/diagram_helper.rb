@@ -131,7 +131,8 @@ module DiagramHelper
       output << "options.plotselected_handler = #{plotselected_handler};"
     end
 
-    output << "plot_diagram('#{unique_area_id}', '#{plot_area_id}', '#{caption}', data_array, options);"
+    # Use backticks for text enclosure to allow single and double quotes in text like caption
+    output << "plot_diagram('#{unique_area_id}', '#{plot_area_id}', `#{caption}`, data_array, options);"
 
     output << "});"
 

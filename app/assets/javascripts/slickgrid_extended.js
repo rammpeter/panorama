@@ -1143,36 +1143,46 @@ class SlickGridExtended {
                     return false;
                 });
 
-                jQuery('#' + command_menu_id).parent().contextMenu({
-                    selector: 'div',
-                    build: function ($trigger, _e) {
-                        let command_menu_items = {};
+                let command_menu_items = {};
 
-                        function create_command_menu_entries(local_items, entry_array){
-                            for (const entry of entry_array){
-                                if (entry.show_icon_in_caption !== 'only' && entry.show_icon_in_caption !== 'right') {
-                                    let new_item = {
-                                        name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
-                                        isHtmlName: true,
-                                    };
-                                    if (entry.items !== undefined){
-                                        let submenu_items = {};
-                                        create_command_menu_entries(submenu_items, entry.items);
-                                        new_item.items = submenu_items;
-                                    } else {
-                                        // entry.action may be a function (preferred, internal) or a JS-string (legacy, from Ruby views)
-                                        new_item.callback = typeof entry.action === 'function'
-                                            ? entry.action
-                                            : new Function(entry.action);
-                                    }
-                                    local_items[entry.caption] = new_item;
+                function create_command_menu_entries(local_items, entry_array){
+                    for (const entry of entry_array){
+                        if (entry.show_icon_in_caption !== 'only' && entry.show_icon_in_caption !== 'right') {
+                            let new_item = {
+                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
+                                isHtmlName: true,
+                            };
+                            if (entry.items !== undefined){
+                                let submenu_items = {};
+                                create_command_menu_entries(submenu_items, entry.items);
+                                new_item.items = submenu_items;
+                            } else {
+                                // entry.action may be a function (preferred, internal) or a JS-string (legacy, from Ruby views)
+                                if (typeof entry.action === 'function') {
+                                    new_item.callback = entry.action;
+                                } else {
+                                    // Ruby-side prepare_command_menu_entries (slickgrid_helper.rb) HTML-escapes
+                                    // " → &quot; and ' → &#39; so the string can be safely embedded into onclick="..." attributes.
+                                    // Some views additionally HTML-escape payload data (e.g. XML snippets) inside the action,
+                                    // resulting in &lt;, &gt;, &amp;, &#xx; etc.
+                                    // Here we execute the action as raw JS via new Function(), so we have to fully decode
+                                    // every HTML entity back to its original character (otherwise & raises "SyntaxError: Unexpected token '&'"
+                                    // or escaped angle brackets get passed verbatim to server-side handlers).
+                                    // Using a textarea element gives us native, complete HTML-entity decoding.
+                                    const decoder = document.createElement('textarea');
+                                    decoder.innerHTML = String(entry.action);
+                                    new_item.callback = new Function(decoder.value);
                                 }
                             }
+                            local_items[entry.caption] = new_item;
                         }
-                        create_command_menu_entries(command_menu_items, options.command_menu_entries);
-
-                        return { items: command_menu_items };
                     }
+                }
+                create_command_menu_entries(command_menu_items, options.command_menu_entries);
+
+                jQuery('#' + command_menu_id).parent().contextMenu({
+                    selector: '#' + command_menu_id,
+                    items: command_menu_items
                 });
             }
 
@@ -1184,6 +1194,9 @@ class SlickGridExtended {
                     el.on('click', cmd['action']);
                     target.append(el);
                 } else {
+                    // cmd['action'] arrives already HTML-escaped from Ruby (prepare_command_menu_entries
+                    // in slickgrid_helper.rb does "→&quot;, '→&#39;), which is exactly what we need
+                    // for embedding into the onclick="..." HTML attribute.
                     target.append('<'+attrs.tag+' '+attrs.staticAttrs+' onclick="'+cmd['action']+'">'+span_inner+'</'+attrs.tag+'>');
                 }
             };
