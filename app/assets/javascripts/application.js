@@ -118,6 +118,7 @@ function closeAllTooltips(self_tooltip){
 }
 
 // copy text to clipboard, must be executed from mouse action
+// ensure that the parameter text is enclode in backticks to allow single and double quotes inside
 function copy_to_clipboard(text){
     let copy_elem = jQuery('<textarea id="copy_to_clipboard_text_area">'+text+'</textarea>');
 
@@ -659,6 +660,40 @@ function ensureGraphVizLoaded(callback){
     }
 }
 
+/**
+ * Render the Hamburger menu
+ * @param div_id ID of the inner span with the Hamburger menu
+ * @param event the payload of the onclick event
+ * @param items the command entries as object in String format for use in contextMenu
+ *        {:name, :caption, :hint, :icon_class, :icon_style, :action (JS-function) }
+ *        Add separator like this: { name: :separator }
+ */
+function render_command_array_menu(div_id, event, items){
+    // Replace the LINEFFED etc. aliases, it was used to workaround mismatches with escaping between ruby and JS
+    items = items
+        .replaceAll("-LINEFEED-", "\\n")
+        .replaceAll("-SINGLEQUOTE-", "&#39;")
+        .replaceAll("-BACKTICK-", "`")
+    ;
 
+    // Parentheses force the parser to read the contents as an expression, so {…} becomes an object literal instead of a code block
+    let items_obj;
+    try {
+        items_obj = eval("(" + items + ")");
+    } catch(e) {
+        let msg = "Error converting string to object: " + e.message + "\n" + items;
+        console.error(msg);
+        alert(msg);
+    }
+
+    // Activate the context menu
+    jQuery('#'+div_id).parent().contextMenu({
+        selector: "#"+div_id,
+        items: items_obj
+    });
+
+    jQuery("#"+div_id).trigger("contextmenu", event);   // call the context menu
+    return false;
+}
 
 
