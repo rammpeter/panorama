@@ -1149,7 +1149,7 @@ class SlickGridExtended {
                     for (const entry of entry_array){
                         if (entry.show_icon_in_caption !== 'only' && entry.show_icon_in_caption !== 'right') {
                             let new_item = {
-                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint+ "'>&nbsp;"+entry.caption+"</span>",
+                                name: "<span class='"+entry.icon_class+"' style='float:left'></span><span title='"+entry.hint.replaceAll("'", "&#39;")+ "'>&nbsp;"+entry.caption.replaceAll("'", "&#39;")+"</span>",
                                 isHtmlName: true,
                             };
                             if (entry.items !== undefined){
