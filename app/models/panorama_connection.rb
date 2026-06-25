@@ -190,6 +190,14 @@ class PanoramaConnection
     @sql_errors_count         = 0                                               # No errors counted for this SQL
   end
 
+  # Lightweight inspect to avoid debuggers (e.g. RubyMine on JRuby) recursing into the live JDBC connection graph,
+  # which makes "Collecting data..." hang. Show only cheap scalar attributes, never @jdbc_connection.
+  def inspect
+    "#<PanoramaConnection sid=#{@sid.inspect} serial_no=#{@serial_no.inspect} database_name=#{@database_name.inspect} " \
+    "db_version=#{@db_version.inspect} used_in_thread=#{@used_in_thread.inspect} last_used_time=#{@last_used_time.inspect}>"
+  end
+  alias_method :to_s, :inspect
+
   def read_initial_attributes
     db_config   = PanoramaConnection.direct_select_one(@jdbc_connection,
                   "SELECT i.Instance_Number, i.Version, d.DBID, d.Name Database_Name, SYS_CONTEXT('USERENV', 'SID') SID, v.Edition,
