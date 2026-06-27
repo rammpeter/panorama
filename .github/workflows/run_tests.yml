@@ -156,28 +156,38 @@ jobs:
 
       - name: Start database
         if: ${{ matrix.management_pack_license == env.RANDOM_STRING }}
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 300
-          max_attempts: 3
-          command: |
-            if [[ "${{ env.DB_VERSION }}" != "autonomous" ]]; then
+        run: |
+          if [[ "${{ env.DB_VERSION }}" != "autonomous" ]]; then
+            for attempt in 1 2 3; do
               # get a free random port for the database, execute as late as possible
               TEST_PORT=`comm -23 <(seq 1530 2000 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1`
-              echo "TEST_PORT=$TEST_PORT" | tee -a $GITHUB_ENV
               DB_CONTAINER_NAME=DB$TEST_PORT
-              echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME" | tee -a $GITHUB_ENV
-              docker run -d --name $DB_CONTAINER_NAME  -p $TEST_PORT:1521 git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt_panorama_test:$DB_VERSION
-              if [[ $? -ne 0 ]]; then
-                echo "Error starting database"
+              echo "Attempt $attempt to start database container $DB_CONTAINER_NAME on port $TEST_PORT"
+
+              docker rm -f $DB_CONTAINER_NAME >/dev/null 2>&1 || true
+              if docker run -d --name $DB_CONTAINER_NAME -p $TEST_PORT:1521 git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt_panorama_test:$DB_VERSION; then
+                echo "TEST_PORT=$TEST_PORT" | tee -a $GITHUB_ENV
+                echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME" | tee -a $GITHUB_ENV
+                # To prevent from Java::JavaSql::SQLRecoverableException: I/O-Fehler: Got minus one from a read call
+                DB_MAJOR_VERSION=${DB_VERSION%%.*}
+                if [[ "$DB_MAJOR_VERSION" =~ ^[0-9]+$ ]]; then
+                  if (( DB_MAJOR_VERSION > 18 )); then
+                    echo "Patching all found sqlnet.ora for versions greater than 18 due to Bug ( Doc ID 2662778.1 )"
+                    docker exec $DB_CONTAINER_NAME bash -c "find / -name sqlnet.ora 2>/dev/null | sed 's/^/echo DISABLE_OOB=ON >> /' | bash"
+                  fi
+                fi
+                exit 0
+              fi
+
+              echo "Error starting database on attempt $attempt"
+              docker rm -f $DB_CONTAINER_NAME >/dev/null 2>&1 || true
+              if [[ $attempt -eq 3 ]]; then
                 exit 1
               fi
-              # To prevent from Java::JavaSql::SQLRecoverableException: I/O-Fehler: Got minus one from a read call 
-              if [[ "$DB_VERSION" > "18" ]]; then
-                echo "Patching all found sqlnet.ora for 19.x and 21.x due to Bug ( Doc ID 2662778.1 )" 
-                docker exec $DB_CONTAINER_NAME bash -c "find / -name sqlnet.ora 2>/dev/null | sed 's/^/echo DISABLE_OOB=ON >> /' | bash"
-              fi
-            fi
+              # Brief pause before retrying to avoid immediately reusing transiently unavailable resources.
+              sleep 5
+            done
+          fi
 
       - name: Wait for DB available
         if: ${{ env.DB_VERSION != 'autonomous' && matrix.management_pack_license == env.RANDOM_STRING }}
