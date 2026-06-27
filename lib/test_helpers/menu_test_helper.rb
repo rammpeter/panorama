@@ -24,7 +24,7 @@ class ActiveSupport::TestCase
     end
 
     # Iteration über Menues
-    menu_content.each do |mo|
+    menu_content_for_db.each do |mo|
       call_menu_entry_test_helper(mo)
     end
 
