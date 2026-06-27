@@ -122,6 +122,8 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
+    set_session_test_db_context
+
     [nil, 1].each do |show_line_numbers|
       get '/dba_schema/list_object_description', :params => {:format=>:html, :owner=>"SYS", :object_name=>"DBMS_SESSION", :object_type=>'PACKAGE', show_line_numbers: show_line_numbers, :update_area=>:hugo }
       assert_response :success
