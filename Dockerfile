@@ -52,8 +52,10 @@ RUN  echo '### due to error building digest-crc:6.0.3 sh: line 0: exec: jrake: n
 RUN  echo "### update installed system gems" && \
      gem update --system --no-doc
 
-RUN  gem install --no-document bundler
 RUN  echo "gem: --no-rdoc --no-ri" > ~/.gemrc
+RUN  gem install bundler
+# terser is part of development/test group, but needed for assets:precompile
+RUN  gem install terser
 RUN  bundle config set deployment 'true'
 RUN  bundle config set --local without 'development test'
 RUN  bundle config install.args "--no-document"
