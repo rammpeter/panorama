@@ -223,9 +223,17 @@ module ApplicationHelper
   end
 
   # switch empty param string to nil
+  # @param [Symbol] param_sym The param element to extract
+  # @param [Hash] options Additional options {
+  #                                             default: <default_value>,
+  #                                             whitelist: [Array] allowed values
+  #                                          }
   def prepare_param(param_sym, **options)
     retval = params[param_sym]
     return options[:default] if retval.nil? || retval == ''                     # nil if no default option given
+    if options[:whitelist]
+      raise "prepare_param: Parameter '#{param_sym}' has value '#{retval}' which is not in whitelist #{options[:whitelist]}" unless options[:whitelist].include?(retval)
+    end
     retval.strip!                                                               # Remove leading and trailing blanks
     retval
   end

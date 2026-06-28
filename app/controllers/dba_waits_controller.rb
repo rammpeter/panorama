@@ -203,6 +203,7 @@ class DbaWaitsController < ApplicationController
     @min_snap_id = params[:min_snap_id]
     @max_snap_id = params[:max_snap_id]
     @begin_interval_time = params[:begin_interval_time]
+    order_by     = prepare_param :order_by, whitelist: ['GC_CR_Blocks_Received_Delta', 'GC_CU_Blocks_Received_Delta']
 
     @objects = sql_select_iterator ["
       SELECT *

@@ -74,5 +74,11 @@ class ApplicationHelperTest < ActionView::TestCase
     set_I18n_locale('de')                                                       # Rücksetzen auf de, da dies der Dafeault ist für weitere Tests
   end
 
+  test "prepare_param" do
+    assert_raise do
+      params[:test] = 'dummy'
+      prepare_param(:test, whitelist: ['not_in_whitelist'])
+    end
+  end
 
 end
