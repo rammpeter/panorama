@@ -180,7 +180,7 @@
         end
 
         link_cloud_identity = proc do |rec|
-          "<a href=\"#\" title=\"Show cloud identity details\" onclick=\"show_popup_message('<pre>#{my_html_escape(rec['cloud_identity'])}</pre>'); return false; \">YES</a>".html_safe
+          "<a href=\"#\" title=\"Show cloud identity details\" onclick=\"show_popup_message('<pre>#{j(my_html_escape(rec['cloud_identity']))}</pre>'); return false; \">YES</a>".html_safe
         end
 
         dv_status_hint = "\

@@ -604,6 +604,8 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
       return        # Fehler-Ausgang
     end
 
+    set_cached_dbid(PanoramaConnection.select_initial_dbid)
+
     # Ensure that a sampler schema is set if management_pack_license is :panorama_sampler, else reset to :none
     if get_current_database[:management_pack_license] == :panorama_sampler && get_current_database[:panorama_sampler_schema].nil?
       Rails.logger.debug('EnvController.set_database') { "management_pack_license set to none because panorama_sampler_schema is missing"}
@@ -661,7 +663,7 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
 
     write_connection_to_last_logins
 
-    set_cached_dbid(PanoramaConnection.select_initial_dbid)
+    # last position for set_cached_dbid before 2026-06-29
 
     connection_warnings = PanoramaConnection.get_connection_warnings
     if connection_warnings

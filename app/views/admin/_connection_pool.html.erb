@@ -3,7 +3,7 @@
   def link_sql_text(rec)
     if rec.sql_stmt_in_execution
       # Da der Inhalt nachträeglich erst per JSaufgerufen wird, müssen ' doppelt escaped werden
-      "<a title=\"Show complete SQL-Statement (below)\" onclick=\"list_sql_text('#{j(my_html_escape rec.sql_stmt_in_execution.gsub(/'/, "\\\\'") ) }');\">#{rec.sql_stmt_in_execution[0,60]}</a>".html_safe
+      "<a title=\"Show complete SQL-Statement (below)\" onclick=\"list_sql_text('#{j(my_html_escape rec.sql_stmt_in_execution.gsub(/'/, "\\\\'") ) }');\">#{my_html_escape(rec.sql_stmt_in_execution[0,60])}</a>".html_safe
     end
   end
 
