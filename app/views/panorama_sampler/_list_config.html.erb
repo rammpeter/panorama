@@ -164,7 +164,7 @@ Retention time for snapshot data before deletion = #{fn(rec[:longterm_trend_snap
                                      :hint                  => "Refresh content of list from config stored at server",
                                      :icon_class            => 'cui-reload',
                                      :show_icon_in_caption  => :only,
-                                     :action                => "ajax_html('#{params[:update_area]}', 'panorama_sampler', 'list_config', { update_area: '#{params[:update_area]}'});"
+                                     :action                => "ajax_html('#{j params[:update_area]}', 'panorama_sampler', 'list_config', { update_area: '#{params[:update_area]}'});"
                                  },
     ]
 }) %>

@@ -11,7 +11,7 @@
       <div class="flex-row-container">
         <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_dp_hint, :default=>"Panorama will access Oracle's 'Diagnostic Pack' if you choose this option\nbut doesn't access Oracle's 'Tuning Pack'.\nYou can choose this option only if you have Enterprise Edition (not Standard Edition) and init-parameter control_management_pack includes Diagnostics Pack license") %>">
           <%= radio_button_tag(:management_pack_license, :diagnostics_pack, get_current_database[:management_pack_license] == :diagnostics_pack,
-                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'diagnostics_pack', update_area: '#{params[:update_area]}'} );",
+                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{j params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'diagnostics_pack', update_area: '#{params[:update_area]}'} );",
                                :disabled => !PackLicense.management_pack_selectable(:diagnostics_pack, @control_management_pack_access)
               )
           %>
@@ -20,7 +20,7 @@
 
         <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_tp_hint, :default=>"Panorama will access Oracle's 'Diagnostic Pack' and 'Tuning Pack' if you choose this option.\nYou can choose this option only if you have Enterprise Edition (not Standard Edition) and init-parameter control_management_pack includes Diagnostics and Tuning Pack license") %>">
           <%= radio_button_tag(:management_pack_license, :diagnostics_and_tuning_pack, get_current_database[:management_pack_license] == :diagnostics_and_tuning_pack,
-                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'diagnostics_and_tuning_pack', update_area: '#{params[:update_area]}'} ); ",
+                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{j params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'diagnostics_and_tuning_pack', update_area: '#{params[:update_area]}'} ); ",
                                :disabled => !PackLicense.management_pack_selectable(:diagnostics_and_tuning_pack, @control_management_pack_access)
               )
           %>
@@ -30,7 +30,7 @@
 
         <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_panorama_sampler_hint, :default=>"Panorama will use it's own sampled workload history produced by process \"Panorama-Sampler\".\nIt will not access Oracle's 'Diagnostic Pack' or 'Tuning Pack' if you choose this option.\nThis function \"Panorama-Sampler\" is usable for all database editions including Standard-Edition.\n\nYou can choose this option only if AWR/ASH-sampling for Panorama-Sampler is activated for your database instance\nand the first snapshot succeeded.") %>">
           <%= radio_button_tag(:management_pack_license, :panorama_sampler, get_current_database[:management_pack_license] == :panorama_sampler,
-                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'panorama_sampler', update_area: '#{params[:update_area]}'} );",
+                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{j params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'panorama_sampler', update_area: '#{params[:update_area]}'} );",
                                :disabled => !PackLicense.management_pack_selectable(:panorama_sampler, @control_management_pack_access)
               )
           %>
@@ -39,7 +39,7 @@
 
         <div class="flex-row-element" title="<%= t(:env_list_management_pack_license_none_hint, :default=>"Panorama will not access Oracle's 'Diagnostic Pack' or 'Tuning Pack' if you choose this option.") %>">
           <%= radio_button_tag(:management_pack_license, :none, get_current_database[:management_pack_license] == :none,
-                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'none', update_area: '#{params[:update_area]}'} );",
+                               :onclick=>"jQuery('#choose_managent_pack_submit').prop('disabled', false ); ajax_html('#{j params[:update_area]}', 'env', 'set_management_pack_license', {management_pack_license: 'none', update_area: '#{params[:update_area]}'} );",
                                :disabled => !PackLicense.management_pack_selectable(:none, @control_management_pack_access)
               )
           %>

@@ -348,7 +348,7 @@ Last = #{fn(rec.last_disk_writes)}
           :hint                  => "Show complete plan incl. skipped records from adaptive plan",
           :icon_class            => 'cui-reload',
           :show_icon_in_caption  => false,
-          :action                => "ajax_html('#{params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 1')});"
+          :action                => "ajax_html('#{j params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 1')});"
       }
       command_menu_entries << {
         name:                  :adaptive_plan_only,
@@ -356,7 +356,7 @@ Last = #{fn(rec.last_disk_writes)}
         :hint                  => "Show the first plan (which has been replaced by the adaptive plan) without the differences to the recently used plan",
         :icon_class            => 'cui-reload',
         :show_icon_in_caption  => false,
-        :action                => "ajax_html('#{params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
+        :action                => "ajax_html('#{j params[:update_area]}', 'dba_sga', 'list_sql_detail_execution_plan', #{param_string.call('show_adaptive_plans: 2')});"
       }
     end
     command_menu_entries.concat(explain_plan_context_menu_entries)
