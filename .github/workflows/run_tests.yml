@@ -156,28 +156,35 @@ jobs:
 
       - name: Start database
         if: ${{ matrix.management_pack_license == env.RANDOM_STRING }}
-        uses: nick-invision/retry@v2
-        with:
-          timeout_seconds: 300
-          max_attempts: 3
-          command: |
-            if [[ "${{ env.DB_VERSION }}" != "autonomous" ]]; then
-              # get a free random port for the database, execute as late as possible
-              TEST_PORT=`comm -23 <(seq 1530 2000 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1`
-              echo "TEST_PORT=$TEST_PORT" | tee -a $GITHUB_ENV
-              DB_CONTAINER_NAME=DB$TEST_PORT
-              echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME" | tee -a $GITHUB_ENV
-              docker run -d --name $DB_CONTAINER_NAME  -p $TEST_PORT:1521 git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt_panorama_test:$DB_VERSION
-              if [[ $? -ne 0 ]]; then
-                echo "Error starting database"
-                exit 1
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 300 bash -c '
+              if [[ "${{ env.DB_VERSION }}" != "autonomous" ]]; then
+                # get a free random port for the database, execute as late as possible
+                TEST_PORT=$(comm -23 <(seq 1530 2000 | sort) <(ss -Htan | awk '\''{print $4}'\'' | cut -d":" -f2 | sort -u) | shuf | head -n 1)
+                echo "TEST_PORT=$TEST_PORT" | tee -a "$GITHUB_ENV"
+                DB_CONTAINER_NAME=DB$TEST_PORT
+                echo "DB_CONTAINER_NAME=$DB_CONTAINER_NAME" | tee -a "$GITHUB_ENV"
+                docker run -d --name "$DB_CONTAINER_NAME" -p "$TEST_PORT:1521" git.osp-dd.de:5005/main/oracle-db-docker-images/database_prebuilt_panorama_test:"$DB_VERSION" || {
+                  echo "Error starting database"
+                  exit 1
+                }
+                # To prevent Java::JavaSql::SQLRecoverableException: I/O Error: Got minus one from a read call
+                DB_MAJOR_VERSION=$(echo "$DB_VERSION" | sed -E "s/^([0-9]+).*/\1/")
+                if [[ "$DB_MAJOR_VERSION" =~ ^[0-9]+$ ]] && (( DB_MAJOR_VERSION > 18 )); then
+                  echo "Patching all found sqlnet.ora for 19.x and 21.x due to Bug ( Doc ID 2662778.1 )"
+                  docker exec "$DB_CONTAINER_NAME" bash -c "find / -name sqlnet.ora -print0 2>/dev/null | xargs -0 -I {} sh -c 'echo DISABLE_OOB=ON >> \"{}\"'"
+                fi
               fi
-              # To prevent from Java::JavaSql::SQLRecoverableException: I/O-Fehler: Got minus one from a read call 
-              if [[ "$DB_VERSION" > "18" ]]; then
-                echo "Patching all found sqlnet.ora for 19.x and 21.x due to Bug ( Doc ID 2662778.1 )" 
-                docker exec $DB_CONTAINER_NAME bash -c "find / -name sqlnet.ora 2>/dev/null | sed 's/^/echo DISABLE_OOB=ON >> /' | bash"
-              fi
+            '; then
+              exit 0
             fi
+            echo "Start database attempt $attempt failed"
+            if [[ $attempt -lt 3 ]]; then
+              sleep 10
+            fi
+          done
+          exit 1
 
       - name: Wait for DB available
         if: ${{ env.DB_VERSION != 'autonomous' && matrix.management_pack_license == env.RANDOM_STRING }}
