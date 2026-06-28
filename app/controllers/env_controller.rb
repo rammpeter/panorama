@@ -732,13 +732,15 @@ private
 
   def init_management_pack_license
     cmpa = read_control_management_pack_access
-    case cmpa.upcase
-    when 'NONE'               then :none
-    when 'DIAGNOSTIC'         then :diagnostics_pack
-    when 'DIAGNOSTIC+TUNING'  then :diagnostics_and_tuning_pack
-    else
-      raise "EnvController.init_management_pack_license: Unknown value for control_management_pack_access: '#{cmpa}'"
-    end
+    license = case cmpa.upcase
+              when 'NONE'               then :none
+              when 'DIAGNOSTIC'         then :diagnostics_pack
+              when 'DIAGNOSTIC+TUNING'  then :diagnostics_and_tuning_pack
+              else
+                raise "EnvController.init_management_pack_license: Unknown value for control_management_pack_access: '#{cmpa}'"
+              end
+    Rails.logger.debug('EnvController.init_management_pack_license') { "control_management_pack_access=#{cmpa}, set management_pack_license=#{license}" }
+    license
   end
 
   # @return [String] NONE | DIAGNOSTIC | DIAGNOSTIC+TUNING

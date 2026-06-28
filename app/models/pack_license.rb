@@ -3,7 +3,10 @@ require 'panorama_sampler_structure_check'
 class PackLicense
 
   def initialize(license_type)
-    license_type = :none unless [:diagnostics_pack, :diagnostics_and_tuning_pack, :panorama_sampler, :none].include?(license_type)   # Assume at login startup that no management pack is licensed until user has acknowledged the selection
+    unless [:diagnostics_pack, :diagnostics_and_tuning_pack, :panorama_sampler, :none].include?(license_type)   # Assume at login startup that no management pack is licensed until user has acknowledged the selection
+      license_type = :none
+      Rails.logger.debug('PackLicense.initialize') { "Setting license type :none because was called with '#{license_type}'\nCall stack:\n#{caller.join("\n")}"}
+    end
     Rails.logger.debug('PackLicense.initialize') { "Initialize PackLicense with license type = '#{license_type}'" }
     @license_type = license_type
   end
