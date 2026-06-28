@@ -166,8 +166,16 @@ class ApplicationController < ActionController::Base
     render_partial :render_button, controller: :application
   end
 
+
+  if !defined?(EVIL_PARAM_CONTENT)
+    evils = []
+    ['<BASE', '<BODY', '<DETAILS', '<EMBED', '<IFRAME', '<IMG', '<LINK', '<META', '<OBJECT', '<SCRIPT', '<SVG', '<VIDEO', '<STYLE'].each do |evil|
+      evils << evil
+      evils << evil.gsub('<', '&LT;')
+    end
+    EVIL_PARAM_CONTENT = evils
+  end
   # Check request parameters for possibly vulnerable content / XSS
-  EVIL_PARAM_CONTENT = ['<SCRIPT', '&LT;SCRIPT']
   def check_params_4_vulnerability(parameters)
     raise "ApplicationController.check_params_4_vulnerability: Wrong class '#{parameters.class}' for parameters" unless parameters.is_a?(Hash) || parameters.is_a?(ActionController::Parameters)
 

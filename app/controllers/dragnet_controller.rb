@@ -96,7 +96,7 @@ class DragnetController < ApplicationController
                                 $('#dragnet_show_selection_do_selection').prop('disabled', #{entry[:sql] && !entry[:not_executable] ? 'false' : 'true'});
                                 $('#dragnet_show_selection_show_sql').prop('disabled', #{entry[:sql] ? 'false' : 'true'});
                                 $('#dragnet_drop_personal_selection_button').#{entry[:personal] ? 'show' : 'hide'}();
-                                $('#dragnet_hidden_entry_id').val('#{params[:entry_id]}');
+                                $('#dragnet_hidden_entry_id').val('#{j params[:entry_id]}');
                                "
       }
     end
