@@ -186,6 +186,9 @@ module Panorama
     # Enable the asset pipeline
     config.assets.enabled = true
 
+    # 2026-06-30 Avoid sudden length mismatch at load of application.js in Windows 11
+    config.assets.gzip = false
+
     # Addition 2018-09-01 Find fonts in asset pipeline. Location in vendor/assets does not function
     config.assets.paths << Rails.root.join("app", "assets", "fonts")
 

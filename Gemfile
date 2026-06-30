@@ -73,7 +73,7 @@ group :development do
   gem 'rack-mini-profiler', '~> 2.0'
   gem 'listen', '~> 3.3'
   # Use SCSS for stylesheets
-  gem 'sass-rails', '>= 6'
+  # gem 'sass-rails', '>= 6'
 
   # Needed to build executable lock_jars for jar-dependencies
   # gem 'ruby-maven', '~> 3.9'
@@ -81,6 +81,9 @@ group :development do
   # For dev use the same version as in default system gems, to prevent at debug: Uncaught exception: You have already activated date 3.4.1, but your Gemfile requires date 3.5.1.
   gem 'date', '3.4.1'
 
+  # gem 'rdoc', '< 8.0'
+  # gem 'rbs', platforms: [:ruby]
+  # gem 'irb',  '< 1.18'
 
   # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
   #gem 'date'
@@ -111,8 +114,7 @@ group :development, :test do
   # JavaScript minification at asset precompile time (config.assets.js_compressor = :terser).
   # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
   # (not bundled into the JAR, since assets are already precompiled there).
-  gem 'terser'
-
+  # gem 'terser'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
@@ -121,8 +123,14 @@ gem 'tzinfo-data', platforms: [:windows, :jruby]
 # Exclude gems that are not really needed but may cause trouble
 # fixes problems like: You have already activated erb 4.0.4, but your Gemfile requires erb 6.0.2.
 no_require = File.readlines('excluded_gems.txt').map(&:strip).reject{|s| s.empty? || s.start_with?('#') }
-no_require.each do |name|
+no_require.each do |nr|
+  name = nr.split(',')[0].strip
+  version = nr.split(',')[1]&.strip
   unless ['minitest'].include?(name)
-    gem name, require: false
+    if version
+      gem name, version, require: false
+    else
+      gem name, require: false
+    end
   end
 end

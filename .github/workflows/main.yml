@@ -101,7 +101,7 @@ jobs:
             echo "Ensure using latest version of $FROM"
             docker pull $FROM
           done
-          docker build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:ci-temp .
+          docker buildx build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:ci-temp --load .
           docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           docker push ghcr.io/rammpeter/panorama:ci-temp
 

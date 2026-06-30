@@ -43,14 +43,12 @@ Rails.application.configure do
     "Cache-Control" => "public, max-age=#{1.hours.to_i}"
   }
 
-  # Compress CSS using a preprocessor.
-  # config.assets.css_compressor = :sass
-
   # Minify JavaScript at asset precompile time.
   # Terser is required (not Uglifier) because the app's JS uses ES6 (const, arrow functions, template literals).
   # Runs only at precompile; with config.assets.compile = false it is never invoked at runtime.
   # ExecJS uses Node.js on the build machine as the JS runtime (build-time dependency only).
-  config.assets.js_compressor = :terser
+  # 2026-06-30 compression removed to avoid buidl dependency on nodejs
+  # config.assets.js_compressor = :terser
 
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
