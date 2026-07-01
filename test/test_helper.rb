@@ -177,7 +177,6 @@ class ActiveSupport::TestCase
     else
       config_object.modify(sampler_config)
     end
-    set_cached_dbid(PanoramaConnection.select_initial_dbid)                     # (Re)set this DBID as current chosen DBID for subsequent tests
     PanoramaConnection.set_connection_info_for_request(sampler_config)
     shrink_table_size_for_always_free_autonomous_db(sampler_config) # Reduce size of table for always free autonomous DB
     PanoramaSamplerConfig.get_config_entry_by_id(sampler_config[:id])

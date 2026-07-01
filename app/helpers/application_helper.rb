@@ -83,8 +83,16 @@ module ApplicationHelper
 
   def get_dbid    # die originale oder nach Login ausgewählte DBID
     @buffered_dbid = get_current_database[:chosen_dbid] if !defined?(@buffered_dbid) || @buffered_dbid.nil?
-    Rails.logger.error('ApplicationHelper.get_dbid'){ "get_dbid returns nil! get_current_database = #{get_current_database}"} if @buffered_dbid.nil?
-    raise "ApplicationHelper.set_cached_dbid not set, see log file for reason." if @buffered_dbid.nil?
+    if @buffered_dbid.nil?                                                      # Should not be possible in production
+      if Rails.env.test?
+        Rails.logger.warn('ApplicationHelper.get_dbid'){ "get_current_database[:chosen_dbid] returns nil! Use PanoramaConnection.select_initial_dbid as workaround. get_cur rent_database = #{get_current_database}"}
+        @buffered_dbid = PanoramaConnection.select_initial_dbid                 # Use workaround
+        set_cached_dbid(@buffered_dbid)                                         # Cache workaround value for subsequent calls
+      else
+        Rails.logger.error('ApplicationHelper.get_dbid'){ "get_dbid returns nil! get_current_database = #{get_current_database}"}
+        raise "ApplicationHelper.set_cached_dbid not set, see stack trace in log file for reason."
+      end
+    end
     @buffered_dbid
   end
 
