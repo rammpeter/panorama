@@ -1621,6 +1621,12 @@ class DbaSgaController < ApplicationController
         where_values << @sql_profile
       end
       @caption = "<div style=\"background-color: coral;\">SQL-Profiles exists for SQL (from DBA_SQL_Profiles)</div>".html_safe
+    else
+      if @sql_profile
+        where_string << "WHERE p.Name = ?"
+        where_values << @sql_profile
+        @caption << " for Name = '#{@sql_profile}'"
+      end
     end
 
     @profiles = sql_select_all ["SELECT p.*#{", em.SGA_Usages, awr.AWR_Usages, awr.Min_History_SQL_ID" unless @single_sql}
@@ -1657,6 +1663,7 @@ class DbaSgaController < ApplicationController
   def show_plan_baselines
     @force_matching_signature = prepare_param(:force_matching_signature)
     @exact_matching_signature = prepare_param(:exact_matching_signature)
+    @plan_baseline_name       = prepare_param(:plan_baseline_name)
 
     where_string = String.new
     where_values = []
@@ -1665,6 +1672,11 @@ class DbaSgaController < ApplicationController
       where_string << " WHERE b.Signature IN (?,?)"
       where_values << @force_matching_signature
       where_values << @exact_matching_signature
+    else
+      if @plan_baseline_name
+        where_string << " AND b.Plan_Name = ?"
+        where_values << @plan_baseline_name
+      end
     end
 
     if @force_matching_signature && @exact_matching_signature &&
@@ -1853,8 +1865,9 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
   end
 
   def show_sql_patches
-    @exact_signature = params[:exact_signature]
-    @force_signature = params[:force_signature]
+    @exact_signature = prepare_param :exact_signature
+    @force_signature = prepare_param :force_signature
+    @sql_patch_name  = prepare_param :sql_patch_name
 
     where_stmt = String.new
     where_values = []
@@ -1863,6 +1876,11 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
       where_stmt = "WHERE (p.Force_Matching = 'YES' AND p.Signature = ?) OR (p.Force_Matching = 'NO' AND p.Signature = ?)"
       where_values << @force_signature
       where_values << @exact_signature
+    else
+      if @sql_patch_name
+        where_stmt = "WHERE p.Name = ?"
+        where_values << @sql_patch_name
+      end
     end
 
     begin

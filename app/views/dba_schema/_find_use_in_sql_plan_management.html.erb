@@ -1,0 +1,70 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  show_type = proc do |rec|
+    case rec.obj_type
+    when 1 then 'SQL Profile'
+    when 2 then 'SQL Plan Baseline'
+    when 3 then 'SQL Patch'
+    end
+  end
+
+  link_name = proc do |rec|
+    case rec.obj_type
+    when 1 then ajax_link(rec.name,
+                          { controller:   :dba_sga,
+                            action: :show_profiles,
+                            sql_profile: rec.name,
+                            update_area: @update_area,
+                          },
+                          title: "Show details for the SQL Profile"
+    )
+    when 2 then ajax_link(rec.name,
+                          { controller:         :dba_sga,
+                            action:             :show_plan_baselines,
+                            plan_baseline_name: rec.name,
+                            update_area:        @update_area,
+                          },
+                          title: "Show details for the SQL Plan Baseline"
+    )
+    when 3 then ajax_link(rec.name,
+                          { controller:     :dba_sga,
+                            action:         :show_sql_patches,
+                            sql_patch_name: rec.name,
+                            update_area:    @update_area,
+                          },
+                          title: "Show details for the SQL Patch"
+    )
+    else rec.name
+    end
+
+  end
+
+  show_comp_data = proc do |rec|
+    # input: XML-structure for outline_data
+    # return: Array of hint-texts
+    output = String.new
+    Nokogiri::XML(rec.comp_data).xpath("//hint").each do |hint|
+      output << "#{my_html_escape(hint.text)}<br/>"
+    end
+    output.html_safe
+  end
+
+  column_options =
+    [
+      { caption: 'Type',            data: show_type,                      title: 'Type of SQL plan management structure'},
+      { caption: 'Name',            data: link_name,                      title: 'Name of SQL plan management element'},
+      { caption: 'Optimizer hints', data: show_comp_data,                 title: 'Optimizer hints where the name of the object was found'},
+      { caption: 'Category',        data: proc{|rec| rec.category},       title: 'Category of the SQL plan management element'},
+    ]
+
+%>
+
+<%= gen_slickgrid(@findings, column_options, {
+  :caption => "Use of object #{@object_name} in SQL Plan Management",
+  :height => 450
+})
+%>
+
+
+<div id="<%= @update_area %>"></div>

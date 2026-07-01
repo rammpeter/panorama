@@ -3532,6 +3532,18 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def find_use_in_sql_plan_management
+    @object_name  = prepare_param(:object_name)&.upcase
+
+    @findings = sql_select_all ["\
+      SELECT so.Obj_Type, so.Name, sod.Comp_Data, sod.Category
+      FROM   sys.sqlobj$data sod
+      JOIN   sys.sqlobj$ so ON so.Category = sod.Category AND so.Obj_Type = sod.Obj_Type AND so.Plan_ID = sod.Plan_ID
+      WHERE  UPPER(sod.Comp_Data) LIKE '%'||?||'%'
+    ", @object_name]
+    render_partial
+  end
+
   private
   def list_space_usage_default
     @result = []
@@ -3695,8 +3707,6 @@ class DbaSchemaController < ApplicationController
     end
   end
 
-
-  private
   def analyze_operations(owner, object_name, partition_name)
     where_string = String.new
     where_values = []
@@ -3747,5 +3757,4 @@ class DbaSchemaController < ApplicationController
     end
     audit_rule_cnt
   end
-
 end

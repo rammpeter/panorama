@@ -241,10 +241,22 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     post '/dba_sga/show_profiles', :params => {:format=>:html, :update_area=>:hugo }
     assert_response :success
 
+    post '/dba_sga/show_profiles', :params => {:format=>:html, :update_area=>:hugo, exact_signature: 100, force_signature: 100 }
+    assert_response :success
+
+    post '/dba_sga/show_profiles', :params => {:format=>:html, :update_area=>:hugo, sql_profile: 'hugo' }
+    assert_response :success
+
     post '/dba_sga/list_sql_profile_sqltext', :params => {:format=>:html, :profile_name=>'Hugo', :update_area=>:hugo }
     assert_response :success
 
     post '/dba_sga/show_plan_baselines', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/show_plan_baselines', :params => {:format=>:html, :update_area=>:hugo, exact_signature: 100, force_signature: 100 }
+    assert_response :success
+
+    post '/dba_sga/show_plan_baselines', :params => {:format=>:html, :update_area=>:hugo, plan_baseline_name: 'hugo' }
     assert_response :success
 
     post '/dba_sga/list_sql_plan_baseline_sqltext', :params => {:format=>:html, :plan_name=>'Hugo', :update_area=>:hugo }
@@ -261,6 +273,12 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     end
 
     post '/dba_sga/show_sql_patches', :params => {:format=>:html, :update_area=>:hugo }
+    assert_response :success
+
+    post '/dba_sga/show_sql_patches', :params => {:format=>:html, :update_area=>:hugo, exact_signature: 100, force_signature: 100 }
+    assert_response :success
+
+    post '/dba_sga/show_sql_patches', :params => {:format=>:html, :update_area=>:hugo, sql_patch_name: 'hugo' }
     assert_response :success
 
     post '/dba_sga/list_sql_tuning_advisor_tasks', :params => {:format=>:html, :update_area=>:hugo }

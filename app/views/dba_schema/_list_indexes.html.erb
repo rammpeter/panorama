@@ -80,48 +80,52 @@
 
 
   render_action_buttons = proc do |rec|
-     retval =
-     "<div style=\"float:left\">#{
-     ajax_submit('SQLs', {
-          controller:   :dba_sga,
-          action:       :show_using_sqls,
-          ObjectOwner:  rec.owner,
-          ObjectName:   rec.index_name,
-          object_type_prefix: 'INDEX',
-          update_area: @update_area,
-     }, :title => 'Show SQLs in SGA (gv$SQL_Plan) using this index'
-     )}</div><div style=\"float:left\">#{
-     ajax_submit('ASH', {
-          controller:   :active_session_history,
-          action:       :show_prepared_active_session_history,
-          db_object:    "#{@owner.downcase}.#{rec.index_name}",
-          update_area:  @update_area,
-     }, :title => 'Show sessions from active session history accessing this index'
-     )}</div><div style=\"float:left\">#{
-     ajax_submit('Segm. stats', {
-          controller:   :dba_history,
-          action:       :list_segment_stat_hist_detail,
-          owner:        @owner,
-          object_name:  rec.index_name,
-          update_area:  @update_area,
-     }, :title => "Show segment statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{rec.index_name}"
-     )}</div>"
+     commands = [
+       {
+         name: "sqls",
+         caption: "Show SQLs using this index",
+         hint: "Show SQLs in SGA (gv$SQL_Plan) using this index",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'dba_sga', 'show_using_sqls', { ObjectOwner: '#{@owner}', ObjectName: '#{rec.index_name}', object_type_prefix: 'INDEX'});"
+       },
+       {
+         name: "ash",
+         caption: "Recorded sessions in ASH",
+         hint: "Show sessions from active session history accessing this index",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'active_session_history', 'show_prepared_active_session_history', { db_object: '#{@owner.downcase}.#{rec.index_name}'});"
+       },
+       {
+         name: "segment_stats",
+         caption: "Segment statistics",
+         hint: "Show segment statistics from #{PanoramaConnection.adjust_table_name('DBA_Hist_Seg_Stat')} for all recorded AWR snapshots for #{@owner}.#{rec.index_name}",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'dba_history', 'list_segment_stat_hist_detail', { owner: '#{@owner}', object_name: '#{rec.index_name}'});"
+       },
+       {
+         name: "show_spm_use",
+         caption: "Show use of index name in SPM",
+         hint: "Show possible use of the name of this index in SQL plan management (baselines, profiles, patches)",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'dba_schema', 'find_use_in_sql_plan_management', { object_name: '#{rec.index_name}'});"
+       }
+     ]
 
-    if PanoramaConnection.panorama_object_sizes_exists?
-      retval <<
-        "<div style=\"float:left\">#{
-       ajax_submit('Size evolution', {
-          controller:   :addition,
-          action:       :time_for_object_increase,
-          owner:        @owner,
-          name:         rec.index_name,
-          update_area:  @update_area,
-       }, :title => "Show object size evolution for #{@owner}.#{rec.index_name}"
-       )}</div>
-      "
+     if PanoramaConnection.panorama_object_sizes_exists?
+       commands << {
+         name: "size_evolution",
+         caption: "Show size evolution over time",
+         hint: "Show object size evolution over time for #{@owner}.#{rec.index_name}",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'addition', 'time_for_object_increase', { owner: '#{@owner}', name: '#{rec.index_name}'});"
+       }
      end
 
-     retval.html_safe
+
+     command_array = render_command_array_menu(commands)
+     # Remove linefeeds because matadata[:fulldata] gets the "\" replaced by "<br>" by escape_js_chars
+     # and command_array contains Javascript code which gets invalid by this <br> tags
+     command_array.gsub("\n", "").html_safe
    end
 
   def link_current_index_stats(rec, value)
@@ -239,7 +243,10 @@
     2. DBA_INDEX_USAGE
 
     #{case rec.dba_index_usage
-      when 'YES' then "YES there is a recorded usage of this index in DBA_Index_Usage\nTotal access count = #{rec.total_access_count}\nLast used = #{localeDateTime(rec.last_used)}\nClick on the link to show the details of the recorded usage."
+      when 'YES' then "YES there is a recorded usage of this index in DBA_Index_Usage.
+ But keep in mind that also DBMS_STATS.GATHER_INDEX_STATS counts as usage in DBA_Index_Usage in contrast to MONITORING USAGE.
+ Total access count = #{rec.total_access_count}\nLast used = #{localeDateTime(rec.last_used)}
+ Click on the link to show the details of the recorded usage."
       when 'NO' then "NO, there is no recorded usage of this index in DBA_Index_Usage"
       else "DBA_Index_Usage is not available for your DB release"
       end
@@ -337,7 +344,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
                    {:caption=> 'FK',               data: link_fk,                                                         title: 'Number of protected foreign key constraints if this index is used for protection of foreign key constraints?', align: :right },
                    {:caption=> 'Use',              data: link_used,                                                       :title=> 'Real usage of index detected?', data_title: data_title_use, data_style: proc{|rec| 'background-color:coral;' if rec.used=='NO' || (rec.dba_index_usage=='NO' && rec.used != 'YES')} },
                    {:caption=> 'Several States',   :data=>list_states,                                                    :title=> title_states},
-                   {:caption=> 'Action',           :data=>render_action_buttons,                                          :title=> 'Call action for this index'},
+                   {:caption=> 'Action',           :data=>render_action_buttons,  :title=> 'Call additional actions for this index'},
            ]
    column_options << {:caption=> 'RAC master inst.', :data=>list_rac_master,                                  :title=> "Current master instance for cache block states in RAC", data_title: data_title_rac_master} if PanoramaConnection.rac?
 

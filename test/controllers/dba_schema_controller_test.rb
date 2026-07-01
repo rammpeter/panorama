@@ -583,4 +583,13 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     get '/dba_schema/show_compression_check', params: {format: :html, owner: @object_owner, table_name: @lob_table_name, avg_row_len: 32, update_area: :hugo }
     assert_response :success
   end
+
+  test 'find_use_in_sql_plan_management' do
+    assert_nothing_raised do
+      if get_db_version >= '12.1'
+        get '/dba_schema/find_use_in_sql_plan_management', params: {format: :html, owner: PanoramaConnection.username, object_name: @index_name, update_area: :hugo }
+        assert_response :success
+      end
+    end
+  end
 end
