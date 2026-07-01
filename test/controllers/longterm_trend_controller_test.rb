@@ -23,6 +23,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
     set_panorama_sampler_config_defaults!(config_hash)
 
     sampler_config = PanoramaSamplerConfig.new(config_hash)
+    set_current_database(get_current_database.merge( {panorama_sampler_schema: config_hash[:owner]} ))    # Ensure Panorama's tables are searched here
 
     PanoramaSamplerStructureCheck.do_check(sampler_config, :AWR);               # assure existence of DB objects
     PanoramaSamplerStructureCheck.do_check(sampler_config, :LONGTERM_TREND);    # assure existence of DB objects
