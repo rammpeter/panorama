@@ -391,6 +391,7 @@ class PanoramaConnection
   end
   ########################### class methods #############################
   # Store connection redentials for this request in thread, marks begin of request
+  # @param [Hash] config
   def self.set_connection_info_for_request(config)
     reset_thread_local_attributes
     Rails.logger.debug('PanoramaConnection.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
