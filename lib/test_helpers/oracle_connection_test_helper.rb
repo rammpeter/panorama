@@ -26,10 +26,16 @@ class ActiveSupport::TestCase
     'Test'
   end
 
+  # Avoid concurrency on client_info_store with multiple simultaneous test runs
+  if !defined?(@@CLIENT_KEY)
+    @@CLIENT_KEY = rand(1000000)
+    Rails.logger.debug('ActiveSupport::TestCase') {"Using @@CLIENT_KEY=#{@@CLIENT_KEY}"}
+  end
+
   def cookies
     {
         client_salt: 100,
-        client_key: Encryption.encrypt_value(100, 100)
+        client_key: Encryption.encrypt_value(@@CLIENT_KEY, 100)
     }
   end
 
@@ -73,7 +79,7 @@ class ActiveSupport::TestCase
     # 2017/07/26 cookies are reset in ActionDispatch::IntegrationTest if using initialize_client_key_cookie
     # possibly redundant to def cookies above
     cookies[:client_salt] = 100
-    cookies[:client_key]  = Encryption.encrypt_value(100, cookies[:client_salt])
+    cookies[:client_key]  = Encryption.encrypt_value(@@CLIENT_KEY, cookies[:client_salt])
 
     connect_oracle_db
 
