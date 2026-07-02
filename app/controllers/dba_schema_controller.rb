@@ -2755,7 +2755,7 @@ class DbaSchemaController < ApplicationController
     end
 
     if @object_type
-      where_string = " AND ( (p.Audit_option LIKE '%'||? ) OR ( p.Object_Type = ?"
+      where_string = " AND ( (p.Audit_option LIKE '%'||? ) OR ( p.Object_Type = ?".dup
       where_values << @object_type
       where_values << @object_type
 

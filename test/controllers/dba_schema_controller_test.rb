@@ -586,8 +586,11 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
 
   test 'find_use_in_sql_plan_management' do
     assert_nothing_raised do
-      if get_db_version >= '12.1'
+      if get_db_version >= '12.1' && !PanoramaConnection.autonomous_database?
         get '/dba_schema/find_use_in_sql_plan_management', params: {format: :html, owner: PanoramaConnection.username, object_name: @index_name, update_area: :hugo }
+        assert_response :success
+
+        get '/dba_schema/find_use_in_optimizer_hints', params: {format: :html, owner: PanoramaConnection.username, object_name: @index_name, update_area: :hugo }
         assert_response :success
       end
     end

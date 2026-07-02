@@ -32,7 +32,7 @@
   column_options << {caption: 'Success',        data: proc{|rec| rec.success},                                title: 'Indicates whether the audit policy is enabled for auditing successful events (YES) or not (NO)'}
   column_options << {caption: 'Failure',        data:  proc{|rec| rec.failure},                               title: 'Indicates whether the audit policy is enabled for auditing unsuccessful events (YES) or not (NO)'}
 
-  caption = "Unified audit policy actions from Audit_Unified_Policies"
+  caption = "Unified audit policy actions from Audit_Unified_Policies".dup
   filter = []
   filter << "policy name = '#{@policy_name}'"             if @policy_name
   filter << "audit option = '#{@audit_option}'"           if @audit_option
