@@ -1,6 +1,24 @@
-<%= render_page_caption("Description of #{@table_type} #{@owner}.#{@table_name}") %>
-
 <% @update_area = get_unique_area_id %>
+<%=
+  command_array = [
+    {
+      name: "show_use_in_optimizer_hints",
+      caption: "Show use of table name in optimizer hints",
+      hint: "Show possible use of the name of this table in optimizer hints of SQLs in SGA",
+      icon_class: "",
+      action: "ajax_html('#{@update_area}', 'dba_schema', 'find_use_in_optimizer_hints', { object_name: '#{@table_name}'});"
+    },
+    {
+      name: "show_spm_use",
+      caption: "Show use of table name in SPM",
+      hint: "Show possible use of the name of this table in SQL plan management (baselines, profiles, patches)",
+      icon_class: "",
+      action: "ajax_html('#{@update_area}', 'dba_schema', 'find_use_in_sql_plan_management', { object_name: '#{@table_name}'});"
+    }
+  ]
+  render_page_caption("Description of #{@table_type} #{@owner}.#{@table_name}", command_array)
+%>
+
 
 <div class="yellow-panel">
     <%=  my_html_escape(@comment).html_safe %>

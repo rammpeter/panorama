@@ -11,8 +11,8 @@
 %>
 
 <%= gen_slickgrid(@findings, column_options, {
-  :caption => "Use of object name '#{@object_name}' in optimizer hints of SQLs",
-  :height => 450
+  caption: "Use of object name '#{@object_name}' in optimizer hints of SQLs",
+  max_height: 450
 })
 %>
 <div id="<%= @update_area %>"></div>
