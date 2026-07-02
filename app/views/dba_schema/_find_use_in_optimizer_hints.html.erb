@@ -1,0 +1,18 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  column_options =
+    [
+      { caption: 'SQL ID',          data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id, childno: rec.child_number) },  title: 'SQL ID of the statement where the object was found'},
+      { caption: 'Child number',    data: proc{|rec| fn(rec.child_number)},   title: 'Child number of the SQL in SGA'},
+      { caption: 'Optimizer hints', data: proc{|rec| rec.hint_text},          title: 'Optimizer hints where the name of the object was found'},
+    ]
+
+%>
+
+<%= gen_slickgrid(@findings, column_options, {
+  :caption => "Use of object name '#{@object_name}' in optimizer hints of SQLs",
+  :height => 450
+})
+%>
+<div id="<%= @update_area %>"></div>

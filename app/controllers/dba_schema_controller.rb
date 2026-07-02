@@ -3544,6 +3544,22 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def find_use_in_optimizer_hints
+    @object_name  = prepare_param(:object_name)&.upcase
+    @findings = sql_select_all ["\
+      SELECT Inst_ID, p.SQL_ID, p.Child_Number, h.Hint_Text
+      FROM   gv$SQL_Plan p,
+             XMLTABLE(
+               '/*/hint_usage/q'
+               PASSING XMLTYPE(p.other_xml)
+               COLUMNS hint_text CLOB PATH '.'
+             ) h
+      WHERE  p.Other_XML IS NOT NULL
+      AND    h.Hint_Text LIKE  '%'||?||'%'
+    ", @object_name]
+    render_partial
+  end
+
   private
   def list_space_usage_default
     @result = []

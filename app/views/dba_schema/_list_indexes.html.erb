@@ -103,6 +103,13 @@
          action: "ajax_html('#{@update_area}', 'dba_history', 'list_segment_stat_hist_detail', { owner: '#{@owner}', object_name: '#{rec.index_name}'});"
        },
        {
+         name: "show_hint_use",
+         caption: "Show use of index name in optimizer hints",
+         hint: "Show possible use of the name of this index in optimizer hints of SQLs in SGA",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'dba_schema', 'find_use_in_optimizer_hints', { object_name: '#{rec.index_name}'});"
+       },
+       {
          name: "show_spm_use",
          caption: "Show use of index name in SPM",
          hint: "Show possible use of the name of this index in SQL plan management (baselines, profiles, patches)",
