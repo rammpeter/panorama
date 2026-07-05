@@ -281,7 +281,7 @@ class LongtermTrendController < ApplicationController
     @where_values = []              # Filter-werte für nachfolgendes Statement für alle Union-Tabellen
 
     @groupfilter.each do |key,value|
-      @groupfilter[key] = value.strip if key == 'time_selection_start' || key == 'time_selection_end'                   # Whitespaces entfernen vom Rand des Zeitstempels
+      @groupfilter[key] = value.strip if key == :time_selection_start || key == :time_selection_end                     # Whitespaces entfernen vom Rand des Zeitstempels
     end
 
     @groupfilter.each do |key,value|

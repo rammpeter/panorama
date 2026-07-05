@@ -201,9 +201,9 @@ module ActiveSessionHistoryHelper
     end
 
     @groupfilter.each do |key,value|
-      @groupfilter.delete(key) if value.nil? || key == 'NULL'   # '' zulassen, da dies NULL signalisiert, Dummy-Werte ausblenden
+      @groupfilter.delete(key) if value.nil? || key == :NULL   # '' zulassen, da dies NULL signalisiert, Dummy-Werte ausblenden
       @groupfilter.delete(key) if value == '' && [:Min_Snap_ID, :Max_Snap_ID].include?(key)   # delete empty entries for keys without NULL-meaning
-      @groupfilter[key] = value.strip if key == 'time_selection_start' || key == 'time_selection_end'                   # Whitespaces entfernen vom Rand des Zeitstempels
+      @groupfilter[key] = value.strip if key == :time_selection_start || key == :time_selection_end                     # Whitespaces entfernen vom Rand des Zeitstempels
     end
 
     # Set Filter on Snap_ID for partition pruning on DBA_Hist_Active_Sess_History (if not already set)

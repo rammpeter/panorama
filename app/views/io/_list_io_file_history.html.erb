@@ -39,7 +39,7 @@
         {:caption=>t(:active_session_history_duration_caption,         :default=>"Duration"),         :data=>proc{|rec| formattedNumber(rec.sample_dauer_secs) },    :title=>t(:active_session_history_duration_hint,         :default=>"Duration in seconds within time slice"), :align=>"right"},
     ]
     io_file_key_rules.each do |key, value|
-      unless @groupby == key  || @groupfilter[key]            # Aktuelles oder früheres Gruppierungskriterium weglassen
+      unless @groupby == key  || @groupfilter[key.to_sym]            # Aktuelles oder früheres Gruppierungskriterium weglassen
         @column_options << {:caption=>value[:Name], :data=>proc{|rec| link_column_grouping(rec, rec[value[:sql_alias]], {:groupby => key}) } , :title=>"#{value[:Title]} #{t(:active_session_history_number_hint, :default=>"(Number if more occurrences)")}", :data_title=>(value[:Data_Title] ? "#{value[:Title]}:#{value[:Data_Title]}" : nil)}
       end
     end
