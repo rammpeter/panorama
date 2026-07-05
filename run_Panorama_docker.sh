@@ -49,9 +49,7 @@ export RAILS_MIN_THREADS=10
 #  systemctl start rngd.service
 
 export JAVA_OPTS="-Xmx${MAX_JAVA_HEAP_SPACE_MB}m \
-                  -XX:ReservedCodeCacheSize=80M \
-                  -Djruby.compile.fastest=true \
-                  -Djruby.compile.threadless=true"
+                  -XX:ReservedCodeCacheSize=80M"
 
 CMD="bundle exec bin/rails server --port $HTTP_PORT --environment production"
 echo "Starting $CMD"
