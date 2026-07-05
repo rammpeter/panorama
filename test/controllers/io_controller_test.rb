@@ -49,7 +49,7 @@ class IoControllerTest < ActionController::TestCase
 
   test "list_io_file_history_samples with xhr: true" do
     io_file_key_rules.each do |groupby, value|
-      post :list_io_file_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo  }
+      post :list_io_file_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby.to_sym=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo  }
       assert_response management_pack_license == :none ? :error : :success
     end
   end
@@ -95,7 +95,7 @@ class IoControllerTest < ActionController::TestCase
   test "list_iostat_detail_history_samples with xhr: true" do
     iostat_detail_key_rules.each do |groupby, value|
       if get_db_version >= '11.2'
-        post :list_iostat_detail_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo  }
+        post :list_iostat_detail_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby.to_sym=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo  }
         assert_response management_pack_license == :none ? :error : :success
       end
     end
@@ -134,7 +134,7 @@ class IoControllerTest < ActionController::TestCase
   test "list_iostat_filetype_history_samples with xhr: true" do
     iostat_filetype_key_rules.each do |groupby, value|
       if get_db_version >= '11.2'
-        post :list_iostat_filetype_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo }
+        post :list_iostat_filetype_history_samples, :params => { :format=>:html, :groupfilter=>@groupfilter.merge(groupby.to_sym=>'1'),  :time_selection_start=>@time_selection_start, :time_selection_end=>@time_selection_end, :update_area=>:hugo }
         assert_response management_pack_license == :none ? :error : :success
       end
     end

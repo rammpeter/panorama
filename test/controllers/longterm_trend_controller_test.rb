@@ -113,7 +113,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
       end
 
       # Test mit realem Wert
-      add_filter[groupby] = bind_value_from_key_rule(groupby, instance)
+      add_filter[groupby.to_sym] = bind_value_from_key_rule(groupby, instance)
       post '/longterm_trend/list_longterm_trend_grouping', :params => {:format=>:html, :groupby=>groupby, :groupfilter => @groupfilter.merge(add_filter), :update_area=>:hugo }
       assert_response(:success, "list_longterm_trend_grouping #{groupby}")
 
@@ -134,7 +134,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
     instance = PanoramaConnection.instance_number
     longterm_trend_key_rules.each do |groupby, value|
       [:week, :day, :hour].each do |point_group|
-        add_filter = {groupby => bind_value_from_key_rule(groupby, instance)}
+        add_filter = {groupby.to_sym => bind_value_from_key_rule(groupby, instance)}
         post  '/longterm_trend/list_longterm_trend_historic_timeline', :params => {:format=>:html, :groupby=>groupby,
                                                                                    :groupfilter=>@groupfilter.merge(add_filter),
                                                                                    point_group: point_group, :update_area=>:hugo }
@@ -146,7 +146,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
   test "list_longterm_trend_single_record with xhr: true" do
     instance = PanoramaConnection.instance_number
     longterm_trend_key_rules.each do |groupby, value|
-      add_filter = {groupby => bind_value_from_key_rule(groupby, instance)}
+      add_filter = {groupby.to_sym => bind_value_from_key_rule(groupby, instance)}
       post  '/longterm_trend/list_longterm_trend_single_record', :params => {:format=>:html,
                                                                        :groupfilter=>@groupfilter.merge(add_filter), :update_area=>:hugo }
       assert_response(:success, "list_longterm_trend_single_record #{groupby}")
