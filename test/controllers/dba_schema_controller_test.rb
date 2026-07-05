@@ -555,6 +555,7 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   test 'list_gather_table_historic' do
     # DBMS_STATS.Get_Prefs raises ORA-06502 on Oracle Free for all tables — skip on that edition
     skip 'DBMS_STATS.Get_Prefs not supported on Oracle Free edition' if @edition == :free
+    skip 'Not supported for autonomous DB' if PanoramaConnection.autonomous_database?
     post '/dba_schema/list_gather_table_historic', params: {format: :html, owner: 'SYS', table_name: 'AUD$', update_area: :hugo }
     assert_response :success
   end
@@ -562,6 +563,7 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   test 'list_gather_index_historic' do
     # DBMS_STATS.Get_Prefs raises ORA-06502 on Oracle Free for all tables — skip on that edition
     skip 'DBMS_STATS.Get_Prefs not supported on Oracle Free edition' if @edition == :free
+    skip 'Not supported for autonomous DB' if PanoramaConnection.autonomous_database?
     idx = sql_select_first_row ["SELECT Owner, Index_Name FROM DBA_Indexes WHERE Owner = 'SYS' AND Last_Analyzed IS NOT NULL AND RowNum < 2"]
     if idx
       post '/dba_schema/list_gather_index_historic', params: {format: :html, owner: idx.owner, index_name: idx.index_name, update_area: :hugo }
@@ -587,10 +589,10 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   test 'find_use_in_sql_plan_management' do
     assert_nothing_raised do
       if get_db_version >= '12.1' && !PanoramaConnection.autonomous_database?
-        get '/dba_schema/find_use_in_sql_plan_management', params: {format: :html, owner: PanoramaConnection.username, object_name: @index_name, update_area: :hugo }
+        get '/dba_schema/find_use_in_sql_plan_management', params: {format: :html, owner:  @object_owner, object_name: @index_name, update_area: :hugo }
         assert_response :success
 
-        get '/dba_schema/find_use_in_optimizer_hints', params: {format: :html, owner: PanoramaConnection.username, object_name: @index_name, update_area: :hugo }
+        get '/dba_schema/find_use_in_optimizer_hints', params: {format: :html, owner:  @object_owner, object_name: @index_name, update_area: :hugo }
         assert_response :success
       end
     end
