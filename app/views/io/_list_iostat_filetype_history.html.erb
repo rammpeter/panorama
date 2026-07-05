@@ -6,7 +6,7 @@
      ajax_link(
              fn(rec.samples), {
                      :action       => :list_iostat_filetype_history_samples,
-                     :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
+                     :groupfilter  => @groupfilter.merge({@groupby.to_sym => rec.group_value}),
                      :update_area  => @update_area,
              },
              :title=>t(:list_iostat_filetype_history_samples_hint, :default=>"Show timeline of sample records")
@@ -20,7 +20,7 @@
        else
          ajax_link(value,
                          {:action       => :list_iostat_filetype_history_grouping,
-                                  :groupfilter  => @groupfilter.merge({@groupby => rec.group_value}),
+                                  :groupfilter  => @groupfilter.merge({@groupby.to_sym => rec.group_value}),
                                   :groupby      => add_url[:groupby],
                                   :update_area  => @update_area,
                          },

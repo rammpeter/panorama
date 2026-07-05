@@ -227,7 +227,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
       }
 
       groupfilter[:Instance] = @instance if @instance
-      groupfilter['User'] = @parsing_schema_name if @parsing_schema_name
+      groupfilter[:User] = @parsing_schema_name if @parsing_schema_name
 
 
       ajax_submit("Active Session History", {

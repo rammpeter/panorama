@@ -16,7 +16,7 @@
     groupfilter = {
       :DBID                   => get_dbid,
       Instance:               rec.instance_number,
-      'Session/Sn.'           => "#{rec.session_id}, #{rec.session_serial_no}",
+      'Session/Sn.'.to_sym    => "#{rec.session_id}, #{rec.session_serial_no}",
       :time_selection_start   => localeDateTime(rec.rounded_sample_time-10),
       :time_selection_end     => localeDateTime(rec.rounded_sample_time+10),
       :Min_Snap_ID            => @min_snap_id,
@@ -32,8 +32,8 @@
                        )
 
     if rec.qc_session_id
-      groupfilter['Instance']     = rec.qc_instance_id
-      groupfilter['Session/Sn.']  = "#{rec.qc_session_id}, #{rec['qc_session_serial#']}"
+      groupfilter['Instance'.to_sym]     = rec.qc_instance_id
+      groupfilter['Session/Sn.'.to_sym]  = "#{rec.qc_session_id}, #{rec['qc_session_serial#']}"
       retval << "<br>PQ coordinator:<br/>".html_safe
       retval << ajax_link("#{rec.qc_instance_id}:#{rec.qc_session_id}, #{rec['qc_session_serial#']}",
                           {:action       => :list_session_statistic_historic_grouping,
