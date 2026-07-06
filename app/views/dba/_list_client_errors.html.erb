@@ -1,0 +1,25 @@
+<%
+  @update_area = get_unique_area_id
+
+  column_options = []
+  column_options << { caption: 'Error time',  data: proc{|rec| localeDateTime(rec.error_time)}, title: "The timestamp of the error in client time zone"}
+  column_options << { caption: 'I',           data: proc{|rec| fn(rec.inst_id)},      title: "Instance-ID", align: :right} if PanoramaConnection.rac?
+  column_options << { caption: 'SID / Sn',    data: proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec['serial#'])},   title: "Session identifier (SID, serial no.)"}
+  column_options << { caption: 'Username',    data: proc{|rec| rec.username},         title: "DB user name"}
+  column_options << { caption: 'Module',      data: proc{|rec| rec.module},           title: "Module identifier of session at the time of the error"}
+  column_options << { caption: 'Action',      data: proc{|rec| rec.action},           title: "Action identifier of session at the time of the error"}
+  column_options << { caption: 'SQL ID',      data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sqlid)}, title: "ID of the SQL causing the error"}
+  column_options << { caption: 'Error code',  data: proc{|rec| fn(rec.error_num)},    title: "The error code of the error", align: :right}
+  column_options << { caption: 'Error message', data: proc{|rec| fn(rec.error_message)},   title: "The error message of the error"}
+  column_options << { caption: 'Ocurrences',  data: proc{|rec| fn(rec.occurrences)},  title: "Number of times the error occurred", align: :right}
+  column_options << { caption: 'Con.ID',      data: proc{|rec| fn(rec.con_id)},       title: "The container ID of the PDB", align: :right}
+%>
+
+<%= gen_slickgrid(@client_errors, column_options, {
+  caption: "Client errors from gv$Client_Errors between #{@time_selection_start} and #{@time_selection_end}",
+  max_height: 450, show_pin_icon: 1,
+  update_area: @update_area
+}) %>
+
+
+

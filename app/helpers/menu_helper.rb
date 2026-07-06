@@ -60,6 +60,7 @@ module MenuHelper
             {class: 'menu', caption: 'Server Files', content: [
                 {class: 'item', caption: 'Server Log Files', controller: :dba, action: :show_server_logs, hint: t(:menu_dba_server_logs_hint, :default => 'Show content of server logs (alert.log, listener.log, ASM-log)'), min_db_version: '11.2'},
                 {class: 'item', caption: 'Server Trace Files', controller: :dba, action: :show_trace_files, hint: t(:menu_dba_server_traces_hint, :default => 'Show trace files of DB server'), min_db_version: '12.2'},
+                {class: 'item', caption: 'Client errors (ADB)', controller: :dba, action: :show_client_errors, hint: 'Show client errors for autonomous DB', condition: PanoramaConnection.autonomous_database?},
             ]
             },
             {class: 'item', caption: 'Database Triggers', controller: :dba, action: :list_database_triggers, hint: t(:menu_dba_database_triggers_hint, :default => 'Show global database triggers (like LOGON etc.)')},

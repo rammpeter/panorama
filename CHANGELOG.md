@@ -1,6 +1,7 @@
 # Change log of Panorama for Oracle
 ## [Unreleased]
 
+- 2026-07-06 Show content of gv$Client_errors for autonomous DB in menu "DBA General / Server files / Client errors"
 - 2026-03-30 Show content of DBA_Tab_Statistics for tables and partitions after link on last analayzed date
 
 ## Relese 2.19.11

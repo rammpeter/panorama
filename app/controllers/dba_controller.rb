@@ -1816,6 +1816,44 @@ oradebug setorapname diag
     end
   end
 
+  def list_client_errors
+    save_session_time_selection    # Werte puffern fuer spaetere Wiederverwendung
+    @incl_filter  = prepare_param :incl_filter
+    @excl_filter  = prepare_param :excl_filter
+
+    where_filter = String.new
+    where_values = []
+
+    if @incl_filter
+      where_filter << " AND ("
+      incl_filters = @incl_filter.split('|')
+      incl_filters.each_index do |i|
+        where_filter << " Error_Message LIKE '%'||?||'%'"
+        where_filter << " OR " if i < incl_filters.count-1
+        where_values << incl_filters[i]
+      end
+      where_filter << " )"
+    end
+
+    if @excl_filter
+      @excl_filter.split('|').each do |f|
+        where_filter << " AND Error_Message NOT LIKE '%'||?||'%'"
+        where_values << f
+      end
+    end
+
+    @client_errors = sql_select_iterator ["\
+      SELECT *
+      FROM   gv$Client_Errors
+      WHERE  Error_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND    Error_Time < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+      #{where_filter}
+      ORDER BY Error_Time
+    ", @time_selection_start, @time_selection_end].concat(where_values)
+
+    render_partial
+  end
+
   def list_patch_history
     begin
       @patches  = sql_select_all "SELECT * FROM sys.Registry$History ORDER BY Action_Time"

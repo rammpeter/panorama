@@ -1,0 +1,33 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Show autonomous DB errors from gv$Client_Errors") %>
+
+
+<%= ajax_form(controller: :dba, action: :list_client_errors, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <%= include_start_end_timepicker(additional_title: "Caution: For client and database in different timezones:\nThis value is sometimes interpreted as local client time, not database time like shown in result column 'Time'") %>
+    <!--
+    Nicht sinnvoll so lange Daten nur von aktueller Instance gezogen werden
+    <%= instance_tag %>
+    -->
+
+    <div class="flex-row-element" title="Show only records with matching hits at message text.
+    Delimit several OR-combined inclusion expressions by '|'.">
+      Incl. Filter
+      <%= text_field_tag(:incl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element" title="Show only records without matching hits at message text.
+    Delimit several OR-combined exclusion expressions by '|'.">
+      Excl. Filter
+      <%= text_field_tag(:excl_filter, "", :size=>30) %>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag("Show single records", :title => 'Show single detail records of server-side log in period') %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>">
+</div>
