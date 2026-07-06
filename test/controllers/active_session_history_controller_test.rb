@@ -196,7 +196,7 @@ class ActiveSessionHistoryControllerTest < ActionController::TestCase
            :groupfilter => {
              :DBID     => get_dbid,
              :Instance => PanoramaConnection.instance_number,
-             "SQL-ID"  => @@hist_sql_id
+             :'SQL-ID' => @@hist_sql_id
            },
            :time_selection_start => @time_selection_start,
            :time_selection_end   => @time_selection_end,

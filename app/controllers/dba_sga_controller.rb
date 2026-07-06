@@ -1608,7 +1608,7 @@ class DbaSgaController < ApplicationController
 
     where_string = String.new
     where_values = []
-    @caption = "SQL profiles from DBA_SQL_Profiles"
+    @caption = "SQL profiles from DBA_SQL_Profiles".dup
     @single_sql = false                                                         # look for whole DB
 
     if @force_matching_signature && @exact_matching_signature
