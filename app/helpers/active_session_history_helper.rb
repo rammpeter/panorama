@@ -271,7 +271,7 @@ module ActiveSessionHistoryHelper
     min_snap_id, max_snap_id = get_min_max_snap_ids(start_time, end_time, dbid, raise_if_not_found: true)
     sql = "WITH /* Panorama-Tool Ramm */
            #{ash_select(awr_filter:     "DBID = ? AND Snap_ID BETWEEN ? AND ?",
-                        global_filter:  "Sample_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND Sample_Time < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')",
+                        global_filter:  "Sample_Time + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND Sample_Time + #{client_tz_offset_days} < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')",
                         select_rounded_sample_time: true,
                         with_cte_alias: 'TSSel'
                        )}

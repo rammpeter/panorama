@@ -962,8 +962,8 @@ class ActiveSessionHistoryController < ApplicationController
     @locks = sql_select_iterator [
         "WITH /* Panorama-Tool Ramm */
          #{ash_select(awr_filter: "DBID = ? AND Snap_ID BETWEEN ? AND ?",
-                      global_filter: "       Rounded_Sample_Time >= TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
-                                      AND    Rounded_Sample_Time <= TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
+                      global_filter: "       Rounded_Sample_Time + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
+                                      AND    Rounded_Sample_Time + #{client_tz_offset_days} <= TO_DATE(?, '#{sql_datetime_second_mask}')      /* auf eine Sekunde genau gerundete Zeit */
                                       AND    Blocking_Session_Status IN ('VALID', 'GLOBAL') -- Session wartend auf Blocking-Session",
                       select_rounded_sample_time: true,
                       with_cte_alias: 'TSel'

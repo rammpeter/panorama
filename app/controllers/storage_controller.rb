@@ -1543,8 +1543,8 @@ class StorageController < ApplicationController
       FROM   DBA_Hist_SysStat st
       JOIN   DBA_hist_SnapShot ss ON ss.DBID = st.DBID AND ss.Instance_Number = st.Instance_Number AND ss.Snap_ID = st.Snap_ID
       WHERE  st.Stat_ID = 280471097 /* temp space allocated (bytes) */
-      AND    ss.End_Interval_Time   >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
-      AND    ss.Begin_Interval_Time <= TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+      AND    ss.End_Interval_Time   + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND    ss.Begin_Interval_Time + #{client_tz_offset_days} <= TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
       AND    ss.DBID = ?
       ORDER BY 1,2
       ", @time_selection_start, @time_selection_end, get_dbid]

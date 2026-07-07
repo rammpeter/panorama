@@ -2692,8 +2692,8 @@ END;
       FROM   DBA_Hist_Memory_Resize_Ops
       WHERE  DBID = ?
       AND    Snap_ID BETWEEN ? AND ?
-      AND    Start_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
-      AND    End_Time   <= TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+      AND    Start_Time + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND    End_Time   + #{client_tz_offset_days} <= TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
       #{where_string}
       ORDER BY Start_Time
     ", @dbid, @min_snap_id, @max_snap_id, @time_selection_start, @time_selection_end].concat(where_values)

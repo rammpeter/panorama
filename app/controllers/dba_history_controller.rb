@@ -1822,8 +1822,8 @@ FROM (
              Mutex_Type, Gets, Sleeps, Requesting_Session, Blocking_Session, Location, RawToHex(Mutex_Value) Mutex_Value,
              P1, RawToHex(P1Raw) P1Raw, P2, P3, P4, P5
       FROM   GV$Mutex_Sleep_History
-      WHERE  CAST(Sleep_Timestamp AS DATE) >= TO_DATE(?, '#{sql_datetime_second_mask}')
-      AND    CAST(Sleep_Timestamp AS DATE) <= TO_DATE(?, '#{sql_datetime_second_mask}')
+      WHERE  CAST(Sleep_Timestamp AS DATE) + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_second_mask}')
+      AND    CAST(Sleep_Timestamp AS DATE) + #{client_tz_offset_days} <= TO_DATE(?, '#{sql_datetime_second_mask}')
       #{where_string}
       ORDER BY Sleep_Timestamp"].concat(where_values)
 

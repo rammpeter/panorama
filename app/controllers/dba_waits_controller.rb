@@ -392,7 +392,7 @@ class DbaWaitsController < ApplicationController
                                                     MIN(TO_DATE(Event_Date, 'MM/DD/YYYY HH24:MI:SS')) First_Occurrence,
                                                     MAX(TO_DATE(Event_Date, 'MM/DD/YYYY HH24:MI:SS')) Last_Occurrence
                                              FROM   gv$Policy_History p
-                                             WHERE  TO_DATE(Event_Date, 'MM/DD/YYYY HH24:MI:SS') BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+                                             WHERE  TO_DATE(Event_Date, 'MM/DD/YYYY HH24:MI:SS') + #{client_tz_offset_days} BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
                                              #{where_string}
                                              GROUP BY p.Data_Object_ID
                                             ) p

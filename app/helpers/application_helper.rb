@@ -825,7 +825,7 @@ module ApplicationHelper
                                     FROM   (SELECT MIN(Snap_ID) Snap_ID
                                             FROM   DBA_Hist_Snapshot
                                             WHERE DBID = ?
-                                            AND End_Interval_Time >= TO_DATE(?, '#{sql_datetime_mask(time_selection_end)}')
+                                            AND End_Interval_Time + #{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(time_selection_end)}')
                                             GROUP BY Instance_Number
                                           )
                                    ", dbid, time_selection_end
