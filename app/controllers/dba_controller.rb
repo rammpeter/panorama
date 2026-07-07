@@ -479,7 +479,7 @@ oradebug setorapname diag
                 WHERE  Inst_ID = Thread#  /* All instances know about all logs from other instances named by thread#, assuming thread# is equal to inst_id for duplicate entries */
                 #{wherestr}
                ) l
-        WHERE  First_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND First_Time < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+        WHERE  First_Time+#{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND First_Time+#{client_tz_offset_days} < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
         ORDER BY First_Time
       "].concat(whereval).concat([@time_selection_start, @time_selection_end])
     else
@@ -507,7 +507,7 @@ oradebug setorapname diag
                         WHERE  Inst_ID = Thread#  /* All instances know about all logs from other instances named by thread#, assuming thread# is equal to inst_id for duplicate entries */
                         #{wherestr}
                        ) l
-                WHERE  First_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND First_Time < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+                WHERE  First_Time+#{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND First_Time+#{client_tz_offset_days} < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
                 GROUP BY #{group_by_value}
                ) l
         ORDER BY 1
@@ -1845,8 +1845,8 @@ oradebug setorapname diag
     @client_errors = sql_select_iterator ["\
       SELECT *
       FROM   gv$Client_Errors
-      WHERE  Error_Time >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
-      AND    Error_Time < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
+      WHERE  Error_Time+#{client_tz_offset_days} >= TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}')
+      AND    Error_Time+#{client_tz_offset_days} < TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')
       #{where_filter}
       ORDER BY Error_Time
     ", @time_selection_start, @time_selection_end].concat(where_values)

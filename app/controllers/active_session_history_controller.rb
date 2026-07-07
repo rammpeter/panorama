@@ -523,7 +523,7 @@ class ActiveSessionHistoryController < ApplicationController
     @locks = sql_select_iterator [
       "WITH /* Panorama-Tool Ramm */
        #{ash_select(awr_filter:     "DBID = ? AND Snap_ID BETWEEN ? AND ?",
-                    global_filter:  "     Sample_Time BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')",
+                    global_filter:  "     Sample_Time+#{client_tz_offset_days} BETWEEN TO_DATE(?, '#{sql_datetime_mask(@time_selection_start)}') AND TO_DATE(?, '#{sql_datetime_mask(@time_selection_end)}')",
                     select_rounded_sample_time: true,
                     with_cte_alias: 'Ash'
                    )},
