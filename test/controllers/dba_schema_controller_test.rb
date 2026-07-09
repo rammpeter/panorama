@@ -64,10 +64,10 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
         @subpart_index_partition_name     = subpart_index.partition_name
         @subpart_index_subpartition_name  = subpart_index.subpartition_name
       else
-        puts "DbaSchemaControllerTest.setup: There are no index subpartitions in database"
+        Rails.logger.debug('DbaSchemaControllerTest.setup') { "DbaSchemaControllerTest.setup: There are no index subpartitions in database" }
       end
     else
-      puts "DbaSchemaControllerTest.setup: There are no table partitions or subpartitions in database because edition = #{PanoramaConnection.edition}"
+      Rails.logger.debug('DbaSchemaControllerTest.setup') { "DbaSchemaControllerTest.setup: There are no table partitions or subpartitions in database because edition = #{PanoramaConnection.edition}" }
     end
   end
 

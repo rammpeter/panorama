@@ -2733,18 +2733,14 @@ END;
   def list_historic_sga_components
     @instance = prepare_param_instance
     save_session_time_selection  # werte in session puffern
+    dbid          = prepare_param_dbid
     pool_details  = prepare_param(:pool_details) == '1'
-    @con_id       = prepare_param :con_id
 
     where_string = String.new
     where_values = []
     if @instance
       where_string << " AND s.Instance_Number = ?"
       where_values << @instance
-    end
-    if @con_id
-      where_string << " AND s.Con_ID = ?"
-      where_values << @con_id
     end
 
     sgastat = sql_select_iterator ["SELECT #{awr_snapshot_ts_round('ss.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
@@ -2754,9 +2750,10 @@ END;
                                     JOIN   DBA_hist_Snapshot ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number AND ss.Snap_ID = s.Snap_ID
                                     WHERE  ss.Begin_Interval_Time+#{client_tz_offset_days}  >= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
                                     AND    ss.End_Interval_Time+#{client_tz_offset_days}    <= TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                                    AND    s.DBID = ?
                                     #{where_string}
                                     ORDER BY 1
-                                    ", @time_selection_start, @time_selection_end].concat(where_values)
+                                    ", @time_selection_start, @time_selection_end, dbid].concat(where_values)
     pools = {}
     result_hash ={}                                                             # Rounded_Begin_Interval_Time as key
     sgastat.each do |s|

@@ -54,7 +54,7 @@ module HtmlHelper
     if show_only_known_awr_dbids
       # Add possibly existing previously recorded databases
       PanoramaConnection.all_awr_dbids.each do |a|
-        dbids << {dbid: a.dbid, title: "#{a.db_name}/#{a.con_id} #{localeDateTime(a.start_ts, :days)} .. #{localeDateTime(a.end_ts, :days)}"}
+        dbids << {dbid: a.dbid, title: "#{a.db_name} / #{a.con_id} #{localeDateTime(a.start_ts, :days)} .. #{localeDateTime(a.end_ts, :days)}"}
       end
     else
       dbids << {dbid: PanoramaConnection.dbid, title: "DBID of instance / container DB"}
