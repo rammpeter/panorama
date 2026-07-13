@@ -446,14 +446,20 @@ function code_mirror_from_textarea(id, cm_options, options){
 
     cm_wrapper.css('margin-top', '5px');                                        // not in stylesheet to allow others to use CodeMirror without margin
     cm_wrapper.addClass('shadow');                                              // not in stylesheet to allow others to use CodeMirror without shadow
-    cm_wrapper.resizable();
-    cm_wrapper.parent().find(".ui-resizable-se").remove();                      // Entfernen des rechten unteren resize-Cursor
-    cm_wrapper.resize(function(){cm.setSize('100%', cm_wrapper.height()); });   // Ensure that CodeMirror checks itself if vertical scrollbar is needed
-    //setTimeout(function(){
-        if (cm_wrapper.height() > max_height){
-            cm.setSize('100%', max_height);                                     // CodeMirror must set the height, otherwise scrollbar will not work
-        }
-    //},0);
+
+    // Defer sizing until CodeMirror is actually laid out in the DOM.
+    // Reason: when this function runs, the wrapper may still have height 0 (e.g. inside a hidden/just-injected DOM fragment).
+    // jQuery UI .resizable() would then freeze that tiny height as an inline style, so CodeMirror shows less than one line.
+    setTimeout(function(){
+        cm.refresh();                                                           // force CodeMirror to recompute its layout after DOM insertion
+        let content_height = cm.getScrollInfo().height;                         // actual required height for the content
+        let target_height  = Math.min(content_height, max_height);
+        cm.setSize('100%', target_height);                                      // set explicit height before .resizable() captures it
+
+        cm_wrapper.resizable();
+        cm_wrapper.parent().find(".ui-resizable-se").remove();                  // Entfernen des rechten unteren resize-Cursor
+        cm_wrapper.resize(function(){cm.setSize('100%', cm_wrapper.height()); });// Ensure that CodeMirror checks itself if vertical scrollbar is needed
+    }, 0);
 }
 
 
