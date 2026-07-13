@@ -96,6 +96,60 @@ Short targets for recovery and therefore more aggressive DB-writer my lead to:
                 {:name=> 'Instance-Number', :size=>8, :default=>1, :title=> 'RAC-Instance-Number'},
                 {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') }]
         },
+        {
+          :name  => t(:dragnet_helper_179_name, :default=>'Current transaction rate by sessions'),
+          :desc  => t(:dragnet_helper_179_desc, :default=>'The number of user commits and rollbacks per second by sessions helps identifying the source of logwriter contention'),
+          :sql=> "\
+SELECT *
+FROM   (
+        SELECT s.Inst_ID, s.sid, s.serial#, s.username, s.program, s.machine, s.Module, s.Action,
+               st.Commits, st.Rollbacks,
+               ROUND((SYSDATE - s.logon_time) * 86400) Session_Age_Seconds,
+               ROUND(st.Commits / GREATEST((SYSDATE - s.logon_time) * 86400, 1), 3) Commits_Per_Sec,
+               ROUND(st.Rollbacks / GREATEST((SYSDATE - s.logon_time) * 86400, 1), 3) Rollbacks_Per_Sec
+        FROM   (SELECT Inst_ID, SID,
+                       SUM(CASE WHEN n.Name = 'user commits' THEN Value END) Commits,
+                       SUM(CASE WHEN n.Name = 'user rollbacks' THEN Value END) Rollbacks
+                FROM   gv$sesstat st
+                JOIN   v$StatName n ON n.Statistic# = st.Statistic#
+                WHERE  n.Name IN ('user commits', 'user rollbacks')
+                GROUP BY Inst_ID, SID
+               ) st
+        JOIN   gv$session  s ON s.Inst_ID = st.Inst_ID AND s.SID = st.SID
+        WHERE  st.Commits + st.Rollbacks > 0
+       )
+ORDER  BY Commits_Per_Sec + Rollbacks_Per_Sec DESC
+",
+        },
+        {
+          :name  => t(:dragnet_helper_179_name, :default=>'Current transaction rate by user/program/machine'),
+          :desc  => t(:dragnet_helper_179_desc, :default=>'The number of user commits and rollbacks per second helps identifying the source of logwriter contention'),
+          :sql=> "\
+SELECT UserName, Program, Machine, SUM(Commits) Commits, SUM(Rollbacks) Rollbacks,
+       ROUND(AVG(Session_Age_Seconds)) Avg_Session_Age_Seconds,
+       SUM(Commits_Per_Sec) Commits_Per_Sec,
+       SUM(Rollbacks_Per_Sec) Rollbacks_Per_Sec
+FROM   (
+        SELECT s.username, s.program, s.machine,
+               st.Commits, st.Rollbacks,
+               ROUND((SYSDATE - s.logon_time) * 86400) Session_Age_Seconds,
+               ROUND(st.Commits / GREATEST((SYSDATE - s.logon_time) * 86400, 1), 3) Commits_Per_Sec,
+               ROUND(st.Rollbacks / GREATEST((SYSDATE - s.logon_time) * 86400, 1), 3) Rollbacks_Per_Sec
+        FROM   (SELECT Inst_ID, SID,
+                       SUM(CASE WHEN n.Name = 'user commits' THEN Value END) Commits,
+                       SUM(CASE WHEN n.Name = 'user rollbacks' THEN Value END) Rollbacks
+                FROM   gv$sesstat st
+                JOIN   v$StatName n ON n.Statistic# = st.Statistic#
+                WHERE  n.Name IN ('user commits', 'user rollbacks')
+                GROUP BY Inst_ID, SID
+               ) st
+        JOIN   gv$session  s ON s.Inst_ID = st.Inst_ID AND s.SID = st.SID
+        WHERE  st.Commits + st.Rollbacks > 0
+       )
+GROUP BY UserName, Program, Machine
+ORDER  BY Commits_Per_Sec + Rollbacks_Per_Sec DESC
+",
+        },
     ]
   end
 

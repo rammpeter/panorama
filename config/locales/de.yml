@@ -1915,6 +1915,16 @@
   dragnet_helper_178_param_1_hint:                          Mindestlaufzeit in Sekunden für SQL in SGA- und AWR-Berichten, die bei der Auswahl berücksichtigt werden sollen
   dragnet_helper_178_param_1_name:                          Minimale Laufzeit in Sekunden für SQL-Ausführung
 
+  dragnet_helper_179_desc: |-
+    Die Anzahl von User-Commits und -Rollbacks pro Sekunde nach Sitzungen hilft, die Quelle der Logwriter-Belastung zu identifizieren.
+
+  dragnet_helper_179_name:                                  Aktuelle Transaktionsrate nach Sessions
+
+  dragnet_helper_180_desc: |-
+    Die Anzahl von User-Commits und -Rollbacks pro Sekunde hilft, die Quelle der Logwriter-Belastung zu identifizieren.
+
+  dragnet_helper_180_name:                                  Aktuelle Transaktionsrate nach User/Programm/Maschine
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen
