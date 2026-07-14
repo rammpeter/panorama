@@ -928,10 +928,22 @@ class DbaSchemaController < ApplicationController
         return
       when 'TRIGGER'
         rec = sql_select_first_row ["SELECT TRIM(Base_Object_Type) Base_Object_Type, Table_Owner, Table_Name FROM DBA_Triggers WHERE Owner=? AND Trigger_Name=?", @owner, @object_name]
-        raise "No detail view available for trigger #{@owner}.#{@object_name} of base object type='#{rec.base_object_type}'" unless ['TABLE', 'VIEW'].include? rec.base_object_type
-        params[:owner] = rec.table_owner
-        params[:table_name] = rec.table_name
-        list_triggers
+        if ['TABLE', 'VIEW'].include? rec.base_object_type
+          params[:owner] = rec.table_owner
+          params[:table_name] = rec.table_name
+          list_triggers
+        elsif rec.base_object_type == 'DATABASE'
+          redirect_to url_for(:controller => :dba,
+                              :action     => :list_database_triggers,
+                              :params     => {owner:           @owner,
+                                              trigger_name:    @object_name,
+                                              update_area:     params[:update_area],
+                                              browser_tab_id:  @browser_tab_id,
+                              },
+                              :method     => :post)
+        else
+          raise "No detail view available for trigger #{@owner}.#{@object_name} of base object type='#{rec.base_object_type}'"
+        end
         return
       when 'SYNONYM'
         list_synonym

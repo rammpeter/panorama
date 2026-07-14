@@ -33,11 +33,13 @@
      c[:data_style] = proc{|rec| 'color:grey;' if rec.status == 'DISABLED' }
    end
 
+   caption = "Triggers for Base_Object_Type='DATABASE' from DBA_Triggers "
+   caption << "for trigegr = #{@owner}.#{@trigger_name}" if @owner || @trigger_name
 %>
 
 <%=
     gen_slickgrid(@triggers, column_options, {
-                                   :caption => "Triggers for Base_Object_Type='DATABASE' from DBA_Triggers",
+                                   :caption => caption,
                                    :max_height => 450,
                                    show_pin_icon: 1,
                                    update_area:   @update_area
