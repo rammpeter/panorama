@@ -1,4 +1,4 @@
-<%= render_page_caption("Extended blocking locks history from #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.Panorama_Blocking_Locks") %>
+<%= render_page_caption("Extended blocking locks history from #{ThreadLocalStorage.connect_info![:panorama_sampler_schema]}.Panorama_Blocking_Locks") %>
 
 <%= ajax_form(:controller=>:addition, :action=>:list_blocking_locks_history, :update_area=>:list_blocking_locks_history_area) do %>
   <div class="flex-row-container">

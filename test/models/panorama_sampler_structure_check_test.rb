@@ -36,7 +36,7 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
   test 'transform_sql_for_sampler' do
     @connection_users.each do |connection_user|                                 # Use different user for connect
       prepare_panorama_sampler_thread_db_config connection_user
-      config = PanoramaConnection.get_threadlocal_config                        # TODO: Possibly replaceable by return value of previous line
+      config = ThreadLocalStorage.connect_info!                                 # TODO: Possibly replaceable by return value of previous line
       assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM DBA_Hist_SQLStat").upcase,          "SELECT * FROM #{config[:panorama_sampler_schema].upcase}.PANORAMA_SQLSTAT")
       assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM gv$Active_Session_History").upcase, "SELECT * FROM #{config[:panorama_sampler_schema].upcase}.PANORAMA_V$ACTIVE_SESS_HISTORY")
       assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM DBA_Hist_Hugo").upcase,             "SELECT * FROM DBA_HIST_HUGO")
@@ -46,7 +46,7 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
   test 'adjust_table_name' do
     @connection_users.each do |connection_user|                                 # Use different user for connect
       prepare_panorama_sampler_thread_db_config connection_user
-      config = PanoramaConnection.get_threadlocal_config
+      config = ThreadLocalStorage.connect_info!
       original_management_pack_license = config[:management_pack_license]       # Save to restore after test, config is a reference on a global singleton
 
       begin

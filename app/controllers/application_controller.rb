@@ -31,7 +31,7 @@ class ApplicationController < ActionController::Base
   # Abfangen aller Exceptions während Verarbeitung von Controller-Actions
   def global_exception_handler(exception)
     PanoramaConnection.destroy_connection                                       # Ensure next requests gets new database connection after exception
-    PanoramaConnection.reset_thread_local_attributes
+    ThreadLocalStorage.reset
 
     @exception = exception                                                      # Sichtbarkeit im template
     @request   = request

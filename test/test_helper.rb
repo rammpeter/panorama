@@ -104,7 +104,7 @@ class ActiveSupport::TestCase
     end
   end
 
-  # Don't use PanoramaConnection.db_version because PanoramaConnection.reset_thread_local_attributes is called at end of each request
+  # Don't use PanoramaConnection.db_version because ThreadLocalStorage.reset is called at end of each request
   def get_db_version
     @db_version
   end

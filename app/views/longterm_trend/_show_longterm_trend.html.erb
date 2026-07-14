@@ -1,6 +1,6 @@
 <% @update_area = get_unique_area_id %>
 
-<%= render_page_caption("Long-term trend from #{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase}.LongTerm_Trend") %>
+<%= render_page_caption("Long-term trend from #{ThreadLocalStorage.connect_info![:panorama_sampler_schema].downcase}.LongTerm_Trend") %>
 
 <%= ajax_form(controller: :longterm_trend, action: :list_longterm_trend, update_area: @update_area) do %>
   <div class="flex-row-container">

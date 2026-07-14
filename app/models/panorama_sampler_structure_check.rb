@@ -1614,9 +1614,9 @@ ORDER BY Column_ID
 #      Rails.logger.info "######################### #{start_index} #{sql[start_index, sql.length-start_index]}"
       get_table_and_view_names.each do |table|                                  # Check if table might be replaced by Panorama-Sampler
         if table[:table_name].upcase == up_sql[start_index, table[:table_name].length].gsub(/DBA_HIST/, 'PANORAMA')
-          sql   .insert(start_index, "#{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.")       # Add schema name before table_name
-          up_sql.insert(start_index, "#{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema]}.")       # Increase size synchronously with sql
-          start_index += PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].length+1                 # Increase Pointer by schemaname
+          sql   .insert(start_index, "#{ThreadLocalStorage.connect_info![:panorama_sampler_schema]}.")                # Add schema name before table_name
+          up_sql.insert(start_index, "#{ThreadLocalStorage.connect_info![:panorama_sampler_schema]}.")                # Increase size synchronously with sql
+          start_index += ThreadLocalStorage.connect_info![:panorama_sampler_schema].length+1                          # Increase Pointer by schemaname
           7.downto(0) do |pos|                                                                            # Copy replacement table_name char by char into sql (DBA_HIST -> Panorama)
             sql[start_index+pos] = table[:table_name][pos]
           end

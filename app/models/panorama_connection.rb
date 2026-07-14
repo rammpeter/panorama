@@ -393,14 +393,9 @@ class PanoramaConnection
   # Store connection redentials for this request in thread, marks begin of request
   # @param [Hash] config
   def self.set_connection_info_for_request(config)
-    reset_thread_local_attributes
+    ThreadLocalStorage.reset                                                    # Ensure initialized values if thread is reused
     Rails.logger.debug('PanoramaConnection.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
     ThreadLocalStorage.connect_info = config
-  end
-
-  # Ensure initialized values if thread is reused
-  def self.reset_thread_local_attributes
-    ThreadLocalStorage.reset
   end
 
   # set the initial value for used dbid at login time (DB's DBID or CDB's DBID)
@@ -428,36 +423,23 @@ class PanoramaConnection
     end
   end
 
-  # Get the connection associated with the current thread
-  # @return [PanoramaConnection] the connection object for the current thread or nil if not connected
-  def self.thread_connection
-    ThreadLocalStorage.connection_object
-  end
-
-  # Set the connection object for the current thread
-  # @param value [PanoramaConnection] the connection object to set for the current thread
-  # @return [void]
-  def self.set_thread_connection(value)
-    ThreadLocalStorage.connection_object = value
-  end
-
   # Release connection at the end of request to mark free in pool or destroy
   def self.release_connection
-    if thread_connection
+    if ThreadLocalStorage.connection_object
       @@connection_pool_mutex.synchronize do
-        thread_connection.used_in_thread = false
+        ThreadLocalStorage.connection_object.used_in_thread = false
       end
-      set_thread_connection(nil)
+      ThreadLocalStorage.connection_object = nil
     end
-    PanoramaConnection.reset_thread_local_attributes                            # Ensure fresh thread attributes if thread is reused from pool
+    ThreadLocalStorage.reset                                                    # Ensure fresh thread attributes if thread is reused from pool
   end
 
   def self.destroy_connection
-    if !thread_connection.nil?
+    if !ThreadLocalStorage.connection_object.nil?
       @@connection_pool_mutex.synchronize do
-        destroy_connection_in_mutexed_pool(thread_connection)
+        destroy_connection_in_mutexed_pool(ThreadLocalStorage.connection_object)
       end
-      set_thread_connection(nil)
+      ThreadLocalStorage.connection_object = nil
     end
   end
 
@@ -494,8 +476,8 @@ class PanoramaConnection
 
   # Check for existence and readability of a table
   def self.panorama_table_exists?(table_name)
-    return false if PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].nil?
-    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].upcase}'", table_name.upcase]) > 0
+    return false if ThreadLocalStorage.connect_info![:panorama_sampler_schema].nil?
+    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{ThreadLocalStorage.connect_info![:panorama_sampler_schema].upcase}'", table_name.upcase]) > 0
   end
 
 
@@ -527,7 +509,7 @@ class PanoramaConnection
   def self.login_container_dbid;            check_for_open_connection(false).login_container_dbid; end
   # @return [Symbol] :diagnostics_and_tuning_pack or :diagnostics_pack or :panorama_sampler or :none
   # Use PackLicense.tuning_pack_licensed? etc. instead of this method
-  def self.management_pack_license;         PanoramaConnection.get_threadlocal_config[:management_pack_license]; end
+  def self.management_pack_license;         ThreadLocalStorage.connect_info![:management_pack_license]; end
   def self.min_awr_interval;                check_for_open_connection.min_awr_interval;                  end
   def self.panorama_object_sizes_exists?;   check_for_open_connection.panorama_object_sizes_exists?;     end
   def self.pdbs;                            check_for_open_connection.pdbs;                              end
@@ -545,7 +527,7 @@ class PanoramaConnection
   def self.transaction_fixed_header_size;   check_for_open_connection.transaction_fixed_header_size;     end
   def self.transaction_variable_header_size;check_for_open_connection.transaction_variable_header_size;  end
   def self.unsigned_byte_4_size;            check_for_open_connection.unsigned_byte_4_size;              end
-  def self.username;                        check_for_open_connection;        get_threadlocal_config[:user].upcase;    end
+  def self.username;                        check_for_open_connection;        ThreadLocalStorage.connect_info![:user].upcase;    end
 
   private
 
@@ -578,13 +560,13 @@ class PanoramaConnection
   end
 
   def self.jdbc_thin_url
-    "jdbc:oracle:thin:@#{get_threadlocal_config[:tns]}"
+    "jdbc:oracle:thin:@#{ThreadLocalStorage.connect_info![:tns]}"
   end
 
   # Get the JDBC connection for the current thread, or create a new one if not already connected
   def self.get_jdbc_raw_connection
     check_for_open_connection
-    thread_connection.jdbc_connection.raw_connection
+    ThreadLocalStorage.connection_object.jdbc_connection.raw_connection
   end
 
   def self.get_jdbc_driver_version
@@ -725,7 +707,7 @@ class PanoramaConnection
   def self.sql_execute_native(sql:, binds:, query_name: 'sql_execute_native')
     check_for_open_connection                                                   # ensure opened Oracle-connection
     transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for license violation and possible statement transformation
-    thread_connection.register_sql_execution(transformed_sql)
+    ThreadLocalStorage.connection_object.register_sql_execution(transformed_sql)
     begin
       get_connection.exec_update(transformed_sql, query_name, binds)
     rescue Exception => e
@@ -755,7 +737,7 @@ class PanoramaConnection
     new_ex.set_backtrace(e.backtrace)
     raise new_ex
   ensure
-    thread_connection&.unregister_sql_execution
+    ThreadLocalStorage.connection_object&.unregister_sql_execution
   end
 
   # Execute a PL/SQL function that returns a CLOB, mind the missing semicolon at the end of the command
@@ -764,7 +746,7 @@ class PanoramaConnection
   # @return [String] the result of the function call as a String
   def self.exec_clob_plsql_function(function_call, binds)
     sql = "{ ? = call #{function_call} }";                                      # CallableStatement syntax for functions
-    thread_connection.register_sql_execution(sql)
+    ThreadLocalStorage.connection_object.register_sql_execution(sql)
     cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(sql)
     cs.register_out_parameter(1, java.sql.Types::CLOB);                         # Register the first parameter (return value) as an OUT parameter
 
@@ -790,7 +772,7 @@ class PanoramaConnection
     raise e
   ensure
     cs&.close
-    thread_connection&.unregister_sql_execution
+    ThreadLocalStorage.connection_object&.unregister_sql_execution
   end
 
   # Execute anonymous PL/SQL code that returns its result by use of DBMS_OUTPUT, valid for rel. 19 ++
@@ -801,7 +783,7 @@ class PanoramaConnection
   def self.exec_plsql_with_dbms_output_result(code, binds)
     raise "PanoramaConnection.exec_plsql_with_dbms_output_result not supported for DB rel. < 19" if db_version < '19'
     transformed_code = PackLicense.filter_sql_for_pack_license(code)  # Check for license violation and possible statement transformation
-    thread_connection.register_sql_execution(transformed_code)
+    ThreadLocalStorage.connection_object.register_sql_execution(transformed_code)
 
     self.sql_execute("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")
 
@@ -837,7 +819,7 @@ class PanoramaConnection
   ensure
     cs&.close if defined? cs
     ob_cs&.close if defined? ob_cs
-    thread_connection&.unregister_sql_execution
+    ThreadLocalStorage.connection_object&.unregister_sql_execution
   end
 
   def self.commit                                                               # only relevant if autocommit is switched off
@@ -851,14 +833,7 @@ class PanoramaConnection
   # @return JDBC connection object
   def self.get_connection
     check_for_open_connection
-    thread_connection.jdbc_connection
-  end
-
-  # Connect info of the current request/thread
-  # @return [Hash] the connect info of the current thread
-  # @raise [RuntimeError] if no connect info is set for the current thread
-  def self.get_threadlocal_config
-    ThreadLocalStorage.connect_info!
+    ThreadLocalStorage.connection_object.jdbc_connection
   end
 
   def self.user_table_exists?(table_name)
@@ -872,8 +847,8 @@ class PanoramaConnection
   # @return [PanoramaConnection] the connection object for the current thread
   # @raise [Exception] if no connection could be established after retry_count retries
   def self.check_for_open_connection(register_module_action = true, retry_count: 0)
-    if thread_connection.nil?                # No JDBC-Connection allocated for thread
-      set_thread_connection(retrieve_from_pool_or_create_new_connection)
+    if ThreadLocalStorage.connection_object.nil?                                # No JDBC-Connection allocated for thread
+      ThreadLocalStorage.connection_object = retrieve_from_pool_or_create_new_connection
     end
 
     if register_module_action && !ThreadLocalStorage.app_info_set?              # dbms_application_info not yet set in thread
@@ -881,7 +856,7 @@ class PanoramaConnection
         set_application_info
       rescue Exception => e
         destroy_connection
-        set_thread_connection(nil)
+        ThreadLocalStorage.connection_object = nil
         if retry_count < 1 || (e.class == Java::JavaSql::SQLRecoverableException && retry_count < 50)
           Rails.logger.warn('PanoramaConnection.check_for_open_connection') { "Error #{e.class}:'#{e.message}'! Drop connection and look for next one from pool" }
           check_for_open_connection(register_module_action, retry_count: retry_count + 1)
@@ -894,8 +869,8 @@ class PanoramaConnection
     end
 
     # remember last used query timeout for usage in connection_terminate_job
-    thread_connection.last_used_query_timeout = get_threadlocal_config[:query_timeout]
-    thread_connection                                                           # Return connection object for current thread
+    ThreadLocalStorage.connection_object.last_used_query_timeout = ThreadLocalStorage.connect_info![:query_timeout]
+    ThreadLocalStorage.connection_object                                        # Return connection object for current thread
   end
 
   # Test if connection should be closed after too many errors during SQL execution
@@ -905,7 +880,7 @@ class PanoramaConnection
     immediate_destroy_reasons = [
       'Closed Connection'
     ]
-    conn = thread_connection
+    conn = ThreadLocalStorage.connection_object
     immediate_destroy_reasons.each do |reason|
       if exception.message[reason]                                              # Exception message contains searched string
         Rails.logger.error('PanoramaConnection.check_for_erroneous_connection_removal') { "DB-Connection '#{conn.sid},#{conn.serial_no}' immediately destroyed after SQL error because of '#{reason}' in exception message"}
@@ -923,6 +898,7 @@ class PanoramaConnection
   # @return [PanoramaConnection]
   def self.retrieve_from_pool_or_create_new_connection
     retval = nil
+    config = ThreadLocalStorage.connect_info!                                   # Connect info of the current thread, modified below if TNS-connect fails
     @@connection_pool_mutex.synchronize do
       # Check if there is a free connection in pool
       @@connection_pool.each do |conn|                                          # Iterate over connections in pool
@@ -930,9 +906,9 @@ class PanoramaConnection
         if retval.nil? &&                                                       # Searched connection, not already in use
             !conn.used_in_thread &&
             connection_config[:url] == jdbc_thin_url &&
-            connection_config[:username] == get_threadlocal_config[:user] &&
+            connection_config[:username] == config[:user] &&
             conn.password_hash == get_decrypted_password.hash                   # Password must be equal to that used in pooled connection
-          Rails.logger.info "Using existing database connection from pool: URL='#{jdbc_thin_url}' User='#{get_threadlocal_config[:user]}' SID=#{conn.sid} Last used=#{conn.last_used_time} Pool size=#{@@connection_pool.count}"
+          Rails.logger.info "Using existing database connection from pool: URL='#{jdbc_thin_url}' User='#{config[:user]}' SID=#{conn.sid} Last used=#{conn.last_used_time} Pool size=#{@@connection_pool.count}"
           conn.used_in_thread = true                                          # Mark as used in pool and leave loop
           conn.last_used_time = Time.now                                      # Reset ast used time
           retval = conn
@@ -967,18 +943,18 @@ class PanoramaConnection
 
       begin
         jdbc_connection = do_login
-        if get_threadlocal_config[:modus] == 'tns'
+        if config[:modus] == 'tns'
           begin
             PanoramaConnection.direct_select_one(jdbc_connection, "SELECT /* Panorama first connection test for tns */ SYSDATE FROM DUAL")    # Connect with TNS-Alias has second try if does not function
           rescue Exception => e                                                   # Switch to host/port/sid instead
-            Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in first try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{get_threadlocal_config[:tns]}' User='#{get_threadlocal_config[:user]}'" }
+            Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in first try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{config[:tns]}' User='#{config[:user]}'" }
             Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
             ExceptionHelper.log_exception_backtrace(e, 30)
 
             jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
-            get_threadlocal_config[:modus] = 'host'
-            get_threadlocal_config[:tns]   = PanoramaConnection.get_host_tns(get_threadlocal_config)
-            Rails.logger.info "Second try to connect with host/port/sid instead of TNS-alias: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{get_threadlocal_config[:tns]}' User='#{get_threadlocal_config[:user]}'"
+            config[:modus] = 'host'                                             # Modifies the connect info in thread local storage
+            config[:tns]   = PanoramaConnection.get_host_tns(config)
+            Rails.logger.info "Second try to connect with host/port/sid instead of TNS-alias: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{config[:tns]}' User='#{config[:user]}'"
             jdbc_connection = do_login
             PanoramaConnection.direct_select_one(jdbc_connection, "SELECT /* Panorama second connection test for tns */ SYSDATE FROM DUAL")    # Connect with host/port/sid as second try if does not function
           end
@@ -987,7 +963,7 @@ class PanoramaConnection
         end
       rescue Exception => e
         jdbc_connection.logoff if !jdbc_connection.nil?                     # close/free wrong connection
-        Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in second try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{get_threadlocal_config[:tns]}' User='#{get_threadlocal_config[:user]}'" }
+        Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error connecting to database in second try: URL='#{PanoramaConnection.jdbc_thin_url}' TNSName='#{config[:tns]}' User='#{config[:user]}'" }
         Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "#{e.class.name} #{e.message}" }
         ExceptionHelper.log_exception_backtrace(e, 30)
         raise
@@ -1038,7 +1014,8 @@ class PanoramaConnection
   end
 
   def self.get_decrypted_password
-    decrypted_password = Encryption.decrypt_value(get_threadlocal_config[:password], get_threadlocal_config[:client_salt])
+    config = ThreadLocalStorage.connect_info!
+    decrypted_password = Encryption.decrypt_value(config[:password], config[:client_salt])
     raise "PanoramaConnection.get_decrypted_password: Result = nil after decryption" if decrypted_password.nil?
     decrypted_password
   rescue Exception => e
@@ -1060,11 +1037,12 @@ class PanoramaConnection
       end
     end
 
+    config        = ThreadLocalStorage.connect_info!
     url           = jdbc_thin_url
-    username      = get_threadlocal_config[:user]
+    username      = config[:user]
     password      = get_decrypted_password
-    privilege     = get_threadlocal_config[:privilege]
-    query_timeout = get_threadlocal_config[:query_timeout]
+    privilege     = config[:privilege]
+    query_timeout = config[:query_timeout]
     if query_timeout.nil?
       Rails.logger.info('PanoramaConnection.do_login') { "query_timeout not set in thread, assuming default value = 300" }
       query_timeout = 300
@@ -1088,7 +1066,7 @@ class PanoramaConnection
           'oracle.net.crypto_checksum_client' => 'REQUESTED'
         }
     )
-    Rails.logger.info('PanoramaConnection.do_login') { "New database connection created: URL='#{jdbc_thin_url}' User='#{get_threadlocal_config[:user]}' Pool size=#{@@connection_pool.count+1}" }
+    Rails.logger.info('PanoramaConnection.do_login') { "New database connection created: URL='#{jdbc_thin_url}' User='#{username}' Pool size=#{@@connection_pool.count+1}" }
 
     # Schedule socket timeout to cancel connection in case of network stuck after twice of query timeout
     jdbc_connection.raw_connection.setNetworkTimeout(java.util.concurrent.Executors.newSingleThreadExecutor, query_timeout*2*1000);
@@ -1116,8 +1094,9 @@ class PanoramaConnection
   end
 
   def self.set_application_info
+    config = ThreadLocalStorage.connect_info!
     # This method raises connection exception at first database access
-    thread_connection.set_module_action("#{get_threadlocal_config[:current_controller_name]}/#{get_threadlocal_config[:current_action_name]}")
+    ThreadLocalStorage.connection_object.set_module_action("#{config[:current_controller_name]}/#{config[:current_action_name]}")
   end
 
   # Translate text in SQL-statement
@@ -1173,7 +1152,7 @@ class PanoramaConnection
     def initialize(stmt:,
                    binds:,
                    modifier: nil,
-                   query_timeout: PanoramaConnection.get_threadlocal_config[:query_timeout],
+                   query_timeout: ThreadLocalStorage.connect_info![:query_timeout],
                    query_name: 'SqlSelectIterator',
                    convert_tz: true
     )
@@ -1187,7 +1166,7 @@ class PanoramaConnection
 
     def each(&block)
       # Execute SQL and call block for every record of result
-      PanoramaConnection.thread_connection.register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
+      ThreadLocalStorage.connection_object.register_sql_execution(@stmt)    # Allows to show SQL in usage/connection_pool
 
       type_casted_binds = @binds.map do |attr|
         # attr.value_for_database.type should be only the default ActiveRecord::Type::Value
@@ -1197,7 +1176,7 @@ class PanoramaConnection
         casted_value
       end
 
-      PanoramaConnection.thread_connection.jdbc_connection.iterate_query(@stmt,
+      ThreadLocalStorage.connection_object.jdbc_connection.iterate_query(@stmt,
                                                                                            name: @query_name,
                                                                                            binds: @binds,
                                                                                            type_casted_binds: type_casted_binds,
@@ -1221,7 +1200,7 @@ class PanoramaConnection
       new_ex.set_backtrace(e.backtrace)
       raise new_ex
     ensure
-      PanoramaConnection.thread_connection&.unregister_sql_execution   # free current SQL info for usage/connection_pool
+      ThreadLocalStorage.connection_object&.unregister_sql_execution   # free current SQL info for usage/connection_pool
     end
 
   end

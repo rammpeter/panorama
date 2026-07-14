@@ -18,7 +18,7 @@ class LongtermTrendController < ApplicationController
   def list_longterm_trend_grouping
     where_from_groupfilter(params[:groupfilter], params[:groupby])
 
-    panorama_sampler_schema = PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase
+    panorama_sampler_schema = ThreadLocalStorage.connect_info![:panorama_sampler_schema].downcase
 
     @sessions= PanoramaConnection.sql_select_iterator(["\
       SELECT #{longterm_trend_key_rule(@groupby)[:sql]} Group_Value,
@@ -54,7 +54,7 @@ class LongtermTrendController < ApplicationController
                       end
 
     where_from_groupfilter(params[:groupfilter], params[:groupby])
-    panorama_sampler_schema = PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase
+    panorama_sampler_schema = ThreadLocalStorage.connect_info![:panorama_sampler_schema].downcase
 
     singles= sql_select_all ["\
       SELECT TRUNC(Snapshot_Timestamp, '#{time_group_expr}') Snapshot_Start,
@@ -161,7 +161,7 @@ class LongtermTrendController < ApplicationController
   # called from list_longterm_trend_single_record
   def list_longterm_trend_single_record_single
 
-    panorama_sampler_schema = PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase
+    panorama_sampler_schema = ThreadLocalStorage.connect_info![:panorama_sampler_schema].downcase
 
     @singles = PanoramaConnection.sql_select_iterator(["\
       SELECT t.Snapshot_Timestamp, t.Seconds_Active, t.Instance_Number, t.Snapshot_Cycle_Hours,
@@ -201,7 +201,7 @@ class LongtermTrendController < ApplicationController
       raise "Unsupported value for parameter :groupby (#{@time_groupby})"
     end
 
-    panorama_sampler_schema = PanoramaConnection.get_threadlocal_config[:panorama_sampler_schema].downcase
+    panorama_sampler_schema = ThreadLocalStorage.connect_info![:panorama_sampler_schema].downcase
 
     @singles = PanoramaConnection.sql_select_iterator(["\
       SELECT MIN(t.Snapshot_Timestamp)    Min_Snapshot_Timestamp,
