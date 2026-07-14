@@ -19,13 +19,63 @@ column_options =
    {:caption=>'%',            :data=>proc{|rec| fn((rec.blocks_total*100.0/rec.sum_total_per_snapshot rescue nil), 2)},     :title=>"Percent of total cached blocks for this object", data_title: proc{|rec| "%t\nTotal number of cached blocks = #{fn(rec.sum_total_per_snapshot)}"}, :align=>"right"},
    {:caption=>"Dirty",        :data=>proc{|rec| fn(rec.blocks_dirty) },            :title=>"Number of dirty DB-blocks in cache used by object",  :align=>:right},
  ]
+
+  time_selection_start_id = "time_selection_start_#{get_unique_area_id}"
+  time_selection_end_id   = "time_selection_end_#{get_unique_area_id}"
+
+  caption = "DB-cache usage #{@owner}.#{@name} #{"(#{@partitionname})" if @partitionname} Instance=#{@instance}"
+  caption << (ajax_form(controller: :addition,
+                        action:     :list_db_cache_historic_detail,
+                        instance:   @instance,
+                        owner:      @owner,
+                        name:      @name,
+                        partitionname: @partitionname,
+                        show_partitions: @show_partitions,
+                        update_area: params[:update_area]                   # Update_area des letzten Aufrufes wiederverwenden
+                        ) do
+    form_output = String.new
+    form_output << "<div class=\"flex-row-container\" style=\"font-weight: normal;\">"
+
+    form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'\">"
+    form_output <<      t(:time_selection_start_caption, :default => 'Start')
+    form_output << "&nbsp;"
+    form_output <<      text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>time_selection_start_id)
+    form_output << "  </div>"
+
+    form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'\">"
+    form_output <<      t(:time_selection_end_caption, :default => 'End')
+    form_output << "&nbsp;"
+    form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>time_selection_end_id)
+    form_output << "  </div>"
+
+    form_output << "  <div class=\"flex-row-element\">"
+    form_output <<      submit_tag("Refresh", title: "Refresh content with changed period")
+    form_output << "  </div>"
+
+    form_output << "</div>"
+    form_output.html_safe
+  end)
+
+
 %>
 
 <%= gen_slickgrid(@entries, column_options, {
         :max_height=>200,
-        :caption => "DB-cache usage #{@owner}.#{@name} #{"(#{@partitionname})" if @partitionname} between #{@time_selection_start} and #{@time_selection_end} Instance=#{@instance}",
+        caption: caption.html_safe,
+        # :caption => "DB-cache usage #{@owner}.#{@name} #{"(#{@partitionname})" if @partitionname} between #{@time_selection_start} and #{@time_selection_end} Instance=#{@instance}",
         show_pin_icon: 1,
         update_area:   @update_area
 }) %>
+
+<script type="text/javascript">
+    // let create slickgrid with header at first, wenn refine elements in header
+    setTimeout(
+        () => {
+            $("#<%= time_selection_start_id %>").datetimepicker();
+            $("#<%= time_selection_end_id   %>").datetimepicker();
+        }, 0
+    )
+</script>
+
 
 

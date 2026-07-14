@@ -75,21 +75,25 @@ caption << (ajax_form(:controller => :dba_history, :action        => :list_sql_h
   form_output << "<div class=\"flex-row-container\" style=\"font-weight: normal;\">"
   form_output << "  <div class=\"flex-row-element\" title=\"RAC-Instance. You can change this filter value or empty this field to disable the filter\">"
   form_output << "    Instance"
+  form_output << "&nbsp;"
   form_output <<      text_field_tag(:instance, @instance, :size=>4)
   form_output << "  </div>"
 
   form_output << "  <div class=\"flex-row-element\" title=\"Parsing schema name. You can change this filter value or empty this field to disable the filter\">"
   form_output << "    Schema"
+  form_output << "&nbsp;"
   form_output <<      text_field_tag(:parsing_schema_name, @parsing_schema_name, :size=>20)
   form_output << "  </div>"
 
   form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'\">"
   form_output <<      t(:time_selection_start_caption, :default => 'Start')
+  form_output << "&nbsp;"
   form_output <<      text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>@time_selection_start_id)
   form_output << "  </div>"
 
   form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'\">"
   form_output <<      t(:time_selection_end_caption, :default => 'End')
+  form_output << "&nbsp;"
   form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>@time_selection_end_id)
   form_output << "  </div>"
 
@@ -98,6 +102,7 @@ caption << (ajax_form(:controller => :dba_history, :action        => :list_sql_h
   form_output << "&nbsp;"
   form_output << "  <div class=\"flex-row-element\" title=\"#{t(:grouping_hint, :default=>'Group listing by attribute')}\">"
   form_output <<      t(:grouping, :default=>'Grouping')
+  form_output << "&nbsp;"
   form_output << "    <select name=\"groupby\">"
   grouping_options.each do |key, value|
     form_output << "<option value=\"#{key}\" #{"selected='selected'" if key.to_s==@groupby}>#{value}</option>"
