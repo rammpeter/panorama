@@ -689,7 +689,8 @@ Client Timezone: \"#{java.util.TimeZone.get_default.get_id}\", #{java.util.TimeZ
                                 $.timepicker.regional = { #{timepicker_regional}
                                     ampm: false,
                                     firstDay: 1,
-                                    dateFormat: '#{timepicker_dateformat }'
+                                    dateFormat: '#{timepicker_dateformat }',
+                                    separator:  ' '
                                  };
                                 $.timepicker.setDefaults($.timepicker.regional);
                                 $.datepicker.setDefaults({ firstDay: 1, dateFormat: '#{timepicker_dateformat }'});

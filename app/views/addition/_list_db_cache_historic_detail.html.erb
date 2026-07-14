@@ -39,13 +39,13 @@ column_options =
     form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_start_hint, :default=>'Start of considered time period in format')} '#{human_datetime_minute_mask}'\">"
     form_output <<      t(:time_selection_start_caption, :default => 'Start')
     form_output << "&nbsp;"
-    form_output <<      text_field_tag(:time_selection_start, @time_selection_start, :size=>15, :id=>time_selection_start_id)
+    form_output <<      text_field_tag(:time_selection_start, @time_selection_start, :size=>17, :id=>time_selection_start_id)
     form_output << "  </div>"
 
     form_output << "  <div class=\"flex-row-element\" title=\"#{t(:time_selection_end_hint, :default=>'End of considered time period in format')} '#{human_datetime_minute_mask}'\">"
     form_output <<      t(:time_selection_end_caption, :default => 'End')
     form_output << "&nbsp;"
-    form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>15, :id=>time_selection_end_id)
+    form_output <<      text_field_tag(:time_selection_end, @time_selection_end, :size=>17, :id=>time_selection_end_id)
     form_output << "  </div>"
 
     form_output << "  <div class=\"flex-row-element\">"
@@ -71,8 +71,8 @@ column_options =
     // let create slickgrid with header at first, wenn refine elements in header
     setTimeout(
         () => {
-            $("#<%= time_selection_start_id %>").datetimepicker();
-            $("#<%= time_selection_end_id   %>").datetimepicker();
+            $("#<%= time_selection_start_id %>").datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
+            $("#<%= time_selection_end_id   %>").datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
         }, 0
     )
 </script>

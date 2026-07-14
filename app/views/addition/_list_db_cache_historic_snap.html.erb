@@ -2,6 +2,22 @@
 
   @update_area = get_unique_area_id
 
+  link_samples = proc do |rec|
+    ajax_link(1, {
+      :action                 => :list_db_cache_historic_detail,
+      :instance               => @instance,
+      :owner                  => rec.owner,
+      :name                   => rec.name,
+      :show_partitions        => @show_partitions,
+      :partitionname          => rec.partition_name,
+      :time_selection_start   => @snapshot_timestamp,
+      :time_selection_end     => @snapshot_timestamp,
+      :update_area            => @update_area
+    },
+              :title=>"Show detailed sample record of object at the time")
+  end
+
+
   link_sqls = proc do |rec|
     ajax_link('Show SQLs', {
             :controller             => :dba_history,
@@ -24,7 +40,8 @@ column_options =
    {:caption=>"Blocks", :data=>proc{|rec| formattedNumber(rec.blocks_total)},       :title=>"Number of DB-blocks in cache used by object",        :align=>:right},
    {:caption=>'%',      :data=>proc{|rec| fn((rec.blocks_total*100.0/rec.sum_total_per_snapshot rescue nil), 2)},     :title=>"Percent of total cached blocks for this object", data_title: proc{|rec| "%t\nTotal number of cached blocks = #{fn(rec.sum_total_per_snapshot)}"}, :align=>"right"},
    {:caption=>"Dirty",  :data=>proc{|rec| formattedNumber(rec.blocks_dirty)},       :title=>"Number of dirty DB-blocks in cache used by object",  :align=>:right},
-   {:caption=>'SQLs',   :data=>link_sqls,                                                                :title=>"Show SQLs using this object in chosen time period"},
+   {:caption=>"Samples",:data=>link_samples,                                        :title=>"Number of snapshot samples for this object in period", :align=>:right},
+   {:caption=>'SQLs',   :data=>link_sqls,                                           :title=>"Show SQLs using this object in chosen time period"},
  ]
 %>
 

@@ -22,8 +22,8 @@ module HtmlHelper
     </div>
 
     <script type='text/javascript'>
-       $('##{start_id}').datetimepicker();
-       $('##{end_id}').datetimepicker();
+       $('##{start_id}').datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
+       $('##{end_id}').datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
     </script>
     ".html_safe
   end

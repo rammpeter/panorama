@@ -426,6 +426,22 @@ function check_menu_width() {
 }
 
 /**
+ * beforeShow-callback for $(...).datetimepicker(), to be passed explicitly as option on every single call.
+ * Reason: jquery-ui-timepicker-addon's internal beforeShow-wrapper (see _newInst in jquery-ui-timepicker-addon.js)
+ * only forwards the beforeShow function given as inline option "o.beforeShow" of the concrete .datetimepicker(o) call,
+ * NOT a beforeShow set via the global $.timepicker.setDefaults(...)/$.timepicker.regional. So a global default is silently ignored.
+ * Adjusts time format/precision of the picker dialog to the granularity of the current field content (with or without seconds),
+ * so the dialog opens positioned exactly at the timestamp currently shown in the field.
+ * Note: mutating tp_inst._defaults directly (instead of returning an options object) is required here,
+ * because the wrapper mentioned above does not apply the return value of beforeShow either.
+ */
+function adjust_datetimepicker_seconds(input, dp_inst, tp_inst){
+    let has_seconds = /:\d\d:\d\d(\s|$)/.test($(input).val());
+    tp_inst._defaults.timeFormat = has_seconds ? 'hh:mm:ss' : 'hh:mm';
+    tp_inst._defaults.showSecond = has_seconds;
+}
+
+/**
  * create a read only CodeMirror object from textarea with content
  * style of object is defined in css class .CodeMirror
  * @param id    texarea DOM-id

@@ -77,8 +77,8 @@
     // let create slickgrid with header at first, wenn refine elements in header
     setTimeout(
         () => {
-            $("#<%= @time_selection_start_id %>").datetimepicker();
-            $("#<%= @time_selection_end_id   %>").datetimepicker();
+            $("#<%= @time_selection_start_id %>").datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
+            $("#<%= @time_selection_end_id   %>").datetimepicker({ beforeShow: adjust_datetimepicker_seconds });
         }, 1000
     )
 </script>
