@@ -37,7 +37,6 @@ class ThreadLocalStorage
   # @param config [Hash] the connect info
   def self.set_connection_info_for_request(config)
     reset                                                                       # Ensure initialized values if thread is reused
-    Rails.logger.debug('ThreadLocalStorage.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
     Thread.current[CONNECT_INFO_KEY] = config
   end
 

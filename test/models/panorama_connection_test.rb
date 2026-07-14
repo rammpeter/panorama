@@ -65,6 +65,33 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
     end
   end
 
+  test "abort_all_connections_for_shutdown unblocks a thread stuck in a long running query" do
+    result = nil
+    started = false
+    thread = Thread.new do
+      ThreadLocalStorage.set_connection_info_for_request(@sampler_config)
+      started = true
+      begin
+        PanoramaConnection.sql_select_one "SELECT COUNT(*) FROM DUAL CONNECT BY LEVEL <= 1e10"  # deliberately long running query
+        result = :finished_normally
+      rescue Exception => e
+        result = e
+      end
+    end
+
+    sleep 0.2 until started
+    sleep 1                                                                 # ensure the query is actually in flight before aborting
+
+    start_time = Time.now
+    PanoramaConnection.abort_all_connections_for_shutdown
+    thread.join(10)
+    duration = Time.now - start_time
+
+    assert_not_nil(result, "Thread should have finished with either an exception or a normal result within 10 seconds, but is still running")
+    assert_not_equal(:finished_normally, result, "Query should have been aborted, not finished normally")
+    assert(duration < 10, "abort should unblock the thread quickly, took #{duration}s")
+  end
+
   test "min_awr_interval" do
     # Ensure that structures are existing
     #     PanoramaSamplerStructureCheck.do_check(@sampler_config, :AWR) if PanoramaConnection.management_pack_license == :panorama_sampler

@@ -466,6 +466,24 @@ class PanoramaConnection
     @@connection_pool
   end
 
+  # Force-abort all pooled DB connections at process shutdown.
+  # A thread blocked in an active JDBC call (e.g. a long-running query) cannot be interrupted by the JVM's
+  # normal shutdown sequence, so Puma/the JVM would otherwise wait until the call returns or its network
+  # timeout expires. Connection#abort() is the only JDBC operation able to unblock such a thread from outside.
+  def self.abort_all_connections_for_shutdown
+    @@connection_pool_mutex.synchronize do
+      @@connection_pool.each do |conn|
+        begin
+          Rails.logger.info "Aborting DB connection at shutdown: SID=#{conn.sid} used_in_thread=#{conn.used_in_thread} SQL in execution='#{conn.sql_stmt_in_execution}'"
+          conn.jdbc_connection.raw_connection.abort { |runnable| runnable.run }  # run cleanup inline instead of spawning yet another executor thread
+        rescue Exception => e
+          Rails.logger.error('PanoramaConnection.abort_all_connections_for_shutdown') { "Exception #{e.class}:#{e.message} while aborting connection SID=#{conn.sid}" }
+        end
+      end
+      @@connection_pool.clear                                                  # aborted connections must not be handed out to further requests
+    end
+  end
+
   # Check for existence and readability of a table
   def self.panorama_table_exists?(table_name)
     return false if ThreadLocalStorage.panorama_sampler_schema.nil?
