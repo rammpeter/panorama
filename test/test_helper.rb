@@ -253,7 +253,7 @@ class ActiveSupport::TestCase
           Rails.logger.info('ActiveSupport::TestCase.initialize_min_max_snap_id_and_times') { "new snaps executed because duration between snapshots is only #{} seconds" }
         end
 
-        saved_config = Thread.current[:panorama_connection_connect_info]        # store current config before being reset by WorkerThread.create_snapshot_internal
+        saved_config = ThreadLocalStorage.connect_info                          # store current config before being reset by WorkerThread.create_snapshot_internal
 
         WorkerThread.new(sampler_config, 'initialize_min_max_snap_id_and_times').create_snapshot_internal(Time.now.round, :AWR)
         sleep(61)                                                               # Wait until next minute

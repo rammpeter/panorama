@@ -56,7 +56,7 @@ class WorkerThreadTest < ActiveSupport::TestCase
         @sampler_config.set_select_any_table(select_any_table)
         @sampler_config.set_test_awr_ash_snapshot_cycle(0)                      # Allow AWR/ASH Snapshots each x seconds, 5 seconds added by executing method
 
-        saved_config = Thread.current[:panorama_connection_connect_info]        # store current config before being reset by WorkerThread.create_snapshot_internal
+        saved_config = ThreadLocalStorage.connect_info                          # store current config before being reset by WorkerThread.create_snapshot_internal
 
         PanoramaSamplerStructureCheck.remove_tables(@sampler_config)            # ensure missing objects is tested
 

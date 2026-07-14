@@ -1152,10 +1152,10 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
   def read_session_stats
     session_stats = nil                                                         # initialization for use in thread
     sid = PanoramaConnection.sid                                                # get sid from current connection of active thread
-    client_salt = Thread.current[:panorama_connection_connect_info][:client_salt]
+    client_salt = ThreadLocalStorage.connect_info![:client_salt]
     thread = Thread.new do
       PanoramaConnection.set_connection_info_for_request(get_current_database)
-      Thread.current[:panorama_connection_connect_info][:client_salt] = client_salt
+      ThreadLocalStorage.connect_info![:client_salt] = client_salt
       session_stats = sql_select_all ["\
       SELECT s.Statistic# ID, n.Name, s.Value
       FROM v$sesstat s

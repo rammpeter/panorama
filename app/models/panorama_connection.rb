@@ -130,7 +130,7 @@ end #class_eval
 
 # Holds DB-Connection(s) to several Oracle-targets thread-safe apart from ActiveRecord
 
-# Config for DB connection for current threads request is stored in Thread.current[:]
+# Config for DB connection for current threads request is stored in ThreadLocalStorage
 
 # noinspection RubyClassVariableUsageInspection
 class PanoramaConnection
@@ -395,13 +395,12 @@ class PanoramaConnection
   def self.set_connection_info_for_request(config)
     reset_thread_local_attributes
     Rails.logger.debug('PanoramaConnection.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
-    Thread.current[:panorama_connection_connect_info] = config
+    ThreadLocalStorage.connect_info = config
   end
 
   # Ensure initialized values if thread is reused
   def self.reset_thread_local_attributes
-    Thread.current[:panorama_connection_app_info_set] = nil
-    Thread.current[:panorama_connection_connect_info] = nil
+    ThreadLocalStorage.reset
   end
 
   # set the initial value for used dbid at login time (DB's DBID or CDB's DBID)
@@ -432,14 +431,14 @@ class PanoramaConnection
   # Get the connection associated with the current thread
   # @return [PanoramaConnection] the connection object for the current thread or nil if not connected
   def self.thread_connection
-    Thread.current[:panorama_connection_connection_object]
+    ThreadLocalStorage.connection_object
   end
 
   # Set the connection object for the current thread
   # @param value [PanoramaConnection] the connection object to set for the current thread
   # @return [void]
   def self.set_thread_connection(value)
-    Thread.current[:panorama_connection_connection_object] = value
+    ThreadLocalStorage.connection_object = value
   end
 
   # Release connection at the end of request to mark free in pool or destroy
@@ -855,14 +854,11 @@ class PanoramaConnection
     thread_connection.jdbc_connection
   end
 
+  # Connect info of the current request/thread
+  # @return [Hash] the connect info of the current thread
+  # @raise [RuntimeError] if no connect info is set for the current thread
   def self.get_threadlocal_config
-
-    unless Thread.current[:panorama_connection_connect_info]
-      Rails.logger.error('PanoramaConnection.get_threadlocal_config') { "Thread.current[:panorama_connection_connect_info] does not exist" }
-      Rails.logger.error('PanoramaConnection.get_threadlocal_config') { "Stack trace:\n#{Thread.current.backtrace.join("\n")}" }
-      raise 'No current DB connect info set! Please reconnect to DB or restart Panorama in browser!'
-    end
-    Thread.current[:panorama_connection_connect_info]
+    ThreadLocalStorage.connect_info!
   end
 
   def self.user_table_exists?(table_name)
@@ -880,7 +876,7 @@ class PanoramaConnection
       set_thread_connection(retrieve_from_pool_or_create_new_connection)
     end
 
-    if register_module_action && Thread.current[:panorama_connection_app_info_set].nil?  # dbms_application_info not yet set in thread
+    if register_module_action && !ThreadLocalStorage.app_info_set?              # dbms_application_info not yet set in thread
       begin
         set_application_info
       rescue Exception => e
@@ -894,7 +890,7 @@ class PanoramaConnection
           raise e
         end
       end
-      Thread.current[:panorama_connection_app_info_set] = true
+      ThreadLocalStorage.app_info_set = true
     end
 
     # remember last used query timeout for usage in connection_terminate_job
