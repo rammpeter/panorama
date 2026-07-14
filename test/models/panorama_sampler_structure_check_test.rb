@@ -36,9 +36,8 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
   test 'transform_sql_for_sampler' do
     @connection_users.each do |connection_user|                                 # Use different user for connect
       prepare_panorama_sampler_thread_db_config connection_user
-      config = ThreadLocalStorage.connect_info!                                 # TODO: Possibly replaceable by return value of previous line
-      assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM DBA_Hist_SQLStat").upcase,          "SELECT * FROM #{config[:panorama_sampler_schema].upcase}.PANORAMA_SQLSTAT")
-      assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM gv$Active_Session_History").upcase, "SELECT * FROM #{config[:panorama_sampler_schema].upcase}.PANORAMA_V$ACTIVE_SESS_HISTORY")
+      assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM DBA_Hist_SQLStat").upcase,          "SELECT * FROM #{ThreadLocalStorage.panorama_sampler_schema.upcase}.PANORAMA_SQLSTAT")
+      assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM gv$Active_Session_History").upcase, "SELECT * FROM #{ThreadLocalStorage.panorama_sampler_schema.upcase}.PANORAMA_V$ACTIVE_SESS_HISTORY")
       assert_equal(PanoramaSamplerStructureCheck.transform_sql_for_sampler("SELECT * FROM DBA_Hist_Hugo").upcase,             "SELECT * FROM DBA_HIST_HUGO")
     end
   end
