@@ -84,6 +84,9 @@ class WorkerThread
 
     ThreadLocalStorage.set_connection_info_for_request(connection_config)
 
+    # Remember the config ID at the DB session
+    PanoramaConnection.sql_execute ["BEGIN DBMS_APPLICATION_INFO.SET_CLIENT_INFO(?); END;", @sampler_config.get_config_value(:id)]
+
     # management_pack_license should not depend on volatile DB setting !, commented out
     # PanoramaConnection.set_management_pack_license_from_db_in_connection
   rescue Exception => e

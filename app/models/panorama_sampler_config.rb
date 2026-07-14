@@ -74,6 +74,8 @@ class PanoramaSamplerConfig
     retval
   end
 
+  # @param [Symbol] key The key of the value to return
+  # @return [Any] The value associated with the key
   def get_config_value(key)
     if !@config_hash.has_key?(key)
       Rails.logger.debug "PanoramaSamplerConfig.get_config_value: Missing hash key '#{key}' of class '#{key.class}' for panorama-sampler config with ID=#{get_id}"
