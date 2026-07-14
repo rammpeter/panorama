@@ -27,9 +27,17 @@ class ThreadLocalStorage
     connect_info
   end
 
-  # Store the connect info for the current thread, marks the begin of a request
+
+  # @return [String] The chosen schema for panorama sampler
+  def self.panorama_sampler_schema
+    connect_info![:panorama_sampler_schema]
+  end
+
+  # Store connection credentials for this request in thread, marks begin of request
   # @param config [Hash] the connect info
-  def self.connect_info=(config)
+  def self.set_connection_info_for_request(config)
+    reset                                                                       # Ensure initialized values if thread is reused
+    Rails.logger.debug('ThreadLocalStorage.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
     Thread.current[CONNECT_INFO_KEY] = config
   end
 
@@ -38,9 +46,9 @@ class ThreadLocalStorage
     Thread.current[APP_INFO_SET_KEY] == true
   end
 
-  # @param value [Boolean, nil] true if dbms_application_info has been set for the connection of this thread
-  def self.app_info_set=(value)
-    Thread.current[APP_INFO_SET_KEY] = value
+  # dbms_application_info has been set for the connection of this thread
+  def self.mark_app_info_set!
+    Thread.current[APP_INFO_SET_KEY] = true
   end
 
   # @return [PanoramaConnection, nil] the connection object of the current thread or nil if not connected
@@ -55,7 +63,7 @@ class ThreadLocalStorage
 
   # Ensure initialized values if the thread is reused for the next request
   def self.reset
-    self.app_info_set = nil
-    self.connect_info = nil
+    Thread.current[APP_INFO_SET_KEY] = nil
+    Thread.current[CONNECT_INFO_KEY] = nil
   end
 end

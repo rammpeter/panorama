@@ -390,14 +390,6 @@ class PanoramaConnection
     @stat_id_consistent_gets
   end
   ########################### class methods #############################
-  # Store connection redentials for this request in thread, marks begin of request
-  # @param [Hash] config
-  def self.set_connection_info_for_request(config)
-    ThreadLocalStorage.reset                                                    # Ensure initialized values if thread is reused
-    Rails.logger.debug('PanoramaConnection.set_connection_info_for_request') {"Setting thread local config to #{config.inspect}"}
-    ThreadLocalStorage.connect_info = config
-  end
-
   # set the initial value for used dbid at login time (DB's DBID or CDB's DBID)
   def self.select_initial_dbid
     unless PanoramaConnection.is_cdb?            # used DB's DBID if not CDB
@@ -476,8 +468,8 @@ class PanoramaConnection
 
   # Check for existence and readability of a table
   def self.panorama_table_exists?(table_name)
-    return false if ThreadLocalStorage.connect_info![:panorama_sampler_schema].nil?
-    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{ThreadLocalStorage.connect_info![:panorama_sampler_schema].upcase}'", table_name.upcase]) > 0
+    return false if ThreadLocalStorage.panorama_sampler_schema.nil?
+    PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Table_Name=? and Owner = '#{ThreadLocalStorage.panorama_sampler_schema.upcase}'", table_name.upcase]) > 0
   end
 
 
@@ -865,7 +857,7 @@ class PanoramaConnection
           raise e
         end
       end
-      ThreadLocalStorage.app_info_set = true
+      ThreadLocalStorage.mark_app_info_set!
     end
 
     # remember last used query timeout for usage in connection_terminate_job

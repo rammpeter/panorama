@@ -109,7 +109,7 @@ class ActiveSupport::TestCase
         WorkerThread.new(sampler_config, 'ensure_panorama_sampler_tables_exist_with_content').create_snapshot_internal(Time.now.round, :AWR) # Tables must be created before snapshot., first snapshot initialization called
       end
 
-      PanoramaConnection.set_connection_info_for_request(saved_config)          # reconnect because create_snapshot_internal freed the connection
+      ThreadLocalStorage.set_connection_info_for_request(saved_config)          # reconnect because create_snapshot_internal freed the connection
       set_cached_dbid(PanoramaConnection.select_initial_dbid)                   # Determine the DBID again because Panorama_Snapshot is filled now
     end
   end

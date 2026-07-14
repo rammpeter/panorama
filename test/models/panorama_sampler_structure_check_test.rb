@@ -51,17 +51,17 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
 
       begin
         config[:management_pack_license] = :none
-        PanoramaConnection.set_connection_info_for_request(config)
+        ThreadLocalStorage.set_connection_info_for_request(config)
         # TODO: CDB_OR_DBA
         #    assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'CDB_Hist_SQLStat' : 'DBA_Hist_SQLStat')
         assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), PanoramaConnection.autonomous_database? ? 'DBA_Hist_SQLStat' : 'DBA_Hist_SQLStat')
 
         config[:management_pack_license] = :panorama_sampler
-        PanoramaConnection.set_connection_info_for_request(config)
+        ThreadLocalStorage.set_connection_info_for_request(config)
         assert_equal(PanoramaConnection.adjust_table_name('DBA_Hist_SQLStat'), "#{config[:panorama_sampler_schema]}.Panorama_SQLStat")
       ensure
         config[:management_pack_license] = original_management_pack_license
-        PanoramaConnection.set_connection_info_for_request(config)
+        ThreadLocalStorage.set_connection_info_for_request(config)
       end
     end
   end

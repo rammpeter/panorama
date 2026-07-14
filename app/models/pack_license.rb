@@ -40,8 +40,8 @@ class PackLicense
       return ([:enterprise, :free].include?(PanoramaConnection.edition) && control_management_pack_access['TUNING']) || PanoramaConnection.edition == :express
     when :panorama_sampler then
       # check if AWR/ASH-Sampling is really active for existing Panorama-Sampler-schema
-      return false if ThreadLocalStorage.connect_info![:panorama_sampler_schema].nil?
-      return PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Owner = ? AND Table_Name = 'PANORAMA_SNAPSHOT'", ThreadLocalStorage.connect_info![:panorama_sampler_schema]]) > 0
+      return false if ThreadLocalStorage.panorama_sampler_schema.nil?
+      return PanoramaConnection.sql_select_one(["SELECT COUNT(*) FROM All_Tables WHERE Owner = ? AND Table_Name = 'PANORAMA_SNAPSHOT'", ThreadLocalStorage.panorama_sampler_schema]) > 0
     when :none then return true
     end
     false
@@ -67,7 +67,7 @@ class PackLicense
   def self.translate_sql_table_names(sql, license_type)
     case license_type
     when :panorama_sampler
-      raise "config[:panorama_sampler_schema] must be defined if config[:management_pack_license] == :panorama_sampler" if ThreadLocalStorage.connect_info![:panorama_sampler_schema].nil?
+      raise "config[:panorama_sampler_schema] must be defined if config[:management_pack_license] == :panorama_sampler" if ThreadLocalStorage.panorama_sampler_schema.nil?
       # !!! Puma stops here if another thread is active, jetty does not stop here
       sql = PanoramaSamplerStructureCheck.transform_sql_for_sampler(sql)
     else

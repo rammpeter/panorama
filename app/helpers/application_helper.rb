@@ -583,7 +583,7 @@ module ApplicationHelper
 
   # Accessed by PanoramaConnection within request
   def set_connection_info_for_request(current_database)
-    PanoramaConnection.set_connection_info_for_request(current_database.merge(
+    ThreadLocalStorage.set_connection_info_for_request(current_database.merge(
         :client_salt              => cookies[:client_salt],
         :current_controller_name  => controller_name,
         :current_action_name      => action_name

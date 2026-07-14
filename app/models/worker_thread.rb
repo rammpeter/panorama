@@ -82,7 +82,7 @@ class WorkerThread
     # set management_pack_license to :diagnostics_pack if longterm trend uses access an ASH tables
     connection_config[:management_pack_license] = :diagnostics_pack if domain == :LONGTERM_TREND && connection_config[:longterm_trend_data_source] == :oracle_ash
 
-    PanoramaConnection.set_connection_info_for_request(connection_config)
+    ThreadLocalStorage.set_connection_info_for_request(connection_config)
 
     # management_pack_license should not depend on volatile DB setting !, commented out
     # PanoramaConnection.set_management_pack_license_from_db_in_connection

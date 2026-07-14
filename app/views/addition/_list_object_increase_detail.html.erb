@@ -61,7 +61,7 @@ column_options =
 %>
 
 <%= gen_slickgrid(@incs, column_options, {
-    :caption=>"Object size evolution #{ThreadLocalStorage.connect_info![:panorama_sampler_schema]}.Panorama_Object_Sizes#{", Tablespace='#{@tablespace_name}'" if defined?(@tablespace_name) && !@tablespace_name.nil?}#{", Schema='#{@schema_name}'" if defined?(@schema_name) && !@schema_name.nil?} between #{@time_selection_start} and #{@time_selection_end}",
+    :caption=>"Object size evolution #{ThreadLocalStorage.panorama_sampler_schema}.Panorama_Object_Sizes#{", Tablespace='#{@tablespace_name}'" if defined?(@tablespace_name) && !@tablespace_name.nil?}#{", Schema='#{@schema_name}'" if defined?(@schema_name) && !@schema_name.nil?} between #{@time_selection_start} and #{@time_selection_end}",
     :max_height => 450,
     show_pin_icon: 1,
     update_area:   @update_area

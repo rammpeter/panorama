@@ -34,7 +34,7 @@ class LongtermTrendControllerTest < ActionDispatch::IntegrationTest
     if min_max.records < 4
       saved_config = ThreadLocalStorage.connect_info                            # store current config before being reset by WorkerThread.create_snapshot_internal
       WorkerThread.new(sampler_config, 'test_do_sampling_longterm_trend', domain: :LONGTERM_TREND).create_snapshot_internal(Time.now.round, :LONGTERM_TREND) # Tables must be created before snapshot., first snapshot initialization called
-      PanoramaConnection.set_connection_info_for_request(saved_config)          # reconnect because create_snapshot_internal freed the connection
+      ThreadLocalStorage.set_connection_info_for_request(saved_config)          # reconnect because create_snapshot_internal freed the connection
 
       min_max = PanoramaConnection.sql_select_first_row min_max_sql             # Read after inserts
 

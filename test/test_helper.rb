@@ -178,7 +178,7 @@ class ActiveSupport::TestCase
     else
       config_object.modify(sampler_config)
     end
-    PanoramaConnection.set_connection_info_for_request(sampler_config)
+    ThreadLocalStorage.set_connection_info_for_request(sampler_config)
     shrink_table_size_for_always_free_autonomous_db(sampler_config) # Reduce size of table for always free autonomous DB
     PanoramaSamplerConfig.get_config_entry_by_id(sampler_config[:id])
   end
@@ -263,7 +263,7 @@ class ActiveSupport::TestCase
         sleep(61)                                                               # Wait until next minute
         WorkerThread.new(sampler_config, 'initialize_min_max_snap_id_and_times').create_snapshot_internal(Time.now.round, :AWR)
 
-        PanoramaConnection.set_connection_info_for_request(saved_config)        # reconnect because create_snapshot_internal freed the connection
+        ThreadLocalStorage.set_connection_info_for_request(saved_config)        # reconnect because create_snapshot_internal freed the connection
         all_awr_dbids = PanoramaConnection.all_awr_dbids                        # reread the DBIDs after AWR snapshots
       end
     end
