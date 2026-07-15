@@ -6,7 +6,7 @@ require 'json'
 include ActiveSessionHistoryHelper
 
 # Liste der Rasterfahndungs-SQL
-include Dragnet::CascadingViewsHelper
+include Dragnet::NestedViewsHelper
 include Dragnet::ConclusionApplicationSqlIssuesHelper
 include Dragnet::DragnetSqlsLogwriterRedoHelper
 include Dragnet::DragnetSqlsLongRunningHelper
@@ -132,8 +132,8 @@ module DragnetHelper
             :name     => t(:dragnet_helper_group_conclusion_application,   :default=> 'Conclusions on application behaviour'),
             :entries  => [ {   :name    => t(:dragnet_helper_group_view_issues, :default=>'Potential for improvement in DB-Views'),
                                :entries => [{
-                                                :name    => t(:dragnet_helper_group_cascading_views, :default=>'Views with cascading dependiencies (multiple hierarchy)'),
-                                                :entries => cascading_views
+                                                :name    => t(:dragnet_helper_group_nested_views, :default=>'Views with nested dependiencies (multiple hierarchy)'),
+                                                :entries => nested_views
                                             }
                                ].concat(view_issues)
                            },

@@ -561,33 +561,29 @@ class DbaHistoryController < ApplicationController
     @dbid           = prepare_param_dbid
 
     @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Instance_Number, Name, Position, DataType_String, Last_Captured,
-             CASE DataType_String
-               WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
-               WHEN 'DATE'      THEN TO_CHAR(TO_DATE(Value_String, 'MM/DD/YYYY HH24:MI:SS'), '#{sql_datetime_second_mask}')
-             ELSE Value_String END Value_String,
-             NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length,
-             (SELECT COUNT(*)
-              FROM   DBA_Hist_SQLBind i
-              WHERE  i.DBID            = b.DBID
-              AND    i.Snap_ID BETWEEN ? AND ?
-              AND    i.Instance_Number = b.Instance_Number
-              AND    i.SQL_ID          = b.SQL_ID
-              AND    i.Position        = b.Position
-             ) Samples
-      FROM   DBA_Hist_SQLBind b
-      WHERE  DBID            = ?
-      AND    SQL_ID          = ?
-      AND    (Snap_ID, Instance_Number) IN (SELECT MAX(Snap_ID), MAX(Instance_Number) KEEP (DENSE_RANK LAST ORDER BY Snap_ID)
-                                            FROM   DBA_Hist_SQLBind
-                                            WHERE  DBID   = ?
-                                            AND    SQL_ID = ?
-                                            AND    Snap_ID BETWEEN ? AND ?
-                                            #{'AND Instance_Number=?' if @instance}
-                                           )
-      ORDER BY Position
-      ", @min_snap_id, @max_snap_id, @dbid, @sql_id, @dbid, @sql_id, @min_snap_id, @max_snap_id].concat(@instance ? [@instance] : [])
-
+      SELECT Instance_Number, Name, Position,
+             MAX(DataType_String)  KEEP (DENSE_RANK LAST ORDER BY Snap_ID) DataType_String,
+             MAX(Last_Captured)    KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Last_Captured,
+             MAX(Value_String_i)   KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Value_String,
+             MAX(Character_Set)    KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Character_Set,
+             MAX(Precision)        KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Precision,
+             MAX(Scale)            KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Scale,
+             MAX(Max_Length)       KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Max_Length,
+             COUNT(*) Samples
+      FROM   (SELECT b.*,
+                     CASE DataType_String
+                       WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
+                       WHEN 'DATE'      THEN TO_CHAR(TO_DATE(Value_String, 'MM/DD/YYYY HH24:MI:SS'), '#{sql_datetime_second_mask}')
+                     ELSE Value_String END Value_String_i,
+                     NLS_CHARSET_NAME(Character_SID) Character_Set
+              FROM   DBA_Hist_SQLBind b
+              WHERE  DBID   = ?
+              AND    SQL_ID = ?
+              AND    Snap_ID BETWEEN ? AND ?
+              #{'AND Instance_Number=?' if @instance}
+             )
+      GROUP BY Instance_Number, Name, Position
+      ORDER BY Instance_Number, Name, Position", @dbid, @sql_id, @min_snap_id, @max_snap_id].concat(@instance ? [@instance] : [])
 
     render_partial
   end

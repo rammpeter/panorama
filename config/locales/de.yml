@@ -589,7 +589,7 @@
 
   dragnet_exec_dragnet_sql_selection_raise:                 Bitte erst konkrete Selektion auswählen
 
-  dragnet_helper_group_cascading_views:                     Views mit kaskadierenden Abhängigkeiten (mehrstufige Hierarchie)
+  dragnet_helper_group_nested_views:                        Views mit verschachtelten Abhängigkeiten (mehrstufige Hierarchie)
   dragnet_helper_group_conclusion_application_sql_issues:   SQL-Themen im Applikations-Kontext
   dragnet_helper_group_conclusion_application:              Rückschlüsse auf Applikationsverhalten
   dragnet_helper_group_cursor_redundancies:                 Redundante Cursoren / Nutzung Bindevariablen
