@@ -97,13 +97,14 @@ class PanoramaSamplerStructureCheck
     if option == :full
       panorama_sampler_data.each do |ps|
         # Get the SID of the ASH daemon for the found record
-        PanoramaConnection.sql_select_all("SELECT SID, UserName, Client_Info FROM v$Session
+        PanoramaConnection.sql_select_all("SELECT SID, Serial# SerialNo, UserName, Client_Info FROM v$Session
                                            WHERE Module = 'Panorama' AND Action = 'WorkerThread/ash_sampler_daemon'"
         ).each do |session|
           config = PanoramaSamplerConfig.get_config_entry_by_id(session.client_info)
           if session.username == config.get_config_value(:user).upcase
-            ps[:active_ash_sid] = session.sid
-            ps[:active_ash_username] = session.username
+            ps[:active_ash_sid]       = session.sid
+            ps[:active_ash_serialno]  = session.serialno
+            ps[:active_ash_username]  = session.username
             break
           end
         end

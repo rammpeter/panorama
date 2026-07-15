@@ -1,5 +1,6 @@
 <% if @panorama_sampler_data.count > 0 %>
   <%
+    next_update_area = get_unique_area_id
     link_select = proc do |rec|
       ajax_link(rec.owner, {
           :controller   => :env,
@@ -23,7 +24,7 @@
         [
             {:caption=> 'S',                                :data=>selected,                                                        :title=> 'The selected schema is used for Panorama-Sampler workload data'},
             {:caption=> 'Schema',                           :data=>link_select,                                                     :title=> 'Schema of your database containing Panorama-Sampler workload data'},
-            {:caption=> 'ASH daemon SID',                   :data=>proc{|rec| fn(rec[:active_ash_sid])},                            :title=> "The SID of an active ASH daemon session for this schema", data_title: proc{|rec| "%t\nUsername = '#{rec[:active_ash_username]}'"}, :align=>:right },
+            {:caption=> 'ASH daemon DB session',            :data=>proc{|rec| link_session_details(next_update_area, PanoramaConnection.instance_number, rec[:active_ash_sid], rec[:active_ash_serialno])}, :title=> "The SID of an active ASH daemon session for this schema at the connected DB instance", data_title: proc{|rec| "%t\nUsername = '#{rec[:active_ash_username]}'"}, :align=>:right },
             {:caption=> 'Last AWR DBID',                    :data=>proc{|rec| fn(rec[:last_dbid])},                                 :title=> "DBID of last snapshot recorded by Panorama-Sampler for this schema",  :align=>:right,  data_title: proc{|rec| "%t\nNumber of different DBIDs recorded for this schema = #{rec[:dbid_cnt]}"}},
             {:caption=> 'First AWR/ASH snapshot',           :data=>proc{|rec| localeDateTime(rec[:min_time])},                      :title=> 'Start of first snapshot recorded in this Panorama-Sampler schema for this DBID',      data_title: awr_ash_data_title},
             {:caption=> 'Last AWR/ASH snapshot',            :data=>proc{|rec| localeDateTime(rec[:max_time])},                      :title=> 'End of last snapshot recorded in this Panorama-Sampler schema for this DBID',         data_title: awr_ash_data_title},
@@ -54,4 +55,5 @@
         :max_height => 200
     })
   %>
+  <div id="<%= next_update_area %>"></div>
 <% end %>
