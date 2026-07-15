@@ -13,6 +13,16 @@
                     },
                     :title=>'List all samples for this bind position in time period' )
   end
+
+  show_count = proc do |col_cnt, value|
+    if col_cnt > 1
+      "<&nbsp;#{fn(col_cnt)}&nbsp;>".html_safe
+    else
+      value
+    end
+  end
+
+  diff_addition = "\n\nor the number of distinct values in angle brackets if there are different in the multiple snapshots"
 %>
 
 <%=
@@ -20,13 +30,13 @@
       {:caption=>"I",             :data=>proc{|rec| rec.instance_number},                        :title=>'RAC-Instance' },
       {:caption=>"Pos",           :data=>proc{|rec| formattedNumber(rec.position)},   :title=>t(:dba_history_list_sql_detail_historic_bind_pos, :default=>"Position of bind variable in statement"), :align=>"right"},
       {:caption=>"Name",          :data=>proc{|rec| rec.name},                        :title=>t(:dba_history_list_sql_detail_historic_bind_name, :default=>"Name of bind variable in statement") },
-      {:caption=>"Typ",           :data=>proc{|rec| rec.datatype_string},             :title=>"data type of bind variable"},
-      {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)}, :title=>"time of last capture"},
-      {:caption=>"Value",         :data=>proc{|rec| rec.value_string},                :title=>"Value of bind variable represented as string"},
-      {:caption=>"Char.set",      :data=>proc{|rec| rec.character_set},               :title=>'Character set used for bind'},
-      {:caption=>"Precision",     :data=>proc{|rec| fn rec.precision},                :title=>"Precision (for numeric binds)"},
-      {:caption=>"Scale",         :data=>proc{|rec| fn rec.scale},                    :title=>"Scale (for numeric binds)"},
-      {:caption=>"Max. length",   :data=>proc{|rec| fn rec.max_length},               :title=>"Maximum bind length"},
+      {:caption=>"Typ",           :data=>proc{|rec| show_count.call(rec.datatype_string_cnt, rec.datatype_string)},             :title=>"Data type of bind variable#{diff_addition}"},
+      {:caption=>"Last captured", :data=>proc{|rec| localeDateTime(rec.last_captured)},                                         :title=>"time of last capture for the youngest AWR snapshot"},
+      {:caption=>"Value",         :data=>proc{|rec| show_count.call(rec.value_string_cnt, rec.value_string)},                   :title=>"Value of bind variable represented as string#{diff_addition}"},
+      {:caption=>"Char.set",      :data=>proc{|rec| show_count.call(rec.character_set_cnt, rec.character_set)},                 :title=>"Character set used for bind variable#{diff_addition}"},
+      {:caption=>"Precision",     :data=>proc{|rec| show_count.call(rec.precision_cnt, fn(rec.precision))},                     :title=>"Precision (for numeric binds)#{diff_addition}"},
+      {:caption=>"Scale",         :data=>proc{|rec| show_count.call(rec.scale_cnt, fn(rec.scale))},                             :title=>"Scale (for numeric binds)#"},
+      {:caption=>"Max. length",   :data=>proc{|rec| show_count.call(rec.max_length_cnt, fn(rec.max_length))},                   :title=>"Maximum bind length#{diff_addition}"},
       {:caption=>"Samples",       :data=>link_bind_samples,                           :title=>'Number of samples for this bind position in time period'},
   ]
 

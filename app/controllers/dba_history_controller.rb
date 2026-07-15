@@ -562,13 +562,13 @@ class DbaHistoryController < ApplicationController
 
     @binds = sql_select_all ["\
       SELECT Instance_Number, Name, Position,
-             MAX(DataType_String)  KEEP (DENSE_RANK LAST ORDER BY Snap_ID) DataType_String,
+             MAX(DataType_String)  KEEP (DENSE_RANK LAST ORDER BY Snap_ID) DataType_String, COUNT(DISTINCT DataType_String) DataType_String_Cnt,
              MAX(Last_Captured)    KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Last_Captured,
-             MAX(Value_String_i)   KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Value_String,
-             MAX(Character_Set)    KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Character_Set,
-             MAX(Precision)        KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Precision,
-             MAX(Scale)            KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Scale,
-             MAX(Max_Length)       KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Max_Length,
+             MAX(Value_String_i)   KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Value_String,    COUNT(DISTINCT Value_String_i)  Value_String_Cnt,
+             MAX(Character_Set)    KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Character_Set,   COUNT(DISTINCT Character_Set)   Character_Set_Cnt,
+             MAX(Precision)        KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Precision,       COUNT(DISTINCT Precision)       Precision_Cnt,
+             MAX(Scale)            KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Scale,           COUNT(DISTINCT Scale)           Scale_Cnt,
+             MAX(Max_Length)       KEEP (DENSE_RANK LAST ORDER BY Snap_ID) Max_Length,      COUNT(DISTINCT Max_Length)      Max_Length_Cnt,
              COUNT(*) Samples
       FROM   (SELECT b.*,
                      CASE DataType_String
@@ -610,7 +610,7 @@ class DbaHistoryController < ApplicationController
         AND    b.SQL_ID          = ?
         AND    b.Snap_ID BETWEEN ? AND ?
         AND    b.Position        = ?
-        ORDER BY Last_Captured
+        ORDER BY Last_Captured DESC
         ", @dbid, @instance, @sql_id, @min_snap_id, @max_snap_id, @position]
 
     render_partial
