@@ -100,12 +100,14 @@ class PanoramaSamplerStructureCheck
         PanoramaConnection.sql_select_all("SELECT SID, Serial# SerialNo, UserName, Client_Info FROM v$Session
                                            WHERE Module = 'Panorama' AND Action = 'WorkerThread/ash_sampler_daemon'"
         ).each do |session|
-          config = PanoramaSamplerConfig.get_config_entry_by_id(session.client_info)
-          if session.username == config.get_config_value(:user).upcase
-            ps[:active_ash_sid]       = session.sid
-            ps[:active_ash_serialno]  = session.serialno
-            ps[:active_ash_username]  = session.username
-            break
+          if session.client_info                                                # Should work also on instances where client_info is not yet set
+            config = PanoramaSamplerConfig.get_config_entry_by_id(session.client_info)
+            if session.username == config.get_config_value(:user).upcase
+              ps[:active_ash_sid]       = session.sid
+              ps[:active_ash_serialno]  = session.serialno
+              ps[:active_ash_username]  = session.username
+              break
+            end
           end
         end
 

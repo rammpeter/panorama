@@ -605,7 +605,9 @@ class AdditionController < ApplicationController
     @row_count_changes = params[:row_count_changes] == '1'
 
     @incs = sql_select_all ["\
-      WITH Snapshots AS (SELECT Owner, Segment_Name, Segment_Type, Gather_Date,
+      WITH Snapshots AS (SELECT Owner, Segment_Name,
+                                REPLACE(REPLACE(Segment_Type, ' PARTITION', ''), ' SUBPARTITION', '') Segment_Type,
+                                Gather_Date,
                                 SUM(Bytes) Bytes, MIN(Num_Rows) Num_Rows,                  -- num_rows per record are over all tablespaces
                                 MAX(Tablespace_Name) KEEP (DENSE_RANK LAST ORDER BY Bytes) Greatest_TS,
                                 COUNT(DISTINCT Tablespace_Name)                            Tablespaces
