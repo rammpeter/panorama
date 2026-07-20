@@ -405,7 +405,8 @@ module ApplicationHelper
   # Vorbelegung fuer Eingabefeld
   def default_time_selection_start
     if get_cached_time_selection_start && get_cached_time_selection_start != ''
-      get_cached_time_selection_start
+      # Remove the seconds part from time sting if they are there
+      get_cached_time_selection_start.sub(/(\d{2}:\d{2}):\d{2}\z/, '\1')
     else
       "#{Date.today.strftime(strftime_format_with_days)} 00:00"
     end
@@ -414,7 +415,8 @@ module ApplicationHelper
   # Vorbelegung fuer Eingabefeld
   def default_time_selection_end
     if get_cached_time_selection_end && get_cached_time_selection_end != ''
-      get_cached_time_selection_end
+      # Remove the seconds part from time sting if they are there
+      get_cached_time_selection_end.sub(/(\d{2}:\d{2}):\d{2}\z/, '\1')
     else
       "#{Date.today.strftime(strftime_format_with_days)} 13:00"
     end
