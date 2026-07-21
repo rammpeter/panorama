@@ -146,6 +146,27 @@ ORDER BY x.MBytes DESC NULLS LAST
           ]
         },
       {
+        :name  => t(:dragnet_helper_181_name, :default=>'Inconsistencies in object statistics'),
+        :desc  => t(:dragnet_helper_181_desc, :default=>'Logical inconsistent object statistics may lead to wrong optimizer decisions'),
+        :sql=> "\
+SELECT tc.Owner, tc.Table_Name, t.Last_Analyzed, t.Num_Rows, 'Column '||tc.Column_Name||' with Num_Nulls ('||tc.Num_Nulls||') > Num_Rows' Reason
+FROM   DBA_Tab_Columns tc
+JOIN   DBA_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+WHERE  tc.Num_Nulls > t.Num_Rows
+UNION ALL
+SELECT tc.Owner, tc.Table_Name, t.Last_Analyzed, t.Num_Rows, 'Column '||tc.Column_Name||' with Num_Distinct ('||tc.Num_Distinct||') > Num_Rows' Reason
+FROM   DBA_Tab_Columns tc
+JOIN   DBA_Tables t ON t.Owner = tc.Owner AND t.Table_Name = tc.Table_Name
+WHERE  tc.Num_Distinct > t.Num_Rows
+UNION ALL
+SELECT tp.Table_Owner,tp.Table_Name, MIN(t.Last_Analyzed), SUM(t.Num_Rows), 'Sum of Num_Rows of partitions ('||SUM(tp.Num_Rows)||') > Num_Rows of table'
+FROM   DBA_Tab_Partitions tp
+JOIN   DBA_Tables t ON t.Owner = tp.Table_Owner AND t.Table_Name = tp.Table_Name
+GROUP BY tp.Table_Owner, tp.Table_Name
+HAVING SUM(tp.Num_Rows) > SUM(t.Num_Rows)
+"
+      },
+      {
         :name  => t(:dragnet_helper_176_name, :default=>'TNS service usage by sessions'),
         :desc  => t(:dragnet_helper_176_desc, :default=>'Overview over TNS services and their usage by connected sessions'),
         :sql=> "\
@@ -164,7 +185,6 @@ LEFT OUTER JOIN (SELECT Service_Name, SUM(Sessions) Sessions, LISTAGG(UserName, 
 ORDER BY sv.Name
 "
       },
-
     ]
   end # instance_setup_tuning
 

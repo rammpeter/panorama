@@ -1925,6 +1925,11 @@
 
   dragnet_helper_180_name:                                  Aktuelle Transaktionsrate nach User/Programm/Maschine
 
+  dragnet_helper_181_desc: |-
+    Logisch inkonsistene Objektstatistiken können zu Fehlentscheidungen des Optimizers führen
+
+  dragnet_helper_181_name:                                  Inkonsistenzen in Objektstatistiken
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen
