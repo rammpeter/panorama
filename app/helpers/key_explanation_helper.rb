@@ -487,6 +487,7 @@ module KeyExplanationHelper
           'SQL*Net more data from client'     => "The shadow process has received part of a call from the client process in the first network package and is waiting for more data for the call to be complete.\nExamples are large SQL or PL/SQL block and insert statements with large amounts of data.",
           'TCP Socket (KGAS)'                 => 'A session is waiting for an external host to provide requested data over a network socket.',
           'transaction'                       => 'Wait for a blocking transaction to be rolled back. Continue waiting until the transaction has been rolled back.',
+          'Wait for Table Lock'               => "A session is waiting for a table lock (TM lock) that another session is holding in an incompatible mode.\nIt is closely related to enq: TM - contention — the same type of lock, just instrumented differently.",
        }
 
       sql_select_all("SELECT e.Name Event, t.Name, t.Description
