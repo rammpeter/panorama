@@ -126,6 +126,31 @@ ORDER BY NVL(Executions_SGA,0) + NVL(Executions_AWR,0) DESC
           {:name=>t(:dragnet_helper_param_history_backward_name, :default=>'Consideration of history backward in days'), :size=>8, :default=>8, :title=>t(:dragnet_helper_param_history_backward_hint, :default=>'Number of days in history backward from now for consideration') },
         ]
       },
+      {
+        name: "Missing module/action identifier in DB sessions and SQLs",
+        desc: "\
+These DB sessions and their SQLs are not tagged with a module identifier that should allow to identify the business process/function of the owner of this DB session.
+This makes it unnecessarily complex and much harder to identify the source of DB load, bad SQLs etc.
+Suggested solution:
+Call
+DBMS_APPLICATION_INFO.SET_MODULE(<module-tag>, <action-tag>);
+as first action after connecting to the DB and specify strings with length of up to 64 chars for module and action that describe the business process, function, role etc. .
+Expected benefit:
+Reduce evaluation effort and speedup source detection in case of issues.
+          ",
+        sql: "\
+SELECT s.*, q.Parsing_Schema_Name, SUBSTR(q.SQL_Text, 1, 200) SQL_Text
+FROM   (SELECT Inst_ID, SID, Serial#, AudSID, UserName, SchemaName, OSUser, Machine, Program, Module, Action, SQL_ID, SQL_Child_Number Child_Number
+        FROM   gv$Session
+        UNION
+        SELECT Inst_ID, SID, Serial#, AudSID, UserName, SchemaName, OSUser, Machine, Program, Module, Action, Prev_SQL_ID SQL_ID, Prev_Child_Number Child_Number
+        FROM   gv$Session
+       ) s
+JOIN gv$SQL q ON q.Inst_ID = s.Inst_ID AND q.SQL_ID = s.SQL_ID AND q.Child_Number = s.Child_Number
+WHERE  s.Module IN ('JDBC Thin Client', 'SQL*Plus')
+AND    q.Parsing_Schema_Name != 'SYS'
+           ",
+      },
     ]
 
   end
