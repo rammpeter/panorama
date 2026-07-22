@@ -1,5 +1,5 @@
 <%
-  @update_area = get_unique_area_id
+  @update_area = 'dashboard_update_area'                               # Use one already existing area for all updates from sessions, sqls and legend
   refresh_off = "dashboard_data.set_refresh_cycle_off();"
 
   link_session_or_history = proc do |inst_id, session_id, serial_no, first_occurrence, last_occurrence, sql_id, session_alive|
@@ -162,4 +162,3 @@
   dashboard_data.selection_refresh_pending = false;                             // next request may start, suppress multiple events for same selection
 </script>
 
-<div id="<%= @update_area %>"></div>
