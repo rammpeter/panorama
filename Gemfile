@@ -79,14 +79,11 @@ group :development do
   # gem 'ruby-maven', '~> 3.9'
 
   # For dev use the same version as in default system gems, to prevent at debug: Uncaught exception: You have already activated date 3.4.1, but your Gemfile requires date 3.5.1.
-  gem 'date', '3.4.1'
+  # gem 'date', '3.4.1'
 
   # gem 'rdoc', '< 8.0'
   # gem 'rbs', platforms: [:ruby]
   # gem 'irb',  '< 1.18'
-
-  # Needed by net-imap, but not installed by default: Prevent from No such file or directory - /Users/pramm/.rubies/jruby-9.4.3.0/lib/ruby/gems/shared/gems/date-3.3.3-java
-  #gem 'date'
 
   # gem 'jarbler', :git => 'https://github.com/rammpeter/jarbler.git', branch: 'pramm'
   # gem 'jarbler', github: 'rammpeter/jarbler', branch: 'pramm'
