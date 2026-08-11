@@ -19,11 +19,22 @@
 # delete entfernt hat, landet die Zuweisung faelschlich auf ActionView::Base:
 #   NoMethodError: undefined method 'form_with_generates_ids=' for class ActionView::Base
 # Daher hier ebenfalls mit einem No-op-Setter neutralisieren.
+#
+# Ebenso default_enforce_utf8: liegt in Rails 8 als mattr_accessor auf
+# ActionView::Helpers::FormTagHelper und nicht mehr auf ActionView::Base.
+# config.load_defaults 8.0 setzt config.action_view.default_enforce_utf8 = false; wird dieser
+# Key von der generischen on_load(:action_view)-Schleife erreicht, bevor die Railtie ihn per
+# delete entfernt hat, landet die Zuweisung faelschlich auf ActionView::Base:
+#   NoMethodError: undefined method 'default_enforce_utf8=' for class ActionView::Base
+# Daher hier ebenfalls mit einem No-op-Setter neutralisieren.
 ActiveSupport.on_load(:action_view) do
   unless ActionView::Base.respond_to?(:form_with_generates_remote_forms=)
     ActionView::Base.define_singleton_method(:form_with_generates_remote_forms=) { |_value| }
   end
   unless ActionView::Base.respond_to?(:form_with_generates_ids=)
     ActionView::Base.define_singleton_method(:form_with_generates_ids=) { |_value| }
+  end
+  unless ActionView::Base.respond_to?(:default_enforce_utf8=)
+    ActionView::Base.define_singleton_method(:default_enforce_utf8=) { |_value| }
   end
 end
