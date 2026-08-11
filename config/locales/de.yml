@@ -284,7 +284,7 @@
   dba_history_show_sql_area_historic_max_result_count_caption:  Anzahl Treffer
   dba_history_show_sql_area_historic_max_result_count_hint:     Einschränkung der Treffermenge auf max. Anzahl Zeilen (nach Sortierung nach gewähltem Kriterium)
   dba_history_show_sql_area_historic_sorted_by_hint:            Resultat in absteigender Folge sortiert nach diesem Kriterium
-  dba_history_show_sql_area_historic_submit_caption:            SQL anzeigen
+  dba_history_show_sql_area_historic_submit_caption:            SQLs anzeigen
   dba_history_show_sql_area_historic_submit_hint:               Anlistung der SQL nach Suchkriterien
   dba_history_show_sql_area_historic_schema_hint:               Filter der Treffermenge auf Username beim Erzeugen des Child-Cursors (Parsing_Schema_Name)
 
