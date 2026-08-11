@@ -706,6 +706,9 @@ class PanoramaConnection
   end
 
   # Execute SQL statement
+  # @param [Array|String] sql The SQl statement or an array with the SQL statement at first position and bind values
+  # @param [String] query_name Name of the query for logging
+  # @return [void]
   def self.sql_execute(sql, query_name = 'sql_execute')
     # raise 'binds are not yet supported for sql_execute' if sql.class != String
     stmt, binds = sql_prepare_binds(sql)   # Transform SQL and split SQL and binds
@@ -714,6 +717,10 @@ class PanoramaConnection
 
   # Execute with direct AR binds
   # Without query_timeout because long lasting ASH sampling is executed with this method
+  # @param [String] sql SQL statement to execute
+  # @param [Array] binds Array of ActiveRecord::Relation::QueryAttribute for bind
+  # @param [String] query_name Name of the query for logging
+  # @return [void]
   def self.sql_execute_native(sql:, binds:, query_name: 'sql_execute_native')
     check_for_open_connection                                                   # ensure opened Oracle-connection
     transformed_sql = PackLicense.filter_sql_for_pack_license(sql)  # Check for license violation and possible statement transformation
@@ -893,14 +900,16 @@ class PanoramaConnection
     conn = ThreadLocalStorage.connection_object
     immediate_destroy_reasons.each do |reason|
       if exception.message[reason]                                              # Exception message contains searched string
-        Rails.logger.error('PanoramaConnection.check_for_erroneous_connection_removal') { "DB-Connection '#{conn.sid},#{conn.serial_no}' immediately destroyed after SQL error because of '#{reason}' in exception message"}
-        PanoramaConnection.destroy_connection                                     # Force reconnect at next operation
+        Rails.logger.error('PanoramaConnection.check_for_erroneous_connection_removal') { "DB-Connection '#{conn&.sid},#{conn&.serial_no}' immediately destroyed after SQL error because of '#{reason}' in exception message"}
+        PanoramaConnection.destroy_connection                                   # Force reconnect at next operation
       end
     end
-    conn.sql_errors_count =  conn.sql_errors_count + 1                          # remember the error during SQL
-    if conn.sql_errors_count > MAX_CONNECTION_SQL_ERRORS_BEFORE_CLOSE
-      Rails.logger.error('PanoramaConnection.check_for_erroneous_connection_removal') { "DB-Connection '#{conn.sid},#{conn.serial_no}' destroyed due to more than #{MAX_CONNECTION_SQL_ERRORS_BEFORE_CLOSE} SQL errors during this DB session"}
-      PanoramaConnection.destroy_connection                                     # Force reconnect at next operation
+    if conn                                                                     # really connected to DB?
+      conn.sql_errors_count =  conn.sql_errors_count + 1                        # remember the error during SQL
+      if conn.sql_errors_count > MAX_CONNECTION_SQL_ERRORS_BEFORE_CLOSE
+        Rails.logger.error('PanoramaConnection.check_for_erroneous_connection_removal') { "DB-Connection '#{conn.sid},#{conn.serial_no}' destroyed due to more than #{MAX_CONNECTION_SQL_ERRORS_BEFORE_CLOSE} SQL errors during this DB session"}
+        PanoramaConnection.destroy_connection                                   # Force reconnect at next operation
+      end
     end
   end
 
