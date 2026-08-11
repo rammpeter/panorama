@@ -351,11 +351,11 @@ class EnvController < ApplicationController
                                                   FROM gv$Session s
                                                   #{session_where_string}
                                                   GROUP BY Service_Name
-                                                 ) s ON s.Service_Name = v.Name
-                                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Name, LISTAGG(Inst_ID, ', ') WITHIN GROUP (ORDER BY Inst_ID) Active_Instances
+                                                 ) s ON UPPER(s.Service_Name) = UPPER(v.Name)
+                                 LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Service_ID, LISTAGG(Inst_ID, ', ') WITHIN GROUP (ORDER BY Inst_ID) Active_Instances
                                                   FROM   gv$Active_Services
-                                                  GROUP BY Name
-                                                 ) a ON a.Name = v.Name
+                                                  GROUP BY Service_ID
+                                                 ) a ON a.Service_ID = v.Service_ID
                                  #{where_string}
                                 "].concat(session_where_values).concat(where_values)
     render_partial
@@ -364,7 +364,7 @@ class EnvController < ApplicationController
   def list_service_stats_current
     @service_name = prepare_param :service_name
 
-    @stats = sql_select_all ["SELECT * FROM gv$Service_Stats WHERE Service_Name = ? ORDER BY Stat_Name, Inst_ID", @service_name]
+    @stats = sql_select_all ["SELECT * FROM gv$Service_Stats WHERE UPPER(Service_Name) = ? ORDER BY Stat_Name, Inst_ID", @service_name&.upcase]
     render_partial
   end
 
@@ -411,13 +411,13 @@ class EnvController < ApplicationController
                      Value - LAG(Value, 1, Value) OVER (PARTITION BY st.Instance_Number, st.Stat_ID ORDER BY st.Snap_ID) Value
               FROM   All_Snaps ss
               JOIN   DBA_Hist_Service_Stat st ON st.DBID=ss.DBID AND st.Instance_Number=ss.Instance_Number AND st.Snap_ID = ss.Snap_ID
-              WHERE  st.Service_Name = ?
+              WHERE  UPPER(st.Service_Name) = ?
               #{where_string}
              )
       WHERE  Value >= 0    /* Ersten Snap nach Reboot ausblenden */
       AND    Snap_ID >= Min_Snap_ID /* Vorgaenger des ersten Snap fuer LAG wieder ausblenden */
       GROUP BY Rounded_Begin_Interval_Time, Stat_Name
-      ORDER BY Rounded_Begin_Interval_Time, Stat_Name", @dbid, @time_selection_start, @time_selection_end, @service_name].concat(where_values)
+      ORDER BY Rounded_Begin_Interval_Time, Stat_Name", @dbid, @time_selection_start, @time_selection_end, @service_name&.upcase].concat(where_values)
 
     @stats = []      # Komplettes Result
     rec = {}        # einzelner Record des Results
