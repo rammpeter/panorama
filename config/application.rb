@@ -39,9 +39,6 @@ module Panorama
   # How long should a client browser session be kept alive after the last request?
   MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST = 8.hours   if !defined? Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST
 
-  # get an identifier that is unique per server start
-  BOOT_ID = Time.now.to_i  if !defined? Panorama::BOOT_ID
-
   class Application < Rails::Application
 
     # Log the used settings from environment
