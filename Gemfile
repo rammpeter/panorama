@@ -112,6 +112,7 @@ group :development, :test do
   # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
   # (not bundled into the JAR, since assets are already precompiled there).
   # gem 'terser'
+  gem 'pry-debugger-jruby'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
