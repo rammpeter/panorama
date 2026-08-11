@@ -43,6 +43,15 @@ Rails.application.configure do
     "Cache-Control" => "public, max-age=#{1.hours.to_i}"
   }
 
+  # 2026-08-11 Compress responses (including static assets) at runtime via Rack::Deflater.
+  # The large application.js (~2 MB) was served with a fixed Content-Length, which made Chromium
+  # browsers (Chrome/Edge) stall on the body ("pending", or ERR_CONTENT_LENGTH_MISMATCH with the old
+  # precompiled .gz twins); Firefox tolerated it. Deflater sends it gzip-compressed (~250 KB) with
+  # "Transfer-Encoding: chunked" and NO fixed Content-Length, so there is nothing for Chromium to
+  # mismatch or wait for. Inserted before ActionDispatch::Static so files from public/ are compressed too.
+  require "rack/deflater"
+  config.middleware.insert_before(ActionDispatch::Static, Rack::Deflater)
+
   # Minify JavaScript at asset precompile time.
   # Terser is required (not Uglifier) because the app's JS uses ES6 (const, arrow functions, template literals).
   # Runs only at precompile; with config.assets.compile = false it is never invoked at runtime.
