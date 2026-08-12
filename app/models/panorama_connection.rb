@@ -997,7 +997,7 @@ class PanoramaConnection
       begin
         jdbc_connection.exec_update(parallel_degree_policy_stmt, 'set parallel_degree_policy', [])
       rescue Exception => e
-        Rails.logger.error('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error '#{e.message}' while setting parallel_degree_policy with '#{parallel_degree_policy_stmt}'" }
+        Rails.logger.info('PanoramaConnection.retrieve_from_pool_or_create_new_connection') { "Error '#{e.message}' while setting parallel_degree_policy with '#{parallel_degree_policy_stmt}'" }
       end
 
       tz_stmt = "ALTER SESSION SET Time_Zone = '#{java.util.TimeZone.get_default.get_id}'"
