@@ -275,6 +275,7 @@ DEPENDENCIES
   jbuilder (~> 2.7)
   jwt
   listen (~> 3.3)
+  mail
   minitest (~> 5.20)
   ostruct
   playwright-ruby-client

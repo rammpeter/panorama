@@ -6,6 +6,7 @@ erb
 io-console
 irb
 jar-dependencies
+mail
 minitest
 pp
 prettyprint
