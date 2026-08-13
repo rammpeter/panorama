@@ -1,3 +1,12 @@
+# Suppress eroneous warning a'la:
+# uri:classloader:/META-INF/jruby.home/lib/ruby/stdlib/bundled_gems.rb:81: warning: parentheses after method name is interpreted as an argument list, not a decomposed argument
+module Warning
+  def warn(message, category: nil)
+    return if message.to_s.include?('parentheses after method name')
+    super
+  end
+end
+
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
 # Activate warnings in development mode

@@ -144,9 +144,10 @@ class ApplicationController < ActionController::Base
       function isOracleReachable() {
         return new Promise(resolve => {
           const img = new Image();
-          img.onload  = () => resolve('true');
-          img.onerror = () => resolve('false');
-          img.src = 'https://download.oracle.com/favicon.ico';
+          const timer = setTimeout(() => { img.src = ''; resolve(false); }, 5000);
+          img.onload  = () => { clearTimeout(timer); resolve(true); };
+          img.onerror = () => { clearTimeout(timer); resolve(false); };
+          img.src = 'https://download.oracle.com/favicon.ico?_=' + Date.now();
         });
       }
 
