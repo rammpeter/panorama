@@ -2,6 +2,7 @@
 # In Gemfile they are with "gem name, require: false"
 # In build.sh they are removed after bundle install
 # benchmark
+actionmailer
 erb
 io-console
 irb

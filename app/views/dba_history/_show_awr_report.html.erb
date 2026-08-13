@@ -2,9 +2,11 @@
 
 
 <%= ajax_form({
-                :controller=>:dba_history,
-                :action=>:list_awr_report_html
-              }, { 'data-type': :json }
+                controller:       :application,
+                action:           :create_blank_tab,
+                blank_controller: :dba_history,
+                blank_action:     :list_awr_report_html
+              }
     ) do
 %>
   <div class="flex-row-container">

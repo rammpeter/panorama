@@ -268,18 +268,16 @@ Hash-value over total optimizer environment + Number of different optimizer envi
     <div class="flex-row-element">
       <%= ajax_submit('SQL report',
                       {
-                        :controller            => :dba_history,
-                        :action                => :list_awr_sql_report_html,
+                        controller:           :application,
+                        action:               :create_blank_tab,
+                        blank_controller:     :dba_history,
+                        blank_action:         :list_awr_sql_report_html,
                         :instance              => @instance,
                         :time_selection_start  => @time_selection_start,
                         :time_selection_end    => @time_selection_end,
                         :sql_id                => @sql_id,
                         dbid:                  @dbid,
-                      },
-                      {
-                        :title =>t(:dba_history_list_sql_detail_historic_sql_report_hint, :default=>"Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML.\n\nLoading the new page may last some seconds, don't worry.")
-                      },
-                      { 'data-type': :json }
+                      }, :title =>t(:dba_history_list_sql_detail_historic_sql_report_hint, :default=>"Generate genuine Oracle SQL report by executing DBMS_WORKLOAD_REPOSITORY.AWR_SQL_REPORT_HTML.\n\nLoading the new page may last some seconds, don't worry.")
           )
       %>
     </div>
@@ -320,12 +318,12 @@ Hash-value over total optimizer environment + Number of different optimizer envi
     <%=
       ajax_submit('Diag. report',
                   {
-                    controller:               :dba_sga,
-                    action:                   :report_sql,
-                    sql_id:                   @sql_id
-                  },
-                  { title: "Show SQL diagnostic report provided by DBMS_SQLDIAG.Report_SQL.\n\nThis opens a new browser tab, popups need to be enabled." },
-                  { 'data-type': :json }
+                    controller:       :application,
+                    action:           :create_blank_tab,
+                    blank_controller: :dba_sga,
+                    blank_action:     :report_sql,
+                    sql_id:           @sql_id
+                  }, title: "Show SQL diagnostic report provided by DBMS_SQLDIAG.Report_SQL.\n\nThis opens a new browser tab, popups need to be enabled."
       )
     %>
   <% end %>

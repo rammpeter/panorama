@@ -3,9 +3,11 @@
 
 <%=
   ajax_form({
-              :controller=>:dba_history,
-              :action=>:list_performance_hub_report
-            }, { 'data-type': :json }
+              controller:       :application,
+              action:           :create_blank_tab,
+              blank_controller: :dba_history,
+              blank_action:     :list_performance_hub_report,
+            }
   ) do
 %>
   <div class="flex-row-container">
@@ -24,26 +26,13 @@
       <%= text_field_tag(:top_n, 10, size: 3, style: "text-align:right;") %>
     </div>
     <div class="flex-row-element">
-      <%= hidden_field_tag('download_oracle_com_reachable', 'false') %>
       <%= submit_tag('Generate performance hub report',
-                     title: "Generate performance hub report by executing DBMS_PERF.REPORT_PERFHUB\nRequires the role DBA or EM_EXPRESS_BASIC for the connected user.\n\nLoading the new page may last some seconds, don't worry.",
-                     onclick: "on_submit_click();")
+                     title: "Generate performance hub report by executing DBMS_PERF.REPORT_PERFHUB\nRequires the role DBA or EM_EXPRESS_BASIC for the connected user.\n\nLoading the new page may last some seconds, don't worry."
+          )
       %>
     </div>
   </div>
 <% end %>
 
-<script text="javascript">
-    var download_oracle_com_reachable = false;
-
-    isSiteOnline("https://download.oracle.com",function(found){
-        download_oracle_com_reachable = found; // store state in all hidden inputs at submit click
-    });
-
-    function on_submit_click(){
-        jQuery('#download_oracle_com_reachable').val(download_oracle_com_reachable); // store state in all hidden inputs at submit click
-    }
-
-</script>
 
 

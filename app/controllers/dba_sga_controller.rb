@@ -1994,7 +1994,10 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
     @sql_id                     = prepare_param :sql_id
     result = PanoramaConnection.exec_clob_plsql_function("DBMS_SQLDIAG.Report_SQL(SQL_ID => ?, Level => 'ALL')", [@sql_id])
     result.sub!(/<head>/, "<head><title>SQL Diagnostic Report for SQL-ID #{@sql_id}</title>")
-    render :json => { action: 'show_in_new_tab', result: result}.to_json
+    respond_to do |format|
+      format.html {render plain: result }
+    end
+
   end
 
   def show_sql_tuning_advisor

@@ -119,6 +119,67 @@ class ApplicationController < ActionController::Base
     PanoramaConnection.release_connection # Free DB connection
   end
 
+  # Create a new tab at browser and execute the action defined by params
+  # :blank_controller, :blank_action
+  def create_blank_tab
+    url = "/application/exec_in_blank_tab?"
+    url << params.to_unsafe_h.map { |k, v| "#{k}=#{v}" }.join("&")
+    respond_to do |format|
+      format.js {render :js => "window.open('#{url}', '_blank');" }
+    end
+  end
+
+  # Load the initial html content in a new tab
+  def exec_in_blank_tab
+    controller = prepare_param :blank_controller
+    action     = prepare_param :blank_action
+    url = "/#{controller}/#{action}?"
+    url << params.to_unsafe_h.map { |k, v| "#{k}=#{v}" }.join("&")
+
+    html = "\
+<html>
+  <head>
+    <title>Waiting for Oracle report to be generated!</title>
+    <script text='javascript'>
+      function isOracleReachable() {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload  = () => resolve('true');
+          img.onerror = () => resolve('false');
+          img.src = 'https://download.oracle.com/favicon.ico';
+        });
+      }
+
+      window.onload = function() {
+        isOracleReachable().then(ok => {
+          window.location.href='#{url}'+'&download_oracle_com_reachable='+ok;
+        });
+      }
+    </script>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display:        grid;
+        place-items:    center;   /* zentriert in beide Richtungen */
+        flex-direction: column;
+        font-size:      5em;
+        color:          gray;
+      }
+    </style>
+  </head>
+  <body>
+    <div>The Oracle report is now being generated.</div>
+    <div>Please wait.</div>
+  </body>
+</html>"
+    respond_to do |format|
+      format.html {render plain: html }
+    end
+  end
+
   ####################################### only protected and private methods from here #####################################
   protected
 

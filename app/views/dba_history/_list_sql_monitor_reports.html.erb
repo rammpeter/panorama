@@ -1,13 +1,12 @@
 <%
   @update_area = get_unique_area_id
-  @hidden_id = 0
 
   link_action = proc do |rec|
-    @hidden_id += 1
-
     ajax_form({
-                controller:            :dba_history,
-                action:                :list_awr_sql_monitor_report_html,
+                controller:            :application,
+                action:                :create_blank_tab,
+                blank_controller:      :dba_history,
+                blank_action:          :list_awr_sql_monitor_report_html,
                 report_id:             rec.report_id,
                 instance:              rec.instance_number,
                 sid:                   rec.session_id,
@@ -15,16 +14,12 @@
                 sql_id:                rec.sql_id,
                 sql_exec_id:           rec.sql_exec_id,
                 origin:                rec.origin,
-                browser_tab_id:        @browser_tab_id
-              }, { 'data-type': :json }
+                browser_tab_id:        @browser_tab_id,
+              }
     ) do
-      hidden_field_tag("download_oracle_com_reachable_#{@hidden_id}", 'false', name: 'download_oracle_com_reachable') + # Field is set at submit click with reachable state
         submit_tag('Show report',
-                   {title: "Show generated SQL-Monitor report in separate browser tab (requires internet connection).\n\nLoading the new page may last some seconds, don't worry.",
-                    onclick: "on_submit_click('download_oracle_com_reachable_#{@hidden_id}');"
-                   }
+                   title: "Show generated SQL-Monitor report in separate browser tab (requires internet connection).\n\nLoading the new page may last some seconds, don't worry."
         )
-
     end
   end
 
@@ -82,19 +77,5 @@ column_options =
     update_area: @update_area
 })
 %>
-
-<script text="javascript">
-  var download_oracle_com_reachable = false;
-  isSiteOnline("https://download.oracle.com",function(found){
-      download_oracle_com_reachable = found; // store state in all hidden inputs at submit click
-  });
-
-  function on_submit_click(hidden_field_id){
-      console.log(hidden_field_id);
-      jQuery('#'+hidden_field_id).val(download_oracle_com_reachable); // store state in all hidden inputs at submit click
-  }
-
-
-</script>
 
 

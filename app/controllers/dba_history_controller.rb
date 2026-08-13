@@ -2155,8 +2155,10 @@ FROM (
 
     @report.gsub!(/http:/, 'https:') if request.original_url['https://']        # Request kommt mit https, dann müssen <script>-Includes auch per https abgerufen werden, sonst wird page geblockt wegen insecure content
 
-    @report.sub!(/<head>/, "<he ad><title>Performance Hub Report</title>")
-    render :json => { action: 'show_in_new_tab', result: @report}.to_json
+    @report.sub!(/<head>/, "<head><title>Performance Hub Report</title>")
+    respond_to do |format|
+      format.html {render plain: @report }
+    end
   end
 
   def list_awr_report_html
@@ -2174,7 +2176,9 @@ FROM (
     end
     joined_result = res_array.join
     joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
-    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
+    respond_to do |format|
+      format.html {render plain: joined_result }
+    end
   end
 
   def list_awr_global_report_html
@@ -2192,7 +2196,9 @@ FROM (
     end
     joined_result = res_array.join
     joined_result.sub!(/<head>/, "<head><title>AWR Report</title>")
-    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
+    respond_to do |format|
+      format.html {render plain: joined_result }
+    end
   end
 
   def list_ash_report_html
@@ -2208,7 +2214,11 @@ FROM (
     @report.each do |r|
       res_array << r.output
     end
-    render :html => res_array.join.html_safe
+    joined_result = res_array.join
+    joined_result.sub!(/<head>/, "<head><title>ASH Report</title>")
+    respond_to do |format|
+      format.html {render plain: joined_result }
+    end
   end
 
   def list_ash_global_report_html
@@ -2227,8 +2237,9 @@ FROM (
     end
     joined_result = res_array.join
     joined_result.sub!(/<head>/, "<head><title>ASH report</title>")
-    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
-  end
+    respond_to do |format|
+      format.html {render plain: joined_result }
+    end  end
 
 
   def list_awr_sql_report_html
@@ -2247,7 +2258,9 @@ FROM (
     end
     joined_result = res_array.join
     joined_result.sub!(/<head>/, "<head><title>SQL Report for SQL-ID #{@sql_id}</title>")
-    render :json => { action: 'show_in_new_tab', result: joined_result}.to_json
+    respond_to do |format|
+      format.html {render plain: joined_result }
+    end
   end
 
   def select_plan_hash_value_for_baseline
@@ -2542,19 +2555,6 @@ END;
     origin      = params[:origin]
     download_oracle_com_reachable = params[:download_oracle_com_reachable] == 'true'
 
-=begin
-    # Check availability of internet access, moved to browser
-    oracle_host = 'download.oracle.com'
-
-    if RbConfig::CONFIG['host_os'] =~ /mswin/
-      pingable = system "ping -n 1 #{oracle_host}"
-    else
-      pingable = system "ping -c 1 #{oracle_host}"
-    end
-
-    #pingable =  Net::Ping::HTTP.new(oracle_host).ping
-
-=end
     if  download_oracle_com_reachable
       type = 'ACTIVE'                                                               # Active content with download from oracle
     else
@@ -2585,7 +2585,10 @@ END;
         report.gsub!(/http:/, 'https:')
       end
       report.sub!(/<head>/, "<head><title>SQL Monitor Report for SQL-ID #{sql_id}</title>")
-      render :json => { action: 'show_in_new_tab', result: report}.to_json
+
+      respond_to do |format|
+        format.html {render plain: report }
+      end
     end
   end
 

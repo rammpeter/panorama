@@ -164,7 +164,7 @@ module AjaxHelper
 
     raise 'ajax_form: key=:controller missing in parameter url'   unless url[:controller]
     raise 'ajax_form: key=:action missing in parameter url'       unless url[:action]
-    raise 'ajax_form: key=:update_area missing in parameter url'  if html_options['data-type'.to_sym] != :json &&  !url[:update_area]
+    raise 'ajax_form: key=:update_area missing in parameter url'  if url[:action] != :create_blank_tab && !url[:update_area]
 
     # update_area should be part of request for additional use in server
     (form_tag url_for(url), html_options do                                     # internen Rails-Helper verwenden
