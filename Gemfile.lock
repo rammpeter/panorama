@@ -259,7 +259,6 @@ PLATFORMS
   universal-java
 
 DEPENDENCIES
-  actionmailer
   actionpack (= 8.0.5.1)
   actionview (= 8.0.5.1)
   activejob (= 8.0.5.1)
