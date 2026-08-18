@@ -183,7 +183,10 @@ class StorageController < ApplicationController
                       Segment_Type)||
                DECODE(i.Index_Type, 'IOT - TOP', ' IOT-PKey', '') Type,
                s.Bytes
-        FROM   DBA_Segments s
+        FROM   (SELECT CASE WHEN Segment_Name LIKE 'BIN$%' THEN '[ RECYCLEBIN ]' ELSE Owner END Owner,
+                       Segment_Name, Segment_Type, Tablespace_Name, Bytes
+                FROM   DBA_Segments
+               ) s
         LEFT OUTER JOIN DBA_Indexes i ON i.Owner = s.Owner AND i.Index_Name=s.Segment_Name
         )
       GROUP BY Owner, Type
@@ -1728,6 +1731,7 @@ class StorageController < ApplicationController
       where_string << " AND b.TS_Name = ?"
       where_values << @tablespace
     end
+
     @recycle_bin = sql_select_iterator ["\
       SELECT b.*,
              TO_DATE(CreateTime, 'YYYY-MM-DD:HH24:MI:SS') CreateTime_Dt,

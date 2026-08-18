@@ -19,11 +19,15 @@
           {:caption=>'Can purge',                   :data=>proc{|rec| rec.can_purge },                    :title=>"Indicates whether the object can be purged"},
       ]
 
+  caption = "Content of recycle bin from DBA_RecycleBin"
+  caption_filter = []
+  caption_filter << "tablespace = '#{@tablespace}'" if @tablespace
+  caption << " for #{caption_filter.join(', ')}" if caption_filter.any?
 %>
 
 <%= gen_slickgrid(@recycle_bin, column_options, {
     :max_height => 450,
-    :caption => "Content of recycle bin from DBA_RecycleBin#{@tablespace ? " for tablespace '#{@tablespace}'" : ''}",
+    :caption    => caption,
     update_area:   @update_area
 
 }) %>
