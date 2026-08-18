@@ -80,16 +80,20 @@ module DbaHelper
   # Ermitteln des Betroffenen Objektes aus Parametern von v$session_wait
   def object_nach_wait_parameter(detail_update_area, instance, event, p1, p1raw, p1text, p2, p2raw, p2text, p3, p3raw, p3text)
     wordsize = PanoramaConnection.db_wordsize    # Wortbreite in Byte
+    result = "\n"
     case
     when (p1text=="file#" || p1text=="file number") && (p2text=="block#" || p2text=="first dba") then
-      result = object_nach_file_und_block(detail_update_area, p1, p2, instance)
-      result = "Nothing found for p1=#{p1}, p2=#{p2}, instance=#{instance}" unless result
-      result
+      obj = object_nach_file_und_block(detail_update_area, p1, p2, instance)
+      if obj
+        result << obj
+      else
+        result = "Nothing found for p1=#{p1}, p2=#{p2}, instance=#{instance}"
+      end
     when p1text=="address" && p2text=="number" && p3text=='tries' then
       p1raw = p1.to_i.to_s(16).upcase unless p1raw   # Rück-Konvertierung aus p1 wenn raw nicht belegt ist
       # Auslesen Objekt über Cache-Block
       begin
-      result = sql_select_one ["\
+        obj = sql_select_one ["\
         SELECT /*+ ORDERED USE_NL(b o) */ /* Panorama-Tool Ramm */
                o.Owner||'.'||o.Object_Name||':'||o.SubObject_Name||' ('||o.Object_Type||')'  Value
         FROM   X$BH b
@@ -97,7 +101,11 @@ module DbaHelper
         WHERE  b.hladdr = HexToRaw(?)
         AND    RowNum           < 2 /* ein Cluster-Node mit Treffer reicht */ ",
         p1raw ]
-        result = "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}" unless result
+        if obj
+          result << obj
+        else
+          result << "Nothing found in DB-Cache (X$BH) for HLAddr = #{p1raw}"
+        end
       rescue Exception=>e
         alert_exception(e, x_dollar_bh_solution_text)
       end
@@ -105,46 +113,57 @@ module DbaHelper
     when p1text == "idn" && p2text == "value" && p3text == "where"
       if event.match('cursor: ')
         cursor_rec = sql_select_first_row ["SELECT /*+ Panorama-Tool Ramm */ SQL_ID, Parsing_Schema_Name, SQL_Text FROM gv$SQL WHERE Inst_ID=? AND Hash_Value=?", instance, p1.to_i]
-        "Blocking-SID=#{p2.to_i/2**32 & 2**16-1}, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
+        result << "Blocking-SID=#{p2.to_i/2**32 & 2**16-1}, Cursor-Hash-Value=#{p1.to_i} SQL-ID='#{cursor_rec.sql_id if cursor_rec}', User=#{cursor_rec.parsing_schema_name if cursor_rec}, #{cursor_rec.sql_text if cursor_rec}"
       else   # Mutex etc. e.g. 'library cache: mutex X'
         # P1 = “idn” = Unique Mutex Identifier. Hash value of library cache object protected by mutex or hash bucket number.
         # P2 = “value” = “Blocking SID | Shared refs” = SID: bitand(p2/power(2,32),power(2,16)-1). This session is currently holding the mutex exclusively or modifying it. Lower bytes represent the number of shared references when the mutex is in-flux
         # Source for p2 SID-Interpretation: https://fritshoogland.files.wordpress.com/2020/04/mutexes-2.pdf
         # P3 = “where” = “Location ID | Sleeps” = Top 2(4) bytes contain location in code (internal identifier) where mutex is being waited for. Lower bytes contain the number of sleeps for this mutex. These bytes not populated on some platforms, including Linux
         lc_obj_name = sql_select_one ["SELECT /*+ Panorama-Tool Ramm */ Type||' '||Owner||'.'||Name FROM gv$DB_Object_Cache WHERE Inst_ID=? AND Hash_Value=?", instance, p1.to_i]
-        "Object=#{lc_obj_name}, Blocking-SID=#{p2.to_i/2**32 & 2**16-1}, number of shared references=#{p2.to_i%2**(4*wordsize)}, Location-ID=#{p3.to_i/2**(4*wordsize)}, Number of Sleeps=#{p3.to_i%2**(4*wordsize)} "
+        result << "Object=#{lc_obj_name}, Blocking-SID=#{p2.to_i/2**32 & 2**16-1}, number of shared references=#{p2.to_i%2**(4*wordsize)}, Location-ID=#{p3.to_i/2**(4*wordsize)}, Number of Sleeps=#{p3.to_i%2**(4*wordsize)} "
       end
     when event.match('library cache') && p1text=="handle address" then
       # TODO: move to
       # select * from v$libcache_locks where object_handle = to_char(21096197416,'fm000000000000000X') -- p1raw
       # select * from v$db_object_cache where addr = to_char(21096197416,'fm000000000000000X') -- p1raw
+      result << "\np1:"
       begin
-        result = sql_select_one ["SELECT 'handle_address: Owner='''||kglnaown||''', Object='''||kglnaobj||''''
-                                FROM   x$kglob
-                                WHERE kglhdadr=HEXToRaw(TRIM(TO_char(?,'XXXXXXXXXXXXXXXX')))", p1]
-        result = "Nothing found in x$kglob for p1" unless result
+        address = sql_select_one(["SELECT 'handle_address: Owner='''||kglnaown||''', Object='''||kglnaobj||''''
+                                   FROM   x$kglob
+                                   WHERE kglhdadr=HEXToRaw(TRIM(TO_char(?,'XXXXXXXXXXXXXXXX')))", p1])
+        if address
+          result << address
+        else
+          result << "Nothing found in x$kglob for p1"
+        end
       rescue Exception
-        result = "Access denied on x$kglob"
+        result << "Access denied on x$kglob"
       end
       oc = sql_select_first_row ["SELECT * FROM v$DB_Object_Cache WHERE Addr = TO_CHAR(?, 'fm000000000000000X')", p1]
       if oc.nil?
-        result << ", No hit in v$DB_Object_Cache for p1"
+        result << "\nNo hit in v$DB_Object_Cache for p1"
       else
-        result << ", Owner='#{oc.owner}'"           if oc.owner
-        result << ", Name='#{oc.name[0,100]}'"      if oc.name
-        result << ", DB-Link='#{oc.db_link}'"       if oc.db_link
-        result << ", Namespace='#{oc.namespace}'"   if oc.namespace
-        result << ", Type='#{oc.type}'"             if oc.type
+        result << "\nOwner='#{oc.owner}'"           if oc.owner
+        result << "\nName='#{oc.name[0,100]}'"      if oc.name
+        result << "\nDB-Link='#{oc.db_link}'"       if oc.db_link
+        result << "\nNamespace='#{oc.namespace}'"   if oc.namespace
+        result << "\nType='#{oc.type}'"             if oc.type
       end
-      result << ", Mode='#{(p3.to_i % 2**32) & 2**16-1}'"
+      result << "\np3:"
+      result << "\nIdentifier='#{p3.to_i >> 32}'"
+      ns_id = (p3.to_i & 0xFFFF0000) >> 16
+      result << "\nNamespace ID='#{ns_id}'"
       begin
-        ns_id = (p3.to_i % 2**32)/2**16
-        result << ", Namespace-ID='#{ns_id}'"
         ns = sql_select_one ["SELECT KGLSTDSC FROM x$kglst WHERE INDX=? and KGLSTTYP='NAMESPACE'", ns_id]
-        result << ", Namespace='#{ns}'"
+        result << "\nNamespace='#{ns}'"
       rescue Exception
-        result << ", Access denied on x$kglst"
+        result << "\nAccess denied on x$kglst"
       end
+      mode = p3.to_i & 0xFFFF
+      result << "\nMode='#{mode}' (#{lock_modes(mode)})"
+      puts p3
+      puts p3.to_i
+      puts mode
       result
     when p1text == 'channel context' # reliable message
       sql = "\
@@ -152,20 +171,20 @@ SELECT name_ksrcdes
 FROM   x$ksrcdes
 WHERE  indx = (SELECT name_ksrcctx FROM x$ksrcctx WHERE addr like '%'||TRIM(TO_CHAR(?, 'XXXXXXXXXXXXXXXX'))||'%')"
       begin
-        result = "Channel name = #{sql_select_one [sql, p1]}"
+        result << "Channel name = #{sql_select_one [sql, p1]}"
       rescue Exception => e
-        result = "Unable to execute SQL! Please retry as SYSDBA. \n\n#{e.message}"
+        result << "Unable to execute SQL! Please retry as SYSDBA. \n\n#{e.message}"
       end
     when p1text == 'name|mode' && p2text == 'object #'
-      result = "Lock type = '#{((p1.to_i & -16777216 ) / 16777215).chr}#{((p1.to_i & 16711680 ) / 65535).chr}'\n"
+      result << "Lock type = '#{((p1.to_i & -16777216 ) / 16777215).chr}#{((p1.to_i & 16711680 ) / 65535).chr}'\n"
       result << "Lock mode = #{p1.to_i & 65535} (#{lock_modes(p1.to_i & 65535)})\n"
       obj_rec = sql_select_first_row(["SELECT Owner, Object_Name, SubObject_Name FROM DBA_Objects WHERE Object_ID = ?", p2.to_i])
       result << "Object = #{obj_rec.owner}.#{obj_rec.object_name}"
       result << " (#{obj_rec.subobject_name})" if obj_rec.subobject_name
-      result
     else
-      "[No object can be determined for parameters p1, p2]"
+      result << "[No additional info can be determined for parameters p1, p2, p3]"
     end
+    result
   end
 
   def get_sql_monitor_count(dbid, instance, sql_id, time_selection_start, time_selection_end, sid=nil, serial_no=nil)

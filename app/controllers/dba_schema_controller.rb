@@ -833,13 +833,13 @@ class DbaSchemaController < ApplicationController
     if @objects.count == 0 && @object_name =~ /^BIN\$/i                         # Try to find in recycle bin
       case
       when @owner.nil? && @object_type.nil? then
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE ?", @object_name]
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE UPPER(?)", @object_name]
       when @owner.nil?
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE ? AND Type = ?", @object_name, @object_type]
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE UPPER(?) AND UPPER(Type) = UPPER(?)", @object_name, @object_type]
       when @object_type.nil?
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE ? AND Owner LIKE ?", @object_name, @owner]
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE UPPER(?) AND Owner LIKE UPPER(?)", @object_name, @owner]
       else
-        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE ? AND Owner LIKE ? AND Type = ?", @object_name, @owner, @object_type]
+        @objects = sql_select_all ["SELECT DISTINCT Owner, Object_Name, Type FROM DBA_RecycleBin WHERE UPPER(Object_Name) LIKE UPPER(?) AND Owner LIKE UPPER(?) AND UPPER(Type) = UPPER(?)", @object_name, @owner, @object_type]
       end
 
       if @objects.count > 1
