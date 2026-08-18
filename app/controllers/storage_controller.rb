@@ -150,10 +150,10 @@ class StorageController < ApplicationController
       WITH Quotas AS (SELECT /*+ NO_MERGE MATERIALIZE */ Tablespace_Name, Username, Bytes, Max_Bytes FROM   DBA_TS_Quotas) -- without MATERIALIZE long runtime on 11.2
       SELECT /* Panorama-Tool Ramm */ s.Owner, s.Tablespace_Name, s.MBytes, q.Bytes Bytes_Charged, q.Max_Bytes Bytes_Quota
       FROM (
-        SELECT /*+ NO_MERGE */ Owner,
-               Tablespace_Name,
-               SUM(Bytes)/1048576 MBytes
-        FROM   DBA_Segments s
+        SELECT /*+ NO_MERGE */ Owner, Tablespace_Name, SUM(Bytes)/1048576 MBytes
+        FROM   (SELECT CASE WHEN Segment_Name LIKE 'BIN$%' THEN '[ RECYCLEBIN ]' ELSE Owner END Owner, Tablespace_Name, Bytes
+                FROM   DBA_Segments
+               )
         GROUP BY Owner, Tablespace_Name
         ) s
       LEFT OUTER JOIN Quotas q ON q.Tablespace_Name = s.Tablespace_Name AND q.Username = s.Owner
@@ -1719,14 +1719,25 @@ class StorageController < ApplicationController
   end
 
   def list_recycle_bin
-    @recycle_bin = sql_select_iterator "SELECT b.*,
-                                               TO_DATE(CreateTime, 'YYYY-MM-DD:HH24:MI:SS') CreateTime_Dt,
-                                               TO_DATE(DropTime,   'YYYY-MM-DD:HH24:MI:SS') DropTime_Dt,
-                                               b.Space * ts.Block_Size / (1024*1024) Size_MB
-                                        FROM   DBA_RecycleBin b
-                                        LEFT OUTER JOIN DBA_Tablespaces ts ON ts.Tablespace_Name = b.TS_Name
-                                        ORDER BY b.Space DESC NULLS LAST
-                                       "
+    @tablespace = prepare_param :tablespace
+
+    where_string = String.new
+    where_values = []
+
+    if @tablespace
+      where_string << " AND b.TS_Name = ?"
+      where_values << @tablespace
+    end
+    @recycle_bin = sql_select_iterator ["\
+      SELECT b.*,
+             TO_DATE(CreateTime, 'YYYY-MM-DD:HH24:MI:SS') CreateTime_Dt,
+             TO_DATE(DropTime,   'YYYY-MM-DD:HH24:MI:SS') DropTime_Dt,
+             b.Space * ts.Block_Size / (1024*1024) Size_MB
+      FROM   DBA_RecycleBin b
+      LEFT OUTER JOIN DBA_Tablespaces ts ON ts.Tablespace_Name = b.TS_Name
+      WHERE  1=1#{where_string}
+      ORDER BY b.Space DESC NULLS LAST
+    "].concat(where_values)
     render_partial
   end
 

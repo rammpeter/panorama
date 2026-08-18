@@ -238,6 +238,7 @@ module ApplicationHelper
   #                                          }
   def prepare_param(param_sym, **options)
     retval = params[param_sym]
+    raise "prepare_param: Parameter '#{param_sym}' has value '#{retval.inspect}' which is not a String" unless retval.is_a?(String)
     return options[:default] if retval.nil? || retval == ''                     # nil if no default option given
     if options[:whitelist]
       raise "prepare_param: Parameter '#{param_sym}' has value '#{retval}' which is not in whitelist #{options[:whitelist]}" unless options[:whitelist].include?(retval)

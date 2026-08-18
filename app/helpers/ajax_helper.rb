@@ -306,7 +306,7 @@ module AjaxHelper
                 username:     username,
                 update_area: update_area,
               },
-              title: "Show details for user '#{username}'"
+              title: "Show details for user/schema '#{username}'"
     ).html_safe
   end
   def link_current_or_historic_sql_id(update_area, instance, sql_id, time_selection_start, time_selection_end, parsing_schema_name=nil, con_id=nil)

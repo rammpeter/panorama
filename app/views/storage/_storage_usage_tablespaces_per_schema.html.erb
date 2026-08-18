@@ -5,16 +5,35 @@
     @update_area = get_unique_area_id                                           # no target div given, create my own
   end
 
+  link_user = proc do |rec|
+    if rec.owner == '[ RECYCLEBIN ]'
+      rec.owner
+    else
+      link_username(@update_area, rec.owner)
+    end
+  end
+
   link_mb_used = proc do |rec|
-    ajax_link(fn(rec.mbytes),
-              {:controller   => :dba_schema,
-               :action       => :list_objects,
-               :tablespace   => {:name => rec.tablespace_name},
-               :schema       => {:name => rec.owner},
-               :update_area  => @update_area,
-              },
-              :title=>'Show object details of this schema in tablespace'
-    )
+    if rec.owner == '[ RECYCLEBIN ]'
+      ajax_link(fn(rec.mbytes),
+                {:controller   => :storage,
+                 :action       => :list_recycle_bin,
+                 :tablespace   => rec.tablespace_name,
+                 :update_area  => @update_area,
+                },
+                :title=>'Show content of recyclebin in this tablespace'
+      )
+    else
+      ajax_link(fn(rec.mbytes),
+                {:controller   => :dba_schema,
+                 :action       => :list_objects,
+                 :tablespace   => {:name => rec.tablespace_name},
+                 :schema       => {:name => rec.owner},
+                 :update_area  => @update_area,
+                },
+                :title=>'Show object details of this schema in tablespace'
+      )
+    end
   end
 
   show_quota = proc do |rec|
@@ -31,7 +50,7 @@
 
   column_options =
     [
-      {:caption => "Schema",        :data => proc {|rec| link_username(@update_area, rec.owner)}, :title => 'Name of schema'},
+      {:caption => "Schema",        :data => link_user,                               :title => 'Name of schema'},
       {:caption => "Tablespace",    :data => proc {|rec| rec.tablespace_name},        :title => t(:storage_tablespace_usage_tablespace_name_hint, :default => 'Name of tablespace')},
       {:caption => "Used (MB)",     :data => link_mb_used,                            :title => "Used space in tablespace by this schema in MB from DBA_SEGMENTS", data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"}, :align => :right, show_pct_col_sum_hint: true},
       {:caption => "Quota (MB)",    :data => show_quota,                              :title => "Maximum quota in tablespace for this schema in MB", data_title: proc{|rec| "%t\n#{size_explain((rec.bytes_quota.to_f / (1024*1024) rescue nil)) if rec.bytes_quota != -1 && !rec.bytes_quota.nil?}"}, :align => :right},
