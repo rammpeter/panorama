@@ -1,5 +1,5 @@
 <% @update_area = get_unique_area_id %>
-
+<%= render_page_caption("Body of trigger #{@owner}.#{@trigger_name}") %>
 <%=  render_code_mirror(@body, cm_options: { lineNumbers: true}) %>
 
 <div class="flex-row-container">
