@@ -68,6 +68,40 @@ Total hard parse time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg
     title
   end
 
+  last_load_time_sql_area_title = t(:dba_sga_list_sql_sga_stat_last_load_sqlarea_hint,
+                                    default: "Last load time of one child cursor of this SQL in SGA
+                                    %{metrics_start_hint}
+                                    First occurrence of SQL in SGA = %{first_load_time}
+                                    Number of times the object was loaded or reloaded after invalidisation of cursor = %{loads}\n
+                                    Duration since last load time:%{duration_since_last_load}",
+                                    metrics_start_hint: metrics_start_hint,
+                                    first_load_time: localeDateTime(@sql.first_load_time),
+                                    loads: fn(@sql.loads),
+                                    duration_since_last_load: seconds_explain(PanoramaConnection.db_current_time - @sql.last_load_time)
+  )
+
+  last_load_time_sql_title = t(:dba_sga_list_sql_sga_stat_last_load_sql_hint,
+                               default: "Last Load time of execution plan in library cache of SGA (last hard parse)
+                               %{metrics_start_hint}
+                               Number of times the object was loaded or reloaded after invalidisation of cursor = %{loads}\n
+                               Duration since last load time:%{duration_since_last_load}",
+                               metrics_start_hint: metrics_start_hint,
+                               loads: fn(@sql.loads),
+                               duration_since_last_load: seconds_explain(PanoramaConnection.db_current_time - @sql.last_load_time)
+  )
+
+  executions_title = "Number of executions"
+  if @sql.executions.to_i > 1
+    avg_exec_per_second = @sql.executions.to_f / (PanoramaConnection.db_current_time - @sql.last_load_time) rescue 0
+    if avg_exec_per_second > 0
+      executions_title << "\n\nAvg. executions since last load time:  #{fn(avg_exec_per_second, 3)}"
+      executions_title << "\nper second = #{fn(avg_exec_per_second, 2)}"        if avg_exec_per_second> 1
+      executions_title << "\nper minute = #{fn(avg_exec_per_second*60, 2)}"     if avg_exec_per_second*60 > 1
+      executions_title << "\nper hour = #{fn(avg_exec_per_second*3600, 2)}"     if avg_exec_per_second*3600 > 1
+      executions_title << "\nper day = #{fn(avg_exec_per_second*3600*24, 2)}"   if avg_exec_per_second*3600*24 > 1
+    end
+  end
+
 %>
 <table ID="<%= @table_id_prefix %>_main" class="shadow" style="width: 100%; border: 0;">
   <tr>
@@ -130,11 +164,11 @@ Total hard parse time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg
             <tr title="<%= t(:dba_sga_list_sql_sga_stat_first_load_sql_hint, :default=>"First load time of SQL child cursor in SGA (first hard parse)\n%{metrics_start_hint}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}\nUnder some circumstances metrics are aggregated starting with this timestamp and not with Last_Load_Time.", metrics_start_hint: metrics_start_hint, loads: fn(@sql.loads)) %>">
               <td>First Load Time</td><td align="center"><%= localeDateTime(@sql.first_load_time) %></td>
             </tr>
-            <tr title="<%= t(:dba_sga_list_sql_sga_stat_last_load_sql_hint, :default=>"Last Load time of execution plan in library cache of SGA (last hard parse)\n%{metrics_start_hint}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}", metrics_start_hint: metrics_start_hint, loads: fn(@sql.loads)) %>">
+            <tr title="<%= last_load_time_sql_title %>">
               <td>Last Load Time</td><td align="center"><%= localeDateTime(@sql.last_load_time) %></td>
             </tr>
           <% else # gv$SQLArea %>
-            <tr title="<%= t(:dba_sga_list_sql_sga_stat_last_load_sqlarea_hint, :default=>"Last load time of one child cursor of this SQL in SGA\n%{metrics_start_hint}\nFirst occurrence of SQL in SGA = %{first_load_time}\nNumber of times the object was loaded or reloaded after invalidisation of cursor = %{loads}", metrics_start_hint: metrics_start_hint, first_load_time: localeDateTime(@sql.first_load_time), loads: fn(@sql.loads)) %>">
+            <tr title="<%= last_load_time_sql_area_title %>">
               <td>Last Load Time</td><td align="center"><%= localeDateTime(@sql.last_load_time) %></td>
             </tr>
           <% end %>
@@ -144,7 +178,7 @@ Total hard parse time = #{fn(sql.loads * sql.avg_hard_parse_time_ms, 2)} ms, avg
 
         <table style="font-size:small; width: 100%;">
           <tr  title="<%= metrics_start_hint %>"><th>Metric-Name</th><th>Total</th><th>Per Exec.</th></tr>
-          <%= show_single_value("Executions", @sql.executions,0, "Number of executions") %>
+          <%= show_single_value("Executions", @sql.executions,0, executions_title) %>
           <%= show_both_values("Parse calls", @sql.parse_calls,0, "#{strings(:parse_calls_title)}\n\n#{parse_title_addition.call(@sql)}", true) %>
           <%= show_both_values("Fetches ", @sql.fetches, 0, "Number of fetches (Avg. #{fn(@sql.rows_processed/@sql.fetches.to_f, 1) rescue nil} rows per fetch)")%>
           <%= show_both_values("Sorts", @sql.sorts,0, "Number of sort operations") %>

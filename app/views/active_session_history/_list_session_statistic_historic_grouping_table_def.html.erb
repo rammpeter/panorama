@@ -217,7 +217,7 @@
   end
 
   duration_data_title = proc do |rec|
-    "%t\n\nTime between first and last occurrence\n= #{fn(rec.sample_dauer_secs)} seconds\n= #{fn(rec.sample_dauer_secs.to_f / 60 , 1)} minutes\n= #{fn(rec.sample_dauer_secs.to_f / (60*60), 1)} hours\n= #{fn(rec.sample_dauer_secs.to_f / (60*60*24), 1)} days"
+    "%t\n\nTime between first and last occurrence\n#{seconds_explain(rec.sample_dauer_secs)}"
   end
 
 
