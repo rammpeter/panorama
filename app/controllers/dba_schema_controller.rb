@@ -1016,8 +1016,17 @@ class DbaSchemaController < ApplicationController
     @comment = sql_select_one ["SELECT Comments FROM DBA_Tab_Comments WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @columns = sql_select_all ["\
-                 SELECT /*+ Panorama Ramm */
-                       c.*, co.Comments,
+                 WITH Col_Comments       AS (SELECT /*+ NO_MERGE MATERIALIZE */ Column_Name, Comments                         FROM DBA_Col_Comments       WHERE  Owner = ? AND Table_Name = ?),
+                      Lobs               AS (SELECT /*+ NO_MERGE MATERIALIZE */ Column_Name, Segment_Name                     FROM DBA_Lobs               WHERE  Owner = ? AND Table_Name = ?),
+                      Tab_Col_Statistics AS (SELECT /*+ NO_MERGE MATERIALIZE */ Column_Name, Density, Num_Buckets, Histogram  FROM DBA_Tab_Col_Statistics WHERE  Owner = ? AND Table_Name = ?)
+                      #{ ",Col_Usage AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
+                                    FROM   sys.Col_Usage$
+                                    WHERE  Obj# = (SELECT Object_ID FROM DBA_Objects WHERE Owner = ? AND Object_Name = ? AND Object_Type = 'TABLE')
+                                   )" unless PanoramaConnection.autonomous_database?}
+                 SELECT
+                       c.Column_Name, c.Data_Type, c.Data_Scale, c.Nullable, c.Num_Nulls, c.Num_Distinct, c.Avg_Col_Len,
+                       c.Density, c.Num_Buckets, c.Histogram, NULL data_default, /* data_default is selected separately because of LONG data type */
+                       co.Comments,
                        CASE WHEN Data_Type LIKE '%CHAR%' THEN
                          c.Char_Length ||CASE WHEN c.Char_Used='B' THEN ' Bytes' WHEN c.Char_Used='C' THEN ' Chars' ELSE '' END
                        ELSE
@@ -1025,16 +1034,24 @@ class DbaSchemaController < ApplicationController
                        END Precision,
                        l.Segment_Name LOB_Segment,
                        s.Density, s.Num_Buckets, s.Histogram
-                       #{', u.*' if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?}  -- fuer normale User nicht sichtbar in 10g
+                       #{', u.*' unless PanoramaConnection.autonomous_database?}
                 FROM   DBA_Tab_Columns c
-                LEFT OUTER JOIN DBA_Col_Comments co       ON co.Owner = c.Owner AND co.Table_Name = c.Table_Name AND co.Column_Name = c.Column_Name
-                LEFT OUTER JOIN DBA_Lobs l               ON l.Owner = c.Owner AND l.Table_Name = c.Table_Name AND l.Column_Name = c.Column_Name
-                LEFT OUTER JOIN DBA_Objects o            ON o.Owner = c.Owner AND o.Object_Name = c.Table_Name AND o.Object_Type = 'TABLE'
-                LEFT OUTER JOIN DBA_Tab_Col_Statistics s ON s.Owner = c.Owner AND s.Table_Name = c.Table_Name AND s.Column_Name = c.Column_Name
-                #{'LEFT OUTER JOIN sys.Col_Usage$ u         ON u.Obj# = o.Object_ID AND u.IntCol# = c.Column_ID' if get_db_version >= '11.2' && !PanoramaConnection.autonomous_database?}  -- fuer normale User nicht sichtbar in 10g
+                LEFT OUTER JOIN Col_Comments co       ON co.Column_Name = c.Column_Name
+                LEFT OUTER JOIN Lobs l                ON l.Column_Name = c.Column_Name
+                LEFT OUTER JOIN Tab_Col_Statistics s  ON s.Column_Name = c.Column_Name
+                #{'LEFT OUTER JOIN Col_Usage u        ON u.IntCol# = c.Column_ID' unless PanoramaConnection.autonomous_database?}
                 WHERE  c.Owner = ? AND c.Table_Name = ?
                 ORDER BY c.Column_ID
-               ", @owner, @table_name]
+               ", @owner, @table_name, @owner, @table_name, @owner, @table_name, @owner, @table_name].concat(PanoramaConnection.autonomous_database? ? [] : [@owner, @table_name])
+
+    # Select the possible defaults separately because the LONG data type in SELECT will force single row fetches
+    defaults = sql_select_all ["SELECT Column_Name, Data_Default
+                                FROM   DBA_Tab_Columns
+                                WHERE  Owner = ? AND Table_Name = ? AND Data_Default IS NOT NULL", @owner, @table_name]
+    defaults_hash = defaults.map{|d| [d.column_name, d.data_default]}.to_h
+    @columns.each do |c|
+      c.data_default = defaults_hash[c.column_name]
+    end
 
     # Set numeric values to string to allow overriding with "< x different >" for partitions
     @attribs.each do |a|
@@ -1179,7 +1196,10 @@ class DbaSchemaController < ApplicationController
 =end
 
     # reuse for several constraint types because selection takes a bit
-    @constraints = sql_select_all ["SELECT c.*, CASE WHEN Generated = 'GENERATED NAME' THEN 1 END notnull FROM DBA_Constraints c WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
+    @constraints = sql_select_all ["SELECT Constraint_Name, Constraint_Type,
+                                           CASE WHEN Generated = 'GENERATED NAME' THEN 1 END notnull
+                                    FROM DBA_Constraints c
+                                    WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @unique_constraints = @constraints.select {|c| c.constraint_type == 'U'}
     @unique_constraints.each do |u|

@@ -35,7 +35,7 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
 
   def admin_logout
     get '/admin/admin_logout',  :params => {:format=>:html}
-    assert_response :success, log_on_failure('Remove a possibly existing cookie before test')
+    assert_response :success, log_on_failure('admin logout should succeed')
   end
 
   test "list_config with xhr: true" do

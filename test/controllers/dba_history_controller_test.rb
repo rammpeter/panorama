@@ -320,54 +320,56 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "genuine_oracle_reports with xhr: true" do
-    if (get_db_version['18'] ||  get_db_version['21'])&& PanoramaConnection.edition == :express
-      Rails.logger.debug "don't test this for 18.4 and 21.3 XE because it will raise ORA-13716: Diagnostic Package-Lizenz ist zur Verwendung dieses Features erforderlich."
-    else
-      instance = PanoramaConnection.instance_number
-      instances = [nil, PanoramaConnection.instance_number]
-      def management_pack_license_ok?
-        return false if @autonomous_database                  # Only admin is allowed to execute this functions in autonomous DB, therefore call of DBMS_WORKLOAD_REPOSITORY raises error for panorama_test
-        [:diagnostics_pack, :diagnostics_and_tuning_pack].include? management_pack_license
-      end
+    assert_nothing_raised do
+      if (get_db_version['18'] ||  get_db_version['21'])&& PanoramaConnection.edition == :express
+        Rails.logger.debug "don't test this for 18.4 and 21.3 XE because it will raise ORA-13716: Diagnostic Package-Lizenz ist zur Verwendung dieses Features erforderlich."
+      else
+        instance = PanoramaConnection.instance_number
+        instances = [nil, PanoramaConnection.instance_number]
+        def management_pack_license_ok?
+          return false if @autonomous_database                                  # Only admin is allowed to execute this functions in autonomous DB, therefore call of DBMS_WORKLOAD_REPOSITORY raises error for panorama_test
+          [:diagnostics_pack, :diagnostics_and_tuning_pack].include? management_pack_license
+        end
 
-      if get_db_version >= '12.1'
-        instances.each do |instance|
-          # download_oracle_com_reachable: simulate test from previous dialog
-          begin
-            post '/dba_history/list_performance_hub_report', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance, download_oracle_com_reachable: true }
-            assert_response management_pack_license_ok? ? :success : :error
-          rescue Exception => e
-            # TODO: rescue also catches Minitest::Assertion Expected response to be a <2XX: success>, but was a <500: Surely hasn't been expected
-            msg = "DbaHistoryControllerTest.genuine_oracle_reports: #{e.class} caught  #{e.message} but not raised for breaking test"
-            Rails.logger.info msg
-            puts msg
+        if get_db_version >= '12.1'
+          instances.each do |instance|
+            # download_oracle_com_reachable: simulate test from previous dialog
+            begin
+              post '/dba_history/list_performance_hub_report', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance, download_oracle_com_reachable: true }
+              assert_response management_pack_license_ok? ? :success : :error
+            rescue Exception => e
+              # TODO: rescue also catches Minitest::Assertion Expected response to be a <2XX: success>, but was a <500: Surely hasn't been expected
+              msg = "DbaHistoryControllerTest.genuine_oracle_reports: #{e.class} caught  #{e.message} but not raised for breaking test"
+              Rails.logger.info msg
+              puts msg
+            end
           end
         end
-      end
 
-      post '/dba_history/list_awr_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      post '/dba_history/list_awr_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      post '/dba_history/list_awr_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      post '/dba_history/list_ash_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      post '/dba_history/list_ash_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      post '/dba_history/list_ash_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
-      assert_response management_pack_license_ok? ? :success : :error
-
-      if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
-        Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
-      else
-        post '/dba_history/list_awr_sql_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance, :sql_id=>@@hist_sql_id }
+        post '/dba_history/list_awr_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
         assert_response management_pack_license_ok? ? :success : :error
+
+        post '/dba_history/list_awr_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end }
+        assert_response management_pack_license_ok? ? :success : :error
+
+        post '/dba_history/list_awr_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
+        assert_response management_pack_license_ok? ? :success : :error
+
+        post '/dba_history/list_ash_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
+        assert_response management_pack_license_ok? ? :success : :error
+
+        post '/dba_history/list_ash_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end }
+        assert_response management_pack_license_ok? ? :success : :error
+
+        post '/dba_history/list_ash_global_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance }
+        assert_response management_pack_license_ok? ? :success : :error
+
+        if @@hist_sql_id.nil?                                                        # 18c XE does not sample DBA_HIST_SQLSTAT during AWR-snapshots
+          Rails.logger.info 'DBA_Hist_SQLStat is empty, function not testable. This is the case for 18.4.0-XE'
+        else
+          post '/dba_history/list_awr_sql_report_html', :params => {:format=>:html, :time_selection_start =>@time_selection_between, :time_selection_end =>@time_selection_end, :instance=>instance, :sql_id=>@@hist_sql_id }
+          assert_response management_pack_license_ok? ? :success : :error
+        end
       end
     end
   end

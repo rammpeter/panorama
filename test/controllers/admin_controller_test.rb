@@ -21,7 +21,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
   def admin_logout
     get '/admin/admin_logout',  :params => {:format=>:html}
-    assert_response :success, log_on_failure('Remove a possibly existing cookie before test')
+    assert_response :success, log_on_failure('Logout from admin should succeed')
   end
 
   def usage_file_exists?

@@ -494,9 +494,11 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'list_lob_subpartitions' do
-    if @edition == :enterprise && defined?(@lob_part_lob_name)
-      get '/dba_schema/list_lob_subpartitions', params: {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, lob_name: @lob_part_lob_name, update_area: :hugo }
-      assert_response :success
+    assert_nothing_raised do
+      if @edition == :enterprise && defined?(@lob_part_lob_name)
+        get '/dba_schema/list_lob_subpartitions', params: {format: :html, owner: @object_owner, table_name: @subpart_table_table_name, lob_name: @lob_part_lob_name, update_area: :hugo }
+        assert_response :success
+      end
     end
   end
 

@@ -64,6 +64,7 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
       cursor.bind_params(type_casted_binds) if !type_casted_binds.empty?
 
       cursor.get_raw_statement.setQueryTimeout(query_timeout.to_i) if query_timeout          # Erweiterunge gegenüber exec_query
+      # Fetch size is set in jdbc_connection.rb by prefetch_rows = config[:prefetch_rows] || 100
       cursor.exec
 
       columns = cursor.get_col_names.map do |col_name|
