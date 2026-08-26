@@ -55,6 +55,8 @@ class PanoramaSamplerStructureCheck
   end
 
   # Schemas with valid Panorama-Sampler structures for start
+  # @param [Symbol] option :full to get additional information about the found schemas
+  # @return [Array<Hash>] Array of Hashes with schema information
   def self.panorama_sampler_schemas(option = nil)
     check_tables = ['PANORAMA_SNAPSHOT', 'PANORAMA_WR_CONTROL', 'PANORAMA_OBJECT_SIZES', 'PANORAMA_CACHE_OBJECTS', 'PANORAMA_BLOCKING_LOCKS', 'LONGTERM_TREND']
     sql = "\
@@ -95,14 +97,17 @@ class PanoramaSamplerStructureCheck
     panorama_sampler_data = PanoramaConnection.sql_select_all sql
 
     if option == :full
+      active_ash_samplers = PanoramaConnection.sql_select_all("\
+        SELECT SID, Serial# SerialNo, UserName, Client_Info FROM v$Session
+        WHERE Module = 'Panorama' AND Action = 'WorkerThread/ash_sampler_daemon'"
+      )
       panorama_sampler_data.each do |ps|
         # Get the SID of the ASH daemon for the found record
-        PanoramaConnection.sql_select_all("SELECT SID, Serial# SerialNo, UserName, Client_Info FROM v$Session
-                                           WHERE Module = 'Panorama' AND Action = 'WorkerThread/ash_sampler_daemon'"
-        ).each do |session|
+        active_ash_samplers.each do |session|
           if session.client_info                                                # Should work also on instances where client_info is not yet set
-            config = PanoramaSamplerConfig.get_config_entry_by_id(session.client_info)
-            if session.username == config.get_config_value(:user).upcase
+            # config is valid only for the Panorama instance which has started the Sampler
+            config = PanoramaSamplerConfig.get_config_entry_by_id(session.client_info, option: :return_nil_if_not_found)
+            if !config.nil? && session.username == config.get_config_value(:user).upcase
               ps[:active_ash_sid]       = session.sid
               ps[:active_ash_serialno]  = session.serialno
               ps[:active_ash_username]  = session.username
