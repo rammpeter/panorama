@@ -85,6 +85,12 @@ class PanoramaSamplerStructureCheckTest < ActiveSupport::TestCase
       assert_equal 128,
                    PanoramaConnection.sql_select_one("SELECT Char_Length FROM User_Tab_Columns WHERE Table_Name = 'PANORAMA_BLOCKING_LOCKS' AND Column_Name = 'ACTION'"),
                    log_on_failure('Ensure original length is restored after check')
+
+      index_key_compression_count = PanoramaConnection.sql_select_one ["\
+        SELECT COUNT(*) FROM DBA_indexes
+        WHERE Owner = ?
+        AND   Prefix_Length IS NOT NULL", sampler_config[:panorama_sampler_schema].upcase]
+      assert PanoramaConnection.edition != :standard || index_key_compression_count == 0, log_on_failure("Ensure no index key compression is used for Panorama Sampler tables in Standard Edition, but found #{index_key_compression_count} compressed indexes")
     end
   end
 end
