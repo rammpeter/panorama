@@ -69,7 +69,7 @@ class PanoramaConnectionTest < ActiveSupport::TestCase
     result = nil
     started = false
     thread = Thread.new do
-      ThreadLocalStorage.set_connection_info_for_request(@sampler_config)
+      ThreadLocalStorage.set_connection_info_for_request(@sampler_config.get_cloned_config_hash)
       started = true
       begin
         PanoramaConnection.sql_select_one "SELECT COUNT(*) FROM DUAL CONNECT BY LEVEL <= 1e10"  # deliberately long running query

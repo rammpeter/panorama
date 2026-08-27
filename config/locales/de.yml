@@ -477,7 +477,7 @@
     %{metrics_start_hint}
     Anzahl Ladevorgänge des Objektes nach Invalidisierung des Cursors = %{loads}
 
-    Dauer seit letztem Load:%{last_load_duration}
+    Dauer seit letztem Load:%{duration_since_last_load}
 
   dba_sga_list_sql_sga_stat_last_load_sqlarea_hint: |-
     Letzte Load-Time eines Child-Cursors dieses SQLs in SGA
@@ -485,7 +485,7 @@
     Erstes Auftreten des SQL in SGA = %{first_load_time}
     Anzahl Ladevorgänge des Objektes nach Invalidisierung des Cursors = %{loads}
 
-    Dauer seit letztem Load:%{last_load_duration}
+    Dauer seit letztem Load:%{duration_since_last_load}
 
   dba_sga_list_sql_sga_stat_opt_env_hint:                   Hash-Value über gesamtes Environment des Optimizers
   dba_sga_list_sql_sga_stat_module_hint:                    Module und Action der Session, von der Statement geparst wurde
