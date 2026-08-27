@@ -2028,14 +2028,20 @@ ORDER BY Column_ID
 
   end
 
-  # compress - Number of columns to compress
+  # @param [String] table_name - Name of table
+  # @param [String] index_name - Name of index
+  # @param [Array<String>] columns - Array of column names of index
+  # @param [Integer] compress - Number of columns to compress / prefix length of index, nil if no compression
+  # @param [Boolean] uniqueness - true if index should be unique
+  # @return [void]
   def check_index(table_name, index_name, columns, compress, uniqueness)
+    compress = nil if PanoramaConnection.edition == :standard                   # Standard Edition does not support index prefix compression
     if @ora_indexes[index_name.upcase] && @ora_indexes[index_name.upcase].table_name == table_name.upcase # Index exists
       # if @ora_indexes.include?({'table_name' => table_name.upcase, 'index_name' => index_name.upcase})  # Index exists
 
       # Check Status of index
       if @ora_indexes[index_name.upcase].status != 'VALID'
-        sql = "ALTER INDEX #{@sampler_config.get_owner}.#{index_name} REBUILD"           # Force recreation of index
+        sql = "ALTER INDEX #{@sampler_config.get_owner}.#{index_name} REBUILD"  # Force recreation of index
         log(sql)
         PanoramaConnection.sql_execute(sql)
       end
