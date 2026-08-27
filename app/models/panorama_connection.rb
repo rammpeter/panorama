@@ -1083,7 +1083,8 @@ class PanoramaConnection
         cursor_sharing:  :exact,                                                # oracle_enhanced_adapter setzt cursor_sharing per Default auf force
         jdbc_connect_properties: {                                              # Needs acceptance of Pull-request for oracle_enhanced_adapter: https://github.com/rsim/oracle-enhanced/pull/2284
           'oracle.net.encryption_client'      => 'REQUESTED',
-          'oracle.net.crypto_checksum_client' => 'REQUESTED'
+          'oracle.net.crypto_checksum_client' => 'REQUESTED',
+          'v$session.program'                 => "Panorama #{Panorama::VERSION}"
         }
     )
     Rails.logger.info('PanoramaConnection.do_login') { "New database connection created: URL='#{jdbc_thin_url}' User='#{username}' Pool size=#{@@connection_pool.count+1}" }
