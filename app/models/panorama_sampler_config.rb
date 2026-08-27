@@ -301,9 +301,14 @@ class PanoramaSamplerConfig
   end
 
   # Get the config entry from Panorama instance
-  # @param [Integer] p_id The ID of the config entry
-  # @param [Symbol] option Additional option for fetching the config entry [:return_nil_if_not_found ]
-  # @return [PanoramaSamplerConfig] The config entry corresponding to the given ID
+  #
+  # Note: +option+ is a single Symbol flag, not a Hash of options.
+  # Do not change the comparison below to a Hash-like access (option[...]) - a Symbol
+  # does not support that and it would raise TypeError/NoMethodError at runtime.
+  #
+  # @param [Integer, String] p_id The ID of the config entry
+  # @param [Symbol, nil] option Pass :return_nil_if_not_found to get nil instead of an exception if no entry exists
+  # @return [PanoramaSamplerConfig, nil] The config entry for the given ID, or nil if not found and option is :return_nil_if_not_found
   def self.get_config_entry_by_id(p_id, option: nil)
     retval = get_config_entry_by_id_or_nil(p_id)
     if retval.nil?
