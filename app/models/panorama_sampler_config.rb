@@ -307,7 +307,7 @@ class PanoramaSamplerConfig
   def self.get_config_entry_by_id(p_id, option: nil)
     retval = get_config_entry_by_id_or_nil(p_id)
     if retval.nil?
-      return nil if option[:return_nil_if_not_found]
+      return nil if option == :return_nil_if_not_found
       raise "No Panorama-Sampler config found for ID=#{p_id} class='#{p_id.class}'"
     end
     retval

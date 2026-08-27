@@ -69,6 +69,28 @@ class PanoramaSamplerConfigTest < ActiveSupport::TestCase
     assert json.length > 0
   end
 
+  test "get_config_entry_by_id" do
+    existing_id = PanoramaSamplerConfig.get_config_array.first.get_id
+    missing_id  = PanoramaSamplerConfig.get_max_id + 1000                       # ID that surely does not exist
+
+    # Existing entry is found, regardless of the option
+    assert_equal existing_id, PanoramaSamplerConfig.get_config_entry_by_id(existing_id).get_id,
+                 'Existing config entry should be returned'
+    assert_equal existing_id, PanoramaSamplerConfig.get_config_entry_by_id(existing_id, option: :return_nil_if_not_found).get_id,
+                 'Existing config entry should be returned also with option :return_nil_if_not_found'
+
+    # Missing entry without option must raise a meaningful RuntimeError (not NoMethodError on nil)
+    exception = assert_raise(RuntimeError, 'Missing config entry should raise without option') do
+      PanoramaSamplerConfig.get_config_entry_by_id(missing_id)
+    end
+    assert_match(/No Panorama-Sampler config found/, exception.message,
+                 "Should raise the explicit error message, but got: #{exception.message}")
+
+    # Missing entry with option must return nil instead of raising
+    assert_nil PanoramaSamplerConfig.get_config_entry_by_id(missing_id, option: :return_nil_if_not_found),
+               'Missing config entry should return nil with option :return_nil_if_not_found'
+  end
+
   test "import JSON" do
     json = PanoramaSamplerConfig.export_config
     assert json.class == String
