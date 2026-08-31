@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'minitest/mock'
 
 class FakeController
   def add_statusbar_message(message)
@@ -127,5 +128,42 @@ class WorkerThreadTest < ActiveSupport::TestCase
       WorkerThread.new(@sampler_config, 'check_analyze').check_analyze_internal   #run in same thread instead of separate thread
       # WorkerThread.check_analyze(@sampler_config)
     end
+  end
+
+  # Regression test for connection leak in WorkerThread#initialize.
+  # initialize allocates a DB connection (DBMS_APPLICATION_INFO.SET_CLIENT_INFO).
+  # All callers use the pattern Thread.new{ WorkerThread.new(...).xxx_internal(...) }, so the
+  # 'ensure PanoramaConnection.release_connection' of xxx_internal is never executed if initialize raises.
+  # Without explicit cleanup in initialize the connection stays marked as used_in_thread in the pool forever
+  # because disconnect_aged_connections only logs such connections instead of freeing them.
+  test "no connection leak if initialize fails after connection was allocated" do
+    used_before = PanoramaConnection.get_connection_pool.count { |conn| conn.used_in_thread }
+
+    exception_message = nil
+    thread = Thread.new do
+      begin
+        # Simulate an error at the SET_CLIENT_INFO call of initialize,
+        # but only after a connection has been allocated for this thread
+        raising_sql_execute = proc do |*|
+          PanoramaConnection.sql_select_one('SELECT 1 FROM DUAL')                # allocates a connection for this thread
+          raise 'simulated error while setting client_info'
+        end
+        PanoramaConnection.stub(:sql_execute, raising_sql_execute) do
+          WorkerThread.new(@sampler_config, 'test_initialize_connection_leak')
+        end
+      rescue Exception => e
+        exception_message = e.message
+      end
+    end
+    thread.join
+
+    assert_equal('simulated error while setting client_info', exception_message,
+                 'WorkerThread.new should propagate the exception raised in initialize')
+
+    used_after = PanoramaConnection.get_connection_pool.count { |conn| conn.used_in_thread }
+    assert_equal(used_before, used_after,
+                 "Connection allocated in WorkerThread#initialize must be freed if initialize fails, but number of connections with used_in_thread grew from #{used_before} to #{used_after}")
+  ensure
+    @sampler_config.clear_error_message                                          # remove the simulated error message for subsequent tests
   end
 end

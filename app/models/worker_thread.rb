@@ -90,7 +90,26 @@ class WorkerThread
     # management_pack_license should not depend on volatile DB setting !, commented out
     # PanoramaConnection.set_management_pack_license_from_db_in_connection
   rescue Exception => e
-    sampler_config.set_error_message e.message
+    # A DB connection may already have been allocated by the sql_execute above.
+    # All callers use the pattern Thread.new{ WorkerThread.new(...).xxx_internal(...) }, so if initialize raises,
+    # the xxx_internal method with its 'ensure PanoramaConnection.release_connection' is never executed.
+    # Without the following cleanup the connection would stay marked as used_in_thread in the pool forever
+    # (disconnect_aged_connections only logs such connections, it does not free them).
+    begin
+      # Order matters! destroy_connection must be called first.
+      # destroy_connection removes the connection from the pool and sets ThreadLocalStorage.connection_object = nil.
+      # release_connection is called afterwards only to execute ThreadLocalStorage.reset - it silently does nothing
+      # else because connection_object is nil already. That is intended and not an error.
+      # Calling release_connection first would set connection_object = nil, so the following destroy_connection
+      # would fall through its 'if !ThreadLocalStorage.connection_object.nil?' and the possibly half-initialized
+      # session would stay in the pool for reuse.
+      # This is the same order as used in create_ash_sampler_daemon / create_snapshot_internal (rescue + ensure).
+      PanoramaConnection.destroy_connection                                     # Session may be half-initialized (e.g. client_info not set), so don't reuse it
+      PanoramaConnection.release_connection                                     # Reset thread local storage in any case
+    rescue Exception => cleanup_exception
+      Rails.logger.error('WorkerThread.initialize') { "Exception #{cleanup_exception.class}:#{cleanup_exception.message} while freeing DB connection after failed initialize" }
+    end
+    sampler_config.set_error_message e.message if sampler_config.respond_to?(:set_error_message) # may be a Hash if called with wrong parameter class
     raise e
   end
 

@@ -1166,15 +1166,18 @@ COUNT(DISTINCT NVL(#{column_name}, #{local_replace})) #{column_alias}_Cnt"
       AND   s.Value != 0
       ORDER BY n.Name
       ", sid]
-      PanoramaConnection.release_connection
-      Rails.logger.debug('AdditionController.read_session_stats') { "Connection released" }
     rescue Exception => e
       Rails.logger.error('AdditionController.read_session_stats') { "#{e.class} #{e.message}" }
       ExceptionHelper.log_exception_backtrace(e)
+    ensure
+      # Must be done in ensure, otherwise the connection allocated by sql_select_all above stays marked
+      # as used_in_thread in the pool forever if the select raises an exception
+      PanoramaConnection.release_connection
+      Rails.logger.debug('AdditionController.read_session_stats') { "Connection released" }
     end
     thread.join
     result = {}
-    session_stats.each {|s| result[s.id] = s }
+    session_stats&.each {|s| result[s.id] = s }                                  # session_stats stays nil if the select in the thread failed
     result
   end
 
