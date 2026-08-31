@@ -3127,7 +3127,7 @@ class DbaSchemaController < ApplicationController
       @audits = sql_select_iterator ["\
                      SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ a.*,
                             RAWTOHEX(a.Transaction_ID) TransactionID_Hex
-                     FROM   CDB_Unified_Audit_Trail a /* Use CDB_xxx to show values for all PDBs at CDB */
+                     FROM   #{unified_audit_trail_view_name} a /* Use CDB_xxx to show values for all PDBs at CDB */
                      WHERE  1=1 #{where_string}
                      ORDER BY Event_Timestamp
                     "].concat(where_values)
@@ -3146,7 +3146,7 @@ class DbaSchemaController < ApplicationController
 
     audits = sql_select_all ["\
                    WITH UAT AS (SELECT /*+ NO_MERGE MATERIALIZE */ *
-                                FROM   CDB_Unified_Audit_Trail /* Use CDB_xxx to show values for all PDBs at CDB */
+                                FROM   #{unified_audit_trail_view_name} /* Use CDB_xxx to show values for all PDBs at CDB */
                                 WHERE  1=1 #{where_string}
                                )
                    SELECT /*+ FIRST_ROWS(1) Panorama Ramm */ *

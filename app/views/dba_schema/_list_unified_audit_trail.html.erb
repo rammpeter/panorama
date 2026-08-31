@@ -48,9 +48,9 @@
     output
   end
 
-  column_options =
-    [
-      {:caption=> 'Con. ID',           :data=>proc{|rec| fn(rec.con_id)},                          :title=> 'Container ID', align: :right},
+  column_options = []
+  column_options << {:caption=> 'Con. ID', :data=>proc{|rec| fn(rec.con_id)}, :title=> 'Container ID', align: :right} if unified_audit_trail_view_name.upcase == 'CDB_UNIFIED_AUDIT_TRAIL'
+  column_options.concat [
       {:caption=> 'Time',              :data=>proc{|rec| localeDateTime(rec.event_timestamp, :fractions6)},  :title=> 'Timestamp of recorded action in local timezone', data_title: proc{|rec| "%t\n\nTimestamp in UTC: #{localeDateTime(rec.event_timestamp_utc, :fractions6) if get_db_version > '19'}"}},
       {:caption=> 'Audit type',        :data=>proc{|rec| rec.audit_type},                          :title=> 'Type of audit record source'},
       {:caption=> 'Client machine',    :data=>proc{|rec| link_machine_ip_info(@update_area, rec.userhost)},      :title=> 'Client machine', data_title: proc{|rec| "%t\n\nTerminal = #{rec.terminal}"}},
@@ -92,7 +92,7 @@
 
 
 <%=
-  caption = "Audit-Records from CDB_Unified_Audit_Trail".dup
+  caption = "Audit-Records from #{unified_audit_trail_view_name}".dup
   caption << ", from #{@time_selection_start} until #{@time_selection_end}" if @time_selection_start && @time_selection_end
   caption << ", Instance=#{@instance}"            if @instance
   caption << ", DBID=#{@dbid}"                    if @dbid

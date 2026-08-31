@@ -1,5 +1,6 @@
 # Change log of Panorama for Oracle
-## [Unreleased]
+## Release 2.19.24
+- 2026-08-31 Use CDB_Unified_Audit_Trail for selections at CDB to get all audit records from all PDBs
 - 2026-08-18 Show size of recycle bin objects in storage overwiew
 
 ## Relese 2.19.23

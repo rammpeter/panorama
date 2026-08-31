@@ -2,7 +2,7 @@
 <% @grouping_id=get_unique_area_id %>
 <% @top_x_id=get_unique_area_id %>
 
-<%= render_page_caption("Audit Trail records from CDB_Unified_Audit_Trail") %>
+<%= render_page_caption("Audit Trail records from #{unified_audit_trail_view_name}") %>
 
 <%= ajax_form(:controller => :dba_schema, :action=>:list_unified_audit_trail, :update_area=>@update_area)  do %>
   <div class="flex-row-container">

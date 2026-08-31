@@ -515,6 +515,8 @@ class PanoramaConnection
   def self.db_wordsize;                     check_for_open_connection.db_wordsize;                       end
   def self.edition;                         check_for_open_connection.edition;                           end
   def self.instance_number;                 check_for_open_connection.instance_number;                   end
+  # Is the DB a standalone DB or a CDB?
+  # @return [Boolean] true if the DB is a CDB, false if it is a standalone DB
   def self.is_cdb?;                         check_for_open_connection.cdb == 'YES';                      end
   def self.last_used_action_name;           check_for_open_connection.last_used_action_name;             end
   def self.login_container_dbid;            check_for_open_connection(false).login_container_dbid; end

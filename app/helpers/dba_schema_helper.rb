@@ -137,4 +137,14 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
   def calc_free_space_pct_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, leaf_blocks)
     calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks) * 100.0 / size_mb rescue nil
   end
+
+  # Decide which view name to use for unified audit trail depending on the database version and mode (CDB or non-CDB).
+  # @return [String] The view name for unified audit trail to use
+  def unified_audit_trail_view_name
+    if get_db_version > '12' && PanoramaConnection.is_cdb? && PanoramaConnection.con_id == 1
+      'CDB_Unified_Audit_Trail'
+    else
+      'Unified_Audit_Trail'
+    end
+  end
 end
