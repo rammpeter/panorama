@@ -24,14 +24,30 @@ class AdminController < ApplicationController
   end
 
   # Logon with valid master password and get JWT
-  @@master_password_wrong_count=0
+  # Failed attempts are throttled per client to slow down brute force attacks.
+  # No sleep is used here because that would block a Puma thread for the whole delay
+  # and allow to exhaust the thread pool with a few wrong passwords.
+  @@master_password_failures = {}                                               # remote_ip => { count: Integer, blocked_until: Time }
+  @@master_password_failures_mutex = Mutex.new
+  MASTER_PASSWORD_FREE_ATTEMPTS     = 3                                         # Number of failed attempts before the delay starts, allows mistyping without penalty
+  MASTER_PASSWORD_MAX_BLOCK_SECONDS = 300                                       # Upper limit for the exponential delay between two attempts
   def admin_logon
     origin_controller = prepare_param :origin_controller
     origin_action     = prepare_param :origin_action
-    master_password =  Encryption.decrypt_browser_password(params[:encrypted_master_password])
 
-    if master_password == Panorama::Application.config.panorama_master_password
-      @@master_password_wrong_count=0                                            # reset delay for wrong password
+    blocked_seconds = master_password_blocked_seconds
+    if blocked_seconds > 0                                                      # Reject without even looking at the password
+      Rails.logger.warn('AdminController.admin_logon') { "Throttled master password attempt from #{request.remote_ip}, blocked for further #{blocked_seconds} seconds" }
+      show_popup_message("Too many failed attempts to enter the master password.\nPlease wait #{blocked_seconds} seconds before trying again.")
+      return
+    end
+
+    master_password     = Encryption.decrypt_browser_password(params[:encrypted_master_password])
+    configured_password = Panorama::Application.config.panorama_master_password
+
+    # secure_compare is used instead of == to not leak the password by the runtime of the comparison
+    if !configured_password.nil? && ActiveSupport::SecurityUtils.secure_compare(master_password.to_s, configured_password)
+      register_master_password_success
       expire_time = 8.hours.from_now
       token = JWT.encode({exp: expire_time.to_i}, jwt_secret, 'HS256')
       cookies[:master] = {value: token, expires: expire_time, httponly: true}
@@ -42,8 +58,7 @@ class AdminController < ApplicationController
                   )
     else
       cookies.delete :master                                                   # remove the invalid cookie
-      sleep @@master_password_wrong_count
-      @@master_password_wrong_count += 1
+      register_master_password_failure
       show_popup_message('Wrong value entered for master password')
     end
   end
@@ -271,5 +286,41 @@ class AdminController < ApplicationController
   def browser_tab_ids
     return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     render html: JSON.pretty_generate(ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids)).gsub(/\n/, "<br/>").gsub(/ /, '&nbsp;').html_safe
+  end
+
+  private
+
+  # Remaining seconds the client has to wait before the next master password attempt is accepted
+  # @return [Integer] 0 if the next attempt is allowed right now
+  def master_password_blocked_seconds
+    @@master_password_failures_mutex.synchronize do
+      entry = @@master_password_failures[request.remote_ip]
+      return 0 if entry.nil?
+      remaining = (entry[:blocked_until] - Time.now).ceil
+      remaining > 0 ? remaining : 0
+    end
+  end
+
+  # Remove the throttling for the client after a successful logon
+  def register_master_password_success
+    @@master_password_failures_mutex.synchronize do
+      @@master_password_failures.delete(request.remote_ip)
+    end
+  end
+
+  # Count the failed attempt and block the client for an exponentially growing period
+  def register_master_password_failure
+    @@master_password_failures_mutex.synchronize do
+      now = Time.now
+      # Drop outdated entries so the Hash cannot grow unlimited by requests with spoofed client addresses
+      @@master_password_failures.delete_if { |_ip, e| e[:blocked_until] < now - 1.hour }
+
+      entry = @@master_password_failures[request.remote_ip] || { count: 0 }
+      entry[:count] += 1
+      # The first attempts are not delayed at all, after that the delay doubles with every further attempt
+      delay = entry[:count] <= MASTER_PASSWORD_FREE_ATTEMPTS ? 0 : [2 ** (entry[:count] - MASTER_PASSWORD_FREE_ATTEMPTS), MASTER_PASSWORD_MAX_BLOCK_SECONDS].min
+      entry[:blocked_until] = now + delay.seconds
+      @@master_password_failures[request.remote_ip] = entry
+    end
   end
 end

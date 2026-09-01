@@ -14,7 +14,9 @@ Rails.application.routes.draw do
   end
   EnvController.routing_actions("#{__dir__}/../app/controllers").each do |r|
     # puts "set route for #{r[:controller]}/#{r[:action]}"
-    get  "#{r[:controller]}/#{r[:action]}"
+    # State changing actions are routed as POST only, because Rails does not verify the
+    # CSRF token for GET requests. See EnvController::POST_ONLY_ACTIONS.
+    get  "#{r[:controller]}/#{r[:action]}" unless EnvController.post_only_action?(r[:controller], r[:action])
     post  "#{r[:controller]}/#{r[:action]}"
   end
 

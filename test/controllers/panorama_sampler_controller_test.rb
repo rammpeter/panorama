@@ -34,7 +34,7 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
   end
 
   def admin_logout
-    get '/admin/admin_logout',  :params => {:format=>:html}
+    post '/admin/admin_logout',  :params => {:format=>:html}
     assert_response :success, log_on_failure('admin logout should succeed')
   end
 
@@ -92,7 +92,7 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
           response_format = :js if (right == 'Wrong' || right == 'System') && button == 'Test connection'  # Popup-Dialog per JS expected
 
           admin_logout
-          get '/panorama_sampler/save_config',
+          post '/panorama_sampler/save_config',
               :params => {
                 :format => response_format,
                 :commit => button,
@@ -102,7 +102,7 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
           assert_response :redirect, log_on_failure('save_config should request admin logon')
 
           admin_login
-          get '/panorama_sampler/save_config',
+          post '/panorama_sampler/save_config',
               :params => {
                   :format => response_format,
                   :commit => button,
@@ -126,11 +126,11 @@ class PanoramaSamplerControllerTest < ActionDispatch::IntegrationTest
 
   test "delete_config with xhr: true" do
     admin_logout
-    get '/panorama_sampler/delete_config',  :params => {:format=>:html, :id=>PanoramaSamplerConfig.get_max_id }
+    post '/panorama_sampler/delete_config',  :params => {:format=>:html, :id=>PanoramaSamplerConfig.get_max_id }
     assert_response :redirect, log_on_failure('delete_config should request admin logon')
 
     admin_login
-    get '/panorama_sampler/delete_config',  :params => {:format=>:html, :id=>PanoramaSamplerConfig.get_max_id }
+    post '/panorama_sampler/delete_config',  :params => {:format=>:html, :id=>PanoramaSamplerConfig.get_max_id }
     assert_response :success, log_on_failure('delete_config should succeed')
   end
 

@@ -2,21 +2,20 @@ require 'json'
 
 class PanoramaSamplerController < ApplicationController
 
+  before_action :ensure_admin_authentication
+
   def list_config
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @sampler_config = PanoramaSamplerConfig.get_config_array.map{|config| config.get_cloned_config_hash}
     render_partial :list_config
   end
 
   def show_new_config_form
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @modus = :new
     @config = PanoramaSamplerConfig.new.get_cloned_config_hash
     render_partial :edit_config
   end
 
   def show_edit_config_form
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     @modus = :edit
     @config = PanoramaSamplerConfig.get_config_entry_by_id(params[:id].to_i).get_cloned_config_hash
     @config[:password] = nil                                                    # Password set only if changed
@@ -24,7 +23,6 @@ class PanoramaSamplerController < ApplicationController
   end
 
   def save_config
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     config_entry                          = params[:config].to_unsafe_h.symbolize_keys
     config_entry[:id]                     = params[:id].to_i
     config_entry[:awr_ash_active]         = config_entry[:awr_ash_active]         == '1'
@@ -49,7 +47,6 @@ class PanoramaSamplerController < ApplicationController
   end
 
   def store_config(config_entry)
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     old_min_snapshot_cycle = PanoramaSamplerConfig.min_snapshot_cycle
 
     existing_config = PanoramaSamplerConfig.get_config_entry_by_id_or_nil(config_entry[:id])  # Check if config already exists
@@ -85,13 +82,11 @@ If you want it executed in the configured cycle, please restart the Panorama bac
   end
 
   def delete_config
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     PanoramaSamplerConfig.delete_config_entry(params[:id])
     list_config
   end
 
   def clear_config_error
-    return if force_login_if_admin_jwt_not_valid                                # Ensure valid authentication and suppress double rendering in tests
     PanoramaSamplerConfig.get_config_entry_by_id(params[:id]).clear_error_message
     list_config
   end
@@ -126,5 +121,14 @@ If you want it executed in the configured cycle, please restart the Panorama bac
     json_data = prepare_param :json_data
     import_count = PanoramaSamplerConfig.import_config(json_data)
     show_popup_message("#{import_count} configuration entries successfully imported. Please refresh the page to see the new entries.")
+  end
+
+  private
+
+  # Ensure valid admin authentication for all actions of this controller
+  # force_login_if_admin_jwt_not_valid redirects to the logon page, which halts the callback chain
+  def ensure_admin_authentication
+    return if action_name == 'monitor_sampler_status'                           # The only action that can be called without authentication
+    force_login_if_admin_jwt_not_valid
   end
 end

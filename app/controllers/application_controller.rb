@@ -12,10 +12,8 @@ class ApplicationController < ActionController::Base
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
-  # protect_from_forgery with: :exception
-
   # cross site scripting verhindern, ausser fuer Tests
-  protect_from_forgery with: :null_session unless Rails.env.test?
+  protect_from_forgery with: :exception unless Rails.env.test?
 
   # content security policy is defined in config/initializers/content_security_policy.rb
   # get request-specific nonce to allow inline script in templates

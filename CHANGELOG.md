@@ -1,4 +1,10 @@
 # Change log of Panorama for Oracle
+## Release 2.19.25
+- 2026-09-01 Security: Throttle failed master password attempts per client instead of blocking a server thread by sleep
+- 2026-09-01 Security: Route state changing actions as POST only, because Rails does not check the CSRF token for GET requests
+- 2026-09-01 Security: Raise an exception instead of resetting the session if the CSRF token of a request is invalid
+- 2026-09-01 Security: Require admin authentication for import and export of the Panorama sampler configuration
+
 ## Release 2.19.24
 - 2026-08-31 Use CDB_Unified_Audit_Trail for selections at CDB to get all audit records from all PDBs
 - 2026-08-18 Show size of recycle bin objects in storage overwiew

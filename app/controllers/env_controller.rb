@@ -860,6 +860,30 @@ public
     render_partial
   end
 
+  # Actions that change the state of the server, the stored configuration or the session.
+  # Rails does not verify the CSRF token for GET requests, so such an action must not be
+  # reachable by GET, otherwise it could be triggered by a crafted link from a foreign site.
+  # All of them are called by ajax_html / ajax_form from the GUI, which use POST.
+  POST_ONLY_ACTIONS = {
+    'addition'          => %w[exec_worksheet_sql explain_worksheet_sql remember_binds_for_next_usage remember_last_executed_sql_id],
+    'admin'             => %w[admin_logon admin_logout set_log_level],
+    'dba'               => %w[optimizer_parse_trace],
+    'dba_sga'           => %w[create_profile_from_sql_tuning_advisor_task drop_sql_tuning_advisor_task run_sql_tuning_advisor],
+    'dragnet'           => %w[add_personal_selection drop_personal_selection],
+    'env'               => %w[init_management_pack_license remember_client_setting set_database set_database_by_id set_database_by_params
+                              set_dbid set_locale set_management_pack_license set_panorama_sampler_schema write_connection_to_last_logins],
+    'panorama_sampler'  => %w[clear_config_error delete_config import_config save_config store_config],
+  }.freeze
+
+  # Should the action be routed as POST only?
+  # @param [String, Symbol] controller Short name of the controller, e.g. 'env'
+  # @param [String, Symbol] action Name of the action
+  # @return [TrueClass, FalseClass] true if no GET route should be created for this action
+  def self.post_only_action?(controller, action)
+    actions = POST_ONLY_ACTIONS[controller.to_s]
+    !actions.nil? && actions.include?(action.to_s)
+  end
+
   # Get array with all engine's controller actions for routing
   def self.routing_actions(controller_dir)
     routing_list = []

@@ -20,7 +20,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
   end
 
   def admin_logout
-    get '/admin/admin_logout',  :params => {:format=>:html}
+    post '/admin/admin_logout',  :params => {:format=>:html}
     assert_response :success, log_on_failure('Logout from admin should succeed')
   end
 
@@ -68,7 +68,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "admin_logout with xhr: true" do
-    get '/admin/admin_logout',  :params => {:format=>:html}
+    post '/admin/admin_logout',  :params => {:format=>:html}
     assert_response :success, log_on_failure('Logout from admin')
   end
 
