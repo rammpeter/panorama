@@ -371,13 +371,23 @@ class DbaSgaController < ApplicationController
     @include_ash_in_sql = get_db_version >= "11.2" && (PackLicense.diagnostics_pack_licensed? || PackLicense.panorama_sampler_active?)
 
     @multiplans = sql_select_all ["\
-      SELECT p.Plan_Hash_Value, COUNT(DISTINCT p.Child_Number) Child_Count, MIN(p.Child_Number) Min_Child_Number
-      FROM   gv$SQL_Plan p
-      WHERE  SQL_ID  = ?
-      AND    Inst_ID = ?
-      #{where_string}
-      GROUP BY Plan_Hash_Value
-      ", @sql_id, @instance].concat(where_values)
+      SELECT p.Plan_Hash_Value, p.Child_Count, p.Min_Child_Number, s.Executions, s.elapsed_secs_per_exec
+      FROM   (SELECT Plan_Hash_Value, COUNT(DISTINCT Child_Number) Child_Count, MIN(Child_Number) Min_Child_Number
+              FROM   gv$SQL_Plan
+              WHERE  SQL_ID  = ?
+              AND    Inst_ID = ?
+              #{where_string}
+              GROUP BY Plan_Hash_Value
+             ) p
+      JOIN   (SELECT Plan_Hash_Value, SUM(Executions) Executions,
+                     CASE WHEN SUM(Executions) = 0 THEN 0 ELSE SUM(Elapsed_Time)/1000000 / SUM(Executions) END elapsed_secs_per_exec
+              FROM   gv$SQL
+              WHERE  SQL_ID  = ?
+              AND    Inst_ID = ?
+              #{where_string}
+              GROUP BY Plan_Hash_Value
+             ) s ON s.Plan_Hash_Value = p.Plan_Hash_Value
+      ", @sql_id, @instance].concat(where_values).concat([@sql_id, @instance]).concat(where_values)
 
     if get_db_version >= '12.1'
       display_map_records = sql_select_all ["\
@@ -405,7 +415,7 @@ class DbaSgaController < ApplicationController
           p.Operation, p.Options, p.Object_Owner, p.Object_Name, p.Object_Type, p.Object_Alias, p.QBlock_Name, p.Timestamp, p.Optimizer, p.Plan_Hash_Value,
           p.Other_Tag, p.Other_XML, p.Other, Version_Orange_Count, Version_Red_Count, Child_Number,
           Depth, Access_Predicates, Filter_Predicates, Projection, p.temp_Space/(1024*1024) Temp_Space_MB, Distribution,
-          ID, Parent_ID, Executions, p.Search_Columns,
+          ID, Parent_ID, p.Search_Columns,
           Last_Starts, Starts, Last_Output_Rows, Output_Rows,
           Last_CR_Buffer_Gets, CR_Buffer_Gets,
           Last_CU_Buffer_Gets, CU_Buffer_Gets,
@@ -493,15 +503,6 @@ class DbaSgaController < ApplicationController
 
 
     @multiplans.each do |mp|
-      mp['elapsed_secs_per_exec'] = sql_select_one ["\
-        SELECT CASE WHEN SUM(Executions) = 0 THEN 0 ELSE SUM(Elapsed_Time)/1000000 / SUM(Executions) END
-        FROM   gv$SQL
-        WHERE  SQL_ID           = ?
-        AND    Inst_ID          = ?
-        AND    Plan_Hash_Value  = ?
-        #{where_string}
-        ", @sql_id, @instance, mp.plan_hash_value].concat(where_values)
-
       mp[:plans] = ajust_plan_records_for_adaptive(plan:                  mp,
                                                    plan_lines:            all_plans,
                                                    display_map_records:   display_map_records,
