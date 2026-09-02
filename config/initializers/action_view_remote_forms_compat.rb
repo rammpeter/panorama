@@ -35,6 +35,12 @@
 # delete entfernt hat, landet die Zuweisung faelschlich auf ActionView::Base:
 #   NoMethodError: undefined method 'preload_links_header=' for class ActionView::Base
 # Daher hier ebenfalls mit einem No-op-Setter neutralisieren.
+#
+# Ebenso button_to_generates_button_tag: auch dieser Schalter wird in Rails 8 nicht mehr
+# ueber ActionView::Base gesetzt. Falls die generische on_load(:action_view)-Schleife den
+# Key zu spaet abraeumt, entsteht sonst:
+#   NoMethodError: undefined method 'button_to_generates_button_tag=' for class ActionView::Base
+# Daher auch hier ein No-op-Setter.
 ActiveSupport.on_load(:action_view) do
   unless ActionView::Base.respond_to?(:form_with_generates_remote_forms=)
     ActionView::Base.define_singleton_method(:form_with_generates_remote_forms=) { |_value| }
@@ -47,5 +53,8 @@ ActiveSupport.on_load(:action_view) do
   end
   unless ActionView::Base.respond_to?(:preload_links_header=)
     ActionView::Base.define_singleton_method(:preload_links_header=) { |_value| }
+  end
+  unless ActionView::Base.respond_to?(:button_to_generates_button_tag=)
+    ActionView::Base.define_singleton_method(:button_to_generates_button_tag=) { |_value| }
   end
 end
