@@ -1,4 +1,8 @@
 # Change log of Panorama for Oracle
+## Next
+- 2026-09-09 suppress negative values for delta of cumulative statistics after restart of DB
+  Fixed for OS and latch statistics
+
 ## Release 2.19.25
 - 2026-09-01 Security: Throttle failed master password attempts per client instead of blocking a server thread by sleep
 - 2026-09-01 Security: Route state changing actions as POST only, because Rails does not check the CSRF token for GET requests

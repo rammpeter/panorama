@@ -1637,14 +1637,25 @@ FROM (
 
 
     where_string  = String.new                         # Filter-Text für nachfolgendes Statement
-    where_values = [@dbid, @time_selection_start, @time_selection_end, @dbid]    # Filter-werte für nachfolgendes Statement
+    where_values = [@dbid, @time_selection_start, @time_selection_end]    # Filter-werte für nachfolgendes Statement
     if @instance
       where_string << " AND l.Instance_Number = ?"
       where_values << @instance
     end
 
     @latches = sql_select_iterator ["\
-      SELECT /* Panorama-Tool Ramm */
+      WITH Latch AS (SELECT /*+ MATERIALIZE */ l.*
+                     FROM   DBA_Hist_Latch l
+                     WHERE  (DBID, Snap_ID, Instance_Number) IN (
+                             SELECT DBID, Snap_ID, Instance_Number
+                             FROM   DBA_Hist_Snapshot
+                             WHERE  DBID = ?
+                             AND    End_Interval_time  +#{client_tz_offset_days} > TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
+                             AND    Begin_Interval_time+#{client_tz_offset_days} < TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
+                             #{where_string}
+                            )
+                    )
+      SELECT /*+ GATHER_PLAN_STATISTICS OPT_PARAM('_bloom_filter_enabled' 'false') */
              x.*,
              x.Misses*100/DECODE(x.GetsNo, 0, 1, x.GetsNo) Pct_Misses,
              x.Immediate_Misses*100/DECODE(x.Immediate_Gets, 0, 1, x.Immediate_Gets) Pct_Immediate_Misses
@@ -1654,36 +1665,36 @@ FROM (
                      l.Latch_Name,
                      l.Level# LevelNo,
                      COUNT(*)-1                 Anzahl_Samples,         -- mitgelesenen Vorgänger-Sample der Selektion wieder abziehen
-                     MIN(snap.First_Occurrence) First_Occurrence,       -- Pseudo-Group-Funktion, Werte in Gruppe sind alle identisch
-                     MAX(snap.Last_Occurrence)  Last_Occurrence,        -- Pseudo-Group-Funktion, Werte in Gruppe sind alle identisch
-                     MAX(l.Gets)             KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Gets)             KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) GetsNo,
-                     MAX(l.Misses)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Misses)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Misses,
-                     MAX(l.Sleeps)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Sleeps)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Sleeps,
-                     MAX(l.Immediate_Gets)   KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Immediate_Gets)   KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Immediate_Gets,
-                     MAX(l.Immediate_Misses) KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Immediate_Misses) KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Immediate_Misses,
-                     MAX(l.Spin_Gets)        KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Spin_Gets)        KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Spin_Gets,
-                     MAX(l.Sleep1)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Sleep1)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Sleep1,
-                     MAX(l.Sleep2)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Sleep2)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Sleep2,
-                     MAX(l.Sleep3)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Sleep3)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Sleep3,
-                     MAX(l.Sleep4)           KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Sleep4)           KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) Sleep4,
-                     (MAX(l.Wait_Time)       KEEP (DENSE_RANK LAST ORDER BY l.Snap_ID) - MIN(l.Wait_Time)        KEEP (DENSE_RANK FIRST ORDER BY l.Snap_ID) )/1000000 Wait_Time,
-                     MIN(snap.Min_Snap_ID)      Min_Snap_ID,            -- Pseudo-Group-Funktion, Werte in Gruppe sind alle identisch
-                     MAX(snap.Max_Snap_ID)      Max_Snap_ID             -- Pseudo-Group-Funktion, Werte in Gruppe sind alle identisch
-              FROM   DBA_Hist_Latch l
-              JOIN   (SELECT Instance_Number,
-                             MIN(Snap_ID) Min_Snap_ID,
-                             MAX(Snap_ID) Max_Snap_ID,
-                             MIN(Begin_Interval_Time) First_Occurrence,
-                             MAX(Begin_Interval_Time) Last_Occurrence
-                      FROM   DBA_Hist_Snapshot
-                      WHERE  DBID = ?
-                      AND    Begin_Interval_time+#{client_tz_offset_days} > TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}')
-                      AND    Begin_Interval_time+#{client_tz_offset_days} < TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}')
-                      GROUP BY Instance_Number
-                     ) snap ON snap.Instance_Number = l.Instance_Number
-              WHERE  l.DBID = ?
-              AND    l.Snap_ID   >= snap.Min_Snap_ID - 1
-              AND    l.Snap_ID   <= snap.Max_Snap_ID #{where_string}
+                     MIN(snap.End_Interval_Time) First_Occurrence,      -- suppress the begin time of the first sample, because it is not a real sample, but the predecessor of the first sample
+                     MAX(snap.End_Interval_Time)  Last_Occurrence,
+                     SUM(CASE WHEN l.Gets             > 0 THEN l.Gets             ELSE 0 END) GetsNo,
+                     SUM(CASE WHEN l.Misses           > 0 THEN l.Misses           ELSE 0 END) Misses,
+                     SUM(CASE WHEN l.Sleeps           > 0 THEN l.Sleeps           ELSE 0 END) Sleeps,
+                     SUM(CASE WHEN l.Immediate_Gets   > 0 THEN l.Immediate_Gets   ELSE 0 END) Immediate_Gets,
+                     SUM(CASE WHEN l.Immediate_Misses > 0 THEN l.Immediate_Misses ELSE 0 END) Immediate_Misses,
+                     SUM(CASE WHEN l.Spin_Gets        > 0 THEN l.Spin_Gets        ELSE 0 END) Spin_Gets,
+                     SUM(CASE WHEN l.Sleep1           > 0 THEN l.Sleep1           ELSE 0 END) Sleep1,
+                     SUM(CASE WHEN l.Sleep2           > 0 THEN l.Sleep2           ELSE 0 END) Sleep2,
+                     SUM(CASE WHEN l.Sleep3           > 0 THEN l.Sleep3           ELSE 0 END) Sleep3,
+                     SUM(CASE WHEN l.Sleep4           > 0 THEN l.Sleep4           ELSE 0 END) Sleep4,
+                     SUM(CASE WHEN l.Wait_Time        > 0 THEN l.Wait_Time        ELSE 0 END)/1000000 Wait_Time,
+                     MIN(l.Snap_ID)+1    Min_Snap_ID,
+                     MAX(l.Snap_ID)      Max_Snap_ID
+              FROM   (SELECT DBID, Instance_Number, Snap_ID, Latch_Hash, Latch_Name, Level#,
+                             Gets             - LAG(Gets, 1,              Gets)             OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Gets,
+                             Misses           - LAG(Misses, 1,            Misses)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Misses,
+                             Sleeps           - LAG(Sleeps, 1,            Sleeps)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Sleeps,
+                             Immediate_Gets   - LAG(Immediate_Gets, 1,    Immediate_Gets)   OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Immediate_Gets,
+                             Immediate_Misses - LAG(Immediate_Misses, 1,  Immediate_Misses) OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Immediate_Misses,
+                             Spin_Gets        - LAG(Spin_Gets, 1,         Spin_Gets)        OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Spin_Gets,
+                             Sleep1           - LAG(Sleep1, 1,            Sleep1)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Sleep1,
+                             Sleep2           - LAG(Sleep2, 1,            Sleep2)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Sleep2,
+                             Sleep3           - LAG(Sleep3, 1,            Sleep3)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Sleep3,
+                             Sleep4           - LAG(Sleep4, 1,            Sleep4)           OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Sleep4,
+                             Wait_Time        - LAG(Wait_Time, 1,         Wait_Time)        OVER (PARTITION BY DBID, INSTANCE_NUMBER, LATCH_HASH ORDER BY Snap_ID) Wait_Time
+                      FROM   Latch
+                     ) l
+              JOIN   DBA_Hist_Snapshot snap ON snap.DBID = l.DBID AND snap.Instance_Number = l.Instance_Number AND snap.Snap_ID = l.Snap_ID
               GROUP BY l.Latch_Name, l.Latch_Hash, l.Level#, l.Instance_Number
              ) x
       ORDER BY x.Wait_time DESC
@@ -1704,9 +1715,20 @@ FROM (
 
     @latches = sql_select_iterator ["\
       SELECT /* Panorama-Tool Ramm */
-             x.*,
-             x.Misses*100/DECODE(x.GetsNo, 0, 1, x.GetsNo) Pct_Misses,
-             x.Immediate_Misses*100/DECODE(x.Immediate_Gets, 0, 1, x.Immediate_Gets) Pct_Immediate_Misses
+             Begin_Interval_Time, Snap_ID,
+             CASE WHEN GetsNo           < 0 THEN 0 ELSE GetsNo END GetsNo,
+             CASE WHEN Misses           < 0 THEN 0 ELSE Misses END Misses,
+             CASE WHEN Sleeps           < 0 THEN 0 ELSE Sleeps END Sleeps,
+             CASE WHEN Immediate_Gets   < 0 THEN 0 ELSE Immediate_Gets END Immediate_Gets,
+             CASE WHEN Immediate_Misses < 0 THEN 0 ELSE Immediate_Misses END Immediate_Misses,
+             CASE WHEN Spin_Gets        < 0 THEN 0 ELSE Spin_Gets END Spin_Gets,
+             CASE WHEN Sleep1           < 0 THEN 0 ELSE Sleep1 END Sleep1,
+             CASE WHEN Sleep2           < 0 THEN 0 ELSE Sleep2 END Sleep2,
+             CASE WHEN Sleep3           < 0 THEN 0 ELSE Sleep3 END Sleep3,
+             CASE WHEN Sleep4           < 0 THEN 0 ELSE Sleep4 END Sleep4,
+             CASE WHEN Wait_Time        < 0 THEN 0 ELSE Wait_Time END Wait_Time,
+             Misses*100/DECODE(GetsNo, 0, 1, GetsNo) Pct_Misses,
+             Immediate_Misses*100/DECODE(Immediate_Gets, 0, 1, Immediate_Gets) Pct_Immediate_Misses
       FROM   (SELECT
                      snap.Begin_Interval_Time,
                      l.Snap_ID,
@@ -1720,7 +1742,7 @@ FROM (
                      l.Sleep2           - LAG(l.Sleep2,           1, l.Sleep2          ) OVER (ORDER BY l.Snap_ID) Sleep2,
                      l.Sleep3           - LAG(l.Sleep3,           1, l.Sleep3          ) OVER (ORDER BY l.Snap_ID) Sleep3,
                      l.Sleep4           - LAG(l.Sleep4,           1, l.Sleep4          ) OVER (ORDER BY l.Snap_ID) Sleep4,
-                     (l.Wait_Time       - LAG(l.Wait_Time,        1, l.Wait_Time       ) OVER (ORDER BY l.Snap_ID) )/1000000Wait_Time
+                     (l.Wait_Time       - LAG(l.Wait_Time,        1, l.Wait_Time       ) OVER (ORDER BY l.Snap_ID) )/1000000 Wait_Time
               FROM   DBA_Hist_Latch l
               JOIN   DBA_Hist_Snapshot snap ON snap.DBID=l.DBID AND snap.Instance_Number=l.Instance_Number AND snap.Snap_ID=l.Snap_ID
               WHERE  l.dbid = ?
@@ -1728,7 +1750,7 @@ FROM (
               AND    l.Snap_ID+1 >= ?         -- Letzten Sample vor Selektion mit holen, um Differenz zu erstem Sample der Selektion zu bilden
               AND    l.Snap_ID <= ?
               AND    l.Latch_Hash = ?
-             ) x
+             )
       WHERE Snap_ID >= ?
       ORDER BY Snap_ID
      ", @dbid, @instance, min_snap_id, max_snap_id, latch_hash, min_snap_id
@@ -2597,13 +2619,14 @@ END;
     @instance  = prepare_param_instance
 
     osstats = sql_select_iterator ["\
-      SELECT Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name, SUM(Value) Value
+      SELECT Rounded_Begin_Interval_Time, MIN(Begin_Interval_Time) Min_Begin_Interval_Time, MAX(End_Interval_Time) Max_End_Interval_Time, Stat_Name,
+             SUM(Value) Value, MIN(Cumulative) Cumulative
       FROM   (SELECT #{awr_snapshot_ts_round('ssi.Begin_Interval_Time')} Rounded_Begin_Interval_Time,
                      ssi.Begin_Interval_Time, ssi.End_Interval_Time, REPLACE(s.Stat_Name, '_', ' ') Stat_Name, ss.Min_Snap_ID, s.Snap_ID,
-                     DECODE(#{get_db_version >= '11.2' ? "vs.cumulative" : "'NO'"}, 'YES',
-                                s.Value - LAG(s.Value, 1, s.Value) OVER (PARTITION BY s.Instance_Number, s.Stat_Name ORDER BY s.Snap_ID),
-                                s.Value
-                     ) Value
+                     DECODE(vs.cumulative, 'YES',
+                            s.Value - LAG(s.Value, 1, s.Value) OVER (PARTITION BY s.Instance_Number, s.Stat_Name ORDER BY s.Snap_ID),
+                            s.Value
+                     ) Value, vs.Cumulative
               FROM   DBA_Hist_OSStat s
               JOIN   (SELECT DBID, Instance_Number, MIN(Snap_ID) Min_Snap_ID, MAX(Snap_ID) Max_Snap_ID
                       FROM   DBA_Hist_Snapshot
@@ -2613,7 +2636,9 @@ END;
                       #{"AND Instance_Number = ?" if @instance}
                       GROUP BY DBID, Instance_Number
                      )ss ON ss.DBID = s.DBID AND ss.Instance_Number = s.Instance_Number
-              LEFT OUTER JOIN   v$OSStat vs ON vs.Stat_Name = s.Stat_Name /* Check for cumulative */
+              LEFT OUTER JOIN (SELECT Stat_Name, #{get_db_version >= '11.2' ? "cumulative" : "'NO'"} Cumulative
+                               FROM   v$OSStat
+                              ) vs ON vs.Stat_Name = s.Stat_Name /* Check for cumulative */
               JOIN   DBA_Hist_Snapshot ssi ON ssi.DBID = s.DBID AND ssi.Instance_Number = s.Instance_Number AND ssi.Snap_ID = s.Snap_ID
               WHERE   s.Snap_ID >= ss.Min_Snap_ID - 1 /* Including one previous record for LAG */
               AND     s.Snap_ID <= ss.Max_Snap_ID
@@ -2633,6 +2658,9 @@ END;
     }
 
     osstats.each do |o|
+      # suppress negative values for cumulative statistics at first snapshot after restart
+      o.value = 0 if o.cumulative == 'YES' && !o.value.nil? && o.value < 0
+
       unless osstats_pivot.has_key?(o.rounded_begin_interval_time)
         osstats_pivot[o.rounded_begin_interval_time] = {
             rounded_begin_interval_time:  o.rounded_begin_interval_time,
@@ -2644,9 +2672,11 @@ END;
 
       osstats_pivot[o.rounded_begin_interval_time][o.stat_name] = o.value
       stat_names[o.stat_name] = { stat_name: o.stat_name, scale: 0} unless stat_names.has_key? o.stat_name           # register stat_name as used
-      scale_value = o.value - o.value.to_i
-      if scale_value != 0 && scale_value.to_s.length > stat_names[o.stat_name][:scale]
-        stat_names[o.stat_name][:scale] =  scale_value.to_s.length
+      unless o.value.nil? || o.value.to_i == o.value
+        scale_value = o.value - o.value.to_i
+        if scale_value != 0 && scale_value.to_s.length > stat_names[o.stat_name][:scale]
+          stat_names[o.stat_name][:scale] =  scale_value.to_s.length
+        end
       end
     end
 

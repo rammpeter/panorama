@@ -19,9 +19,9 @@ column_options =
   [
     {:caption=>"I",                 :data=>proc{|rec| rec.instance_number },                    :title=>"RAC-Instance"},
     {:caption=>"Name",              :data=>proc{|rec| rec.latch_name },                         :title=>"Latch-Name", :data_title=>proc{|rec| "%t Hash=#{rec.latch_hash}, Level# = #{rec.levelno}" } },
-    {:caption=>'First occurrence',  :data=>proc{|rec| localeDateTime(rec.first_occurrence) },   :title=>"First occurrence in sample"},
-    {:caption=>'Last occurrence',   :data=>proc{|rec| localeDateTime(rec.last_occurrence) },    :title=>"Last occurrence in sample"},
-    {:caption=>"Samples",           :data=>proc{|rec| link_column(rec, fn(rec.anzahl_samples))},:title=>"Number of sample records in grouping", :align=>"right"},
+    {:caption=>'First occurrence',  :data=>proc{|rec| localeDateTime(rec.first_occurrence) },   :title=>"Begin of first considered AWR snapshot"},
+    {:caption=>'Last occurrence',   :data=>proc{|rec| localeDateTime(rec.last_occurrence) },    :title=>"End of last considered AWR snapshot"},
+    {:caption=>"Samples",           :data=>proc{|rec| link_column(rec, fn(rec.anzahl_samples))},:title=>"Number of AWR snapshots in grouping", :align=>"right"},
     {:caption=>"Gets",              :data=>proc{|rec| fn(rec.getsno)},                          :title=>"Number of times the latch was requested in willing-to-wait mode", :align=>"right"},
     {:caption=>"Misses",            :data=>proc{|rec| fn(rec.misses)},                          :title=>"Number of times the latch was requested in willing-to-wait mode and the requester had to wait", :align=>"right"},
     {:caption=>"% Misses",          :data=>proc{|rec| fn(rec.pct_misses, 2)},                   :title=>"% Misses von Gets", :align=>"right"},
