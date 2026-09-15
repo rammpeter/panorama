@@ -49,10 +49,12 @@ RUN  bundle config set deployment 'true'
 RUN  bundle config install.args "--no-document"
 RUN  rm -rf vendor/bundle # remove old vendor gems
 # Ensure bundle install uses the correct JRE
-RUN  bundle lock --add-platform universal-java-21 && bundle lock --add-platform universal-java-24
+RUN  bundle lock --add-platform universal-java-21 && \
+     bundle lock --add-platform universal-java-24
 
 RUN  bundle config set --local without 'development test'
-RUN  bundle install --jobs 4 --no-cache
+# RUN  bundle install --jobs 4 --no-cache
+RUN  bundle install --no-cache
 
 RUN  bundle exec rake assets:precompile
 

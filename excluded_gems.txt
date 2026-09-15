@@ -4,13 +4,20 @@
 # benchmark
 erb
 io-console
-irb
+
+# Use the last version without prism dependency, because prism needs native extensions
+# prism plans a separate gem for Ruby only. https://github.com/ruby/prism/issues/3959
+irb, 1.16.0
+
 jar-dependencies
 mail
 minitest
 pp
 prettyprint
-prism
+
+# prism removed from list as long as irb is used without a prism dependency
+#prism
+
 psych
 reline
 

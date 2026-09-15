@@ -2,11 +2,21 @@
   @update_area = get_unique_area_id
 
   link_target = proc do |rec|
-    if rec.target && rec.target['.']
-      link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])
-    else
-      rec.target
+    result = String.new
+    if rec.target
+      if rec.target['.']
+        result << link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])
+      else
+        result << rec.target
+      end
     end
+    if rec.target_desc && rec.target_desc != rec.target
+      if result != ''
+        result << "\n"
+      end
+      result << "#{rec.target_desc}"
+    end
+    result.html_safe
   end
 
 
@@ -15,13 +25,13 @@
   column_options << { caption: 'SID/SN',              data: proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)}, title: 'Session ID / Serial no.'}
   column_options << { caption: 'Operation',           data: proc{|rec| rec.opname}, title: 'Brief description of the operation'}
   column_options << { caption: 'Target',              data: link_target, title: 'Object on which the operation is carried out'}
-  column_options << { caption: 'Target desc.',        data: proc{|rec| rec.target_desc}, title: 'Description of the target'}
   column_options << { caption: 'So far',              data: proc{|rec| fn(rec.sofar)}, title: 'Units of work done so far for the operation specified in the OPNAME column', align: :right}
   column_options << { caption: 'Total work',          data: proc{|rec| fn(rec.totalwork)}, title: 'Total units of work for the operation specified in the OPNAME column', align: :right}
   column_options << { caption: 'Unit name',           data: proc{|rec| rec.units}, title: 'Units of measurement'}
   column_options << { caption: '% done',              data: proc{|rec| fn((rec.sofar*100.0/rec.totalwork rescue nil), 2)}, pct_total_value: proc { 100 }, title: 'Percentage of work done so far', align: :right}
   column_options << { caption: 'Start time',          data: proc{|rec| localeDateTime(rec.start_time)}, title: 'Starting time of the operation'}
   column_options << { caption: 'Last update time',    data: proc{|rec| localeDateTime(rec.last_update_time)}, title: 'Time when statistics were last updated for the operation'}
+  column_options << { caption: 'Est. end time',       data: proc{|rec| localeDateTime(rec.end_time)}, title: 'Estimated end time of the operation based on seconds remaining'}
   column_options << { caption: 'Timestamp',           data: proc{|rec| localeDateTime(rec.timestamp)}, title: 'Timestamp specific to the operation'}
   column_options << { caption: 'Seconds remaining',   data: proc{|rec| fn(rec.time_remaining)}, title: 'Estimate (in seconds) of time remaining for the operation to complete', align: :right}
   column_options << { caption: 'Elapsed seconds',     data: proc{|rec| fn(rec.elapsed_seconds)}, title: 'Number of elapsed seconds from the start of the operations', align: :right}

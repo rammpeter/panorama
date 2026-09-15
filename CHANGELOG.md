@@ -1,5 +1,6 @@
 # Change log of Panorama for Oracle
 ## Next
+- 2026-09-15 New menu entry "SGA/PGA details / SQl Area / Long operations" to show SQLs with long running operations
 - 2026-09-09 suppress negative values for delta of cumulative statistics after restart of DB
   Fixed for OS and latch statistics
 

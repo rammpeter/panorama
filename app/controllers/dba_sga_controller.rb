@@ -2789,7 +2789,9 @@ END;
     @sql_exec_id  = prepare_param(:sql_exec_id)
     @sid          = prepare_param(:sid)
     @serial_no    = prepare_param(:serial_no)
+    @only_current = prepare_param(:current_or_all) == 'current'
 
+    with          = []
     where_string = String.new
     where_values = []
 
@@ -2824,7 +2826,20 @@ END;
       where_values << @qc_sid
     end
 
-    @session_longops = sql_select_all ["SELECT l.*, l.Serial# Serial_No
+    if @only_current
+      with << "Open_Cursor AS (SELECT /*+ MATERIALIZE */ Inst_ID, SID, SQL_ID, SQL_Exec_ID
+                               FROM   gv$Open_Cursor
+                               WHERE  SQL_Exec_ID IS NOT NULL)"
+      where_string << " AND (l.Inst_ID, l.SID, l.SQL_ID, SQL_Exec_ID) IN (
+                               SELECT Inst_ID, SID, SQL_ID, SQL_Exec_ID
+                               FROM   Open_Cursor
+                            )"
+    end
+
+    @session_longops = sql_select_all ["#{with.empty? ? "" : "WITH #{with.join(', ')}"}
+                                        SELECT l.*, l.Serial# Serial_No,
+                                               CASE WHEN l.OpName = 'Sort Output' THEN NULL
+                                               ELSE l.Last_Update_Time + l.Time_Remaining / 86400 END End_Time
                                         FROM   gv$Session_Longops l
                                         WHERE  1=1 #{where_string}
                                         ORDER BY l.Start_Time DESC  "].concat(where_values)

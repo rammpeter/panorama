@@ -336,6 +336,24 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "list_session_longops with xhr: true" do
+    [
+      { instance: nil,       sql_id: nil,          sql_exec_id: nil, sid: nil, serial_no: nil, current_or_all: 'all' },
+      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: nil, sid: nil, serial_no: nil, current_or_all: 'current' },
+      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: 42,  sid: 1,   serial_no: 1,   current_or_all: 'all' },
+    ].each do |p|
+      post '/dba_sga/list_session_longops', params: { format: :html,
+                                                      instance:       p[:instance],
+                                                      sql_id:         p[:sql_id],
+                                                      sql_exec_id:    p[:sql_exec_id],
+                                                      sid:            p[:sid],
+                                                      serial_no:      p[:serial_no],
+                                                      current_or_all: p[:current_or_all],
+                                                      update_area:    :hugo }
+      assert_response :success
+    end
+  end
+
   test "list historic SGA components" do
     [nil, @instance].each do |instance|
       post '/dba_sga/list_historic_sga_components', params: {format: :html, time_selection_start: @time_selection_start, time_selection_end: @time_selection_end, instance: instance, update_area: :hugo }

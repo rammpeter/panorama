@@ -1,0 +1,29 @@
+<% @update_area = get_unique_area_id %>
+
+<%= render_page_caption("Show long running operations from GV$Session_LongOps") %>
+
+
+<%= ajax_form(controller: :dba_sga, action: :list_session_longops, update_area: @update_area) do %>
+  <div class="flex-row-container">
+    <!--
+    <%= include_start_end_timepicker(additional_title: "Caution: For client and database in different timezones:\nThis value is sometimes interpreted as local client time, not database time like shown in result column 'Time'") %>
+    -->
+    <%= instance_tag(rac_only: true) %>
+
+    <div class="flex-row-element" title="Show only currently running long operations">
+      <%= radio_button_tag(:current_or_all, :current, true) %>
+      <%= label_tag(:current_or_all_current, "Current")%>
+    </div>
+
+    <div class="flex-row-element" title="Show all recorded long operations">
+      <%= radio_button_tag(:current_or_all, :all, false) %>
+      <%= label_tag(:current_or_all_all, "All")%>
+    </div>
+
+    <div class="flex-row-element">
+      <%= submit_tag("Show Long Ops", :title => 'Show long running operations') %>
+    </div>
+  </div>
+<% end %>
+
+<div id="<%= @update_area %>"></div>

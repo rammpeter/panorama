@@ -82,7 +82,7 @@ group :development do
 
   # gem 'rdoc', '< 8.0'
   # gem 'rbs', platforms: [:ruby]
-  # gem 'irb',  '< 1.18'
+
 
   # gem 'jarbler', :git => 'https://github.com/rammpeter/jarbler.git', branch: 'pramm'
   # gem 'jarbler', github: 'rammpeter/jarbler', branch: 'pramm'
