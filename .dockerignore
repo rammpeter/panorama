@@ -1,0 +1,47 @@
+# Keep the Docker build context small and prevent development artifacts from
+# ending up in the image, because the Dockerfile does a plain "COPY . .".
+# Peter Ramm, 03.09.2026
+
+# Version control and IDE / tooling state
+.git
+.gitignore
+.github
+.idea
+.vscode
+.claude
+CLAUDE.md
+.DS_Store
+**/.DS_Store
+
+# Local runtime state and build output of the host
+tmp
+work
+client_info.store
+Panorama.jar
+Panorama.war
+Panorama_jetty.log
+*.log
+*.jfr
+rerun.txt
+
+# Gems are installed inside the image by "bundle install",
+# but vendor/assets is required for assets:precompile
+# vendor/bundle contains the gems installed by "bundle install --deployment" and is not needed to build or run the image
+# vendor/bundle
+vendor/cache
+node_modules
+
+# Assets are precompiled inside the image
+public/assets
+
+# Not needed to build or run the image
+test
+doc
+docker-compose.yml
+nginx.conf
+deploy_*.sh
+start_Panorama.sh
+stop_Panorama.sh
+build_jar.sh
+bundle_install.sh
+create_docker_image.sh

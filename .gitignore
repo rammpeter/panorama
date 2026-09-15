@@ -49,3 +49,4 @@ vendor/assets/javascripts/.DS_Store
 /db/schema.rb
 /config/master.key
 /config/credentials.yml.enc
+/prof.html

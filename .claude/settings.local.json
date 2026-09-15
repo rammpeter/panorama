@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(grep *)",
+      "Bash(awk 'NR<67 || NR>=950' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(mv /tmp/sge_new.js /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(env)",
+      "Bash(awk 'NR==165 { for \\(i=1; i<=length\\($0\\); i++\\) printf \"%d:%s \", i, substr\\($0,i,1\\); print \"\" }' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(awk 'NR==165' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(sed -i '' -E 's/^\\([[:space:]]+\\)var /\\\\1let /' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(awk 'NR==165 || NR==192' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/slickgrid_extended.js)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(node --check /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/dashboard.js)",
+      "Bash(node --check /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/sql_worksheet.js)",
+      "Bash(node --check /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/application.js)",
+      "Bash(awk '{ sub\\(/^\\([[:space:]]*\\)var /, \"&\"\\); if \\($0 ~ /^[[:space:]]*var /\\) { sub\\(/var /, \"let \"\\); } print }' /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/application.js)",
+      "Bash(mv /tmp/app_new.js /Users/pramm/Documents/Projekte/rammpeter.github/panorama/app/assets/javascripts/application.js)",
+      "Bash(git -C /Users/pramm/Documents/Projekte/rammpeter.github/panorama diff app/helpers/dragnet/suboptimal_index_usage_helper.rb)",
+      "Bash(git *)",
+      "Bash(ls /Users/pramm/.claude/)",
+      "Bash(SKILLS_DIR=\"/Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e/9cb41407-a72d-4ede-bfc8-146947ba7b33/skills\" *)",
+      "Read(//Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e/9cb41407-a72d-4ede-bfc8-146947ba7b33/**)",
+      "Bash(python -m scripts.package_skill '/Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e/9cb41407-a72d-4ede-bfc8-146947ba7b33/skills/panorama-test-runner')",
+      "Bash(python3 -m scripts.package_skill '/Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e/9cb41407-a72d-4ede-bfc8-146947ba7b33/skills/panorama-test-runner')",
+      "Bash(BASE=\"/Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e\" *)",
+      "Bash(python3 scripts/package_skill.py '/Users/pramm/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/4d031894-5857-4b1c-a77e-bd5d55535a9e/9cb41407-a72d-4ede-bfc8-146947ba7b33/skills/panorama-test-runner')",
+      "Bash(mkdir -p /Users/pramm/Documents/Projekte/rammpeter.github/panorama/.claude/skills/panorama-test-runner)",
+      "Bash(cp -r __TRACKED_VAR__/. /Users/pramm/Documents/Projekte/rammpeter.github/panorama/.claude/skills/panorama-test-runner/)",
+      "Bash(colima status *)",
+      "Bash(nc -z localhost 1521)",
+      "Bash(RAILS_ENV=test timeout 400 bundle exec rails test test/controllers/io_controller_test.rb -n \"/list_io_file_history with/\")",
+      "Bash(RAILS_ENV=test timeout 400 bundle exec rails test test/controllers/io_controller_test.rb -n \"/list_io_file_history_with/\")",
+      "Bash(bundle show *)",
+      "Bash(gem which *)"
+    ]
+  }
+}
