@@ -10,13 +10,18 @@
     -->
     <%= instance_tag(rac_only: true) %>
 
-    <div class="flex-row-element" title="Show only currently running long operations">
-      <%= radio_button_tag(:current_or_all, :current, true) %>
+    <div class="flex-row-element" title="Show only currently running long operations. Determined by sessions with remaining seconds > 0.">
+      <%= radio_button_tag(:age, :current, true) %>
       <%= label_tag(:current_or_all_current, "Current")%>
     </div>
 
+    <div class="flex-row-element" title="Show only currently or recently running long operations. Determined by sessions with currently open cursor on that SQL.">
+      <%= radio_button_tag(:age, :open_cursor, true) %>
+      <%= label_tag(:current_or_all_current, "Open cursor")%>
+    </div>
+
     <div class="flex-row-element" title="Show all recorded long operations">
-      <%= radio_button_tag(:current_or_all, :all, false) %>
+      <%= radio_button_tag(:age, :all, false) %>
       <%= label_tag(:current_or_all_all, "All")%>
     </div>
 

@@ -338,9 +338,11 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
 
   test "list_session_longops with xhr: true" do
     [
-      { instance: nil,       sql_id: nil,          sql_exec_id: nil, sid: nil, serial_no: nil, current_or_all: 'all' },
-      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: nil, sid: nil, serial_no: nil, current_or_all: 'current' },
-      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: 42,  sid: 1,   serial_no: 1,   current_or_all: 'all' },
+      { instance: nil,       sql_id: nil,          sql_exec_id: nil, sid: nil, serial_no: nil, age: 'all' },
+      { instance: 1,         sql_id: nil,          sql_exec_id: nil, sid: nil, serial_no: nil, age: 'open_cursor' },
+      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: nil, sid: nil, serial_no: nil, age: 'current' },
+      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: nil, sid: nil, serial_no: nil, age: 'open_cursor' },
+      { instance: @instance, sql_id: @sga_sql_id,  sql_exec_id: 42,  sid: 1,   serial_no: 1,   age: 'all' },
     ].each do |p|
       post '/dba_sga/list_session_longops', params: { format: :html,
                                                       instance:       p[:instance],
@@ -348,7 +350,7 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
                                                       sql_exec_id:    p[:sql_exec_id],
                                                       sid:            p[:sid],
                                                       serial_no:      p[:serial_no],
-                                                      current_or_all: p[:current_or_all],
+                                                      age:            p[:age],
                                                       update_area:    :hugo }
       assert_response :success
     end

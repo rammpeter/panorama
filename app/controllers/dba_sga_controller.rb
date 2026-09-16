@@ -2789,7 +2789,7 @@ END;
     @sql_exec_id  = prepare_param(:sql_exec_id)
     @sid          = prepare_param(:sid)
     @serial_no    = prepare_param(:serial_no)
-    @only_current = prepare_param(:current_or_all) == 'current'
+    @age          = prepare_param(:age)
 
     with          = []
     where_string = String.new
@@ -2826,11 +2826,15 @@ END;
       where_values << @qc_sid
     end
 
-    if @only_current
+    if @age == 'current'
+      where_string << " AND l.Time_Remaining > 0"
+    end
+
+    if @age == 'open_cursor'
       with << "Open_Cursor AS (SELECT /*+ MATERIALIZE */ Inst_ID, SID, SQL_ID, SQL_Exec_ID
                                FROM   gv$Open_Cursor
                                WHERE  SQL_Exec_ID IS NOT NULL)"
-      where_string << " AND (l.Inst_ID, l.SID, l.SQL_ID, SQL_Exec_ID) IN (
+      where_string << " AND (l.Inst_ID, l.SID, l.SQL_ID, l.SQL_Exec_ID) IN (
                                SELECT Inst_ID, SID, SQL_ID, SQL_Exec_ID
                                FROM   Open_Cursor
                             )"
@@ -2838,11 +2842,26 @@ END;
 
     @session_longops = sql_select_all ["#{with.empty? ? "" : "WITH #{with.join(', ')}"}
                                         SELECT l.*, l.Serial# Serial_No,
-                                               CASE WHEN l.OpName = 'Sort Output' THEN NULL
-                                               ELSE l.Last_Update_Time + l.Time_Remaining / 86400 END End_Time
-                                        FROM   gv$Session_Longops l
+                                               o.Object_Type, o.Owner, o.Object_Name, o.SubObject_Name,
+                                               CASE WHEN o.Owner = l.Target_Owner AND o.Object_Name = l.Target_Table_Name THEN 'YES' /* Table is accessed */
+                                               ELSE CASE WHEN (o.Owner, o.Object_Name) IN (SELECT i.Owner, i.Index_Name
+                                                                                           FROM   DBA_Indexes i
+                                                                                           WHERE  i.Table_Owner = l.Target_Owner AND i.Table_Name = l.Target_Table_Name
+                                                                                          ) THEN 'YES' /* Index of table is accessed */
+                                                    ELSE 'NO' END /* Object determined by Row_Wait_Obj# is not valid / does not belong to target table */
+                                               END Object_Belongs_To_Target_Table
+                                        FROM   (SELECT l.*,
+                                                       CASE WHEN l.OpName = 'Sort Output' THEN NULL
+                                                       ELSE l.Last_Update_Time + l.Time_Remaining / 86400 END End_Time,
+                                                       CASE WHEN INSTR(l.Target, '.') > 0 THEN SUBSTR(l.Target, 1, INSTR(l.Target, '.')-1) END Target_Owner,
+                                                       CASE WHEN INSTR(l.Target, '.') > 0 THEN SUBSTR(l.Target, INSTR(l.Target, '.')+1) END Target_Table_Name
+                                                FROM   gv$Session_Longops l
+                                               ) l
+                                        LEFT OUTER JOIN gv$Session s ON s.Inst_ID = l.Inst_ID AND s.SID = l.SID AND s.Serial# = l.Serial# AND s.SQL_ID = l.SQL_ID AND s.SQL_Exec_ID = l.SQL_Exec_ID
+                                                                     AND s.Row_Wait_Obj# IS NOT NULL AND s.Row_Wait_Obj# != -1 AND l.Time_Remaining > 0
+                                        LEFT OUTER JOIN DBA_Objects o ON o.Object_ID = s.Row_Wait_Obj#
                                         WHERE  1=1 #{where_string}
-                                        ORDER BY l.Start_Time DESC  "].concat(where_values)
+                                        ORDER BY l.Start_Time DESC"].concat(where_values)
 
     render_partial
   end

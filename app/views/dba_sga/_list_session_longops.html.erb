@@ -5,17 +5,28 @@
     result = String.new
     if rec.target
       if rec.target['.']
-        result << link_object_description(@update_area, rec.target.split('.')[0], rec.target.split('.')[1])
+        result << link_object_description(@update_area, rec.target_owner, rec.target_table_name)
       else
         result << rec.target
       end
     end
+
+    if rec.object_belongs_to_target_table == 'YES'
+      if rec.target_owner != rec.owner || rec.target_table_name != rec.object_name
+        result << "\nIndex #{link_object_description(@update_area, rec.owner, rec.object_name)}"
+      end
+      if rec.subobject_name
+        result << "\n#{rec.object_type} = #{rec.subobject_name}"
+      end
+    end
+
     if rec.target_desc && rec.target_desc != rec.target
       if result != ''
         result << "\n"
       end
       result << "#{rec.target_desc}"
     end
+
     result.html_safe
   end
 
@@ -23,8 +34,9 @@
   column_options = []
   column_options << { caption: 'I',                   data: proc{|rec| rec.inst_id}, title: 'RAC instance', align: :right} if PanoramaConnection.rac?
   column_options << { caption: 'SID/SN',              data: proc{|rec| link_session_details(@update_area, rec.inst_id, rec.sid, rec.serial_no)}, title: 'Session ID / Serial no.'}
+  column_options << { caption: 'SQL ID',              data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)}, title: 'SQL identifier of the SQL statement associated with the long operation, if any'}
   column_options << { caption: 'Operation',           data: proc{|rec| rec.opname}, title: 'Brief description of the operation'}
-  column_options << { caption: 'Target',              data: link_target, title: 'Object on which the operation is carried out'}
+  column_options << { caption: 'Target',              data: link_target, title: "Object on which the operation is carried out.\n"}
   column_options << { caption: 'So far',              data: proc{|rec| fn(rec.sofar)}, title: 'Units of work done so far for the operation specified in the OPNAME column', align: :right}
   column_options << { caption: 'Total work',          data: proc{|rec| fn(rec.totalwork)}, title: 'Total units of work for the operation specified in the OPNAME column', align: :right}
   column_options << { caption: 'Unit name',           data: proc{|rec| rec.units}, title: 'Units of measurement'}
@@ -32,13 +44,12 @@
   column_options << { caption: 'Start time',          data: proc{|rec| localeDateTime(rec.start_time)}, title: 'Starting time of the operation'}
   column_options << { caption: 'Last update time',    data: proc{|rec| localeDateTime(rec.last_update_time)}, title: 'Time when statistics were last updated for the operation'}
   column_options << { caption: 'Est. end time',       data: proc{|rec| localeDateTime(rec.end_time)}, title: 'Estimated end time of the operation based on seconds remaining'}
-  column_options << { caption: 'Timestamp',           data: proc{|rec| localeDateTime(rec.timestamp)}, title: 'Timestamp specific to the operation'}
+  column_options << { caption: 'TS',                  data: proc{|rec| localeDateTime(rec.timestamp)}, title: 'Timestamp specific to the operation'}
   column_options << { caption: 'Seconds remaining',   data: proc{|rec| fn(rec.time_remaining)}, title: 'Estimate (in seconds) of time remaining for the operation to complete', align: :right}
   column_options << { caption: 'Elapsed seconds',     data: proc{|rec| fn(rec.elapsed_seconds)}, title: 'Number of elapsed seconds from the start of the operations', align: :right}
   column_options << { caption: 'Context',             data: proc{|rec| rec.context}, title: 'Context'}
   column_options << { caption: 'Message',             data: proc{|rec| rec.message}, title: 'Statistics summary message'}
   column_options << { caption: 'User name',           data: proc{|rec| rec.username}, title: 'User ID of the user performing the operation'}
-  column_options << { caption: 'SQL ID',              data: proc{|rec| link_sql_id(@update_area, rec.inst_id, rec.sql_id)}, title: 'SQL identifier of the SQL statement associated with the long operation, if any'}
   column_options << { caption: 'SQL plan hash value', data: proc{|rec| fn(rec.sql_plan_hash_value)}, title: 'SQL plan hash value', align: :right}
   column_options << { caption: 'SQL exec start',      data: proc{|rec| localeDateTime(rec.sql_exec_start)}, title: 'Time when the execution of the SQL started'}
   column_options << { caption: 'SQL exec id',         data: proc{|rec| fn(rec.sql_exec_id)}, title: 'SQL execution identifier', align: :right}
