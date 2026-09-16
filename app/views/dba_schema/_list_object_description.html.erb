@@ -470,7 +470,7 @@ So the real value would be #{fn rec.avg_row_len} - #{fn rec.sum_col_len_metadata
                         {:caption=> 'Deferred',              :data=>proc{|rec| rec.deferred},                    :title=> 'Deferred-Status'},
                         {:caption=> 'Validated',             :data=>proc{|rec| rec.validated},                   :title=> 'Validate status'},
                         {:caption=> 'Last change',           :data=>proc{|rec| localeDateTime(rec.last_change)}, :title=> 'Date of last change'},
-                        {:caption=> 'Index',                 :data=>proc{|rec| rec.index_name},                  :title=> 'Name of index used for enforcement of unique constraint'},
+                        {:caption=> 'Index',                 :data=>proc{|rec| link_object_description(@update_area, rec.index_owner, rec.index_name)}, :title=> 'Name of index used for enforcement of unique constraint'},
                 ]
 
         gen_slickgrid(@unique_constraints, column_options, {

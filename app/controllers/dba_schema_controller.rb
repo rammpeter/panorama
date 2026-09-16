@@ -1196,14 +1196,14 @@ class DbaSchemaController < ApplicationController
 =end
 
     # reuse for several constraint types because selection takes a bit
-    @constraints = sql_select_all ["SELECT Constraint_Name, Constraint_Type,
+    @constraints = sql_select_all ["SELECT Constraint_Name, Constraint_Type, Status, Deferred, Validated, Last_Change, Index_Owner, Index_Name,
                                            CASE WHEN Generated = 'GENERATED NAME' THEN 1 END notnull
                                     FROM DBA_Constraints c
                                     WHERE Owner = ? AND Table_Name = ?", @owner, @table_name]
 
     @unique_constraints = @constraints.select {|c| c.constraint_type == 'U'}
     @unique_constraints.each do |u|
-      u[:columns] = ''
+      u[:columns] = String.new
       columns =  sql_select_all ["\
       SELECT Column_Name
       FROM   DBA_Cons_Columns
