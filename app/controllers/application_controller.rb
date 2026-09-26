@@ -31,6 +31,12 @@ class ApplicationController < ActionController::Base
     PanoramaConnection.destroy_connection                                       # Ensure next requests gets new database connection after exception
     ThreadLocalStorage.reset
 
+    if exception.is_a?(ActionController::InvalidAuthenticityToken)
+      # Session cookie (incl. CSRF token) expired after MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST of inactivity
+      # or was lost otherwise, so the CSRF token in the page's meta tag no longer matches
+      exception = PopupMessageException.new("Your browser session has expired or become invalid (e.g. after #{Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.inspect} of inactivity).\nPlease reload the page in your browser to start a new session.", exception)
+    end
+
     @exception = exception                                                      # Sichtbarkeit im template
     @request   = request
 
@@ -48,6 +54,12 @@ class ApplicationController < ActionController::Base
       end
     end
   end
+
+  @@METHODS_WITHOUT_DB_CONNECTION = {
+    env: [:index, :get_tnsnames_content, :set_locale, :set_database_by_params, :set_database_by_id],
+    admin: [ :browser_tab_ids, :client_info_detail, :client_info_store_sizes, :connection_pool, :ip_info, :show_usage_history, :usage_detail_sum, :usage_single_record],
+    panorama_sampler: [:monitor_sampler_status]
+  }
 
   # Ausführung vor jeden Request
   def begin_request
@@ -69,9 +81,7 @@ class ApplicationController < ActionController::Base
 
     # Ausschluss von Methoden, die keine DB-Connection bebötigen
     # Präziser before_filter mit Test auf controller
-    if (controller_name == 'env' && ['index', 'get_tnsnames_content', 'set_locale', 'set_database_by_params', 'set_database_by_id'].include?(action_name)) ||
-      (controller_name == 'admin' && ['show_usage_history', 'usage_detail_sum', 'usage_single_record', 'ip_info', 'connection_pool', 'client_info_store_sizes', 'client_info_detail', 'browser_tab_ids'].include?(action_name)) ||
-      (controller_name == 'panorama_sampler' && ['monitor_sampler_status'].include?(action_name))
+    if (@@METHODS_WITHOUT_DB_CONNECTION[controller_name.to_sym]&.include?(action_name.to_sym))
       return
     end
 

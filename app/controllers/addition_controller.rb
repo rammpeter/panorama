@@ -728,13 +728,13 @@ class AdditionController < ApplicationController
     column_options =
         [
             {:caption=>"Gather date",     :data=>proc{|rec| localeDateTime(rec[:gather_date])},   :title=>"Timestamp of object size snapshot", :plot_master_time=>true},
-            {:caption=>"Total MB",        :data=>link_total_mbytes,                               :title=>"Total size for filter criteria in MBytes", :align=>"right" },
+            {:caption=>"Total MB",        :data=>link_total_mbytes,                               :title=>"Total size for filter criteria in MBytes", data_title: proc{|rec| "%t\n#{size_explain(rec[:total])}"}, :align=>"right" },
             {:caption=>"Total incr. MB",  data: proc{|rec| fn(rec[:total_increase])},             :title=>"Total increase since last snapshot for filter criteria in MBytes", :align=>"right" },
         ]
 
     columns.each do |key, value|
-      column_options << {:caption=>key, :data=>proc{|rec| link_mbytes.call(rec, key, rec[key])}, :title=>"Size for #{key} in MB", :align=>"right" }
-      column_options << {caption: "#{key} incr.", data: proc{|rec| fn(rec["#{key}_increase"])},  :title=>"Increase since last snapshot for #{key} in MB", :align=>"right" }
+      column_options << {:caption=>key, :data=>proc{|rec| link_mbytes.call(rec, key, rec[key])}, :title=>"Size for #{key} in MB", data_title: proc{|rec| "%t\n#{size_explain(rec[key])}"}, :align=>"right" }
+      column_options << {caption: "#{key} incr.", data: proc{|rec| fn(rec["#{key}_increase"])},  :title=>"Increase since last snapshot for #{key} in MB", data_title: proc{|rec| "%t\n#{size_explain(rec["#{key}_increase"])}"}, :align=>"right" }
     end
 
     output = gen_slickgrid(@sizes, column_options, {
