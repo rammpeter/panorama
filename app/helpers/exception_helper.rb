@@ -13,7 +13,7 @@ module ExceptionHelper
     ExceptionHelper.log_memory_state(log_mode: log_mode)
     curr_line_no=0
     output = String.new
-    exception.backtrace.each do |bt|
+    exception.backtrace&.each do |bt|
       output << "#{bt}\n" if line_number_limit.nil? || curr_line_no < line_number_limit # report First x lines of stacktrace in log
       curr_line_no += 1
     end

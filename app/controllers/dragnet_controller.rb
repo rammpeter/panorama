@@ -85,7 +85,7 @@ class DragnetController < ApplicationController
       parameter << "<br/><table>"
       entry[:parameter].each do |p|
 #        parameter << "<div title='#{my_html_escape(p[:title])}'>#{my_html_escape(p[:name])} <input name='#{p[:name]}' size='#{p[:size]}' value='#{p[:default]}' type='text'></div><br/>"
-        parameter << "<tr title='#{my_html_escape(p[:title])}'><td>#{my_html_escape(p[:name])}</td><td><input name='#{p[:name]}' size='#{p[:size]}' value='#{p[:default]}' type='text'></td></tr>"
+        parameter << "<tr title='#{my_html_escape(p[:title], false)}'><td>#{my_html_escape(p[:name])}</td><td><input name='#{p[:name]}' size='#{p[:size]}' value='#{p[:default]}' type='text'></td></tr>"
       end
       parameter << "</table><br/>"
     end
