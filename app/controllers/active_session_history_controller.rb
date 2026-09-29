@@ -69,7 +69,7 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
       LEFT OUTER JOIN procs                 po  ON po.Object_ID  = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
-      LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
+      LEFT OUTER JOIN DBA_Data_Files f ON #{ash_data_file_join_sql}
       WHERE 1=1 #{@global_where_string}
       GROUP BY TRUNC(Sample_Time) + TRUNC(TO_NUMBER(TO_CHAR(Sample_Time, 'SSSSS'))/#{group_seconds})*#{group_seconds}/86400, #{session_statistics_key_rule(@groupby)[:sql]}
       ORDER BY 1
@@ -296,7 +296,7 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN procs peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
       LEFT OUTER JOIN procs po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = s.Service_Hash
-      LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = s.Current_File_No
+      LEFT OUTER JOIN DBA_Data_Files f ON #{ash_data_file_join_sql}
       WHERE  1=1
       #{@global_where_string}
       GROUP BY #{group_by_value}
@@ -379,13 +379,13 @@ class ActiveSessionHistoryController < ApplicationController
 
     # Mysteriös: LEFT OUTER JOIN per s.Current_Obj# funktioniert nicht gegen ALL_Objects, wenn s.PLSQL_Entry_Object_ID != NULL
     @sessions= PanoramaConnection.sql_select_iterator(["\
-      WITH procs AS (SELECT /*+ NO_MERGE MATERIALIZE USE_HASH(p) USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
+      WITH procs AS (SELECT /*+ MATERIALIZE USE_HASH(o) */ o.Object_ID, p.SubProgram_ID, p.Object_Type, p.Owner, p.Object_Name, p.Procedure_name
                      FROM   DBA_Procedures p
                      /* wrapped PL/SQL packages may have different Object_IDs in DBA_Procedures and DBA_Objects
                         gv$Session shows the Object_ID used in DBA_Objects */
                      JOIN   DBA_Objects o ON o.Owner = p.Owner AND o.Object_Name = p.Object_Name AND o.Object_Type = p.Object_Type
                     )
-      SELECT /*+ ORDERED USE_HASH(u sv f) Panorama-Tool Ramm */
+      SELECT /*+ ORDERED USE_HASH(u) USE_HASH(sv) USE_HASH(f) */
              #{session_statistics_key_rule(@groupby)[:sql]}           Group_Value,
              #{if session_statistics_key_rule(@groupby)[:info_sql]
                  session_statistics_key_rule(@groupby)[:info_sql]
@@ -420,7 +420,7 @@ class ActiveSessionHistoryController < ApplicationController
       LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID
       LEFT OUTER JOIN procs                 po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID
       LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = s.DBID AND sv.Service_Name_Hash = Service_Hash
-      LEFT OUTER JOIN DBA_Data_Files        f   ON f.File_ID = s.Current_File_No
+      LEFT OUTER JOIN DBA_Data_Files        f   ON #{ash_data_file_join_sql}
       WHERE  1=1
       #{@global_where_string}
       GROUP BY s.DBID, #{session_statistics_key_rule(@groupby)[:sql]}
@@ -1129,7 +1129,7 @@ class ActiveSessionHistoryController < ApplicationController
        LEFT OUTER JOIN procs peo ON peo.Object_ID = x.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = x.PLSQL_Entry_SubProgram_ID
        LEFT OUTER JOIN procs po  ON po.Object_ID = x.PLSQL_Object_ID        AND po.SubProgram_ID = x.PLSQL_SubProgram_ID
        LEFT OUTER JOIN DBA_Hist_Service_Name sv ON sv.DBID = ? AND sv.Service_Name_Hash = x.Service_Hash
-       LEFT OUTER JOIN DBA_Data_Files f ON f.File_ID = x.Current_File_No
+       LEFT OUTER JOIN DBA_Data_Files f ON #{ash_data_file_join_sql(data_file_alias: 'f', ash_alias: 'x')}
        ORDER BY x.Order_Level
       ", get_dbid, @min_snap_id, @max_snap_id, @sample_time, @sample_time, @sample_time, @blocked_session, @blocked_session_serial_no].
         concat(@blocked_inst_id ? [@blocked_inst_id] : []).concat([get_dbid]), modifier: record_modifier)
@@ -1202,7 +1202,7 @@ class ActiveSessionHistoryController < ApplicationController
                             #{"LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID" if @global_where_string['peo.']}
                             #{"LEFT OUTER JOIN procs                 po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID" if @global_where_string['po.']}
                             #{"LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = s.DBID AND sv.Service_Name_Hash = Service_Hash" if @global_where_string['sv.']}
-                            #{"LEFT OUTER JOIN DBA_Data_Files        f   ON f.File_ID = s.Current_File_No" if @global_where_string['f.']}
+                            #{"LEFT OUTER JOIN DBA_Data_Files        f   ON #{ash_data_file_join_sql}" if @global_where_string['f.']}
         WHERE  1=1
         #{@global_where_string}
       )
@@ -1314,7 +1314,7 @@ class ActiveSessionHistoryController < ApplicationController
                                   #{"LEFT OUTER JOIN procs                 peo ON peo.Object_ID = s.PLSQL_Entry_Object_ID AND peo.SubProgram_ID = s.PLSQL_Entry_SubProgram_ID" if @global_where_string['peo.']}
                                   #{"LEFT OUTER JOIN procs                 po  ON po.Object_ID = s.PLSQL_Object_ID        AND po.SubProgram_ID = s.PLSQL_SubProgram_ID" if @global_where_string['po.']}
                                   #{"LEFT OUTER JOIN DBA_Hist_Service_Name sv  ON sv.DBID = s.DBID AND sv.Service_Name_Hash = Service_Hash" if @global_where_string['sv.']}
-                                  #{"LEFT OUTER JOIN DBA_Data_Files        f   ON f.File_ID = s.Current_File_No" if @global_where_string['f.']}
+                                  #{"LEFT OUTER JOIN DBA_Data_Files        f   ON #{ash_data_file_join_sql}" if @global_where_string['f.']}
         WHERE  1=1
         #{@global_where_string}
       )

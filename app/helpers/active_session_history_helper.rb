@@ -353,14 +353,14 @@ module ActiveSessionHistoryHelper
     # if used within existing CTE, don't double WITH, only if first WITH element "WITH" must proceed
     "
      #{"WITH" unless with_cte_alias }
-          ASH_Time AS (SELECT /*+ NO_MERGE MATERIALIZE */ i.Inst_ID, NVL(Min_Sample_Time, SYSTIMESTAMP) Min_Sample_Time
+          ASH_Time AS (SELECT /*+ MATERIALIZE */ i.Inst_ID, NVL(Min_Sample_Time, SYSTIMESTAMP) Min_Sample_Time
                        FROM   gv$Instance i
                        LEFT OUTER JOIN (SELECT Inst_ID, MIN(Sample_Time) Min_Sample_Time
                                         FROM gv$Active_Session_History
                                         GROUP BY Inst_ID
                                        ) ash ON ash.Inst_ID = i.Inst_ID
                       )#{", #{with_cte_alias} AS (" if with_cte_alias}
-     SELECT /*+ NO_MERGE #{"MATERIALIZE" if with_cte_alias} #{additional_hints} */ *
+     SELECT /*+ #{with_cte_alias ? "MATERIALIZE" : "NO_MERGE"} #{additional_hints} */ *
      FROM   (SELECT 10 Sample_Cycle, Instance_Number, Snap_ID, #{awr_columns}#{", dbid" if dbid}
                     #{", #{rounded_sample_time_sql(10)} Rounded_Sample_Time" if select_rounded_sample_time}
              FROM   DBA_Hist_Active_Sess_History s
@@ -375,5 +375,10 @@ module ActiveSessionHistoryHelper
      #{global_filter.nil? ? '' : " WHERE #{global_filter}"}
      #{")" if with_cte_alias}
     "
+  end
+
+  # Join with respect to P1 which sometimes has the more valid info than Current_File_No (e.g. for file# in p1text and Current_File_No = -1)
+  def ash_data_file_join_sql(data_file_alias: 'f', ash_alias: 's')
+    " /* Replacement if s.Current_File_No does not point to a valid file */\n#{data_file_alias}.File_ID = CASE WHEN #{ash_alias}.p1text = 'file#' AND #{ash_alias}.Current_File_No IN (-1, 0, 1) AND #{ash_alias}.P1 != 0 THEN #{ash_alias}.p1 ELSE #{ash_alias}.Current_File_No END"
   end
 end

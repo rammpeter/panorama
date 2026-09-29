@@ -1394,7 +1394,8 @@ oradebug setorapname diag
             params[:p2], params[:p2raw], params[:p2text],
             params[:p3], params[:p3raw], params[:p3text]
           )
-    @object = my_html_escape(@object) unless @object.html_safe?
+    # Object needs to contain valid html including links, so we don't escape it here. If the object is not html_safe, it will be escaped in the view.
+    # @object = my_html_escape(@object) unless @object.html_safe?
     respond_to do |format|
       format.html {render :html => @object.html_safe }
     end

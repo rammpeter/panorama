@@ -161,10 +161,6 @@ module DbaHelper
       end
       mode = p3.to_i & 0xFFFF
       result << "\nMode='#{mode}' (#{lock_modes(mode)})"
-      puts p3
-      puts p3.to_i
-      puts mode
-      result
     when p1text == 'channel context' # reliable message
       sql = "\
 SELECT name_ksrcdes

@@ -319,7 +319,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
    end
 
    data_title_distinct_keys = proc do |rec|
-     "%t, #{fn(rec.num_rows.to_f/rec.distinct_keys, 1) rescue nil} rows per key"
+     "%t\n= #{fn(rec.num_rows.to_f/rec.distinct_keys, 1) rescue nil} rows per key"
    end
 
    column_options =
