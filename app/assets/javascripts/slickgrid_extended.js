@@ -266,7 +266,7 @@ class SlickGridExtended {
         columns.forEach(column => {
             if (column.header_wrap_height > header_height){                     // Check only if max. height of header cell may increase options['headerHeight']
                 this.js_test_cell_header_name.innerHTML = column.name;
-                this.js_test_cell_header.style.width = (column.width-9)+'px';   // column width reduced by 2*padding=4 + 1*border=1
+                this.js_test_cell_header.style.width = (column.width-8)+'px';   // column width reduced by 2*padding=4 (no border, separator is drawn by inset box-shadow)
                 if (this.js_test_cell_header.scrollHeight > header_height){
                     header_height = this.js_test_cell_header.scrollHeight;
                 }
@@ -642,7 +642,7 @@ class SlickGridExtended {
               <div class="slick-inner-cell" id="${test_cell_wrap_id}" style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height:${wrap_height}px; padding: 0; margin: 0; word-wrap: normal;"></div>
             </div>
             <div class="slick-inner-cell" id="${test_cell_height_id}" style="visibility:hidden; position:absolute; left: 0; z-index: -1; height:1px; padding: 0; margin: 0; word-wrap: normal;"></div>
-            <div id="${test_cell_header_id}" class="ui-state-default slick-header-column slick-header-sortable" style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height: 1px; margin: 0; word-wrap: normal;">
+            <div id="${test_cell_header_id}" class="ui-state-default slick-header-column slick-header-sortable" style="visibility:hidden; position:absolute; left: 0; z-index: -1; width:1px; height: 1px; margin: 0; border-right: 0 !important; word-wrap: normal;">
               <span class="slick-column-name" id="${test_cell_header_name_id}"></span>
               <span class="slick-sort-indicator"></span>
             </div>

@@ -59,6 +59,15 @@
     white-space: normal;
 }
 
+/* Header-Spalten ohne echten Border: Browser (z.B. Safari ab macOS 26) runden Border-Breiten bei Zoom != 100% auf Geräte-Pixel.
+   Da die Header-Spalten per float nebeneinander liegen, summiert sich die Abweichung über die Spalten
+   und Header und Datenspalten laufen auseinander. Die Trennlinie wird daher per inset box-shadow gezeichnet,
+   die keinen Einfluss auf die Box-Breite hat. */
+.slick-header-columns .slick-header-column.ui-state-default {
+    border-right: 0 !important;
+    box-shadow: inset -1px 0 0 silver;
+}
+
 /* Übersteuern Default für Header-Zeile mit Inputs für Such-Strings */
 .slick-headerrow-column.ui-state-default {
     padding: 2px;
