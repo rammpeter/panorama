@@ -89,6 +89,8 @@ group :test do
   # gem 'minitest', '5.26.0'  # Rel. 6.0.1 causes ArgumentError: wrong number of arguments (given 3, expected 1..2) at minitest-6.0.1/lib/minitest.rb:472
   # Probem fixed by change minitest.rb:472 "run self, method_name, reporter" to "Runnable.run self, method_name, reporter"
   # https://github.com/minitest/minitest/issues/1063
+  # Since minitest 6 Minitest::Mock and Object#stub (require 'minitest/mock') are extracted into a separate gem
+  gem 'minitest-mock', require: false
 
 end
 

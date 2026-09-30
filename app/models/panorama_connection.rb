@@ -116,6 +116,10 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
 
   # Method comparable to ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_update
   def exec_update(sql, name, binds = [])
+    if /\A\s*(CREATE|DROP|BEGIN|DECLARE)/i.match?(sql) && !binds.empty?
+      raise "Use CALL instead of BEGIN/END; for PL/SQL with binds!"
+    end
+
     type_casted_binds = binds.map { |attr| TypeMapper.new.type_cast(attr.value_for_database) }
 
     log(sql, name, binds, type_casted_binds) do
@@ -805,7 +809,7 @@ class PanoramaConnection
     transformed_code = PackLicense.filter_sql_for_pack_license(code)  # Check for license violation and possible statement transformation
     ThreadLocalStorage.connection_object.register_sql_execution(transformed_code)
 
-    self.sql_execute("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")
+    self.sql_execute("CALL DBMS_OUTPUT.ENABLE(NULL)")
 
     cs = PanoramaConnection.get_jdbc_raw_connection.prepare_call(transformed_code)
 
@@ -831,7 +835,7 @@ class PanoramaConnection
       break if line_count < bulk_size                                                 # No more data to read
     end
 
-    self.sql_execute("BEGIN DBMS_OUTPUT.DISABLE; END;")
+    self.sql_execute("CALL DBMS_OUTPUT.DISABLE()")
     result
   rescue Exception => e
     Rails.logger.error('PanoramaConnection.exec_plsql_with_dbms_output_result') { "Error '#{e.class} : #{e.message}' occurred at execution of:\n#{transformed_code}" }

@@ -1,4 +1,16 @@
 
+# Rails >= 8.1 calls check_current_protected_environment! on the database tasks class of each configured database,
+# but ActiveRecord::Tasks::NullDBDatabaseTasks (activerecord-nulldb-adapter) does not inherit from AbstractTasks
+if defined?(ActiveRecord::Tasks::NullDBDatabaseTasks)
+  ActiveRecord::Tasks::NullDBDatabaseTasks.class_eval do
+    unless method_defined?(:check_current_protected_environment!)
+      def check_current_protected_environment!(_db_config = nil, _migration_class = nil)
+        # NO-OP, there's no real database to protect
+      end
+    end
+  end
+end
+
 # Remove database tasks for nulldb-adapter
 Rake::TaskManager.class_eval do
   def delete_task(task_name)

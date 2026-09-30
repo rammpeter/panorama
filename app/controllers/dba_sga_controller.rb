@@ -2023,7 +2023,7 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
 
     if overwrite_existing
       if sql_select_one(["SELECT COUNT(*) FROM DBA_Advisor_Tasks WHERE Owner = USER AND Task_Name = ?", name]) > 0
-        PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.drop_tuning_task(?); END;", name]
+        PanoramaConnection.sql_execute ["CALL DBMS_SQLTUNE.drop_tuning_task(?)", name]
       end
     end
 
@@ -2050,7 +2050,7 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
                     ) FROM DUAL", @sql_id, scope, time_limit, name, description]
                  end
 
-    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.execute_tuning_task(?); END;", @task_name]
+    PanoramaConnection.sql_execute ["CALL DBMS_SQLTUNE.execute_tuning_task(?)", @task_name]
 
     @report = sql_select_one ["SELECT DBMS_SQLTUNE.report_tuning_task(/* Task Name */ ?, /* Type*/ 'TEXT', /* Level */ 'ALL', owner_name => USER ) FROM DUAL", @task_name]
 
@@ -2216,13 +2216,13 @@ END;
   def create_profile_from_sql_tuning_advisor_task
     @sql_id     = prepare_param :sql_id
     @task_name  = prepare_param :task_name
-    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.accept_sql_profile(task_name => ?, name => ?, task_owner => USER, replace => TRUE); END;", @task_name, @task_name]
+    PanoramaConnection.sql_execute ["CALL DBMS_SQLTUNE.accept_sql_profile(task_name => ?, name => ?, task_owner => USER, replace => TRUE)", @task_name, @task_name]
     show_popup_message("SQL Profile '#{@task_name}' created for SQL ID = '#{@sql_id}' based on Tuning Advisor task recommendation.")
   end
 
   def drop_sql_tuning_advisor_task
     @task_name = prepare_param :task_name
-    PanoramaConnection.sql_execute ["BEGIN DBMS_SQLTUNE.drop_tuning_task(?); END;", @task_name]
+    PanoramaConnection.sql_execute ["CALL DBMS_SQLTUNE.drop_tuning_task(?)", @task_name]
     show_popup_message("SQL Tuning Advisor task '#{@task_name}' dropped.")
   end
 

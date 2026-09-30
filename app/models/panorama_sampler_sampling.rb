@@ -98,12 +98,11 @@ class PanoramaSamplerSampling
 
     # Initialize the cache for translation from Con_ID to Con_DBID outside the package because inside the package V$Containers may get an empty result
     # become ready for subsequent calls of panorama_owner.Con_DBID_From_Con_ID.Get
-    PanoramaConnection.sql_execute "BEGIN #{@sampler_config.get_owner}.Con_DBID_From_Con_ID.Init; END;"
+    PanoramaConnection.sql_execute "CALL #{@sampler_config.get_owner}.Con_DBID_From_Con_ID.Init()"
     con_dbid_sql = "SELECT 0 Con_ID, DBID FROM v$Database".dup
     con_dbid_sql << " UNION ALL SELECT Con_ID, DBID FROM v$Containers WHERE Con_ID != 0" if PanoramaConnection.db_version >= '12.1'
     PanoramaConnection.sql_select_all(con_dbid_sql).each do |con_dbid|
-      PanoramaConnection.sql_execute ["BEGIN #{@sampler_config.get_owner}.Con_DBID_From_Con_ID.Learn(p_Con_ID => ?, p_Con_DBID => ?); END;",
-                                      con_dbid.con_id, con_dbid.dbid]
+      PanoramaConnection.sql_execute ["CALL #{@sampler_config.get_owner}.Con_DBID_From_Con_ID.Learn(p_Con_ID => ?, p_Con_DBID => ?)", con_dbid.con_id, con_dbid.dbid]
     end
 
     PanoramaConnection.sql_execute [sql,

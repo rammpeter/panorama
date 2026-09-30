@@ -85,7 +85,7 @@ class WorkerThread
     ThreadLocalStorage.set_connection_info_for_request(connection_config)
 
     # Remember the config ID at the DB session
-    PanoramaConnection.sql_execute ["BEGIN DBMS_APPLICATION_INFO.SET_CLIENT_INFO(?); END;", @sampler_config.get_config_value(:id)]
+    PanoramaConnection.sql_execute ["CALL DBMS_APPLICATION_INFO.SET_CLIENT_INFO(?)", @sampler_config.get_config_value(:id)]
 
     # management_pack_license should not depend on volatile DB setting !, commented out
     # PanoramaConnection.set_management_pack_license_from_db_in_connection
@@ -246,7 +246,7 @@ class WorkerThread
           PanoramaConnection.sql_execute "ALTER INDEX #{@sampler_config.get_owner.upcase}.#{index.index_name} SHRINK SPACE"
         end
 
-        PanoramaConnection.sql_execute ["BEGIN DBMS_STATS.Gather_Table_Stats(?, ?); END;", @sampler_config.get_owner.upcase, t.table_name]
+        PanoramaConnection.sql_execute ["CALL DBMS_STATS.Gather_Table_Stats(?, ?)", @sampler_config.get_owner.upcase, t.table_name]
         Rails.logger.info('WorkerThread.check_analyze_internal') { "Analyzed table #{@sampler_config.get_owner.upcase}.#{t.table_name} and shrink indizes in #{Time.now-start_time} seconds" }
       end
       @sampler_config.set_last_analyze_check_timestamp
