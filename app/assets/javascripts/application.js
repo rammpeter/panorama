@@ -438,14 +438,33 @@ function code_mirror_from_textarea(id, cm_options, options){
     cm_wrapper.css('margin-top', '5px');                                        // not in stylesheet to allow others to use CodeMirror without margin
     cm_wrapper.addClass('shadow');                                              // not in stylesheet to allow others to use CodeMirror without shadow
 
+    // Restore CodeMirror's original padding-bottom: 50px (commented out in codemirror.css, see vendor/assets/javascripts/codemirror/README).
+    // Together with margin-bottom: -50px it pushes the native horizontal scrollbar of .CodeMirror-scroll (overflow: scroll) out of the
+    // visible area of the wrapper. Without it Safari shows an empty native horizontal scrollbar that hides single line content.
+    // Safe here because the wrapper gets an explicit height by cm.setSize, CodeMirror subtracts this gap itself (scrollGap()).
+    cm_wrapper.find('.CodeMirror-scroll').css('padding-bottom', '50px');
+
     // Defer sizing until CodeMirror is actually laid out in the DOM.
     // Reason: when this function runs, the wrapper may still have height 0 (e.g. inside a hidden/just-injected DOM fragment).
     // jQuery UI .resizable() would then freeze that tiny height as an inline style, so CodeMirror shows less than one line.
     setTimeout(function(){
         cm.refresh();                                                           // force CodeMirror to recompute its layout after DOM insertion
-        let content_height = cm.getScrollInfo().height;                         // actual required height for the content
+        let content_height = cm.getScrollInfo().height;                         // actual required height for the content (without horizontal scrollbar)
         let target_height  = Math.min(content_height, max_height);
         cm.setSize('100%', target_height);                                      // set explicit height before .resizable() captures it
+
+        // Reserve space for horizontal scrollbar if content is wider than the editor.
+        // getScrollInfo().height does not include the scrollbar height. With overlay scrollbars (e.g. Safari on macOS) CodeMirror
+        // places its own 18px high scrollbar element above the bottom of the content, which would hide a single line completely.
+        let scroll_info = cm.getScrollInfo();
+        if (scroll_info.width > scroll_info.clientWidth + 1) {
+            let hscrollbar = cm.getWrapperElement().querySelector('.CodeMirror-hscrollbar');
+            let bar_height = hscrollbar ? hscrollbar.offsetHeight : 0;
+            if (bar_height > 0) {
+                target_height = Math.min(content_height + bar_height, max_height);
+                cm.setSize('100%', target_height);
+            }
+        }
 
         cm_wrapper.resizable();
         cm_wrapper.parent().find(".ui-resizable-se").remove();                  // Entfernen des rechten unteren resize-Cursor
