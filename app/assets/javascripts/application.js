@@ -417,6 +417,25 @@ function adjust_datetimepicker_seconds(input, dp_inst, tp_inst){
 }
 
 /**
+ * Extend the title (tooltip) of elements with attribute data-extend-parent-title by the title of the nearest parent element with title.
+ * Used e.g. for links inside SlickGrid cells: the cell's title (data_title) is shown in front of the link's own title.
+ * Extension is done at mouseenter (before the browser shows the tooltip) because SlickGrid cells are rendered dynamically.
+ * Runs before jQuery UI tooltip (delegated handlers precede the direct handler on document).
+ * jQuery UI tooltip may have temporarily emptied the parent's title and stored it in data('ui-tooltip-title').
+ */
+jQuery(document).on('mouseenter', '[data-extend-parent-title]', function () {
+    if (this.dataset.parentTitleExtended) return;                               // extend only once
+    let parent_title = '';
+    jQuery(this).parents('[title]').each(function () {                          // nearest parent with non-empty title
+        parent_title = this.getAttribute('title') || jQuery(this).data('ui-tooltip-title') || '';
+        return parent_title === '';                                             // false stops the loop
+    });
+    if (parent_title === '') return;                                            // retry at next mouseenter
+    this.title = parent_title + (this.title ? "\n\n" + this.title : '');
+    this.dataset.parentTitleExtended = '1';
+});
+
+/**
  * create a read only CodeMirror object from textarea with content
  * style of object is defined in css class .CodeMirror
  * @param id    texarea DOM-id

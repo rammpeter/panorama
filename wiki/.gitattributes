@@ -1,0 +1,13 @@
+# Zeilenenden im Repo einheitlich auf LF normalisieren.
+# Verhindert, dass Dateien allein durch CRLF/LF-Wechsel als "modified" erscheinen.
+* text=auto eol=lf
+
+# Binärdateien nicht anfassen
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.pptx binary
+*.xlsx binary
+*.docx binary
