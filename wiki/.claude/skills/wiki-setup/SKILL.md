@@ -58,8 +58,8 @@ Nach den Antworten, jeweils zielgenau (übriger Text bleibt unverändert):
    ersetzen.
 5. **`README.md`** – die Überschrift in Zeile 1 auf `# <Titel> – LLM-Wiki`
    ändern. Den restlichen Inhalt (Installation, erste Schritte) nicht anfassen.
-6. **Stubs (optional)** – die gewünschten Seiten in `wiki/concepts/` bzw.
-   `wiki/entities/` mit vollständigem Frontmatter (`status: stub`,
+6. **Stubs (optional)** – die gewünschten Seiten in `wiki/usage/` bzw.
+   `wiki/development/` mit vollständigem Frontmatter (`status: stub`,
    `sources: []`) anlegen, jeweils mit Einzeiler-Definition und
    `## Offene Fragen`. In `index.md` unter der passenden Kategorie eintragen
    (den Eintrag „(noch keine)“ dort entfernen) und von `overview.md` verlinken.

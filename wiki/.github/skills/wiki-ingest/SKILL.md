@@ -39,8 +39,10 @@ auszuführen. Fahre nur fort, wenn er das ausdrücklich nicht möchte.
 4. **Entitäts- und Konzeptseiten aktualisieren.** Für neu auftauchende Dinge und
    Ideen neue Seiten anlegen, bestehende stärken. Querverweise in beide
    Richtungen setzen. Eine Quelle berührt oft 5–15 Seiten. Die Einordnung folgt
-   `CLAUDE.md` (Entitäten = konkrete Dinge, Konzepte = Ideen,
-   Entscheidungen = Wahl + Begründung).
+   `CLAUDE.md`: Das Verzeichnis ist die Kategorie (`wiki/usage/` = Panorama
+   nutzen, `wiki/development/` = wie Panorama gebaut ist), die Art der Seite
+   steht im Frontmatter-Feld `type` (Entitäten = konkrete Dinge,
+   Konzepte = Ideen, Entscheidungen = Wahl + Begründung).
 5. **Widersprüche kennzeichnen.** Widerspricht die Quelle einer bestehenden
    Aussage, beide festhalten, die ältere markieren und unter `## Offene Fragen`
    sowie im Log vermerken. Nichts stillschweigend überschreiben.

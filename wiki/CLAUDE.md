@@ -31,7 +31,10 @@ translation of his English original — left in German deliberately, see
   introduce Panorama-internal terms briefly, assume common Oracle terms.
 - **Typical sources:** the author's own talks and slides (as PDF), blog posts and
   technical articles, personal notes, analysis results and records. Oracle
-  documentation and whitepapers may be added.
+  documentation and whitepapers may be added. For the development half, the
+  **Panorama source repository** itself (`raw/panorama-repository.md` points to
+  the repository root): a living source — cite file paths and the commit read,
+  and expect statements to age with the code.
 - **Typical entities:** [[panorama]] and its components (PanoramaConnection,
   Panorama Sampler, the controller domains), Oracle as an organisation and as a
   product, individual Oracle releases, system views (`V$`/`GV$`, `DBA_HIST_*`),
@@ -41,11 +44,11 @@ translation of his English original — left in German deliberately, see
   [[execution-plans]], [[bind-variables-and-cursor-sharing]], I/O and SGA
   metrics, [[management-pack-licensing]], sampling as a technique.
 
-**Where does it belong?** If a page describes *how Oracle behaves*, it goes into
-`concepts/`. If it describes *what Panorama or Oracle is as a nameable thing* (a
-feature, a component, a view, a release, a tool), it goes into `entities/`.
-Reasoned choices in Panorama development go into `decisions/` — especially where
-Oracle's peculiarities forced the choice.
+**Where does it belong?** If a page helps someone *analyse a database with
+Panorama* — a Panorama feature, a workflow, the Oracle behaviour behind an
+evaluation, a recommendation for the analysed system — it goes into `usage/`. If
+it describes *how Panorama itself is built* — architecture, internal mechanisms,
+reasoned choices in Panorama development — it goes into `development/`.
 
 ---
 
@@ -75,10 +78,9 @@ llm-wiki/
 │   └── assets/         # images that sources refer to
 └── wiki/               # pages owned by the LLM
     ├── overview.md     # top-level synthesis and entry point
-    ├── entities/       # concrete things: people, organisations, products, systems, places
-    ├── concepts/       # ideas, methods, mechanisms, terms
+    ├── usage/          # how to use Panorama for performance analysis
+    ├── development/    # how Panorama works, its architecture and design decisions
     ├── sources/        # one summary per ingested source
-    ├── decisions/      # decisions and their rationale
     └── syntheses/      # cross-cutting analyses, comparisons, kept answers
 ```
 
@@ -104,15 +106,20 @@ ingest if a tool is installed (`soffice --headless --convert-to pdf`, or
 
 ### Where does a page belong?
 
-- **`entities/`** — a *thing* you can name: a person, an organisation or team, a
-  product, a system or component, an event (conference, talk), an external tool.
-- **`concepts/`** — an *idea* or a mechanism: a method, a procedure, a technical
-  term, a model, a principle.
+- **`usage/`** — a *How users use Panorama* page. It describes a Panorama feature, a
+  workflow, a technique or a procedure. 
+- **`development/`** — a *How Panorama works* page. It describes Panorama's architecture, design decisions, and internal mechanisms.
 - **`sources/`** — the summary of an ingested source. Created on every ingest.
-- **`decisions/`** — a choice that was made and its rationale (technology,
-  approach, trade-off). Link the sources and entities involved.
 - **`syntheses/`** — an answer, a comparison or an analysis worth keeping. Good
   answers are filed here instead of disappearing into the chat.
+
+The directory says **who the page is for** (user of Panorama or developer of
+Panorama). **What kind of page it is** — entity, concept or decision — is
+recorded in the front matter field `type`, not in the path. A decision page lives
+in the category it is about: a recommendation for the analysed database
+(e.g. [[do-not-blanket-index-foreign-keys]]) in `usage/`, a design decision of
+Panorama in `development/`. A page that serves both audiences goes where its
+main weight lies and links across.
 
 When in doubt, prefer few substantial pages over many thin ones. Split a page
 when it covers two clearly separable things.
@@ -240,7 +247,8 @@ When the user puts a source into `raw/` and wants it ingested:
    explicitly ask for batch processing.
 3. Create or update a **source page** in `wiki/sources/` with a summary and key
    points.
-4. Update or create the affected **entity** and **concept** pages. One source
+4. Update or create the affected pages in `wiki/usage/` and
+   `wiki/development/` (entities, concepts, decisions). One source
    often touches 5–15 pages. Add and strengthen cross-references.
 5. Mark contradictions with existing claims.
 6. Update **`index.md`** (add new pages, refresh one-liners).

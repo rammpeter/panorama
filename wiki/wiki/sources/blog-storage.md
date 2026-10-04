@@ -4,7 +4,7 @@ type: source
 status: maintained
 tags: [storage, redo, oracle]
 created: 2026-10-01
-updated: 2026-10-02
+updated: 2026-10-04
 sources: [blog.md, posts/]
 ---
 
@@ -63,7 +63,8 @@ carries an "Update 2023-05" in which the author repeats the check against releas
 *"not completely without the risk of getting migrated rows and not deterministic
 at all"*. Both states are recorded in [[oltp-compression]]; the decision page
 [[oltp-compression-only-without-updates]] records that its rationale therefore
-only partly holds.
+only partly holds. That decision has since been **superseded** (2026-10-04) by
+[[monitor-migrated-rows-under-advanced-compression]].
 
 **A contradiction to the documentation, openly named.** The same post quotes
 Oracle's own statement that blocks would be recompressed even after updates on

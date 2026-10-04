@@ -2,12 +2,5 @@
 .DS_Store
 
 # Obsidian-Arbeitsbereich (UI-Zustand pro Nutzer, kein Inhalt)
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/cache
-
-# Obsidian-App- und Plugin-Zustand pro Nutzer (kein Wiki-Inhalt)
-.obsidian/plugins/
-.obsidian/community-plugins.json
-.obsidian/types.json
-.obsidian/graph.json
+.obsidian/*
+wiki/wiki/.obsidian/*

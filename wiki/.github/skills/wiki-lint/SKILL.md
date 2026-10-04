@@ -30,7 +30,8 @@ zuerst `CLAUDE.md` für die Konventionen, gegen die du prüfst.
 9. **Status-Drift** – der `decision_status` einer Entscheidung widerspricht der
    Darstellung an anderer Stelle im Wiki. Diese Prüfung findet Entscheidungen,
    die das Wiki als erledigt „kennt“, aber weiterhin als offen darstellt. Für
-   jede Seite in `wiki/decisions/`:
+   jede Seite mit `type: decision`
+   (in `wiki/usage/` und `wiki/development/`):
    - `decision_status` lesen, dann den **reinen Dateinamen** per `grep` über
      `wiki/` und `index.md` suchen, um eingehende Erwähnungen zu finden.
    - Jede Erwähnung markieren, deren Darstellung nicht passt: Formulierungen im

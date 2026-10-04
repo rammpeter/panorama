@@ -225,3 +225,220 @@ all five decision pages.
 **Safety net:** the German state was copied to the session scratchpad before the
 change (`wiki-backup-de`). The wiki directory is not under version control, so
 there was no git fallback.
+
+## [2026-10-03] maintenance | Restructured into usage and development
+
+The user changed the directory structure in `CLAUDE.md`: the page directories
+`entities/`, `concepts/` and `decisions/` are replaced by the two categories
+**`usage/`** (how to use Panorama for performance analysis) and
+**`development/`** (how Panorama works, its architecture and design decisions).
+`sources/` and `syntheses/` stay. Per the schema's own rule, the convention came
+first and the wiki was then brought in line.
+
+**Moved:** all 61 pages from `wiki/entities/` (6), `wiki/concepts/` (50) and
+`wiki/decisions/` (5) into `wiki/usage/`. File names are unchanged, so every
+wikilink still resolves. The three old directories were removed.
+
+**`wiki/development/` is empty.** Every existing page rests on the blog, which
+describes analysis with Panorama, not its internals. The five decision pages are
+recommendations for the analysed database (indexing, compression, cursor
+sharing …), not design decisions of Panorama — hence `usage/` too.
+
+**Kept:** the front matter field `type` (`entity | concept | decision | …`) and
+with it `decision_status` and lint check 9. The directory now states the
+audience, `type` the kind of page. This reading is the LLM's completion of the
+user's change, recorded in `CLAUDE.md` under *Where does a page belong?*
+
+Changed: `CLAUDE.md` (the "Where does it belong?" paragraph, the note on
+directory vs. `type`, ingest step 4), `index.md` (regrouped into Usage with three
+sub-groups, Development, Syntheses, Sources), `wiki/overview.md` (new section
+*Structure*, open question reworded), `README.md` (directory tree), the skills
+`wiki-ingest`, `wiki-lint` and `wiki-setup` in `.claude/skills/` and
+`.github/skills/` (directory references).
+
+Open: a source on Panorama's internals is needed to fill `development/` — the
+repository itself (e.g. its `CLAUDE.md`, `config/routes.rb`,
+`app/models/panorama_connection.rb`) is the obvious candidate, but is not in
+`raw/`.
+
+## [2026-10-03] ingest | Panorama source repository
+
+Source: `raw/panorama-repository.md`, a pointer to the repository root (`../`,
+<https://github.com/rammpeter/Panorama>), created at the user's request to fill
+the empty development category. Read at commit `d887d8d3`, version 2.19.26.
+Processed without a preceding discussion of key points — the user started the
+ingest directly after asking for the pointer.
+
+**Read:** project guidance and changelog, boot and configuration, the request
+frame, database access, licence filter, encryption and client state, the
+sampler's control flow, the GUI helpers, build scripts, test helpers and CI
+workflows. **Not read:** the bodies of the 17 domain controllers (about 22,000
+lines of SQL), the 392 view templates, the JavaScript, the sampler's PL/SQL
+bodies beyond skimming. Listed on the source page.
+
+**New (11):** source page `panorama-source-code`; in `wiki/development/`:
+`panorama-architecture`, `panorama-connection`, `pack-license-filter`,
+`panorama-sampler-internals`, `panorama-request-and-rendering`,
+`panorama-client-state-and-security`, `panorama-configuration`,
+`panorama-build-test-and-release`, and the decisions
+`own-connection-pool-outside-activerecord` and
+`route-state-changing-actions-post-only` (both `adopted`).
+
+**Changed:** `wiki/usage/panorama.md`, `panorama-sampler.md`, `dragnet.md`,
+`management-pack-licensing.md`, `panorama-operations.md` (open questions
+answered from the code, cross-links into development), `wiki/overview.md`,
+`index.md`, `CLAUDE.md` (the repository as a typical source).
+
+**The source page is named `panorama-source-code`**, not after the raw file:
+`raw/panorama-repository.md` and a wiki page of the same name would make the
+bare wikilink ambiguous.
+
+Contradictions and revisions recorded:
+- **Editions that may choose a pack licence.** Blog 2017-12-01: Enterprise
+  Edition only. Code: also Free (same parameter check) and Express
+  (unconditionally). Both kept in `management-pack-licensing`; open question.
+- **Environment variable names.** The 2019 compose example uses
+  `PANORAMA_SAMPLER_MASTER_PASSWORD` and `LOG_LEVEL`; the code reads
+  `PANORAMA_MASTER_PASSWORD` (old name still accepted) and
+  `PANORAMA_LOG_LEVEL`. Noted in `panorama-operations` and
+  `panorama-configuration`.
+- **`/Panorama` path.** The 2019 Nginx example proxies to `/Panorama`; the code
+  serves at `/` and redirects `/Panorama` there. Marked "possibly outdated", not
+  tested.
+- **Oldest tested release.** The repository's `CLAUDE.md` says 10.2; the active
+  CI jobs start at 11.2.0.4.
+- **Superseded assessment of this wiki:** `dragnet` said the numbering "appears
+  to have been stable". Entries are addressed by tree position only, so numbers
+  shift. Old wording kept and marked.
+
+Open questions closed: architecture without a source (`panorama`, `overview`);
+how the sampler works technically (`panorama-sampler`); size and structure of
+the dragnet catalogue (`dragnet`); running Panorama as a JAR
+(`panorama-operations`).
+
+Marked as conclusions of the wiki, not statements of the source: why JRuby; why
+an own connection pool (beyond the quoted comments); why only state-changing
+actions are POST-only; that CI covers release × licence only statistically; that
+the sampler's table list defines its scope; that the trust boundary is the
+Oracle login.
+
+New open questions, among others: whether a commit should be pinned in the raw
+pointer; unfiltered SQL paths in the licence filter (`exec_clob_plsql_function`);
+connections in use beyond twice their timeout; the hand-maintained POST-only
+list; the boot-time patch of the Oracle adapter gem.
+
+## [2026-10-04] ingest | Speakerdeck slide decks (14 talks, 2016–2026)
+
+Source: `raw/speakerdeck.md`, a pointer to <https://speakerdeck.com/rammpeter>
+with the instruction to read the PDFs. The profile lists 14 decks; all were
+downloaded on 2026-10-03 and **archived as PDF in `raw/speakerdeck/`** (37 MB),
+following the precedent of `raw/posts/` — the authoritative files now sit inside
+the wiki. Processed as a batch at the user's request ("read speakerdeck PDFs"),
+without a preceding discussion of key points.
+
+**How they were read.** No PDF renderer (`poppler`) is installed, so the Read
+tool could not show pages. Text was extracted from all 14 PDFs with `pypdf`
+(installed into the session's scratch directory only). For slides that are
+charts or diagrams — the compression talk and the sampler architecture — the
+slide images were fetched from Speakerdeck and viewed. **Not viewed:** the
+screenshots of Panorama on most other slides; their content is missing from the
+wiki. Two SQL listings in the 2016 ASH deck are garbled by letter-spacing in the
+PDF text and only partly legible.
+
+**Source pages grouped by topic**, as with the blog: `talks-ash-and-temp` (2
+decks), `talks-sql-plan-management` (1), `talks-dragnet-and-proactive-tuning`
+(2), `talks-indexes` (3), `talks-panorama-and-sampler` (3),
+`talks-advanced-compression` (1), `talks-jarbler-and-movex-cdc` (2).
+
+**New pages (6):** in `wiki/usage/`: `rammpeter-talks` (list of all decks),
+`advanced-compression`, `function-based-indexes`,
+`proactive-performance-tuning`, `movex-cdc`; in `wiki/development/`: `jarbler`.
+
+**Changed (26):** `panorama`, `panorama-sampler`, `dragnet`, `ash`, `awr`,
+`temp-usage`, `session-context`, `blocking-locks`, `sql-plan-management`,
+`sql-translation-framework`, `oltp-compression`,
+`oltp-compression-only-without-updates`, `index-compression`, `indexing`,
+`deterministic`, `cross-table-uniqueness`,
+`interval-partitions-rolling-window`, `storage-reorganisation`, `redo-logs`,
+`management-pack-licensing`, `bind-variables-and-cursor-sharing`,
+`master-data-caching`, `rammpeter-blog`; in development
+`panorama-sampler-internals`, `panorama-build-test-and-release`,
+`panorama-architecture`; plus `wiki/overview.md` and `index.md`.
+
+Contradictions, revisions and tensions recorded:
+- **Decision under tension.** `oltp-compression-only-without-updates` (adopted,
+  from the 2018 post) is relativised by the author's talk of 2024-02: for 19c the
+  advice is to keep migrated rows in view, not to avoid the feature. Decision
+  left `adopted`; the tension is recorded under *Open despite the decision* and
+  in the provenance. Three states now stand side by side in `oltp-compression`
+  (2018, 2023-05, 2024-02).
+- **Index compression saving** is stated four ways across the sources (up to
+  half; 1/4 to 1/3; "1/3 to 1/2 of the original size"; up to 30 % or more) and
+  measured as 29 % saved or 13 % *added* depending on column order. All kept in
+  `index-compression`, with the measurement as the explanation.
+- **Dragnet numbering shifts — now evidenced by a source**: the same check is
+  point 1.11 in 2018 and 1.15 in 2026. Confirms the conclusion drawn from the
+  code on 2026-10-03.
+- **Licence of the SQL plan baseline refined**, not contradicted: Enterprise
+  Edition for the baseline, Tuning Pack for creating it from AWR.
+- **Probable slip in a source**: the 2026 deck writes `cursor_sharing=EXACT`
+  where `FORCE` fits. Recorded as written, read as `FORCE`, flagged as an open
+  question in `bind-variables-and-cursor-sharing`.
+- **Apparent contradiction resolved**: the Jarbler talk (2025-05) shows Rails 8.0
+  failing from a JAR, Panorama runs Rails 8.1 from one. Different applications;
+  what made the difference is undocumented.
+- **Changes over time**, not contradictions: packaging WAR (2022) → JAR (2024);
+  sampler releases "to 21" → "to 26ai"; catalogue "just under 100" → "140+".
+
+Open questions closed: the limits of the sampler's ASH (`panorama-sampler`); how
+RAC instances are sampled (`panorama-sampler-internals`); measurements for index
+compression (`index-compression`).
+
+Marked as conclusions of the wiki: that the choice of compression method follows
+the access path; that archive high is hard to justify on the measured numbers;
+that TEMP attribution from ASH is a lower bound; that Jarbler's recurring problem
+is native extensions and gem clashes and that `excluded_gems.txt` is the answer
+to it; that Jarbler replaced Warbler; that the eight performance factors run
+from what money buys to what only design fixes.
+
+Scope note: `movex-cdc` lies outside the wiki's stated subject. One page was
+created for its Oracle design decisions and marked as marginal.
+
+Still not ingested: `raw/rammpeter.github.io.md`.
+
+## [2026-10-04] maintenance | OLTP compression decision superseded; MOVEX CDC in scope
+
+Two decisions by the user, answering the open questions of the Speakerdeck
+ingest. Both rest on **statements by the user in the session**, not on a source
+in `raw/`.
+
+**1. Decision superseded.** `oltp-compression-only-without-updates` changed from
+`adopted` to `superseded`. Successor, newly created and `adopted`:
+`monitor-migrated-rows-under-advanced-compression` — advanced compression may be
+used on updated tables from release 19; the condition is that migrated rows are
+monitored. Substance from the talk of 2024-02 and the blog addendum of 2023-05.
+The old page is kept as the record of the earlier position (still the safe rule
+for 12.x and 18.x); its open points were not deleted, and those that still apply
+were carried into the successor as implementation risks: no monitoring routine
+or threshold is defined, "not deterministic" is unexplained, no measurements for
+19c, nothing verified beyond 19.18.
+
+Status drift checked: every mention of the old decision now says superseded or
+points to the successor — `index.md`, `wiki/overview.md`, `oltp-compression`,
+`advanced-compression`, `talks-advanced-compression`, `blog-storage`.
+
+**2. MOVEX CDC.** Confirmed as mentionable; the "marginal / edge of the subject"
+remarks were removed from `movex-cdc`, `talks-jarbler-and-movex-cdc` and
+`index.md`. Project address corrected to
+<https://gitlab.com/osp-silver/oss/movex-cdc>; the address printed on the 2022 slides
+(`gitlab.com/otto-group-solution-provider/movex-cdc`) is kept on the page as
+what the source says. Open: whether documentation and Docker image moved too.
+
+## [2026-10-04] maintenance | Slip in the 2026 talk confirmed
+
+The author confirmed that "`cursor_sharing=EXACT`" on slide 22 of
+`raw/speakerdeck/2026-05_DOAG_Datenbank_Firefighting_or_Fixing_Root_Causes.pdf`
+("4.1.1 .. 4.1.5 Missing use of bind variables") should read `FORCE`. A user
+statement in the session. Noted in `bind-variables-and-cursor-sharing` and
+`talks-dragnet-and-proactive-tuning`; the archived PDF stays as it is, the
+published deck on Speakerdeck still carries the wrong word.

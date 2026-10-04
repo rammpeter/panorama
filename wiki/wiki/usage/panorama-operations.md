@@ -1,0 +1,116 @@
+---
+title: Panorama operations
+type: entity
+subtype: component
+status: draft
+tags: [panorama, operations]
+created: 2026-10-01
+updated: 2026-10-03
+sources: [blog.md, posts/, panorama-repository.md]
+---
+
+# Panorama operations
+
+How [[panorama]] is run: as a Docker container, behind a reverse proxy for
+HTTPS, and what it takes to connect to an Autonomous Database.
+
+## Docker
+
+([[blog-panorama-the-tool]], 2017-01-29) Available on Docker Hub since January
+2017:
+
+```bash
+docker pull rammpeter/panorama
+docker run --name panorama -p8080:8080 -d rammpeter/panorama
+```
+
+Relevant environment variables, as they appear in the 2019 compose example:
+`TNS_ADMIN`, `TZ`, `MAX_JAVA_HEAP_SPACE_MB`, `PANORAMA_VAR_HOME`,
+`PANORAMA_SAMPLER_MASTER_PASSWORD`, `LOG_LEVEL`. `PANORAMA_VAR_HOME` is mounted
+as a volume — persistent data lives there, including the global dragnet
+extensions, see [[dragnet]].
+
+> **Names have changed since 2019** ([[panorama-source-code]]): the code reads
+> `PANORAMA_MASTER_PASSWORD` (the old `PANORAMA_SAMPLER_MASTER_PASSWORD` is still
+> accepted) and `PANORAMA_LOG_LEVEL` (`LOG_LEVEL` is no longer read). Current
+> list of settings: [[panorama-configuration]].
+
+## As a JAR
+
+([[panorama-source-code]], `README.md`) Java 21 or higher, then:
+
+```bash
+java -jar Panorama.jar
+```
+
+The server listens on port 8080. Settings are passed as environment variables or
+in a YAML file named by `PANORAMA_CONFIG_FILE` ([[panorama-configuration]]).
+Without `PANORAMA_VAR_HOME`, saved logins live in a temporary directory.
+
+## HTTPS via a reverse proxy
+
+([[blog-panorama-the-tool]], 2019-03-27) The container does **not** support
+HTTPS natively. The route goes via a reverse proxy — in the example Nginx, placed
+in front of Panorama using `docker-compose`.
+
+The essential points of the Nginx configuration:
+
+- Port 80 is redirected to HTTPS with a `301`; `/` is redirected to `/Panorama`.
+- `proxy_pass` to `http://panorama:8080/Panorama`.
+- **The headers are not optional:** `proxy_set_header Host $host` is there with
+  the comment that otherwise you get
+  `HTTP Origin header didn't match request.base_url` — an error that would be
+  hard to interpret without this hint. Plus the usual series `X-Forwarded-For`,
+  `-Proto`, `-Ssl`, `-Port`, `-Host`, `X-Real-IP`.
+- `proxy_read_timeout 3600`, on the grounds that Panorama handles timeouts
+  itself.
+
+**A practical note on certificates:** the author uses his own SSL certificates
+and gives the reason — Let's Encrypt "often doesn't work in company environments
+behind firewalls".
+
+> **Possibly outdated (2026-10-03):** in the current code the application is
+> served at `/`, and `/Panorama` only redirects there (`config/routes.rb`). The
+> 2019 example's `proxy_pass …/Panorama` and the redirect of `/` to `/Panorama`
+> describe an older layout. Not tested against a current release.
+
+Even without HTTPS, passwords are encrypted in the browser before transfer since
+2.19.2 — everything else is not
+→ [[panorama-client-state-and-security]].
+
+## Autonomous Database in the Oracle Cloud
+
+([[blog-panorama-the-tool]], 2019-09-20) The environment variable `TNS_ADMIN`
+must point to a directory containing:
+
+- the `tnsnames.ora` provided by the Oracle Cloud
+- the unzipped files of the Oracle wallet: `ewallet.sso`, `ewallet.p12`
+- the Java KeyStore files: `truststore.jks`, `keystore.jks`
+- `ojdbc.properties` with the connection properties for wallet or KeyStore
+
+> The JKS files are the part that does not follow from Oracle's documentation
+> alone: Panorama runs on JRuby and therefore needs the Java route, not the
+> native client's.
+
+## Relationships
+
+- Runs [[panorama]]; the sampler data lives under `PANORAMA_VAR_HOME`
+  → [[panorama-sampler]].
+- Another tool in the blog operated via Docker: [[hammerdb]].
+- Cloud environments hold surprises → [[logon-trigger]],
+  [[unified-audit-trail-operations]].
+
+## Open questions
+
+- The Nginx and compose examples are from 2019 (`version: '3'`,
+  `ssl_protocols TLSv1.1 TLSv1.2`). TLS 1.1 is now considered obsolete — a
+  current version is not evidenced in the ingested sources.
+- ~~How is Panorama run as a JAR rather than as a container?~~ Answered
+  2026-10-03, see *As a JAR*.
+- Does the 2019 Nginx example still work unchanged, given that the application
+  now lives at `/`?
+
+## Sources
+
+- [[blog-panorama-the-tool]]
+- [[panorama-source-code]]

@@ -203,10 +203,9 @@ mein-wiki/
 │   └── README.md        ← welche Formate, wie ablegen
 ├── wiki/                ← gehört dem LLM
 │   ├── overview.md      ← Einstiegsseite
-│   ├── entities/        ← Personen, Organisationen, Produkte, Systeme, Orte
-│   ├── concepts/        ← Ideen, Methoden, Fachbegriffe
+│   ├── usage/           ← Panorama nutzen: Funktionen, Vorgehen, Oracle-Wissen
+│   ├── development/     ← wie Panorama gebaut ist: Architektur, Designentscheidungen
 │   ├── sources/         ← eine Zusammenfassung pro Quelle
-│   ├── decisions/       ← Entscheidungen mit Begründung und Status
 │   └── syntheses/       ← aufbewahrte Antworten, Vergleiche, Analysen
 ├── .claude/skills/      ← die Skills für Claude Code
 ├── .github/skills/      ← dieselben Skills für GitHub Copilot
