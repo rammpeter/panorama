@@ -3,4 +3,5 @@
 
 # Obsidian-Arbeitsbereich (UI-Zustand pro Nutzer, kein Inhalt)
 .obsidian/*
-wiki/wiki/.obsidian/*
+wiki/.obsidian
+log.md
