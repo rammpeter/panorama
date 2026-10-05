@@ -449,14 +449,29 @@ module ExplainPlanHelper
     "%t#{"\n\nmarked orange if the difference between estimated cardinality and real number of gotten rows is greater than 10:1 or vice versa\n" if rec['output_rows']}
 #{"
 Optimizer mode = #{rec.optimizer}"          if rec.optimizer}#{"
-CPU cost = #{fn rec.cpu_cost}"              if rec.cpu_cost}#{"
+CPU cost = #{fn(calc_cpu_cost_from_plan(rec.cpu_cost), 3)}"  if rec.cpu_cost}#{"
 IO cost = #{fn rec.io_cost}"                if rec.io_cost}#{"
 estimated bytes = #{fn rec.bytes}"          if rec.bytes}#{"
 estimated time (secs.) = #{fn rec.time}"    if rec.time}#{"
+estimated CPU time (secs.) = #{fn(estimated_cpu_time_from_plan(rec.cpu_cost), 3)}" if rec.cpu_cost}#{"
 partition start = #{rec.partition_start}"   if rec.partition_start}#{"
 partition stop = #{rec.partition_stop}"     if rec.partition_stop}#{"
 partition ID = #{rec.partition_id}"         if rec.partition_id}
     "
+  end
+
+  # Calculate the CPU cost compared as factor compared to the effort of a single block read
+  # @param cpu_cost_native [Float] The CPU cost as reported by the V$SQL_PLAN view
+  # @return [Float] The CPU cost as factor compared to the effort of a single block read
+  def calc_cpu_cost_from_plan(cpu_cost_native)
+    cpu_cost_native / (PanoramaConnection.sysstat_cpuspeed * 1000 * PanoramaConnection.sysstat_sreadtim).to_f
+  end
+
+  # The estimeatd cpu time for a plan line in seconds based on the CPU cost and the system statistics
+  # @param cpu_cost_native [Float] The CPU cost as reported by the V$SQL_PLAN view
+  # @return [Float] The estimated CPU time in seconds
+  def estimated_cpu_time_from_plan(cpu_cost_native)
+    cpu_cost_native / (PanoramaConnection.sysstat_cpuspeed * 1000000).to_f
   end
 
   # Erweitern Zuweisungen und Vergleiche um Spaces, damit an dieser Stelle umgebrochen werden kann

@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [audit, security, oracle]
 created: 2026-10-01
-updated: 2026-10-02
-sources: [blog.md, posts/]
+updated: 2026-10-05
+sources: [blog.md, posts/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Audit trail
@@ -86,6 +86,20 @@ Three links with a value of their own: a `SessionID` shows all records of that
 session; a "Client machine" is **resolved via DNS** and lists the currently
 connected sessions of that machine; an object name leads to the object details.
 
+## From the usage guide and the menu
+
+([[rammpeter-github-io]], usage guide 4.5.) The guide describes the same three
+entries and adds one detail of use: in the grouped result a click on the column
+**"Audits total"** shows the single audit records behind that group.
+
+The generated menu overview lists **four** entries, one more than the 2023 post:
+"Auditing config" (configuration options for standard and unified auditing)
+stands before "Auditing rules". The standard entry is named "Standard audit
+trail + FGA" and reads `DBA_Common_Audit_Trail`.
+
+A non-admin user on an Autonomous Database needs the role `AUDIT_VIEWER` to read
+the unified audit view ([[panorama-privileges]]).
+
 ## Relationships
 
 - Fills a gap in [[ash]] — see [[short-lived-sessions]].
@@ -105,3 +119,4 @@ connected sessions of that machine; an object name leads to the object details.
 
 - [[blog-audit-trail]]
 - [[blog-sessions-and-connections]]
+- [[rammpeter-github-io]]

@@ -4,8 +4,8 @@ type: concept
 status: stub
 tags: [core, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # AWR (Automatic Workload Repository)
@@ -54,6 +54,16 @@ history has two other AWR sources); and AWR did not store access and filter
 predicates of execution plans up to release 21, which the
 [[panorama-sampler]] does.
 
+## From the website
+
+([[rammpeter-github-io]].) The usage guide gives the retention of the persistent
+ASH data as the AWR retention — **"default=7 days, recommended > 30 days"** —
+and the snapshot interval as hourly by default. Where AWR data is read in
+Panorama: [[sql-area]] (historic SQL), [[session-waits]] (ASH),
+[[segment-statistics]], [[redo-logs]]; Oracle's own report on it is reached
+through [[genuine-oracle-reports]]. All views are listed in
+[[panorama-menu-overview]].
+
 ## Relationships
 
 - Complements [[ash]]: AWR aggregates over intervals, ASH keeps individual
@@ -74,3 +84,4 @@ predicates of execution plans up to release 21, which the
 - [[blog-execution-plans]]
 - [[blog-system-load]]
 - [[talks-panorama-and-sampler]]
+- [[rammpeter-github-io]]

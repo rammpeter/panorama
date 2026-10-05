@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [storage, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Storage reorganisation
@@ -54,6 +54,35 @@ and LOBs.
 **One exception:** for **securefile LOBs** the result of
 `DBMS_SPACE.SPACE_USAGE` differs because of their special structure.
 
+## Why save space at all, and two further places to look
+
+([[rammpeter-github-io]], usage guide chapter 7.) The guide gives four aims of
+minimising storage:
+
+- fewer storage resources — cost, avoided hardware extensions, room for more
+  applications on existing hardware
+- more effective use of the DB cache — higher hit rate, less load from
+  individual objects ([[db-cache-usage]])
+- shorter SQL run times through less I/O and a higher cache hit rate
+- protection against unplanned growth, through more free tablespace
+
+**Recycle bin.** "Schema / Storage" / "Recycle bin" shows what dropped objects
+still occupy. Selecting by size and drop time allows releasing the relevant
+space "after sufficient grace period".
+
+**Unused tables.** The guide's definition: tables with no access at all over a
+longer period, *and* tables that are only written to but whose content is never
+read. For indexes the counterpart is [[index-usage-monitoring]].
+
+**A needed grant.** The exact space figures come from
+`DBMS_SPACE.SPACE_USAGE`, which requires `ANALYZE ANY` or the `ANALYZE` privilege
+on the object ([[panorama-privileges]]).
+
+> The guide's sections on the storage overview, its evolution over time,
+> releasing space below the high water mark, table compression, index
+> compression and size tracking with the sampler are headings without text. What
+> this page says about the high water mark rests on the blog and the talks.
+
 ## Relationships
 
 - The other side of [[tablespace-fragmentation]]: there space that appears free,
@@ -75,3 +104,4 @@ and LOBs.
 ## Sources
 
 - [[blog-storage]]
+- [[rammpeter-github-io]]

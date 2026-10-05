@@ -4,7 +4,7 @@ type: concept
 status: draft
 tags: [system-load, partitioning, oracle]
 created: 2026-10-01
-updated: 2026-10-02
+updated: 2026-10-05
 sources: [blog.md, posts/]
 ---
 
@@ -62,6 +62,12 @@ credits Matthias Rogel for the inspiration.
 
 ## Open questions
 
+- ~~Where is the view reached from today?~~ Raised and closed on 2026-10-05.
+  The menu overview fetched first (generated 2026-09-02) had no entry for long
+  operations; the one regenerated on 2026-10-05 lists "SGA/PGA-Details" /
+  "SQL-Area" / "Long operations" — "Show long running operations from
+  GV$Session_LongOps" — which is the path the blog post gives
+  ([[panorama-menu-overview]], [[rammpeter-github-io]]).
 - How often does the heuristic miss, that is, how frequently does `NO` appear in
   the check column?
 - Can the partition also be determined retrospectively? `ROW_WAIT_OBJ#` is live

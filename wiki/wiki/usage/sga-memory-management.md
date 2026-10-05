@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [shared-pool, storage, oracle]
 created: 2026-10-01
-updated: 2026-10-02
-sources: [blog.md, posts/]
+updated: 2026-10-05
+sources: [blog.md, posts/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # SGA memory management
@@ -71,6 +71,20 @@ In [[panorama]]:
 objects is **not** part of the AWR recordings. [[panorama-sampler]] captures it
 additionally — which makes a historical view possible as well.
 
+## From the usage guide
+
+([[rammpeter-github-io]], usage guide 4.2.) The aim stated: use **as much
+physical memory as possible for the DB cache and the In-Memory area**, and limit
+the shared pool — library cache, SQL area — "to what is necessary". The list of
+objects in the library cache, grouped by type and namespace, leads to the
+concrete objects with their allocated memory.
+
+The menu has three entries under "SGA/PGA-Details" / "SGA Memory": "SGA-components
+current", "SGA-components historic" and "SGA resize operations historic". (The
+guide writes "DBA/SGA details" for the top-level menu; the generated overview
+has "SGA/PGA-Details".) What fills the DB cache is described in
+[[db-cache-usage]].
+
 ## Relationships
 
 - The main cause: [[bind-variables-and-cursor-sharing]], together with the
@@ -91,3 +105,4 @@ additionally — which makes a historical view possible as well.
 ## Sources
 
 - [[blog-panorama-the-tool]]
+- [[rammpeter-github-io]]

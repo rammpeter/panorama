@@ -4,7 +4,7 @@ type: concept
 status: draft
 tags: [core, oracle, licensing]
 created: 2026-10-01
-updated: 2026-10-04
+updated: 2026-10-05
 sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/]
 ---
 
@@ -114,6 +114,8 @@ Tuning Pack; the SQL translation framework is listed as Enterprise Edition
   [[index-access-paths]], [[network-latency-from-ash]], [[partition-pruning]],
   [[parallel-execution]].
 - The licence-free lever on execution plans: [[sql-plan-management]].
+- The other gate besides the licence — the grants a function needs:
+  [[panorama-privileges]]. Oracle's own reports: [[genuine-oracle-reports]].
 
 ## Open questions
 

@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [core, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # ASH (Active Session History)
@@ -105,6 +105,9 @@ recursive SQL, I/O figures; see there.
   [[network-latency-from-ash]], [[library-cache-contention]],
   [[measuring-system-load]].
 - [[panorama]] also presents ASH data as a real-time dashboard.
+- The view in Panorama that evaluates it: [[session-waits]]. The usage guide on
+  the website describes the overlay of the one-second and ten-second sources in
+  the same terms as above ([[rammpeter-github-io]]).
 
 ## Open questions
 
@@ -121,3 +124,4 @@ recursive SQL, I/O figures; see there.
 - [[blog-indexing]]
 - [[talks-ash-and-temp]]
 - [[talks-panorama-and-sampler]]
+- [[rammpeter-github-io]]

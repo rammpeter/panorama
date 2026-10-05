@@ -2486,8 +2486,8 @@ END;
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
 --   - 'decription'  describe purpose of SQL-patch
 
--- Execute this as SQL owner or SYSDBA
--- On Pluggable database execute it connected to PDB, not CDB
+-- Execute this as SYSDBA or user with the grant \"ADMINISTER SQL MANAGEMENT OBJECT\"
+    -- On Pluggable database execute it connected to PDB, not CDB
 -- Keep in mind that the SQL cursor must be present in SGA (V$SQL) to create a SQL patch this way
 
 #{ "-- Drop already existing SQL-Patch for this SQL before applying new patch
@@ -2514,8 +2514,20 @@ END;
 /
 
 
--- ############# To remove the SQL-patch if not needed anymore execute this as SYSDBA #############
+-- ############# To remove the SQL-patch if not needed anymore execute this as SYSDBA or with the needed grant #############
 -- EXEC DBMS_SQLDiag.Drop_SQL_Patch('#{patch_name}');
+
+-- ############# To force a hard parse of the SQL at next execution to apply the patch you can execute as SYSDBA: #############
+/*
+BEGIN
+  FOR cu IN (SELECT RAWTOHEX(Address) Address, Hash_Value FROM v$SQLArea WHERE SQL_ID='#{@sql_id}') LOOP
+    DBMS_SHARED_POOL.PURGE (cu.address||', '||cu.hash_value, 'C');
+    DBMS_OUTPUT.PUT_LINE('Existing cursor for SQL-ID=#{@sql_id} removed from SGA');
+  END LOOP;
+END;
+/
+*/
+
 "
 
     respond_to do |format|

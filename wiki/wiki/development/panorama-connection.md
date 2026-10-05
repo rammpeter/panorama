@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama, architecture, session]
 created: 2026-10-03
-updated: 2026-10-03
-sources: [panorama-repository.md]
+updated: 2026-10-05
+sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # PanoramaConnection
@@ -127,6 +127,25 @@ Conventions that apply to all of them:
 In controllers and tests the same four select methods are available without the
 class prefix, via `ApplicationHelper`.
 
+## What the website says, and where it is out of date
+
+([[rammpeter-github-io]], landing page, "Implementation details".)
+
+- A request reuses a free pooled connection "if same credentials are used
+  (TNS-data, user/password)"; any number of web clients are served, each with
+  its own target database.
+- The pool can be inspected at `http://<server>:8080/usage/connection_pool`, and
+  after admin login under "Admin" / "DB connection pool".
+
+**Idle time — a contradiction that the source resolved.** At the first fetch on
+2026-10-05 the website said inactive connections "are terminated **10 minutes**
+after last usage", against **one hour** in the code (`ConnectionTerminateJob`,
+see *The pool*). The user stated in the session that the code is authoritative.
+The website was then corrected: the version published at 13:03 UTC the same day
+reads "terminated one hour after last usage". Both snapshots are archived
+(`raw/rammpeter.github.io/` and `…/2026-10-05-1303/`). Website and code now
+agree. Whether the limit once was 10 minutes is not evidenced.
+
 ## Relationships
 
 - Part of [[panorama-architecture]].
@@ -147,3 +166,4 @@ class prefix, via `ApplicationHelper`.
 ## Sources
 
 - [[panorama-source-code]]
+- [[rammpeter-github-io]]

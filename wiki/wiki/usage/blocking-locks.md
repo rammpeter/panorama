@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [core, locks, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Blocking locks
@@ -85,6 +85,35 @@ sqlplus / as sysdba
 Captures the hanging state of the database in a trace file — so that the cause is
 still investigable after the restart.
 
+## Two routes to the current locks, one more to the past
+
+([[rammpeter-github-io]], usage guide 2.1.4.) "DBA general" / "DB-Locks" /
+"Current" offers four displays: all current DML locks, all **blocking DML
+locks**, all **blocking DDL locks**, and **two-phase commits that have not
+completed** (for instance over a database link).
+
+For current blocking DML locks there are **two analysis paths, and certain
+special blocking situations are shown by only one of them**:
+
+- **via `gv$Lock`** — the button "Blocking DML Locks" described above: the
+  hierarchical blocker/waiter relationships, starting from the session that
+  triggers the cascade, built from waiting lock requests.
+- **via `gv$Session`** — "Analyses / statistics" / "Session-Waits" / "Current":
+  next to the wait events of the active sessions, the blocker/waiter
+  relationships are listed hierarchically from the session view
+  → [[session-waits]].
+
+> Conclusion: if one view shows no blocker although sessions are evidently
+> waiting, look at the other before concluding there is none. The guide does not
+> say which situations fall through which view.
+
+For the past there is a second entry besides ASH: **"Blocking locks historic
+from Panorama-Sampler"**. Both list the sessions that *triggered* a cascade in
+the chosen period, **sorted by the summed waiting time of all sessions hanging on
+them**. The sampler entry exists only if the recording of blocking locks is
+active for the database ([[panorama-sampler]]); it rests on lock situations the
+sampler collected itself, not on ASH's blocking-session columns.
+
 ## Relationships
 
 - A frequent, avoidable cause: [[foreign-key-locks]].
@@ -107,3 +136,4 @@ still investigable after the restart.
 
 - [[blog-locks]]
 - [[talks-ash-and-temp]]
+- [[rammpeter-github-io]]

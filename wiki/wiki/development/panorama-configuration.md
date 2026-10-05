@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama, architecture, operations]
 created: 2026-10-03
-updated: 2026-10-03
-sources: [panorama-repository.md]
+updated: 2026-10-05
+sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Panorama configuration
@@ -76,6 +76,31 @@ Set in code, relevant when reasoning about behaviour:
   `config/application.rb` — with a fixed syntax, because release scripts and
   external pages parse them ([[panorama-build-test-and-release]])
 
+## What the website says about the settings
+
+([[rammpeter-github-io]], landing page.) The user-facing documentation lists ten
+settings: `MAX_CONNECTION_POOL_SIZE`, `MAX_JAVA_HEAP_SPACE_MB`,
+`PANORAMA_CONFIG_FILE`, `PANORAMA_LOG_LEVEL`, `PANORAMA_LOG_SQL`,
+`PANORAMA_MASTER_PASSWORD`, `PANORAMA_USAGE_INFO_MAX_AGE`, `PANORAMA_VAR_HOME`,
+`SECRET_KEY_BASE`, `SECRET_KEY_BASE_FILE`. It agrees with the table above on the
+defaults (pool 100, heap 1024, log level info) and adds intent:
+
+- The config file is **the preferred method**, to keep secrets out of
+  environment variables. `PANORAMA_CONFIG_FILE` itself and
+  `MAX_JAVA_HEAP_SPACE_MB` work only as environment variables.
+- `MAX_CONNECTION_POOL_SIZE` is explained from the user's side: up to that many
+  connections are cached "even if they are inactive", and at most that many
+  client requests are served concurrently.
+- `PANORAMA_USAGE_INFO_MAX_AGE` is a number of **days**, and exists "to comply
+  with european GDPR rules".
+- `PANORAMA_LOG_SQL=true` is recommended over `PANORAMA_LOG_LEVEL=debug` for
+  learning the SQL behind a view — the debug level "logs the same + much more".
+  (The 2024 talk recommended the debug level, see [[panorama]].)
+- 4096 MB heap is suggested for multi-user production use.
+
+Settings in the table above that the website does not mention are not part of
+the documented interface.
+
 ## Relationships
 
 - Part of [[panorama-architecture]].
@@ -83,12 +108,16 @@ Set in code, relevant when reasoning about behaviour:
 
 ## Open questions
 
-- Is there user-facing documentation of `PANORAMA_CONFIG_FILE` with an example
-  file? The repository's `README.md` does not mention it.
-- `PANORAMA_USAGE_INFO_MAX_AGE` has no unit in the code that reads it; days are
-  likely but unverified.
+- ~~Is there user-facing documentation of `PANORAMA_CONFIG_FILE` with an example
+  file? The repository's `README.md` does not mention it.~~ Answered
+  2026-10-05: the landing page of the website documents it with an example
+  ([[rammpeter-github-io]]) → [[panorama-operations]].
+- ~~`PANORAMA_USAGE_INFO_MAX_AGE` has no unit in the code that reads it; days are
+  likely but unverified.~~ Answered 2026-10-05: the website says "maximum age in
+  days".
 
 ## Sources
 
 - [[panorama-source-code]]
 - [[blog-panorama-the-tool]] (the older variable names)
+- [[rammpeter-github-io]]

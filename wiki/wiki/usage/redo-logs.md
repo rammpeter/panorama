@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [redo, storage, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Redo logs
@@ -91,6 +91,23 @@ plus active should normally never reach the number of available groups; within
 an AWR cycle a shortage can hide, so cross-check the alert log for "cannot
 allocate new log".
 
+## From the usage guide and the menu
+
+([[rammpeter-github-io]].) The submenu "DBA general" / "Redo-Logs" has **three**
+entries: "Current" (from `gv$Log`), "Historic from gv$Log_History" (detailed) and
+"Historic from AWR". The guide (4.3) still speaks of one "Historical" entry; it
+describes the AWR one — usage per snapshot with the number of log switches and
+the number of log files still active and not yet archived.
+
+The guide repeats the rule in its sharpest form: the number of active or not yet
+archived log files "should never reach the number of existing log file groups"
+on a production system, and calls the risk **often latent**, because databases
+are created with three groups by default and this is frequently not adapted —
+with rising write load a temporary freeze "is preprogrammed".
+
+> The entry on `gv$Log_History` needs neither AWR nor the sampler. Whether it
+> shows the shortage itself or only the switch frequency is not stated.
+
 ## Relationships
 
 - The trail via wait events goes through [[ash]].
@@ -110,3 +127,4 @@ allocate new log".
 
 - [[blog-storage]]
 - [[talks-panorama-and-sampler]]
+- [[rammpeter-github-io]]

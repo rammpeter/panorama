@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama, architecture, sampling]
 created: 2026-10-03
-updated: 2026-10-04
-sources: [panorama-repository.md, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [panorama-repository.md, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Panorama Sampler internals
@@ -184,6 +184,27 @@ structurally identical to the AWR views of release 19 or 23, with the same name
 suffix — and the limits of the ASH replacement, recorded in
 [[panorama-sampler]].
 
+## What the website adds
+
+([[rammpeter-github-io]], sampler page.)
+
+- **A health endpoint.** `panorama_sampler/monitor_sampler_status` returns the
+  state of all configured sources as JSON, with HTTP 500 if any has a persisting
+  error. In the code (commit `e8993893`) it is the one action of
+  `PanoramaSamplerController` exempt from authentication
+  (`app/controllers/panorama_sampler_controller.rb`: "The only action that can be
+  called without authentication") and is listed among the exceptions in
+  `application_controller.rb`.
+- **The grants** of the sampling user, including the reason for the
+  package-or-anonymous-block switch in the author's own words
+  → [[panorama-privileges]]. It confirms the code comment quoted above.
+- **Tables are created at the first snapshot**, not when the configuration is
+  saved — the user-visible side of the self-maintaining schema.
+- **One thread per snapshot** of a configured database ("own thread for each
+  snapshot").
+- The diagram `Panorama-Sampler.png` on the website (viewed) is the same picture
+  as in the talks, described in *The picture the author draws*.
+
 ## Relationships
 
 - The feature as users see it: [[panorama-sampler]]; the licence option it
@@ -208,3 +229,4 @@ suffix — and the limits of the ASH replacement, recorded in
 
 - [[panorama-source-code]]
 - [[talks-panorama-and-sampler]]
+- [[rammpeter-github-io]]

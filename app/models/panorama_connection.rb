@@ -168,6 +168,8 @@ class PanoramaConnection
   attr_reader :serial_no
   attr_reader :sid
   attr_reader :sql_stmt_in_execution
+  attr_reader :sysstat_cpuspeed
+  attr_reader :sysstat_sreadtim
   attr_reader :table_directory_entry_size
   attr_reader :time_delay_secs                                                  # Difference between DB-Server and Panorama-Server in seconds (DB-server - Panorama-server)
   attr_reader :transaction_fixed_header_size
@@ -275,6 +277,21 @@ class PanoramaConnection
     panorama_time = Time.new(local_time.year, local_time.month, local_time.day, local_time.hour, local_time.min, local_time.sec, 0) # Time on Panorama-Server with same value but flagged as UTC
     @time_delay_secs = db_time - panorama_time                                  # Difference between client time zone time of Panorama server and Ruby time in seconds (DB-current time - Panorama-server)
     @time_delay_secs = (@time_delay_secs/10.0).round * 10                       # Round to seconds with +/- 5 seconds
+
+    sys_stat = PanoramaConnection.direct_select_one(@jdbc_connection, "\
+                SELECT NVL(CPUSPEED, CPUSPEEDNW) CPUSPEED,
+                       NVL(SREADTIM, IOSEEKTIM +(SELECT value FROM v$parameter where name  = 'db_block_size') / IOTFRSPEED) SReadTim
+                FROM  (SELECT MAX(DECODE(PName, 'CPUSPEED',    PVal1)) CPUSPEED,
+                              MAX(DECODE(PName, 'CPUSPEEDNW',  PVal1)) CPUSPEEDNW,
+                              MAX(DECODE(PName, 'IOSEEKTIM',   PVal1)) IOSEEKTIM,
+                              MAX(DECODE(PName, 'SREADTIM',    PVal1)) SREADTIM,
+                              MAX(DECODE(PName, 'IOTFRSPEED',  PVal1)) IOTFRSPEED
+                       FROM   SYS.AUX_STATS$
+                       WHERE SName = 'SYSSTATS_MAIN'
+                      )")
+    raise "SYS.AUX_STATS$ SYSSTATS_MAIN not available, cannot determine CPU speed and SReadTim" if sys_stat.nil?
+    @sysstat_cpuspeed = sys_stat['cpuspeed']
+    @sysstat_sreadtim = sys_stat['sreadtim']
   end
 
   def register_sql_execution(stmt)
@@ -540,6 +557,8 @@ class PanoramaConnection
   # @return [Time] Time in client time zone of the Panorama server, should mostly be the same like Time.now but not really sure
   def self.db_current_time;                 Time.now + check_for_open_connection.time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection.stat_id_consistent_gets;           end
+  def self.sysstat_cpuspeed;                check_for_open_connection.sysstat_cpuspeed;                  end
+  def self.sysstat_sreadtim;                check_for_open_connection.sysstat_sreadtim;                  end
   def self.table_directory_entry_size;      check_for_open_connection.table_directory_entry_size;        end
   def self.transaction_fixed_header_size;   check_for_open_connection.transaction_fixed_header_size;     end
   def self.transaction_variable_header_size;check_for_open_connection.transaction_variable_header_size;  end

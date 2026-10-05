@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama, operations]
 created: 2026-10-01
-updated: 2026-10-03
-sources: [blog.md, posts/, panorama-repository.md]
+updated: 2026-10-05
+sources: [blog.md, posts/, panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Panorama operations
@@ -92,6 +92,80 @@ must point to a directory containing:
 > alone: Panorama runs on JRuby and therefore needs the Java route, not the
 > native client's.
 
+## From the website
+
+([[rammpeter-github-io]], landing page.) The current operating instructions; where
+they differ from the 2019 examples above, these are newer.
+
+**Starting.** Either `java -jar Panorama.jar` or
+`docker run -p 8080:8080 -d rammpeter/panorama`. Start-up takes "some seconds up
+to a minute" (one or two minutes for the container); the server is ready when
+the console shows `* Listening on http://[::]:8080`.
+
+**Command-line options of the JAR:** `-p` / `--port <port>` (default 8080) and
+`-b` / `--bind <IP address>` (default 0.0.0.0).
+
+**Configuration** by a YAML file or by environment variables — the file is "the
+preferred method to avoid the compromise of secrets in environemnt variables".
+Its location is given by `PANORAMA_CONFIG_FILE`, which itself works only as an
+environment variable. All settings: [[panorama-configuration]]. The website's
+example:
+
+```yaml
+# /var/opt/panorama/config.yml
+PANORAMA_LOG_SQL: "true"
+PANORAMA_VAR_HOME: /var/opt/panorama
+SECRET_KEY_BASE: 923863l82g2j4797h87g13451v4s589es27g...
+```
+
+```bash
+PANORAMA_CONFIG_FILE=/var/opt/panorama/config.yml java -jar Panorama.jar -p 8080
+
+docker run --name panorama -p 8080:8080 \
+  -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora \
+  -v /var/opt/panorama:/var/opt/panorama \
+  -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" \
+  -e MAX_JAVA_HEAP_SPACE_MB=1024 \
+  -e PANORAMA_CONFIG_FILE=/var/opt/panorama/config.yml -d rammpeter/panorama
+```
+
+**Memory.** Default heap 1024 MB; **4096 MB is suggested for multi-user
+production use**. `MAX_JAVA_HEAP_SPACE_MB` works for the container only; for the
+JAR use Java's own `-Xmx4096m`.
+
+**Container specifics.**
+
+- Mount the host's `tnsnames.ora` and set `TNS_ADMIN` inside the container.
+  Caution from the website: with Docker on Windows you sometimes have to mount
+  with `-v $TNS_ADMIN/tnsnames.ora:/etc` instead.
+- Mount `/var/opt/panorama` to a directory outside the container, so that the
+  configuration survives a rebuild.
+- The container's time zone is UTC by default; set it with `-e TZ=…`.
+
+**Do set `PANORAMA_VAR_HOME`.** Without it the system's temporary folder holds
+the generated encryption key *and* the saved encrypted logins — "this
+information may be lost at OS or container restart"
+([[panorama-client-state-and-security]]).
+
+**`tnsnames.ora` without a container** is expected in
+`$ORACLE_HOME/network/admin` or in the directory `TNS_ADMIN` points to. The
+diagram `Panorama_Overview.png` (viewed) shows the layout: web clients reach the
+Panorama application by http/https, the application reads `tnsnames.ora` on its
+own machine and talks SQL*Net to the database — clients need no Oracle
+connectivity of their own.
+
+**HTTPS** is still recommended through a reverse proxy (Nginx, Apache, Traefik),
+with a link to the 2019 post described above.
+
+**Demo installation.** A public Panorama at <http://158.101.168.240:8080> with a
+demo database in the Oracle cloud: TNS aliases `PANORAMATEST_xxx`, user
+`panorama_test`, password `TryItOut2019`, as published on the landing page.
+
+**Looking at the server itself.** `http://<server>:8080/usage/connection_pool`
+shows the pooled connections ([[panorama-connection]]); with admin login there
+are the menu entries "DB connection pool", "Usage history" and "Set log level"
+([[panorama-menu-overview]]).
+
 ## Relationships
 
 - Runs [[panorama]]; the sampler data lives under `PANORAMA_VAR_HOME`
@@ -99,6 +173,7 @@ must point to a directory containing:
 - Another tool in the blog operated via Docker: [[hammerdb]].
 - Cloud environments hold surprises → [[logon-trigger]],
   [[unified-audit-trail-operations]].
+- Which database user to connect with: [[panorama-privileges]].
 
 ## Open questions
 
@@ -114,3 +189,4 @@ must point to a directory containing:
 
 - [[blog-panorama-the-tool]]
 - [[panorama-source-code]]
+- [[rammpeter-github-io]]

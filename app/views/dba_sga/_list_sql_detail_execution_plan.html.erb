@@ -322,7 +322,7 @@ Last = #{fn(rec.last_disk_writes)}
        @caption << @additional_ash_message
      end
      @caption_title = String.new
-     @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on Active Session History.\\n"
+     @caption_title << "Columns DB-Time, CPU, Waits etc. are calculated based on gv$Active_Session_History.\\n"
      @caption_title << "First considered ASH sample is from #{localeDateTime(@min_sample_time)}\\n" if @min_sample_time
 
      if mp[:adaptive_plan]

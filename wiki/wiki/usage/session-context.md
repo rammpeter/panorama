@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [session, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Session context
@@ -61,6 +61,21 @@ if module and action were set at the start of each transaction: they are sampled
 into [[ash]] and recorded in other tracks of the database, and allow the
 activity to be assigned to the triggering process afterwards.
 
+## From the usage guide
+
+([[rammpeter-github-io]], usage guide 5.1 — the only written section of its
+chapter on application design.) Module and action hold **64 characters each**;
+they are recorded "in various histories (including in ASH and SQL statistics)".
+The advice on *where* to set them: anchor the call **deep in the technical
+infrastructure** of the application, for instance at the beginning of every
+transaction or request, so that tagging is complete. With only sporadic setting
+on pooled connections, later activity stays assigned "to a random predecessor
+activity of this session" — the pooling argument above, in the author's own
+summary.
+
+The tags are what the module filters in [[session-list]] and the grouping
+criteria in [[session-waits]] work on.
+
 ## Relationships
 
 - Makes [[short-lived-sessions]] attributable.
@@ -81,3 +96,4 @@ activity to be assigned to the triggering process afterwards.
 
 - [[blog-sessions-and-connections]]
 - [[talks-ash-and-temp]]
+- [[rammpeter-github-io]]

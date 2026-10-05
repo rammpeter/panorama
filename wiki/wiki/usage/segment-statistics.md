@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [system-load, storage, oracle]
 created: 2026-10-01
-updated: 2026-10-02
-sources: [blog.md, posts/]
+updated: 2026-10-05
+sources: [blog.md, posts/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Segment statistics
@@ -59,6 +59,22 @@ The structure in detail:
 samples, the function aborts with an intelligible error message and demands a
 larger interval. Without that check the differences would be silently wrong.
 
+## In Panorama
+
+([[rammpeter-github-io]], usage guide 2.3.2 and 2.3.3.) "Analyses / statistics"
+/ "Segment Statistics":
+
+- **"Current"** shows the *change* of the statistic values for the last x
+  seconds — the sample-twice technique described above, built in.
+- **"Historic"** shows the change over a chosen period from the AWR snapshots:
+  first a summary of several statistics per object, then, by a click on the
+  column **"AWR snaps."**, the individual snapshots of that object, which can be
+  put into a diagram and compared.
+
+With [[panorama-sampler]] as the source, three statistics are missing because
+`v$SegStat` does not supply them: 'gc cr blocks served', 'gc current blocks
+served' and 'chain row excess'.
+
 ## Relationships
 
 - Finer and available faster than [[awr]] snapshots, the same line of enquiry as
@@ -80,3 +96,4 @@ larger interval. Without that check the differences would be silently wrong.
 ## Sources
 
 - [[blog-system-load]]
+- [[rammpeter-github-io]]

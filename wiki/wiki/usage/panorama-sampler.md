@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama, licensing]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Panorama Sampler
@@ -118,12 +118,74 @@ Sysmetric_Summary, System_Event, SysStat, Tablespace, Tempfile, TempStatXS,
 TopLevelCall_Name, UndoStat, WR_Control. The rule stated: every AWR view that
 Panorama's own functions use gets a replacement.
 
+## Setting it up and using it
+
+([[rammpeter-github-io]], sampler page.)
+
+1. **Start the Panorama server with a master password**
+   (`PANORAMA_MASTER_PASSWORD`). That adds "Admin login" to the menu "Spec.
+   additions" and starts the background threads for sampling.
+2. **Log in as admin** and open "Admin" / "Panorama-Sampler config". (The page
+   also says the function is "in menu 'Spec. additions'"; the generated menu
+   overview puts it under "Admin".)
+3. **Add the database:** TNS alias or host, port and SID/service name; user and
+   password; optionally a different schema for the sampler's tables — needed for
+   a CDB, where you log in with a system account to sample all PDBs.
+4. **Per domain** (AWR/ASH, size evolution, cache usage, blocking locks,
+   long-term trend) set separately: active or not, period between snapshots,
+   retention before housekeeping, and domain-specific settings.
+
+The grants of the sampling user are listed in [[panorama-privileges]].
+
+**The tables are created deferred, at the first snapshot.** Only after that does
+Panorama recognise sampler data at login and offer the choice between three
+ways of working: Oracle's AWR (Enterprise Edition with Diagnostics Pack), the
+sampler's data, or no historic workload data at all — "but this way Panorama's
+functions are strongly reduced" ([[management-pack-licensing]]).
+
+**Several master passwords** are possible: each gives its own set of
+configurations, and sampling is active only for the set belonging to the
+password the server was started with.
+
+**Health check for monitoring tools.**
+`http://<server>:8080/panorama_sampler/monitor_sampler_status` returns JSON with
+the configured data sources — ID, name, time of the last successful connect,
+time of the last error and its message. The HTTP status is 200, or **500 if any
+configured source has a persisting error**; meant for Zabbix, Nagios, Icinga and
+the like. It is the only sampler action reachable without authentication
+([[panorama-sampler-internals]]).
+
+**Further limits named on the website** beyond those from the talks: in the
+sampled segment statistics 'gc cr blocks served', 'gc current blocks served' and
+'chain row excess' are missing, because `v$SegStat` does not supply them
+([[segment-statistics]]). The ASH replacement samples once per second for
+short-term storage ("currently until next snapshot") and keeps every tenth
+second for the long term — the same two grains as Oracle's ([[ash]]).
+
+**The synonym script** for foreign AWR scripts is printed on the website as
+well. One detail not noted from the talk: `GV$ACTIVE_SESSION_HISTORY` becomes a
+synonym, while `V$ACTIVE_SESSION_HISTORY` is created as a **view** that filters
+the sampler's table to the current instance.
+
+### Differences to the other sources
+
+- **One more replaced view.** The website's list has 38 entries; compared with
+  the list from the 2025 talk below it additionally contains
+  `DBA_Hist_Sys_Time_Model`. Either the talk slide omitted it or it was added
+  since.
+- ~~**`java -jar Panorama.war`** in the website's start example is outdated; the
+  artefact is `Panorama.jar` ([[jarbler]]).~~ Corrected on the website the same
+  day: the version published 2026-10-05 13:03 UTC says `Panorama.jar`.
+
 ## Relationships
 
 - A component of [[panorama]].
 - Takes the place of [[awr]] and [[ash]] → [[management-pack-licensing]].
 - Underpins [[blocking-locks]], [[long-term-trend-analysis]] and the
   dashboard described in [[panorama]].
+- Views that exist only with sampler data: historic [[db-cache-usage]], lock
+  history in [[blocking-locks]], object size evolution
+  ([[panorama-menu-overview]]).
 
 ## Open questions
 
@@ -143,3 +205,4 @@ Panorama's own functions use gets a replacement.
 - [[blog-indexing]]
 - [[panorama-source-code]]
 - [[talks-panorama-and-sampler]]
+- [[rammpeter-github-io]]

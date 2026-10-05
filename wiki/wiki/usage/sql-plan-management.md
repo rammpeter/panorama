@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [execution-plan, optimizer, licensing, oracle]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # SQL plan management
@@ -114,6 +114,47 @@ Further points from the talk:
   baselines, stored outlines, translations, patches — including whether each is
   really used ([[talks-sql-plan-management]], [[talks-panorama-and-sampler]]).
 
+## The procedure in the usage guide
+
+([[rammpeter-github-io]], usage guide chapter 6.) The guide puts one thing
+before all four mechanisms: **realistic object statistics** are the first
+prerequisite for good plans → [[describe-object]].
+
+**What a baseline actually pins.** Not the plan itself but its **plan hash
+value** — "the optimizer itself must be able to determine this plan". A baseline
+for a plan the optimizer can no longer produce (a dropped index, say) therefore
+does not take effect.
+
+**Baseline from the AWR history**, step by step:
+
+1. In the SQL detail view (current or historic, see [[sql-area]]) press
+   "Complete history" and pick the period in which the SQL ran with the better
+   plan.
+2. Open the detail view for that period by clicking its start time.
+3. Press "SQL Plan Baseline": a PL/SQL snippet is generated, to be executed by
+   SYSDBA. If more than one plan was active in the period, a list for choosing
+   the plan appears first.
+
+This route **requires the Tuning Pack**, because the snippet uses
+`DBMS_SQLTUNE.CREATE_SQLSET` to take the plan from AWR. A baseline can
+alternatively be generated from the current cursor cache of the SGA.
+
+**The others, as the guide ranks them:**
+
+- *SQL profiles* come from the SQL tuning functions of Enterprise Manager /
+  Cloud Control. For running the SQL Tuning Advisor through Panorama the login
+  user needs `ADVISOR` and `CREATE ANY SQL PROFILE` ([[panorama-privileges]]).
+- *SQL patches* (from 11.1) specify hints "in a less complex way than via SQL
+  profiles" and are usable **without additional licence, also in Standard
+  Edition**.
+- *SQL translation* (from 12.1) allows "total influence": not only hints, but
+  exchanged result columns, removed or added joins, other sources — as long as
+  result structure and bind variables stay the same
+  → [[sql-translation-framework]].
+
+For each of the four, an existing directive is shown **in signal red** in the
+detail view of the SQL.
+
 ## Relationships
 
 - Addresses the problem from [[execution-plans]].
@@ -133,3 +174,4 @@ Further points from the talk:
 
 - [[blog-execution-plans]]
 - [[talks-sql-plan-management]]
+- [[rammpeter-github-io]]

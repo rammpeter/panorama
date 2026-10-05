@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [index, optimizer, oracle]
 created: 2026-10-04
-updated: 2026-10-04
-sources: [speakerdeck.md, speakerdeck/2023-10_DOAG-Regio_FunctionBasedIndex.pdf, speakerdeck/2023-11_FunctionBasedIndexes.pdf, speakerdeck/2020-12_Sicheres_identifizieren_von_nicht_relevanten_Indizes.pdf]
+updated: 2026-10-05
+sources: [speakerdeck.md, speakerdeck/2023-10_DOAG-Regio_FunctionBasedIndex.pdf, speakerdeck/2023-11_FunctionBasedIndexes.pdf, speakerdeck/2020-12_Sicheres_identifizieren_von_nicht_relevanten_Indizes.pdf, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Function-based indexes
@@ -132,6 +132,31 @@ function looked up a column in a related table — is the starting point of
 - A function-based index needs statistics on its hidden column to be estimated
   properly → [[extended-statistics]].
 
+## The example in the usage guide
+
+([[rammpeter-github-io]], usage guide 7.5.) A second worked example of indexing
+only the rows that matter, with different numbers from the talks' "3 GB to one
+block":
+
+- Table with **400 million rows**, column `Status` with `'N'` (new) and `'P'`
+  (processed); about **300** rows are new at any time.
+- The plain index on `Status` has a **two-digit gigabyte** size and is never
+  used for `'P'` — the optimizer sees from the histogram that a full scan is
+  cheaper.
+- `CREATE INDEX Ix_Tab ON Tab(DECODE(Status, 'N', 'N', NULL))` shrinks it "by a
+  factor of 1,000,000 to a few kilobytes", since NULLs are not stored.
+- The query must use the identical expression:
+  `WHERE DECODE(Status, 'N', 'N', NULL) = 'N'`.
+
+**Extended:** because mere presence in the index now means "new", the indexed
+*value* is free to carry a second criterion. Instead of a two-column index on
+`(Status, ArtNr)`:
+`CREATE INDEX Ix_Tab ON Tab(DECODE(Status, 'N', ArtNr, NULL))`, queried with
+`WHERE DECODE(Status, 'N', ArtNr, NULL) = :artnr`.
+
+> Both `CREATE INDEX` statements as printed on the website lack a closing
+> parenthesis; they are given here corrected.
+
 ## Relationships
 
 - One of two ways to shrink an index that must stay; the other is
@@ -156,3 +181,4 @@ function looked up a column in a related table — is the starting point of
 ## Sources
 
 - [[talks-indexes]]
+- [[rammpeter-github-io]]

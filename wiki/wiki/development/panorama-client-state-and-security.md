@@ -4,8 +4,8 @@ type: concept
 status: draft
 tags: [panorama, architecture, security]
 created: 2026-10-03
-updated: 2026-10-03
-sources: [panorama-repository.md]
+updated: 2026-10-05
+sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Client state and security in Panorama
@@ -134,6 +134,34 @@ exist. `AdminController#admin_logon`:
 > Panorama instance can attempt logins to any database that instance can reach
 > on the network — Panorama adds no access control in front of that.
 
+## The website's account of the same model
+
+([[rammpeter-github-io]], landing page, "What about security?".) The
+user-facing description agrees with what the code shows and is worth having in
+the author's words:
+
+- Credentials are "always asynchronously encrypted at network transfer from
+  browser to the Panorama server by a public key", even without HTTPS —
+  asymmetric encryption is meant.
+- The database password is stored encrypted on the server and decrypted "shortly
+  in server memory only for the process of establishing connection".
+- The key is the server-side `SECRET_KEY_BASE` **salted with a client key from
+  the browser cookie** — "this way only requests from your browser are able to
+  reuse the stored connect info".
+- Logins saved with the checkbox "Save logins" are stored under
+  `PANORAMA_VAR_HOME`, encrypted the same way.
+- The key "can contain all printable characters and should be at least 128
+  characters long". **Every change of the key invalidates all stored connection
+  info.** Without a fixed key a generated one is stored under
+  `PANORAMA_VAR_HOME`.
+- The sampler's connection passwords are encrypted "with a combination of server
+  key … and your master password" (sampler page).
+
+**What is logged about users.** `Usage.log` under `PANORAMA_VAR_HOME` is plain
+text and records client IP address, database name, time, called function and
+the TNS alias or URL. `PANORAMA_USAGE_INFO_MAX_AGE = 0` disables it; with admin
+login it can be viewed under "Admin" / "Usage history".
+
 ## Relationships
 
 - Part of [[panorama-architecture]].
@@ -151,3 +179,4 @@ exist. `AdminController#admin_logon`:
 ## Sources
 
 - [[panorama-source-code]]
+- [[rammpeter-github-io]]

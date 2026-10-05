@@ -107,7 +107,7 @@ ingest if a tool is installed (`soffice --headless --convert-to pdf`, or
 ### Where does a page belong?
 
 - **`usage/`** — a *How users use Panorama* page. It describes a Panorama feature, a
-  workflow, a technique or a procedure. 
+  workflow, a technique or a procedure. It should contain an overview page with all menu items and their purpose, and a page for each menu item with the details of its use and the Oracle concepts behind it. 
 - **`development/`** — a *How Panorama works* page. It describes Panorama's architecture, design decisions, and internal mechanisms.
 - **`sources/`** — the summary of an ingested source. Created on every ingest.
 - **`syntheses/`** — an answer, a comparison or an analysis worth keeping. Good

@@ -5,8 +5,8 @@ subtype: component
 status: draft
 tags: [panorama]
 created: 2026-10-01
-updated: 2026-10-04
-sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Dragnet Investigation
@@ -114,6 +114,12 @@ Numbers as of the talk in which they appear.
 - A component of [[panorama]].
 - Many entries require [[awr]] or [[ash]] and therefore a licence per
   [[management-pack-licensing]].
+- The website says "more than 100 considered aspects" and the usage guide "over
+  100 different performance antipatterns", against "140+" in the 2026 talk and
+  roughly 150 in the code — the website has not kept up
+  ([[rammpeter-github-io]]). The guide calls the menu "Special extensions"; the
+  generated menu overview has "Spec. additions" / "Dragnet investigation"
+  ([[panorama-menu-overview]]).
 
 ## Open questions
 
@@ -138,3 +144,4 @@ Numbers as of the talk in which they appear.
 - [[rammpeter-blog]]
 - [[panorama-source-code]]
 - [[talks-dragnet-and-proactive-tuning]]
+- [[rammpeter-github-io]]

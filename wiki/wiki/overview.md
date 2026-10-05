@@ -4,8 +4,8 @@ type: overview
 status: draft
 tags: [top-level]
 created: 2026-09-30
-updated: 2026-10-04
-sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/]
+updated: 2026-10-05
+sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Overview
@@ -23,8 +23,11 @@ Full catalogue of all pages: [[index]].
 The wiki is divided by audience into two categories:
 
 - **Usage** (`wiki/usage/`) — how to analyse an Oracle database with Panorama:
-  features, workflows, techniques and the Oracle behaviour behind them. All
-  pages written so far belong here; the core topics below are its content.
+  features, workflows, techniques and the Oracle behaviour behind them. Two
+  pages give the way in: [[panorama-menu-overview]] lists every menu entry with
+  its purpose and its page, and [[panorama-analysis-workflows]] describes how an
+  analysis is laid out and how the interface is driven. The core topics below
+  are its content.
 - **Development** (`wiki/development/`) — how Panorama itself works:
   architecture, internal mechanisms, design decisions. Entry point:
   [[panorama-architecture]].
@@ -33,6 +36,17 @@ Alongside sit the source summaries (`wiki/sources/`) and kept answers
 (`wiki/syntheses/`).
 
 ## Core topics
+
+### Getting started with the tool
+
+[[panorama-privileges]] says which grants the login user needs (the minimum is
+`SELECT ANY DICTIONARY`), [[panorama-operations]] how to start and configure the
+server. An analysis then runs along **three pillars** — sessions
+([[session-list]], [[session-waits]]), SQL ([[sql-area]]) and objects
+([[describe-object]], [[db-cache-usage]]) — each looked at in its current state
+or retrospectively ([[panorama-analysis-workflows]]). Checks of the setup start
+at [[database-configuration]]; Oracle's own reports are delivered by
+[[genuine-oracle-reports]].
 
 ### The stance: do not wait for the incident
 
@@ -134,7 +148,13 @@ in seven `talks-…` source pages. They arrange what the blog establishes and ad
 measurements (compression), a technique ([[function-based-indexes]]) and the
 inside view of the sampler.
 
-Not yet ingested: `raw/rammpeter.github.io.md`.
+The fourth source is **Panorama's website** ([[rammpeter-github-io]]): landing
+page, sampler page, an unfinished usage guide and a menu overview generated from
+the source code, fetched twice on 2026-10-05 (the site was republished in between) and archived
+in `raw/rammpeter.github.io/`. It supplied the menu structure, the grants and the
+operating instructions, and is in a few places older than the code.
+
+All pointers in `raw/` are now ingested.
 
 ## Open questions
 
@@ -155,8 +175,17 @@ Not yet ingested: `raw/rammpeter.github.io.md`.
   message through images.
 - **Version states go stale.** Many findings are tied to releases (11.2, 12.1,
   19.x). For 21c and 23ai there are usually no measurements.
-- **Two functions required Adobe Flash** (SQL Monitor report, Performance Hub) —
-  discontinued since the end of 2020, current state not evidenced.
+- **Menu pages are missing for 58 of 124 menu entries.** The schema asks for a
+  page per menu entry; the website gives most entries only one line. The
+  repository is the source that could fill them ([[panorama-menu-overview]]).
+- **The website's usage guide has known slips** (release "11.4", menu names
+  that differ from the generated overview, two `CREATE INDEX` examples with a
+  missing parenthesis) and is unfinished; the landing page still says "more
+  than 100" dragnet checks. Two other points found at the first fetch were
+  corrected on the website the same day — see [[rammpeter-github-io]].
+- **Two functions required Adobe Flash** (SQL Monitor report, Performance Hub).
+  For the SQL Monitor report the website now describes CSS and JavaScript
+  ([[sql-monitor]]); for the Performance Hub the current state is not evidenced.
 - Which Oracle concepts still deserve pages of their own? Wait event classes and
   optimizer statistics beyond the extended statistics are so far covered only in
   scattered form.
