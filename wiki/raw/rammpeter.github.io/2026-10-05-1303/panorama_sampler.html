@@ -1,0 +1,212 @@
+<html>
+    <head>
+        <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+        <meta name="description" content="AWR and ASH for Oracle Standard Edition or without Diagnostics Pack" />
+        <title>Panorama-Sampler for Oracle: AWR and ASH without license</title>
+    </head>
+<body onload="window.location = 'https://rammpeter.github.io/index.html?target=panorama_sampler';">
+
+<div style="position: relative;" xmlns="http://www.w3.org/1999/html">
+    <div class="shadow opaque" style="width:100%; height: 100%; background-color: #99CC99; position:absolute; top:0px; left:0px; z-index:1;">
+    </div>
+    <div style="position: relative; z-index: 2; padding: 10px;">
+        <div id="panorama_sampler_global">
+            <div id="panorama_sampler_text" style="float:left; max-width: 80%;">
+                <h1>Panorama-Sampler for Oracle databases</h1>
+
+                'Panorama-Sampler' is an add-on function for <a href="https://rammpeter.github.io/panorama.html" target="_blank">Panorama</a> which allows it's own database workload recording as alternative to use of AWR data.<br/>
+                This enables you to use Panorama's functions for evaluation of historic workload info:
+                <ul>
+                    <li><b>with any database edition including Standard Edition</b></li>
+                    <li><b>without licensing of Diagnostics Pack for Enterprise Edition</b></li>
+                </ul>
+                <img src="images/Panorama-Sampler.png"/><br/>
+                <h2>Functions</h2>
+                Panorama-Sampler delivers several functions for recording of historic workload information
+                <ul>
+                    <li>Replacement for Active Workload Repository (AWR) and Active Session History (ASH)</li>
+                    <li>Sampling of storage object sizes</li>
+                    <li>Sampling of DB-cache usage by objects</li>
+                    <li>Sampling of detailed blocking lock information</li>
+                    <li>Long-term storage of condensed Active Session History</li>
+                </ul>
+                Evaluation and visualization of recorded data is possible with Panorama's web client app.
+
+                <h2>Usage</h2>
+
+                <h3>Configure your Panorama server instance for Panorama-Sampler</h3>
+
+                <ul>
+                    <li>You enable Panorama-Sampler by starting the Panorama application with a master-password for Panorama-Sampler provided by environment variable PANORAMA_MASTER_PASSWORD, for example:<br/>
+                        <pre style="display: inline;">PANORAMA_MASTER_PASSWORD=mypasswd java -jar Panorama.jar</pre> or<br/>
+                        <pre style="display: inline;">docker run -e PANORAMA_MASTER_PASSWORD=mypasswd rammpeter/panorama</pre>
+                    </li>
+                    <li>If master-password is set, Panorama starts enhanced with:
+                        <ul>
+                            <li>An additional menu entry "Admin login" in menu "Spec. additions"</li>
+                            <li>If you provide the password at "Admin login" then Panorama-Sampler config can be done at menu "Admin"/"Panorama-Sampler config"</li>
+                            <li>Background threads for data sampling (own thread for each snapshot of a configured target database)</li>
+                        </ul>
+                    </li>
+                    <li>Access to GUI-function "Panorama-Sampler config" is protected by this master-password</li>
+                    <li>You may use different master-passwords at Panorama-server startup if this makes sense for you. This results in one configuration-set per master-password.</li>
+                </ul>
+
+                <h3>Configure data sources for sampling with Panorama-Sampler</h3>
+
+                <h4>To activate sampling for your database, add it with function "Panorama-Sampler config" in menu "Spec. additions" and configure:</h4>
+                <ul>
+                    <li>TNS-Alias resp. host, port, SID/service-name</li>
+                    <li>User/password for the schema containing Panorama's tables for workload recording</li>
+                    <li>Schema name if workload tables should be created in different schema than used for connection. Important e.g. for CDB where you need to login with system account to sample workload of all PDBs</li>
+                    <li>For each of the five topics AWR/ASH, size evolution, cache-usage, blocking locks and long-term trend you can define separately:
+                        <ul>
+                            <li>Activate or deactivate sampling</li>
+                            <li>Period between snapshots</li>
+                            <li>Retention time before housekeeping</li>
+                            <li>Further topic specific settings</li>
+                        </ul>
+                    </li>
+                </ul>
+                <img src="images/panorama-sampler-config.png"/><br/>
+                <h4>The configured connection user needs the the following grants to work:</h4>
+                <ul>
+                    <li><pre style="display: inline;">GRANT CONNECT, RESOURCE, CREATE VIEW</pre> to create tables and views</li>
+                    <li>Enough quota on it's default tablespace to create objects</li>
+                    <li><pre style="display: inline;">GRANT SELECT ANY DICTIONARY</pre> to select from dictionary tables</li>
+                    <li><pre style="display: inline;">GRANT EXECUTE ON DBMS_LOCK</pre> as SYS to allow execution of DBMS_LOCK.SLEEP in active session sampler.<br/>
+                        This is needed only up to rel. 12.2, starting with 18.0 Panorama uses DBMS_SESSION.SLEEP instead of DBMS_LOCK.SLEEP.
+                    </li>
+                    <li>The right to create objects in different object schema if connection user and object schema are different</li>
+                </ul>
+                If the connection user has the grant <pre style="display: inline;">GRANT SELECT ANY TABLE</pre> in addition, then PL/SQL-packages are created for the execution of sampling.</br>
+                If the connection user doesn't have this grant, then larger anonymous PL/SQL is executed at each snapshot instead of a package call that may result in a bit more network traffic.<br>
+                The reason for need of possible anonymous PL/SQL is: you may not select from V$-tables from inside PL/SQL-packages because this right is based on role SELECT_CATALOG_ROLE and roles are not propagated to PL/SQL objects.
+
+                <h3>Choose access on Panorama-Sampler's data in Panorama's web client application</h3>
+                The Panorama client automatically recognizes the existence of Panorama-Sampler data during logon and offers you to choose this data.
+                You can choose one of three options how Panorama gets access to historic workload info for this database:
+                <ul>
+                    <li>Use Oracle's AWR data which requires Enterprise Edition and licensing of Diagnostics Pack for that database</li>
+                    <li>Use workload data recorded by Panorama's own sampling engine</li>
+                    <li>Don't use historic workload info, but this way Panorama's functions are strongly reduced</li>
+                </ul>
+
+                <img src="images/management_pack_choice.png"/><br/>
+                <span style="color: red">Please take into account that Panorama-Sampler's tables are created deferred at first snapshot execution.<br/>
+                This way you can choose Panorama-Sampler data at logon only after first snapshot execution.</span>
+
+                <h2>Licensing</h2>
+
+                You may use Panorama-Sampler for free under the terms and conditions of <a href="http://www.gnu.org/licenses/gpl-3.0" target="_blank">GNU General Public License</a>.
+
+                <h2>Function volume</h2>
+                Until now Panorama-Sampler offers replacement for the follwing AWR views:
+                <ul>
+                    <li>gv$Active_Session_History</li>
+                    <li>DBA_Hist_Active_Sess_History</li>
+                    <li>DBA_Hist_Cache_Advice</li>
+                    <li>DBA_Hist_Database_Instance</li>
+                    <li>DBA_Hist_Datafile</li>
+                    <li>DBA_Hist_Enqueue_Stat</li>
+                    <li>DBA_Hist_FileStatXS</li>
+                    <li>DBA_Hist_IOStat_Detail</li>
+                    <li>DBA_Hist_IOStat_Filetype</li>
+                    <li>DBA_Hist_Log</li>
+                    <li>DBA_Hist_Memory_Resize_Ops</li>
+                    <li>DBA_Hist_OSStat</li>
+                    <li>DBA_Hist_OSStat_Name</li>
+                    <li>DBA_Hist_Parameter</li>
+                    <li>DBA_Hist_PGAStat</li>
+                    <li>DBA_Hist_Process_Mem_Summary</li>
+                    <li>DBA_Hist_Resource_Limit</li>
+                    <li>DBA_Hist_Seg_Stat</li>
+                    <li>DBA_Hist_Service_Name</li>
+                    <li>DBA_Hist_Service_Stat</li>
+                    <li>DBA_Hist_SGAStat</li>
+                    <li>DBA_Hist_Snapshot</li>
+                    <li>DBA_Hist_SQL_Bind</li>
+                    <li>DBA_Hist_SQL_Plan</li>
+                    <li>DBA_Hist_SQLStat</li>
+                    <li>DBA_Hist_SQLText</li>
+                    <li>DBA_Hist_StatName</li>
+                    <li>DBA_Hist_Sysmetric_History</li>
+                    <li>DBA_Hist_Sysmetric_Summary</li>
+                    <li>DBA_Hist_System_Event</li>
+                    <li>DBA_Hist_SysStat</li>
+                    <li>DBA_Hist_Sys_Time_Model</li>
+                    <li>DBA_Hist_Tablespace</li>
+                    <li>DBA_Hist_Tempfile</li>
+                    <li>DBA_Hist_TempStatXS</li>
+                    <li>DBA_Hist_TopLevelCall_Name</li>
+                    <li>DBA_Hist_UndoStat</li>
+                    <li>DBA_Hist_WR_Control</li>
+                </ul>
+                <h2>Further implementation details</h2>
+                <ul>
+                    <li>For RAC-systems please add one configuration for each particular RAC-instance with instance-specific service names or given SID.</li>
+                    <li>You may use different master-passwords. This results in one configuration-set per master-password. Sampling is active only for the configuration set of the master password Panorama is started with</li>
+                    <li>Sampling cycle for the function similar to Active Session History is fixed to 1 second for short term storage (currently until next snapshot) and 10 seconds for long term storage</li>
+                    <li>Your configured connection passwords are stored in file system at Panorama server encrypted with a combination of server key (see <a href="https://rammpeter.github.io/panorama.html" target="_blank">Panorama</a>: What about security) and your master password</li>
+                </ul>
+
+                <h2>Limitations compared to AWR</h2>
+                    <h3>Sampling of active sessions</h3>
+                    <ul>
+                        <li>Plan-line-ID and operation are not recorded because of missing source in v$-views</li>
+                        <li>Only top level SQL is recorded as listed by v$Session.sql_id</li>
+                        <li>I/O-Requests and amount read/written is not recorded because sampling from v$SesStat is too slow for one sample per second</li>
+                    </ul>
+                    <h3>Sampling of segment statistics</h3>
+                    <ul>
+                        <li>'gc cr blocks served', 'gc current blocks served' and 'chain row excess' are not available from v$SegStat</li>
+                    </ul>
+                <h2>Monitoring health status of Panorama-Sampler</h2>
+                    There is a monitoring service available at <pre style="display: inline;">http://&lt;your&nbsp;server&nbsp;ip&gt;:8080/panorama_sampler/monitor_sampler_status</pre>.<br/>
+                    It returns a JSON buffer with a list of configured data sources with ID, name, timestamp of last successfull connect, timestamp of last error and error message.<br/>
+                    The http return status depends on the existence of a still persisting error in any of the configured datasources (OK = 200, Error = 500).<br/>
+                    You can use this service for observation with monitoring tools like Zabbix, Nagios. Icinga etc. .
+                <h2>Using other SQL scripts based on AWR and ASH</h2>
+                    Due to the identical structure between Panorama's data and original AWR/ASH objects it becomes also possible to redirect foreign SQL scripts or software based on AWR/ASH to using Panorama's sampled data instead.<br/>
+                    This small PL/SQL snippet creates local synonyms for all AWR views (DBA_HIST_xxx) as well as for ASH (v$Active_Session_History, gv$Active_Session_History) if executed in Panorama's schema.
+                    If there's no substitution by Panorama then the DBA_HIST_xxx-synonyms are directed to a non existing object, this way causing an error at access instead of possible license violation.<br/>
+                    In result you may run your your SQLs in Panorama's schema with all access an DB_HIST_xxx and ASH views redirected to Panorama's data or causing errors.
+                    <pre style="background-color: lightyellow; overflow-x: scroll;">
+SET SERVEROUTPUT ON;
+BEGIN
+  FOR Rec IN (SELECT v.View_Name, p.Object_Name Panorama_Name
+              FROM   DBA_Views v
+              LEFT OUTER JOIN (SELECT /*+ NO_MERGE */ Object_Name
+                               FROM   User_Objects
+                               WHERE  Object_Name LIKE 'PANORAMA_%'
+                              ) p ON p.Object_Name = REPLACE(v.View_Name, 'DBA_HIST_', 'PANORAMA_')
+              WHERE  v.View_Name LIKE 'DBA_HIST_%' AND v.Owner = 'SYS'
+              ORDER BY Panorama_Name NULLS FIRST, v.View_Name
+             )
+  LOOP
+    IF Rec.Panorama_Name IS NULL THEN
+      DBMS_OUTPUT.PUT_LINE('Not substituted by Panorama, redirecting synonym to not existing object: '||Rec.View_Name);
+      EXECUTE IMMEDIATE 'CREATE OR REPLACE SYNONYM '||Rec.View_Name||' FOR NOT_SUBSTITUTED';
+    ELSE
+      DBMS_OUTPUT.PUT_LINE('Substituted by Panorama, redirecting synonym '||Rec.View_Name||' to '||Rec.Panorama_Name);
+      EXECUTE IMMEDIATE 'CREATE OR REPLACE SYNONYM '||Rec.View_Name||' FOR '||Rec.Panorama_Name;
+    END IF;
+  END LOOP;
+  DBMS_OUTPUT.PUT_LINE('Substituted by Panorama, redirecting synonym GV$ACTIVE_SESSION_HISTORY to PANORAMA_V$ACTIVE_SESS_HISTORY');
+  EXECUTE IMMEDIATE 'CREATE OR REPLACE SYNONYM GV$ACTIVE_SESSION_HISTORY FOR PANORAMA_V$ACTIVE_SESS_HISTORY';
+  DBMS_OUTPUT.PUT_LINE('Substituted by Panorama as view V$ACTIVE_SESSION_HISTORY on PANORAMA_V$ACTIVE_SESS_HISTORY');
+  EXECUTE IMMEDIATE 'CREATE OR REPLACE VIEW V$ACTIVE_SESSION_HISTORY AS
+                     SELECT * FROM PANORAMA_V$ACTIVE_SESS_HISTORY
+                     WHERE Inst_ID = SYS_CONTEXT(''USERENV'', ''INSTANCE'')';
+END;
+/
+                    </pre>
+
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+</div>
+
+</body>
+</html>

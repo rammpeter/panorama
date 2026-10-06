@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.26">
+<meta name="author" content="Author: Peter Ramm ( Peter@ramm-oberhermsdorf.de )">
+<title>Performance analysis of Oracle-DB with Panorama: Introduction</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment the following line when using as a custom stylesheet */
+/* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+html{font-family:sans-serif;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+b,strong{font-weight:bold}
+abbr{font-size:.9em}
+abbr[title]{cursor:help;border-bottom:1px dotted #dddddf;text-decoration:none}
+dfn{font-style:italic}
+hr{height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type=checkbox],input[type=radio]{padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,::before,::after{box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;line-height:1;position:relative;cursor:auto;-moz-tab-size:4;-o-tab-size:4;tab-size:4;word-wrap:anywhere;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre).nobreak{word-wrap:normal}
+:not(pre).nowrap{white-space:nowrap}
+:not(pre).pre-wrap{white-space:pre-wrap}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.2),inset 0 0 0 .1em #fff;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin:0 auto;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child{border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:none;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:hsla(0,0%,100%,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details{margin-left:1.25rem}
+details>summary{cursor:pointer;display:block;position:relative;line-height:1.6;margin-bottom:.625rem;outline:none;-webkit-tap-highlight-color:transparent}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";border:solid transparent;border-left:solid;border-width:.3em 0 .3em .5em;position:absolute;top:.5em;left:-1.25rem;transform:translateX(15%)}
+details[open]>summary::before{border:solid transparent;border-top:solid;border-width:.5em .3em 0;transform:translateY(15%)}
+details>summary::after{content:"";width:1.25rem;height:1em;position:absolute;top:.3em;left:-1.25rem}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class=paragraph]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6);word-wrap:anywhere}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border:1px solid #e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;border-radius:4px}
+.sidebarblock{border:1px solid #dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;border-radius:4px}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:first-child,.sidebarblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child,.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{border-radius:4px;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock pre>code{display:block}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos,pre.pygments .linenos{border-right:1px solid;opacity:.35;padding-right:.5em;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+pre.pygments span.linenos{display:inline-block;margin-right:.75em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans-serif;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;font-size:.85rem;text-align:left;margin-right:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content{margin-bottom:1.25em;word-wrap:anywhere}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>*>tr>*{border-width:1px}
+table.grid-cols>*>tr>*{border-width:0 1px}
+table.grid-rows>*>tr>*{border-width:1px 0}
+table.frame-all{border-width:1px}
+table.frame-ends{border-width:1px 0}
+table.frame-sides{border-width:0 1px}
+table.frame-none>colgroup+*>:first-child>*,table.frame-sides>colgroup+*>:first-child>*{border-top-width:0}
+table.frame-none>:last-child>:last-child>*,table.frame-sides>:last-child>:last-child>*{border-bottom-width:0}
+table.frame-none>*>tr>:first-child,table.frame-ends>*>tr>:first-child{border-left-width:0}
+table.frame-none>*>tr>:last-child,table.frame-ends>*>tr>:last-child{border-right-width:0}
+table.stripes-all>*>tr,table.stripes-odd>*>tr:nth-of-type(odd),table.stripes-even>*>tr:nth-of-type(even),table.stripes-hover>*>tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+li>p:empty:only-child::before{content:"";display:inline-block}
+ul.checklist>li>p:first-child{margin-left:-1em}
+ul.checklist>li>p:first-child>.fa-square-o:first-child,ul.checklist>li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist>li>p:first-child>input[type=checkbox]:first-child{margin-right:.25em}
+ul.inline{display:flex;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+td.hdlist2{word-wrap:anywhere}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:4px solid #fff;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active,#footnotes .footnote a:first-of-type:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);border-radius:50%;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt,summary{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,td.hdlist1,span.alt,summary{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]{border-bottom:1px dotted}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#header,#content,#footnotes,#footer{max-width:none}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>Performance analysis of Oracle-DB with Panorama: Introduction</h1>
+<div class="details">
+<span id="author" class="author">Author: Peter Ramm ( Peter@ramm-oberhermsdorf.de )</span><br>
+</div>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_introduction_into_usage_of_panorama">1. Introduction into usage of Panorama</a>
+<ul class="sectlevel2">
+<li><a href="#_conditions_for_db_user_for_usage_with_panorama">1.1. Conditions for DB-user for usage with Panorama</a></li>
+<li><a href="#_control_usage_of_panorama_gui">1.2. Control / usage of Panorama-GUI</a>
+<ul class="sectlevel3">
+<li><a href="#_globally">1.2.1. Globally</a></li>
+<li><a href="#_tables">1.2.2. Tables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_essential_analysis_ways">2. Essential analysis ways</a>
+<ul class="sectlevel2">
+<li><a href="#_db_session_analysis">2.1. DB session analysis</a>
+<ul class="sectlevel3">
+<li><a href="#_evaluation_of_current_connected_db_sessions_via_session_list">2.1.1. Evaluation of current connected DB sessions via session list</a></li>
+<li><a href="#_evaluation_of_the_wait_state_of_the_currently_active_sessions">2.1.2. Evaluation of the wait state of the currently active sessions</a></li>
+<li><a href="#_retrospective_analysis_of_active_db_sessions_via_active_session_history_ash">2.1.3. Retrospective analysis of active DB sessions via Active Session History (ASH)</a></li>
+<li><a href="#_analysis_of_concurrency_issues_e_g_blocking_locks">2.1.4. Analysis of concurrency issues (e.g., blocking locks)</a>
+<ul class="sectlevel4">
+<li><a href="#_analysis_of_current_locks">2.1.4.1. Analysis of current locks</a></li>
+<li><a href="#_retrospective_analysis_of_concurrency_problems">2.1.4.2. Retrospective analysis of concurrency problems</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_sql_analysis">2.2. SQL analysis</a>
+<ul class="sectlevel3">
+<li><a href="#_determination_of_possibly_problematic_sql_statements_which_are_still_hold_in_memory">2.2.1. Determination of possibly problematic SQL statements which are still hold in memory</a></li>
+<li><a href="#_retrospective_analysis_of_executed_sqls_via_active_workload_repository_awr">2.2.2. Retrospective analysis of executed SQLs via Active Workload Repository (AWR)</a></li>
+<li><a href="#_evaluation_of_recorded_sql_monitoring_reports">2.2.3. Evaluation of recorded SQL monitoring reports</a></li>
+</ul>
+</li>
+<li><a href="#_db_objects">2.3. DB Objects</a>
+<ul class="sectlevel3">
+<li><a href="#_detail_information_about_db_objects_tables_indexes_etc">2.3.1. Detail information about DB objects (tables, indexes etc.)</a></li>
+<li><a href="#_current_statistics_for_db_objects">2.3.2. Current statistics for DB objects</a></li>
+<li><a href="#_retrospective_statistics_for_db_objects">2.3.3. Retrospective statistics for DB objects</a></li>
+<li><a href="#_db_cache_usage_by_objects">2.3.4. DB cache usage by objects</a>
+<ul class="sectlevel4">
+<li><a href="#_use_of_the_current_db_cache_by_objects">2.3.4.1. Use of the current DB cache by objects</a></li>
+<li><a href="#_retrospective_analysis_of_db_cache_utilization_by_objects_via_recording_by_panorama_sampler">2.3.4.2. Retrospective analysis of DB cache utilization by objects via recording by Panorama-Sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_evaluate_scan_the_db_system_for_potential_performance_antipatterns">3. Evaluate / scan the DB system for potential performance antipatterns</a></li>
+<li><a href="#_evaluation_of_configuration_and_operation_of_the_db_system">4. Evaluation of configuration and operation of the DB system</a>
+<ul class="sectlevel2">
+<li><a href="#_view_the_current_db_configuration_via_initialization_parameters">4.1. View the current DB configuration via initialization parameters</a></li>
+<li><a href="#_evaluate_the_memory_configuration_of_the_db_system">4.2. Evaluate the memory configuration of the DB system</a></li>
+<li><a href="#_evaluation_of_sufficient_dimensioning_of_the_redo_log_files">4.3. Evaluation of sufficient dimensioning of the redo log files</a></li>
+<li><a href="#_evaluate_the_stress_and_performance_of_the_io_system">4.4. Evaluate the stress and performance of the I/O system</a></li>
+<li><a href="#_db_audit_trail">4.5. DB audit trail</a>
+<ul class="sectlevel3">
+<li><a href="#_audit_configuration">4.5.1. Audit configuration</a></li>
+<li><a href="#_standard_audit_trail">4.5.2. Standard audit trail</a></li>
+<li><a href="#_unified_audit_trail">4.5.3. Unified audit trail</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_application_design_requirements_for_optimal_performance">5. Application design requirements for optimal performance</a>
+<ul class="sectlevel2">
+<li><a href="#_tag_db_sessions_via_dbms_application_info">5.1. Tag DB sessions via DBMS_Application_Info</a></li>
+<li><a href="#_use_of_binding_variables">5.2. Use of binding variables</a></li>
+<li><a href="#_efficient_use_of_pl_sql_in_sql_statements">5.3. Efficient use of PL / SQL in SQL statements</a>
+<ul class="sectlevel3">
+<li><a href="#_pragma_udf_for_preventing_context_switches">5.3.1. Pragma UDF for preventing context switches</a></li>
+<li><a href="#_direct_addressing_of_package_constants_instead_of_package_functions">5.3.2. Direct addressing of package constants instead of package functions</a></li>
+</ul>
+</li>
+<li><a href="#_efficient_data_structures">5.4. Efficient data structures</a>
+<ul class="sectlevel3">
+<li><a href="#_indexing">5.4.1. Indexing</a></li>
+<li><a href="#_securing_references_uniqueness_and_rules">5.4.2. Securing references, uniqueness and rules</a></li>
+</ul>
+</li>
+<li><a href="#_usage_of_views">5.5. Usage of views</a></li>
+</ul>
+</li>
+<li><a href="#_influencing_the_execution_plan_of_critical_sqls">6. Influencing the execution plan of critical SQLs</a>
+<ul class="sectlevel2">
+<li><a href="#_ensure_up_to_date_and_realistic_object_analysis_data">6.1. Ensure up-to-date and realistic object analysis data</a></li>
+<li><a href="#_act_directly_on_the_execution_plan_of_sqls_without_changing_the_application_code">6.2. Act directly on the execution plan of SQLs without changing the application code</a>
+<ul class="sectlevel3">
+<li><a href="#_fix_execution_plans_to_a_concrete_plan_by_sql_plan_baseline">6.2.1. Fix execution plans to a concrete plan by SQL Plan Baseline</a>
+<ul class="sectlevel4">
+<li><a href="#_use_of_better_past_execution_plans_from_awr_history_per_sql_plan_baseline">6.2.1.1. Use of better past execution plans from AWR history per SQL plan baseline</a></li>
+<li><a href="#_fix_an_execution_plan_from_the_current_sga_as_an_sql_plan_baseline">6.2.1.2. Fix an execution plan from the current SGA as an SQL plan baseline</a></li>
+</ul>
+</li>
+<li><a href="#_specification_of_optimizer_hints_via_sql_profiles">6.2.2. Specification of optimizer hints via SQL Profiles</a></li>
+<li><a href="#_specification_of_optimizer_hints_via_sql_patch">6.2.3. Specification of optimizer hints via SQL Patch</a></li>
+<li><a href="#_dynamically_changing_the_sql_text_via_sql_translation">6.2.4. Dynamically changing the SQL text via SQL Translation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_ensure_optimal_storage_utilization">7. Ensure optimal storage utilization</a>
+<ul class="sectlevel2">
+<li><a href="#_get_information_about_storage_usage">7.1. Get information about storage usage</a>
+<ul class="sectlevel3">
+<li><a href="#_overview_over_current_storage_usage">7.1.1. Overview over current storage usage</a></li>
+<li><a href="#_evolution_of_storage_usage_over_time">7.1.2. Evolution of storage usage over time</a></li>
+<li><a href="#_deleted_objects_in_the_recycle_bin">7.1.3. Deleted objects in the Recycle Bin</a></li>
+</ul>
+</li>
+<li><a href="#_release_unused_space_below_the_high_water_mark_offcut">7.2. Release unused space below the high-water mark / offcut</a></li>
+<li><a href="#_compression_of_tables">7.3. Compression of tables</a>
+<ul class="sectlevel3">
+<li><a href="#_partitioning_to_separate_current_and_legacy_data">7.3.1. Partitioning to separate current and legacy data</a></li>
+</ul>
+</li>
+<li><a href="#_compression_of_indexes">7.4. Compression of indexes</a></li>
+<li><a href="#_use_function_based_indexes_to_reduce_indexes_to_values_of_interest">7.5. Use function based indexes to reduce indexes to values of interest</a></li>
+<li><a href="#_determination_of_unused_tables">7.6. Determination of unused tables</a></li>
+<li><a href="#_identification_and_removal_of_unused_indexes">7.7. Identification and removal of unused indexes</a>
+<ul class="sectlevel3">
+<li><a href="#_establishment_of_monitoring_usage_for_the_detection_of_unused_indices">7.7.1. Establishment of monitoring usage for the detection of unused indices</a></li>
+</ul>
+</li>
+<li><a href="#_tracking_the_size_evolution_of_objects_via_panorama_sampler">7.8. Tracking the size evolution of objects via panorama sampler</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Panorama</div>
+<div class="paragraph">
+<p>Panorama is my swiss army knife for performance analysis and troubleshooting on Oracle databases.
+To find more about Panorama including download link, blog etc. look at <a href="https://rammpeter.github.io/panorama.html" class="bare">https://rammpeter.github.io/panorama.html</a></p>
+</div>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip">
+</td>
+<td class="content">
+This page is not yet completed and still under construction.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_introduction_into_usage_of_panorama">1. Introduction into usage of Panorama</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Detailled preconditions for operation and usage of Panorama are described here: <a href="https://rammpeter.github.io/panorama.html" class="bare">https://rammpeter.github.io/panorama.html</a></p>
+</div>
+<div class="sect2">
+<h3 id="_conditions_for_db_user_for_usage_with_panorama">1.1. Conditions for DB-user for usage with Panorama</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Basically, the system privilege SELECT ANY DICTIONARY is required for the DB user used to log in to Panorama</p>
+</li>
+<li>
+<p>To use Oracle&#8217;s own ready-made AWR and ASH reports as well as the SQL Monitoring plug-in, as of DB Release 11.4, the system privilege OEM_MONITOR is also required</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_control_usage_of_panorama_gui">1.2. Control / usage of Panorama-GUI</h3>
+<div class="sect3">
+<h4 id="_globally">1.2.1. Globally</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>System-wide contextual information by MouseOver hints are often offered</p>
+</li>
+<li>
+<p>Details of displayed values can be triggered by clicking on hyperlinks</p>
+</li>
+<li>
+<p>The detailing / subsequent steps in the workflow will usualy be continued from top to bottom under the previous browser content</p>
+</li>
+<li>
+<p>The triggering of links in earlier steps of the workflow (earlier in the history of the triggered actions) deletes the underlying block in the browser and replaces it with the result of the current action</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tables">1.2.2. Tables</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>The table display is sorted by clicking on the column header</p>
+</li>
+<li>
+<p>Sort by multiple columns can be done by successive sorting of individual columns</p>
+</li>
+<li>
+<p>Other functions can be accessed via the context menu (right mouse button):</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Column-neutral functions</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Show a search-filter row in the table with the possibility of filtering the table by the values of each displayed column</p>
+</li>
+<li>
+<p>Export of the table contents to Excel via CSV file</p>
+</li>
+<li>
+<p>Change the line height between one-line and full view of the field contents</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Column-related functions</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Display of the column sum, number of different values</p>
+</li>
+<li>
+<p>Display of the field content in popup window (facilitates copy &amp; paste of a field content)</p>
+</li>
+<li>
+<p>Showing and hiding the graphical representation of the column values in diagram (only if table rows have a time reference)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Table header can contains icons:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Show search filter (left side)</p>
+</li>
+<li>
+<p>pin this table (prevent it from overwriting by parent reload, right side)</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/table.png" alt="table">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_essential_analysis_ways">2. Essential analysis ways</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Basically there are two ways for analysis of the operating status of the DB system:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Evaluation of the current state based on interal system views (V$, dictionary views etc.)</p>
+</li>
+<li>
+<p>Retrospective analysis of the operating status for a given period in the past based on recorded data</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Retrospective analysis with Panorama is regularly based on Oracle&#8217;s Active Workload Repository (AWR).
+Precondition for usage of AWR is the Enterprise Edition of the DB combined with licensing of the Diagnostics Pack.<br>
+An also supported alternative to AWR is the Panorama-Sampler, which allows retrospective analysis also for Standard Edition rsp. without Diagnostics Pack.</p>
+</div>
+<div class="paragraph">
+<p>There are three main pillars of analysis supported by Panorama:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>DB sessions</p>
+</li>
+<li>
+<p>SQL statements</p>
+</li>
+<li>
+<p>DB objects</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_db_session_analysis">2.1. DB session analysis</h3>
+<div class="sect3">
+<h4 id="_evaluation_of_current_connected_db_sessions_via_session_list">2.1.1. Evaluation of current connected DB sessions via session list</h4>
+<div class="paragraph">
+<p>Menu option "DBA general" / "Sessions"
+Lists sessions sorted by the sum of logical and physical block accesses of the session, limited to active sessions by default.
+Filter allows to limit hits by user. Machine, process ID, modules etc. .</p>
+</div>
+<div class="paragraph">
+<p>Click in column "SID/SN" shows details of a session incl. current SQL and previous SQL
+Function buttons allow further detailed views of the session, e.g. history of this session in ASH (Active Session History).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_evaluation_of_the_wait_state_of_the_currently_active_sessions">2.1.2. Evaluation of the wait state of the currently active sessions</h4>
+<div class="paragraph">
+<p>Menu option "Analyses/statistics"/ "Session waits" / "Current" gives an overview over the session wait states of currently active sessions
+as well as the current concurrency state between sessions.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_retrospective_analysis_of_active_db_sessions_via_active_session_history_ash">2.1.3. Retrospective analysis of active DB sessions via Active Session History (ASH)</h4>
+<div class="paragraph">
+<p>The Active Session History (ASH) stores context information about active DB sessions.
+This info is recorded every second in the SGA memory (visible by the view sys.gv$Active_Session_History) and kept at least until the next AWR snapshot or corresponding available SGA memory.
+During the AWR snapshots (default=hourly) the volatile data from sys.gv$Active_Session_History is copied to the persistent structure sys.DBA_Hist_Active_Sess_History, but here only in 10-second intervals.
+The data in sys.DBA_Hist_Active_Sess_History is kept for the retention period of the AWR data (default=7 days, recommended &gt; 30 days).
+For the evaluation Panorama combines both data sources, as long as available the secondly samples are used, otherwise the 10-secondly samples.
+The ASH analysis in Panorama can be accessed via the menu item "Analyses/statistics" / "Session waits" / "Historic" as well as with predefined filters from various detailed views (Session, SQL etc.).
+For start of investigation, the time period as well as the initial grouping criterion must be selected.</p>
+</div>
+<div class="paragraph">
+<p>In the display of waiting times and information grouped by the selected criterion, there are the following options for further detailing;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Display of the time course as a diagram via context menu: Top 10 of the grouping criterion as separate curves, rest in one curve, condensation selectable after 60 seconds, 10 seconds or 1 second.</p>
+</li>
+<li>
+<p>Drilldown into data of the selected row by splitting according to various criteria, for this click into corresponding column</p>
+</li>
+<li>
+<p>Switch the perspective from session wait time to involved SQLs, acessed data structure, executed PL/SQL-objects etc.</p>
+</li>
+<li>
+<p>Listing of the individual sampled records according to the current filters (smallest grain of information) by clicking in the "Samples" column</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_analysis_of_concurrency_issues_e_g_blocking_locks">2.1.4. Analysis of concurrency issues (e.g., blocking locks)</h4>
+<div class="sect4">
+<h5 id="_analysis_of_current_locks">2.1.4.1. Analysis of current locks</h5>
+<div class="paragraph">
+<p>Menu item "DBA General" / "DB-Locks" / "Current" allows to display various lock states:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>all currently existing DML locks (DML = data manipulation language)</p>
+</li>
+<li>
+<p>all blocking DML locks</p>
+</li>
+<li>
+<p>all blocking DDL locks (DDL = data definition language)</p>
+</li>
+<li>
+<p>not completed 2phase-commits (e.g. via DB-Link)</p>
+</li>
+</ul>
+</div>
+<div class="sect5">
+<h6 id="_analysis_of_current_blocking_dml_locks">2.1.4.1.1. Analysis of current blocking DML locks</h6>
+<div class="paragraph">
+<p>There are two analysis paths for viewing existing DML locks, certain special blockage situations are only displayed by one of the two variants:</p>
+</div>
+<div class="paragraph">
+<p><strong>Analysis of current blocking DML locks via gv$Lock:</strong></p>
+</div>
+<div class="paragraph">
+<p>Menu option "DBA General" / "DB Locks" / "Current", button "Blocking DML Locks"
+shows the hierarchical blocker/waiter relationships between DB sessions, starting with the session triggering the lock cascade.
+Data base is the information from gv$Lock about waiting lock requests.</p>
+</div>
+<div class="paragraph">
+<p><strong>Analysis of current blocking DML locks via gv$Session</strong></p>
+</div>
+<div class="paragraph">
+<p>At menu item "Analyses/Statistics" / "Session waits" / "Current", in addition to the wait events of the currently active sessions, blocker/waiter relationships based on gv$Session are listed hierarchically here.</p>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_retrospective_analysis_of_concurrency_problems">2.1.4.2. Retrospective analysis of concurrency problems</h5>
+<div class="sect5">
+<h6 id="_retrospective_analysis_of_concurrency_problems_via_active_session_history_ash">2.1.4.2.1. Retrospective analysis of concurrency problems via Active Session History (ASH)</h6>
+<div class="paragraph">
+<p>Menu item "DBA General" / "DB Locks" / "Blocking Locks historic from ASH" lists triggering sessions of the cascade of blocking locks in the selected period sorted by the summed waiting time of all DB sessions attached to it.
+The data basis for the evaluation is the blocking session information of the Active Session History.</p>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_retrospective_analysis_of_concurrency_problems_by_recordings_of_panorama_sampler">2.1.4.2.2. Retrospective analysis of concurrency problems by recordings of Panorama-Sampler</h6>
+<div class="paragraph">
+<p>Menu item "DBA General" / "DB Locks" / "Blocking Locks historic from Panorama Sampler" lists triggering sessions of the cascade of blocking locks in the selected period sorted by the summed waiting time of all DB sessions attached to it.
+The data basis for the evaluation is the information about past blocking lock situations collected by Panorama Sampler.
+The menu item is only available if the recording of blocking lock situations by the panorama sampler is activated for the DB.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sql_analysis">2.2. SQL analysis</h3>
+<div class="sect3">
+<h4 id="_determination_of_possibly_problematic_sql_statements_which_are_still_hold_in_memory">2.2.1. Determination of possibly problematic SQL statements which are still hold in memory</h4>
+<div class="paragraph">
+<p>Menu option "SGA/PGA-Details" / "SQL-Area" offers two entries with selection of filters and sorting criterion:
+at the "SQL-ID" level (each unique SQL has a result row)
+on the level "SQL-ID, Child-Number" (each separately parsed child cursor of an SQL has a result row).</p>
+</div>
+<div class="paragraph">
+<p>Clicking on SQL-ID in the table shows a detailed view of the SQL statement.</p>
+</div>
+<div class="paragraph">
+<p>When entering via the "SQL-ID" level, the execution plan is only shown if it is unique for the SQL-ID (only one execution plan exists).
+If several child cursors exist for the SQL ID, they are added as a table with the option to switch to the detail view of the concrete child cursor (which then also contains the execution plan).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_retrospective_analysis_of_executed_sqls_via_active_workload_repository_awr">2.2.2. Retrospective analysis of executed SQLs via Active Workload Repository (AWR)</h4>
+<div class="paragraph">
+<p>Access via menu item "SGA/PGA details" / "SQL-Area" / "Historic SQLs" with specification of time period, sorting and possibly filter or via cross reference e.g. from evaluation of Active Session History.</p>
+</div>
+<div class="paragraph">
+<p>A click on the SQL-ID in the result list shows the detail view of the SQL with the values between the AWR snapshots that cover the specified time period.</p>
+</div>
+<div class="paragraph">
+<p>The buttons in the footer bar provide further details about this SQL.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_evaluation_of_recorded_sql_monitoring_reports">2.2.3. Evaluation of recorded SQL monitoring reports</h4>
+<div class="paragraph">
+<p>SQL-Monitoring records individual executions of an SQL statement in detail if they fulfill one of the following prerequisites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Execution with parallel query</p>
+</li>
+<li>
+<p>CPU- or I/O-activity for more than 5 seconds</p>
+</li>
+<li>
+<p>Optimizer-hint <code>MONITOR</code> in SQL statement</p>
+</li>
+<li>
+<p>ALTER SESSION|SESSION SET EVENTS 'sql_monitor [sql: 5hc07qvt8v737] force=true';</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Starting with Oracle 12.1, the short-living detailed monitoring reports from gv$SQL_Monitor are also available within the AWR retention period via DBA_Hist_Reports and DBA_Hist_Reports_Details.</p>
+</div>
+<div class="paragraph">
+<p>The precondition for using the monitoring reports is licensing of the tuning pack for the Enterprise Edition.</p>
+</div>
+<div class="paragraph">
+<p>The SQL monitor reports existing for the respective object (SQL / DB session) and period can be called in Panorama via the button "SQL Monitor" from:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>SQL detail view from SGA</p>
+</li>
+<li>
+<p>historic SQL detail view</p>
+</li>
+<li>
+<p>current session detail view</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/sql-monitor-list.png" alt="sql monitor list">
+</div>
+</div>
+<div class="paragraph">
+<p>Clicking on the report ID opens the Database Activity Report known from the Enterprise Manager for this SQL execution in a new browser tab.
+If an internet connection is possible for the browser, it will be displayed as an active page enriched with CSS and Javascript from  <a href="https://download.oracle.com/&#8230;&#8203" class="bare">https://download.oracle.com/&#8230;&#8203</a>; , otherwise as a static HTML page.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/sql-monitor-report.png" alt="sql monitor report">
+</div>
+</div>
+<div class="paragraph">
+<p>If the DB Activity Report ist not shown, please check browser console if there are security restriction settings active.</p>
+</div>
+<div class="paragraph">
+<p>In addition to Panorama&#8217;s core functions, the SQL Monitor Report offers:
+- Display of the execution plan with the activities of the individual steps on time line
+- Show real execution counts and result counts per step of execution plan
+- Show real execution times and I/O operations per step of execution plan
+- Show recursive SQLs executed by the SQL statement and their percentage of total execution time</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_db_objects">2.3. DB Objects</h3>
+<div class="sect3">
+<h4 id="_detail_information_about_db_objects_tables_indexes_etc">2.3.1. Detail information about DB objects (tables, indexes etc.)</h4>
+<div class="paragraph">
+<p>Menu item "Schema/Storage" / "Describe Object" allows to display the structure and current state of a particular DB object.
+The buttons at the footer line let you dig deeper into several details of that object.
+This view is also linked from several other views.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/describe_db_object.png" alt="describe db object">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_current_statistics_for_db_objects">2.3.2. Current statistics for DB objects</h4>
+<div class="paragraph">
+<p>Menu item "Analyses/Statistics" / "Segment statistics" / "Current" shows the change of statistic values of DB objects for the last x seconds.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/segment_statistics_current.png" alt="segment statistics current">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_retrospective_statistics_for_db_objects">2.3.3. Retrospective statistics for DB objects</h4>
+<div class="paragraph">
+<p>Menu "Analyses/Statistics" / "Segment statistics" / "Historic" shows the change of statistic values of DB objects for the selected period.
+The first view gives the summary of serveral statistic values for the selected period based on AWR snapshots.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/segment_statistics_historic_entry.png" alt="segment statistics historic entry">
+</div>
+</div>
+<div class="paragraph">
+<p>An click at the column "AWR snaps." lists the single AWR snapshots of the selected period for a certain object with the statistic values at that time.
+This values can then also be shown and compared in a diagram.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/segment_statistics_historic_awr_snaps.png" alt="segment statistics historic awr snaps">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_db_cache_usage_by_objects">2.3.4. DB cache usage by objects</h4>
+<div class="sect4">
+<h5 id="_use_of_the_current_db_cache_by_objects">2.3.4.1. Use of the current DB cache by objects</h5>
+<div class="paragraph">
+<p>Menu item "SGA/PGA details" / "DB cache" / "DB cache usage current" allows to display the concrete objects in the DB cache with their allocated memory sizes.
+It can be further detailed to the SQL statements of the objects currently kept in SGA as well as the structure information.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_retrospective_analysis_of_db_cache_utilization_by_objects_via_recording_by_panorama_sampler">2.3.4.2. Retrospective analysis of DB cache utilization by objects via recording by Panorama-Sampler</h5>
+<div class="paragraph">
+<p>At menu item "SGA/PGA details" / "DB cache" / "DB cache usage historic" past snapshots of the DB cache can be analyzed.
+The menu item is only available if the recording of the DB cache usage by panorama sampler is activated for the DB.
+Weighted average values of DB usage are shown for the period under consideration, if the analysis includes multiple snapshots.</p>
+</div>
+<div class="paragraph">
+<p>Via links in the columns it is possible to display:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the structure information of the object</p>
+</li>
+<li>
+<p>SQL statements executed in the considered period with access to the object in the execution plan
+history of concrete snapshots of the DB cache for an object including graphical representation in the diagram.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By clicking on the time of a concrete snapshot, all cache objects of this concrete snapshot are listed.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_evaluate_scan_the_db_system_for_potential_performance_antipatterns">3. Evaluate / scan the DB system for potential performance antipatterns</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Menu item "Special extensions" / "Dragnet investigation" allows scanning the DB system for over 100 different performance antipatterns</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_evaluation_of_configuration_and_operation_of_the_db_system">4. Evaluation of configuration and operation of the DB system</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_view_the_current_db_configuration_via_initialization_parameters">4.1. View the current DB configuration via initialization parameters</h3>
+<div class="paragraph">
+<p>Menu item "DBA General" / "Oracle Parameter" allows to display the initialization parameters of the DB.
+Filtering the "Default" column to "FALSE" shows the explicitly set initialization parameters of the DB.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluate_the_memory_configuration_of_the_db_system">4.2. Evaluate the memory configuration of the DB system</h3>
+<div class="paragraph">
+<p>Menu item "DBA/SGA details" / "SGA memory" / "SGA components" shows the memory usage of the SGA (Shared Global Area).</p>
+</div>
+<div class="paragraph">
+<p>This allows conclusions to be drawn about the use of the physical main memory for the individual SGA components.
+The allocation of the memory to the components is usually done dynamically according to necessity, optionally controlled via init parameters.
+The optimization goal is usually to use as much of the physical memory as possible for the DB cache and InMemory area, but to limit the shared pool usage for the library cache incl. SQL area etc. to what is necessary.
+The list of objects in the library cache, grouped by type and namespace, allows a detailed listing of the concrete objects with the size of the allocated memory.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluation_of_sufficient_dimensioning_of_the_redo_log_files">4.3. Evaluation of sufficient dimensioning of the redo log files</h3>
+<div class="paragraph">
+<p>Menu item "DBA-General" / "Redologs" / "Current" shows the current configuration of the redo log files.
+Menu item "DBA General" / "Redologs" / "Historical" shows the past usage of the redo log files per AWR snapshot,
+including the number of log switches and the number of log files still active and not archived at the time of the snapshot.</p>
+</div>
+<div class="paragraph">
+<p>The number of active or not yet archived log files should never reach the number of existing log file groups for production systems.
+If this does happen, there is a risk that the DB cannot complete a log switch that is due and all writing activities of the DB are stopped until the next log file is free for reuse.
+This risk is often latent, since DBs are created by default with only 3 logfile groups and this is often not adapted even for productive systems.
+With increased write load, a temporary freezing of write processes is preprogrammed for such DBs.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_evaluate_the_stress_and_performance_of_the_io_system">4.4. Evaluate the stress and performance of the I/O system</h3>
+<div class="paragraph">
+<p>Menu "I/O analysis" contains several historic characteristics, throughput and time related values about usage and performance of the underlying I/O system.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_db_audit_trail">4.5. DB audit trail</h3>
+<div class="sect3">
+<h4 id="_audit_configuration">4.5.1. Audit configuration</h4>
+<div class="paragraph">
+<p>Menu item "DBA General" / "Audit Trail" / "Auditing rules" shows the current configuration of the DB audit trail as well as several auditing rules.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/auditing_rules.png" alt="auditing rules">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_standard_audit_trail">4.5.2. Standard audit trail</h4>
+<div class="paragraph">
+<p>Menu item "DBA General" / "Audit Trail" / "Standard audit trail" opens a dialog for evaluation of standard audit trail including find grained audit trail.
+Depending on the choosen value for "Grouping" single audit records are show or the result is grouped by time with record counts for the top x actions, machines and users.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/audit_trail_standard_group.png" alt="audit trail standard group">
+</div>
+</div>
+<div class="paragraph">
+<p>By clicking at the links in the columns for "Action", "Machine", "User" etc. you can refine the grouped result.
+Clicking at the column "Audits total" shows the single audit records for the selected grouping.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/audit_trail_standard_detail.png" alt="audit trail standard detail">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_unified_audit_trail">4.5.3. Unified audit trail</h4>
+<div class="paragraph">
+<p>Menu item "DBA General" / "Audit Trail" / "Unified audit trail" works similar like the previous section for standard audit trail, but for the unified audit trail.</p>
+</div>
+<div class="paragraph">
+<p>Filter and group the result and show detail records:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/audit_trail_unified_all.png" alt="audit trail unified all">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_design_requirements_for_optimal_performance">5. Application design requirements for optimal performance</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tag_db_sessions_via_dbms_application_info">5.1. Tag DB sessions via DBMS_Application_Info</h3>
+<div class="paragraph">
+<p>The DB allows the tagging of DB sessions with context information about modules and action (64 characters each).
+This information on modules and action are recorded in various histories (including in ASH and SQL statistics) and allow the subsequent assignment of the various tracks in the DB to the subject context.</p>
+</div>
+<div class="paragraph">
+<p>The information is set by calling:</p>
+</div>
+<div class="paragraph">
+<p><code>DBMS_Application_Info.Set_Module(module, action);</code></p>
+</div>
+<div class="paragraph">
+<p>It is advisable to anchor the placement of modules and action deep in the technical infrastructure of the application in order to obtain a complete tagging, e.g. to ensure at the beginning of transactions or request processing.</p>
+</div>
+<div class="paragraph">
+<p>In particular, when using connection pools, with only sporadic setting of modules and action, there is the risk that subsequent activities on a reused session of the pool with respect to modules / action remain assigned to a random predecessor activity of this session.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_use_of_binding_variables">5.2. Use of binding variables</h3>
+<div class="paragraph">
+<p>TODO: Transfer content from german document</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_efficient_use_of_pl_sql_in_sql_statements">5.3. Efficient use of PL / SQL in SQL statements</h3>
+<div class="paragraph">
+<p>TODO: Transfer content from german document</p>
+</div>
+<div class="sect3">
+<h4 id="_pragma_udf_for_preventing_context_switches">5.3.1. Pragma UDF for preventing context switches</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_direct_addressing_of_package_constants_instead_of_package_functions">5.3.2. Direct addressing of package constants instead of package functions</h4>
+
+</div>
+</div>
+<div class="sect2">
+<h3 id="_efficient_data_structures">5.4. Efficient data structures</h3>
+<div class="sect3">
+<h4 id="_indexing">5.4.1. Indexing</h4>
+<div class="paragraph">
+<p>TODO: Transfer content from german document</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_securing_references_uniqueness_and_rules">5.4.2. Securing references, uniqueness and rules</h4>
+<div class="paragraph">
+<p>TODO: Transfer content from german document</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_usage_of_views">5.5. Usage of views</h3>
+<div class="paragraph">
+<p>TODO: Transfer content from german document</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_influencing_the_execution_plan_of_critical_sqls">6. Influencing the execution plan of critical SQLs</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ensure_up_to_date_and_realistic_object_analysis_data">6.1. Ensure up-to-date and realistic object analysis data</h3>
+<div class="paragraph">
+<p>The first prerequisite for optimal execution plans is the existence of true-to-life object statistics!
+For this a regular analysis of tables and indices should be ensured by the default scheduler settings of the DB or independent analysis.</p>
+</div>
+<div class="paragraph">
+<p>The detail view of DB objects (menu item "Schema/Storage" / "Describe Object" as well as various linksI) allows to determine current values of record numbers of objects.</p>
+</div>
+<div class="paragraph">
+<p>For this purpose, the current number of rows of the object can be determined for tables and indices by clicking in the "Rows" column.
+The comparison with the number of rows according to the last analysis allows the assessment of the usefulness of the available analysis data.</p>
+</div>
+<div class="paragraph">
+<p>In case of gross discrepancy between analysis and reality with problematic effects on the execution of SQLs, a new analysis via DBMS_STATS.GATHER_TABLE_STATS is recommended.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_act_directly_on_the_execution_plan_of_sqls_without_changing_the_application_code">6.2. Act directly on the execution plan of SQLs without changing the application code</h3>
+<div class="sect3">
+<h4 id="_fix_execution_plans_to_a_concrete_plan_by_sql_plan_baseline">6.2.1. Fix execution plans to a concrete plan by SQL Plan Baseline</h4>
+<div class="paragraph">
+<p>SQL plan baselines allow a concrete execution plan to be specified in a binding manner when a syntactically identical SQL statement is executed (SQL ID hash).<br>
+It is not the concrete execution plan that is specified here, but the plan hash value of the plan to be used. This means that the optimizer itself must be able to determine this plan with the plan hash value to be obtained.<br>
+Prerequisite for the use of SQL Plan Baselines is the Enterprise Edition of the Oracle DB.</p>
+</div>
+<div class="sect4">
+<h5 id="_use_of_better_past_execution_plans_from_awr_history_per_sql_plan_baseline">6.2.1.1. Use of better past execution plans from AWR history per SQL plan baseline</h5>
+<div class="paragraph">
+<p>SQL plan baselines allow a concrete execution plan to be specified in a binding manner when a syntactically identical SQL statement is executed (SQL ID hash).<br>
+If a better execution plan exists in the AWR history of an SQL, Panorama can generate a PL/SQL snippet to fix this plan via SQL plan baseline.</p>
+</div>
+<div class="paragraph">
+<p>To do this, perform the following steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>from SQL detail view (current or historical) via button "Complete history" select the period in which the SQL with better execution plan was active.</p>
+</li>
+<li>
+<p>Select the SQL detail view for the selected time period by clicking the Start Time button</p>
+</li>
+<li>
+<p>Click on button "SQL Plan Baseline" to generate the PL/SQL snippet for execution by SYSDBA</p>
+</li>
+<li>
+<p>If more than one execution plan was active in the time period, a list for selecting the appropriate execution plan appears beforehand</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Creating a SQL Plan Baseline this way requires licensing the Tuning Pack on this DB, because DBMS_SQLTUNE.CREATE_SQLSET is used to take the plan from AWR.
+The possible existence of a default by SQL plan baseline is shown in the detail view of the SQL in signal red.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_fix_an_execution_plan_from_the_current_sga_as_an_sql_plan_baseline">6.2.1.2. Fix an execution plan from the current SGA as an SQL plan baseline</h5>
+<div class="paragraph">
+<p>As an alternative to the AWR source, SQL plan baselines can also be generated from the current cursor cache of the SGA</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_specification_of_optimizer_hints_via_sql_profiles">6.2.2. Specification of optimizer hints via SQL Profiles</h4>
+<div class="paragraph">
+<p>SQL profiles can be generated via the SQL tuning functions of the Oracle Enterprise Manager (or newly Cloud Control), which influence the execution plan for a concrete SQL statement by specifying optimizer hints.<br>
+The possible existence of a specification by SQL profiles is displayed in the detail view of the SQL in signal red.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_specification_of_optimizer_hints_via_sql_patch">6.2.3. Specification of optimizer hints via SQL Patch</h4>
+<div class="paragraph">
+<p>SQL patches (available from Release 11.1) allow to specify alternative optimizer hints in a less complex way than via SQL profiles.<br>
+SQL patches can be used without additional license also in Standard Edition.<br>
+The possible existence of a default SQL patch is shown in the detail view of the SQL in signal red.<br>
+A PL/SQL snippet for creating an SQL patch for a concrete SQL statement can be generated using the "SQL patch" button of the SQL detail view (current or historical).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dynamically_changing_the_sql_text_via_sql_translation">6.2.4. Dynamically changing the SQL text via SQL Translation</h4>
+<div class="paragraph">
+<p>As of version 12.1, the SQL Translation Framework allows alternative SQL texts to be stored for an SQL statement.<br>
+Before the SQL is executed, the SQL text is replaced by the stored alternative SQL text.<br>
+This function allows total influence on the executed SQL.<br>
+Not only can Optimizer hints be added to the SQL, but result columns can be exchanged, JOIN relationships can be removed or added, selections can be made from other sources, etc. .<br>
+The condition is that the alternative SQL has the same result structure and supports the same binding variables as the original SQL.<br>
+The possible existence of an alternative SQL text is indicated in the detail view of the SQL in signal red.</p>
+</div>
+<div class="paragraph">
+<p>A PL/SQL snippet for creating an SQL translation for a concrete SQL statement can be generated using the "SQL translation" button of the SQL detail view (current or historical).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ensure_optimal_storage_utilization">7. Ensure optimal storage utilization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Optimization to minimize the use of storage and the physical size of DB objects addresses the following objectives:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reduction of the storage resources used (costs, necessity of hardware expansions, possibly more applications accessible on existing hardware)</p>
+</li>
+<li>
+<p>more effective use of the DB cache (higher cache hit rate, less load from individual objects)</p>
+</li>
+<li>
+<p>Reduction of SQL execution times due to less I/O effort as well as higher hit rate in the DB cache</p>
+</li>
+<li>
+<p>Higher protection against the risk of unplanned size growth through more free/available tablespace</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_get_information_about_storage_usage">7.1. Get information about storage usage</h3>
+<div class="sect3">
+<h4 id="_overview_over_current_storage_usage">7.1.1. Overview over current storage usage</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_evolution_of_storage_usage_over_time">7.1.2. Evolution of storage usage over time</h4>
+
+</div>
+<div class="sect3">
+<h4 id="_deleted_objects_in_the_recycle_bin">7.1.3. Deleted objects in the Recycle Bin</h4>
+<div class="paragraph">
+<p>Menu item "Schema /Storage" / "Recycle bin" shows the current occupancy of the recycle bin of the DB.
+Selection by size and drop time allows prompt release of relevant storage sizes of deleted objects after sufficient grace period.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_unused_space_below_the_high_water_mark_offcut">7.2. Release unused space below the high-water mark / offcut</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_compression_of_tables">7.3. Compression of tables</h3>
+<div class="sect3">
+<h4 id="_partitioning_to_separate_current_and_legacy_data">7.3.1. Partitioning to separate current and legacy data</h4>
+<div class="paragraph">
+<p>Use interval partitioning to automate the partitioning process</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_compression_of_indexes">7.4. Compression of indexes</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_use_function_based_indexes_to_reduce_indexes_to_values_of_interest">7.5. Use function based indexes to reduce indexes to values of interest</h3>
+<div class="paragraph">
+<p>Often, indexes are built over all records in a table, even though the index is accessed with only one or a few values that comprise only a very small portion of the total set of records.<br></p>
+</div>
+<div class="paragraph">
+<p><strong>Example:</strong></p>
+</div>
+<div class="paragraph">
+<p>A table TAB with 400 million records contains a column Status with the values 'N' for new and 'P' for processed.<br>
+For processing, all new records with status = 'N' are selected and updated to status 'P' in the processing transaction.<br>
+In order to be able to select all approx. 300 new records for processing sufficiently quickly, there is an index on the Status column with a two-digit gigabyte size.<br>
+For an access with status = 'P' this index is never used.<br>
+If it were, this access via index would take dramatically longer than a FullTableScan (which the optimizer clearly recognizes on the basis of the histogram data, if the parameter 'P' is known to it).</p>
+</div>
+<div class="paragraph">
+<p>Selection is done as follows:</p>
+</div>
+<div class="paragraph">
+<p><code>SELECT * FROM Tab WHERE Status = 'N';</code></p>
+</div>
+<div class="paragraph">
+<p><strong>Alternative solution:</strong></p>
+</div>
+<div class="paragraph">
+<p>By using a function-based index that indexes the value 'N' of the column, the size of the index in the example can be reduced from two-digit gigabytes by a factor of 1,000,000 to a few kilobytes, since NULL values are not stored in the index.</p>
+</div>
+<div class="paragraph">
+<p><code>CREATE INDEX Ix_Tab ON TAB(DECODE(Status, 'N', 'N', NULL);</code></p>
+</div>
+<div class="paragraph">
+<p>To use the function-based index, the SQL must use the syntactically identical expression in the WHERE clause</p>
+</div>
+<div class="paragraph">
+<p><code>SELECT * FROM Tab WHERE DECODE(Status, 'N', 'N', NULL) = 'N';</code></p>
+</div>
+<div class="paragraph">
+<p><strong>Extended example:</strong></p>
+</div>
+<div class="paragraph">
+<p>Since now only the existence of a record in the index is sufficient for access, the index value itself can contain an additional access criterion.
+For a two-column index consisting of Status and ArtNr and an access per</p>
+</div>
+<div class="paragraph">
+<p><code>SELECT * FROM Tab WHERE Status = 'N' AND ArtNr = :artnr;</code></p>
+</div>
+<div class="paragraph">
+<p>a single-column and dramatically smaller index would be established instead</p>
+</div>
+<div class="paragraph">
+<p><code>CREATE INDEX Ix_Tab ON TAB(DECODE(Status, 'N', ArtNr, NULL);</code></p>
+</div>
+<div class="paragraph">
+<p>and an access with effect of both filters on Status='N' and ArtNr per</p>
+</div>
+<div class="paragraph">
+<p><code>SELECT * FROM Tab WHERE DECODE(Status, 'N', ArtNr, NULL) = :artnr;</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_determination_of_unused_tables">7.6. Determination of unused tables</h3>
+<div class="paragraph">
+<p>Unused (and with corresponding probability dispensable) tables are those on which there are no accesses at all over a longer period of time as well as those tables in which only writing takes place, but whose contents are never used.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_identification_and_removal_of_unused_indexes">7.7. Identification and removal of unused indexes</h3>
+<div class="sect3">
+<h4 id="_establishment_of_monitoring_usage_for_the_detection_of_unused_indices">7.7.1. Establishment of monitoring usage for the detection of unused indices</h4>
+<div class="paragraph">
+<p>Detailed steps for establishing and using Monitoring Usage are described <a href="https://rammpeter.blogspot.de/2017/10/oracle-db-identify-unused-indexes.html">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tracking_the_size_evolution_of_objects_via_panorama_sampler">7.8. Tracking the size evolution of objects via panorama sampler</h3>
+
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2026-09-02 07:45:20 UTC
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <meta name="description" content="Performance analysis and monitoring tool for Oracle databases" />
+        <title>Panorama for Oracle: Performance analysis tool</title>
+
+    </head>
+<body onload="window.location = 'https://rammpeter.github.io/index.html?target=panorama';">
+
+<div style="position: relative;" xmlns="http://www.w3.org/1999/html">
+    <div class="shadow opaque" style="width:100%; height: 100%; background-color: #99CC99; position:absolute; top:0px; left:0px; z-index:1;">
+    </div>
+    <div style="position: relative; z-index: 2; padding: 10px;">
+        <div id="panorama_global">
+            <div id="panorama_text" style="float:left;">
+                <h1 style="text-align: center">
+                    <div>Panorama for Oracle databases</div>
+                    <a href="https://github.com/rammpeter/panorama/releases/latest" title="Download the latest release of Panorama.jar" target="_blank"><img src="images/download.png" height="30px"></a>
+                    <a href="https://hub.docker.com/r/rammpeter/panorama/" title="Get Panorama as Docker image" target="_blank"><img src="images/docker.png" height="30px"></a>
+                    <a href="https://rammpeter.blogspot.de/search/label/Panorama%20How-To" title="Open blog about Panorama" target="_blank"><img src="images/blog.png" height="30px"></a>
+                    <a href="https://speakerdeck.com/rammpeter" title="Show Panorama-tutorials at speakerdeck.com" target="_blank"><img src="images/speakerdeck-icon.png" height="30px"></a>
+                    <a href="https://www.slideshare.net/PeterRamm1" title="Show Panorama-tutorials at slideshare.net" target="_blank"><img src="images/slideshare_small.png" height="30px"></a>
+                    <a href="https://www.youtube.com/watch?v=JYHRArXagSg" title="Video of a presentation of Panorama's functions at ODTUG" target="_blank"><img src="images/youtube.png" height="30px"></a>
+                    <a href="http://158.101.168.240:8080" title="Run Panorama demo at Oracle cloud" target="_blank"><img src="images/play.png" height="30px"></a>
+                    <a href="https://github.com/rammpeter/panorama" title="Github source code repository" target="_blank"><img src="images/github_small.png" height="30px"></a>
+                </h1>
+                „Panorama” is my swiss army knife for performance analysis and troubleshooting on Oracle databases.<br/><br/>
+                Completed over many years it contains solutions for analysis workflows based on practical experience.<br/>
+                As a GUI-application it ensures quick reaction with predefined workflows instead off dealing by hand with lots of SQL scripts.
+                <br/><br/>
+                <image src="images/dashboard.jpg" width="100%"></image>
+                <h2>Content</h2>
+                <ul>
+                    <li><a href="#what does it offer">What does Panorama offer?</a></li>
+                    <li><a href="#resources">Resources</a></li>
+                    <li><a href="#preconditions">Which preconditions are required to use Panorama?</a></li>
+                    <li><a href="#license">License</a></li>
+                    <li><a href="#how to run it">How to run it?</a></li>
+                    <li>
+                        <ul>
+                            <li><a href="#start running quickly">Start running quickly</a></li>
+                            <li><a href="#customize">Configuration options for customizing the Panorama application</a></li>
+                            <li><a href="#jar">Configure a Panorama instance running by "java -jar Panorama.jar"</a></li>
+                            <li><a href="#docker">Configure a Panorama instance running as Docker container</a></li>
+                            <li><a href="#customize_examples">Configuration examples</a></li>
+                            <li><a href="#run demo">Run demo installation</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#how to get help">How to get help?</a></li>
+                    <li><a href="#security">What about security?</a></li>
+                    <li><a href="#implementation details">Behind the scenes: Implementation details</a></li>
+                </ul>
+
+                <a name="what does it offer"></a><h2>What does Panorama offer?</h2>
+                <ul>
+                    <li>Dialogs and workflows for:
+                        <ul>
+                            <li>Performance-optimization of applications using Oracle databases</li>
+                            <li>Analysis of runtimes and wait events, also back in history</li>
+                            <li>Preparation of several Oracle database's internal information for easy evaluation</li>
+                            <li>Systematic scan over your whole database for serveral performance pitfalls (more than 100 considered aspects)</li>
+                        </ul>
+                    </li>
+                    <br/>
+                    <li>it focuses on usage by DBAs and also by software developers with less Oracle knowledge</li>
+                    <li>aims to many issues that are inadequately analyzed and presented by other existing tools such as Enterprise Manager</li>
+                    <li>Panorama only reads via SELECT-SQLs from database. No write access, own database objects, compile etc. is needed at your database.</li>
+                    <li>Supports:
+                        <ul>
+                            <li>Oracle databases on standard hardware as well as RAC-systems, engineered systems (EXADATA) and Autonomous Database in OCI</li>
+                            <li>Tested against Oracle database versions beginning with Oracle 11.2</li>
+                        </ul>
+                    </li>
+                    <li><a href="panorama_content.html" target="_blank">Here you can find a function overview by available top level menu entries</a></li>
+                </ul>
+
+                <a name="resources"></a><h2>Resources</h2>
+                <ul>
+                    <li><a href="https://github.com/rammpeter/panorama/releases/latest" title="Download the latest release of Panorama.jar" target="_blank"><img src="images/download.png" style="height:1em">Download latest release of Panorama.jar</a> </li>
+                    <li><a href="https://hub.docker.com/r/rammpeter/panorama/" title="Get Panorama as Docker image" target="_blank"><img src="images/docker.png" style="height:1em"> Panorama as Docker image</a></li>
+                    <li><a href="https://rammpeter.blogspot.de/search/label/Panorama%20How-To" title="Open blog about Panorama" target="_blank"><img src="images/blog.png" style="height:1em"> Blog about Panorama</a></li>
+                    <li><a href="https://speakerdeck.com/rammpeter" title="Show Panorama-tutorials at speakerdeck.com" target="_blank"><img src="images/speakerdeck-icon.png" style="height:1em"> Panorama-tutorials at speakerdeck.com</a></li>
+                    <li><a href="https://www.slideshare.net/PeterRamm1" title="Show Panorama-tutorials at slideshare.net" target="_blank"><img src="images/slideshare_small.png" style="height:1em"> Panorama-tutorials at slideshare.net</a></li>
+                    <li><a href="https://www.youtube.com/watch?v=JYHRArXagSg" title="Video of a presentation of Panorama's functions at ODTUG" target="_blank"><img src="images/youtube.png" style="height:1em"> Video of a presentation of Panorama's functions at ODTUG</a></li>
+                    <li><a href="http://158.101.168.240:8080" title="Run Panorama demo at Oracle cloud" target="_blank"><img src="images/play.png" style="height:1em"> Panorama demo</a></li>
+                    <li><a href="https://github.com/rammpeter/panorama" title="Github source code repository" target="_blank"><img src="images/github_small.png" style="height:1em"> Github repository</a></li>
+                </ul>
+
+                <a name="preconditions"></a><h2>Which preconditions are required to use Panorama?</h2>
+                <ul>
+                    <li>Java 21 or higher for Panorama.jar or runtime environment for Docker container.</li>
+                    <li>Web browser with ES6-support to access Panorama-GUI (Firefox, Chrome, Safari, Edge)</li>
+                    <li>Your Oracle-User used for login with Panorama requires at least the grant SELECT ANY DICTIONARY<br/>
+                        Additional grants/privileges are required for some particular functions:
+                        <table  class="border">
+                            <tr><th>Grant</th>                  <th>Reason for the grant</th></tr>
+                            <tr><td>SELECT ANY DICTIONARY</td>  <td>Default grant for access on DBA_xxx-views. This is the minimum requirement to run Panorama</td></tr>
+                            <tr><td>OEM_MONITOR</td>            <td>Starting with Oracle 11.2.0.4 you need this grant to generate Oracle's builtin AWR-reports and ASH-reports</td></tr>
+                            <tr><td>SELECT_CATALOG_ROLE</td>    <td>For getting results from DBMS_METADATA.GET_DDL and for Autonomous Database in Oracle cloud you need this role</tr>
+                            <tr><td>EM_EXPRESS_BASIC</td>       <td>For getting results from DBMS_PERF (Performance Hub report) you need this grant</td></tr>
+                            <tr><td>ANALYZE ANY</td>            <td>For getting results from DBMS_SPACE.SPACE_USAGE you need the ANALYZE privilege on the particular object or the ANALYZE ANY privilege</td></tr>
+                            <tr><td>SELECT ANY TRANSACTION</td> <td>Needed for selection on Flashback_Transaction_Query</td></tr>
+                            <tr><td>ADVISOR</td>                <td>Needed for execution and result selection of the SQL Tuning Advisor using Package DBMS_SQLTUNE</td></tr>
+                            <tr><td>CREATE ANY SQL PROFILE</td> <td>Needed for creation of SQL profiles when using the SQL Tuning Advisor with Package DBMS_SQLTUNE</td></tr>
+                        </table>
+                    </li>
+                    <li>For non-admin users in the autonomous DB in the OCI cloud additional grants are required for some minor functions:
+                        <table class="border">
+                            <tr><th>Grant</th><th>Reason for the grant</th></tr>
+                            <tr><td>SELECT ON V$DIAG_ALERT_EXT</td><td>Allow read on particular table</td></tr>
+                            <tr><td>READ ON SYS.DBMS_LOCK_ALLOCATED</td><td>Allow read access</td></tr>
+                            <tr><td>READ ON gv$BH</td><td>Allow read access</td></tr>
+                            <tr><td>AUDIT_VIEWER</td><td>Allow read access on unified audit view</td></tr>
+                        </table>
+                    </li>
+                    <li>Several functions of Panorama are functional only if either:</li>
+                    <ul>
+                        <li>Oracle's "Diagnostic Pack" is licensed for the connected Oracle-DB or</li>
+                        <li>You use the <a href="https://rammpeter.github.io/panorama_sampler.html" target="_blank">Panorama-Sampler</a> instead to gather historic data (<a href="https://rammpeter.blogspot.de/2017/12/panorama-do-i-need-diagnostics-pack-and.html" target="_blank">see also</a>)</li>
+                    </ul>
+                    <li>Panorama's function "SQL monitor" is available only if Oracle's "Tuning Pack" is licensed for the connected Oracle-DB</li>
+                </ul>
+
+                <a name="license"></a><h2>License</h2>
+                You can use Panorama free of charge under the terms and conditions of <a href="http://www.gnu.org/licenses/gpl-3.0" target="_blank">GNU General Public License</a>.
+
+                <a name="how to run it"></a><h2>How to run it?</h2>
+                <a name="start running quickly"></a><h3>Start running quickly</h3>
+                Panorama supports two ways to run it: as Java application or as Docker container.<br/>
+                Startup of the application may require some seconds up to a minute.
+                Your application is up and running if this lines appear in the console log:
+                <pre>
+* Listening on http://[::]:8080
+Use Ctrl-C to stop
+                </pre>
+
+                <h4>Run as Java application</h4>
+                <ul>
+                    <li>Download the latest release of Panorama.jar from <a href="https://github.com/rammpeter/panorama/releases/latest" target="_blank">here</a></li>
+                    <li>Start Panorama.jar by typing <pre style="display: inline;">java -jar Panorama.jar</pre> in a terminal</li>
+                </ul>
+                <h4>Run as Docker container</h4>
+                To download the image and start the Panorama application as Docker container type:<br/>
+                <pre>docker run -p 8080:8080 -d rammpeter/panorama</pre>
+                This starts the application within one or two minutes. Now you can connect to Panorama's login screen in your browser via <pre style="display: inline;">http://&lt;your&nbsp;server&gt;:8080</pre>
+
+                <a name="customize"></a><h3>Configuration options for customizing the Panorama application (Java + Docker)</h3>
+                You can configure Panorama by providing a config file in YAML format or setting environment variables.<br/>
+                Using a config file is the preferred method to avoid the compromise of secrets in environemnt variables.<br/>
+
+                <br/>
+                Attributes for customization as environment variable or config file entry are:
+                <table  class="border">
+                    <tr>
+                        <td><pre style="display: inline;">MAX_CONNECTION_POOL_SIZE</pre></td>
+                        <td>This setting allows you to define the maximum number of connections in Panorama's connection pool<br/>
+                            If you don't set this the default is max. 100 connections.
+                            That means:
+                            <ul>
+                                <li>Up to 100 different database connections are cached for reuse in Panorama even if they are inactive.</li>
+                                <li>Maximum 100 concurrent client requests can be served at the same time limited by the connection number.</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">MAX_JAVA_HEAP_SPACE_MB</pre></td>
+                        <td>Set maximum Java heap space memory usable for Panorama in megabytes (Default=1024).<br/>
+                            The suggested value for multiuser production use is 4096.<br>
+                            This attribute works for Docker container only and must be set as environment variable. If running as pure Java program (Panorama.jar) then use the Java parameter -Xmx4096m instead.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_CONFIG_FILE</pre></td>
+                        <td>
+                            Specify the location and file name of the config file in YAML format.<br/>
+                            This attribute works only if set as environment variable.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_LOG_LEVEL=debug|info|warn|error</pre></td>
+                        <td>
+                            Set the level for log output in console.<br/>
+                            Default log level is "info".<br/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_LOG_SQL=true</pre></td>
+                        <td>
+                            Force the output of executed SQL statements in console log.<br/>
+                            This helps to reproduce how Panorama gets information from database (without setting PANORAMA_LOG_LEVEL=debug which logs the same + much more).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_MASTER_PASSWORD</pre></td>
+                        <td>Setting the master password as a config attribute adds an additional menu item "Spec. additions"/"Admin login" in Panorama GUI.<br/>
+                            Applying this password at "Admin logon" adds additional control functions to the GUI menu, e.g. Panorama-Sampler configuration.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_USAGE_INFO_MAX_AGE</pre></td>
+                        <td>
+                            Maximum age in days for logging records in Usage.log to comply with european GDPR rules.</br>
+                            Set to 0 to completely disable logging into Usage.log.<br/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">PANORAMA_VAR_HOME</pre></td>
+                        <td>Panorama stores encrypted session connect data and usage log in local filesystem.<br/>
+                            This setting controls the used directory.<br/>
+                            For the Panorama.jar the default is a subdir Panorama in a temporary folder.
+                            For the Docker container the default is /var/opt/panorama and it is suggested to mount this directory to the local filesystem outside the Docker container.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">SECRET_KEY_BASE</pre></td>
+                        <td>Server side key used to encrypt stored connection info. See also <a href="#security">What about security?</a></td>
+                    </tr>
+                    <tr>
+                        <td><pre style="display: inline;">SECRET_KEY_BASE_FILE</pre></td>
+                        <td>Location of file with server side key used to encrypt stored connection info. See also <a href="#security">What about security?</a></td>
+                    </tr>
+                </table>
+
+                <a name="jar"></a><h3>Configure a Panorama instance running by "java -jar Panorama.jar"</h3>
+                Command line options for <pre style="display: inline;">java -jar Panorama.jar &lt;options&gt;</pre> :
+                <ul>
+                    <li><pre style="display: inline;">-p or --port &lt;port&gt</pre>: Server listens on that port. Default port is 8080.</li>
+                    <li><pre style="display: inline;">-b or --bind &lt;IP address&gt</pre>: Bind server to a specific address. Default is 0.0.0.0. (all addresses)</li>
+                </ul>
+
+                <a name="docker"></a><h3>Configure a Panorama instance running as Docker container</h3>
+                You can configure your Docker container:
+                <ul>
+                    <li>Mount your host's tnsnames.ora at $TNS_ADMIN/tnsnames.ora into the container in a folder and tell it Panorama by setting $TNS_ADMIN in container so Panorama can refer to your config:  <pre style="display: inline;">-v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora -e TNS_ADMIN=/etc</pre><br/>
+                        Caution: with Docker in Windows sometimes you have to mount the file tnsnames.ora with <pre style="display: inline;">-v $TNS_ADMIN/tnsnames.ora:/etc</pre></li>
+                    <li>Mount directory for Panorama's config files (/var/opt/panorama) to a directory of your choice outside the container so the config persists even if container is rebuilded</li>
+                    <li>Set your timezone for Docker container (default is UTC): <pre style="display: inline;">-e TZ="Europe/Berlin"</pre></li>
+                    <li>Set additional customizing properties for Panorama application as in config file or as Docker container environment variables</li>
+                </ul>
+
+                <a name="customize_examples"></a><h3>Configuration examples</h3>
+                Create a config file <pre style="display: inline;">/var/opt/panorama/config.yml</pre> with your secure settings, use environment variables for some other:
+                <pre>
+# User-specific configuration file for Panorama
+PANORAMA_LOG_SQL:  "true"
+PANORAMA_VAR_HOME: /var/opt/panorama
+SECRET_KEY_BASE:   923863l82g2j4797h87g13451v4s589es27g...
+                </pre>
+                Call Panorama using this config file:
+                <ul>
+                    <li>
+                        Example for Panorama.jar:
+                        <pre>
+PANORAMA_CONFIG_FILE=/var/opt/panorama/config.yml java -jar Panorama.jar -p 8080
+                        </pre>
+                    </li>
+                    <li>
+                        Example for Docker:
+                        <pre>
+docker run --name panorama -p 8080:8080 \
+  -v $TNS_ADMIN/tnsnames.ora:/etc/tnsnames.ora \
+  -v /var/opt/panorama:/var/opt/panorama \
+  -e TNS_ADMIN=/etc -e TZ="Europe/Berlin" \
+  -e MAX_JAVA_HEAP_SPACE_MB=1024 \
+  -e PANORAMA_CONFIG_FILE=/var/opt/panorama/config.yml
+  -d rammpeter/panorama</pre>
+                    </li>
+                </ul>
+                <a name="run demo"></a><h3>Run demo installation</h3>
+                <ul>
+                    <li>
+                        Run preinstalled Panorama at <a href="http://158.101.168.240:8080" target="_blank">http://158.101.168.240:8080</a> with access to a demo database instance at Oracle cloud.<br/>
+                        Use one of the TNS-aliases PANORAMATEST_xxx with user = 'panorama_test' and password = 'TryItOut2019'
+                    </li>
+                    <!--<li><a href="https://panorama-ramm.herokuapp.com" target="_blank">Run preinstalled Panorama at Heroku-cloud (requires connect to your Oracle-DB from internet for usage)</a></li>-->
+                </ul>
+
+                <a name="security"></a><h2>What about security?</h2>
+                <ul>
+                    <li>
+                        For production purposes you should run Panorama with SSL-encrypted web traffic (https). Easiest way for SSL connections is to enclose Panorama behind a reverse proxy ( Nginx/Apache/Traefik).<br/>
+                        This <a href="https://rammpeter.blogspot.com/2019/03/panorama-configure-https-access-to.html" target="_blank">blog post</a> describes how to configure Panorama and Nginx with docker-compose for SSL-encryption.
+                    </li>
+                    <li>Even if SSL encryption (https) is not used, the user and password credentials are always asynchronously encrypted at network transfer from browser to the Panorama server by a public key where the private key for decryption is only known inside the Panorama server code.</li>
+                    <li>Your Oracle DB connection's password is stored encrypted at server side and will be decrypted shortly in server memory only for the process of establishing connection to your target database.<br/>
+                    The key used for this encryption consists of the server side key (<pre style="display: inline;">SECRET_KEY_BASE</pre>) which is salted with a unique client key specific to your browser instance (stored as browser cookie).<br/>
+                    This way only requests from your browser are able to reuse the stored connect info for reestablishing the database connection.</li>
+                    <li>If you retain your login info for further fast logins (checkbox 'Save logins' in statup dialog), this info is stored in local server file system at <pre style="display: inline;">PANORAMA_VAR_HOME</pre> completely encrypted the same way like passwords.</li>
+                    <li>You can provide your individual server side key used for encryption by one of the following:
+                        <ul>
+                            <li>create a config attribute <pre style="display: inline;">SECRET_KEY_BASE</pre> with the key value.</li>
+                            <li>create a file with the key value and set the config attribute <pre style="display: inline;">SECRET_KEY_BASE_FILE</pre> to the location of this file.</li>
+                        </ul>
+                        The key can contain all printable characters and should be at least 128 characters long.<br/>
+                        Every change of the given key at server side leads to invalidation of all stored connection info.<br/><br/>
+                        If no fixed key is given by <pre style="display: inline;">SECRET_KEY_BASE</pre> or <pre style="display: inline;">SECRET_KEY_BASE_FILE</pre> then a system generated key is used for encryption.<br/>
+                        This system generated key is stored in the folder declared by <pre style="display: inline;">PANORAMA_VAR_HOME</pre>.
+                    </li>
+                    <li>
+                        Caution: If you don't set a value for <pre style="display: inline;">PANORAMA_VAR_HOME</pre> then your systems temporary folder is used to store the encyryption key base as well as the saved encrypted login credentials.<br/>
+                        That means this information may be lost at OS or container restart!
+                    </li>
+                </ul>
+
+                <!--
+                TODO: Describe data privacy aspects
+                <a name="security"></a><h2>Data privacy aspects</h2>
+                Personal or private data is stored in Panorama at this points:
+                <ul>
+                    <li>
+                        Your login info is stored encrypted in local server file system at <pre style="display: inline;">PANORAMA_VAR_HOME</pre> completely encrypted the same way like passwords.<br/>
+                    </li>
+                </ul>
+                -->
+                <a name="implementation details"></a><h2>Behind the scenes: Implementation details</h2>
+                <ul>
+                    <li>Panorama is an Ruby on Rails application that runs with JRuby. Web resources you can find here:
+                        <ul>
+                            <li><a href="https://github.com/rammpeter/panorama" target="_blank">Source code</a>, last commit is for release <span id="panorama_version"></span> from <span id="panorama_date"></span></li>
+                            <li><a href="https://github.com/rammpeter/panorama/blob/master/CHANGELOG.md" target="_blank">Version history</a></li>
+                        </ul>
+                    </li>
+                    <li>If you use <pre style="display: inline;">tnsnames.ora</pre> for TNS name resolution it should be located at server site in <pre style="display: inline;">$ORACLE_HOME/network/admin</pre> or in a directory targeted by environment variable <pre style="display: inline;">TNS_ADMIN</pre>.</li>
+                    <li>Panorama serves an arbitrary number of multiple web-client sessions at one time, each client may choose his own target database connection</li>
+                    <li>Panorama internally uses a connection pool, so client request may reuse existing free connections from pool if same credentials are used (TNS-data, user/password)</li>
+                    <li>Inactive database connections in connection pool are terminated one hour after last usage</li>
+                    <li>Panorama renders one single web page via Ajax-calls. This way the back button of your browser is not supported to return to former page content.</li>
+                    <li>Panorama writes short usage information to local plain text file 'Usage.log' in the directory targeted by the config attribute <pre style="display: inline;">PANORAMA_VAR_HOME</pre><br/>
+                        This log records cointain the client IP address, DB name, time, called function and used TNS alias/URL</br>
+                        Setting PANORAMA_USAGE_INFO_MAX_AGE = 0 disables this logging completely.<br/>
+                        You can find a menu item "Usage history" to view this log info if logged in as admin (see PANORAMA_MASTER_PASSWORD)</pre>
+                    </li>
+                    <li>Panorama pools (reuses) DB-connections. You can view pooled connections at Panorama server via <pre style="display: inline;">http://&lt;your&nbsp;server&nbsp;ip&gt;:8080/usage/connection_pool</pre></li>
+                </ul>
+
+                <img src="images/Panorama_Overview.png"/>
+                <!--<br/><br/><br/><br/>
+                <h2>Last but not least on this occasion my kindly request to Americans:</h2>
+                <div>
+                    <img style="float: left" src="images/trash.png" height="50px"/><div style="font-weight: bold; font-size: larger;"><div style="color: red;">DUMP</div><div style="color: blue;">TRUMP</div></div>
+                </div>
+                <div style="clear: both">
+                    <img style="float: left" src="images/black_lives_matter.jpg" height="80px"/>
+                </div>
+                -->
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    // Version und Datum ermitteln aus version.rb
+    try {
+        $.get("https://github.com/rammpeter/panorama/raw/master/lib/panorama/version.rb", function( version_html ) {
+            var rest = version_html.substring(version_html.indexOf('VERSION =')+11);    // Begin of version in string
+            jQuery('#panorama_version').html(rest.substring(0, rest.indexOf("'")));
+
+            rest = rest.substring(rest.indexOf('RELEASE_DATE = Date.parse(')+27)        // begin of date in string
+            jQuery('#panorama_date').html(rest.substring(0, rest.indexOf("'")));
+        }, 'text');
+    }
+    catch(err) {
+        console.log("Error getting release and date: "+err.message);
+    }
+
+
+
+    var img_urls = [
+        [ "images/login_tnsnames.jpg",       "Login screen: choose your database from tnsnames.ora, supply user name and passwort and push the lower 'Login'-button to login.<br/>" +
+                                                "If you check 'Save login?', your login info will be stored encrypted at server site for fast login next time(upper drop-down selection).<br/>" +
+                                                "To prevent server owner from compromising your passwords, they are encrypted with both server and client key. Your client key ist stored only within your local browser's cookie store." ],
+        [ "images/login_hostportsid.jpg",    "Login screen: Switch identification mode to 'Host,Port,SID /Serice' if your database is not found in tnsnames.ora." ],
+        [ "images/mouseover-hint.jpg",       "GUI defaults: If you place your mouse over GUI-elements for a while, a tooltip with detailed info will appear.<br/>This is used within the whole application.<br/>Also single cells in grid views may contain their own special tooltip info." ],
+        [ "images/home.jpg",                 "Home: Gives some basic information about your database and it's instances" ],
+        [ "images/grid-usage.jpg",           "GUI defaults: Tables/grid views always have a context menu via right mouse click on table or long touch on tablets.<br/>" +
+                                                "Some context menu functions are column-specific. Content can be sorted by click on column header<br/>" +
+                                                "Additional functions on page are available via hyperlinks or submit buttons<br/>" +
+                                                "Next result is always presented at the bottom of the current page without refusal of current page content.<br/>" +
+                                                "So you can drill down in analysis workflow step by step and go back to previous steps, which are still available above.<br/>" +
+                                                "You can adjust the height of grids per mouse with a slider at the lower bound of the grid" ],
+        [ "images/ash-entry.jpg",             "How to start analyzing performance issues" ],
+        [ "images/ash-show.jpg",              "Active session history: Choose time range for consideration and first grouping criteria.<br/>Optionally filter on single RAC-instance or some other possible criterias." ],
+        [ "images/ash-first.jpg",             "Active session history: First selection grouped by choosen criteria 'Event'.<br/>" +
+                                                "Sort-column 'Total time waited' shows the time all active sessions have spent in this wait event for the filter criterias above.<br/>" +
+                                                "Hyperlinks with numbers in angle brackets mean for example: there are sessions of 8 different RAC-instances in wait event 'ON CPU' working for 936,191 seconds<br/>" +
+                                                "If you click the '< 8 >' then next result will show you one line for each RAC-instance for wait event 'ON CPU'.<br/>" +
+                                                "So you are able to refine your result for several criterias and drill down deeper and deeper to isolate reasons for the active sessions." ],
+        [ "images/ash-second.jpg",            "Active session history: Now you have an equal grid like before with additional filter for wait event 'ON CPU' grouped by RAC-instance.<br/>" +
+                                                "You can switch from numeric view to timeline graph via context menu entries 'Show top 10 xxx' (right mouse click on table)" ],
+        [ "images/ash-graph_1.jpg",           "Active session history: This graph show top ten group criterias on time line.<br/>" +
+                                                "You can show/hide y-axis and switch chart to use own y-scale for every graph (useful if there are large differences between numeric values of graphs)<br/>"],
+        [ "images/ash-graph_2.jpg",           "Active session history: Context menu function 'Stack single charts' from previous slide allows you to view values for single graphs and sum of all graphs at once." ],
+        [ "images/ash-samples.jpg",           "Active session history: Click the link 'number of sample records' to view the single records of active session history selection.<br/>If the number of records is to large to view they will be grouped by hour." ],
+        [ "images/ash-temp.jpg",              "Active session history: Click the link 'Max. Temp' or 'Max- PGA' to view the Temp and PGA-usage.<br/>'Grouping' allows you to change the time precision for each row. Click 'Samples' to view the records of selected time for drill down." ],
+        [ "images/ash-sqlid.jpg",             "Active session history: If you group your selection by SQL-ID then you may click the link 'SQL-ID' to evaluate this single SQL wthin your choosen time range.<br/>This allows you to change the scope from active session history to SQL evaluation." ],
+    ]
+
+    lightBox_SlideShow("panorama_global", img_urls);
+    jQuery('#panorama_text').css('max-width', '800px');
+</script>
+
+</body>
+</html>
