@@ -16,7 +16,7 @@ components — buffer cache, shared pool, large pool, java pool — when only
 
 ## The typical skew
 
-([[blog-panorama-the-tool]], 2018-09-05) The most frequent trigger is missing
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2018-09-05) The most frequent trigger is missing
 bind variables:
 
 ```sql
@@ -36,7 +36,7 @@ buffer cache in exchange.
 > caused it.
 
 The same metric serves as a diagnosis in
-[[bind-variables-and-cursor-sharing]]: if the SQL area is much larger than the
+[Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md): if the SQL area is much larger than the
 buffer cache, that is a signal of a massive bind variable problem.
 
 ## The second risk: ORA-04031
@@ -58,7 +58,7 @@ them, and the number of resize operations drops.
 
 ## Where to look
 
-In [[panorama]]:
+In [Panorama](panorama.md):
 
 - **"SGA/PGA details" / "SGA memory" / "SGA components"** — current sizes; from
   there via "Resize ops." to the most recent resize operations, and via the name
@@ -68,12 +68,12 @@ In [[panorama]]:
   occupy the buffer cache.
 
 **Retrospectively for the DB cache too:** the occupancy of the DB cache by
-objects is **not** part of the AWR recordings. [[panorama-sampler]] captures it
+objects is **not** part of the AWR recordings. [Panorama Sampler](panorama-sampler.md) captures it
 additionally — which makes a historical view possible as well.
 
 ## From the usage guide
 
-([[rammpeter-github-io]], usage guide 4.2.) The aim stated: use **as much
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 4.2.) The aim stated: use **as much
 physical memory as possible for the DB cache and the In-Memory area**, and limit
 the shared pool — library cache, SQL area — "to what is necessary". The list of
 objects in the library cache, grouped by type and namespace, leads to the
@@ -83,17 +83,17 @@ The menu has three entries under "SGA/PGA-Details" / "SGA Memory": "SGA-componen
 current", "SGA-components historic" and "SGA resize operations historic". (The
 guide writes "DBA/SGA details" for the top-level menu; the generated overview
 has "SGA/PGA-Details".) What fills the DB cache is described in
-[[db-cache-usage]].
+[DB cache usage](db-cache-usage.md).
 
 ## Relationships
 
-- The main cause: [[bind-variables-and-cursor-sharing]], together with the
-  rejected shortcut [[cursor-sharing-force-is-no-substitute]].
+- The main cause: [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md), together with the
+  rejected shortcut [cursor_sharing = FORCE is no substitute for prepared statements](cursor-sharing-force-is-no-substitute.md).
 - Another shared pool component with an eviction problem of its own:
-  [[result-cache]].
+  [Result cache](result-cache.md).
 - Contention on shared pool structures:
-  [[library-cache-contention]].
-- Capture of historical cache occupancy: [[panorama-sampler]].
+  [Library cache contention](library-cache-contention.md).
+- Capture of historical cache occupancy: [Panorama Sampler](panorama-sampler.md).
 
 ## Open questions
 
@@ -104,5 +104,5 @@ has "SGA/PGA-Details".) What fills the DB cache is described in
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
-- [[rammpeter-github-io]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

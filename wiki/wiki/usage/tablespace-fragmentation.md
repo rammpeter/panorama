@@ -12,7 +12,7 @@ sources: [blog.md, posts/]
 
 > "Even if you think to have enough free space in tablespace your operation may
 > end up in: `ORA-01653 unable to extend table … in tablespace …`"
-> — [[blog-storage]], 2020-03-18
+> — [Blog series on storage, tablespaces and redo](../sources/blog-storage.md), 2020-03-18
 
 ## Why the total does not count
 
@@ -25,7 +25,7 @@ managed tablespaces**, which automatically use a limited number of extent sizes.
 That reduces the risk but does not eliminate it — particularly not when little is
 free in the tablespace anyway.
 
-> An exception from the source ([[blog-storage]], 2017-06-14): anyone using
+> An exception from the source ([Blog series on storage, tablespaces and redo](../sources/blog-storage.md), 2017-06-14): anyone using
 > `UNIFORM EXTENT SIZE` can skip the topic — the free chunks then cannot be
 > smaller than the uniform size.
 
@@ -34,7 +34,7 @@ free in the tablespace anyway.
 Instead of checking the total free space: **how many times does the largest
 extent in use still fit into it?**
 
-The query from [[blog-storage]] (2020-03-18) joins three sources for this:
+The query from [Blog series on storage, tablespaces and redo](../sources/blog-storage.md) (2020-03-18) joins three sources for this:
 
 - `DBA_DATA_FILES` — current size and, where `AUTOEXTENSIBLE = 'YES'`, the
   extension still possible (`MaxBytes - Bytes`)
@@ -54,7 +54,7 @@ risk come first.
 
 ## Estimating the next extent size
 
-One residual question remains ([[blog-storage]], 2017-06-14): how large will the
+One residual question remains ([Blog series on storage, tablespaces and redo](../sources/blog-storage.md), 2017-06-14): how large will the
 next extent of my object be in the first place? From that follows whether it
 still fits. The assumption from the source:
 
@@ -64,17 +64,17 @@ still fits. The assumption from the source:
 ## In Panorama
 
 Fragmentation and remaining space for various extent sizes at one click
-([[blog-storage]], 2017-06-14). Menu "Schema/Storage" / "Disk-storage summary"; a
+([Blog series on storage, tablespaces and redo](../sources/blog-storage.md), 2017-06-14). Menu "Schema/Storage" / "Disk-storage summary"; a
 click in the "MB free" column lists available space and extents for several
 extent sizes.
 
 ## Relationships
 
 - The other side: space that looks occupied but can be released →
-  [[storage-reorganisation]].
-- The related problem in the TEMP tablespace: [[temp-usage]].
+  [Storage reorganisation](storage-reorganisation.md).
+- The related problem in the TEMP tablespace: [TEMP usage](temp-usage.md).
 - Also a case where the obvious metric is the wrong one:
-  [[bind-variables-and-cursor-sharing]] (SQL area versus buffer cache).
+  [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md) (SQL area versus buffer cache).
 
 ## Open questions
 
@@ -86,4 +86,4 @@ extent sizes.
 
 ## Sources
 
-- [[blog-storage]]
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)

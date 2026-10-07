@@ -16,7 +16,7 @@ the prior question.
 
 ## The visibility matrix
 
-([[blog-panorama-the-tool]], 2016-12-09)
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2016-12-09)
 
 | Connected as | `CDB_xx` in the CDB (root) | `DBA_xx` in the CDB (root) | `CDB_xx` in the PDB | `DBA_xx` in the PDB |
 |---|---|---|---|---|
@@ -39,12 +39,12 @@ should first be suspected of being a connection or view problem, not a finding.
 ## Relationships
 
 - Affects every evaluation via `DBA_*` views, so practically every concept in
-  this wiki — [[indexing]] and [[storage-reorganisation]], for instance.
+  this wiki — [Indexing](indexing.md) and [Storage reorganisation](storage-reorganisation.md), for instance.
 - A related topic in AWR queries: the DBID filter, so that values are not counted
-  multiple times — see [[partition-pruning]] and [[parallel-execution]], where
+  multiple times — see [Partition pruning](partition-pruning.md) and [Parallel execution](parallel-execution.md), where
   the queries carry `WHERE DBID = :DBID` "to not count multiple times for
   multiple different DBIDs/ConIDs".
-- [[panorama]] has supported the analysis of PDBs since 2016.
+- [Panorama](panorama.md) has supported the analysis of PDBs since 2016.
 
 ## Open questions
 
@@ -56,4 +56,4 @@ should first be suspected of being a connection or view problem, not a finding.
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)

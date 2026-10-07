@@ -12,12 +12,12 @@ sources: [blog.md, posts/, panorama-repository.md, speakerdeck.md, speakerdeck/,
 # Panorama Sampler
 
 Panorama's own facility for recording session activity and historical performance
-data — the substitute wherever [[awr]] and [[ash]] may not be used for licensing
+data — the substitute wherever [AWR](awr.md) and [ASH](ash.md) may not be used for licensing
 reasons.
 
 ## Summary
 
-The clearest statement about it comes from [[blog-locks]] (2020-10-06):
+The clearest statement about it comes from [Blog series on locks and serialisation](../sources/blog-locks.md) (2020-10-06):
 
 > "Precondition for using ASH is the Enterprise Edition of Oracle DB and the
 > licensing of the Diagnostics Pack. If you don't have licensed Diagnostics Pack
@@ -28,16 +28,16 @@ The clearest statement about it comes from [[blog-locks]] (2020-10-06):
 
 The last sentence is the decisive one: the evaluations are **the same**. The
 sampler is not a stripped-down side feature but an interchangeable data source —
-the retrospective lock analysis from [[blocking-locks]] works with it just as it
+the retrospective lock analysis from [Blocking locks](blocking-locks.md) works with it just as it
 does with ASH.
 
 Affected are therefore Standard Edition, Express Edition and any Enterprise
-Edition without the Diagnostics Pack ([[blog-indexing]], 2019-12-27 names the
+Edition without the Diagnostics Pack ([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27 names the
 same purpose).
 
 ## What it records beyond AWR
 
-([[blog-panorama-the-tool]], 2017-11-17) In addition to Oracle's AWR, the sampler
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2017-11-17) In addition to Oracle's AWR, the sampler
 can also record historical information for:
 
 - the size evolution of tablespace objects
@@ -46,14 +46,14 @@ can also record historical information for:
 
 > None of these is part of the AWR recordings. The sampler is therefore not only
 > a licence-free replacement but in these three respects a genuine addition —
-> see [[sga-memory-management]] for the DB cache case.
+> see [SGA memory management](sga-memory-management.md) for the DB cache case.
 
-It also feeds the condensed long-term data → [[long-term-trend-analysis]].
+It also feeds the condensed long-term data → [Long-term trend analysis](long-term-trend-analysis.md).
 
 ## How it works
 
-From the source code ([[panorama-source-code]]); details in
-[[panorama-sampler-internals]].
+From the source code ([Panorama source repository](../sources/panorama-source-code.md)); details in
+[Panorama Sampler internals](../development/panorama-sampler-internals.md).
 
 - **No agent.** Sampling is done by the running Panorama server, which connects
   to each configured database on a schedule. If the server is down, nothing is
@@ -67,11 +67,11 @@ From the source code ([[panorama-source-code]]); details in
 - **ASH sampling** is a database session running a PL/SQL loop that samples once
   per second.
 - **"Transparently in the same way"** is implemented by rewriting `DBA_HIST_…`
-  names in the SQL to the sampler's tables → [[pack-license-filter]].
+  names in the SQL to the sampler's tables → [Pack licence filter](../development/pack-license-filter.md).
 
 ## Limits, rules and one advantage
 
-From the author's talks of 2022 and 2025 ([[talks-panorama-and-sampler]]).
+From the author's talks of 2022 and 2025 ([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)).
 
 **What the sampler's ASH lacks compared with Oracle's:**
 
@@ -86,7 +86,7 @@ From the author's talks of 2022 and 2025 ([[talks-panorama-and-sampler]]).
 **What it has that AWR lacked:** the execution plans it records contain the
 **access and filter predicates**. Oracle's own AWR did not store them up to
 release 21, although the columns have existed since 10g. For the analyses in
-[[index-access-paths]] and [[finding-skipped-index-columns]], which depend on
+[Index access paths](index-access-paths.md) and [Finding skipped index columns](../syntheses/finding-skipped-index-columns.md), which depend on
 exactly those columns, the sampler's history is therefore the better source on
 older releases.
 
@@ -120,7 +120,7 @@ Panorama's own functions use gets a replacement.
 
 ## Setting it up and using it
 
-([[rammpeter-github-io]], sampler page.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), sampler page.)
 
 1. **Start the Panorama server with a master password**
    (`PANORAMA_MASTER_PASSWORD`). That adds "Admin login" to the menu "Spec.
@@ -135,13 +135,13 @@ Panorama's own functions use gets a replacement.
    long-term trend) set separately: active or not, period between snapshots,
    retention before housekeeping, and domain-specific settings.
 
-The grants of the sampling user are listed in [[panorama-privileges]].
+The grants of the sampling user are listed in [Privileges for Panorama](panorama-privileges.md).
 
 **The tables are created deferred, at the first snapshot.** Only after that does
 Panorama recognise sampler data at login and offer the choice between three
 ways of working: Oracle's AWR (Enterprise Edition with Diagnostics Pack), the
 sampler's data, or no historic workload data at all — "but this way Panorama's
-functions are strongly reduced" ([[management-pack-licensing]]).
+functions are strongly reduced" ([Management pack licensing](management-pack-licensing.md)).
 
 **Several master passwords** are possible: each gives its own set of
 configurations, and sampling is active only for the set belonging to the
@@ -153,14 +153,14 @@ the configured data sources — ID, name, time of the last successful connect,
 time of the last error and its message. The HTTP status is 200, or **500 if any
 configured source has a persisting error**; meant for Zabbix, Nagios, Icinga and
 the like. It is the only sampler action reachable without authentication
-([[panorama-sampler-internals]]).
+([Panorama Sampler internals](../development/panorama-sampler-internals.md)).
 
 **Further limits named on the website** beyond those from the talks: in the
 sampled segment statistics 'gc cr blocks served', 'gc current blocks served' and
 'chain row excess' are missing, because `v$SegStat` does not supply them
-([[segment-statistics]]). The ASH replacement samples once per second for
+([Segment statistics](segment-statistics.md)). The ASH replacement samples once per second for
 short-term storage ("currently until next snapshot") and keeps every tenth
-second for the long term — the same two grains as Oracle's ([[ash]]).
+second for the long term — the same two grains as Oracle's ([ASH](ash.md)).
 
 **The synonym script** for foreign AWR scripts is printed on the website as
 well. One detail not noted from the talk: `GV$ACTIVE_SESSION_HISTORY` becomes a
@@ -174,18 +174,18 @@ the sampler's table to the current instance.
   `DBA_Hist_Sys_Time_Model`. Either the talk slide omitted it or it was added
   since.
 - ~~**`java -jar Panorama.war`** in the website's start example is outdated; the
-  artefact is `Panorama.jar` ([[jarbler]]).~~ Corrected on the website the same
+  artefact is `Panorama.jar` ([Jarbler](../development/jarbler.md)).~~ Corrected on the website the same
   day: the version published 2026-10-05 13:03 UTC says `Panorama.jar`.
 
 ## Relationships
 
-- A component of [[panorama]].
-- Takes the place of [[awr]] and [[ash]] → [[management-pack-licensing]].
-- Underpins [[blocking-locks]], [[long-term-trend-analysis]] and the
-  dashboard described in [[panorama]].
-- Views that exist only with sampler data: historic [[db-cache-usage]], lock
-  history in [[blocking-locks]], object size evolution
-  ([[panorama-menu-overview]]).
+- A component of [Panorama](panorama.md).
+- Takes the place of [AWR](awr.md) and [ASH](ash.md) → [Management pack licensing](management-pack-licensing.md).
+- Underpins [Blocking locks](blocking-locks.md), [Long-term trend analysis](long-term-trend-analysis.md) and the
+  dashboard described in [Panorama](panorama.md).
+- Views that exist only with sampler data: historic [DB cache usage](db-cache-usage.md), lock
+  history in [Blocking locks](blocking-locks.md), object size evolution
+  ([Panorama menu overview](panorama-menu-overview.md)).
 
 ## Open questions
 
@@ -195,14 +195,14 @@ the sampler's table to the current instance.
   by the talks, see *Limits, rules and one advantage*. Remaining: narrowed down: an evaluation
   works with the sampler exactly if every `DBA_HIST_…` view it reads has a
   counterpart among the sampler's roughly 55 tables
-  ([[panorama-sampler-internals]]). A list of the evaluations that therefore do
+  ([Panorama Sampler internals](../development/panorama-sampler-internals.md)). A list of the evaluations that therefore do
   *not* work has still not been drawn up.
 
 ## Sources
 
-- [[blog-locks]]
-- [[blog-panorama-the-tool]]
-- [[blog-indexing]]
-- [[panorama-source-code]]
-- [[talks-panorama-and-sampler]]
-- [[rammpeter-github-io]]
+- [Blog series on locks and serialisation](../sources/blog-locks.md)
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)
+- [Blog series on indexing](../sources/blog-indexing.md)
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

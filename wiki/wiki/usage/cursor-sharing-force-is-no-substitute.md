@@ -26,13 +26,13 @@ variables itself.
 
 > "But this easy solution could be a false friend. While fixing some drawbacks
 > like hard parses there are others remaining."
-> — [[blog-bind-variables]], 2024-12-06
+> — [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md), 2024-12-06
 
 The load-bearing objection: **the original SQL texts nevertheless remain in the
 SGA for a while** before the translation into system-generated bind variables
 takes effect. The memory pressure from the large number of different SQL
 therefore persists at least in part — which is precisely the damage that,
-according to [[bind-variables-and-cursor-sharing]], affects the *entire* database
+according to [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md), affects the *entire* database
 via the eviction of the buffer cache.
 
 The post of 2017-09-11 quantifies the same observation more concretely: the full
@@ -50,24 +50,24 @@ and can take up gigabytes there as well.
   changed, `FORCE` may still be better than nothing. The source does not reject
   it absolutely but warns against the mistaken belief that the problem is thereby
   fixed. The gentler alternative for individual SQL is
-  [[sql-translation-framework]].
+  [SQL Translation Framework](sql-translation-framework.md).
 - **The trade-off with histograms remains.** Literals can help the optimizer;
   `FORCE` takes that information away from it. The source names the conflict in
-  [[bind-variables-and-cursor-sharing]] but does not resolve it.
+  [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md) but does not resolve it.
 
 ## Provenance
 
 - A reasoned position of the blog author in the post of **2024-12-06** ("Detect
   missing use of prepared statements in SQLs"), supported by the observation
   about the KHLH0 area from the post of **2017-09-11**. Both in
-  [[blog-bind-variables]].
+  [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md).
 - Ingested into the wiki on 2026-10-01.
 
 ## Relationships
 
-- Mechanics and damage pattern: [[bind-variables-and-cursor-sharing]]
-- Gentler alternative for individual cases: [[sql-translation-framework]]
+- Mechanics and damage pattern: [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md)
+- Gentler alternative for individual cases: [SQL Translation Framework](sql-translation-framework.md)
 
 ## Sources
 
-- [[blog-bind-variables]]
+- [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md)

@@ -16,7 +16,7 @@ because every process works on its own.
 
 ## When hints are ignored
 
-([[blog-partitioning]], 2024-02-01) If you place `PARALLEL`, `APPEND` and the
+([Blog series on partitioning and parallel processing](../sources/blog-partitioning.md), 2024-02-01) If you place `PARALLEL`, `APPEND` and the
 like, the database may pass over them for many reasons. The best-known example:
 for parallel DML the session has to be enabled beforehand —
 
@@ -36,15 +36,15 @@ ALTER SESSION ENABLE PARALLEL DML;
 
 To be read via
 `EXTRACTVALUE(XMLTYPE(Other_XML), '/*/info[@type = "pdml_reason"]')`, against
-`GV$SQL_PLAN` and `DBA_HIST_SQL_PLAN`. The search is stored in [[dragnet]] under
+`GV$SQL_PLAN` and `DBA_HIST_SQL_PLAN`. The search is stored in [Dragnet Investigation](dragnet.md) under
 point 2.2.12, sorted by execution time.
 
-So the same `OTHER_XML` that in [[optimizer-hints]] reports on hint usage also
+So the same `OTHER_XML` that in [Optimizer hints](optimizer-hints.md) reports on hint usage also
 explains the absence of parallel processing here.
 
 ## Parallel shared hash join
 
-([[blog-partitioning]], 2024-08-20) A feature present since **18c** and
+([Blog series on partitioning and parallel processing](../sources/blog-partitioning.md), 2024-08-20) A feature present since **18c** and
 **undocumented**: parallel query processes share their hash tables instead of
 each keeping its own. The memory for that lives in a region of its own, the
 **Managed Global Area (MGA)**; Doc ID 2638904.1.
@@ -78,9 +78,9 @@ ALTER SESSION SET "_px_shared_hash_join" = TRUE;
 - `HASH JOIN OUTER BUFFERED` **cannot** be transformed — at least up to release
   19.24.
 
-**Finding candidates:** a query over [[ash]] lists SQL with
+**Finding candidates:** a query over [ASH](ash.md) lists SQL with
 `HASH JOIN BUFFERED`, sorted by the time spent on that plan line, and carries the
-maximum TEMP space allocated alongside (`Temp_Space_Allocated`). In [[dragnet]]
+maximum TEMP space allocated alongside (`Temp_Space_Allocated`). In [Dragnet Investigation](dragnet.md)
 under point 2.2.11.
 
 The author credits Randolf Eberle-Geist for the background.
@@ -89,19 +89,19 @@ The author credits Randolf Eberle-Geist for the background.
 
 Two places where parallel query distorts the measurement itself:
 
-- **[[ash]]** does not record the idle wait events of the query coordinator and
+- **[ASH](ash.md)** does not record the idle wait events of the query coordinator and
   the slaves (`PX Deq Credit: send blkd`, `PX Deq: Execution Msg`) — a busy
   session appears idle.
-- **[[temp-usage]]**: "Max. temp" shows the maximum across coordinator and
+- **[TEMP usage](temp-usage.md)**: "Max. temp" shows the maximum across coordinator and
   slaves, not their sum.
 
 ## Relationships
 
-- The reason fields sit in the same `OTHER_XML` as [[optimizer-hints]].
-- Spilling to TEMP: [[temp-usage]].
-- The blind spot for idle waits: [[ash]].
-- Licensing caveat for the search queries: [[management-pack-licensing]],
-  alternatively [[panorama-sampler]].
+- The reason fields sit in the same `OTHER_XML` as [Optimizer hints](optimizer-hints.md).
+- Spilling to TEMP: [TEMP usage](temp-usage.md).
+- The blind spot for idle waits: [ASH](ash.md).
+- Licensing caveat for the search queries: [Management pack licensing](management-pack-licensing.md),
+  alternatively [Panorama Sampler](panorama-sampler.md).
 
 ## Open questions
 
@@ -113,4 +113,4 @@ Two places where parallel query distorts the measurement itself:
 
 ## Sources
 
-- [[blog-partitioning]]
+- [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md)

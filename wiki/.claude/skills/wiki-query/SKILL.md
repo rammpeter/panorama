@@ -14,7 +14,8 @@ herzuleiten. Lies zuerst `CLAUDE.md` für Struktur und Belegregeln.
    die nicht im Index stehen, mit `grep` über `wiki/` suchen. Dann die relevanten
    Seiten lesen.
 2. **Zusammenführen.** Eine Antwort formulieren, die mehrere Seiten verbindet.
-   Jede nicht offensichtliche Aussage mit einem Wikilink auf die Seite bzw.
+   Jede nicht offensichtliche Aussage mit einem Markdown-Link (relativer Pfad,
+   kein Wikilink) auf die Seite bzw.
    Quelle **belegen**, aus der sie stammt. Belegte Fakten von Schlussfolgerungen
    trennen und Lücken ehrlich benennen („Das Wiki deckt X noch nicht ab – eine
    Quelle dazu einzuarbeiten würde helfen“).

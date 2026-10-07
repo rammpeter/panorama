@@ -240,7 +240,9 @@ Die vollständigen Regeln stehen in [CLAUDE.md](CLAUDE.md).
 - Wiki-Inhalte auf **Englisch**; Fachbegriffe bleiben im Original.
 - Jede Seite hat **YAML-Frontmatter** (`type`, `status`, `tags`,
   `created`/`updated`, `sources`) – nutzbar mit Dataview.
-- Interne Links als **Wikilinks** mit reinem Dateinamen: `[[projekt-alpha]]`.
+- Interne Links als **Markdown-Links mit relativem Pfad**:
+  `[Projekt Alpha](projekt-alpha.md)`, `[Quelle](../sources/quelle.md)` – keine
+  Wikilinks (`[[…]]`).
 - Dateinamen in `kebab-case`, ohne Umlaute und Leerzeichen.
 - **Widersprüche** werden markiert, nicht überschrieben; **Schlussfolgerungen**
   werden von belegten Fakten getrennt.

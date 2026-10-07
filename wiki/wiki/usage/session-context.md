@@ -18,11 +18,11 @@ the question of *which process* caused an activity.
 
 > "Setting module and action info via DBMS_Application_Info.Set_Module gives
 > valuable context info in V$Session, Active Session History etc."
-> — [[blog-sessions-and-connections]], 2014-07-09
+> — [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2014-07-09
 
-The context travels into [[ash]] and is later the only anchor by which a wait
+The context travels into [ASH](ash.md) and is later the only anchor by which a wait
 time can be attributed to a business process. It is also the criterion by which
-a trace can be narrowed to one application → [[sql-trace]].
+a trace can be narrowed to one application → [SQL trace](sql-trace.md).
 
 ## The problem with SQL*Plus jobs
 
@@ -52,18 +52,18 @@ Framed by `SET TERMOUT OFF` / `ON`, so that the job notices nothing of it.
 
 ## The pooling argument
 
-([[talks-ash-and-temp]], 2016; repeated in the 2024 talk.) With an application
+([Talks on Active Session History and TEMP analysis](../sources/talks-ash-and-temp.md), 2016; repeated in the 2024 talk.) With an application
 server and session pooling, each short transaction takes an arbitrary session
 from the pool, and a process that scales in parallel uses a varying number of
 them. No session "belongs" to a process. The question that always comes —
 "process XY ran three times as long last night, why?" — can then only be answered
 if module and action were set at the start of each transaction: they are sampled
-into [[ash]] and recorded in other tracks of the database, and allow the
+into [ASH](ash.md) and recorded in other tracks of the database, and allow the
 activity to be assigned to the triggering process afterwards.
 
 ## From the usage guide
 
-([[rammpeter-github-io]], usage guide 5.1 — the only written section of its
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 5.1 — the only written section of its
 chapter on application design.) Module and action hold **64 characters each**;
 they are recorded "in various histories (including in ASH and SQL statistics)".
 The advice on *where* to set them: anchor the call **deep in the technical
@@ -73,17 +73,17 @@ on pooled connections, later activity stays assigned "to a random predecessor
 activity of this session" — the pooling argument above, in the author's own
 summary.
 
-The tags are what the module filters in [[session-list]] and the grouping
-criteria in [[session-waits]] work on.
+The tags are what the module filters in [Session list](session-list.md) and the grouping
+criteria in [Session waits](session-waits.md) work on.
 
 ## Relationships
 
-- Makes [[short-lived-sessions]] attributable.
-- Is the filter criterion for [[sql-trace]].
-- Travels into [[ash]] and becomes an analysis dimension there.
-- Its results give context to [[sampling-session-statistics]].
+- Makes [Short-lived sessions](short-lived-sessions.md) attributable.
+- Is the filter criterion for [SQL trace](sql-trace.md).
+- Travels into [ASH](ash.md) and becomes an analysis dimension there.
+- Its results give context to [Sampling session statistics yourself](sampling-session-statistics.md).
 - The same mechanism (automation on connecting) in a different form:
-  [[logon-trigger]].
+  [LOGON trigger](logon-trigger.md).
 
 ## Open questions
 
@@ -94,6 +94,6 @@ criteria in [[session-waits]] work on.
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
-- [[talks-ash-and-temp]]
-- [[rammpeter-github-io]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)
+- [Talks on Active Session History and TEMP analysis](../sources/talks-ash-and-temp.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

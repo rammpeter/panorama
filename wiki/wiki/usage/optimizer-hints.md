@@ -11,7 +11,7 @@ sources: [blog.md, posts/]
 # Optimizer hints
 
 > "What does the database really do with your optimizer hints in SQL statements?"
-> — [[blog-execution-plans]], 2023-12-07
+> — [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2023-12-07
 
 A hint in the SQL text is a request, not an instruction. Whether the database
 followed it, ignored it or did not even understand it was long impossible to
@@ -104,12 +104,12 @@ in the tooltip of the object column.
 ## Relationships
 
 - A hint can also be applied without changing the SQL →
-  [[sql-plan-management]] (SQL patch).
-- An example of a deliberately placed hint: [[view-pushed-predicate]].
+  [SQL plan management](sql-plan-management.md) (SQL patch).
+- An example of a deliberately placed hint: [VIEW PUSHED PREDICATE](view-pushed-predicate.md).
 - Searching for index names in hints is part of the pre-drop check →
-  [[index-usage-monitoring]].
+  [Index usage monitoring](index-usage-monitoring.md).
 - The same `OTHER_XML` also explains the absence of parallel processing →
-  [[parallel-execution]].
+  [Parallel execution](parallel-execution.md).
 
 ## Open questions
 
@@ -122,4 +122,4 @@ in the tooltip of the object column.
 
 ## Sources
 
-- [[blog-execution-plans]]
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)

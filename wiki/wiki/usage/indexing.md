@@ -20,7 +20,7 @@ Creating an index is very easy measured against its impact; dropping one again i
 far harder, because nobody wants to take responsibility for it really not being
 needed any more. The result: almost every database system maintains indexes it
 does not need, in extreme cases more than half of the total storage requirement
-([[blog-indexing]], 2019-12-27).
+([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27).
 
 The benefit of clearing up is manifold: less storage, less effort for index
 maintenance on every DML, better use of the DB cache and consequently better
@@ -32,18 +32,18 @@ runtime and response time behaviour of the applications.
 
 ## The four roles of an index
 
-The checklist the whole analysis builds on ([[blog-indexing]], 2019-12-27):
+The checklist the whole analysis builds on ([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27):
 
 1. **Optimise access from user SQL** — restrict the result set before table data
-   is read. Verified via [[index-usage-monitoring]].
+   is read. Verified via [Index usage monitoring](index-usage-monitoring.md).
 2. **Guarantee uniqueness** — as a unique index or as the carrier of a unique or
    primary key constraint. Recognisable from the `UNIQUENESS` column.
 3. **Protect a foreign key** — prevent full table scans on the referencing table
-   and the propagation of DML locks. See [[foreign-key-locks]]; whether that is
-   necessary at all is covered by [[do-not-blanket-index-foreign-keys]].
+   and the propagation of DML locks. See [Foreign keys and locks](foreign-key-locks.md); whether that is
+   necessary at all is covered by [Do not blanket-index foreign keys](do-not-blanket-index-foreign-keys.md).
 4. **Establish structural identity for partition exchange** — the table to be
    exchanged in must be indexed identically to the partitioned target table.
-   See [[partitioning]].
+   See [Partitioning](partitioning.md).
 
 Conversely: if an existing index fulfils none of these four roles, it can be
 removed.
@@ -51,7 +51,7 @@ removed.
 ## Even used indexes can be dispensable
 
 Even with proven usage by user SQL it is worth checking further
-([[blog-indexing]], 2019-12-27):
+([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27):
 
 - The columns are already covered by the *leading* columns of a multi-column
   index — the other index takes over the function.
@@ -66,7 +66,7 @@ Even with proven usage by user SQL it is worth checking further
 
 ## Why it does not happen in practice
 
-Four reasons from [[blog-indexing]] (2019-12-27) that explain why this lever
+Four reasons from [Blog series on indexing](../sources/blog-indexing.md) (2019-12-27) that explain why this lever
 regularly goes unused:
 
 - There is no role in the project or product that would own this task.
@@ -76,18 +76,18 @@ regularly goes unused:
 
 ## Relationships
 
-- The measurement technique for role 1 is in [[index-usage-monitoring]].
-- Role 3 rests on [[foreign-key-locks]]; the position on it is recorded in
-  [[do-not-blanket-index-foreign-keys]].
-- Whoever keeps an index can often shrink it → [[index-compression]].
+- The measurement technique for role 1 is in [Index usage monitoring](index-usage-monitoring.md).
+- Role 3 rests on [Foreign keys and locks](foreign-key-locks.md); the position on it is recorded in
+  [Do not blanket-index foreign keys](do-not-blanket-index-foreign-keys.md).
+- Whoever keeps an index can often shrink it → [Index compression](index-compression.md).
 - An index that exists and is used can still work badly →
-  [[index-access-paths]], [[extended-statistics]]. The procedure for the first
-  case: [[finding-skipped-index-columns]].
-- [[panorama]] evaluates all four roles together in one list; the system-wide
-  scans for it are in [[dragnet]].
-- Shrinking an index that must stay: [[function-based-indexes]],
-  [[index-compression]]. The stance behind the whole topic:
-  [[proactive-performance-tuning]].
+  [Index access paths](index-access-paths.md), [Extended statistics](extended-statistics.md). The procedure for the first
+  case: [Finding skipped index columns](../syntheses/finding-skipped-index-columns.md).
+- [Panorama](panorama.md) evaluates all four roles together in one list; the system-wide
+  scans for it are in [Dragnet Investigation](dragnet.md).
+- Shrinking an index that must stay: [Function-based indexes](function-based-indexes.md),
+  [Index compression](index-compression.md). The stance behind the whole topic:
+  [Proactive performance tuning](proactive-performance-tuning.md).
 
 ## Open questions
 
@@ -99,5 +99,5 @@ regularly goes unused:
 
 ## Sources
 
-- [[blog-indexing]]
-- [[talks-indexes]]
+- [Blog series on indexing](../sources/blog-indexing.md)
+- [Talks on indexes](../sources/talks-indexes.md)

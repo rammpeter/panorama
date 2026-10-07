@@ -12,11 +12,11 @@ sources: [blog.md, posts/, rammpeter.github.io.md, rammpeter.github.io/]
 
 `GV$SEGSTAT` and `GV$SEGMENT_STATISTICS` carry cumulative metrics per segment —
 which table, which index was read, written or locked how often. They end up in
-[[awr]] via `DBA_HIST_SEG_STAT`.
+[AWR](awr.md) via `DBA_HIST_SEG_STAT`.
 
 ## The problem
 
-([[blog-system-load]], 2024-09-29) Sometimes you do not want to wait for the next
+([Blog series on system load and monitoring](../sources/blog-system-load.md), 2024-09-29) Sometimes you do not want to wait for the next
 AWR snapshot — or its resolution is too coarse. The live view does not help
 directly, though:
 
@@ -61,7 +61,7 @@ larger interval. Without that check the differences would be silently wrong.
 
 ## In Panorama
 
-([[rammpeter-github-io]], usage guide 2.3.2 and 2.3.3.) "Analyses / statistics"
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 2.3.2 and 2.3.3.) "Analyses / statistics"
 / "Segment Statistics":
 
 - **"Current"** shows the *change* of the statistic values for the last x
@@ -71,18 +71,18 @@ larger interval. Without that check the differences would be silently wrong.
   column **"AWR snaps."**, the individual snapshots of that object, which can be
   put into a diagram and compared.
 
-With [[panorama-sampler]] as the source, three statistics are missing because
+With [Panorama Sampler](panorama-sampler.md) as the source, three statistics are missing because
 `v$SegStat` does not supply them: 'gc cr blocks served', 'gc current blocks
 served' and 'chain row excess'.
 
 ## Relationships
 
-- Finer and available faster than [[awr]] snapshots, the same line of enquiry as
-  [[measuring-system-load]].
+- Finer and available faster than [AWR](awr.md) snapshots, the same line of enquiry as
+  [Measuring system load](measuring-system-load.md).
 - Returning a collection from a single SELECT is the same motive as in
-  [[sampling-session-statistics]]: compute the differences yourself, because
+  [Sampling session statistics yourself](sampling-session-statistics.md): compute the differences yourself, because
   Oracle only offers totals — but here without any installation.
-- Available more conveniently in [[panorama]].
+- Available more conveniently in [Panorama](panorama.md).
 
 ## Open questions
 
@@ -95,5 +95,5 @@ served' and 'chain row excess'.
 
 ## Sources
 
-- [[blog-system-load]]
-- [[rammpeter-github-io]]
+- [Blog series on system load and monitoring](../sources/blog-system-load.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

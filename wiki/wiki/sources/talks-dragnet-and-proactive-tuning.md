@@ -10,8 +10,8 @@ sources: [speakerdeck.md, speakerdeck/2018-11_DOAG-Dresden_Systematische_Rasterf
 
 # Talks on dragnet investigation and proactive tuning
 
-Two decks from [[rammpeter-talks]], eight years apart, making the same argument:
-performance work should not wait for the incident. Both use [[dragnet]] as the
+Two decks from [Talks and slide decks by Peter Ramm](../usage/rammpeter-talks.md), eight years apart, making the same argument:
+performance work should not wait for the incident. Both use [Dragnet Investigation](../usage/dragnet.md) as the
 instrument.
 
 ## The decks
@@ -27,13 +27,13 @@ instrument.
 high effect per measure and low cost, but uses the potential only in spots and
 may leave hardware and licences oversized. Preventive work uses the potential
 broadly, with diminishing returns per measure and rising effort
-→ [[proactive-performance-tuning]].
+→ [Proactive performance tuning](../usage/proactive-performance-tuning.md).
 
 **The dragnet idea** (2018 slide 5). Express the *recognition* of a problem as a
 SQL statement over the dictionary, the SGA views and the AWR history, so that
 every further occurrence of a problem analysed once is found, weighted by
 relevance. The stated limit: it covers "only the topics I was personally
-confronted with in projects" → [[dragnet]].
+confronted with in projects" → [Dragnet Investigation](../usage/dragnet.md).
 
 **It is not a to-do list generator** (2018 slide 6). Expert judgement of each
 suggestion is "mandatory", including recognising and discarding hits without
@@ -58,35 +58,35 @@ with an unnecessary one (1.2.6); `PCT_FREE` > 0 without updates (1.2.10); table
 access with additional filters (1.15); full scans with small cardinality
 (2.1.3); frequent access to small objects (2.4.2); unnecessarily high fetch
 count (2.4.3); missing bind variables (4.1.1–4.1.5); JDBC statement cache not
-used (4.2.2) → [[dragnet]], [[proactive-performance-tuning]].
+used (4.2.2) → [Dragnet Investigation](../usage/dragnet.md), [Proactive performance tuning](../usage/proactive-performance-tuning.md).
 
 **Three of the 2026 examples are advice for application developers**, not DBAs:
 cache small master data in the application, fetch in bulk
 (`setFetchSize`, `defaultRowPrefetch`), and switch on the JDBC statement cache,
 which Oracle's driver leaves off by default
-→ [[proactive-performance-tuning]].
+→ [Proactive performance tuning](../usage/proactive-performance-tuning.md).
 
 ## Impact on the wiki
 
-- New: [[proactive-performance-tuning]].
-- [[dragnet]] — the rationale, the size over time, the standalone SQL list, more
+- New: [Proactive performance tuning](../usage/proactive-performance-tuning.md).
+- [Dragnet Investigation](../usage/dragnet.md) — the rationale, the size over time, the standalone SQL list, more
   entries, and direct evidence that numbering shifts.
-- [[indexing]], [[index-compression]], [[foreign-key-locks]] — examples.
-- [[bind-variables-and-cursor-sharing]] — a probable slip in the 2026 deck, see
+- [Indexing](../usage/indexing.md), [Index compression](../usage/index-compression.md), [Foreign keys and locks](../usage/foreign-key-locks.md) — examples.
+- [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md) — a probable slip in the 2026 deck, see
   below.
 
 ## Changes over time and disagreements
 
 - **Numbering shifts — confirmed by the source.** "TABLE ACCESS BY INDEX ROWID
   with additional filter" is point **1.11** in 2018 and **1.15** in 2026. That
-  settles the question raised in [[dragnet]] and concluded from the code in
-  [[panorama-request-and-rendering]].
+  settles the question raised in [Dragnet Investigation](../usage/dragnet.md) and concluded from the code in
+  [Controllers, routing and rendering in Panorama](../development/panorama-request-and-rendering.md).
 - **Index compression saving.** 2018: "by 1/4 to 1/3". 2026: "up to 30 % or
-  more". Compare [[index-compression]].
+  more". Compare [Index compression](../usage/index-compression.md).
 - **Slip in the source, confirmed by the author on 2026-10-04.** The 2026 deck (slide 22) says "`cursor_sharing=EXACT` can
   reduce the problem, but with other side effects". `EXACT` is the default and
   changes nothing; the blog and
-  [[cursor-sharing-force-is-no-substitute]] speak of `FORCE`. The slide
+  [cursor_sharing = FORCE is no substitute for prepared statements](../usage/cursor-sharing-force-is-no-substitute.md) speak of `FORCE`. The slide
   should read `FORCE`; the archived PDF is left unchanged.
 - The 2018 deck links a WordPress blog address; later decks the Blogspot one.
 

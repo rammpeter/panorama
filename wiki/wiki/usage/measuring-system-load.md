@@ -16,7 +16,7 @@ load visible.
 
 ## Active sessions
 
-([[blog-system-load]], 2012-05-14) Two quantities are measured from
+([Blog series on system load and monitoring](../sources/blog-system-load.md), 2012-05-14) Two quantities are measured from
 `DBA_HIST_ACTIVE_SESS_HISTORY`, per instance — so separately with RAC:
 
 - **the total number of active database sessions**
@@ -43,11 +43,11 @@ maximum.
 
 **One telling detail:** the query explicitly excludes `PX Deq Credit: send blkd`
 as an idle event. Five years later that same event is the subject of the post
-about the blind spot of [[ash]].
+about the blind spot of [ASH](ash.md).
 
 ## I/O and CPU
 
-([[blog-system-load]], 2012-05-15) From `DBA_HIST_SYSMETRIC_SUMMARY`, that is, on
+([Blog series on system load and monitoring](../sources/blog-system-load.md), 2012-05-15) From `DBA_HIST_SYSMETRIC_SUMMARY`, that is, on
 the basis of the averages within an AWR cycle:
 
 - `Physical Read/Write Total Bytes Per Sec` — transfer volume
@@ -64,15 +64,15 @@ Here too per instance, with peak value and timestamp.
 
 Separating transfer volume from request count is the actual message here: many
 small I/Os load a disk system differently from a few large ones — exactly the
-case that was the occasion for [[sampling-session-statistics]].
+case that was the occasion for [Sampling session statistics yourself](sampling-session-statistics.md).
 
 ## Relationships
 
-- Data foundation: [[awr]] and [[ash]].
-- For periods beyond the AWR retention: [[long-term-trend-analysis]].
+- Data foundation: [AWR](awr.md) and [ASH](ash.md).
+- For periods beyond the AWR retention: [Long-term trend analysis](long-term-trend-analysis.md).
 - Finer than the AWR cycle, without waiting for the next snapshot:
-  [[segment-statistics]].
-- Long operations currently running: [[long-operations]].
+  [Segment statistics](segment-statistics.md).
+- Long operations currently running: [Long operations](long-operations.md).
 
 ## Open questions
 
@@ -84,4 +84,4 @@ case that was the occasion for [[sampling-session-statistics]].
 
 ## Sources
 
-- [[blog-system-load]]
+- [Blog series on system load and monitoring](../sources/blog-system-load.md)

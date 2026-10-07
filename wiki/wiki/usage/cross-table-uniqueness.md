@@ -16,7 +16,7 @@ there leads through triggers — and through serialisation, which has its price.
 
 ## The task
 
-([[blog-locks]], 2023-08-15) Two tables: `MASTER` is referenced by `DETAIL`. The
+([Blog series on locks and serialisation](../sources/blog-locks.md), 2023-08-15) Two tables: `MASTER` is referenced by `DETAIL`. The
 combination of `DETAIL.VALUE` and `MASTER.COMPANY_ID` is to be unique. All
 columns except the primary keys may change.
 
@@ -47,7 +47,7 @@ ORA-08102: index key not found, obj# 79600, file 12, block 1931 (2)
 
 **The source's conclusion:** function based indexes are unsuitable for this
 requirement as soon as the data read can change. On the more general question see
-[[deterministic]] and [[declaring-deterministic-deliberately]].
+[DETERMINISTIC](deterministic.md) and [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md).
 
 ## The workable route: two compound triggers
 
@@ -94,22 +94,22 @@ variant, with an execution plan for each:
 3. **Pre-group.** The access to `MASTER` is only needed **once** per combination
    of `VALUE` and `Master_ID`, not per `DETAIL` record. An inline view with
    `NO_MERGE` groups the `Master_ID`s first — the same pattern as in
-   [[view-pushed-predicate]].
+   [VIEW PUSHED PREDICATE](view-pushed-predicate.md).
 4. **Avoid table access entirely.** If the indexes are extended by the columns
    read (`DETAIL(Value, Master_ID)` and `MASTER(ID, Company_ID)`), the check
    query only accesses indexes.
 
 ## Relationships
 
-- One of the four roles in [[indexing]] is "guarantee uniqueness" — this is the
+- One of the four roles in [Indexing](indexing.md) is "guarantee uniqueness" — this is the
   case where it is **not** achievable declaratively.
 - The deliberately induced serialisation is the counterpart to
-  [[blocking-locks]], where it is the problem.
-- The `DETERMINISTIC` trap in detail: [[deterministic]], and the rule derived
-  from it: [[declaring-deterministic-deliberately]].
-- The optimisation of the check query uses [[view-pushed-predicate]].
+  [Blocking locks](blocking-locks.md), where it is the problem.
+- The `DETERMINISTIC` trap in detail: [DETERMINISTIC](deterministic.md), and the rule derived
+  from it: [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md).
+- The optimisation of the check query uses [VIEW PUSHED PREDICATE](view-pushed-predicate.md).
 - The mechanism behind `ORA-08102`, and legitimate uses of expression indexes:
-  [[function-based-indexes]].
+  [Function-based indexes](function-based-indexes.md).
 
 ## Open questions
 
@@ -122,5 +122,5 @@ variant, with an execution plan for each:
 
 ## Sources
 
-- [[blog-locks]]
-- [[talks-indexes]]
+- [Blog series on locks and serialisation](../sources/blog-locks.md)
+- [Talks on indexes](../sources/talks-indexes.md)

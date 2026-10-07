@@ -12,11 +12,11 @@ sources: [blog.md, posts/]
 
 > "But what if there is only SQL access to the DB server and no access to the
 > client?"
-> — [[blog-sessions-and-connections]], 2025-01-23
+> — [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2025-01-23
 
 Normally you measure network latency with `tnsping`, `ping` or `traceroute` —
 from one of the two sides. If you only have SQL access to the database and no
-access to the client, a detour via [[ash]] remains.
+access to the client, a detour via [ASH](ash.md) remains.
 
 ## The idea
 
@@ -28,7 +28,7 @@ things hold:
 2. Precisely this behaviour permits an **estimate** of the latency.
 
 > The very property that causes the problem makes it measurable — the same
-> pattern as in [[short-lived-sessions]].
+> pattern as in [Short-lived sessions](short-lived-sessions.md).
 
 **The calculation:** the time between two SQL executions minus the average
 execution time of the SQL in the database. What remains is the time for a network
@@ -69,12 +69,12 @@ interpreting it requires knowledge of the application's implementation.
 
 ## Relationships
 
-- Builds on [[ash]] and therefore requires [[management-pack-licensing]].
-- The counterpart to [[sql-net-and-firewalls]]: there the standing connection is
+- Builds on [ASH](ash.md) and therefore requires [Management pack licensing](management-pack-licensing.md).
+- The counterpart to [SQL\*Net and firewalls](sql-net-and-firewalls.md): there the standing connection is
   the problem, here it is the measuring instrument.
-- The architecture measured is the same one [[short-lived-sessions]] deals with —
+- The architecture measured is the same one [Short-lived sessions](short-lived-sessions.md) deals with —
   only without tearing the connection down.
-- The query is also stored in [[dragnet]] in [[panorama]].
+- The query is also stored in [Dragnet Investigation](dragnet.md) in [Panorama](panorama.md).
 
 ## Open questions
 
@@ -85,4 +85,4 @@ interpreting it requires knowledge of the application's implementation.
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

@@ -11,7 +11,7 @@ sources: [panorama-repository.md, speakerdeck.md, speakerdeck/, rammpeter.github
 
 # Panorama Sampler internals
 
-How the [[panorama-sampler]] is implemented: a scheduler job and worker threads
+How the [Panorama Sampler](../usage/panorama-sampler.md) is implemented: a scheduler job and worker threads
 inside the Panorama server process, a self-maintained schema in each target
 database, and PL/SQL that does the actual sampling there.
 
@@ -21,10 +21,10 @@ The sampler has no agent on the database host and no process of its own. A
 running Panorama instance connects to each configured database on a schedule and
 executes SQL and PL/SQL that copies the current state of `V$` views into tables
 of a dedicated schema. Stop the Panorama server and sampling stops
-([[panorama-source-code]]).
+([Panorama source repository](../sources/panorama-source-code.md)).
 
 It is only active if `PANORAMA_MASTER_PASSWORD` is set
-([[panorama-configuration]]): the job is not scheduled otherwise, and the
+([Panorama configuration](panorama-configuration.md)): the job is not scheduled otherwise, and the
 password encrypts the stored database credentials.
 
 ## The five domains
@@ -39,7 +39,7 @@ schema owner and independent settings for five domains. Defaults from
 | `OBJECT_SIZE` | size of segments over time | 24 hours | 1000 |
 | `CACHE_OBJECTS` | DB cache occupancy by object | 30 minutes | 60 |
 | `BLOCKING_LOCKS` | blocking lock scenarios | 2 minutes | 60 |
-| `LONGTERM_TREND` | condensed load data → [[long-term-trend-analysis]] | 24 hours | 3650 |
+| `LONGTERM_TREND` | condensed load data → [Long-term trend analysis](../usage/long-term-trend-analysis.md) | 24 hours | 3650 |
 
 Retention is in days — stated in the code for the long-term trend, assumed for
 the others. All domains are off by default. Further AWR/ASH settings: one-second
@@ -67,8 +67,8 @@ for the next snapshot.
 new Ruby thread. Its constructor builds a connect info hash from the sampler
 configuration — with the master password as the decryption salt, licence `:none`
 and a query timeout of one minute more than the AWR cycle — and pins it to the
-thread, exactly as a web request would ([[panorama-connection]]). The sampler
-therefore shares pool, error handling and [[pack-license-filter]] with the GUI.
+thread, exactly as a web request would ([PanoramaConnection](panorama-connection.md)). The sampler
+therefore shares pool, error handling and [Pack licence filter](pack-license-filter.md) with the GUI.
 
 Per snapshot (`create_snapshot_internal`):
 
@@ -103,7 +103,7 @@ Consequences:
   after start.
 - Tables are named `Panorama_<AWR name>` (`Panorama_Snapshot`,
   `Panorama_SQLStat`, `Panorama_Seg_Stat` …), mirroring `DBA_HIST_<name>`. This
-  naming is what the SQL rewrite in the [[pack-license-filter]] relies on. Some
+  naming is what the SQL rewrite in the [Pack licence filter](pack-license-filter.md) relies on. Some
   are `Internal_…` tables with a `Panorama_…` view on top.
 - **The list of tables is the exact scope of the sampler.** An AWR view with no
   counterpart here is unavailable under the sampler option.
@@ -154,7 +154,7 @@ supposed to run for a whole snapshot cycle.
 ## Configuration storage
 
 The configurations are an array of hashes in the
-[[panorama-client-state-and-security|client info store]] under a key derived
+[client info store](panorama-client-state-and-security.md) under a key derived
 from the master password; database passwords in it are encrypted with the master
 password as salt. Changing the master password therefore orphans the stored
 configuration. Export and import as JSON exist and require admin authentication
@@ -167,7 +167,7 @@ named in the sampler configuration for this DBID wins.
 ## The picture the author draws
 
 The architecture slide of the 2022 and 2025 talks
-([[talks-panorama-and-sampler]]) shows the same split as the code and adds the
+([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)) shows the same split as the code and adds the
 data source of each domain:
 
 | Domain | Executed as | Reads | Writes |
@@ -182,11 +182,11 @@ data source of each domain:
 The talks also state the design rule this wiki had inferred: the tables are
 structurally identical to the AWR views of release 19 or 23, with the same name
 suffix — and the limits of the ASH replacement, recorded in
-[[panorama-sampler]].
+[Panorama Sampler](../usage/panorama-sampler.md).
 
 ## What the website adds
 
-([[rammpeter-github-io]], sampler page.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), sampler page.)
 
 - **A health endpoint.** `panorama_sampler/monitor_sampler_status` returns the
   state of all configured sources as JSON, with HTTP 500 if any has a persisting
@@ -197,7 +197,7 @@ suffix — and the limits of the ASH replacement, recorded in
   `application_controller.rb`.
 - **The grants** of the sampling user, including the reason for the
   package-or-anonymous-block switch in the author's own words
-  → [[panorama-privileges]]. It confirms the code comment quoted above.
+  → [Privileges for Panorama](../usage/panorama-privileges.md). It confirms the code comment quoted above.
 - **Tables are created at the first snapshot**, not when the configuration is
   saved — the user-visible side of the self-maintaining schema.
 - **One thread per snapshot** of a configured database ("own thread for each
@@ -207,26 +207,26 @@ suffix — and the limits of the ASH replacement, recorded in
 
 ## Relationships
 
-- The feature as users see it: [[panorama-sampler]]; the licence option it
-  backs: [[management-pack-licensing]].
-- Uses [[panorama-connection]]; made transparent by the
-  [[pack-license-filter]].
-- Part of [[panorama-architecture]].
-- The Oracle side it imitates: [[awr]], [[ash]]; one of its extras:
-  [[blocking-locks]].
+- The feature as users see it: [Panorama Sampler](../usage/panorama-sampler.md); the licence option it
+  backs: [Management pack licensing](../usage/management-pack-licensing.md).
+- Uses [PanoramaConnection](panorama-connection.md); made transparent by the
+  [Pack licence filter](pack-license-filter.md).
+- Part of [Panorama architecture](panorama-architecture.md).
+- The Oracle side it imitates: [AWR](../usage/awr.md), [ASH](../usage/ash.md); one of its extras:
+  [Blocking locks](../usage/blocking-locks.md).
 
 ## Open questions
 
 - The PL/SQL bodies were only skimmed. Which `V$` views does each snapshot read,
   and where does it deviate from what AWR stores?
 - ~~In RAC: how are the other instances sampled?~~ Answered 2026-10-04 by the
-  talks ([[talks-panorama-and-sampler]]): not at all by one configuration. One
+  talks ([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)): not at all by one configuration. One
   configuration per node, each through a node-bound TNS service
-  → [[panorama-sampler]].
+  → [Panorama Sampler](../usage/panorama-sampler.md).
 - Retention units for the non-trend domains are assumed, not verified.
 
 ## Sources
 
-- [[panorama-source-code]]
-- [[talks-panorama-and-sampler]]
-- [[rammpeter-github-io]]
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

@@ -15,13 +15,13 @@ what it costs on access — with measurements from a production-sized table.
 
 ## Summary
 
-All of it from one talk of 2024 ([[talks-advanced-compression]]). The short
+All of it from one talk of 2024 ([Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)). The short
 version of its result: compression is usable in production; the storage saving
 is reliable, the runtime effect goes both ways and depends on the access
 pattern; the columnar methods save most and punish single-row access hardest.
 
-Two neighbouring pages go deeper into one method each: [[oltp-compression]]
-(the update problem) and [[index-compression]] (which indexes are worth it).
+Two neighbouring pages go deeper into one method each: [OLTP compression](oltp-compression.md)
+(the update problem) and [Index compression](index-compression.md) (which indexes are worth it).
 
 > Values marked "≈" were read off bar charts and are approximate.
 
@@ -67,7 +67,7 @@ indexes, 115 MB:
 > Conclusion: the compression is cheap, keeping ten global indexes valid is not,
 > and doing it online is nearly 500 times slower than offline. The practical
 > pattern the talk suggests fits that: age the data by
-> [[interval-partitions-rolling-window|interval partitioning]], and compress
+> [interval partitioning](interval-partitions-rolling-window.md), and compress
 > partitions once they no longer receive DML.
 
 ## The large comparison
@@ -111,8 +111,8 @@ Updates on `COMPRESS ADVANCED` tables produced migrated rows on a large scale in
 12.x and 18.x; with 19.18 it "still occurs sporadically, but with drastically
 lower risk". The talk's advice: for tables with a significant amount of update
 DML, keep the size and relevance of migrated rows in view. Details and the
-measurements: [[oltp-compression]]; the position derived from it:
-[[monitor-migrated-rows-under-advanced-compression]].
+measurements: [OLTP compression](oltp-compression.md); the position derived from it:
+[Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md).
 
 ## A pitfall with partitioned tables
 
@@ -132,7 +132,7 @@ for the defaults `user_part_tables.DEF_COMPRESSION` / `DEF_COMPRESS_FOR`.
 Prefix key compression (no option), advanced low (option; chooses the prefix
 length per block), advanced high (option; a combination of methods, not for
 bitmap indexes, IOTs or function-based indexes). Measurements, the effect of
-column order and two problems with advanced high: [[index-compression]].
+column order and two problems with advanced high: [Index compression](index-compression.md).
 
 ## LOB compression
 
@@ -150,15 +150,15 @@ A second example reached **46:1** with `HIGH`.
 not parallelise with LOBs. Instead: create the empty table,
 `ALTER SESSION ENABLE PARALLEL DML`, then
 `INSERT /*+ APPEND PARALLEL(64) */ … SELECT /*+ PARALLEL(64) */ …`
-→ [[parallel-execution]].
+→ [Parallel execution](parallel-execution.md).
 
 ## Estimating and checking
 
 - `DBMS_COMPRESSION.Get_Compression_Ratio` is Oracle's estimator. The author:
   "never used successfully myself", it fails with errors in
   `SYS.PRVT_COMPRESSION`.
-- [[panorama]] offers suggestion lists for table and index compression
-  ([[dragnet]]) and calculates an expected size from `Num_Rows`, `Avg_Row_Len`,
+- [Panorama](panorama.md) offers suggestion lists for table and index compression
+  ([Dragnet Investigation](dragnet.md)) and calculates an expected size from `Num_Rows`, `Avg_Row_Len`,
   `Pct_Free` and `Ini_Trans`.
 - `DBMS_COMPRESSION.Get_Compression_Type` returns the compression type **per
   ROWID**. Panorama uses it on a sample of selectable size (click on
@@ -173,14 +173,14 @@ would pay, because developers do not know what it offers.
 
 ## Relationships
 
-- Deeper on one method each: [[oltp-compression]], [[index-compression]].
-- The position on updates: [[monitor-migrated-rows-under-advanced-compression]]
-  (supersedes [[oltp-compression-only-without-updates]]).
-- The partitioning pattern it relies on: [[partitioning]],
-  [[interval-partitions-rolling-window]].
-- The other way to make an index small: [[function-based-indexes]].
+- Deeper on one method each: [OLTP compression](oltp-compression.md), [Index compression](index-compression.md).
+- The position on updates: [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md)
+  (supersedes [OLTP compression only for tables without meaningful updates](oltp-compression-only-without-updates.md)).
+- The partitioning pattern it relies on: [Partitioning](partitioning.md),
+  [Interval partitions and the rolling window](interval-partitions-rolling-window.md).
+- The other way to make an index small: [Function-based indexes](function-based-indexes.md).
 - Space freed by reorganisation rather than compression:
-  [[storage-reorganisation]].
+  [Storage reorganisation](storage-reorganisation.md).
 
 ## Open questions
 
@@ -195,4 +195,4 @@ would pay, because developers do not know what it offers.
 
 ## Sources
 
-- [[talks-advanced-compression]]
+- [Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)

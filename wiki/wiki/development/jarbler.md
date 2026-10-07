@@ -12,12 +12,12 @@ sources: [speakerdeck.md, speakerdeck/2025-05_Jarbler.pdf, panorama-repository.m
 # Jarbler
 
 A tool by Panorama's author that packs a Ruby application into a self-starting
-Java JAR file, based on JRuby. It is what turns the [[panorama]] source tree into
+Java JAR file, based on JRuby. It is what turns the [Panorama](../usage/panorama.md) source tree into
 `Panorama.jar`.
 
 ## Summary
 
-([[talks-jarbler-and-movex-cdc]], talk of 2025-05;
+([Talks on Jarbler and MOVEX CDC](../sources/talks-jarbler-and-movex-cdc.md), talk of 2025-05;
 <https://github.com/rammpeter/jarbler>.) The purpose: run a Ruby application on
 a target machine that has Java but no Ruby environment. It is preconfigured for
 Rails applications, so that for the simple case a configuration is hardly
@@ -45,7 +45,7 @@ The settings that matter, in `config/jarble.rb`:
 
 ## How Panorama uses it
 
-From `config/jarble.rb` in the repository ([[panorama-source-code]]):
+From `config/jarble.rb` in the repository ([Panorama source repository](../sources/panorama-source-code.md)):
 
 - executable `bin/rails`, parameters `server -e production -p 8080`
 - `--release 21` for the launcher, since JRuby 10 requires Java 21
@@ -53,7 +53,7 @@ From `config/jarble.rb` in the repository ([[panorama-source-code]]):
 - `vendor/` is excluded — its assets are already precompiled into `public/`
 - the gems listed in `excluded_gems.txt` are left out
 
-The whole build is described in [[panorama-build-test-and-release]].
+The whole build is described in [Building, testing and releasing Panorama](panorama-build-test-and-release.md).
 
 ## Known rough edges
 
@@ -83,7 +83,7 @@ the difference is not documented in either source.
 ## History
 
 Earlier, Panorama was distributed as a self-starting **WAR** file — the 2022
-talk still says so, the 2024 talk says JAR ([[talks-panorama-and-sampler]]).
+talk still says so, the 2024 talk says JAR ([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)).
 Traces of the WAR era remain in the code, for instance a path-length check that
 mentions a `Panorama.war` inside a Jetty work directory, and a comment about
 `-Dwarbler.port` in the Docker start script.
@@ -94,11 +94,11 @@ mentions a `Panorama.war` inside a Jetty work directory, and a comment about
 
 ## Relationships
 
-- Used by [[panorama-build-test-and-release]]; configured in the repository
-  described in [[panorama-source-code]].
-- Makes the "one self-contained file" of [[panorama-architecture]] possible.
-- How the JAR is run: [[panorama-operations]].
-- Another tool by the same author: [[movex-cdc]] (which ships as a Docker image
+- Used by [Building, testing and releasing Panorama](panorama-build-test-and-release.md); configured in the repository
+  described in [Panorama source repository](../sources/panorama-source-code.md).
+- Makes the "one self-contained file" of [Panorama architecture](panorama-architecture.md) possible.
+- How the JAR is run: [Panorama operations](../usage/panorama-operations.md).
+- Another tool by the same author: [MOVEX CDC](../usage/movex-cdc.md) (which ships as a Docker image
   only).
 
 ## Open questions
@@ -110,5 +110,5 @@ mentions a `Panorama.war` inside a Jetty work directory, and a comment about
 
 ## Sources
 
-- [[talks-jarbler-and-movex-cdc]]
-- [[panorama-source-code]]
+- [Talks on Jarbler and MOVEX CDC](../sources/talks-jarbler-and-movex-cdc.md)
+- [Panorama source repository](../sources/panorama-source-code.md)

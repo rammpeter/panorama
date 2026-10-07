@@ -24,7 +24,7 @@ The blog has two kinds of post, which often mix within the same text:
   `V$`/`GV$` and `DBA_HIST_*` views, frequently with reproduced test scenarios
   across several Oracle releases.
 - **Panorama how-tos** (label "Panorama How-To", 33 posts): how to click through
-  the same analysis in [[panorama]], often as a continuation of the mechanics
+  the same analysis in [Panorama](panorama.md), often as a continuation of the mechanics
   part in the same post.
 
 In addition there are seven posts with ready-made PL/SQL building blocks (label
@@ -37,14 +37,14 @@ against widespread assumptions and back it up with reproducible tests.
 
 ## Relationships
 
-- Written by the author of [[panorama]]; the tool is the means or the subject in
+- Written by the author of [Panorama](panorama.md); the tool is the means or the subject in
   roughly half the posts.
-- Recurring data foundations: [[awr]], [[ash]].
-- Recurring caveat: [[management-pack-licensing]] — several posts point out
+- Recurring data foundations: [AWR](awr.md), [ASH](ash.md).
+- Recurring caveat: [Management pack licensing](management-pack-licensing.md) — several posts point out
   specifically that an evaluation requires Enterprise Edition plus the
   Diagnostics Pack.
 - The author's conference talks, which arrange what the posts establish:
-  [[rammpeter-talks]].
+  [Talks and slide decks by Peter Ramm](rammpeter-talks.md).
 
 ## State of ingestion
 
@@ -52,17 +52,17 @@ against widespread assumptions and back it up with reproducible tests.
 
 | Source page | Posts |
 |---|---|
-| [[blog-indexing]] | 8 |
-| [[blog-execution-plans]] | 9 |
-| [[blog-bind-variables]] | 3 |
-| [[blog-locks]] | 4 |
-| [[blog-sessions-and-connections]] | 8 |
-| [[blog-system-load]] | 7 |
-| [[blog-audit-trail]] | 5 |
-| [[blog-storage]] | 6 |
-| [[blog-partitioning]] | 5 |
-| [[blog-caching-and-plsql]] | 5 |
-| [[blog-panorama-the-tool]] | 14 |
+| [Blog series on indexing](../sources/blog-indexing.md) | 8 |
+| [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md) | 9 |
+| [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md) | 3 |
+| [Blog series on locks and serialisation](../sources/blog-locks.md) | 4 |
+| [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md) | 8 |
+| [Blog series on system load and monitoring](../sources/blog-system-load.md) | 7 |
+| [Blog series on the audit trail](../sources/blog-audit-trail.md) | 5 |
+| [Blog series on storage, tablespaces and redo](../sources/blog-storage.md) | 6 |
+| [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md) | 5 |
+| [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md) | 5 |
+| [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md) | 14 |
 
 ## Posts
 
@@ -163,14 +163,14 @@ extraction defect, see `log.md`.
 
 ## Sources
 
-- [[blog-indexing]]
-- [[blog-execution-plans]]
-- [[blog-bind-variables]]
-- [[blog-locks]]
-- [[blog-sessions-and-connections]]
-- [[blog-system-load]]
-- [[blog-audit-trail]]
-- [[blog-storage]]
-- [[blog-partitioning]]
-- [[blog-caching-and-plsql]]
-- [[blog-panorama-the-tool]]
+- [Blog series on indexing](../sources/blog-indexing.md)
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)
+- [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md)
+- [Blog series on locks and serialisation](../sources/blog-locks.md)
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)
+- [Blog series on system load and monitoring](../sources/blog-system-load.md)
+- [Blog series on the audit trail](../sources/blog-audit-trail.md)
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)
+- [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md)
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)

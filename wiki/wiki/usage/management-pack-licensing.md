@@ -20,12 +20,12 @@ Collected from several posts:
 
 | Subject | Requirement | Evidenced in |
 |---|---|---|
-| [[awr]], [[ash]] | Enterprise Edition **and** Diagnostics Pack | [[blog-locks]] 2020-10-06 |
-| [[sql-monitor]] | Enterprise Edition and **Tuning Pack** | [[blog-panorama-the-tool]] 2017-12-01 |
-| SQL plan baselines, SQL profiles | additional licence | [[blog-execution-plans]] 2018-01-14 |
-| **SQL patches** | **none** — Standard Edition too | [[blog-execution-plans]] 2018-01-14, 2026-06-29 |
-| **SQL Diagnostic Report** (`DBMS_SQLDIAG.REPORT_SQL`) | **none** — verified empirically | [[blog-execution-plans]] 2025-08-07 |
-| [[panorama-sampler]] | **none** — any edition | [[blog-panorama-the-tool]] 2017-11-17 |
+| [AWR](awr.md), [ASH](ash.md) | Enterprise Edition **and** Diagnostics Pack | [Blog series on locks and serialisation](../sources/blog-locks.md) 2020-10-06 |
+| [SQL Monitor](sql-monitor.md) | Enterprise Edition and **Tuning Pack** | [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md) 2017-12-01 |
+| SQL plan baselines, SQL profiles | additional licence | [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md) 2018-01-14 |
+| **SQL patches** | **none** — Standard Edition too | [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md) 2018-01-14, 2026-06-29 |
+| **SQL Diagnostic Report** (`DBMS_SQLDIAG.REPORT_SQL`) | **none** — verified empirically | [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md) 2025-08-07 |
+| [Panorama Sampler](panorama-sampler.md) | **none** — any edition | [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md) 2017-11-17 |
 
 > Two findings are especially valuable in practice: **SQL patches** are the
 > licence-free way to influence an execution plan, and the **SQL Diagnostic
@@ -36,7 +36,7 @@ Collected from several posts:
 
 ## How Panorama handles it
 
-([[blog-panorama-the-tool]], 2017-12-01) The licensing model is built into the
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2017-12-01) The licensing model is built into the
 workflow: after connecting, **one of four options** must be confirmed before
 restricted dictionary data is read.
 
@@ -50,7 +50,7 @@ the target database. Options 1 and 2 are only available for Enterprise Edition �
 *so the 2017 post; see the contradiction below.*
 
 **Contradiction (recorded 2026-10-03).** The current code
-([[panorama-source-code]], `PackLicense.management_pack_selectable`) is wider
+([Panorama source repository](../sources/panorama-source-code.md), `PackLicense.management_pack_selectable`) is wider
 than the post: options 1 and 2 are selectable for **Enterprise and Free** edition
 if `control_management_pack_access` contains the pack, and for **Express Edition
 unconditionally**. An autonomous database, where the parameter is not set, is
@@ -59,7 +59,7 @@ what Panorama does today; whether the wider offer matches Oracle's licensing
 terms for those editions is a separate question the code does not answer.
 
 The enforcement itself — how "every function call results in an error" is
-guaranteed — is described in [[pack-license-filter]].
+guaranteed — is described in [Pack licence filter](../development/pack-license-filter.md).
 
 **The consequences are hard-wired:**
 
@@ -85,7 +85,7 @@ guaranteed — is described in [[pack-license-filter]].
 ## What the licence costs
 
 List prices per processor as shown in the sampler talks
-([[talks-panorama-and-sampler]]; identical figures in 2022 and 2025):
+([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md); identical figures in 2022 and 2025):
 
 | | Licence, USD | Support per year (22 %), USD |
 |---|---|---|
@@ -96,43 +96,43 @@ List prices per processor as shown in the sampler talks
 
 The argument made with it: licensing Enterprise Edition and the pack *only* to
 get AWR and ASH more than triples the cost against Standard Edition — the
-economic reason for the [[panorama-sampler]]. The Advanced Compression Option is
+economic reason for the [Panorama Sampler](panorama-sampler.md). The Advanced Compression Option is
 put at about a quarter of the Enterprise Edition price
-([[advanced-compression]]).
+([Table, index and LOB compression compared](advanced-compression.md)).
 
-**Refinements to the table at the top**, from [[talks-sql-plan-management]]: a
+**Refinements to the table at the top**, from [Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md): a
 SQL plan baseline needs Enterprise Edition, and the Tuning Pack only for creating
 it from AWR data; a SQL profile needs Enterprise Edition with Diagnostics *and*
 Tuning Pack; the SQL translation framework is listed as Enterprise Edition
-→ [[sql-plan-management]].
+→ [SQL plan management](sql-plan-management.md).
 
 ## Relationships
 
-- The licence-free fallback: [[panorama-sampler]], and for year-on-year
-  comparisons [[long-term-trend-analysis]].
-- Concepts affected: [[awr]], [[ash]], [[sql-monitor]], [[blocking-locks]],
-  [[index-access-paths]], [[network-latency-from-ash]], [[partition-pruning]],
-  [[parallel-execution]].
-- The licence-free lever on execution plans: [[sql-plan-management]].
+- The licence-free fallback: [Panorama Sampler](panorama-sampler.md), and for year-on-year
+  comparisons [Long-term trend analysis](long-term-trend-analysis.md).
+- Concepts affected: [AWR](awr.md), [ASH](ash.md), [SQL Monitor](sql-monitor.md), [Blocking locks](blocking-locks.md),
+  [Index access paths](index-access-paths.md), [Estimating network latency from ASH](network-latency-from-ash.md), [Partition pruning](partition-pruning.md),
+  [Parallel execution](parallel-execution.md).
+- The licence-free lever on execution plans: [SQL plan management](sql-plan-management.md).
 - The other gate besides the licence — the grants a function needs:
-  [[panorama-privileges]]. Oracle's own reports: [[genuine-oracle-reports]].
+  [Privileges for Panorama](panorama-privileges.md). Oracle's own reports: [Genuine Oracle reports](genuine-oracle-reports.md).
 
 ## Open questions
 
 - Editions: the post of 2017 and the current code disagree on who may choose
   options 1 and 2 (see above). Which is intended?
 - What exactly does the sampler cover and what not? The boundary is now known in
-  principle — the sampler's table list, see [[panorama-sampler-internals]] — but
+  principle — the sampler's table list, see [Panorama Sampler internals](../development/panorama-sampler-internals.md) — but
   no list of affected functions exists.
 - Does the licensing situation differ in cloud offerings (Autonomous Database,
   Exadata Cloud Service)? None of the posts covers that.
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
-- [[blog-execution-plans]]
-- [[blog-locks]]
-- [[blog-indexing]]
-- [[panorama-source-code]]
-- [[talks-panorama-and-sampler]]
-- [[talks-sql-plan-management]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)
+- [Blog series on locks and serialisation](../sources/blog-locks.md)
+- [Blog series on indexing](../sources/blog-indexing.md)
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)
+- [Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md)

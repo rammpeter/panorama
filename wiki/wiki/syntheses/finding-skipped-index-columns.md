@@ -12,7 +12,7 @@ sources: [blog.md, posts/]
 
 **Question:** How do I find indexes where a *middle* column is not used?
 
-Kept answer from 2026-10-01. The mechanism is in [[index-access-paths]]; this
+Kept answer from 2026-10-01. The mechanism is in [Index access paths](../usage/index-access-paths.md); this
 page is the procedure.
 
 ## Short answer
@@ -37,12 +37,12 @@ millions for a single, inconspicuous index access.
 
 ## The quick route
 
-In [[panorama]] via [[dragnet]] — both queries are available there ready-made,
+In [Panorama](../usage/panorama.md) via [Dragnet Investigation](../usage/dragnet.md) — both queries are available there ready-made,
 with direct drill-down into the SQL plan and the index structure.
 
 ## The route via SQL
 
-Against the **current SGA** ([[blog-indexing]], 2026-06-03,
+Against the **current SGA** ([Blog series on indexing](../sources/blog-indexing.md), 2026-06-03,
 `raw/posts/71-2026-06-03-*.md`):
 
 ```sql
@@ -91,8 +91,8 @@ Against the **AWR history** the same logic, with four differences:
 
 Enterprise Edition **and** the Diagnostics Pack — the source says so explicitly
 (*"You'll need EE and the Diagnostics Pack to do this investigation"*). Without a
-licence, [[panorama-sampler]] takes the place of [[ash]], see
-[[management-pack-licensing]].
+licence, [Panorama Sampler](../usage/panorama-sampler.md) takes the place of [ASH](../usage/ash.md), see
+[Management pack licensing](../usage/management-pack-licensing.md).
 
 ## What the source leaves open
 
@@ -112,14 +112,14 @@ licence, [[panorama-sampler]] takes the place of [[ash]], see
 ## Placement
 
 This finding belongs to a broader insight: **usage alone is no proof of quality
-for an index.** The four roles in [[indexing]] answer *whether* an index is
-needed; [[index-usage-monitoring]] shows *whether* it is used. This page covers
+for an index.** The four roles in [Indexing](../usage/indexing.md) answer *whether* an index is
+needed; [Index usage monitoring](../usage/index-usage-monitoring.md) shows *whether* it is used. This page covers
 the case where it is used and still works badly. The other cases of this kind:
 
-- [[extended-statistics]] — a suitable function based index remains ineffective
+- [Extended statistics](../usage/extended-statistics.md) — a suitable function based index remains ineffective
   without `GATHER_TABLE_STATS`, because the optimizer estimates the cardinality
   with a flat *rows/100*.
-- [[partition-pruning]] — the same mechanism one level up: the partition key is
+- [Partition pruning](../usage/partition-pruning.md) — the same mechanism one level up: the partition key is
   in the filter but does not become an access criterion.
 
 In all three cases the distinction between **access and filter predicate**
@@ -128,5 +128,5 @@ inconspicuous.
 
 ## Sources
 
-- [[blog-indexing]] (post of 2026-06-03), `raw/posts/71-2026-06-03-*.md`
-- Mechanism: [[index-access-paths]]
+- [Blog series on indexing](../sources/blog-indexing.md) (post of 2026-06-03), `raw/posts/71-2026-06-03-*.md`
+- Mechanism: [Index access paths](../usage/index-access-paths.md)

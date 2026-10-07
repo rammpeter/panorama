@@ -11,28 +11,28 @@ sources: [panorama-repository.md]
 
 # Panorama architecture
 
-How [[panorama]] is built: a Rails application on JRuby without a database of its
+How [Panorama](../usage/panorama.md) is built: a Rails application on JRuby without a database of its
 own, which opens Oracle connections per request and renders the target
 database's system views as HTML fragments. Entry point to the development half
 of this wiki.
 
 ## Summary
 
-Three properties shape everything else ([[panorama-source-code]]):
+Three properties shape everything else ([Panorama source repository](../sources/panorama-source-code.md)):
 
 1. **No static database.** The application has no schema, no migrations and no
    models in the ActiveRecord sense. `config/database.yml` configures the
    `nulldb` adapter only to keep Rails content
-   → [[own-connection-pool-outside-activerecord]].
+   → [Own connection pool outside ActiveRecord](own-connection-pool-outside-activerecord.md).
 2. **One process, many target databases.** Each browser tab can be logged in to
    a different Oracle database with different credentials. What ties a request
    to its database is state on the server keyed by a cookie, and a connection
-   bound to the executing thread → [[panorama-connection]],
-   [[panorama-client-state-and-security]].
+   bound to the executing thread → [PanoramaConnection](panorama-connection.md),
+   [Client state and security in Panorama](panorama-client-state-and-security.md).
 3. **SQL is the application logic.** The controllers consist mostly of SQL
    against `V$`, `GV$`, `DBA_*` and `DBA_HIST_*` views. There is no domain
    model between the query and the grid that shows it
-   → [[panorama-request-and-rendering]].
+   → [Controllers, routing and rendering in Panorama](panorama-request-and-rendering.md).
 
 ## The stack
 
@@ -44,7 +44,7 @@ Three properties shape everything else ([[panorama-source-code]]):
 | Database access | Oracle JDBC thin driver through `activerecord-oracle_enhanced-adapter`, used below the ActiveRecord layer | `app/models/panorama_connection.rb` |
 | Frontend | Server-rendered ERB fragments, jQuery, SlickGrid, flot, CodeMirror, superfish; Sprockets asset pipeline | `app/assets/javascripts/application.js`, `vendor/assets/` |
 | Background work | ActiveJob with the in-process adapter, plus plain Ruby threads | `config/initializers/initialize_jobs.rb`, `app/models/worker_thread.rb` |
-| Packaging | Self-contained `Panorama.jar` via [[jarbler]], or a Docker image | [[panorama-build-test-and-release]] |
+| Packaging | Self-contained `Panorama.jar` via [Jarbler](jarbler.md), or a Docker image | [Building, testing and releasing Panorama](panorama-build-test-and-release.md) |
 
 > Conclusion: JRuby is not incidental. The JDBC thin driver removes the need for
 > an Oracle client installation, real threads make one process serve many
@@ -76,11 +76,11 @@ Assembled from `application_controller.rb` and `application_helper.rb`:
    request fails. A handful of actions that need no database are exempt
    (`@@METHODS_WITHOUT_DB_CONNECTION`).
 4. **Connect info.** The current database of this client key and tab is read
-   from the [[panorama-client-state-and-security|client info store]] and pinned
+   from the [client info store](panorama-client-state-and-security.md) and pinned
    to the thread, together with the salt cookie and the controller/action name.
 5. **Usage record.** One line per request is appended to `Usage.log`.
 6. **The action runs.** The first SQL statement fetches a connection from the
-   pool or logs in; every statement passes the [[pack-license-filter]].
+   pool or logs in; every statement passes the [Pack licence filter](pack-license-filter.md).
 7. **Render.** The action renders a partial into the `div` named by the
    `update_area` parameter.
 8. **Release.** `after_request` marks the connection as free in the pool and
@@ -100,7 +100,7 @@ shortly after boot:
 |---|---|---|
 | `InitializationJob` | once | logs the memory state |
 | `ConnectionTerminateJob` | hourly | closes pooled connections idle for more than an hour, cleans the client info store, trims `Usage.log` |
-| `PanoramaSamplerJob` | smallest configured snapshot cycle | starts the sampler threads → [[panorama-sampler-internals]]. Only scheduled if a master password is configured |
+| `PanoramaSamplerJob` | smallest configured snapshot cycle | starts the sampler threads → [Panorama Sampler internals](panorama-sampler-internals.md). Only scheduled if a master password is configured |
 
 At process exit, `config/initializers/shutdown_hooks.rb` aborts every pooled
 JDBC connection — a thread blocked in a JDBC call cannot be interrupted any
@@ -108,29 +108,29 @@ other way, and the JVM would otherwise wait for the query to finish.
 
 ## What is persistent
 
-Panorama writes only into `PANORAMA_VAR_HOME` ([[panorama-configuration]]):
+Panorama writes only into `PANORAMA_VAR_HOME` ([Panorama configuration](panorama-configuration.md)):
 
 - `client_info.store/` — the file store with all client state, including saved
   logins and the sampler configuration
 - `secret_key_base` — the generated encryption secret, if none was supplied
 - `Usage.log` — the usage record
 - `predefined_dragnet_selections.json` — optional, site-wide dragnet additions
-  ([[dragnet]])
+  ([Dragnet Investigation](../usage/dragnet.md))
 
 Everything else is in the target databases: the sampler's tables live in a
 schema of the database being sampled.
 
 ## Relationships
 
-- The product seen from outside: [[panorama]]; running it:
-  [[panorama-operations]].
-- Components: [[panorama-connection]], [[pack-license-filter]],
-  [[panorama-sampler-internals]], [[panorama-client-state-and-security]],
-  [[panorama-request-and-rendering]], [[panorama-configuration]].
-- Decisions: [[own-connection-pool-outside-activerecord]],
-  [[route-state-changing-actions-post-only]].
+- The product seen from outside: [Panorama](../usage/panorama.md); running it:
+  [Panorama operations](../usage/panorama-operations.md).
+- Components: [PanoramaConnection](panorama-connection.md), [Pack licence filter](pack-license-filter.md),
+  [Panorama Sampler internals](panorama-sampler-internals.md), [Client state and security in Panorama](panorama-client-state-and-security.md),
+  [Controllers, routing and rendering in Panorama](panorama-request-and-rendering.md), [Panorama configuration](panorama-configuration.md).
+- Decisions: [Own connection pool outside ActiveRecord](own-connection-pool-outside-activerecord.md),
+  [Route state-changing actions as POST only](route-state-changing-actions-post-only.md).
 - A sibling application on the same base (Rails, JRuby, worker threads,
-  self-initialising schema): [[movex-cdc]].
+  self-initialising schema): [MOVEX CDC](../usage/movex-cdc.md).
 
 ## Open questions
 
@@ -144,4 +144,4 @@ schema of the database being sampled.
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

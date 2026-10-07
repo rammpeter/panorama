@@ -16,7 +16,7 @@ until it hits a limit that is not where you expect it.
 
 ## The limit
 
-([[blog-partitioning]], 2021-05-29) The number of partitions must not exceed
+([Blog series on partitioning and parallel processing](../sources/blog-partitioning.md), 2021-05-29) The number of partitions must not exceed
 **1,048,575** (= 1024 × 1024 − 1). What is decisive, however:
 
 > What counts is **not** the physically existing partitions but the number of
@@ -105,12 +105,12 @@ permitted.
 
 ## Relationships
 
-- Part of [[partitioning]].
+- Part of [Partitioning](partitioning.md).
 - The partition interval also decides the efficiency of purging →
-  [[unified-audit-trail-operations]].
+  [Unified audit trail – operations](unified-audit-trail-operations.md).
 - The same pattern as the basis for compressing aged partitions
-  ([[advanced-compression]]) and for an index-free staging table
-  ([[movex-cdc]]).
+  ([Table, index and LOB compression compared](advanced-compression.md)) and for an index-free staging table
+  ([MOVEX CDC](movex-cdc.md)).
 
 ## Open questions
 
@@ -122,6 +122,6 @@ permitted.
 
 ## Sources
 
-- [[blog-partitioning]]
-- [[talks-advanced-compression]]
-- [[talks-jarbler-and-movex-cdc]]
+- [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md)
+- [Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)
+- [Talks on Jarbler and MOVEX CDC](../sources/talks-jarbler-and-movex-cdc.md)

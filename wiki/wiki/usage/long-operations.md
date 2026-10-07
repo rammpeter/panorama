@@ -16,7 +16,7 @@ being read.
 
 ## The addition
 
-([[blog-system-load]], 2026-09-16) The route goes via
+([Blog series on system load and monitoring](../sources/blog-system-load.md), 2026-09-16) The route goes via
 `GV$SESSION.ROW_WAIT_OBJ#` — the object ID of the object the session is currently
 accessing. Via `DBA_OBJECTS` that becomes the owner, object name, **sub-object
 name** (that is, the partition) and object type.
@@ -54,10 +54,10 @@ credits Matthias Rogel for the inspiration.
 
 ## Relationships
 
-- The live complement to [[measuring-system-load]]: not what was, but what is
+- The live complement to [Measuring system load](measuring-system-load.md): not what was, but what is
   running right now.
-- Partition reference: [[partitioning]].
-- Unlike [[ash]], without a licensing caveat — `GV$SESSION_LONGOPS` and
+- Partition reference: [Partitioning](partitioning.md).
+- Unlike [ASH](ash.md), without a licensing caveat — `GV$SESSION_LONGOPS` and
   `GV$SESSION` are base views.
 
 ## Open questions
@@ -67,7 +67,7 @@ credits Matthias Rogel for the inspiration.
   operations; the one regenerated on 2026-10-05 lists "SGA/PGA-Details" /
   "SQL-Area" / "Long operations" — "Show long running operations from
   GV$Session_LongOps" — which is the path the blog post gives
-  ([[panorama-menu-overview]], [[rammpeter-github-io]]).
+  ([Panorama menu overview](panorama-menu-overview.md), [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)).
 - How often does the heuristic miss, that is, how frequently does `NO` appear in
   the check column?
 - Can the partition also be determined retrospectively? `ROW_WAIT_OBJ#` is live
@@ -76,4 +76,4 @@ credits Matthias Rogel for the inspiration.
 
 ## Sources
 
-- [[blog-system-load]]
+- [Blog series on system load and monitoring](../sources/blog-system-load.md)

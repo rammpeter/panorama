@@ -10,7 +10,7 @@ sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 
 # Client state and security in Panorama
 
-How [[panorama]] remembers who a browser is and which database it is logged in
+How [Panorama](../usage/panorama.md) remembers who a browser is and which database it is logged in
 to, how database passwords are protected, and which defences the web layer has.
 
 ## Summary
@@ -19,7 +19,7 @@ Panorama has no user accounts. Identity is a random key in a browser cookie;
 authorisation is whatever the Oracle user behind the stored login may read. The
 security design therefore has one main asset to protect — database credentials —
 and one administrative secret, the master password
-([[panorama-source-code]]).
+([Panorama source repository](../sources/panorama-source-code.md)).
 
 ## Identifying a client
 
@@ -41,7 +41,7 @@ different databases. Every request must carry it.
 `ActiveSupport::Cache::FileStore` in `PANORAMA_VAR_HOME/client_info.store`.
 
 Per client key it holds, among other things: locale, the list of last logins,
-the last time selection, personal dragnet SQL ([[dragnet]]), and per browser tab
+the last time selection, personal dragnet SQL ([Dragnet Investigation](../usage/dragnet.md)), and per browser tab
 the **current database** (connect info, chosen licence, chosen DBID, sampler
 schema) and the last menu action used.
 
@@ -74,10 +74,10 @@ the cookie alone, does not yield the password.
 
 **In use.** It is decrypted per JDBC login from the thread's connect info. The
 pool compares password hashes before reusing a connection
-([[panorama-connection]]).
+([PanoramaConnection](panorama-connection.md)).
 
 > This is no substitute for HTTPS: everything else — SQL texts, results — still
-> travels unencrypted without it. For HTTPS see [[panorama-operations]].
+> travels unencrypted without it. For HTTPS see [Panorama operations](../usage/panorama-operations.md).
 
 ## The secret key base
 
@@ -109,7 +109,7 @@ exist. `AdminController#admin_logon`:
 - **CSRF.** `protect_from_forgery with: :exception`. An invalid token raises and
   is shown as "session expired" rather than silently resetting the session.
   Because Rails checks the token only on non-GET requests, state-changing
-  actions have no GET route → [[route-state-changing-actions-post-only]].
+  actions have no GET route → [Route state-changing actions as POST only](route-state-changing-actions-post-only.md).
 - **Parameter screening.** Every request parameter, name and value, is
   normalised (entities unescaped, HTML comments removed, whitespace stripped,
   upper-cased) and rejected if it contains one of a list of tags (`<SCRIPT`,
@@ -117,7 +117,7 @@ exist. `AdminController#admin_logon`:
 - **Framing.** The content security policy sets `frame-ancestors 'none'`.
 - **Cookies** use `SameSite=Lax`.
 - **Static analysis.** Brakeman runs in CI
-  ([[panorama-build-test-and-release]]).
+  ([Building, testing and releasing Panorama](panorama-build-test-and-release.md)).
 
 ## What is deliberately not protected
 
@@ -127,7 +127,7 @@ exist. `AdminController#admin_logon`:
   actions interpolate request parameters into SQL text; that is injection only in
   the sense that the user could have typed the same statement into the worksheet.
 - **Script CSP.** `script-src` is not restricted: the rendering model depends on
-  inline scripts in fragments ([[panorama-request-and-rendering]]). The
+  inline scripts in fragments ([Controllers, routing and rendering in Panorama](panorama-request-and-rendering.md)). The
   initializer lists the steps to change that as TODOs.
 
 > Conclusion: the trust boundary is the Oracle login. Anyone who can reach a
@@ -136,7 +136,7 @@ exist. `AdminController#admin_logon`:
 
 ## The website's account of the same model
 
-([[rammpeter-github-io]], landing page, "What about security?".) The
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), landing page, "What about security?".) The
 user-facing description agrees with what the code shows and is worth having in
 the author's words:
 
@@ -164,10 +164,10 @@ login it can be viewed under "Admin" / "Usage history".
 
 ## Relationships
 
-- Part of [[panorama-architecture]].
-- Feeds the connect info of [[panorama-connection]].
-- Stores the configuration of [[panorama-sampler-internals]].
-- Settings: [[panorama-configuration]].
+- Part of [Panorama architecture](panorama-architecture.md).
+- Feeds the connect info of [PanoramaConnection](panorama-connection.md).
+- Stores the configuration of [Panorama Sampler internals](panorama-sampler-internals.md).
+- Settings: [Panorama configuration](panorama-configuration.md).
 
 ## Open questions
 
@@ -178,5 +178,5 @@ login it can be viewed under "Admin" / "Usage history".
 
 ## Sources
 
-- [[panorama-source-code]]
-- [[rammpeter-github-io]]
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

@@ -11,7 +11,7 @@ sources: [blog.md, posts/, speakerdeck.md, speakerdeck/, rammpeter.github.io.md,
 # Redo logs
 
 Too few redo log groups will freeze a database — and three groups are the DBCA
-default. Accordingly, according to [[blog-storage]] (2017-02-25), you find "many
+default. Accordingly, according to [Blog series on storage, tablespaces and redo](../sources/blog-storage.md) (2017-02-25), you find "many
 DB instances in production with only 3 redo log groups".
 
 ## The damage pattern
@@ -74,16 +74,16 @@ enough (one group `ARCHIVED`), the DB writer was not — for hours two groups we
 `ACTIVE` and one `CURRENT`. Exactly the situation in which no log switch can
 succeed.
 
-**3. [[ash]]** — search for the wait event
+**3. [ASH](ash.md)** — search for the wait event
 `log file switch (checkpoint incomplete)`; it shows the sessions waiting for the
 switch. In the example up to ten simultaneously.
 
-In [[panorama]]: "DBA general" / "Redo logs" / "Historic" for `DBA_HIST_LOG`,
+In [Panorama](panorama.md): "DBA general" / "Redo logs" / "Historic" for `DBA_HIST_LOG`,
 "Analyses / statistics" / "Session waits" / "Historic" for the wait event.
 
 ## From the 2024 talk
 
-([[talks-panorama-and-sampler]], slides 36–37.) Besides the three groups, the
+([Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md), slides 36–37.) Besides the three groups, the
 default **size of 200 MB** "can be much too small"; the optimisation target given
 is **more than 10 seconds between log switches**. In the historic view
 ("DBA general" / "Redologs" / "Historic") the number of groups in state current
@@ -93,7 +93,7 @@ allocate new log".
 
 ## From the usage guide and the menu
 
-([[rammpeter-github-io]].) The submenu "DBA general" / "Redo-Logs" has **three**
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md).) The submenu "DBA general" / "Redo-Logs" has **three**
 entries: "Current" (from `gv$Log`), "Historic from gv$Log_History" (detailed) and
 "Historic from AWR". The guide (4.3) still speaks of one "Historical" entry; it
 describes the AWR one — usage per snapshot with the number of log switches and
@@ -110,9 +110,9 @@ with rising write load a temporary freeze "is preprogrammed".
 
 ## Relationships
 
-- The trail via wait events goes through [[ash]].
-- Historical values from [[awr]] (`DBA_HIST_LOG`).
-- Related to [[measuring-system-load]]: the amount of redo per unit of time is a
+- The trail via wait events goes through [ASH](ash.md).
+- Historical values from [AWR](awr.md) (`DBA_HIST_LOG`).
+- Related to [Measuring system load](measuring-system-load.md): the amount of redo per unit of time is a
   load metric.
 
 ## Open questions
@@ -125,6 +125,6 @@ with rising write load a temporary freeze "is preprogrammed".
 
 ## Sources
 
-- [[blog-storage]]
-- [[talks-panorama-and-sampler]]
-- [[rammpeter-github-io]]
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)
+- [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

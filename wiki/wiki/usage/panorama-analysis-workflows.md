@@ -10,27 +10,27 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/]
 
 # Analysis workflows in Panorama
 
-How an analysis with [[panorama]] is laid out: two ways of looking, three things
+How an analysis with [Panorama](panorama.md) is laid out: two ways of looking, three things
 to look at, and one way of driving the interface that is the same everywhere.
 
 ## Two ways, three pillars
 
-([[rammpeter-github-io]], usage guide, chapter 2.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide, chapter 2.)
 
 **Two ways of analysis:**
 
 - the **current state**, from internal system views (`V$`, dictionary views)
 - **retrospectively**, for a period in the past, from recorded data — regularly
-  [[awr]], which needs the Enterprise Edition with the Diagnostics Pack, or
-  alternatively [[panorama-sampler]], which needs neither
+  [AWR](awr.md), which needs the Enterprise Edition with the Diagnostics Pack, or
+  alternatively [Panorama Sampler](panorama-sampler.md), which needs neither
 
 **Three pillars:**
 
 | Pillar | Current | Retrospective |
 |---|---|---|
-| **DB sessions** | [[session-list]]; wait state in [[session-waits]]; locks in [[blocking-locks]] | [[ash]] through [[session-waits]]; locks from ASH or from the sampler |
-| **SQL statements** | [[sql-area]], from the SGA | [[sql-area]], from AWR; single executions in [[sql-monitor]] |
-| **DB objects** | [[describe-object]]; [[segment-statistics]]; [[db-cache-usage]] | [[segment-statistics]] per AWR snapshot; [[db-cache-usage]] from the sampler |
+| **DB sessions** | [Session list](session-list.md); wait state in [Session waits](session-waits.md); locks in [Blocking locks](blocking-locks.md) | [ASH](ash.md) through [Session waits](session-waits.md); locks from ASH or from the sampler |
+| **SQL statements** | [SQL area](sql-area.md), from the SGA | [SQL area](sql-area.md), from AWR; single executions in [SQL Monitor](sql-monitor.md) |
+| **DB objects** | [Describe object](describe-object.md); [Segment statistics](segment-statistics.md); [DB cache usage](db-cache-usage.md) | [Segment statistics](segment-statistics.md) per AWR snapshot; [DB cache usage](db-cache-usage.md) from the sampler |
 
 > Conclusion: the pillars are entry points, not separate tools. Each view links
 > into the others — a session to its SQL, a SQL to the objects in its plan, an
@@ -39,19 +39,19 @@ to look at, and one way of driving the interface that is the same everywhere.
 
 Around this core the guide places four further tasks:
 
-- scanning the whole system for antipatterns → [[dragnet]]
-- checking configuration and operation → [[database-configuration]],
-  [[sga-memory-management]], [[redo-logs]], [[audit-trail]]
-- influencing execution plans → [[sql-plan-management]],
-  [[sql-translation-framework]]
-- using storage well → [[storage-reorganisation]], [[index-compression]],
-  [[function-based-indexes]], [[index-usage-monitoring]]
+- scanning the whole system for antipatterns → [Dragnet Investigation](dragnet.md)
+- checking configuration and operation → [Database configuration](database-configuration.md),
+  [SGA memory management](sga-memory-management.md), [Redo logs](redo-logs.md), [Audit trail](audit-trail.md)
+- influencing execution plans → [SQL plan management](sql-plan-management.md),
+  [SQL Translation Framework](sql-translation-framework.md)
+- using storage well → [Storage reorganisation](storage-reorganisation.md), [Index compression](index-compression.md),
+  [Function-based indexes](function-based-indexes.md), [Index usage monitoring](index-usage-monitoring.md)
 
-The complete list of entry points is [[panorama-menu-overview]].
+The complete list of entry points is [Panorama menu overview](panorama-menu-overview.md).
 
 ## How the interface is driven
 
-([[rammpeter-github-io]], usage guide, section 1.2.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide, section 1.2.)
 
 **Globally**
 
@@ -65,7 +65,7 @@ The complete list of entry points is [[panorama-menu-overview]].
 The landing page adds the consequence: Panorama renders one single web page by
 AJAX calls, so **the browser's back button does not return to earlier content**.
 Why the page is built this way is described in
-[[panorama-request-and-rendering]].
+[Controllers, routing and rendering in Panorama](../development/panorama-request-and-rendering.md).
 
 **Tables**
 
@@ -95,11 +95,11 @@ from diagram", "Switch column sort method to bubble sort".
 
 ## Relationships
 
-- The tool: [[panorama]]; the stance behind the system-wide scan:
-  [[proactive-performance-tuning]].
+- The tool: [Panorama](panorama.md); the stance behind the system-wide scan:
+  [Proactive performance tuning](proactive-performance-tuning.md).
 - Restoring a reached state later or passing it on: "Execute with given
-  parameters", see [[panorama]].
-- Needed grants: [[panorama-privileges]].
+  parameters", see [Panorama](panorama.md).
+- Needed grants: [Privileges for Panorama](panorama-privileges.md).
 
 ## Open questions
 
@@ -111,4 +111,4 @@ from diagram", "Switch column sort method to bubble sort".
 
 ## Sources
 
-- [[rammpeter-github-io]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

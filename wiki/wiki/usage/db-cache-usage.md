@@ -11,12 +11,12 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/Oracle_performance_analysi
 
 # DB cache usage
 
-The submenu "SGA/PGA-Details" / "DB-Cache" of [[panorama]]: which objects occupy
-the buffer cache, now and — with [[panorama-sampler]] — in the past.
+The submenu "SGA/PGA-Details" / "DB-Cache" of [Panorama](panorama.md): which objects occupy
+the buffer cache, now and — with [Panorama Sampler](panorama-sampler.md) — in the past.
 
 ## The entries
 
-([[rammpeter-github-io]], menu overview.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), menu overview.)
 
 | Entry | Purpose as stated |
 |---|---|
@@ -28,11 +28,11 @@ the buffer cache, now and — with [[panorama-sampler]] — in the past.
 
 (Usage guide 2.3.4.1.) Lists the concrete objects in the DB cache with the memory
 each occupies. From an object it leads on to the **SQL statements currently in
-the SGA** that touch it, and to its structure ([[describe-object]]).
+the SGA** that touch it, and to its structure ([Describe object](describe-object.md)).
 
 The data source is the buffer header view — `v$BH` in the sampler's architecture
 picture, `gv$BH` in the grant list for Autonomous Database
-([[panorama-privileges]]).
+([Privileges for Panorama](panorama-privileges.md)).
 
 ## Historic — only with the sampler
 
@@ -53,20 +53,20 @@ The guide names the aim under storage (chapter 7): smaller objects mean "more
 effective use of the DB cache (higher cache hit rate, less load from individual
 objects)". And under memory configuration (4.2): the goal is usually to give as
 much physical memory as possible to the DB cache and the In-Memory area and to
-limit the shared pool to what is necessary → [[sga-memory-management]].
+limit the shared pool to what is necessary → [SGA memory management](sga-memory-management.md).
 
 > Conclusion: the view turns "the cache is too small" into "these objects fill
 > it". A large index that sits in the cache although only a sliver of it is ever
-> queried is the case [[function-based-indexes]] and [[index-compression]]
+> queried is the case [Function-based indexes](function-based-indexes.md) and [Index compression](index-compression.md)
 > address; an object that should not be read at all is a plan problem
-> ([[index-access-paths]]).
+> ([Index access paths](index-access-paths.md)).
 
 ## Relationships
 
-- Listed in [[panorama-menu-overview]]; part of the third pillar in
-  [[panorama-analysis-workflows]].
-- The sampler domain behind "historic": [[panorama-sampler]],
-  [[panorama-sampler-internals]] (default: every 30 minutes).
+- Listed in [Panorama menu overview](panorama-menu-overview.md); part of the third pillar in
+  [Analysis workflows in Panorama](panorama-analysis-workflows.md).
+- The sampler domain behind "historic": [Panorama Sampler](panorama-sampler.md),
+  [Panorama Sampler internals](../development/panorama-sampler-internals.md) (default: every 30 minutes).
 - "DB-cache advice" has a sampler replacement too (`DBA_Hist_Cache_Advice`).
 
 ## Open questions
@@ -76,4 +76,4 @@ limit the shared pool to what is necessary → [[sga-memory-management]].
 
 ## Sources
 
-- [[rammpeter-github-io]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

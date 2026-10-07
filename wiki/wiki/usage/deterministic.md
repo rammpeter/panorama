@@ -16,7 +16,7 @@ it believes it.
 
 ## What it achieves
 
-([[blog-caching-and-plsql]], 2026-01-14) If the SQL engine knows a function is
+([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2026-01-14) If the SQL engine knows a function is
 deterministic, it can cache its results across repeated calls.
 
 The author's experiment, measured with a counter in a package variable:
@@ -45,7 +45,7 @@ Decisive for understanding — and for the recommendation that follows from it:
 
 From that the author derives a deliberately unorthodox recommendation — to label
 functions `DETERMINISTIC` that are not. On that and on its boundary:
-**[[declaring-deterministic-deliberately]]**.
+**[Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md)**.
 
 ## Finding candidates
 
@@ -72,15 +72,15 @@ pre-selection, not a recommendation per function.
 ## Relationships
 
 - The position on the declaration:
-  [[declaring-deterministic-deliberately]].
-- The trap with a function based index: [[cross-table-uniqueness]].
+  [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md).
+- The trap with a function based index: [Cross-table uniqueness](cross-table-uniqueness.md).
 - A function based index additionally needs statistics, otherwise it remains
-  ineffective → [[extended-statistics]].
+  ineffective → [Extended statistics](extended-statistics.md).
 - Access versus filter predicate as an analysis criterion: also in
-  [[index-access-paths]] and [[partition-pruning]].
-- The related caching topic: [[master-data-caching]], [[result-cache]].
+  [Index access paths](index-access-paths.md) and [Partition pruning](partition-pruning.md).
+- The related caching topic: [Master data caching](master-data-caching.md), [Result cache](result-cache.md).
 - Why index maintenance breaks on a function that is not really deterministic:
-  [[function-based-indexes]].
+  [Function-based indexes](function-based-indexes.md).
 
 ## Open questions
 
@@ -91,5 +91,5 @@ pre-selection, not a recommendation per function.
 
 ## Sources
 
-- [[blog-caching-and-plsql]]
-- [[talks-indexes]]
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)
+- [Talks on indexes](../sources/talks-indexes.md)

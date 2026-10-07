@@ -10,7 +10,7 @@ sources: [speakerdeck.md, speakerdeck/2025-05_Jarbler.pdf, speakerdeck/2022-05_M
 
 # Talks on Jarbler and MOVEX CDC
 
-Two decks from [[rammpeter-talks]] about tools by the same author that are *not*
+Two decks from [Talks and slide decks by Peter Ramm](../usage/rammpeter-talks.md) about tools by the same author that are *not*
 Panorama. Both are within the wiki's scope as related tools: Jarbler because Panorama
 is packaged with it, MOVEX CDC because it shares Panorama's technical base and
 contains Oracle design decisions worth keeping.
@@ -26,7 +26,7 @@ contains Oracle design decisions worth keeping.
 
 **What it is** (slide 4): packs an existing Ruby application into a
 self-starting Java JAR, based on JRuby, so that the target machine needs no Ruby
-environment; preconfigured for Rails → [[jarbler]].
+environment; preconfigured for Rails → [Jarbler](../development/jarbler.md).
 
 **Minimal use** (slide 5): `jarble config` generates `config/jarble.rb`; set
 `executable`, `includes`, `jar_name`; `jarble` builds; `java -jar` runs.
@@ -36,19 +36,19 @@ not start from the JAR — the `puma` gem was ignored "because it is missing
 extensions". With Rails 6.1 and JRuby 9.4 it worked after adjustments:
 `concurrent-ruby` pinned to 1.3.4, Webpacker removed, `sass-rails` removed
 because `sassc` has native extensions. And `rails server` "did not react in
-production mode — known issue, but forgot solution" → [[jarbler]].
+production mode — known issue, but forgot solution" → [Jarbler](../development/jarbler.md).
 
 ## Key points — MOVEX CDC
 
 **What it is** (slides 4–5): an open-source (GPL3) tool that captures insert,
 update and delete events in a relational database and transfers them as JSON to
-Kafka; configured per table, column and event type → [[movex-cdc]].
+Kafka; configured per table, column and event type → [MOVEX CDC](../usage/movex-cdc.md).
 
 **Why triggers instead of log mining** (slide 6). Log-based tools do not burden
 the original transaction, but to survive an unavailable target automatically the
 transaction logs must be kept for the longest assumed outage — "usually at least
 3 days". For a small share of relevant events in a large OLTP system that is
-disproportionate → [[movex-cdc]].
+disproportionate → [MOVEX CDC](../usage/movex-cdc.md).
 
 **The design** (slides 7, 14, 19): a trigger writes the event into a staging
 table in MOVEX CDC's own schema — no dependency of the business transaction on
@@ -60,8 +60,8 @@ memory and flushes them in bulk.
 with partitioning: an interval-partitioned table **without any index**, read by
 full scan, with processed partitions dropped. On Standard Edition: a heap table
 with an index on `ID`, whose high water mark has to be reset by hand from time
-to time → [[movex-cdc]], [[interval-partitions-rolling-window]],
-[[storage-reorganisation]].
+to time → [MOVEX CDC](../usage/movex-cdc.md), [Interval partitions and the rolling window](../usage/interval-partitions-rolling-window.md),
+[Storage reorganisation](../usage/storage-reorganisation.md).
 
 **Work distribution by row locks** (slide 17):
 `SELECT … FOR UPDATE SKIP LOCKED` assigns events to worker threads. Order is
@@ -73,20 +73,20 @@ CLOB, "significantly slower".
 
 **Same technical base as Panorama** (slides 12, 24): Ruby on Rails on JRuby in a
 Docker container; configuration by file or environment variables; the schema
-initialises itself at container start → [[panorama-architecture]].
+initialises itself at container start → [Panorama architecture](../development/panorama-architecture.md).
 
 ## Impact on the wiki
 
-- New: [[jarbler]] (development), [[movex-cdc]] (usage, as an external tool).
-- [[panorama-build-test-and-release]] — link to the Jarbler page.
-- [[interval-partitions-rolling-window]] — a second, independent use of the
+- New: [Jarbler](../development/jarbler.md) (development), [MOVEX CDC](../usage/movex-cdc.md) (usage, as an external tool).
+- [Building, testing and releasing Panorama](../development/panorama-build-test-and-release.md) — link to the Jarbler page.
+- [Interval partitions and the rolling window](../usage/interval-partitions-rolling-window.md) — a second, independent use of the
   pattern.
 
 ## Changes over time and disagreements
 
 - The Jarbler deck shows a Rails 8.0 application failing to start from a JAR in
   May 2025. Panorama itself is on Rails 8.1 and ships as a JAR built with Jarbler
-  ([[panorama-source-code]]). The problem was evidently solved for Panorama —
+  ([Panorama source repository](panorama-source-code.md)). The problem was evidently solved for Panorama —
   among other things by excluding gems (`excluded_gems.txt`); the deck does not
   say how.
 

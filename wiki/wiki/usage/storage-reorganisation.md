@@ -19,13 +19,13 @@ needs to know beforehand for which object it is worth it.
 `DBMS_SPACE.SPACE_USAGE` supplies the free space in the blocks of an object and
 thereby allows a prediction of the reorganisation effect.
 
-> The problem according to [[blog-storage]] (2019-08-08): for larger objects
+> The problem according to [Blog series on storage, tablespaces and redo](../sources/blog-storage.md) (2019-08-08): for larger objects
 > `DBMS_SPACE.SPACE_USAGE` takes considerable time — scanning a whole schema or
 > system with it is too expensive.
 
 ## The two-stage approach
 
-**Stage 1 — the cheap estimate.** [[panorama]] computes from the average row
+**Stage 1 — the cheap estimate.** [Panorama](panorama.md) computes from the average row
 length, `PCT_FREE` and `INI_TRANS` how many blocks an object would actually need
 and contrasts that with the space occupied. The result is the columns "% unused"
 and "MBytes unused"; sorted descending, that yields a hit list.
@@ -56,13 +56,13 @@ and LOBs.
 
 ## Why save space at all, and two further places to look
 
-([[rammpeter-github-io]], usage guide chapter 7.) The guide gives four aims of
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide chapter 7.) The guide gives four aims of
 minimising storage:
 
 - fewer storage resources — cost, avoided hardware extensions, room for more
   applications on existing hardware
 - more effective use of the DB cache — higher hit rate, less load from
-  individual objects ([[db-cache-usage]])
+  individual objects ([DB cache usage](db-cache-usage.md))
 - shorter SQL run times through less I/O and a higher cache hit rate
 - protection against unplanned growth, through more free tablespace
 
@@ -72,11 +72,11 @@ space "after sufficient grace period".
 
 **Unused tables.** The guide's definition: tables with no access at all over a
 longer period, *and* tables that are only written to but whose content is never
-read. For indexes the counterpart is [[index-usage-monitoring]].
+read. For indexes the counterpart is [Index usage monitoring](index-usage-monitoring.md).
 
 **A needed grant.** The exact space figures come from
 `DBMS_SPACE.SPACE_USAGE`, which requires `ANALYZE ANY` or the `ANALYZE` privilege
-on the object ([[panorama-privileges]]).
+on the object ([Privileges for Panorama](panorama-privileges.md)).
 
 > The guide's sections on the storage overview, its evolution over time,
 > releasing space below the high water mark, table compression, index
@@ -85,13 +85,13 @@ on the object ([[panorama-privileges]]).
 
 ## Relationships
 
-- The other side of [[tablespace-fragmentation]]: there space that appears free,
+- The other side of [Tablespace fragmentation](tablespace-fragmentation.md): there space that appears free,
   here space that appears occupied.
-- Migrated rows as a reason to reorganise: [[oltp-compression]].
-- For indexes, dropping is often better than reorganising → [[indexing]],
-  [[index-compression]].
-- Saving space by compression instead: [[advanced-compression]]. A high water
-  mark that partitioning avoids: [[movex-cdc]].
+- Migrated rows as a reason to reorganise: [OLTP compression](oltp-compression.md).
+- For indexes, dropping is often better than reorganising → [Indexing](indexing.md),
+  [Index compression](index-compression.md).
+- Saving space by compression instead: [Table, index and LOB compression compared](advanced-compression.md). A high water
+  mark that partitioning avoids: [MOVEX CDC](movex-cdc.md).
 
 ## Open questions
 
@@ -103,5 +103,5 @@ on the object ([[panorama-privileges]]).
 
 ## Sources
 
-- [[blog-storage]]
-- [[rammpeter-github-io]]
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

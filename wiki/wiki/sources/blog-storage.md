@@ -10,7 +10,7 @@ sources: [blog.md, posts/]
 
 # Blog series on storage, tablespaces and redo
 
-Six posts from [[rammpeter-blog]] between 2016 and 2020 on the storage side:
+Six posts from [rammpeter.blogspot.com](../usage/rammpeter-blog.md) between 2016 and 2020 on the storage side:
 where there is space, where there only appears to be space, who used it up — and
 why three redo log groups will freeze a database.
 
@@ -18,42 +18,42 @@ why three redo log groups will freeze a database.
 
 | Date | Title | Focus |
 |---|---|---|
-| 2016-03-23 | How to identify root cause after "ORA-1652: unable to extend temp segment" | [[temp-usage]] |
-| 2017-02-25 | Common Oracle DB pitfall: too few redo log groups | [[redo-logs]] |
-| 2017-06-14 | Explore free space fragmentation of tablespaces | [[tablespace-fragmentation]] |
-| 2018-09-19 | OLTP-Compression – what's true and what's wrong | [[oltp-compression]], [[oltp-compression-only-without-updates]] |
-| 2019-08-08 | Determining candidates for storage reorganization in Oracle-DB | [[storage-reorganisation]] |
-| 2020-03-18 | Taking fragmentation into account when calculating the free tablespace | [[tablespace-fragmentation]] |
+| 2016-03-23 | How to identify root cause after "ORA-1652: unable to extend temp segment" | [TEMP usage](../usage/temp-usage.md) |
+| 2017-02-25 | Common Oracle DB pitfall: too few redo log groups | [Redo logs](../usage/redo-logs.md) |
+| 2017-06-14 | Explore free space fragmentation of tablespaces | [Tablespace fragmentation](../usage/tablespace-fragmentation.md) |
+| 2018-09-19 | OLTP-Compression – what's true and what's wrong | [OLTP compression](../usage/oltp-compression.md), [OLTP compression only for tables without meaningful updates](../usage/oltp-compression-only-without-updates.md) |
+| 2019-08-08 | Determining candidates for storage reorganization in Oracle-DB | [Storage reorganisation](../usage/storage-reorganisation.md) |
+| 2020-03-18 | Taking fragmentation into account when calculating the free tablespace | [Tablespace fragmentation](../usage/tablespace-fragmentation.md) |
 
 ## Key points
 
 **Free space is not the same as usable space.** For a new extent the database
 needs a **contiguous** free chunk the size of the next extent. The total of free
 space says nothing about that — hence `ORA-01653` despite apparently plenty of
-space (2017-06-14, 2020-03-18) → [[tablespace-fragmentation]].
+space (2017-06-14, 2020-03-18) → [Tablespace fragmentation](../usage/tablespace-fragmentation.md).
 
 **The better metric:** do not check the total free space, but **how many times
 the largest extent in use still fits into it** (2020-03-18).
 
 **Three redo log groups are the DBCA default and a production risk.** If the next
 group cannot be used, *all* commits wait — the database freezes for seconds or
-minutes (2017-02-25) → [[redo-logs]].
+minutes (2017-02-25) → [Redo logs](../usage/redo-logs.md).
 
 **Oracle does not return space below the high water mark by itself.** Whoever
 wants it back has to reorganise — and `DBMS_SPACE.SPACE_USAGE` is too expensive
 for a system-wide scan. Hence first an estimate based on row length, `PCT_FREE`
 and `INI_TRANS`, then the precise check per object (2019-08-08)
-→ [[storage-reorganisation]].
+→ [Storage reorganisation](../usage/storage-reorganisation.md).
 
 **With `ORA-1652` the culprit is usually not the one reported.** The session that
 receives the error may be one that only wanted a little TEMP — while others
-occupied the space (2016-03-23) → [[temp-usage]].
+occupied the space (2016-03-23) → [TEMP usage](../usage/temp-usage.md).
 
 **OLTP compression behaved for years differently than documented.** Updates on
 compressed columns led to uncompressed block contents and therefore to migrated
 rows — in one test for **95.7 %** of all rows, with the block count rising
 eighteenfold (2018-09-19)
-→ [[oltp-compression]], [[oltp-compression-only-without-updates]].
+→ [OLTP compression](../usage/oltp-compression.md), [OLTP compression only for tables without meaningful updates](../usage/oltp-compression-only-without-updates.md).
 
 ## Notes on the evidence
 
@@ -61,10 +61,10 @@ eighteenfold (2018-09-19)
 carries an "Update 2023-05" in which the author repeats the check against release
 19.18 and finds that it works *"much better now than before in Rel. 12.x"* — but
 *"not completely without the risk of getting migrated rows and not deterministic
-at all"*. Both states are recorded in [[oltp-compression]]; the decision page
-[[oltp-compression-only-without-updates]] records that its rationale therefore
+at all"*. Both states are recorded in [OLTP compression](../usage/oltp-compression.md); the decision page
+[OLTP compression only for tables without meaningful updates](../usage/oltp-compression-only-without-updates.md) records that its rationale therefore
 only partly holds. That decision has since been **superseded** (2026-10-04) by
-[[monitor-migrated-rows-under-advanced-compression]].
+[Use advanced compression with updates, and monitor migrated rows](../usage/monitor-migrated-rows-under-advanced-compression.md).
 
 **A contradiction to the documentation, openly named.** The same post quotes
 Oracle's own statement that blocks would be recompressed even after updates on

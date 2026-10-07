@@ -10,7 +10,7 @@ sources: [panorama-repository.md]
 
 # Controllers, routing and rendering in Panorama
 
-The pattern every feature of [[panorama]] follows: a controller action runs SQL,
+The pattern every feature of [Panorama](../usage/panorama.md) follows: a controller action runs SQL,
 a partial describes the columns, a generic grid renders the rows, and the result
 is an HTML fragment injected into the page by AJAX. Knowing this pattern is most
 of what is needed to add a view.
@@ -19,9 +19,9 @@ of what is needed to add a view.
 
 Panorama is a single page that never reloads. The start page renders the frame
 and the menu; from then on every click requests a fragment and names the `div`
-it should replace. The user-visible traits listed in [[panorama]] — every cell a
+it should replace. The user-visible traits listed in [Panorama](../usage/panorama.md) — every cell a
 link, every table a chart, drill-down that keeps the previous level on screen —
-all follow from this ([[panorama-source-code]]).
+all follow from this ([Panorama source repository](../sources/panorama-source-code.md)).
 
 ## Routing by convention
 
@@ -32,7 +32,7 @@ line becomes a route `controller/action` until a line `private` is seen.
 Excluded are names containing `?` and `self.` methods.
 
 Each action gets a `GET` and a `POST` route, except those in
-`EnvController::POST_ONLY_ACTIONS` → [[route-state-changing-actions-post-only]].
+`EnvController::POST_ONLY_ACTIONS` → [Route state-changing actions as POST only](route-state-changing-actions-post-only.md).
 
 Consequences worth knowing:
 
@@ -62,10 +62,10 @@ end
   format and remembers the range for the next dialog.
 - **SQL** is built as a string. Conditions on optional parameters are appended
   to a `where` string with their values in a parallel array, then passed as
-  `[sql, *binds]` ([[panorama-connection]]).
+  `[sql, *binds]` ([PanoramaConnection](panorama-connection.md)).
 - **Version differences** are handled inline:
   `#{"…" if get_db_version >= '11.1'}`. `PanoramaConnection.rac?`, `.is_cdb?`
-  and `dba_or_cdb(view)` serve the same purpose ([[pluggable-databases]]).
+  and `dba_or_cdb(view)` serve the same purpose ([Pluggable databases](../usage/pluggable-databases.md)).
 - **`render_partial`** renders `_<action>.html.erb` of the same controller.
   Status-bar and popup messages collected during the action are appended as a
   small script.
@@ -133,11 +133,11 @@ served by `EnvController#render_menu_action`, which just renders the partial of
 that name — the usual case for entries that first show a parameter form.
 
 A test helper walks this same structure and calls every menu entry of the
-controller under test ([[panorama-build-test-and-release]]).
+controller under test ([Building, testing and releasing Panorama](panorama-build-test-and-release.md)).
 
 ## The dragnet catalogue
 
-[[dragnet]] is data, not code paths. `DragnetHelper#dragnet_sql_list` assembles a
+[Dragnet Investigation](../usage/dragnet.md) is data, not code paths. `DragnetHelper#dragnet_sql_list` assembles a
 tree from 26 helper modules in `app/helpers/dragnet/`. A leaf is a hash:
 
 | Key | Meaning |
@@ -162,7 +162,7 @@ have no stable identifier of their own.
 > dragnet points by number — as in the blog — are reliable only for the release
 > they were written against.
 
-Dragnet statements pass the [[pack-license-filter]] like any other SQL.
+Dragnet statements pass the [Pack licence filter](pack-license-filter.md) like any other SQL.
 
 ## Assets
 
@@ -174,10 +174,10 @@ under `vendor/assets/`. Texts are English by default with German translations in
 
 ## Relationships
 
-- Part of [[panorama-architecture]].
-- Data access: [[panorama-connection]]; licence check: [[pack-license-filter]].
+- Part of [Panorama architecture](panorama-architecture.md).
+- Data access: [PanoramaConnection](panorama-connection.md); licence check: [Pack licence filter](pack-license-filter.md).
 - Why inline scripts constrain the content security policy:
-  [[panorama-client-state-and-security]].
+  [Client state and security in Panorama](panorama-client-state-and-security.md).
 
 ## Open questions
 
@@ -191,4 +191,4 @@ under `vendor/assets/`. Texts are English by default with German translations in
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

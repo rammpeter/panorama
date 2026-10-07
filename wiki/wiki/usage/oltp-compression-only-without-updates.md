@@ -11,7 +11,7 @@ sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
 
 # OLTP compression only for tables without meaningful updates
 
-**Status: superseded** on 2026-10-04 by [[monitor-migrated-rows-under-advanced-compression]].
+**Status: superseded** on 2026-10-04 by [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md).
 The rule *was*: `COMPRESS FOR OLTP` only for tables on which practically no
 updates take place, with updates below 5 % of inserts plus deletes as a guide
 value. It is kept as the record of the earlier position and still describes the
@@ -25,7 +25,7 @@ insert and delete load but no update load.
 
 ## The rationale
 
-The measurements in [[oltp-compression]] ([[blog-storage]], 2018-09-19):
+The measurements in [OLTP compression](oltp-compression.md) ([Blog series on storage, tablespaces and redo](../sources/blog-storage.md), 2018-09-19):
 
 - Insert and delete leave compressed blocks compressed, without migrated rows.
 - An update on a **compressed** column produced migrated rows for **79.5 %** of
@@ -49,12 +49,12 @@ DML.
   all"*. For 19.18 and newer the decision is therefore **more cautious than
   necessary**, but not refuted. No measurements exist for 19.18.
 - **A newer statement by the author is milder than this decision.** In the talk
-  of 2024-02 ([[talks-advanced-compression]]) the conclusion is no longer
+  of 2024-02 ([Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)) the conclusion is no longer
   "unsuitable for tables with updates" but: on tables with a significant amount
   of updates, *keep the size and relevance of migrated rows in view*. For 19c
   and later that reads as **use it, and monitor** — not as "do not use it".
   **Resolved 2026-10-04:** the author decided to supersede this decision by
-  [[monitor-migrated-rows-under-advanced-compression]].
+  [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md).
 - **"Not deterministic" remains unresolved.** As long as it is unclear what the
   migration behaviour depends on, the individual case cannot be assessed in
   advance — which is the actual argument for the conservative rule.
@@ -72,17 +72,17 @@ DML.
 - Ingested into the wiki on 2026-10-01.
 - Relativised by the author's talk of **2024-02** (ingested 2026-10-04).
 - **Superseded on 2026-10-04** by a statement of the author in the ingest session
-  (a user statement, not a source in `raw/`) → [[monitor-migrated-rows-under-advanced-compression]].
+  (a user statement, not a source in `raw/`) → [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md).
 
 ## Relationships
 
-- Successor: [[monitor-migrated-rows-under-advanced-compression]]
-- Measurements and addendum: [[oltp-compression]]
+- Successor: [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md)
+- Measurements and addendum: [OLTP compression](oltp-compression.md)
 - The other compression topic, with a different assessment:
-  [[index-compression]]
-- All methods compared: [[advanced-compression]]
+  [Index compression](index-compression.md)
+- All methods compared: [Table, index and LOB compression compared](advanced-compression.md)
 
 ## Sources
 
-- [[blog-storage]]
-- [[talks-advanced-compression]]
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)
+- [Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)

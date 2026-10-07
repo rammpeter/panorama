@@ -20,7 +20,7 @@ If only trailing columns of an index are used as filter conditions and the
 leading ones are missing, the optimizer may choose an `INDEX SKIP SCAN`. During
 execution the database then iterates over **all distinct values of the skipped
 column** and performs a B-tree access with the remaining criteria for each
-([[blog-indexing]], 2026-06-03).
+([Blog series on indexing](../sources/blog-indexing.md), 2026-06-03).
 
 The efficiency therefore depends solely on the number of those distinct values:
 
@@ -43,7 +43,7 @@ operation looks innocuous and the number of rows returned is small.
 
 ## How to recognise it
 
-Two indications in the plan ([[blog-indexing]], 2026-06-03):
+Two indications in the plan ([Blog series on indexing](../sources/blog-indexing.md), 2026-06-03):
 
 - **Both predicate columns are populated.** `ACCESS_PREDICATES` *and*
   `FILTER_PREDICATES` are not `NULL`. The comment in the original gives the
@@ -80,16 +80,16 @@ searched for together.
 > there.
 
 **Prerequisite:** Enterprise Edition and the Diagnostics Pack — the source points
-this out explicitly. See [[management-pack-licensing]].
+this out explicitly. See [Management pack licensing](management-pack-licensing.md).
 
 ## Relationships
 
 - **The procedure including the ready-made query:**
-  [[finding-skipped-index-columns]].
-- Shows that an index "used" according to [[indexing]] can still work badly —
+  [Finding skipped index columns](../syntheses/finding-skipped-index-columns.md).
+- Shows that an index "used" according to [Indexing](indexing.md) can still work badly —
   usage alone is no proof of quality.
-- Relies on [[ash]] to weight the time consumed per plan line.
-- The queries are part of [[dragnet]] in [[panorama]].
+- Relies on [ASH](ash.md) to weight the time consumed per plan line.
+- The queries are part of [Dragnet Investigation](dragnet.md) in [Panorama](panorama.md).
 
 ## Open questions
 
@@ -105,4 +105,4 @@ this out explicitly. See [[management-pack-licensing]].
 
 ## Sources
 
-- [[blog-indexing]]
+- [Blog series on indexing](../sources/blog-indexing.md)

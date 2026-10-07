@@ -11,13 +11,13 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/Oracle_performance_analysi
 
 # Session list
 
-The menu entry "DBA general" / "Sessions" of [[panorama]]: the currently
+The menu entry "DBA general" / "Sessions" of [Panorama](panorama.md): the currently
 connected database sessions, and the entry point into everything a single
 session is doing.
 
 ## Use
 
-([[rammpeter-github-io]], usage guide 2.1.1; menu overview: "Show info of current
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 2.1.1; menu overview: "Show info of current
 DB-sessions".)
 
 - The list is **sorted by the sum of logical and physical block accesses** of
@@ -27,30 +27,30 @@ DB-sessions".)
 - A click in the column **"SID/SN"** opens the detail view of one session,
   including its **current and its previous SQL**.
 - Buttons in the detail view lead further — among them the history of exactly
-  this session in [[ash]], and the "SQL Monitor" button ([[sql-monitor]]).
+  this session in [ASH](ash.md), and the "SQL Monitor" button ([SQL Monitor](sql-monitor.md)).
 
 ## The Oracle side
 
 The list is the current-state view of the first of the three pillars in
-[[panorama-analysis-workflows]]. It answers "who is connected and working right
+[Analysis workflows in Panorama](panorama-analysis-workflows.md). It answers "who is connected and working right
 now"; what the active ones are *waiting on* is the neighbouring view
-[[session-waits]], and who is blocking whom is [[blocking-locks]].
+[Session waits](session-waits.md), and who is blocking whom is [Blocking locks](blocking-locks.md).
 
 The module filter is only as good as the application's tagging: without
 `DBMS_APPLICATION_INFO.SET_MODULE` all sessions of a connection pool look alike
-→ [[session-context]].
+→ [Session context](session-context.md).
 
 > Conclusion: the sort order makes this a load view rather than an inventory. A
 > session that is connected but has done little sinks to the end; with the
 > default filter on active sessions it does not appear at all. For the opposite
 > question — many short sessions that are gone before you look — the list is the
-> wrong tool; see [[short-lived-sessions]].
+> wrong tool; see [Short-lived sessions](short-lived-sessions.md).
 
 ## Relationships
 
-- Listed in [[panorama-menu-overview]].
-- Retrospective counterpart: [[ash]] via [[session-waits]].
-- Statistics of sessions that have ended: [[sampling-session-statistics]].
+- Listed in [Panorama menu overview](panorama-menu-overview.md).
+- Retrospective counterpart: [ASH](ash.md) via [Session waits](session-waits.md).
+- Statistics of sessions that have ended: [Sampling session statistics yourself](sampling-session-statistics.md).
 
 ## Open questions
 
@@ -61,4 +61,4 @@ The module filter is only as good as the application's tagging: without
 
 ## Sources
 
-- [[rammpeter-github-io]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

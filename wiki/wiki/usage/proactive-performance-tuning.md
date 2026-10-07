@@ -10,14 +10,14 @@ sources: [speakerdeck.md, speakerdeck/2018-11_DOAG-Dresden_Systematische_Rasterf
 
 # Proactive performance tuning
 
-The stance behind much of [[panorama]]: do not wait for the incident. Look for
+The stance behind much of [Panorama](panorama.md): do not wait for the incident. Look for
 every occurrence of a known problem pattern across the whole system, rank the
 hits, and fix the cheap ones before anyone complains.
 
 ## Summary
 
 Two talks eight years apart argue the same case
-([[talks-dragnet-and-proactive-tuning]]). The 2026 title puts it as a question —
+([Talks on dragnet investigation and proactive tuning](../sources/talks-dragnet-and-proactive-tuning.md)). The 2026 title puts it as a question —
 "Firefighting or fixing root causes?" — and the answer is not either/or: the tool
 supports both, but only one of them uses the system's potential.
 
@@ -65,12 +65,12 @@ allows to apply the same solution approach multiple times".
 ## What makes it possible
 
 - **The database keeps traces.** Dictionary, SGA views and — given the licence
-  or the [[panorama-sampler]] — the AWR and ASH history
-  ([[awr]], [[ash]]). `V$SQL` and `DBA_Hist_SQLStat` alone answer: which SQL
+  or the [Panorama Sampler](panorama-sampler.md) — the AWR and ASH history
+  ([AWR](awr.md), [ASH](ash.md)). `V$SQL` and `DBA_Hist_SQLStat` alone answer: which SQL
   takes most time in total, which per execution, which needs most buffer gets
   per row.
 - **A recognised problem can be written as a query.** That is the whole idea of
-  [[dragnet]]: formulate the identification as SQL, run it system-wide, sort by
+  [Dragnet Investigation](dragnet.md): formulate the identification as SQL, run it system-wide, sort by
   potential.
 - **Solutions should be simple**: "as simple as possible to implement without
   interfering with architecture and design" (2018). The catalogue is biased
@@ -96,13 +96,13 @@ configuration; they are about how the application talks to it.
 executed selects on small objects cost CPU and risk "cache buffers chains" latch
 waits; a remote application also saves the network round trips. Function result
 cache or SQL result cache are the in-database alternatives →
-[[master-data-caching]], [[result-cache]].
+[Master data caching](master-data-caching.md), [Result cache](result-cache.md).
 
 **Fetch in bulk** (point 2.4.3). For larger results, fetching many rows per call
 barely reduces database CPU — but for a remote client it removes round trips
 that may each take longer than the fetch itself. SQL\*Plus: `SET ARRAYSIZE`;
 JDBC per statement: `setFetchSize(n)`; JDBC globally: the connection property
-`defaultRowPrefetch` → [[network-latency-from-ash]].
+`defaultRowPrefetch` → [Estimating network latency from ASH](network-latency-from-ash.md).
 
 **Switch on the JDBC statement cache** (point 4.2.2). A high soft parse rate on
 JDBC thin connections suggests the client-side statement cache is off or too
@@ -117,29 +117,29 @@ or, from 19c, in the URL:
 `jdbc:oracle:thin:@host:1521/srv?oracle.jdbc.implicitStatementCacheSize=100`.
 
 > Panorama does exactly this for its own connections, with the same two calls
-> and the same size ([[panorama-connection]]).
+> and the same size ([PanoramaConnection](../development/panorama-connection.md)).
 
 Further examples, with their own pages: redundant and unused indexes
-([[indexing]], [[index-usage-monitoring]]), foreign keys with a missing or a
-superfluous index ([[foreign-key-locks]],
-[[do-not-blanket-index-foreign-keys]]), missing bind variables
-([[bind-variables-and-cursor-sharing]]), index compression
-([[index-compression]]).
+([Indexing](indexing.md), [Index usage monitoring](index-usage-monitoring.md)), foreign keys with a missing or a
+superfluous index ([Foreign keys and locks](foreign-key-locks.md),
+[Do not blanket-index foreign keys](do-not-blanket-index-foreign-keys.md)), missing bind variables
+([Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md)), index compression
+([Index compression](index-compression.md)).
 
 **`PCT_FREE` without updates** (point 1.2.10). Free space reserved per block
 serves two purposes: room for rows that grow on update, and room for the ITL to
 grow beyond `INI_TRANS`. A table without any update since the last analysis
 needs the first not at all; if it does not need the second either, `PCTFREE 0`
-and a reorganisation free the space → [[storage-reorganisation]].
+and a reorganisation free the space → [Storage reorganisation](storage-reorganisation.md).
 
 ## Relationships
 
-- The instrument: [[dragnet]] in [[panorama]].
-- The data it rests on: [[awr]], [[ash]], [[segment-statistics]]; without a
-  licence [[panorama-sampler]].
-- The same stance applied to one topic in depth: [[indexing]].
+- The instrument: [Dragnet Investigation](dragnet.md) in [Panorama](panorama.md).
+- The data it rests on: [AWR](awr.md), [ASH](ash.md), [Segment statistics](segment-statistics.md); without a
+  licence [Panorama Sampler](panorama-sampler.md).
+- The same stance applied to one topic in depth: [Indexing](indexing.md).
 - Planning ahead rather than reacting, at the scale of years:
-  [[long-term-trend-analysis]].
+  [Long-term trend analysis](long-term-trend-analysis.md).
 
 ## Open questions
 
@@ -148,10 +148,10 @@ and a reorganisation free the space → [[storage-reorganisation]].
 - Is there evidence — from the author's own systems — of what a systematic pass
   saved in hardware or licences? The talks assert the effect, they do not
   quantify it.
-- Who in a project owns this work? [[indexing]] records the author's diagnosis
+- Who in a project owns this work? [Indexing](indexing.md) records the author's diagnosis
   that nobody does.
 
 ## Sources
 
-- [[talks-dragnet-and-proactive-tuning]]
-- [[talks-panorama-and-sampler]] (the eight factors, 2024 and 2025 decks)
+- [Talks on dragnet investigation and proactive tuning](../sources/talks-dragnet-and-proactive-tuning.md)
+- [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md) (the eight factors, 2024 and 2025 decks)

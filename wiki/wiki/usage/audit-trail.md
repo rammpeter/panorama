@@ -17,12 +17,12 @@ is above all the source of information that appears nowhere else.
 
 ## The gap to ASH
 
-The central annoyance ([[blog-audit-trail]], 2021-01-05):
+The central annoyance ([Blog series on the audit trail](../sources/blog-audit-trail.md), 2021-01-05):
 
 | Source | Session identifier |
 |---|---|
 | audit trail | `AudSID` |
-| [[ash]] | SID + `Serial#` |
+| [ASH](ash.md) | SID + `Serial#` |
 
 Both identifiers appear in `V$SESSION` — so **as long as the session lives** they
 can be joined. But: the `AudSID` does not appear in ASH, and SID plus `Serial#`
@@ -33,7 +33,7 @@ do not appear in the audit trail. Once the session has ended, the link is lost.
 The LOGOFF records of the audit trail also log — with `AUDIT SESSION` active —
 the `Client_Identifier` from `V$SESSION`. If you fill that with the information
 you want, it can later be read from `DBA_AUDIT_TRAIL.Client_ID`. A
-[[logon-trigger]] does the job:
+[LOGON trigger](logon-trigger.md) does the job:
 
 ```sql
 CREATE OR REPLACE TRIGGER Client_ID AFTER LOGON ON DATABASE
@@ -64,14 +64,14 @@ The result appears in the column `Application_Contexts` of
 
 The audit trail answers questions for which ASH is too coarse — above all
 excessive logons, because establishing a connection is not a SQL activity and is
-therefore absent from ASH. In [[panorama]] (menu "DBA general" / "Audit Trail"):
+therefore absent from ASH. In [Panorama](panorama.md) (menu "DBA general" / "Audit Trail"):
 filter on `Action = LOGON`, group by minute, display as a chart — this is how the
 author, in the example, attributes 106 logons per minute to a machine, a database
-user and an OS user. See [[short-lived-sessions]].
+user and an OS user. See [Short-lived sessions](short-lived-sessions.md).
 
 ## Evaluation in Panorama
 
-([[blog-audit-trail]], 2023-09-21) Three menu entries under "DBA General" /
+([Blog series on the audit trail](../sources/blog-audit-trail.md), 2023-09-21) Three menu entries under "DBA General" /
 "Audit Trail":
 
 - **"Auditing rules"** — the current configuration and the rules for standard,
@@ -88,7 +88,7 @@ connected sessions of that machine; an object name leads to the object details.
 
 ## From the usage guide and the menu
 
-([[rammpeter-github-io]], usage guide 4.5.) The guide describes the same three
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 4.5.) The guide describes the same three
 entries and adds one detail of use: in the grouped result a click on the column
 **"Audits total"** shows the single audit records behind that group.
 
@@ -98,15 +98,15 @@ stands before "Auditing rules". The standard entry is named "Standard audit
 trail + FGA" and reads `DBA_Common_Audit_Trail`.
 
 A non-admin user on an Autonomous Database needs the role `AUDIT_VIEWER` to read
-the unified audit view ([[panorama-privileges]]).
+the unified audit view ([Privileges for Panorama](panorama-privileges.md)).
 
 ## Relationships
 
-- Fills a gap in [[ash]] — see [[short-lived-sessions]].
-- The linking trick depends on [[logon-trigger]] and therefore on its pitfalls.
+- Fills a gap in [ASH](ash.md) — see [Short-lived sessions](short-lived-sessions.md).
+- The linking trick depends on [LOGON trigger](logon-trigger.md) and therefore on its pitfalls.
 - Operations and performance of the unified audit trail:
-  [[unified-audit-trail-operations]].
-- The only route to rollover monitoring: [[gradual-password-rollover]].
+  [Unified audit trail – operations](unified-audit-trail-operations.md).
+- The only route to rollover monitoring: [Gradual password rollover](gradual-password-rollover.md).
 
 ## Open questions
 
@@ -117,6 +117,6 @@ the unified audit view ([[panorama-privileges]]).
 
 ## Sources
 
-- [[blog-audit-trail]]
-- [[blog-sessions-and-connections]]
-- [[rammpeter-github-io]]
+- [Blog series on the audit trail](../sources/blog-audit-trail.md)
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

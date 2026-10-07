@@ -1,3 +1,5 @@
 {
-  "attachmentFolderPath": "raw/assets"
+  "attachmentFolderPath": "raw/assets",
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative"
 }

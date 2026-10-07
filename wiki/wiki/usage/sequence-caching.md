@@ -16,7 +16,7 @@ The default for a sequence is `CACHE SIZE = 0`. That means: **every**
 
 ## What it costs
 
-([[blog-caching-and-plsql]], 2017-11-16)
+([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2017-11-16)
 
 - With frequent `nextval` calls, uncached sequences cause significant performance
   degradation.
@@ -61,13 +61,13 @@ executions and rows processed per day, again divided by the cache size.
 > SGA instead of inferring it from the sequence counter — and is therefore usable
 > for cycling sequences too.
 
-In [[dragnet]] under points 3.8 and 3.9.
+In [Dragnet Investigation](dragnet.md) under points 3.8 and 3.9.
 
 ## Relationships
 
 - Locking in the library cache as a consequence:
-  [[library-cache-contention]].
-- The same basic pattern as [[result-cache]] and [[master-data-caching]]:
+  [Library cache contention](library-cache-contention.md).
+- The same basic pattern as [Result cache](result-cache.md) and [Master data caching](master-data-caching.md):
   weighing saved reuse against currency of data.
 
 ## Open questions
@@ -79,4 +79,4 @@ In [[dragnet]] under points 3.8 and 3.9.
 
 ## Sources
 
-- [[blog-caching-and-plsql]]
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)

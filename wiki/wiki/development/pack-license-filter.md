@@ -11,18 +11,18 @@ sources: [panorama-repository.md]
 
 # Pack licence filter
 
-The mechanism by which [[panorama]] guarantees that it reads no
+The mechanism by which [Panorama](../usage/panorama.md) guarantees that it reads no
 licence-restricted Oracle object without the user's confirmation: a text filter
 that every SQL statement passes immediately before execution
 (`app/models/pack_license.rb`).
 
 ## Summary
 
-The user-visible rule is described in [[management-pack-licensing]]: one of four
+The user-visible rule is described in [Management pack licensing](../usage/management-pack-licensing.md): one of four
 licence options is confirmed after login, and functions that would violate it
 fail with a message. The implementation is deliberately crude and therefore
 complete — it does not depend on each controller action remembering to check
-([[panorama-source-code]]).
+([Panorama source repository](../sources/panorama-source-code.md)).
 
 `PanoramaConnection` calls `PackLicense.filter_sql_for_pack_license(sql)` in
 `sql_select_iterator`, `sql_execute_native` and
@@ -41,7 +41,7 @@ handed to `PanoramaSamplerStructureCheck.transform_sql_for_sampler`:
 - Occurrences without a sampler counterpart are left as they are.
 
 That is how the same controller code and the same views serve both data sources
-— the "transparently in the same way" of [[panorama-sampler]]. The rewrite is
+— the "transparently in the same way" of [Panorama Sampler](../usage/panorama-sampler.md). The rewrite is
 positional string surgery: `DBA_HIST` and `PANORAMA` both have eight characters,
 and the code overwrites one with the other in place.
 
@@ -72,7 +72,7 @@ missing license for Oracle … Pack" — which the user sees as a plain message.
 
 ## Why the sampler's "hard edge" exists
 
-[[management-pack-licensing]] notes that under the sampler option, access to AWR
+[Management pack licensing](../usage/management-pack-licensing.md) notes that under the sampler option, access to AWR
 tables without sampler data fails instead of silently reading AWR. The mechanism
 is exactly the combination above: step 1 leaves an unmatched `DBA_HIST_…` name
 untouched, step 2 then finds it and raises.
@@ -80,7 +80,7 @@ untouched, step 2 then finds it and raises.
 > Conclusion: the set of evaluations usable with the sampler is therefore
 > *defined by* the table and view list in `PanoramaSamplerStructureCheck`
 > (about 55 definitions). That list is the precise answer to "what does the
-> sampler cover" — see [[panorama-sampler-internals]].
+> sampler cover" — see [Panorama Sampler internals](panorama-sampler-internals.md).
 
 ## Before the licence is confirmed
 
@@ -100,14 +100,14 @@ as `DIAGNOSTIC+TUNING`.
   `Panorama_…` tables breaks the Diagnostics Pack path.
 - Tests assert on this behaviour with
   `assert_response_success_or_management_pack_violation`
-  ([[panorama-build-test-and-release]]).
+  ([Building, testing and releasing Panorama](panorama-build-test-and-release.md)).
 
 ## Relationships
 
-- Called from [[panorama-connection]].
-- The rewrite targets are created by [[panorama-sampler-internals]].
-- The user-facing rule: [[management-pack-licensing]]; the data sources:
-  [[awr]], [[ash]].
+- Called from [PanoramaConnection](panorama-connection.md).
+- The rewrite targets are created by [Panorama Sampler internals](panorama-sampler-internals.md).
+- The user-facing rule: [Management pack licensing](../usage/management-pack-licensing.md); the data sources:
+  [AWR](../usage/awr.md), [ASH](../usage/ash.md).
 
 ## Open questions
 
@@ -122,4 +122,4 @@ as `DIAGNOSTIC+TUNING`.
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

@@ -46,8 +46,10 @@ auszuführen. Fahre nur fort, wenn er das ausdrücklich nicht möchte.
 5. **Widersprüche kennzeichnen.** Widerspricht die Quelle einer bestehenden
    Aussage, beide festhalten, die ältere markieren und unter `## Offene Fragen`
    sowie im Log vermerken. Nichts stillschweigend überschreiben.
-6. **Schlussfolgerungen** von belegten Fakten trennen. Aussagen mit Wikilinks
-   auf die Quellenseite belegen.
+6. **Schlussfolgerungen** von belegten Fakten trennen. Aussagen mit
+   Markdown-Links auf die Quellenseite belegen (relativer Pfad, z. B.
+   `[Blog zu Locks](../sources/blog-locks.md)`; keine Wikilinks – Regeln in
+   `CLAUDE.md`, Abschnitt „Links“).
 7. **`index.md` aktualisieren** – neue Seiten aufnehmen, Einzeiler auffrischen,
    Einträge aus „(noch keine)“-Abschnitten herausnehmen.
 8. **Eintrag an `log.md` anhängen**: `## [JJJJ-MM-TT] ingest | <Titel der Quelle>`

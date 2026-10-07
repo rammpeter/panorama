@@ -16,8 +16,8 @@ What has to be traced is therefore not the *session* but the **context**.
 
 ## Tracing by context
 
-`DBMS_MONITOR` takes exactly the information that [[session-context]] has set
-([[blog-sessions-and-connections]], 2014-04-28). To be switched on as SYSDBA:
+`DBMS_MONITOR` takes exactly the information that [Session context](session-context.md) has set
+([Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2014-04-28). To be switched on as SYSDBA:
 
 ```sql
 -- for one application, by module name, with bind values
@@ -49,12 +49,12 @@ trcsess output=osp.trc module='AmosOrder::Gui::Dialogs::OrderEntryDialog'
 
 ## Relationships
 
-- Requires [[session-context]] — without module/action there is no filter
+- Requires [Session context](session-context.md) — without module/action there is no filter
   criterion.
 - For the optimizer's decision instead of the execution:
-  [[optimizer-diagnostics]].
+  [Optimizer diagnostics](optimizer-diagnostics.md).
 - Reading trace files without file system access: also
-  [[optimizer-diagnostics]] (`GV$DIAG_TRACE_FILE_CONTENTS`); [[panorama]] lists
+  [Optimizer diagnostics](optimizer-diagnostics.md) (`GV$DIAG_TRACE_FILE_CONTENTS`); [Panorama](panorama.md) lists
   trace files and their contents.
 
 ## Open questions
@@ -64,4 +64,4 @@ trcsess output=osp.trc module='AmosOrder::Gui::Dialogs::OrderEntryDialog'
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

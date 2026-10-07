@@ -11,12 +11,12 @@ sources: [blog.md, posts/]
 # Long-term trend analysis
 
 The evolution of database load across **years** — the basis for hardware
-planning and investment decisions. [[ash]] does not suffice for that: retained
+planning and investment decisions. [ASH](ash.md) does not suffice for that: retained
 too briefly, resolved too finely.
 
 ## Why the built-in means do not suffice
 
-([[blog-system-load]], 2022-06-10) The retention of ASH is 7 days by default,
+([Blog series on system load and monitoring](../sources/blog-system-load.md), 2022-06-10) The retention of ASH is 7 days by default,
 usually about 30 in production. The author rejects two obvious ways out:
 
 - **Increasing the ASH retention to years** — leads to a volume of data that is
@@ -26,7 +26,7 @@ usually about 30 in production. The author rejects two obvious ways out:
 
 ## The route: condense instead of retain
 
-[[panorama-sampler]] extracts information from ASH and stores it **condensed** as
+[Panorama Sampler](panorama-sampler.md) extracts information from ASH and stores it **condensed** as
 a summary over periods between one hour and one day. What is stored is the summed
 active time of all sessions per snapshot period, broken down by eight attributes:
 
@@ -59,20 +59,20 @@ ASH-like sampling.
 > "This way you don't really need EE and Diagnostics Pack. Sampling this
 > long-term trend data also works for Standard Edition."
 
-See [[management-pack-licensing]].
+See [Management pack licensing](management-pack-licensing.md).
 
 ## Evaluation
 
-In [[panorama]] via the menu entry "Long-term trend", following the same pattern
+In [Panorama](panorama.md) via the menu entry "Long-term trend", following the same pattern
 as the ASH evaluation: choose the period and the first grouping attribute, look at
 the evolution in the chart, and drill down further via the number of occurrences
 of an attribute — "User-Name", say.
 
 ## Relationships
 
-- Condenses [[ash]]; capture via [[panorama-sampler]].
-- The short-term equivalent: [[measuring-system-load]].
-- Works around [[management-pack-licensing]].
+- Condenses [ASH](ash.md); capture via [Panorama Sampler](panorama-sampler.md).
+- The short-term equivalent: [Measuring system load](measuring-system-load.md).
+- Works around [Management pack licensing](management-pack-licensing.md).
 
 ## Open questions
 
@@ -85,4 +85,4 @@ of an attribute — "User-Name", say.
 
 ## Sources
 
-- [[blog-system-load]]
+- [Blog series on system load and monitoring](../sources/blog-system-load.md)

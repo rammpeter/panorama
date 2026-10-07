@@ -4,14 +4,14 @@ type: source
 status: draft
 tags: [panorama, website, documentation]
 created: 2026-10-05
-updated: 2026-10-05
+updated: 2026-10-06
 sources: [rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
 # Panorama's website on GitHub Pages (rammpeter.github.io)
 
-The four public documentation pages of [[panorama]]: the landing page, the page
-on [[panorama-sampler]], an introductory usage guide, and a menu overview
+The four public documentation pages of [Panorama](../usage/panorama.md): the landing page, the page
+on [Panorama Sampler](../usage/panorama-sampler.md), an introductory usage guide, and a menu overview
 generated from the source code.
 
 ## The source
@@ -36,10 +36,23 @@ snapshots*.
 | "Performance analysis of Oracle-DB with Panorama: Introduction" | `Oracle_performance_analysis_with_Panorama.html` | last updated 2026-09-02 (first), 2026-10-05 13:02 UTC (second); marked "not yet completed and still under construction" |
 | "Panorama: function overview by top level menu entries" | `panorama_content_generated.html` | generated from source code 2026-09-02 (first), 2026-10-05 13:02 UTC (second) |
 
-**A wrong URL in the pointer.** It names `panorama-sampler.html`, which returns
-404. The page lives at `panorama_sampler.html` (underscore), as the landing page
-itself links it; that one was read. `panorama_content.html`, linked from the
-landing page, is only a redirect to the generated page and is archived too.
+**A wrong URL in the pointer — fixed.** Until 2026-10-05 the pointer named
+`panorama-sampler.html`, which returns 404; the page lives at
+`panorama_sampler.html` (underscore) and was read from there. The pointer was
+corrected by the user (commit `0277846f`, 2026-10-06). `panorama_content.html`,
+linked from the landing page, is only a redirect to the generated page and is
+archived too.
+
+**Third check, 2026-10-06.** The website was republished again (`Last-Modified`
+2026-10-06 04:54 UTC) by its automatic generation. Compared with the second
+snapshot, the landing page and the sampler page are byte-identical; the guide
+and the menu overview differ **only in their timestamp lines**; the 16 images
+are byte-identical. No third
+snapshot was archived for that. The guide's source,
+`Oracle_performance_analysis_with_Panorama.adoc` in the local checkout of the
+website repository (last commit `ebfb2de`, 2026-10-05), was read alongside and
+shows the same text — the open points below are in the source, not artefacts of
+the generation.
 
 **Images.** Three were viewed: `Panorama_Overview.png` (network connections),
 `Panorama-Sampler.png` (the sampler's architecture, the same picture as in the
@@ -74,14 +87,14 @@ written.
 - Supported: standard hardware, RAC, Exadata, Autonomous Database in OCI; tested
   from Oracle 11.2. The dragnet scan covers "more than 100 considered aspects".
 - A table of grants for the login user, with the reason for each
-  → [[panorama-privileges]].
+  → [Privileges for Panorama](../usage/panorama-privileges.md).
 - Java 21 or higher; a browser with ES6 support.
 - Licence: GNU General Public License v3, free of charge.
 - All configuration settings, command-line options `-p`/`--port` and
-  `-b`/`--bind`, container mounts → [[panorama-operations]],
-  [[panorama-configuration]].
-- A public demo installation → [[panorama-operations]].
-- The security model in six points → [[panorama-client-state-and-security]].
+  `-b`/`--bind`, container mounts → [Panorama operations](../usage/panorama-operations.md),
+  [Panorama configuration](../development/panorama-configuration.md).
+- A public demo installation → [Panorama operations](../usage/panorama-operations.md).
+- The security model in six points → [Client state and security in Panorama](../development/panorama-client-state-and-security.md).
 - Implementation details: connection pool, single-page rendering by AJAX (the
   browser's back button does not work), `Usage.log`, a pool view at
   `/usage/connection_pool`.
@@ -93,37 +106,37 @@ written.
 - Enabled by starting the server with `PANORAMA_MASTER_PASSWORD`; several master
   passwords give several configuration sets, of which only the one the server
   was started with is sampled.
-- Grants of the sampling user → [[panorama-privileges]].
+- Grants of the sampling user → [Privileges for Panorama](../usage/panorama-privileges.md).
 - 38 replaced views, listed by name.
 - Limits against AWR, for ASH and for segment statistics.
 - A health endpoint for monitoring tools and a synonym script for foreign AWR
-  scripts → [[panorama-sampler]].
+  scripts → [Panorama Sampler](../usage/panorama-sampler.md).
 
 **Guide**
 
 - Two ways of analysis (current state from `V$` and dictionary views;
   retrospective from recorded data) and three pillars (sessions, SQL, objects)
-  → [[panorama-analysis-workflows]].
+  → [Analysis workflows in Panorama](../usage/panorama-analysis-workflows.md).
 - How the interface is driven, globally and in tables
-  → [[panorama-analysis-workflows]].
+  → [Analysis workflows in Panorama](../usage/panorama-analysis-workflows.md).
 - Menu paths and behaviour for the session list, session waits, ASH, locks, SQL
   area, SQL Monitor, object description, segment statistics, DB cache, init
   parameters, SGA, redo logs, I/O, audit trail → the menu pages listed in
-  [[panorama-menu-overview]].
+  [Panorama menu overview](../usage/panorama-menu-overview.md).
 - Application design: only the section on `DBMS_Application_Info` is written
-  ([[session-context]]); bind variables, PL/SQL in SQL (`PRAGMA UDF`, package
+  ([Session context](../usage/session-context.md)); bind variables, PL/SQL in SQL (`PRAGMA UDF`, package
   constants), indexing, constraints and views are headings with TODO.
 - Plan control: baselines, profiles, patches, translations
-  ([[sql-plan-management]]), preceded by the demand for realistic object
-  statistics ([[describe-object]]).
+  ([SQL plan management](../usage/sql-plan-management.md)), preceded by the demand for realistic object
+  statistics ([Describe object](../usage/describe-object.md)).
 - Storage: four goals of saving space, recycle bin, function-based index example
-  ([[function-based-indexes]]), unused tables and indexes
-  ([[storage-reorganisation]], [[index-usage-monitoring]]).
+  ([Function-based indexes](../usage/function-based-indexes.md)), unused tables and indexes
+  ([Storage reorganisation](../usage/storage-reorganisation.md), [Index usage monitoring](../usage/index-usage-monitoring.md)).
 
 **Menu overview**
 
 - Seven top-level menus and 124 entries (123 in the first snapshot)
-  → [[panorama-menu-overview]].
+  → [Panorama menu overview](../usage/panorama-menu-overview.md).
 
 ## Contradictions and ageing
 
@@ -131,34 +144,34 @@ Within the source, and against the wiki. None was overwritten silently; each is
 recorded on the page concerned.
 
 1. **Idle pooled connections — resolved.** First snapshot: terminated "10
-   minutes after last usage"; code ([[panorama-connection]]): after one hour.
+   minutes after last usage"; code ([PanoramaConnection](../development/panorama-connection.md)): after one hour.
    The user stated in the session that the code is authoritative. Second
    snapshot: "one hour after last usage". Source and code agree.
 2. **`OEM_MONITOR` "as of DB Release 11.4"** (guide) against "starting with
    Oracle 11.2.0.4" (landing page). There is no release 11.4; read as a slip in
-   the guide. See [[panorama-privileges]].
+   the guide. See [Privileges for Panorama](../usage/panorama-privileges.md).
 3. **Which role for what.** The guide names `OEM_MONITOR` for "AWR and ASH
    reports as well as the SQL Monitoring plug-in"; the landing page and the
    tooltips in the code name `EM_EXPRESS_BASIC` for the Performance Hub. See
-   [[genuine-oracle-reports]].
+   [Genuine Oracle reports](../usage/genuine-oracle-reports.md).
 4. **`java -jar Panorama.war` — resolved.** On the sampler page in the first
    snapshot, although the artefact has been `Panorama.jar` since 2024
-   ([[jarbler]]). The second snapshot says `Panorama.jar`.
+   ([Jarbler](../development/jarbler.md)). The second snapshot says `Panorama.jar`.
 5. **Menu names in the guide** differ from the generated overview in several
    places ("Special extensions" for "Spec. additions"; "DBA General" / "Oracle
    Parameter" for "Database configuration" / "Init-Parameter"; "DBA/SGA details"
    for "SGA/PGA-Details"; one "Historical" redo log entry where there are two).
    The generated overview is the newer and more authoritative one.
 6. **The wiki's menu table was wrong** — "Long-term trend" is not a top-level
-   menu, and two top-level menus were missing → corrected in [[panorama]] with
+   menu, and two top-level menus were missing → corrected in [Panorama](../usage/panorama.md) with
    the old state marked. A second supposed error, "long operations" under the
    SQL area, was withdrawn: the first snapshot's menu had no such entry, the
-   second has it ([[long-operations]]).
+   second has it ([Long operations](../usage/long-operations.md)).
 7. **SQL Monitor:** four recording conditions instead of the three in the 2018
    post; the report is described as an active page with CSS and JavaScript, no
-   longer as Flash → [[sql-monitor]].
+   longer as Flash → [SQL Monitor](../usage/sql-monitor.md).
 8. **"More than 100" dragnet aspects** against "140+" in the 2026 talk — ageing
-   of the website, not a contradiction ([[dragnet]]).
+   of the website, not a contradiction ([Dragnet Investigation](../usage/dragnet.md)).
 9. **"Tested … beginning with Oracle 11.2"** agrees with the CI matrix; the
    Java requirement agrees with the repository.
 
@@ -173,28 +186,46 @@ Compared as extracted text, page by page:
 | Usage guide | only the "Last updated" line; the content is unchanged — "Release 11.4", the differing menu names, the missing parentheses and the TODO sections are still there |
 | Menu overview | regenerated; one new entry: "SGA/PGA-Details" / "SQL-Area" / "Long operations" — "Show long running operations from GV$Session_LongOps" |
 
-All three changes correspond to findings of the first ingest. Unchanged and
-still open: points 2, 3, 5 and 8 above.
+All three changes correspond to findings of the first ingest.
+
+### State of the open points on 2026-10-06
+
+Rechecked against the published pages and the guide's `.adoc` source:
+
+| Point | State |
+|---|---|
+| `OEM_MONITOR` "as of DB Release 11.4" (guide 1.1; `.adoc` line 28) | unchanged |
+| `OEM_MONITOR` named for "the SQL Monitoring plug-in" (same sentence) | unchanged; the code names no role at the SQL Monitor report link — its tooltip only says an internet connection is required |
+| `ALTER SESSION\|SESSION SET EVENTS` (guide 2.2.3; line 161) | unchanged |
+| "Special extensions" / "Dragnet investigation" (line 234) | unchanged |
+| "DBA General" / "Oracle Parameter" (line 239) | unchanged |
+| "DBA/SGA details" (line 243) | unchanged |
+| "Redologs" / "Historical" (line 252) | unchanged |
+| Two `CREATE INDEX` without closing parenthesis (lines 425, 440) | unchanged |
+| Five "TODO: Transfer content from german document" | unchanged |
+| "more than 100 considered aspects" (landing page); "over 100" (guide) | unchanged; the code has about 145 dragnet SQL entries (`app/helpers/dragnet/`, commit `0277846f`) |
+| Pointer URL `panorama-sampler.html` | **fixed** |
+| Idle time, `Panorama.war`, "Long operations" in the menu | fixed on 2026-10-05, still so |
 
 ## Impact on the wiki
 
 New pages:
 
-- [[panorama-menu-overview]] — every menu entry with its purpose and its page
-- [[panorama-privileges]] — grants for the login user and the sampling user
-- [[panorama-analysis-workflows]] — the pillars of analysis and how the
+- [Panorama menu overview](../usage/panorama-menu-overview.md) — every menu entry with its purpose and its page
+- [Privileges for Panorama](../usage/panorama-privileges.md) — grants for the login user and the sampling user
+- [Analysis workflows in Panorama](../usage/panorama-analysis-workflows.md) — the pillars of analysis and how the
   interface is driven
-- Menu pages: [[session-list]], [[session-waits]], [[sql-area]],
-  [[describe-object]], [[db-cache-usage]], [[database-configuration]],
-  [[genuine-oracle-reports]]
+- Menu pages: [Session list](../usage/session-list.md), [Session waits](../usage/session-waits.md), [SQL area](../usage/sql-area.md),
+  [Describe object](../usage/describe-object.md), [DB cache usage](../usage/db-cache-usage.md), [Database configuration](../usage/database-configuration.md),
+  [Genuine Oracle reports](../usage/genuine-oracle-reports.md)
 
-Updated: [[panorama]], [[panorama-sampler]], [[panorama-operations]],
-[[sql-monitor]], [[blocking-locks]], [[redo-logs]], [[session-context]],
-[[sql-plan-management]], [[function-based-indexes]], [[storage-reorganisation]],
-[[audit-trail]], [[segment-statistics]], [[sga-memory-management]], [[awr]],
-[[ash]], [[dragnet]], [[management-pack-licensing]], [[long-operations]], [[panorama-configuration]], [[panorama-connection]],
-[[panorama-client-state-and-security]], [[panorama-sampler-internals]],
-[[overview]].
+Updated: [Panorama](../usage/panorama.md), [Panorama Sampler](../usage/panorama-sampler.md), [Panorama operations](../usage/panorama-operations.md),
+[SQL Monitor](../usage/sql-monitor.md), [Blocking locks](../usage/blocking-locks.md), [Redo logs](../usage/redo-logs.md), [Session context](../usage/session-context.md),
+[SQL plan management](../usage/sql-plan-management.md), [Function-based indexes](../usage/function-based-indexes.md), [Storage reorganisation](../usage/storage-reorganisation.md),
+[Audit trail](../usage/audit-trail.md), [Segment statistics](../usage/segment-statistics.md), [SGA memory management](../usage/sga-memory-management.md), [AWR](../usage/awr.md),
+[ASH](../usage/ash.md), [Dragnet Investigation](../usage/dragnet.md), [Management pack licensing](../usage/management-pack-licensing.md), [Long operations](../usage/long-operations.md), [Panorama configuration](../development/panorama-configuration.md), [PanoramaConnection](../development/panorama-connection.md),
+[Client state and security in Panorama](../development/panorama-client-state-and-security.md), [Panorama Sampler internals](../development/panorama-sampler-internals.md),
+[Overview](../overview.md).
 
 ## Open questions
 
@@ -206,4 +237,4 @@ Updated: [[panorama]], [[panorama-sampler]], [[panorama-operations]],
   (`panorama-ramm.herokuapp.com`) only in markup that is not displayed; whether
   it still exists was not checked.
 - Most menu entries have no page of their own yet
-  → [[panorama-menu-overview]].
+  → [Panorama menu overview](../usage/panorama-menu-overview.md).

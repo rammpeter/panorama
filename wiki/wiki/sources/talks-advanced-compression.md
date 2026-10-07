@@ -10,7 +10,7 @@ sources: [speakerdeck.md, speakerdeck/2024-02-IT-Tage_Advanced-Compression.pdf]
 
 # Talk on Oracle Advanced Compression in practice
 
-One German deck from [[rammpeter-talks]], February 2024, IT-Tage: "Oracle
+One German deck from [Talks and slide decks by Peter Ramm](../usage/rammpeter-talks.md), February 2024, IT-Tage: "Oracle
 Advanced Compression — Erfahrungen aus dem praktischen Einsatz". 37 slides, file
 `raw/speakerdeck/2024-02-IT-Tage_Advanced-Compression.pdf`.
 
@@ -28,50 +28,50 @@ RMAN compression are named but not covered.
 `COMPRESS FOR OLTP` (DML, Advanced Compression Option), HCC query and archive
 (no DML, option, engineered systems). Usual ratios for basic and advanced 1:2 to
 1:4; with HCC 1:10 (query high, a booking history with 55 columns) and 1:64
-(archive low, a stock history with 134 columns) → [[advanced-compression]].
+(archive low, a stock history with 134 columns) → [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **How to compress existing data** (slide 6): the variants of `ALTER TABLE …
-MOVE`, and what each blocks → [[advanced-compression]].
+MOVE`, and what each blocks → [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **Moving one partition, measured** (slide 7): 682,000 rows, 55 columns, 10
 global indexes. Compression itself takes seconds; `UPDATE INDEXES` 43 s;
-`ONLINE` **3,353 s** non-parallel → [[advanced-compression]].
+`ONLINE` **3,353 s** non-parallel → [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **The large comparison** (slides 8–16): a table of 14 billion rows, 134 columns,
 over 3,000 partitions, on Exadata X6-2L Extreme Flash; one partition of 8 million
 rows. Compression factor, compression time, access by ROWID, full scans from the
-buffer cache and by direct path → [[advanced-compression]].
+buffer cache and by direct path → [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **`COMPRESS ADVANCED` and updates** (slide 17): the migrated-row problem of 12.x
 and 18.x; with 19.18 "still sporadic, but with drastically lower risk".
 Conclusion: for tables with a significant amount of updates, keep the size and
-relevance of migrated rows in view → [[oltp-compression]],
-[[monitor-migrated-rows-under-advanced-compression]].
+relevance of migrated rows in view → [OLTP compression](../usage/oltp-compression.md),
+[Use advanced compression with updates, and monitor migrated rows](../usage/monitor-migrated-rows-under-advanced-compression.md).
 
 **A pitfall with partitioned tables** (slide 18): `ALTER TABLE … COMPRESS`
 changes the default for new partitions *and* the compression attribute of
 existing ones — without compressing any data. Only
 `MODIFY DEFAULT ATTRIBUTES` leaves existing partitions alone
-→ [[advanced-compression]].
+→ [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **Index methods** (slides 19–26): prefix key compression (no option), advanced
 low and high (option). Sizes and access times for a 3-column unique index on the
 14-billion-row table, in two column orders. Two problems with advanced high: a
 non-deterministic `ORA-00600` on `SHRINK SPACE COMPACT`, and optimizer costs so
-low that better-suited indexes are ignored → [[index-compression]].
+low that better-suited indexes are ignored → [Index compression](../usage/index-compression.md).
 
 **LOB compression** (slides 27–31): SecureFile `COMPRESS LOW | MEDIUM | HIGH`,
 all needing the option. For JSON in CLOBs with highly redundant field names a
 factor of 46:1 with `HIGH` is shown. `CREATE TABLE … AS SELECT` does not
 parallelise with LOBs; create the table, then `INSERT /*+ APPEND PARALLEL */`
-→ [[advanced-compression]].
+→ [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **Estimating in advance** (slides 32–34):
 `DBMS_COMPRESSION.Get_Compression_Ratio` — "never used successfully myself, runs
 into various errors". Panorama instead offers suggestion lists, calculates the
 expected size from statistics, and shows via
 `DBMS_COMPRESSION.Get_Compression_Type` on a sample which rows are actually
-compressed how → [[advanced-compression]].
+compressed how → [Table, index and LOB compression compared](../usage/advanced-compression.md).
 
 **Conclusion of the talk** (slide 35): compression is usable in production;
 depending on the profile it brings a runtime gain or loss besides the storage
@@ -82,13 +82,13 @@ because developers do not know what it offers.
 
 ## Impact on the wiki
 
-- New: [[advanced-compression]].
-- [[oltp-compression]] — a newer statement by the author on updates under 19c.
-- New decision [[monitor-migrated-rows-under-advanced-compression]], which supersedes
-  [[oltp-compression-only-without-updates]].
-- [[index-compression]] — measurements, advanced index compression, two
+- New: [Table, index and LOB compression compared](../usage/advanced-compression.md).
+- [OLTP compression](../usage/oltp-compression.md) — a newer statement by the author on updates under 19c.
+- New decision [Use advanced compression with updates, and monitor migrated rows](../usage/monitor-migrated-rows-under-advanced-compression.md), which supersedes
+  [OLTP compression only for tables without meaningful updates](../usage/oltp-compression-only-without-updates.md).
+- [Index compression](../usage/index-compression.md) — measurements, advanced index compression, two
   problems.
-- [[panorama]] — the compression suggestion lists and the per-row compression
+- [Panorama](../usage/panorama.md) — the compression suggestion lists and the per-row compression
   check.
 
 ## Changes over time and disagreements
@@ -96,16 +96,16 @@ because developers do not know what it offers.
 - **Updates on compressed tables.** The blog post of 2018 concluded that OLTP
   compression is unsuitable for tables with a substantial share of updates, and
   the wiki turned that into the decision
-  [[oltp-compression-only-without-updates]]. This talk, six years later, no
+  [OLTP compression only for tables without meaningful updates](../usage/oltp-compression-only-without-updates.md). This talk, six years later, no
   longer says "unsuitable" but "keep migrated rows in view". It agrees with the
   blog's own 2023 addendum and goes one step further in tone. On 2026-10-04
   the author settled it: the old decision is `superseded`, the talk's advice is
-  the new one, [[monitor-migrated-rows-under-advanced-compression]].
+  the new one, [Use advanced compression with updates, and monitor migrated rows](../usage/monitor-migrated-rows-under-advanced-compression.md).
 - **Releases affected.** The blog says "11.2 up to 18.0"; the talk "12.x and
   18.x".
 - **Index compression can make an index bigger.** With the wrong leading column,
   `COMPRESS 1` enlarged the index from about 575 GB to about 650 GB. Nothing in
-  the blog's account of [[index-compression]] hints at that.
+  the blog's account of [Index compression](../usage/index-compression.md) hints at that.
 
 ## Open questions
 

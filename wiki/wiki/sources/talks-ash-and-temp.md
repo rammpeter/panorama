@@ -10,8 +10,8 @@ sources: [speakerdeck.md, speakerdeck/2016-05_DOAG_Database_Active-Session-Histo
 
 # Talks on Active Session History and TEMP analysis
 
-Two German slide decks from [[rammpeter-talks]], both given at DOAG events, on
-what can be reconstructed from [[ash]] after the fact.
+Two German slide decks from [Talks and slide decks by Peter Ramm](../usage/rammpeter-talks.md), both given at DOAG events, on
+what can be reconstructed from [ASH](../usage/ash.md) after the fact.
 
 ## The decks
 
@@ -29,21 +29,21 @@ of two of them is garbled by letter-spacing and only partly legible.
 slide 3). Introduced with 10g, strongly extended in 11g. Every active session is
 stored once per second in SGA memory (`V$Active_Session_History`); every tenth
 second is persisted with the AWR snapshots (`DBA_Hist_Active_Sess_History`)
-→ [[ash]].
+→ [ASH](../usage/ash.md).
 
 **Panorama overlays both ASH sources** (2016, slides 10, 12, 14). Its queries
 take the 10-second history from `DBA_Hist_Active_Sess_History` *up to the oldest
 sample still in memory* and `UNION ALL` the one-second samples from
 `gv$Active_Session_History`. A weight column (`Sample_Cycle` 10 or 1) keeps the
 sums comparable. Evaluations therefore reach up to the current second,
-independent of the snapshot cycle → [[ash]].
+independent of the snapshot cycle → [ASH](../usage/ash.md).
 
 **Without session tagging, pooled sessions cannot be attributed** (2016,
 slide 8). With an application server and session pooling, every short
 transaction takes an arbitrary session; a process uses a varying number of them.
 `DBMS_Application_Info.Set_Module` at the start of a transaction is what makes
 the question "why did process XY take three times as long last night?"
-answerable at all → [[session-context]].
+answerable at all → [Session context](../usage/session-context.md).
 
 **The standard workflow** (2016, slide 9): "Session waits" / "Historic", group by
 module, show the top ten on a time line, drill down by SQL ID, open the
@@ -52,38 +52,38 @@ load.
 
 **Blocking locks in retrospect** (2016, slides 11–12): one row per root blocker,
 sorted by the total wait of everything it blocks; the hierarchy is resolved with
-`CONNECT BY` over samples rounded to the same instant → [[blocking-locks]].
+`CONNECT BY` over samples rounded to the same instant → [Blocking locks](../usage/blocking-locks.md).
 
 **ORA-01652: three variants** (2017, slide 4). The session itself allocated the
 space; *others* did and this one merely asked last; or unused TEMP is allocated
-on another RAC instance (named, not treated further) → [[temp-usage]].
+on another RAC instance (named, not treated further) → [TEMP usage](../usage/temp-usage.md).
 
 **Where TEMP history comes from** (2017, slide 5). Per session from ASH
 (`Temp_Space_Allocated`, every second or ten seconds); per instance from
 `DBA_Hist_SysMetric_Summary` / `GV$SysMetric_History` (metric "Temp Space Used")
 and from `DBA_Hist_Sysstat`; currently from `GV$SORT_SEGMENT` and
-`GV$TEMPSEG_USAGE` → [[temp-usage]].
+`GV$TEMPSEG_USAGE` → [TEMP usage](../usage/temp-usage.md).
 
 **The conceptual gap and the workaround** (2017, slides 5–6). A session that
 holds TEMP but is inactive, or waiting in class Idle, is not in ASH. The query
 therefore takes, for each sample time, the maximum a session showed within
 **±20 seconds** ("floating"), so that briefly inactive sessions still count.
-This approximates reality; it does not reproduce it → [[temp-usage]].
+This approximates reality; it does not reproduce it → [TEMP usage](../usage/temp-usage.md).
 
 ## Impact on the wiki
 
-- [[ash]] — the overlay of the two sources and the sampling mechanics.
-- [[temp-usage]] — the third cause, the data sources, the ±20-second
+- [ASH](../usage/ash.md) — the overlay of the two sources and the sampling mechanics.
+- [TEMP usage](../usage/temp-usage.md) — the third cause, the data sources, the ±20-second
   approximation.
-- [[session-context]] — the pooling argument.
-- [[blocking-locks]] — the implementation by `CONNECT BY`.
+- [Session context](../usage/session-context.md) — the pooling argument.
+- [Blocking locks](../usage/blocking-locks.md) — the implementation by `CONNECT BY`.
 
 ## Changes over time and disagreements
 
 - The 2017 deck says Panorama "requires Enterprise Edition and Diagnostics Pack
   (so far)". The sampler followed in November 2017
-  ([[blog-panorama-the-tool]]).
-- The 2016 deck states an AWR default retention of 7 days, as does [[ash]].
+  ([Blog series on Panorama as a tool](blog-panorama-the-tool.md)).
+- The 2016 deck states an AWR default retention of 7 days, as does [ASH](../usage/ash.md).
 
 ## Open questions
 

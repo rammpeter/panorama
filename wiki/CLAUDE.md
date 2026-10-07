@@ -35,14 +35,17 @@ translation of his English original — left in German deliberately, see
   **Panorama source repository** itself (`raw/panorama-repository.md` points to
   the repository root): a living source — cite file paths and the commit read,
   and expect statements to age with the code.
-- **Typical entities:** [[panorama]] and its components (PanoramaConnection,
+- **Typical entities:** [Panorama](wiki/usage/panorama.md) and its components (PanoramaConnection,
   Panorama Sampler, the controller domains), Oracle as an organisation and as a
   product, individual Oracle releases, system views (`V$`/`GV$`, `DBA_HIST_*`),
   external tools (SQL Developer, OEM, AWR reports), people and
   conferences/talks.
-- **Typical concepts:** [[awr]], [[ash]], wait events, optimizer and
-  [[execution-plans]], [[bind-variables-and-cursor-sharing]], I/O and SGA
-  metrics, [[management-pack-licensing]], sampling as a technique.
+- **Typical concepts:** [AWR](wiki/usage/awr.md), [ASH](wiki/usage/ash.md), wait
+  events, optimizer and [execution plans](wiki/usage/execution-plans.md),
+  [bind variables and cursor sharing](wiki/usage/bind-variables-and-cursor-sharing.md),
+  I/O and SGA metrics,
+  [management pack licensing](wiki/usage/management-pack-licensing.md), sampling
+  as a technique.
 
 **Where does it belong?** If a page helps someone *analyse a database with
 Panorama* — a Panorama feature, a workflow, the Oracle behaviour behind an
@@ -117,7 +120,8 @@ The directory says **who the page is for** (user of Panorama or developer of
 Panorama). **What kind of page it is** — entity, concept or decision — is
 recorded in the front matter field `type`, not in the path. A decision page lives
 in the category it is about: a recommendation for the analysed database
-(e.g. [[do-not-blanket-index-foreign-keys]]) in `usage/`, a design decision of
+(e.g. [do not blanket-index foreign keys](wiki/usage/do-not-blanket-index-foreign-keys.md))
+in `usage/`, a design decision of
 Panorama in `development/`. A page that serves both audiences goes where its
 main weight lies and links across.
 
@@ -131,15 +135,47 @@ when it covers two clearly separable things.
 - File names: `kebab-case.md` (e.g. `project-alpha.md`, `agile-estimation.md`).
   File names without diacritics or spaces, so that links and tools stay robust.
 - Page title = first line `# H1`, readable (e.g. `# Agile Estimation`).
-- Use Obsidian wikilinks for all internal references: `[[project-alpha]]` or
-  `[[project-alpha|the Alpha project]]`. Link **with the bare file name only** —
-  no directory path, no `.md` (e.g. `[[glossary]]`, never `[[sources/glossary]]`
-  or `[[wiki/sources/glossary]]`). The vault root is the repository root; a link
-  containing `/` is resolved as a path from the root with no fallback to the file
-  name — so partial paths break. All file names are unique, therefore the bare
-  form always resolves.
+- File names stay unique across all directories, so that a page can be found
+  and moved without ambiguity.
 - Source pages: name them after the source and keep the name stable (e.g.
   `2026-04-architecture-concept.md`).
+
+### Links
+
+Use **standard Markdown links** for all references — `[text](target)`. Do **not**
+use wikilinks (`[[page]]`, `[[page|text]]`); they only work in Obsidian and
+Silverbullet, while Markdown links are also followed by GitHub, editors and any
+other Markdown renderer.
+
+- **Internal links use a path relative to the linking file**, including the
+  `.md` extension — never an absolute path, never a path from the repository
+  root:
+
+  | From | To | Link |
+  |---|---|---|
+  | `wiki/usage/awr.md` | `wiki/usage/ash.md` (same directory) | `[ASH](ash.md)` |
+  | `wiki/usage/awr.md` | `wiki/sources/blog-locks.md` | `[blog posts on locks](../sources/blog-locks.md)` |
+  | `wiki/usage/awr.md` | `wiki/overview.md` | `[overview](../overview.md)` |
+  | `wiki/overview.md` | `wiki/usage/awr.md` | `[AWR](usage/awr.md)` |
+  | `index.md` | `wiki/usage/awr.md` | `[AWR](wiki/usage/awr.md)` |
+  | `wiki/usage/awr.md` | `index.md` | `[index](../../index.md)` |
+
+- **Link text is always given** and readable in running text: the page title or
+  a phrase that fits the sentence (`[the sampler](panorama-sampler.md)`), not the
+  bare file name.
+- **Links to a section** append the heading anchor as GitHub generates it:
+  `[limits](panorama-sampler.md#limits-rules-and-one-advantage)`.
+- **Files in `raw/`** that a page refers to are linked relatively as well where
+  a link is useful (`[menu overview](../../raw/rammpeter.github.io/panorama_content_generated.html)`);
+  the front matter field `sources` keeps plain file names.
+- **Images** use Markdown image syntax with a relative path:
+  `![network diagram](../../raw/assets/overview.png)`.
+- **External links**: `[text](https://…)`, or `<https://…>` when the address
+  itself is what the reader should see.
+- No spaces in link targets (file names are kebab-case); a target that needs one
+  is written `[text](<path with space.md>)`.
+- When a page is renamed or moved, every relative link to it — and every link
+  *in* it — must be corrected in the same change.
 
 ---
 
@@ -172,14 +208,14 @@ One sentence defining what this is.
 ...
 
 ## Relationships
-- Works together with [[team-beta]]
-- Rests on [[agile-estimation]]
+- Works together with [team Beta](team-beta.md)
+- Rests on [agile estimation](agile-estimation.md)
 
 ## Open questions
 - ...
 
 ## Sources
-- [[2026-04-architecture-concept]]
+- [Architecture concept, April 2026](../sources/2026-04-architecture-concept.md)
 ```
 
 The sections adapt to the page type. Source pages additionally contain
@@ -218,7 +254,7 @@ Three rules keep decisions honest:
 
 ### Claims and evidence
 
-- Every non-obvious claim can be traced to a source. Back it up with a wikilink
+- Every non-obvious claim can be traced to a source. Back it up with a link
   to the source page and, where useful, with the file name in `raw/`.
 - If a new source contradicts an existing claim, **do not silently overwrite
   it**. Keep both, mark the older one and record the contradiction under
@@ -261,7 +297,8 @@ When the user asks a question:
 
 1. Read `index.md` first to find matching pages, then go deeper. For keywords not
    yet in the index, `grep` across `wiki/`.
-2. Formulate an answer with evidence (wikilinks to the pages and sources used).
+2. Formulate an answer with evidence (Markdown links to the pages and sources used; in a
+   chat answer, relative to the wiki root).
 3. If the answer has lasting value (a comparison, an analysis, a discovered
    connection), offer to file it as a page in `wiki/syntheses/`, so that
    exploration accumulates in the wiki.
@@ -280,7 +317,7 @@ with proposed corrections; they are applied after approval.
 ## index.md and log.md
 
 - **`index.md`** is content-oriented: a catalogue of all pages, grouped by
-  category, each with a wikilink and a one-liner. Updated on every ingest.
+  category, each with a Markdown link and a one-liner. Updated on every ingest.
 - **`log.md`** is chronological and append-only. Every entry starts with the same
   prefix so it stays findable via `grep`:
   `## [YYYY-MM-DD] <op> | <subject>` with `<op>` ∈

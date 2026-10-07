@@ -14,7 +14,7 @@ zuerst `CLAUDE.md` für die Konventionen, gegen die du prüfst.
    Beide aufzeigen und angeben, welche Quelle neuer bzw. maßgeblicher ist.
 2. **Veraltete Aussagen** – Aussagen, die eine neuere Quelle überholt hat.
    Kennzeichnen und Aktualisierungen vorschlagen.
-3. **Verwaiste Seiten** – Seiten ohne eingehende Wikilinks. Vorschlagen, wo sie
+3. **Verwaiste Seiten** – Seiten ohne eingehende Links. Vorschlagen, wo sie
    verlinkt werden sollten oder ob sie zusammengeführt bzw. entfernt werden.
 4. **Fehlende Seiten** – Konzepte oder Entitäten, die auf mehreren Seiten
    erwähnt werden, aber keine eigene Seite haben. Anlegen vorschlagen.
@@ -50,11 +50,19 @@ zuerst `CLAUDE.md` für die Konventionen, gegen die du prüfst.
    - Beim Beheben von Drift eine **verbleibende** offene Frage erhalten, statt
      alles auf „entschieden“ zu glätten (z. B. eine insgesamt getroffene
      Entscheidung, bei der eine Teilfrage noch offen ist).
+10. **Link-Konformität** – die Regeln aus `CLAUDE.md`, Abschnitt „Links“:
+    - **Wikilinks** (`[[…]]`) in `wiki/`, `index.md` oder `CLAUDE.md` melden;
+      sie sind durch Markdown-Links mit relativem Pfad zu ersetzen
+      (`grep -rn '\[\[' wiki index.md`).
+    - **Interne Markdown-Links prüfen:** Ziel relativ zur verlinkenden Datei
+      auflösen; nicht existierende Ziele, absolute Pfade, Pfade ab
+      Repository-Wurzel und fehlende `.md`-Endung melden.
+    - Links ohne lesbaren Linktext (leerer Text oder nur der Dateiname) melden.
 
 ## Ablauf
 
-1. `index.md` lesen, dann `wiki/` durchgehen (mit `grep` nach Wikilinks und
-   Überschriften suchen).
+1. `index.md` lesen, dann `wiki/` durchgehen (mit `grep` nach Links – `](` –
+   und Überschriften suchen).
 2. Einen **Bericht** erstellen, gegliedert nach Prüfung, jeder Punkt mit den
    betroffenen Seiten und einem Korrekturvorschlag.
 3. Korrekturen **erst nach Freigabe** durch den Nutzer umsetzen (oder gesammelt,

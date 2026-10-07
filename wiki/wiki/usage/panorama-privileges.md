@@ -10,24 +10,24 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/, panorama-repository.md]
 
 # Privileges for Panorama
 
-Which grants a database user needs — the user you log in to [[panorama]] with,
-and the separate user [[panorama-sampler]] records with.
+Which grants a database user needs — the user you log in to [Panorama](panorama.md) with,
+and the separate user [Panorama Sampler](panorama-sampler.md) records with.
 
 ## The login user
 
-([[rammpeter-github-io]], landing page.) The minimum is one system privilege;
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), landing page.) The minimum is one system privilege;
 everything else unlocks a particular function.
 
 | Grant | What it is needed for |
 |---|---|
 | `SELECT ANY DICTIONARY` | Access to the `DBA_…` views. **The minimum requirement to run Panorama.** |
-| `OEM_MONITOR` | From Oracle 11.2.0.4: generating Oracle's built-in AWR and ASH reports → [[genuine-oracle-reports]] |
+| `OEM_MONITOR` | From Oracle 11.2.0.4: generating Oracle's built-in AWR and ASH reports → [Genuine Oracle reports](genuine-oracle-reports.md) |
 | `SELECT_CATALOG_ROLE` | Results from `DBMS_METADATA.GET_DDL`; and required altogether on an Autonomous Database in the Oracle cloud |
-| `EM_EXPRESS_BASIC` | Results from `DBMS_PERF` — the Performance Hub report → [[genuine-oracle-reports]] |
-| `ANALYZE ANY` | Results from `DBMS_SPACE.SPACE_USAGE`; alternatively the `ANALYZE` privilege on the particular object → [[storage-reorganisation]] |
+| `EM_EXPRESS_BASIC` | Results from `DBMS_PERF` — the Performance Hub report → [Genuine Oracle reports](genuine-oracle-reports.md) |
+| `ANALYZE ANY` | Results from `DBMS_SPACE.SPACE_USAGE`; alternatively the `ANALYZE` privilege on the particular object → [Storage reorganisation](storage-reorganisation.md) |
 | `SELECT ANY TRANSACTION` | Selecting from `Flashback_Transaction_Query` |
 | `ADVISOR` | Running the SQL Tuning Advisor through `DBMS_SQLTUNE` and reading its result |
-| `CREATE ANY SQL PROFILE` | Creating SQL profiles when using the SQL Tuning Advisor → [[sql-plan-management]] |
+| `CREATE ANY SQL PROFILE` | Creating SQL profiles when using the SQL Tuning Advisor → [SQL plan management](sql-plan-management.md) |
 
 **Non-admin users on an Autonomous Database** in OCI need four more for "some
 minor functions":
@@ -36,10 +36,10 @@ minor functions":
 |---|---|
 | `SELECT ON V$DIAG_ALERT_EXT` | read the alert log view |
 | `READ ON SYS.DBMS_LOCK_ALLOCATED` | read access |
-| `READ ON gv$BH` | read access — the buffer cache content, see [[db-cache-usage]] |
-| `AUDIT_VIEWER` | read the unified audit view → [[audit-trail]] |
+| `READ ON gv$BH` | read access — the buffer cache content, see [DB cache usage](db-cache-usage.md) |
+| `AUDIT_VIEWER` | read the unified audit view → [Audit trail](audit-trail.md) |
 
-What the code adds ([[panorama-source-code]], read at commit `e8993893`):
+What the code adds ([Panorama source repository](../sources/panorama-source-code.md), read at commit `e8993893`):
 
 - The login check raises "Your user needs SELECT ANY DICTIONARY ( and
   SELECT_CATALOG_ROLE if autonomous DB) or equivalent rights to login to
@@ -54,13 +54,13 @@ What the code adds ([[panorama-source-code]], read at commit `e8993893`):
 > Conclusion: privileges and licences are two separate gates. A grant from this
 > table makes a function *technically* callable; whether it *may* be called is
 > decided by the pack licence chosen at login
-> ([[management-pack-licensing]]). The AWR report needs both `OEM_MONITOR` and
+> ([Management pack licensing](management-pack-licensing.md)). The AWR report needs both `OEM_MONITOR` and
 > the Diagnostics Pack; the SQL Tuning Advisor needs both `ADVISOR` and the
 > Tuning Pack.
 
 ## The sampling user
 
-([[rammpeter-github-io]], sampler page.) Unlike the login user, it writes —
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), sampler page.) Unlike the login user, it writes —
 into its own schema in the sampled database.
 
 - `CONNECT`, `RESOURCE`, `CREATE VIEW` — to create tables and views
@@ -71,14 +71,14 @@ into its own schema in the sampled database.
   `DBMS_SESSION.SLEEP`.
 - the right to create objects in another schema, if the connecting user and the
   schema holding the sampler's objects differ (as they must when `SYSTEM`
-  samples a container database, see [[panorama-sampler]])
+  samples a container database, see [Panorama Sampler](panorama-sampler.md))
 
 **Optional: `SELECT ANY TABLE`.** With it, the sampling code is installed as
 PL/SQL packages; without it, the same code is sent as a larger anonymous block at
 every snapshot, "that may result in a bit more network traffic". The reason given:
 `V$` views cannot be selected from inside a package when the right comes through
 the role `SELECT_CATALOG_ROLE`, because roles are not propagated to stored
-PL/SQL. The mechanism is described in [[panorama-sampler-internals]].
+PL/SQL. The mechanism is described in [Panorama Sampler internals](../development/panorama-sampler-internals.md).
 
 ## Contradictions
 
@@ -91,11 +91,11 @@ PL/SQL. The mechanism is described in [[panorama-sampler-internals]].
 
 ## Relationships
 
-- The tool: [[panorama]]; running it: [[panorama-operations]].
-- The second gate: [[management-pack-licensing]], enforced by
-  [[pack-license-filter]].
+- The tool: [Panorama](panorama.md); running it: [Panorama operations](panorama-operations.md).
+- The second gate: [Management pack licensing](management-pack-licensing.md), enforced by
+  [Pack licence filter](../development/pack-license-filter.md).
 - What a restricted user sees in a multitenant database:
-  [[pluggable-databases]].
+  [Pluggable databases](pluggable-databases.md).
 
 ## Open questions
 
@@ -109,5 +109,5 @@ PL/SQL. The mechanism is described in [[panorama-sampler-internals]].
 
 ## Sources
 
-- [[rammpeter-github-io]]
-- [[panorama-source-code]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)
+- [Panorama source repository](../sources/panorama-source-code.md)

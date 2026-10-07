@@ -16,7 +16,7 @@ inconvenient place.
 
 ## The damage pattern
 
-([[blog-sessions-and-connections]], 2017-06-12) While a long SQL or PL/SQL
+([Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2017-06-12) While a long SQL or PL/SQL
 program runs, the TCP connection is *apparently* idle. If the firewall terminates
 it:
 
@@ -72,10 +72,10 @@ you either see the packets or you do not.
 
 ## Relationships
 
-- The opposite direction of the same topic: [[network-latency-from-ash]] measures
+- The opposite direction of the same topic: [Estimating network latency from ASH](network-latency-from-ash.md) measures
   what the network costs while the connection stands.
-- Related to [[short-lived-sessions]] — both are problems of the connection layer
-  that [[ash]] does not see.
+- Related to [Short-lived sessions](short-lived-sessions.md) — both are problems of the connection layer
+  that [ASH](ash.md) does not see.
 
 ## Open questions
 
@@ -86,4 +86,4 @@ you either see the packets or you do not.
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

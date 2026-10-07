@@ -16,7 +16,7 @@ bottleneck — visible as the wait event **`library cache: mutex X`**.
 
 ## Finding the culprits
 
-The trick from [[blog-locks]] (2013-09-17): the `P1` column of the wait event
+The trick from [Blog series on locks and serialisation](../sources/blog-locks.md) (2013-09-17): the `P1` column of the wait event
 contains the **hash value** of the affected object. A join against
 `GV$DB_OBJECT_CACHE` and `DBA_OBJECTS` turns that into the owner, type, name and
 namespace of the object — that is, the object the sessions are piling up on.
@@ -46,13 +46,13 @@ Two pitfalls the author names explicitly:
 ## Relationships
 
 - Blocking on shared pool structures, not on data — the counterpart to
-  [[blocking-locks]].
+  [Blocking locks](blocking-locks.md).
 - A frequent cause of pressure on the library cache is the flood of different
-  SQL texts → [[bind-variables-and-cursor-sharing]].
-- The same pattern with latches on the result cache → [[result-cache]].
+  SQL texts → [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md).
+- The same pattern with latches on the result cache → [Result cache](result-cache.md).
 - Uncached sequences produce the same kind of contention →
-  [[sequence-caching]].
-- Data foundation: [[ash]].
+  [Sequence caching](sequence-caching.md).
+- Data foundation: [ASH](ash.md).
 
 ## Open questions
 
@@ -65,4 +65,4 @@ Two pitfalls the author names explicitly:
 
 ## Sources
 
-- [[blog-locks]]
+- [Blog series on locks and serialisation](../sources/blog-locks.md)

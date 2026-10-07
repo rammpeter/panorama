@@ -15,7 +15,7 @@ small, static tables frequently without creating hot blocks?
 
 ## The problem
 
-([[blog-caching-and-plsql]], 2013-05-14)
+([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2013-05-14)
 
 - Frequent access to small tables carries the risk of **hot blocks** in the DB
   cache — especially when those tables are joined en masse by **nested loops**.
@@ -56,7 +56,7 @@ WHERE ColumnAlias != SchemaAlias.Cache_TableAlias.getColumnAliasByID(ID);
 
 ## The solution from 11g
 
-([[blog-caching-and-plsql]], 2013-05-17) The same thing with `RESULT_CACHE` — the
+([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2013-05-17) The same thing with `RESULT_CACHE` — the
 package shrinks to a few lines, because Oracle takes over the caching:
 
 ```sql
@@ -65,7 +65,7 @@ FUNCTION getColumnAliasByID(p_ID ...) RETURN ... PARALLEL_ENABLE RESULT_CACHE;
 
 The ageing becomes unnecessary, because the result cache is invalidated when the
 underlying table changes — in exchange its own pitfalls apply, see
-[[result-cache]].
+[Result cache](result-cache.md).
 
 ## The author's recommendation
 
@@ -84,12 +84,12 @@ hash join.
 
 ## Relationships
 
-- The 11g variant brings the problems from [[result-cache]] with it.
+- The 11g variant brings the problems from [Result cache](result-cache.md) with it.
 - Hot blocks through contention on a structure: related to
-  [[library-cache-contention]].
-- The related topic of "reusing function results": [[deterministic]].
+  [Library cache contention](library-cache-contention.md).
+- The related topic of "reusing function results": [DETERMINISTIC](deterministic.md).
 - Found system-wide by the dragnet check "frequent access on small objects"
-  → [[proactive-performance-tuning]].
+  → [Proactive performance tuning](proactive-performance-tuning.md).
 
 ## Open questions
 
@@ -100,4 +100,4 @@ hash join.
 
 ## Sources
 
-- [[blog-caching-and-plsql]]
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)

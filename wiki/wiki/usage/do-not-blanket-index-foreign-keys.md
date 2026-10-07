@@ -20,7 +20,7 @@ created only where the DML load on the referenced table justifies it.
 > "You always need to index all the column(s) for which you define a foreign key
 > constraint!"
 
-The author explicitly contradicts this in [[blog-indexing]] (2016-11-25):
+The author explicitly contradicts this in [Blog series on indexing](../sources/blog-indexing.md) (2016-11-25):
 *"I definitely do not agree with this dogma and want to explain why."*
 
 ## The rationale
@@ -32,7 +32,7 @@ typically very unselective and therefore useless for data access, yet they cost
 storage and maintenance effort on every DML.
 
 **The risk is narrower than the dogma assumes.** The lock measurements in
-[[foreign-key-locks]] across releases 11.2, 12.1 and 19.3 show:
+[Foreign keys and locks](foreign-key-locks.md) across releases 11.2, 12.1 and 19.3 show:
 
 - Inserts on the referenced table never block.
 - Updates **without** the primary key column in the SET clause never block.
@@ -41,7 +41,7 @@ storage and maintenance effort on every DML.
 - Only **deletes** on the referenced table block consistently across all tested
   releases.
 
-**Two conditions make the index dispensable** ([[blog-indexing]], 2019-12-27):
+**Two conditions make the index dispensable** ([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27):
 
 - If there is practically no DML on the referenced table — the normal case for
   master data tables — no protection is needed.
@@ -65,7 +65,7 @@ skipping primary key columns from update.* Not every framework can do this.
 
 - **Deletes remain the standard case for an index.** The decision requires
   knowing the DML load per referenced table — via `DBA_TAB_MODIFICATIONS`, see
-  [[index-usage-monitoring]]. Without that measurement the decision quickly turns
+  [Index usage monitoring](index-usage-monitoring.md). Without that measurement the decision quickly turns
   into a new, inverted dogma.
 - **The ORM check is unresolved.** Whether the frameworks in use actually keep
   primary key columns out of updates has to be verified per system.
@@ -73,13 +73,13 @@ skipping primary key columns from update.* Not every framework can do this.
   23ai; the rationale rests on releases that are in part well behind the current
   state.
 - **If you do index after all, the column structure has to be right** — otherwise
-  the index does not act as protection, see the rule in [[foreign-key-locks]].
+  the index does not act as protection, see the rule in [Foreign keys and locks](foreign-key-locks.md).
 
 ## Provenance
 
 - Position and rationale come from the blog post of **2016-11-25** ("Clarify
   myths of indexing foreign key constraints on Oracle-DB"), confirmed and
-  extended in the post of **2019-12-27**. Both in [[blog-indexing]].
+  extended in the post of **2019-12-27**. Both in [Blog series on indexing](../sources/blog-indexing.md).
 - This is the blog author's reasoned position, not a committee decision. The post
   of 2016-11-25 explicitly invites disagreement: *"If you don't agree with this
   perspective on indexing foreign keys please share your arguments."*
@@ -87,10 +87,10 @@ skipping primary key columns from update.* Not every framework can do this.
 
 ## Relationships
 
-- Mechanics and measurements: [[foreign-key-locks]]
-- Placement among the four roles: [[indexing]]
-- Verification methods: [[index-usage-monitoring]]
+- Mechanics and measurements: [Foreign keys and locks](foreign-key-locks.md)
+- Placement among the four roles: [Indexing](indexing.md)
+- Verification methods: [Index usage monitoring](index-usage-monitoring.md)
 
 ## Sources
 
-- [[blog-indexing]]
+- [Blog series on indexing](../sources/blog-indexing.md)

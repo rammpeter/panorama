@@ -16,14 +16,14 @@ poor technique" whose price is rarely quantified.
 
 ## The price, measured
 
-[[blog-sessions-and-connections]] (2020-10-12) closes that gap. The starting
+[Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md) (2020-10-12) closes that gap. The starting
 point is an observation that explains why the problem so often goes unnoticed:
 
 > "The internal recording of database activity (AWR/ASH) has no answer because
 > establishing the DB connection is not a SQL activity."
 
-Establishing a connection is not SQL — so it appears neither in [[ash]] nor in
-[[awr]]. It was therefore measured via system load:
+Establishing a connection is not SQL — so it appears neither in [ASH](ash.md) nor in
+[AWR](awr.md). It was therefore measured via system load:
 
 **Setup:** an idle instance on a host with 4 older CPU cores (Intel Xeon E312xx,
 2.6 GHz), an external SQL*Plus client executing a single
@@ -50,14 +50,14 @@ or use connection pooling on the client or server side.
 
 ## Finding the culprits
 
-Four methods from [[blog-sessions-and-connections]] (2017-03-22), from the most
+Four methods from [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md) (2017-03-22), from the most
 convenient to the most accurate:
 
 **1. Audit trail.** If auditing of logon/logoff is active, `DBA_AUDIT_TRAIL`
-shows the machine, the database user and the OS user. In [[panorama]] under
+shows the machine, the database user and the OS user. In [Panorama](panorama.md) under
 "DBA general" / "Audit Trail": filter on `Action = LOGON`, group by minute and
 display as a chart — in the author's example this attributes 106 logons per
-minute to one culprit. See [[audit-trail]].
+minute to one culprit. See [Audit trail](audit-trail.md).
 
 **2. Currently running short sessions.** A PL/SQL loop queries `GV$SESSION` at
 very short intervals for sessions with a `Logon_Time` within the last few
@@ -68,7 +68,7 @@ JDBC sessions, which always carry the invented process ID 1234**.
 **3. Via ASH.** Sessions with only a single sample record in
 `GV$ACTIVE_SESSION_HISTORY`. The author immediately qualifies the method
 himself: *"for this purpose a sample cycle of one second is much too large in
-most cases."* → [[ash]]
+most cases."* → [ASH](ash.md)
 
 **4. A package of its own.** `Detect_Short_Running_Sessions` compares
 `GV$SESSION` snapshots at millisecond intervals and writes vanished sessions into
@@ -87,10 +87,10 @@ short-lived ones.
 
 ## Relationships
 
-- Attribution to a process requires [[session-context]].
-- Data source for method 1: [[audit-trail]].
-- The limits of method 3 are the limits of [[ash]].
-- A related measurement problem: [[network-latency-from-ash]] — there too a poor
+- Attribution to a process requires [Session context](session-context.md).
+- Data source for method 1: [Audit trail](audit-trail.md).
+- The limits of method 3 are the limits of [ASH](ash.md).
+- A related measurement problem: [Estimating network latency from ASH](network-latency-from-ash.md) — there too a poor
   architecture is simultaneously the measurement opportunity.
 
 ## Open questions
@@ -104,4 +104,4 @@ short-lived ones.
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

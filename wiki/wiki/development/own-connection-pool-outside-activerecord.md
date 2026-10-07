@@ -11,8 +11,8 @@ sources: [panorama-repository.md]
 
 # Own connection pool outside ActiveRecord
 
-**Status: adopted.** [[panorama]] configures Rails with a null database and
-manages all Oracle connections itself, in [[panorama-connection]], bound to the
+**Status: adopted.** [Panorama](../usage/panorama.md) configures Rails with a null database and
+manages all Oracle connections itself, in [PanoramaConnection](panorama-connection.md), bound to the
 executing thread.
 
 ## The choice
@@ -45,19 +45,19 @@ Stated in the code:
 > account so that Oracle's privileges decide what they may see, and there are no
 > tables to map. A per-credential pool keyed at runtime is the direct expression
 > of that, and it gives the sampler's threads the same mechanism for free
-> ([[panorama-sampler-internals]]).
+> ([Panorama Sampler internals](panorama-sampler-internals.md)).
 
 ## Consequences
 
 - **A single choke point.** Because all SQL goes through one class, the
-  [[pack-license-filter]], the time zone shift, the query timeout and the error
+  [Pack licence filter](pack-license-filter.md), the time zone shift, the query timeout and the error
   enrichment are applied uniformly.
 - **Ownership of the hard parts.** Pool limits, ageing, eviction after errors,
   stuck sockets and shutdown are Panorama's code, not the framework's
-  ([[panorama-connection]]).
+  ([PanoramaConnection](panorama-connection.md)).
 - **Coupling to adapter internals.** `iterate_query` is added by reopening an
   adapter class, a private instance variable is exposed through a getter, and one
-  adapter file is patched at boot ([[panorama-build-test-and-release]]). Adapter
+  adapter file is patched at boot ([Building, testing and releasing Panorama](panorama-build-test-and-release.md)). Adapter
   upgrades can break these silently.
 - **Rails tasks that expect a database** have to be removed
   (`lib/tasks/panorama_tasks.rake`).
@@ -79,4 +79,4 @@ conclusion and marked as such.
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

@@ -19,7 +19,7 @@ application**.
 ## Optimizer trace (event 10053)
 
 Shows how the optimizer arrived at its decision. Three routes
-([[blog-execution-plans]], 2026-03-31):
+([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2026-03-31):
 
 ```sql
 ALTER SESSION SET EVENTS '10053 TRACE NAME CONTEXT FOREVER, LEVEL 1';
@@ -39,13 +39,13 @@ read the contents via SQL.
 > Note from the source: when reading, do **not** order by `Line_Number` — the
 > original order within a line number should be preserved.
 
-In [[panorama]]: the entry "Create optimizer parsing trace" in the hamburger
+In [Panorama](panorama.md): the entry "Create optimizer parsing trace" in the hamburger
 menu of the SQL detail view.
 
 ## Extended plan statistics
 
 Per plan line — each as a total and as the most recently captured value
-([[blog-execution-plans]], 2026-06-29):
+([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2026-06-29):
 
 - the number of starts of this plan line
 - the number of rows returned
@@ -76,7 +76,7 @@ EXEC DBMS_SQLDiag.Drop_SQL_Patch('GATHER_PLAN_STATISTICS for 2rf0uw3hgtwc1');
 
 Afterwards the values are in `V$SQL_PLAN_STATISTICS`. The SQL remains unchanged
 and subsequently no longer carries the overhead of the capture either.
-[[panorama]] shows the values as additional columns in the plan, converted per
+[Panorama](panorama.md) shows the values as additional columns in the plan, converted per
 SQL execution and per individual start of the plan line.
 
 ## SQL Diagnostic Report
@@ -84,13 +84,13 @@ SQL execution and per individual start of the plan line.
 From **19.28** (a backport from 23ai) `DBMS_SQLDIAG.REPORT_SQL` delivers a
 combined report on a SQL: plan information, optimizer statistics, object
 information, ASH data, SQL Monitor reports and more
-([[blog-execution-plans]], 2025-08-07). It returns a CLOB containing HTML.
+([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2025-08-07). It returns a CLOB containing HTML.
 
 ```sql
 DBMS_SQLDIAG.Report_SQL(SQL_ID => 'my SQL-ID', Level => 'ALL')
 ```
 
-In [[panorama]] from 19.28 as a "Diag. report" button on the SQL detail page.
+In [Panorama](panorama.md) from 19.28 as a "Diag. report" button on the SQL detail page.
 
 **On licensing** — the author checked instead of relying on the documentation:
 according to current documentation neither Enterprise Edition nor a management
@@ -98,7 +98,7 @@ pack licence is needed, even though the report contains ASH and SQL Monitor
 data. The counter-check on a fresh 23.9 database via
 `DBA_FEATURE_USAGE_STATISTICS`: after the call the only additionally marked item
 was "Oracle Utility Metadata API", not a licensable feature. See
-[[management-pack-licensing]].
+[Management pack licensing](management-pack-licensing.md).
 
 > A limitation the author names himself: the supporting MOS note
 > (Doc ID 1509192.1) was last updated in 2022. The statement is evidenced, but
@@ -106,13 +106,13 @@ was "Oracle Utility Metadata API", not a licensable feature. See
 
 ## Relationships
 
-- Picks up where [[execution-plans]] and [[optimizer-hints]] stop.
+- Picks up where [Execution plans](execution-plans.md) and [Optimizer hints](optimizer-hints.md) stop.
 - The tool of choice for hint injection is the SQL patch →
-  [[sql-plan-management]].
-- Licence questions: [[management-pack-licensing]].
-- Reading trace files via SQL is also how [[sql-trace]] output is retrieved;
-  [[panorama]] lists server trace files.
-- Possibly supersedes [[sql-monitor]] in practice, since its data is included
+  [SQL plan management](sql-plan-management.md).
+- Licence questions: [Management pack licensing](management-pack-licensing.md).
+- Reading trace files via SQL is also how [SQL trace](sql-trace.md) output is retrieved;
+  [Panorama](panorama.md) lists server trace files.
+- Possibly supersedes [SQL Monitor](sql-monitor.md) in practice, since its data is included
   licence-free — the sources do not draw that connection.
 
 ## Open questions
@@ -123,4 +123,4 @@ was "Oracle Utility Metadata API", not a licensable feature. See
 
 ## Sources
 
-- [[blog-execution-plans]]
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)

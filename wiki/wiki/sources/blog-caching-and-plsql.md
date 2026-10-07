@@ -10,30 +10,30 @@ sources: [blog.md, posts/]
 
 # Blog series on caching and PL/SQL
 
-Five posts from [[rammpeter-blog]] between 2013 and 2026 about reuse: when
+Five posts from [rammpeter.blogspot.com](../usage/rammpeter-blog.md) between 2013 and 2026 about reuse: when
 caching results pays off, and when it turns against you.
 
 ## The posts
 
 | Date | Title | Focus |
 |---|---|---|
-| 2013-05-14 | Caching of frequently used static master data (pre 11g) | [[master-data-caching]] |
-| 2013-05-17 | Caching of frequently used static master data (post 11g, using RESULT_CACHE) | [[master-data-caching]] |
-| 2016-12-06 | Don't flood Oracle-DB's result cache | [[result-cache]] |
-| 2017-11-16 | How to check for appropriate sequence caching | [[sequence-caching]] |
-| 2026-01-14 | Check user-defined PL/SQL functions for missing DETERMINISTIC flag | [[deterministic]], [[declaring-deterministic-deliberately]] |
+| 2013-05-14 | Caching of frequently used static master data (pre 11g) | [Master data caching](../usage/master-data-caching.md) |
+| 2013-05-17 | Caching of frequently used static master data (post 11g, using RESULT_CACHE) | [Master data caching](../usage/master-data-caching.md) |
+| 2016-12-06 | Don't flood Oracle-DB's result cache | [Result cache](../usage/result-cache.md) |
+| 2017-11-16 | How to check for appropriate sequence caching | [Sequence caching](../usage/sequence-caching.md) |
+| 2026-01-14 | Check user-defined PL/SQL functions for missing DETERMINISTIC flag | [DETERMINISTIC](../usage/deterministic.md), [Declare DETERMINISTIC deliberately – but not with function based indexes](../usage/declaring-deterministic-deliberately.md) |
 
 ## Key points
 
 **Frequent access to small tables creates hot blocks** — especially when those
 tables are joined en masse by nested loops. Hash joins defuse that but require
-large data transfers and possibly TEMP (2013) → [[master-data-caching]].
+large data transfers and possibly TEMP (2013) → [Master data caching](../usage/master-data-caching.md).
 
 **The result cache can be flooded with a single default parameter.** A function
 with `p_Date DATE DEFAULT SYSDATE` produces a new call signature **every second**
 — and therefore a steady stream of new entries. The consequence is latch waits
 that also hit sessions barely using the cache (2016-12-06)
-→ [[result-cache]].
+→ [Result cache](../usage/result-cache.md).
 
 **Rule of thumb for the result cache: 80 to 90 % utilisation.** Above that,
 wholesale eviction and therefore latch contention threaten (2016-12-06).
@@ -41,12 +41,12 @@ wholesale eviction and therefore latch contention threaten (2016-12-06).
 **Sequences are uncached by default — `CACHE SIZE = 0`.** Every
 `sequence.nextval` then triggers a **write operation** on the dictionary table
 `sys.SEQ$`. With parallel use this leads to random locking scenarios in the
-library cache (2017-11-16) → [[sequence-caching]].
+library cache (2017-11-16) → [Sequence caching](../usage/sequence-caching.md).
 
 **A missing `DETERMINISTIC` can call a function a million times.** In the author's
 experiment: a function with no relation to any row, 1 million table rows —
 **1,000,000 calls**. With `DETERMINISTIC`: **1 call** (2026-01-14)
-→ [[deterministic]].
+→ [DETERMINISTIC](../usage/deterministic.md).
 
 ## A tension between two posts
 
@@ -54,12 +54,12 @@ The post of 2026-01-14 explicitly recommends labelling functions as
 `DETERMINISTIC` that **are not really** deterministic — such as those reading
 master data — because the reuse is limited to *one* SQL execution.
 
-The post of 2023-08-15 (in [[blog-locks]]), by contrast, shows that precisely
+The post of 2023-08-15 (in [Blog series on locks and serialisation](blog-locks.md)), by contrast, shows that precisely
 this ends in `ORA-08102: index key not found`.
 
 **Both are correct** — they are different contexts. The distinction is
 consequential enough to record it explicitly:
-[[declaring-deterministic-deliberately]].
+[Declare DETERMINISTIC deliberately – but not with function based indexes](../usage/declaring-deterministic-deliberately.md).
 
 ## Notes on the evidence
 

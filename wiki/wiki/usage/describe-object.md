@@ -11,13 +11,13 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/Oracle_performance_analysi
 
 # Describe object
 
-The menu entry "Schema / Storage" / "Describe object" of [[panorama]]: structure
+The menu entry "Schema / Storage" / "Describe object" of [Panorama](panorama.md): structure
 and current state of one database object — table, index, materialized view and
 others — and the hub that most object-related views link to.
 
 ## Use
 
-([[rammpeter-github-io]], usage guide 2.3.1; menu overview: "Describe database
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 2.3.1; menu overview: "Describe database
 object (table, index, materialized view ...)".)
 
 - Shows the **structure and the current state** of a particular object.
@@ -44,25 +44,25 @@ settings or by an analysis of your own.
 
 > Conclusion: the check is deliberately manual and per object. It answers "is
 > the optimizer working from a wrong picture of *this* table", the question that
-> arises once a specific plan looks wrong — see [[execution-plans]] and
-> [[optimizer-diagnostics]]. Where single-column statistics are right but the
-> estimate is still wrong: [[extended-statistics]].
+> arises once a specific plan looks wrong — see [Execution plans](execution-plans.md) and
+> [Optimizer diagnostics](optimizer-diagnostics.md). Where single-column statistics are right but the
+> estimate is still wrong: [Extended statistics](extended-statistics.md).
 
 ## Related object views
 
 Described from other sources in this wiki, and belonging to the same object
 context (whether each is a button of this view is not evidenced): the index list that puts usage state,
 uniqueness, foreign key protection and partition exchange side by side
-([[indexing]], [[index-usage-monitoring]]), and the compression suggestions
-([[index-compression]], [[advanced-compression]]).
+([Indexing](indexing.md), [Index usage monitoring](index-usage-monitoring.md)), and the compression suggestions
+([Index compression](index-compression.md), [Table, index and LOB compression compared](advanced-compression.md)).
 
 ## Relationships
 
-- Listed in [[panorama-menu-overview]]; the third pillar in
-  [[panorama-analysis-workflows]].
-- Load on an object rather than its structure: [[segment-statistics]],
-  [[db-cache-usage]].
-- Space below the high water mark: [[storage-reorganisation]].
+- Listed in [Panorama menu overview](panorama-menu-overview.md); the third pillar in
+  [Analysis workflows in Panorama](panorama-analysis-workflows.md).
+- Load on an object rather than its structure: [Segment statistics](segment-statistics.md),
+  [DB cache usage](db-cache-usage.md).
+- Space below the high water mark: [Storage reorganisation](storage-reorganisation.md).
 
 ## Open questions
 
@@ -72,4 +72,4 @@ uniqueness, foreign key protection and partition exchange side by side
 
 ## Sources
 
-- [[rammpeter-github-io]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

@@ -17,7 +17,7 @@ yields an index containing only the rows that matter.
 
 ## Summary
 
-([[talks-indexes]]) A function-based index can shrink an index by several orders
+([Talks on indexes](../sources/talks-indexes.md)) A function-based index can shrink an index by several orders
 of magnitude and make the typical queue query — "give me the few unprocessed
 rows out of millions" — a one-block access. The price is discipline: the
 function must really be deterministic, and the SQL must repeat the indexed
@@ -115,9 +115,9 @@ DELETE FROM Log;   -- fails with ORA-08102
 
 The same failure from a real project — a unique function-based index whose
 function looked up a column in a related table — is the starting point of
-[[cross-table-uniqueness]].
+[Cross-table uniqueness](cross-table-uniqueness.md).
 
-> This is the other side of [[declaring-deterministic-deliberately]]: declaring
+> This is the other side of [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md): declaring
 > a function `DETERMINISTIC` although it strictly is not can be a legitimate
 > optimisation for *calls*, and is a data error as soon as an *index* rests on
 > it.
@@ -125,16 +125,16 @@ function looked up a column in a related table — is the starting point of
 ## Finding candidates
 
 - Indexes whose leading column has very few distinct values, with the
-  interesting value rare, are the pattern of the status example. [[dragnet]]
+  interesting value rare, are the pattern of the status example. [Dragnet Investigation](dragnet.md)
   lists indexes with only one or few key values (point 1.2.2 in 2018).
 - A SQL with many executions, few rows returned and a large index is the pattern
   of the queue example.
 - A function-based index needs statistics on its hidden column to be estimated
-  properly → [[extended-statistics]].
+  properly → [Extended statistics](extended-statistics.md).
 
 ## The example in the usage guide
 
-([[rammpeter-github-io]], usage guide 7.5.) A second worked example of indexing
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 7.5.) A second worked example of indexing
 only the rows that matter, with different numbers from the talks' "3 GB to one
 block":
 
@@ -160,13 +160,13 @@ block":
 ## Relationships
 
 - One of two ways to shrink an index that must stay; the other is
-  [[index-compression]]. Advanced index compression *high* is not available for
-  function-based indexes ([[advanced-compression]]).
-- Belongs to role 1 of [[indexing]] — optimising access from user SQL.
-- The keyword it depends on: [[deterministic]]; the trap:
-  [[cross-table-uniqueness]]; the position:
-  [[declaring-deterministic-deliberately]].
-- The optimizer's side of expressions in indexes: [[extended-statistics]].
+  [Index compression](index-compression.md). Advanced index compression *high* is not available for
+  function-based indexes ([Table, index and LOB compression compared](advanced-compression.md)).
+- Belongs to role 1 of [Indexing](indexing.md) — optimising access from user SQL.
+- The keyword it depends on: [DETERMINISTIC](deterministic.md); the trap:
+  [Cross-table uniqueness](cross-table-uniqueness.md); the position:
+  [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md).
+- The optimizer's side of expressions in indexes: [Extended statistics](extended-statistics.md).
 
 ## Open questions
 
@@ -180,5 +180,5 @@ block":
 
 ## Sources
 
-- [[talks-indexes]]
-- [[rammpeter-github-io]]
+- [Talks on indexes](../sources/talks-indexes.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

@@ -23,15 +23,15 @@ easy to overlook.
 
 | Post | Statement |
 |---|---|
-| 2026-01-14 ([[blog-caching-and-plsql]]) | Functions reading master data **may** be declared `DETERMINISTIC` |
-| 2023-08-15 ([[blog-locks]]) | Precisely that ends in `ORA-08102: index key not found` |
+| 2026-01-14 ([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)) | Functions reading master data **may** be declared `DETERMINISTIC` |
+| 2023-08-15 ([Blog series on locks and serialisation](../sources/blog-locks.md)) | Precisely that ends in `ORA-08102: index key not found` |
 
 ## The recommendation – and its rationale
 
 > "The reuse of function results is limited to a single SQL execution. It might
 > therefore also make sense to label functions as DETERMINISTIC that are not
 > actually deterministic."
-> — [[blog-caching-and-plsql]], 2026-01-14
+> — [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2026-01-14
 
 The argument is precise: a function reading values from master data tables is
 **not** deterministic, because the table contents can change. But:
@@ -42,7 +42,7 @@ The argument is precise: a function reading values from master data tables is
 
 So you can label the function that way anyway and thereby ensure it is called
 "much less frequently than otherwise". The scale of the gain is shown in
-[[deterministic]]: one million calls against one.
+[DETERMINISTIC](deterministic.md): one million calls against one.
 
 ## The boundary – and why it is hard
 
@@ -51,7 +51,7 @@ the assumption becomes a persisted fact: the index key is **stored** with the
 return value of that moment.
 
 If the data read changes, the index points at a value the function no longer
-returns. The proof in [[blog-locks]] (2023-08-15) takes four statements:
+returns. The proof in [Blog series on locks and serialisation](../sources/blog-locks.md) (2023-08-15) takes four statements:
 
 ```sql
 INSERT INTO Master (ID, Company_ID) VALUES (8, 7);
@@ -96,12 +96,12 @@ UPDATE Detail SET Value = 9 WHERE Master_ID = 8; -- ORA-08102
 
 ## Relationships
 
-- Mechanics and measurement: [[deterministic]]
-- The failure case in detail: [[cross-table-uniqueness]]
+- Mechanics and measurement: [DETERMINISTIC](deterministic.md)
+- The failure case in detail: [Cross-table uniqueness](cross-table-uniqueness.md)
 - A function based index additionally needs statistics:
-  [[extended-statistics]]
+  [Extended statistics](extended-statistics.md)
 
 ## Sources
 
-- [[blog-caching-and-plsql]]
-- [[blog-locks]]
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)
+- [Blog series on locks and serialisation](../sources/blog-locks.md)

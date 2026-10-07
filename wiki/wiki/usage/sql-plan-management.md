@@ -16,7 +16,7 @@ and SQL patches. The decisive difference between them is the licence.
 
 ## SQL plan baseline
 
-Pins a particular plan. The route from [[blog-execution-plans]] (2016-03-20)
+Pins a particular plan. The route from [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md) (2016-03-20)
 retrieves a **good plan from the AWR history** for this — following an idea by
 Filipe Martins and rmoff:
 
@@ -32,7 +32,7 @@ Filipe Martins and rmoff:
    `DBMS_SHARED_POOL.PURGE`, so that the next run hard-parses. **With RAC this
    has to be repeated per affected instance.**
 
-[[panorama]] generates this snippet at the press of a button; the user executes
+[Panorama](panorama.md) generates this snippet at the press of a button; the user executes
 it themselves as SYSDBA.
 
 **The author names the limitation himself:** the solution may be only temporary —
@@ -45,25 +45,25 @@ if the SQL statement is modified, it loses its binding to the baseline.
 
 Slips an optimizer hint into a SQL without changing it. Normally part of the SQL
 Repair Advisor, but it can be created by hand
-([[blog-execution-plans]], 2018-01-14):
+([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2018-01-14):
 
 - **11.1 to 12.1:** `sys.DBMS_SQLDIAG_INTERNAL.i_create_patch`
 - **from 12.2:** `sys.DBMS_SQLDIAG.CREATE_SQL_PATCH`
 
 Both variants accept either a `sql_id` or the `sql_text`; on choosing between
-them see [[create-sql-patches-by-sql-text]].
+them see [Create SQL patches by SQL text, not by SQL ID](create-sql-patches-by-sql-text.md).
 
 Dictionary locations: `DBA_SQL_PATCHES` lists the patches, `sys.SQLOBJ$` links
 name, signature, category and plan ID, `sys.SQLOBJ$DATA` contains the hint in the
 XML outline structure.
 
-**A secondary use as a measuring instrument** ([[blog-execution-plans]],
+**A secondary use as a measuring instrument** ([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md),
 2026-06-29): a SQL patch can also inject `GATHER_PLAN_STATISTICS` to force
-extended plan statistics for exactly one SQL — see [[optimizer-diagnostics]].
+extended plan statistics for exactly one SQL — see [Optimizer diagnostics](optimizer-diagnostics.md).
 
 ## The licence question
 
-The practically most important difference ([[blog-execution-plans]], 2018-01-14
+The practically most important difference ([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2018-01-14
 and 2026-06-29):
 
 | Means | Additional licence needed? |
@@ -73,11 +73,11 @@ and 2026-06-29):
 | **SQL patch** | **no** — usable with Standard Edition too |
 
 Creating a SQL patch requires the privilege `ADMINISTER SQL MANAGEMENT OBJECT`
-(or a comparable one). See also [[management-pack-licensing]].
+(or a comparable one). See also [Management pack licensing](management-pack-licensing.md).
 
 ### The four techniques side by side
 
-The talk of 2018-04 ([[talks-sql-plan-management]]) is more precise than the
+The talk of 2018-04 ([Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md)) is more precise than the
 blog and adds the fourth technique:
 
 | Technique | Effect | Licence |
@@ -85,7 +85,7 @@ blog and adds the fourth technique:
 | SQL plan baseline | prescribes the **plan hash value** to be used | Enterprise Edition; Tuning Pack in addition for creating it from AWR data via a SQL tuning set |
 | SQL profile | injects optimizer hints | Enterprise Edition + Diagnostics and Tuning Pack |
 | SQL patch | injects optimizer hints, like a profile | none, Standard Edition too |
-| SQL translation | replaces the complete SQL text | Enterprise Edition → [[sql-translation-framework]] |
+| SQL translation | replaces the complete SQL text | Enterprise Edition → [SQL Translation Framework](sql-translation-framework.md) |
 
 > The table above ("additional licence needed: yes") stays correct for the route
 > Panorama generates, but is refined here: it is the *creation from AWR* that
@@ -112,13 +112,13 @@ Further points from the talk:
 - Full list under "SGA/PGA-details" / "SQL plan management" / "SQL patches".
 - The same menu gives an overview of **all** existing directives — profiles,
   baselines, stored outlines, translations, patches — including whether each is
-  really used ([[talks-sql-plan-management]], [[talks-panorama-and-sampler]]).
+  really used ([Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md), [Talks on Panorama and the Panorama Sampler](../sources/talks-panorama-and-sampler.md)).
 
 ## The procedure in the usage guide
 
-([[rammpeter-github-io]], usage guide chapter 6.) The guide puts one thing
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide chapter 6.) The guide puts one thing
 before all four mechanisms: **realistic object statistics** are the first
-prerequisite for good plans → [[describe-object]].
+prerequisite for good plans → [Describe object](describe-object.md).
 
 **What a baseline actually pins.** Not the plan itself but its **plan hash
 value** — "the optimizer itself must be able to determine this plan". A baseline
@@ -127,7 +127,7 @@ does not take effect.
 
 **Baseline from the AWR history**, step by step:
 
-1. In the SQL detail view (current or historic, see [[sql-area]]) press
+1. In the SQL detail view (current or historic, see [SQL area](sql-area.md)) press
    "Complete history" and pick the period in which the SQL ran with the better
    plan.
 2. Open the detail view for that period by clicking its start time.
@@ -143,26 +143,26 @@ alternatively be generated from the current cursor cache of the SGA.
 
 - *SQL profiles* come from the SQL tuning functions of Enterprise Manager /
   Cloud Control. For running the SQL Tuning Advisor through Panorama the login
-  user needs `ADVISOR` and `CREATE ANY SQL PROFILE` ([[panorama-privileges]]).
+  user needs `ADVISOR` and `CREATE ANY SQL PROFILE` ([Privileges for Panorama](panorama-privileges.md)).
 - *SQL patches* (from 11.1) specify hints "in a less complex way than via SQL
   profiles" and are usable **without additional licence, also in Standard
   Edition**.
 - *SQL translation* (from 12.1) allows "total influence": not only hints, but
   exchanged result columns, removed or added joins, other sources — as long as
   result structure and bind variables stay the same
-  → [[sql-translation-framework]].
+  → [SQL Translation Framework](sql-translation-framework.md).
 
 For each of the four, an existing directive is shown **in signal red** in the
 detail view of the SQL.
 
 ## Relationships
 
-- Addresses the problem from [[execution-plans]].
-- Whether a hint had any effect at all is shown by [[optimizer-hints]].
+- Addresses the problem from [Execution plans](execution-plans.md).
+- Whether a hint had any effect at all is shown by [Optimizer hints](optimizer-hints.md).
 - Before dropping an index, searching for its name in baselines and patches is
-  worthwhile → [[index-usage-monitoring]].
+  worthwhile → [Index usage monitoring](index-usage-monitoring.md).
 - The more powerful but more involved counterpart:
-  [[sql-translation-framework]].
+  [SQL Translation Framework](sql-translation-framework.md).
 
 ## Open questions
 
@@ -172,6 +172,6 @@ detail view of the SQL.
 
 ## Sources
 
-- [[blog-execution-plans]]
-- [[talks-sql-plan-management]]
-- [[rammpeter-github-io]]
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)
+- [Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

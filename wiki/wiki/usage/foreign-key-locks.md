@@ -17,7 +17,7 @@ actually occurs.
 
 ## Two reasons for an index on the foreign key column
 
-([[blog-indexing]], 2016-11-25 and 2019-12-27)
+([Blog series on indexing](../sources/blog-indexing.md), 2016-11-25 and 2019-12-27)
 
 1. **Avoid full table scans.** Without an index, a delete on the referenced table
    causes a full table scan on the referencing table for *every deleted row*.
@@ -56,7 +56,7 @@ The findings, summarised:
 > them out of the SET clause of updates, the second risk case disappears — and
 > from 12.1 it does so anyway.
 
-The position derived from this is in [[do-not-blanket-index-foreign-keys]].
+The position derived from this is in [Do not blanket-index foreign keys](do-not-blanket-index-foreign-keys.md).
 
 ## Which index is accepted as protection?
 
@@ -86,11 +86,11 @@ constraint columns.
 
 ## Relationships
 
-- Role 3 of the four roles in [[indexing]].
-- [[index-usage-monitoring]] does **not** record this usage, because it goes
+- Role 3 of the four roles in [Indexing](indexing.md).
+- [Index usage monitoring](index-usage-monitoring.md) does **not** record this usage, because it goes
   through recursive SQL — the role has to be ruled out separately.
-- The decision about it: [[do-not-blanket-index-foreign-keys]].
-- The general case of self-inflicted blocking: [[blocking-locks]].
+- The decision about it: [Do not blanket-index foreign keys](do-not-blanket-index-foreign-keys.md).
+- The general case of self-inflicted blocking: [Blocking locks](blocking-locks.md).
 
 ## Open questions
 
@@ -100,4 +100,4 @@ constraint columns.
 
 ## Sources
 
-- [[blog-indexing]]
+- [Blog series on indexing](../sources/blog-indexing.md)

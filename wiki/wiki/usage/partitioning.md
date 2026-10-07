@@ -19,7 +19,7 @@ exchange, partition pruning and the limits of interval partitions.
 Swaps an unpartitioned table for a partition of a partitioned table — the fast
 way to load or exchange large volumes of data, because only metadata changes.
 
-**The prerequisites** ([[blog-partitioning]], 2019-11-10):
+**The prerequisites** ([Blog series on partitioning and parallel processing](../sources/blog-partitioning.md), 2019-11-10):
 
 - a partitioned and an unpartitioned table with the **same column structure**
 - the **same index structure**
@@ -35,29 +35,29 @@ table a **structure hash** is formed — over `ORA_HASH` of the data type,
 multiplied by column position, length, precision and scale — and a second one
 over the index columns. Tables with the same hash are candidates.
 
-This is at the same time **role 4** of the four roles in [[indexing]]: an index
+This is at the same time **role 4** of the four roles in [Indexing](indexing.md): an index
 may have to exist solely because it establishes the structural identity for
 partition exchange.
 
 ## The further aspects
 
 - **Partition pruning** — access to one partition instead of a thousand, and why
-  it fails → [[partition-pruning]]
+  it fails → [Partition pruning](partition-pruning.md)
 - **Interval partitions** — the upper limit of 1,048,575 and the rolling window
-  → [[interval-partitions-rolling-window]]
+  → [Interval partitions and the rolling window](interval-partitions-rolling-window.md)
 - **Partition strategy when purging** — a suitable partition interval turns a
   `DELETE` into a `DROP PARTITION`, see
-  [[unified-audit-trail-operations]]
-- **Which partition is running right now?** → [[long-operations]]
+  [Unified audit trail – operations](unified-audit-trail-operations.md)
+- **Which partition is running right now?** → [Long operations](long-operations.md)
 - **Partitioning as an index substitute** — if the partitioning criterion has the
   same filtering effect as an index, it is more effective; the index can go
-  → [[indexing]]
+  → [Indexing](indexing.md)
 
 ## Relationships
 
-- Role 4 of the four roles in [[indexing]].
+- Role 4 of the four roles in [Indexing](indexing.md).
 - The column structure check resembles, methodically, the index check in
-  [[foreign-key-locks]]: structure decides, not intent.
+  [Foreign keys and locks](foreign-key-locks.md): structure decides, not intent.
 
 ## Open questions
 
@@ -68,4 +68,4 @@ partition exchange.
 
 ## Sources
 
-- [[blog-partitioning]]
+- [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md)

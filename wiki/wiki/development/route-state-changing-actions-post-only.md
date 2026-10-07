@@ -11,13 +11,13 @@ sources: [panorama-repository.md]
 
 # Route state-changing actions as POST only
 
-**Status: adopted.** Actions of [[panorama]] that change state get no `GET`
+**Status: adopted.** Actions of [Panorama](../usage/panorama.md) that change state get no `GET`
 route. Everything else keeps both `GET` and `POST`.
 
 ## The choice
 
 Routes are generated for every public controller method
-([[panorama-request-and-rendering]]). Since release 2.19.25, the generator skips
+([Controllers, routing and rendering in Panorama](panorama-request-and-rendering.md)). Since release 2.19.25, the generator skips
 the `GET` route for actions listed in `EnvController::POST_ONLY_ACTIONS`:
 
 | Controller | Actions |
@@ -47,7 +47,7 @@ The GUI already called all of these through `ajax_html` / `ajax_form`, which use
 The same release hardened the neighbourhood: an invalid CSRF token now raises
 instead of resetting the session, failed master password attempts are throttled
 per client, and sampler configuration import and export require admin
-authentication ([[panorama-client-state-and-security]]).
+authentication ([Client state and security in Panorama](panorama-client-state-and-security.md)).
 
 ## Why not POST for everything
 
@@ -74,4 +74,4 @@ a separate design document.
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

@@ -15,20 +15,20 @@ but the concrete run.
 
 ## When recording happens
 
-([[blog-panorama-the-tool]], 2018-03-19) One of three conditions must be met
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2018-03-19) One of three conditions must be met
 (a fourth was added later, see below):
 
 - execution with **parallel query**
 - CPU or I/O activity for **more than 5 seconds**
 - the optimizer hint **`MONITOR`** in the statement
-- *(added by the usage guide, state 2026-09-02, [[rammpeter-github-io]])* an
+- *(added by the usage guide, state 2026-09-02, [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md))* an
   event set for one SQL-ID:
   `ALTER SESSION|SYSTEM SET EVENTS 'sql_monitor [sql: 5hc07qvt8v737] force=true';`
   — the guide prints `ALTER SESSION|SESSION`, read here as `SESSION|SYSTEM`
 
 > The third condition is the interesting one: a SQL that neither runs in parallel
 > nor runs long can be brought to be recorded deliberately — and without changing
-> it, via a SQL patch; see [[sql-plan-management]].
+> it, via a SQL patch; see [SQL plan management](sql-plan-management.md).
 
 ## Where the reports live
 
@@ -55,8 +55,8 @@ SELECT DBMS_AUTO_REPORT.REPORT_REPOSITORY_DETAIL(RID => :Report_ID, TYPE => 'ACT
 
 **Tuning Pack** for the Enterprise Edition — not the Diagnostics Pack. That makes
 SQL Monitor the only Panorama function with this prerequisite, and
-[[panorama-sampler]] is **no** substitute here. See
-[[management-pack-licensing]].
+[Panorama Sampler](panorama-sampler.md) is **no** substitute here. See
+[Management pack licensing](management-pack-licensing.md).
 
 ## In Panorama
 
@@ -80,11 +80,11 @@ The same problem affects the **Performance Hub** from Enterprise Manager Express
 (from 12.1), which Panorama embeds under "Analysis / Statistics" / "Genuine
 Oracle AWR-reports" / "Performance Hub" — also Flash, and the connecting user
 needs the role `EM_EXPRESS_BASIC` or `DBA`
-([[blog-panorama-the-tool]], 2019-02-08).
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2019-02-08).
 
 ## Presentation today
 
-([[rammpeter-github-io]], usage guide 2.2.3, last updated 2026-09-02.) The guide
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 2.2.3, last updated 2026-09-02.) The guide
 no longer mentions Flash. A click on the report ID opens the Database Activity
 Report in a new browser tab; **with an internet connection it is an active page
 "enriched with CSS and Javascript" loaded from `download.oracle.com`, otherwise
@@ -105,30 +105,30 @@ What the report offers beyond Panorama's own functions, as listed by the guide:
 
 Besides the three buttons, the menu has an entry of its own: "SGA/PGA-Details" /
 "SQL-Area" / "SQL-Monitor reports", showing recorded reports from
-`gv$SQL_Monitor` and `DBA_HIST_Reports` ([[sql-area]]). Two screenshots
+`gv$SQL_Monitor` and `DBA_HIST_Reports` ([SQL area](sql-area.md)). Two screenshots
 (`sql-monitor-list.png`, `sql-monitor-report.png`) are archived, not viewed.
 
 ## Relationships
 
 - The licence-free successor with a similar purpose is the SQL Diagnostic Report
-  from 19.28 → [[optimizer-diagnostics]].
+  from 19.28 → [Optimizer diagnostics](optimizer-diagnostics.md).
 - Setting the `MONITOR` hint without changing the application:
-  [[sql-plan-management]].
-- Licence questions: [[management-pack-licensing]].
+  [SQL plan management](sql-plan-management.md).
+- Licence questions: [Management pack licensing](management-pack-licensing.md).
 
 ## Open questions
 
 - ~~How is the Database Activity Report presented after the end of Flash?~~
   Answered 2026-10-05 for the SQL Monitor report, see *Presentation today*.
-  Still open for the Performance Hub ([[genuine-oracle-reports]]).
+  Still open for the Performance Hub ([Genuine Oracle reports](genuine-oracle-reports.md)).
 - Which role does the SQL Monitor report need? The usage guide names
   `OEM_MONITOR` for "the SQL Monitoring plug-in"; the landing page's grant
-  table does not mention SQL Monitor ([[panorama-privileges]]).
-- Does the SQL Diagnostic Report ([[optimizer-diagnostics]]) practically
+  table does not mention SQL Monitor ([Privileges for Panorama](panorama-privileges.md)).
+- Does the SQL Diagnostic Report ([Optimizer diagnostics](optimizer-diagnostics.md)) practically
   supersede SQL Monitor, since it contains its data licence-free? The sources do
   not draw that connection.
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
-- [[rammpeter-github-io]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

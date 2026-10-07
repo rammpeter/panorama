@@ -12,7 +12,7 @@ sources: [blog.md, posts/]
 
 Access to *one* partition instead of all. The difference can be enormous —
 "imagine you only need to scan one partition of a table instead of several
-thousands" ([[blog-partitioning]], 2023-12-19).
+thousands" ([Blog series on partitioning and parallel processing](../sources/blog-partitioning.md), 2023-12-19).
 
 ## When it fails
 
@@ -50,26 +50,26 @@ Two variants, depending on the licence:
 
 | Variant | Source | Sorting | Prerequisite |
 |---|---|---|---|
-| 1 | SGA **and** AWR history | time on the partition access plan lines (from [[ash]]) | Diagnostics Pack; fully usable from 19.20 |
+| 1 | SGA **and** AWR history | time on the partition access plan lines (from [ASH](ash.md)) | Diagnostics Pack; fully usable from 19.20 |
 | 2 | SGA only | total runtime of the SQL (`GV$SQL`) | none — Standard Edition too |
 
 > On the release note: variant 1 works according to the source "especially
 > starting with DB release 19.20", because access and filter predicates are only
-> captured in the AWR from then on. See the trap in [[execution-plans]] on this —
+> captured in the AWR from then on. See the trap in [Execution plans](execution-plans.md) on this —
 > without removing the old plans, the columns stay empty even after the upgrade.
 > The query carries a `UNION` for that, with the comment that duplicates are
 > possible where predicates are unset (before 19.19).
 
-In [[panorama]] via [[dragnet]].
+In [Panorama](panorama.md) via [Dragnet Investigation](dragnet.md).
 
 ## Relationships
 
-- Part of [[partitioning]].
-- Depends on the availability of the predicate columns → [[execution-plans]].
-- The same pattern as [[index-access-paths]]: access versus filter predicate
+- Part of [Partitioning](partitioning.md).
+- Depends on the availability of the predicate columns → [Execution plans](execution-plans.md).
+- The same pattern as [Index access paths](index-access-paths.md): access versus filter predicate
   decides, and the plan looks inconspicuous. Both are placed in context in
-  [[finding-skipped-index-columns]].
-- Licence variants: [[management-pack-licensing]], [[panorama-sampler]].
+  [Finding skipped index columns](../syntheses/finding-skipped-index-columns.md).
+- Licence variants: [Management pack licensing](management-pack-licensing.md), [Panorama Sampler](panorama-sampler.md).
 
 ## Open questions
 
@@ -80,4 +80,4 @@ In [[panorama]] via [[dragnet]].
 
 ## Sources
 
-- [[blog-partitioning]]
+- [Blog series on partitioning and parallel processing](../sources/blog-partitioning.md)

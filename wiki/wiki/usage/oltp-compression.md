@@ -11,7 +11,7 @@ sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
 # OLTP compression
 
 `COMPRESS FOR OLTP` is described by Oracle as a transparent way to use compressed
-tables in an OLTP environment. The post [[blog-storage]] (2018-09-19) checks that
+tables in an OLTP environment. The post [Blog series on storage, tablespaces and redo](../sources/blog-storage.md) (2018-09-19) checks that
 — and finds a difference between documentation and behaviour.
 
 ## What Oracle says
@@ -52,8 +52,8 @@ Four tests, 100,000 rows each, `PCTFREE 10`, `COMPRESS FOR OLTP`:
 
 **The author's conclusion (as of 2018):** OLTP compression is not suitable for
 tables with a substantial share of updates, because migrated rows arise on a
-large scale. → [[oltp-compression-only-without-updates]] (superseded; the
-current position is [[monitor-migrated-rows-under-advanced-compression]])
+large scale. → [OLTP compression only for tables without meaningful updates](oltp-compression-only-without-updates.md) (superseded; the
+current position is [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md))
 
 ## Addendum 2023: partly revised
 
@@ -88,7 +88,7 @@ value.
 
 ## The talk of 2024: a third statement
 
-([[talks-advanced-compression]], slide 17.) Six years after the post, the author
+([Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md), slide 17.) Six years after the post, the author
 summarises the matter for an audience:
 
 - With releases 12.x and 18.x there were problems combining `COMPRESS FOR OLTP`
@@ -106,21 +106,21 @@ summarises the matter for an audience:
 but not deterministic (addendum, 2023-05) — usable, with monitoring (talk,
 2024-02). They are a sequence, not a contradiction: the releases differ. The
 newest statement is the most authoritative for 19c and later, and since
-2026-10-04 it is the wiki's position: [[monitor-migrated-rows-under-advanced-compression]].
+2026-10-04 it is the wiki's position: [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md).
 
 The same talk compares all table compression methods with measurements →
-[[advanced-compression]].
+[Table, index and LOB compression compared](advanced-compression.md).
 
 ## Relationships
 
-- The current position: [[monitor-migrated-rows-under-advanced-compression]]. The earlier one,
-  superseded: [[oltp-compression-only-without-updates]].
-- Not to be confused with [[index-compression]] — a different mechanism, a
+- The current position: [Use advanced compression with updates, and monitor migrated rows](monitor-migrated-rows-under-advanced-compression.md). The earlier one,
+  superseded: [OLTP compression only for tables without meaningful updates](oltp-compression-only-without-updates.md).
+- Not to be confused with [Index compression](index-compression.md) — a different mechanism, a
   different assessment.
 - Migrated rows are also a reorganisation topic →
-  [[storage-reorganisation]].
+  [Storage reorganisation](storage-reorganisation.md).
 - `DBA_TAB_MODIFICATIONS` as a measure of DML load: also in
-  [[index-usage-monitoring]].
+  [Index usage monitoring](index-usage-monitoring.md).
 
 ## Open questions
 
@@ -135,5 +135,5 @@ The same talk compares all table compression methods with measurements →
 
 ## Sources
 
-- [[blog-storage]]
-- [[talks-advanced-compression]]
+- [Blog series on storage, tablespaces and redo](../sources/blog-storage.md)
+- [Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)

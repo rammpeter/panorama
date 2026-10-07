@@ -16,8 +16,8 @@ frees the whole chain.
 
 ## The current situation
 
-In [[panorama]] under "DBA general" / "DB locks" / "Current", button "Blocking
-DML-Locks" ([[blog-locks]], 2016-06-03). Three sessions are reported per lock:
+In [Panorama](panorama.md) under "DBA general" / "DB locks" / "Current", button "Blocking
+DML-Locks" ([Blog series on locks and serialisation](../sources/blog-locks.md), 2016-06-03). Three sessions are reported per lock:
 
 - the **waiting** session,
 - the **blocking** session,
@@ -36,14 +36,14 @@ the blocking row.
 
 ## The situation in the past
 
-The basis is [[ash]]: from the recorded session activity, lock constellations can
+The basis is [ASH](ash.md): from the recorded session activity, lock constellations can
 be reconstructed retrospectively, including the root session
-([[blog-locks]], 2016-06-03 and 2020-10-06). Menu "DBA general" / "DB-Locks" /
+([Blog series on locks and serialisation](../sources/blog-locks.md), 2016-06-03 and 2020-10-06). Menu "DBA general" / "DB-Locks" /
 "Blocking locks historic from ASH".
 
 **Prerequisite:** Enterprise Edition and the Diagnostics Pack — or the
-[[panorama-sampler]], which Panorama evaluates *transparently in the same way*.
-See [[management-pack-licensing]].
+[Panorama Sampler](panorama-sampler.md), which Panorama evaluates *transparently in the same way*.
+See [Management pack licensing](management-pack-licensing.md).
 
 ### Three directions
 
@@ -74,7 +74,7 @@ is marked **"DEADLOCK"** in this presentation.
 ## Oracle's emergency brake
 
 For the worst case, before an instance is restarted
-([[blog-locks]], 2016-06-03):
+([Blog series on locks and serialisation](../sources/blog-locks.md), 2016-06-03):
 
 ```
 sqlplus / as sysdba
@@ -87,7 +87,7 @@ still investigable after the restart.
 
 ## Two routes to the current locks, one more to the past
 
-([[rammpeter-github-io]], usage guide 2.1.4.) "DBA general" / "DB-Locks" /
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), usage guide 2.1.4.) "DBA general" / "DB-Locks" /
 "Current" offers four displays: all current DML locks, all **blocking DML
 locks**, all **blocking DDL locks**, and **two-phase commits that have not
 completed** (for instance over a database link).
@@ -101,7 +101,7 @@ special blocking situations are shown by only one of them**:
 - **via `gv$Session`** — "Analyses / statistics" / "Session-Waits" / "Current":
   next to the wait events of the active sessions, the blocker/waiter
   relationships are listed hierarchically from the session view
-  → [[session-waits]].
+  → [Session waits](session-waits.md).
 
 > Conclusion: if one view shows no blocker although sessions are evidently
 > waiting, look at the other before concluding there is none. The guide does not
@@ -111,29 +111,29 @@ For the past there is a second entry besides ASH: **"Blocking locks historic
 from Panorama-Sampler"**. Both list the sessions that *triggered* a cascade in
 the chosen period, **sorted by the summed waiting time of all sessions hanging on
 them**. The sampler entry exists only if the recording of blocking locks is
-active for the database ([[panorama-sampler]]); it rests on lock situations the
+active for the database ([Panorama Sampler](panorama-sampler.md)); it rests on lock situations the
 sampler collected itself, not on ASH's blocking-session columns.
 
 ## Relationships
 
-- A frequent, avoidable cause: [[foreign-key-locks]].
-- Data foundation: [[ash]], alternatively [[panorama-sampler]].
-- Deliberately induced serialisation: [[cross-table-uniqueness]].
+- A frequent, avoidable cause: [Foreign keys and locks](foreign-key-locks.md).
+- Data foundation: [ASH](ash.md), alternatively [Panorama Sampler](panorama-sampler.md).
+- Deliberately induced serialisation: [Cross-table uniqueness](cross-table-uniqueness.md).
 - Contention on shared pool structures instead of on data:
-  [[library-cache-contention]].
+  [Library cache contention](library-cache-contention.md).
 - The retrospective evaluation resolves the hierarchy with `CONNECT BY` over ASH
-  samples rounded to the same instant ([[talks-ash-and-temp]]).
+  samples rounded to the same instant ([Talks on Active Session History and TEMP analysis](../sources/talks-ash-and-temp.md)).
 
 ## Open questions
 
 - How reliable is the root detection when ASH samples capture the chain only
   patchily? The one-second sampling interval can miss short blockages →
-  [[ash]].
+  [ASH](ash.md).
 - The post of 2020-10-06 ends with a request for feedback on whether the
   functions hold up in practice — whether any came is not known.
 
 ## Sources
 
-- [[blog-locks]]
-- [[talks-ash-and-temp]]
-- [[rammpeter-github-io]]
+- [Blog series on locks and serialisation](../sources/blog-locks.md)
+- [Talks on Active Session History and TEMP analysis](../sources/talks-ash-and-temp.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

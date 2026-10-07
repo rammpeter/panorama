@@ -11,7 +11,7 @@ sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
 # Index compression
 
 Key compression has existed since Oracle 9i and in favourable cases halves the
-space requirement of an index — according to [[blog-indexing]] (2016-08-17) an
+space requirement of an index — according to [Blog series on indexing](../sources/blog-indexing.md) (2016-08-17) an
 "often underrated" feature.
 
 ## Summary
@@ -48,7 +48,7 @@ Each of them excludes bitmap indexes and already compressed indexes
 
 ## Three methods
 
-([[talks-advanced-compression]], 2024; [[talks-indexes]], 2020.)
+([Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md), 2024; [Talks on indexes](../sources/talks-indexes.md), 2020.)
 
 | Method | Advanced Compression Option | Syntax | How |
 |---|---|---|---|
@@ -105,13 +105,13 @@ What follows:
 
 ## Relationships
 
-- Concerns indexes that are **kept** according to [[indexing]] — compressing is
+- Concerns indexes that are **kept** according to [Indexing](indexing.md) — compressing is
   the second best solution when dropping is out of the question.
-- The queries are part of [[dragnet]] in [[panorama]].
-- Not to be confused with table compression → [[oltp-compression]], which is
+- The queries are part of [Dragnet Investigation](dragnet.md) in [Panorama](panorama.md).
+- Not to be confused with table compression → [OLTP compression](oltp-compression.md), which is
   assessed quite differently.
-- All compression methods compared: [[advanced-compression]]. The other way to
-  shrink an index: [[function-based-indexes]].
+- All compression methods compared: [Table, index and LOB compression compared](advanced-compression.md). The other way to
+  shrink an index: [Function-based indexes](function-based-indexes.md).
 
 ## Open questions
 
@@ -130,7 +130,7 @@ What follows:
 
 ## Sources
 
-- [[blog-indexing]]
-- [[talks-advanced-compression]]
-- [[talks-indexes]]
-- [[talks-dragnet-and-proactive-tuning]]
+- [Blog series on indexing](../sources/blog-indexing.md)
+- [Talk on Oracle Advanced Compression in practice](../sources/talks-advanced-compression.md)
+- [Talks on indexes](../sources/talks-indexes.md)
+- [Talks on dragnet investigation and proactive tuning](../sources/talks-dragnet-and-proactive-tuning.md)

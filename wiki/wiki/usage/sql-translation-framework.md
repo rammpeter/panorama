@@ -12,13 +12,13 @@ sources: [blog.md, posts/, speakerdeck.md, speakerdeck/]
 
 A feature from release 12.1 that swaps the **complete SQL text** for a
 replacement text before processing. Actually intended for migrating foreign
-dialects, but according to [[blog-bind-variables]] (2017-09-13) "a sharp weapon
+dialects, but according to [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md) (2017-09-13) "a sharp weapon
 for performance troubleshooting" — and one of the more hidden features of the
 database.
 
 ## What distinguishes it from SQL patches
 
-[[sql-plan-management]] only reaches as far as the optimizer hint. The
+[SQL plan management](sql-plan-management.md) only reaches as far as the optimizer hint. The
 Translation Framework replaces the whole text. That makes it possible to fix
 **any** problem solvable by changing the SQL text — without touching the
 application that executes the SQL:
@@ -36,7 +36,7 @@ Only two things have to stay stable:
 
 ## The procedure
 
-[[panorama]] generates the full script via the button "Generate SQL-Translation"
+[Panorama](panorama.md) generates the full script via the button "Generate SQL-Translation"
 in the current and the historical SQL detail view; all you have to enter is the
 adjusted SQL text. The generated sequence:
 
@@ -66,26 +66,26 @@ out — the same precaution as with SQL patches, so that nobody misreads the pla
 
 ## From the 2018 talk
 
-([[talks-sql-plan-management]]) The talk lists the framework as requiring
+([Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md)) The talk lists the framework as requiring
 **Enterprise Edition** and places it next to baseline, profile and patch as the
-most far-reaching of four quick fixes → [[sql-plan-management]].
+most far-reaching of four quick fixes → [SQL plan management](sql-plan-management.md).
 
 The script Panorama generates has three parts: SYSDBA grants the user the right
 to create translation profiles; the user creates the profile with the old and the
 new SQL text; SYSDBA creates a logon trigger that activates the translation in
-the user's sessions → [[logon-trigger]]. The new SQL has to be edited into the
+the user's sessions → [LOGON trigger](logon-trigger.md). The new SQL has to be edited into the
 generated script by hand; it must return the same result structure and support
 the same bind variables.
 
 ## Relationships
 
 - The more powerful but more involved counterpart to the SQL patch from
-  [[sql-plan-management]].
+  [SQL plan management](sql-plan-management.md).
 - A way to replace literals with bind variables after the fact →
-  [[bind-variables-and-cursor-sharing]], and the gentler alternative to the
-  rejected [[cursor-sharing-force-is-no-substitute]].
+  [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md), and the gentler alternative to the
+  rejected [cursor_sharing = FORCE is no substitute for prepared statements](cursor-sharing-force-is-no-substitute.md).
 - The LOGON trigger is the same mechanism that holds surprises in other
-  environments → [[logon-trigger]].
+  environments → [LOGON trigger](logon-trigger.md).
 
 ## Open questions
 
@@ -97,5 +97,5 @@ the same bind variables.
 
 ## Sources
 
-- [[blog-bind-variables]]
-- [[talks-sql-plan-management]]
+- [Blog series on bind variables and SQL text](../sources/blog-bind-variables.md)
+- [Talk on influencing execution plans without code changes](../sources/talks-sql-plan-management.md)

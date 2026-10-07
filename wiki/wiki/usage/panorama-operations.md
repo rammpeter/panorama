@@ -11,12 +11,12 @@ sources: [blog.md, posts/, panorama-repository.md, rammpeter.github.io.md, rammp
 
 # Panorama operations
 
-How [[panorama]] is run: as a Docker container, behind a reverse proxy for
+How [Panorama](panorama.md) is run: as a Docker container, behind a reverse proxy for
 HTTPS, and what it takes to connect to an Autonomous Database.
 
 ## Docker
 
-([[blog-panorama-the-tool]], 2017-01-29) Available on Docker Hub since January
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2017-01-29) Available on Docker Hub since January
 2017:
 
 ```bash
@@ -28,28 +28,28 @@ Relevant environment variables, as they appear in the 2019 compose example:
 `TNS_ADMIN`, `TZ`, `MAX_JAVA_HEAP_SPACE_MB`, `PANORAMA_VAR_HOME`,
 `PANORAMA_SAMPLER_MASTER_PASSWORD`, `LOG_LEVEL`. `PANORAMA_VAR_HOME` is mounted
 as a volume — persistent data lives there, including the global dragnet
-extensions, see [[dragnet]].
+extensions, see [Dragnet Investigation](dragnet.md).
 
-> **Names have changed since 2019** ([[panorama-source-code]]): the code reads
+> **Names have changed since 2019** ([Panorama source repository](../sources/panorama-source-code.md)): the code reads
 > `PANORAMA_MASTER_PASSWORD` (the old `PANORAMA_SAMPLER_MASTER_PASSWORD` is still
 > accepted) and `PANORAMA_LOG_LEVEL` (`LOG_LEVEL` is no longer read). Current
-> list of settings: [[panorama-configuration]].
+> list of settings: [Panorama configuration](../development/panorama-configuration.md).
 
 ## As a JAR
 
-([[panorama-source-code]], `README.md`) Java 21 or higher, then:
+([Panorama source repository](../sources/panorama-source-code.md), `README.md`) Java 21 or higher, then:
 
 ```bash
 java -jar Panorama.jar
 ```
 
 The server listens on port 8080. Settings are passed as environment variables or
-in a YAML file named by `PANORAMA_CONFIG_FILE` ([[panorama-configuration]]).
+in a YAML file named by `PANORAMA_CONFIG_FILE` ([Panorama configuration](../development/panorama-configuration.md)).
 Without `PANORAMA_VAR_HOME`, saved logins live in a temporary directory.
 
 ## HTTPS via a reverse proxy
 
-([[blog-panorama-the-tool]], 2019-03-27) The container does **not** support
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2019-03-27) The container does **not** support
 HTTPS natively. The route goes via a reverse proxy — in the example Nginx, placed
 in front of Panorama using `docker-compose`.
 
@@ -76,11 +76,11 @@ behind firewalls".
 
 Even without HTTPS, passwords are encrypted in the browser before transfer since
 2.19.2 — everything else is not
-→ [[panorama-client-state-and-security]].
+→ [Client state and security in Panorama](../development/panorama-client-state-and-security.md).
 
 ## Autonomous Database in the Oracle Cloud
 
-([[blog-panorama-the-tool]], 2019-09-20) The environment variable `TNS_ADMIN`
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2019-09-20) The environment variable `TNS_ADMIN`
 must point to a directory containing:
 
 - the `tnsnames.ora` provided by the Oracle Cloud
@@ -94,7 +94,7 @@ must point to a directory containing:
 
 ## From the website
 
-([[rammpeter-github-io]], landing page.) The current operating instructions; where
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), landing page.) The current operating instructions; where
 they differ from the 2019 examples above, these are newer.
 
 **Starting.** Either `java -jar Panorama.jar` or
@@ -108,7 +108,7 @@ the console shows `* Listening on http://[::]:8080`.
 **Configuration** by a YAML file or by environment variables — the file is "the
 preferred method to avoid the compromise of secrets in environemnt variables".
 Its location is given by `PANORAMA_CONFIG_FILE`, which itself works only as an
-environment variable. All settings: [[panorama-configuration]]. The website's
+environment variable. All settings: [Panorama configuration](../development/panorama-configuration.md). The website's
 example:
 
 ```yaml
@@ -145,7 +145,7 @@ JAR use Java's own `-Xmx4096m`.
 **Do set `PANORAMA_VAR_HOME`.** Without it the system's temporary folder holds
 the generated encryption key *and* the saved encrypted logins — "this
 information may be lost at OS or container restart"
-([[panorama-client-state-and-security]]).
+([Client state and security in Panorama](../development/panorama-client-state-and-security.md)).
 
 **`tnsnames.ora` without a container** is expected in
 `$ORACLE_HOME/network/admin` or in the directory `TNS_ADMIN` points to. The
@@ -162,18 +162,18 @@ demo database in the Oracle cloud: TNS aliases `PANORAMATEST_xxx`, user
 `panorama_test`, password `TryItOut2019`, as published on the landing page.
 
 **Looking at the server itself.** `http://<server>:8080/usage/connection_pool`
-shows the pooled connections ([[panorama-connection]]); with admin login there
+shows the pooled connections ([PanoramaConnection](../development/panorama-connection.md)); with admin login there
 are the menu entries "DB connection pool", "Usage history" and "Set log level"
-([[panorama-menu-overview]]).
+([Panorama menu overview](panorama-menu-overview.md)).
 
 ## Relationships
 
-- Runs [[panorama]]; the sampler data lives under `PANORAMA_VAR_HOME`
-  → [[panorama-sampler]].
-- Another tool in the blog operated via Docker: [[hammerdb]].
-- Cloud environments hold surprises → [[logon-trigger]],
-  [[unified-audit-trail-operations]].
-- Which database user to connect with: [[panorama-privileges]].
+- Runs [Panorama](panorama.md); the sampler data lives under `PANORAMA_VAR_HOME`
+  → [Panorama Sampler](panorama-sampler.md).
+- Another tool in the blog operated via Docker: [HammerDB](hammerdb.md).
+- Cloud environments hold surprises → [LOGON trigger](logon-trigger.md),
+  [Unified audit trail – operations](unified-audit-trail-operations.md).
+- Which database user to connect with: [Privileges for Panorama](panorama-privileges.md).
 
 ## Open questions
 
@@ -187,6 +187,6 @@ are the menu entries "DB connection pool", "Usage history" and "Set log level"
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
-- [[panorama-source-code]]
-- [[rammpeter-github-io]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

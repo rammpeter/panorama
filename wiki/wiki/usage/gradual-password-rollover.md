@@ -11,7 +11,7 @@ sources: [blog.md, posts/]
 # Gradual password rollover
 
 From Oracle 19.12 the **old and the new password** can both serve for logging in
-for a limited period. According to [[blog-audit-trail]] (2024-03-25) "a great and
+for a limited period. According to [Blog series on the audit trail](../sources/blog-audit-trail.md) (2024-03-25) "a great and
 long-awaited feature" that substantially lowers the barrier to changing
 passwords.
 
@@ -56,15 +56,15 @@ as seconds — with a reference to Doc ID 2815172.1.
 > particularly useful here: if a user shows `UserHost_Cnt = 1`, exactly one client
 > is left and you immediately know which.
 
-In [[panorama]] a click on the number in the column "Logons with old password"
+In [Panorama](panorama.md) a click on the number in the column "Logons with old password"
 leads to the individual audit records of that user.
 
 ## Relationships
 
-- Requires unified auditing → [[audit-trail]],
-  [[unified-audit-trail-operations]].
+- Requires unified auditing → [Audit trail](audit-trail.md),
+  [Unified audit trail – operations](unified-audit-trail-operations.md).
 - An evaluation that serves operations rather than performance — like
-  [[logon-trigger]], a case where the blog touches the DBA side.
+  [LOGON trigger](logon-trigger.md), a case where the blog touches the DBA side.
 
 ## Open questions
 
@@ -76,4 +76,4 @@ leads to the individual audit records of that user.
 
 ## Sources
 
-- [[blog-audit-trail]]
+- [Blog series on the audit trail](../sources/blog-audit-trail.md)

@@ -15,7 +15,7 @@ Caching the results of SQL queries or PL/SQL functions — simply by adding
 
 ## The damage pattern
 
-([[blog-caching-and-plsql]], 2016-12-06) Without monitoring, the ease leads to
+([Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md), 2016-12-06) Without monitoring, the ease leads to
 overbooking the cache size. If the cache is excessively flooded with new entries,
 significant **latch waits** arise.
 
@@ -52,24 +52,24 @@ END LOOP;
 
 ## Monitoring
 
-**Occupancy:** query `GV$RESULT_CACHE_OBJECTS`. In [[panorama]] under
+**Occupancy:** query `GV$RESULT_CACHE_OBJECTS`. In [Panorama](panorama.md) under
 "SGA/PGA-details" / "Result Cache" / "Current" — maximum size, percentage
 utilisation and the currently stored objects in detail.
 
-**Tracing latch waits back:** via `DBA_HIST_LATCH`, in [[panorama]] under
+**Tracing latch waits back:** via `DBA_HIST_LATCH`, in [Panorama](panorama.md) under
 "Analyses / statistics" / "Latch statistics" / "Historic". The "Wait time" column
 shows whether the result cache is the main reason for latch waits; from there you
 can descend into individual AWR cycles and plot the course as a chart.
 
 ## Relationships
 
-- One of the two caching variants in [[master-data-caching]] — there as the 11g
+- One of the two caching variants in [Master data caching](master-data-caching.md) — there as the 11g
   solution.
-- The same pattern as [[library-cache-contention]]: contention on a shared pool
+- The same pattern as [Library cache contention](library-cache-contention.md): contention on a shared pool
   structure, not on data.
-- Latch history comes from [[awr]].
+- Latch history comes from [AWR](awr.md).
 - A further shared pool component under pressure:
-  [[sga-memory-management]].
+  [SGA memory management](sga-memory-management.md).
 
 ## Open questions
 
@@ -80,4 +80,4 @@ can descend into individual AWR cycles and plot the course as a chart.
 
 ## Sources
 
-- [[blog-caching-and-plsql]]
+- [Blog series on caching and PL/SQL](../sources/blog-caching-and-plsql.md)

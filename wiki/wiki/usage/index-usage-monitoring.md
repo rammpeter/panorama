@@ -10,7 +10,7 @@ sources: [blog.md, posts/]
 
 # Index usage monitoring
 
-The measurement technique for proving role 1 from [[indexing]]: is an index still
+The measurement technique for proving role 1 from [Indexing](indexing.md): is an index still
 used by user SQL at all? Both available methods have blind spots you must know
 before deriving a "this one can go" from their result.
 
@@ -22,12 +22,12 @@ the start timestamp of the monitoring this reveals which indexes have not been
 used since when. Readable via `V$OBJECT_USAGE` (own schema only) or
 `sys.OBJECT_USAGE` (the whole database, less convenient).
 
-What to watch out for ([[blog-indexing]], 2017-10-12 and 2019-12-27):
+What to watch out for ([Blog series on indexing](../sources/blog-indexing.md), 2017-10-12 and 2019-12-27):
 
 - **Only direct SQL is recorded.** The database's own recursive access does not
   count — in particular **not** the implicit use of an index when checking a
-  foreign key constraint. Role 3 from [[indexing]] must therefore always be ruled
-  out separately, see [[foreign-key-locks]].
+  foreign key constraint. Role 3 from [Indexing](indexing.md) must therefore always be ruled
+  out separately, see [Foreign keys and locks](foreign-key-locks.md).
 - **Only a state, not a timestamp.** What is logged is the start time and the
   state, not when the index was last used.
 - **Resetting is mandatory.** Without regular resets you only identify indexes
@@ -50,7 +50,7 @@ Considerably richer: the view does not need to be activated, logs by default, an
 contains the time of last use as well as volume distributions of accesses and
 result sets.
 
-Its limits ([[blog-indexing]], 2019-12-27):
+Its limits ([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27):
 
 - The data is **sampled**; a latent risk remains that an actual use is not
   logged. Switching to gap-free logging
@@ -69,7 +69,7 @@ Its limits ([[blog-indexing]], 2019-12-27):
 ## The counter-check: references in hints and SPM
 
 Before dropping an index identified as unused, one last search for its name is
-worthwhile ([[blog-indexing]], 2026-07-02): are there optimizer hints in SQL
+worthwhile ([Blog series on indexing](../sources/blog-indexing.md), 2026-07-02): are there optimizer hints in SQL
 statements, SQL patches, SQL profiles or SQL plan baselines pointing at it?
 
 `sys.sqlobj$data` supplies the hits (for profiles, patches, baselines) and the
@@ -87,17 +87,17 @@ To assess role 3 you additionally need to know how much DML takes place on the
 referenced table at all. `DBA_TAB_MODIFICATIONS` serves that purpose, with the
 counts for insert, update and delete since the last analysis.
 
-**Documentation diverges from observation** ([[blog-indexing]], 2019-12-27): up
+**Documentation diverges from observation** ([Blog series on indexing](../sources/blog-indexing.md), 2019-12-27): up
 to 19c the Oracle documentation requires the status `MONITORING=YES` at table
 level for logging in `DBA_TAB_MODIFICATIONS`. In reality, however, DML operations
 are recorded from release 11 onwards even with `NOMONITORING`.
 
 ## Relationships
 
-- Supplies the proof for role 1 from [[indexing]].
-- Explicitly does **not** cover role 3 → [[foreign-key-locks]].
-- [[panorama]] presents the usage state in the table and index structure and
-  brings it together with the other three roles in one list in [[dragnet]].
+- Supplies the proof for role 1 from [Indexing](indexing.md).
+- Explicitly does **not** cover role 3 → [Foreign keys and locks](foreign-key-locks.md).
+- [Panorama](panorama.md) presents the usage state in the table and index structure and
+  brings it together with the other three roles in one list in [Dragnet Investigation](dragnet.md).
 
 ## Open questions
 
@@ -109,4 +109,4 @@ are recorded from release 11 onwards even with `NOMONITORING`.
 
 ## Sources
 
-- [[blog-indexing]]
+- [Blog series on indexing](../sources/blog-indexing.md)

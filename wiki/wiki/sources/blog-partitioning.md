@@ -10,7 +10,7 @@ sources: [blog.md, posts/]
 
 # Blog series on partitioning and parallel processing
 
-Five posts from [[rammpeter-blog]] between 2019 and 2024 about two mechanisms
+Five posts from [rammpeter.blogspot.com](../usage/rammpeter-blog.md) between 2019 and 2024 about two mechanisms
 that make large volumes of data manageable — and about how quietly they fail when
 one prerequisite is missing.
 
@@ -18,11 +18,11 @@ one prerequisite is missing.
 
 | Date | Title | Focus |
 |---|---|---|
-| 2019-11-10 | List tables suitable for partition exchange | [[partitioning]] |
-| 2021-05-29 | Run a rolling window over interval partitioned tables / avoid ORA-14300, ORA-14758 | [[interval-partitions-rolling-window]] |
-| 2023-12-19 | Find SQLs that are missing partition pruning even if it could be possibly used | [[partition-pruning]] |
-| 2024-02-01 | Find SQLs where expected parallel DML or direct load does not work | [[parallel-execution]] |
-| 2024-08-20 | Speedup parallel HASH JOIN BUFFERED by using HASH JOIN SHARED | [[parallel-execution]] |
+| 2019-11-10 | List tables suitable for partition exchange | [Partitioning](../usage/partitioning.md) |
+| 2021-05-29 | Run a rolling window over interval partitioned tables / avoid ORA-14300, ORA-14758 | [Interval partitions and the rolling window](../usage/interval-partitions-rolling-window.md) |
+| 2023-12-19 | Find SQLs that are missing partition pruning even if it could be possibly used | [Partition pruning](../usage/partition-pruning.md) |
+| 2024-02-01 | Find SQLs where expected parallel DML or direct load does not work | [Parallel execution](../usage/parallel-execution.md) |
+| 2024-08-20 | Speedup parallel HASH JOIN BUFFERED by using HASH JOIN SHARED | [Parallel execution](../usage/parallel-execution.md) |
 
 ## Key points
 
@@ -30,32 +30,32 @@ one prerequisite is missing.
 identical column *and* index structure, with all indexes of the partitioned table
 locally partitioned. The post of 2019-11-10 finds all structurally identical
 pairs — explicitly *before* you change a structure and thereby destroy an
-operation you did not know about → [[partitioning]].
+operation you did not know about → [Partitioning](../usage/partitioning.md).
 
 **Interval partitions have an upper limit of 1,048,575 — and it is not the
 existing ones that count.** What counts is the number of *possible* partitions
 between the first range partition and the highest interval partition. With a
 one-minute interval that is roughly **1.9 years**, then comes `ORA-14300`
-(2021-05-29) → [[interval-partitions-rolling-window]].
+(2021-05-29) → [Interval partitions and the rolling window](../usage/interval-partitions-rolling-window.md).
 
 **The obvious remedy fails as well.** Simply dropping the first range partition
 yields `ORA-14758`. The post therefore develops **two** detours via splitting or
 merging empty partitions — the second one also works for 12.1
-→ [[interval-partitions-rolling-window]].
+→ [Interval partitions and the rolling window](../usage/interval-partitions-rolling-window.md).
 
 **Partition pruning can fail even though the partition key is in the filter** —
 for instance when it is hidden behind a conversion function or compared with a
 function result only known at execution time. Often a tiny change to the SQL is
-enough (2023-12-19) → [[partition-pruning]].
+enough (2023-12-19) → [Partition pruning](../usage/partition-pruning.md).
 
 **Parallel DML and direct load are silently ignored** — and the database says
 why: in `OTHER_XML` under `pdml_reason` and `idl_reason` respectively
-(2024-02-01) → [[parallel-execution]].
+(2024-02-01) → [Parallel execution](../usage/parallel-execution.md).
 
 **An undocumented feature against expensive hash joins.** Parallel Shared Hash
 Join (from 18c) lets PQ processes share their hash tables instead of each keeping
 its own — less memory, less spilling to TEMP (2024-08-20)
-→ [[parallel-execution]].
+→ [Parallel execution](../usage/parallel-execution.md).
 
 ## Notes on the evidence
 

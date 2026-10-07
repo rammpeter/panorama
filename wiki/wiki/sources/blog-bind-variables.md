@@ -10,7 +10,7 @@ sources: [blog.md, posts/]
 
 # Blog series on bind variables and SQL text
 
-Three posts from [[rammpeter-blog]] on a problem that, by the author's own
+Three posts from [rammpeter.blogspot.com](../usage/rammpeter-blog.md) on a problem that, by the author's own
 account, "has been haunting me for years": SQL that writes values into the text
 as literals instead of binding them — and what can be done about it without
 changing the application.
@@ -19,9 +19,9 @@ changing the application.
 
 | Date | Title | Focus |
 |---|---|---|
-| 2017-09-11 | Scan Oracle-DB for excessive execution of SQL with literals instead of bind variables | [[bind-variables-and-cursor-sharing]] |
-| 2017-09-13 | Use "SQL Translation Framework" to quickly fix problems with SQLs | [[sql-translation-framework]] |
-| 2024-12-06 | Detect missing use of prepared statements in SQLs | [[bind-variables-and-cursor-sharing]], [[cursor-sharing-force-is-no-substitute]] |
+| 2017-09-11 | Scan Oracle-DB for excessive execution of SQL with literals instead of bind variables | [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md) |
+| 2017-09-13 | Use "SQL Translation Framework" to quickly fix problems with SQLs | [SQL Translation Framework](../usage/sql-translation-framework.md) |
+| 2024-12-06 | Detect missing use of prepared statements in SQLs | [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md), [cursor_sharing = FORCE is no substitute for prepared statements](../usage/cursor-sharing-force-is-no-substitute.md) |
 
 The post of 2024-12-06 is explicitly framed as the sum of what has been learned
 since 2017: *"This problem pattern has been haunting me for years, there was a
@@ -33,7 +33,7 @@ that have emerged in the meantime."*
 **The damage is broader than "slower parsing".** The post of 2024-12-06 lists
 seven consequences, from SQL injection through CPU consumption caused by hard
 parses to the eviction of the buffer cache and the bloating of AWR recordings
-→ [[bind-variables-and-cursor-sharing]].
+→ [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md).
 
 **The quantity decides, not the principle.** A few dozen or a few hundred
 variants can be tolerable — and literals can even help the optimizer to better
@@ -43,19 +43,19 @@ drawbacks clearly outweigh that (2024-12-06).
 **`cursor_sharing = FORCE` is a false friend.** It fixes the hard parses, but the
 original SQL texts remain in the SGA before the translation happens — the memory
 pressure partly persists
-→ [[cursor-sharing-force-is-no-substitute]].
+→ [cursor_sharing = FORCE is no substitute for prepared statements](../usage/cursor-sharing-force-is-no-substitute.md).
 
 **Three search methods, with a clear ranking.** Force-matching signature (the
 most accurate), the same plan hash value with different SQL IDs (also catches
 cases without a signature, such as inserts) and the same leading characters
 (crude, but also catches PL/SQL calls)
-→ [[bind-variables-and-cursor-sharing]].
+→ [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md).
 
 **The SQL text can be replaced entirely.** The SQL Translation Framework from
 12.1 swaps the whole text before processing — not just hints as a SQL patch does.
 That makes it possible to fix any problem solvable via the SQL text without
 touching the application (2017-09-13)
-→ [[sql-translation-framework]].
+→ [SQL Translation Framework](../usage/sql-translation-framework.md).
 
 ## An evolution, not a contradiction
 
@@ -70,18 +70,18 @@ as far as the ranking is concerned.
 
 ## Impact on the wiki
 
-New: [[bind-variables-and-cursor-sharing]], [[sql-translation-framework]] and the
-decision [[cursor-sharing-force-is-no-substitute]].
+New: [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md), [SQL Translation Framework](../usage/sql-translation-framework.md) and the
+decision [cursor_sharing = FORCE is no substitute for prepared statements](../usage/cursor-sharing-force-is-no-substitute.md).
 
-Cross-references added in [[execution-plans]] (child cursors as a cause of
-multiple plans) and [[sql-plan-management]] (SQL patch vs. translation).
+Cross-references added in [Execution plans](../usage/execution-plans.md) (child cursors as a cause of
+multiple plans) and [SQL plan management](../usage/sql-plan-management.md) (SQL patch vs. translation).
 
 ## Side finding
 
 The post of 2024-12-06 points to another location of the author's outside the
 blog: <https://rammpeter.github.io/oracle_performance_tuning.html> with
 ready-made selections (points 4.1.1 to 4.1.5 there), which are also part of
-[[dragnet]]. Not yet ingested.
+[Dragnet Investigation](../usage/dragnet.md). Not yet ingested.
 
 ## Source files
 

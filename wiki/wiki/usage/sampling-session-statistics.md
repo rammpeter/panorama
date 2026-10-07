@@ -14,7 +14,7 @@ A gap Oracle leaves open:
 
 > "In current version of Oracle database there's no way to breakdown historic
 > statistic values to sessions if session has already terminated."
-> — [[blog-sessions-and-connections]], 2014-06-03
+> — [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2014-06-03
 
 The values from `GV$SESSTAT` are only available for **living** sessions. Whoever
 wants to know hours later which session produced the load finds nothing — the
@@ -58,16 +58,16 @@ runs via `Inst_ID`, `SID` and `Serial#`; that is precisely why the log table
 keeps those three columns.
 
 > This closes the circle: the self-captured numbers get their context from
-> [[ash]] — and [[session-context]] is the prerequisite for that context to mean
+> [ASH](ash.md) — and [Session context](session-context.md) is the prerequisite for that context to mean
 > anything.
 
 ## Relationships
 
-- The same principle, built into Panorama: [[panorama-sampler]].
-- Attributing the results relies on [[ash]] and [[session-context]].
-- A related problem: [[short-lived-sessions]] — there too the author resorts to
+- The same principle, built into Panorama: [Panorama Sampler](panorama-sampler.md).
+- Attributing the results relies on [ASH](ash.md) and [Session context](session-context.md).
+- A related problem: [Short-lived sessions](short-lived-sessions.md) — there too the author resorts to
   sampling of his own, because the built-in means are too coarse.
-- The I/O pattern that caused the case: [[measuring-system-load]] separates
+- The I/O pattern that caused the case: [Measuring system load](measuring-system-load.md) separates
   transfer volume from request count for exactly this reason.
 
 ## Open questions
@@ -75,9 +75,9 @@ keeps those three columns.
 - The approach captures **one** statistic per run. How does it scale for several?
 - What overhead does accessing `GV$SESSTAT` on a 10-second cycle cause on a
   system with many sessions?
-- Does [[panorama-sampler]] now answer the same question off the shelf? The
+- Does [Panorama Sampler](panorama-sampler.md) now answer the same question off the shelf? The
   relationship between the two is not evidenced.
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

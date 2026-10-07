@@ -17,7 +17,7 @@ in the process, and until that happens the optimizer ignores the index.
 
 ## The observed case
 
-([[blog-indexing]], 2024-08-15)
+([Blog series on indexing](../sources/blog-indexing.md), 2024-08-15)
 
 A table `INVOICE` with 3.2 billion rows, plus a function based index on an
 expression that mostly evaluates to `NULL`:
@@ -84,13 +84,13 @@ easily the case is misread as an "optimizer bug".
 ## Relationships
 
 - A case in which an index that exists and makes sense remains ineffective — the
-  counterpart to the four roles in [[indexing]].
-- Related to [[index-access-paths]]: both show that the mere existence of a
+  counterpart to the four roles in [Indexing](indexing.md).
+- Related to [Index access paths](index-access-paths.md): both show that the mere existence of a
   suitable index says nothing about its effect. Both are summarised in
-  [[finding-skipped-index-columns]].
+  [Finding skipped index columns](../syntheses/finding-skipped-index-columns.md).
 - The `DETERMINISTIC` trap that also affects function based indexes:
-  [[declaring-deterministic-deliberately]].
-- [[panorama]] gives the column "Last analyzed" a coloured background in the
+  [Declare DETERMINISTIC deliberately – but not with function based indexes](declaring-deterministic-deliberately.md).
+- [Panorama](panorama.md) gives the column "Last analyzed" a coloured background in the
   table structure view when values for extended statistics are missing; a click
   shows the detailed statistics with the empty columns.
 
@@ -103,4 +103,4 @@ easily the case is misread as an "optimizer bug".
 
 ## Sources
 
-- [[blog-indexing]]
+- [Blog series on indexing](../sources/blog-indexing.md)

@@ -17,7 +17,7 @@ in the first place, which can then be analysed.
 
 ## The occasion
 
-([[blog-panorama-the-tool]], 2025-11-04) For a small demo the author needed
+([Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md), 2025-11-04) For a small demo the author needed
 synthetic load on an Oracle database — specifically a TPC-C benchmark on an
 **SE2** instance under Oracle Linux.
 
@@ -40,7 +40,7 @@ Three TCL scripts, passed into the container via a mounted directory:
 **One detail with a licensing angle:** `diset tpcc ora_driver test` selects the
 driver **without** AWR snapshots. The alternative `timed` creates AWR snapshots —
 that only works in the Enterprise Edition and touches
-[[management-pack-licensing]].
+[Management pack licensing](management-pack-licensing.md).
 
 ## An open loose end
 
@@ -61,10 +61,10 @@ the container stops.
 
 ## Relationships
 
-- Produces the load that is then evaluated with [[panorama]], [[ash]] and
-  [[measuring-system-load]].
-- The driver choice touches [[management-pack-licensing]].
-- Operated via Docker, like [[panorama-operations]].
+- Produces the load that is then evaluated with [Panorama](panorama.md), [ASH](ash.md) and
+  [Measuring system load](measuring-system-load.md).
+- The driver choice touches [Management pack licensing](management-pack-licensing.md).
+- Operated via Docker, like [Panorama operations](panorama-operations.md).
 
 ## Open questions
 
@@ -75,4 +75,4 @@ the container stops.
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)

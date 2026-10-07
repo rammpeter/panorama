@@ -18,7 +18,7 @@ mediocre plan is manageable, a changing one is not.
 
 > "Changing or alternating execution plans often contains the risk of
 > unpredictable runtime for SQL-statements."
-> — [[blog-execution-plans]], 2016-04-27
+> — [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2016-04-27
 
 Plans are distinguished by the **plan hash value**. Five ways to find changing
 plans (ibid.):
@@ -31,26 +31,26 @@ plans (ibid.):
 4. **"Complete time line of SQL"** — the entire AWR history of a SQL, grouped by
    time units, with the plan count per time window. The column
    "Elapsed/Execution" serves to assess plan quality.
-5. **System-wide scan** — in [[dragnet]] under point 2.6, sorted by relevance
+5. **System-wide scan** — in [Dragnet Investigation](dragnet.md) under point 2.6, sorted by relevance
    (the difference between the best and the worst plan per execution).
 
-To compare several plans, [[panorama]] marks the differences line by line in
+To compare several plans, [Panorama](panorama.md) marks the differences line by line in
 orange or red — which for large plans makes the difference between findable and
 unfindable.
 
 **Trail to the cause:** several plans in the SGA can stem from separate child
 cursors. The button "Cursor sharing (n versions)" shows the reasons
-→ [[bind-variables-and-cursor-sharing]].
+→ [Bind variables and cursor sharing](bind-variables-and-cursor-sharing.md).
 
 ## Access and filter predicates in the AWR history
 
 Which condition acts as an *access* criterion and which as a *filter* criterion
 on which plan line is often decisive for interpretation — see
-[[index-access-paths]], where exactly this distinction makes the problem visible.
+[Index access paths](index-access-paths.md), where exactly this distinction makes the problem visible.
 
 In `V$SQL_PLAN` these columns have always been present. In `DBA_HIST_SQL_PLAN`
 they were only populated **from release 19.19** (a backport from 21c) — after,
-as the author notes, "decades of complaints" ([[blog-execution-plans]],
+as the author notes, "decades of complaints" ([Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md),
 2023-12-20).
 
 **The trap in it:** plans stored in the AWR before 19.19 have no time reference.
@@ -69,12 +69,12 @@ transactions; runtime according to the author roughly 10 to 60 minutes.
 
 ## Relationships
 
-- Plans can be kept stable via [[sql-plan-management]].
-- What the database did with existing hints is told by [[optimizer-hints]].
-- Digging deeper: [[optimizer-diagnostics]].
-- Historical plans come from [[awr]], the time weighting from [[ash]].
+- Plans can be kept stable via [SQL plan management](sql-plan-management.md).
+- What the database did with existing hints is told by [Optimizer hints](optimizer-hints.md).
+- Digging deeper: [Optimizer diagnostics](optimizer-diagnostics.md).
+- Historical plans come from [AWR](awr.md), the time weighting from [ASH](ash.md).
 - The same access-versus-filter distinction one level up:
-  [[partition-pruning]].
+  [Partition pruning](partition-pruning.md).
 
 ## Open questions
 
@@ -85,4 +85,4 @@ transactions; runtime according to the author roughly 10 to 60 minutes.
 
 ## Sources
 
-- [[blog-execution-plans]]
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)

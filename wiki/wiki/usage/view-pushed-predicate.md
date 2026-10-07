@@ -18,7 +18,7 @@ volume is smallest — instead of where the optimizer moves them of its own acco
 > "The optimizer itself tends to move GROUP BY and SORT operations out to the
 > last operation of a SQL, thus executing these operations on larger data sets
 > than necessary."
-> — [[blog-execution-plans]], 2023-06-07
+> — [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md), 2023-06-07
 
 The most efficient arrangement would be to group at the objects actually
 affected, on the smallest number of rows and columns. The optimizer regularly
@@ -78,12 +78,12 @@ SUM(CASE WHEN Quantity = 1 THEN Price END) Price1
 
 ## Relationships
 
-- A use case for a deliberately placed hint → [[optimizer-hints]].
+- A use case for a deliberately placed hint → [Optimizer hints](optimizer-hints.md).
 - Can be applied without changing the application via a SQL patch →
-  [[sql-plan-management]].
+  [SQL plan management](sql-plan-management.md).
 - The same pattern is used to optimise the check query in
-  [[cross-table-uniqueness]].
-- The plans in the post are rendered with [[panorama]].
+  [Cross-table uniqueness](cross-table-uniqueness.md).
+- The plans in the post are rendered with [Panorama](panorama.md).
 
 ## Open questions
 
@@ -95,4 +95,4 @@ SUM(CASE WHEN Quantity = 1 THEN Price END) Price1
 
 ## Sources
 
-- [[blog-execution-plans]]
+- [Blog series on execution plans and the optimizer](../sources/blog-execution-plans.md)

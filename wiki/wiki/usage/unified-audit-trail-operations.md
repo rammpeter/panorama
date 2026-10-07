@@ -15,7 +15,7 @@ to keep it permanently small without losing audit records too early.
 
 ## Why the view becomes slow
 
-([[blog-audit-trail]], 2025-01-17) After migrating instances to the Exadata Cloud
+([Blog series on the audit trail](../sources/blog-audit-trail.md), 2025-01-17) After migrating instances to the Exadata Cloud
 Service in the OCI cloud, even simple queries on `UNIFIED_AUDIT_TRAIL` no longer
 completed in acceptable time.
 
@@ -23,7 +23,7 @@ completed in acceptable time.
 
 1. The execution plan shows: almost the entire time goes into a **full table scan
    on `X$UNIFIED_AUDIT_TRAIL`**.
-2. The wait events captured by [[ash]] for that plan line name
+2. The wait events captured by [ASH](ash.md) for that plan line name
    `Disk file operations I/O`.
 3. That is revealing: `X$` tables are normally the SQL interface to internal
    **memory structures**. Here the table behaves like a wrapper around **file
@@ -55,7 +55,7 @@ The one-off remedy was a `DBMS_AUDIT_MGMT.CLEAN_AUDIT_TRAIL`.
 
 ## Housekeeping with two hard limits
 
-([[blog-audit-trail]], 2025-01-28) The requirement from a project:
+([Blog series on the audit trail](../sources/blog-audit-trail.md), 2025-01-28) The requirement from a project:
 
 - **hard:** audit records must in all cases remain for at least *x* days.
 - **hard:** the stored volume must not exceed a size limit — unless the age rule
@@ -101,12 +101,12 @@ the possibly nearly empty oldest partition.
 
 ## Relationships
 
-- The operations side of [[audit-trail]].
-- The diagnosis relies on [[ash]] (wait events per plan line) and
-  [[execution-plans]].
+- The operations side of [Audit trail](audit-trail.md).
+- The diagnosis relies on [ASH](ash.md) (wait events per plan line) and
+  [Execution plans](execution-plans.md).
 - Another case in which a cloud environment showed unexpected behaviour:
-  [[logon-trigger]].
-- The partition strategy when purging: [[partitioning]].
+  [LOGON trigger](logon-trigger.md).
+- The partition strategy when purging: [Partitioning](partitioning.md).
 
 ## Open questions
 
@@ -119,4 +119,4 @@ the possibly nearly empty oldest partition.
 
 ## Sources
 
-- [[blog-audit-trail]]
+- [Blog series on the audit trail](../sources/blog-audit-trail.md)

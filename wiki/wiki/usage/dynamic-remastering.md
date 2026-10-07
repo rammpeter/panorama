@@ -16,7 +16,7 @@ which instance predominantly uses the object.
 
 ## The state of the sources
 
-The post [[blog-panorama-the-tool]] (2019-03-28) opens with a qualification:
+The post [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md) (2019-03-28) opens with a qualification:
 
 > "Unfortunately, dynamic remastering in RAC clusters has very little official
 > documentation."
@@ -47,10 +47,10 @@ Both tables and indexes as well as their partitions can be analysed this way.
 
 ## Relationships
 
-- A RAC topic like the per-instance view in [[blocking-locks]] and
-  [[measuring-system-load]].
+- A RAC topic like the per-instance view in [Blocking locks](blocking-locks.md) and
+  [Measuring system load](measuring-system-load.md).
 - With parallel processing across instances it also affects
-  [[parallel-execution]].
+  [Parallel execution](parallel-execution.md).
 
 ## Open questions
 
@@ -61,4 +61,4 @@ Both tables and indexes as well as their partitions can be analysed this way.
 
 ## Sources
 
-- [[blog-panorama-the-tool]]
+- [Blog series on Panorama as a tool](../sources/blog-panorama-the-tool.md)

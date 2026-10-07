@@ -11,7 +11,7 @@ sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 
 # PanoramaConnection
 
-The class through which every SQL statement of [[panorama]] reaches Oracle
+The class through which every SQL statement of [Panorama](../usage/panorama.md) reaches Oracle
 (`app/models/panorama_connection.rb`). It owns the connection pool, binds one
 connection to the executing thread and offers the small SQL API the controllers
 use.
@@ -20,9 +20,9 @@ use.
 
 `PanoramaConnection` does what ActiveRecord's connection handling normally does,
 but for an open-ended set of target databases chosen at runtime
-([[own-connection-pool-outside-activerecord]]). It reuses one piece of the
+([Own connection pool outside ActiveRecord](own-connection-pool-outside-activerecord.md)). It reuses one piece of the
 `oracle_enhanced` adapter — the `JDBCConnection` class — and bypasses the rest
-([[panorama-source-code]]).
+([Panorama source repository](../sources/panorama-source-code.md)).
 
 ## Thread-local state
 
@@ -68,13 +68,13 @@ A class-level array guarded by one mutex.
 For every new session, in this order:
 
 1. JDBC connect with `cursor_sharing: :exact` (the adapter's default would be
-   `FORCE` — see [[bind-variables-and-cursor-sharing]]), network encryption and
+   `FORCE` — see [Bind variables and cursor sharing](../usage/bind-variables-and-cursor-sharing.md)), network encryption and
    checksum `REQUESTED`, and `v$session.program` set to `Panorama <version>`.
 2. `setNetworkTimeout` at **twice the query timeout** — the safety net when a
-   connection hangs on the network ([[sql-net-and-firewalls]]).
+   connection hangs on the network ([SQL\*Net and firewalls](../usage/sql-net-and-firewalls.md)).
 3. JDBC statement cache enabled, 100 cursors.
 4. `ALTER SESSION SET parallel_degree_policy = MANUAL`, to avoid `ORA-12850` on
-   RAC ([[parallel-execution]]).
+   RAC ([Parallel execution](../usage/parallel-execution.md)).
 5. `ALTER SESSION SET Time_Zone` to the JVM's default time zone.
 6. Outside production only: `Statistics_Level = ALL`.
 7. `read_initial_attributes`: version, DBID, edition, block size, RAC flag,
@@ -87,7 +87,7 @@ methods (`PanoramaConnection.db_version`, `.rac?`, `.is_cdb?`, `.dbid` …), whi
 the controllers use for version-dependent SQL.
 
 Per request, `DBMS_APPLICATION_INFO.SET_MODULE('Panorama', '<controller>/<action>')`
-is called if the action changed — Panorama practises what [[session-context]]
+is called if the action changed — Panorama practises what [Session context](../usage/session-context.md)
 preaches, and its own sessions are identifiable in `V$SESSION`.
 
 ## The SQL API
@@ -129,7 +129,7 @@ class prefix, via `ApplicationHelper`.
 
 ## What the website says, and where it is out of date
 
-([[rammpeter-github-io]], landing page, "Implementation details".)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), landing page, "Implementation details".)
 
 - A request reuses a free pooled connection "if same credentials are used
   (TNS-data, user/password)"; any number of web clients are served, each with
@@ -148,11 +148,11 @@ agree. Whether the limit once was 10 minutes is not evidenced.
 
 ## Relationships
 
-- Part of [[panorama-architecture]].
-- Every statement is passed through the [[pack-license-filter]].
-- The sampler's threads use the same pool → [[panorama-sampler-internals]].
+- Part of [Panorama architecture](panorama-architecture.md).
+- Every statement is passed through the [Pack licence filter](pack-license-filter.md).
+- The sampler's threads use the same pool → [Panorama Sampler internals](panorama-sampler-internals.md).
 - The password in the connect info is decrypted per login →
-  [[panorama-client-state-and-security]].
+  [Client state and security in Panorama](panorama-client-state-and-security.md).
 
 ## Open questions
 
@@ -165,5 +165,5 @@ agree. Whether the limit once was 10 minutes is not evidenced.
 
 ## Sources
 
-- [[panorama-source-code]]
-- [[rammpeter-github-io]]
+- [Panorama source repository](../sources/panorama-source-code.md)
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

@@ -11,20 +11,20 @@ sources: [rammpeter.github.io.md, rammpeter.github.io/Oracle_performance_analysi
 
 # Session waits
 
-The submenu "Analyses / statistics" / "Session-Waits" of [[panorama]]: what
+The submenu "Analyses / statistics" / "Session-Waits" of [Panorama](panorama.md): what
 active sessions are waiting on, now and in the past. Its "Historic" entry is
-Panorama's main view onto [[ash]].
+Panorama's main view onto [ASH](ash.md).
 
 ## The four entries
 
-([[rammpeter-github-io]], menu overview.)
+([Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md), menu overview.)
 
 | Entry | Purpose as stated |
 |---|---|
 | Current | "All current session waits" |
 | Historic | "Prepared active session history from DBA_Hist_Active_Sess_History" |
 | CPU-Usage / DB-Time | Historic CPU usage and DB time from ASH; shows "the difference between real CPU-usage and waiting for CPU if you don't have Resource Manager activated" |
-| Long-term trend | "Long-term trend recording of session waits" → [[long-term-trend-analysis]] |
+| Long-term trend | "Long-term trend recording of session waits" → [Long-term trend analysis](long-term-trend-analysis.md) |
 
 ## Current
 
@@ -35,7 +35,7 @@ blocker/waiter relationships are listed hierarchically, taken from `gv$Session`.
 This is one of **two** routes to current blocking locks — the other, "DBA
 general" / "DB-Locks" / "Current", reads `gv$Lock`. The guide states that certain
 special blocking situations are shown by only one of the two
-→ [[blocking-locks]].
+→ [Blocking locks](blocking-locks.md).
 
 ## Historic — the ASH analysis
 
@@ -77,29 +77,29 @@ not active.
 > Conclusion: with the Resource Manager active, waiting for CPU shows up as its
 > own wait event; without it, a session queued for a core is simply recorded as
 > "on CPU". This entry makes the hidden queue visible by comparison. The basic
-> measure of load is described in [[measuring-system-load]].
+> measure of load is described in [Measuring system load](measuring-system-load.md).
 
 ## Licence
 
 "Historic" and "CPU-Usage / DB-Time" read ASH and therefore need the Diagnostics
-Pack — or [[panorama-sampler]], whose ASH replacement is evaluated in the same
-views with the limits listed there ([[management-pack-licensing]]).
+Pack — or [Panorama Sampler](panorama-sampler.md), whose ASH replacement is evaluated in the same
+views with the limits listed there ([Management pack licensing](management-pack-licensing.md)).
 
 ## Relationships
 
-- Listed in [[panorama-menu-overview]]; second pillar-one view next to
-  [[session-list]].
-- What ASH cannot show: [[ash]] (idle waits), [[short-lived-sessions]].
-- Derived analyses: [[blocking-locks]], [[temp-usage]],
-  [[network-latency-from-ash]].
+- Listed in [Panorama menu overview](panorama-menu-overview.md); second pillar-one view next to
+  [Session list](session-list.md).
+- What ASH cannot show: [ASH](ash.md) (idle waits), [Short-lived sessions](short-lived-sessions.md).
+- Derived analyses: [Blocking locks](blocking-locks.md), [TEMP usage](temp-usage.md),
+  [Estimating network latency from ASH](network-latency-from-ash.md).
 
 ## Open questions
 
 - Which grouping criteria are offered is not listed in the source.
 - The guide's "recommended > 30 days" retention is given without a reason there;
-  the argument for long retention is made in [[awr]] and
-  [[long-term-trend-analysis]].
+  the argument for long retention is made in [AWR](awr.md) and
+  [Long-term trend analysis](long-term-trend-analysis.md).
 
 ## Sources
 
-- [[rammpeter-github-io]]
+- [Panorama's website on GitHub Pages](../sources/rammpeter-github-io.md)

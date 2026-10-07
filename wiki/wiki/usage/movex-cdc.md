@@ -13,13 +13,13 @@ sources: [speakerdeck.md, speakerdeck/2022-05_MOVEX_CDC_DOAG_Database_en.pdf]
 
 "MOVEX Change Data Capture": an open-source tool by Panorama's author that
 captures data changes in a relational database with triggers and delivers them
-as JSON events to Kafka. Not part of [[panorama]], but built on the same
+as JSON events to Kafka. Not part of [Panorama](panorama.md), but built on the same
 technical base and instructive as a piece of Oracle design. Available at
 <https://gitlab.com/osp-silver/oss/movex-cdc>.
 
 ## Summary
 
-([[talks-jarbler-and-movex-cdc]], talk of 2022-05.) GPL3, developed at Otto
+([Talks on Jarbler and MOVEX CDC](../sources/talks-jarbler-and-movex-cdc.md), talk of 2022-05.) GPL3, developed at Otto
 Group Solution Provider; project at <https://gitlab.com/osp-silver/oss/movex-cdc>,
 Docker image
 `ottogroupsolutionproviderosp/movex-cdc`. Supported databases: Oracle (all
@@ -71,13 +71,13 @@ Interval-partitioned, no index: minimal overhead and maximum availability for
 the inserting transactions. Reading is then a full scan — kept bounded because
 fully processed partitions are dropped promptly. "No problem with a
 non-reducible high water mark": after a burst, the next partition starts small
-again → [[interval-partitions-rolling-window]].
+again → [Interval partitions and the rolling window](interval-partitions-rolling-window.md).
 
 **The same on Standard Edition shows what partitioning was buying.** There the
 table is a heap table with an index on `ID`: extra index maintenance in the
 business transaction, "a very tiny risk" of blocking at index block splits, and a
 high water mark that stays up after a peak — to be reset by hand with
-`ALTER TABLE Event_Logs MOVE` and an index rebuild → [[storage-reorganisation]].
+`ALTER TABLE Event_Logs MOVE` and an index rebuild → [Storage reorganisation](storage-reorganisation.md).
 
 **Work distribution by row locks.** Worker threads take events with
 `SELECT … FOR UPDATE SKIP LOCKED`; no coordinator is needed, and in principle
@@ -110,16 +110,16 @@ threads, small distances and JSON under 4 KB.
 - configuration by a config file or environment variables
 - logging to the console, log level changeable at runtime
 - the database schema **initialises itself** at start — the pattern of the
-  sampler's structure check ([[panorama-sampler-internals]])
+  sampler's structure check ([Panorama Sampler internals](../development/panorama-sampler-internals.md))
 - worker threads inside the application process, each with its own database
-  session ([[panorama-architecture]])
+  session ([Panorama architecture](../development/panorama-architecture.md))
 
 ## Relationships
 
-- By the author of [[panorama]]; presented in [[rammpeter-talks]].
-- Applies [[interval-partitions-rolling-window]] and illustrates
-  [[storage-reorganisation]].
-- Compound triggers also carry the solution in [[cross-table-uniqueness]].
+- By the author of [Panorama](panorama.md); presented in [Talks and slide decks by Peter Ramm](rammpeter-talks.md).
+- Applies [Interval partitions and the rolling window](interval-partitions-rolling-window.md) and illustrates
+  [Storage reorganisation](storage-reorganisation.md).
+- Compound triggers also carry the solution in [Cross-table uniqueness](cross-table-uniqueness.md).
 
 ## Open questions
 
@@ -132,4 +132,4 @@ threads, small distances and JSON under 4 KB.
 
 ## Sources
 
-- [[talks-jarbler-and-movex-cdc]]
+- [Talks on Jarbler and MOVEX CDC](../sources/talks-jarbler-and-movex-cdc.md)

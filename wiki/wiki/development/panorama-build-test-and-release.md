@@ -10,12 +10,12 @@ sources: [panorama-repository.md]
 
 # Building, testing and releasing Panorama
 
-How a change to [[panorama]] becomes a tested `Panorama.jar` and a Docker image:
+How a change to [Panorama](../usage/panorama.md) becomes a tested `Panorama.jar` and a Docker image:
 the test suite and what it needs, the CI matrix, and the packaging.
 
 ## Summary
 
-Two facts dominate ([[panorama-source-code]]):
+Two facts dominate ([Panorama source repository](../sources/panorama-source-code.md)):
 
 - **Almost every test needs a live Oracle database.** There is nothing to mock:
   the application consists of SQL against system views. The matrix of database
@@ -45,12 +45,12 @@ Two facts dominate ([[panorama-source-code]]):
 simulates (default: both packs). A test of a licensed feature asserts with
 `assert_response_success_or_management_pack_violation`, which expects an error
 response for the licence settings passed to it and success otherwise — so the
-[[pack-license-filter]] is itself under test in every run.
+[Pack licence filter](pack-license-filter.md) is itself under test in every run.
 
 **Menu coverage for free.** `call_controllers_menu_entries_with_actions` walks
 the menu structure and requests every entry that belongs to the controller under
 test and is valid for the database version. A new menu entry is thus smoke-tested
-without a test being written for it ([[panorama-request-and-rendering]]).
+without a test being written for it ([Controllers, routing and rendering in Panorama](panorama-request-and-rendering.md)).
 
 **Framework adjustments.** `lib/tasks/panorama_tasks.rake` removes the
 `db:test:load` and migration-check tasks, which make no sense with the `nulldb`
@@ -113,7 +113,7 @@ contains branches for older releases.
    each fingerprinted asset to its plain name, for references that bypass the
    asset pipeline
 3. `bundle install` again without `development` and `test`
-4. `jarble` — [[jarbler]], a tool by the same author — packs everything according to `config/jarble.rb`: executable
+4. `jarble` — [Jarbler](jarbler.md), a tool by the same author — packs everything according to `config/jarble.rb`: executable
    `bin/rails server -e production -p 8080`, Java release 21, Ruby files not
    precompiled, `vendor/` excluded
 5. remove the precompiled assets again, so the working tree stays a development
@@ -157,10 +157,10 @@ gem would lose it.
 
 ## Relationships
 
-- Part of [[panorama-architecture]].
-- What the artefacts are used for: [[panorama-operations]].
-- Settings that tests and containers pass in: [[panorama-configuration]].
-- The packaging tool and its rough edges: [[jarbler]].
+- Part of [Panorama architecture](panorama-architecture.md).
+- What the artefacts are used for: [Panorama operations](../usage/panorama-operations.md).
+- Settings that tests and containers pass in: [Panorama configuration](panorama-configuration.md).
+- The packaging tool and its rough edges: [Jarbler](jarbler.md).
 
 ## Open questions
 
@@ -170,4 +170,4 @@ gem would lose it.
 
 ## Sources
 
-- [[panorama-source-code]]
+- [Panorama source repository](../sources/panorama-source-code.md)

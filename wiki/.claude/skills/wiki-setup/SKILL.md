@@ -50,7 +50,7 @@ Nach den Antworten, jeweils zielgenau (übriger Text bleibt unverändert):
      Seite?“ anpassen.
 2. **`wiki/overview.md`** – den Platzhalter durch eine erste Übersicht ersetzen:
    Einleitung (was, wofür, für wen), `## Kernthemen` mit den zentralen Themen
-   (als Wikilinks, falls Stubs angelegt werden) und `## Offene Fragen` mit dem,
+   (als Markdown-Links mit relativem Pfad, falls Stubs angelegt werden) und `## Offene Fragen` mit dem,
    was das Wiki noch lernen muss. `status: stub` bleibt, `updated` auf heute.
 3. **`index.md`** – den Titel auf `# <Titel> – Index` ändern und `updated` auf
    heute setzen.

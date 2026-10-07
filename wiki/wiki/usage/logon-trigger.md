@@ -16,7 +16,7 @@ to fire.
 
 ## The case
 
-([[blog-sessions-and-connections]], 2025-04-01) A simple LOGON trigger that works
+([Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md), 2025-04-01) A simple LOGON trigger that works
 on several databases does nothing in one environment:
 
 - The `CREATE` ran without errors, the trigger **exists and is enabled**.
@@ -44,10 +44,10 @@ The author explicitly credits Sean Scott for the hint.
 Several methods in this wiki depend on a LOGON trigger and would fail without an
 error message in such an environment:
 
-- [[sql-translation-framework]] — the translation is activated via a LOGON
+- [SQL Translation Framework](sql-translation-framework.md) — the translation is activated via a LOGON
   trigger that sets `SQL_TRANSLATION_PROFILE`.
-- The 2021 route for linking audit trail and ASH → [[audit-trail]].
-- Any form of giving sessions context from outside → [[session-context]].
+- The 2021 route for linking audit trail and ASH → [Audit trail](audit-trail.md).
+- Any form of giving sessions context from outside → [Session context](session-context.md).
 
 ## Open questions
 
@@ -60,4 +60,4 @@ error message in such an environment:
 
 ## Sources
 
-- [[blog-sessions-and-connections]]
+- [Blog series on sessions, connections and the network](../sources/blog-sessions-and-connections.md)

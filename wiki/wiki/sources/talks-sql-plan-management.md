@@ -10,7 +10,7 @@ sources: [speakerdeck.md, speakerdeck/2018-04_ACC-Panorama-SQL-Plan-Management.p
 
 # Talk on influencing execution plans without code changes
 
-One German deck from [[rammpeter-talks]], April 2018: "Oracle-DB: Beeinflussen
+One German deck from [Talks and slide decks by Peter Ramm](../usage/rammpeter-talks.md), April 2018: "Oracle-DB: Beeinflussen
 der Ausführungspläne von SQL-Statements ohne Code-Anpassung — Verschiedene
 Verfahren und ihre Unterstützung durch Panorama". 17 slides, file
 `raw/speakerdeck/2018-04_ACC-Panorama-SQL-Plan-Management.pdf`. The file name
@@ -33,7 +33,7 @@ database offers ways to intervene ad hoc.
 | SQL patch | injects optimizer hints, like a profile | none — Standard Edition too |
 | SQL translation | replaces the whole SQL text | EE |
 
-→ [[sql-plan-management]], [[sql-translation-framework]].
+→ [SQL plan management](../usage/sql-plan-management.md), [SQL Translation Framework](../usage/sql-translation-framework.md).
 
 **A baseline does not store a plan** (slide 7). It prescribes the *plan hash
 value*; the optimizer must itself be able to arrive at a plan with that hash.
@@ -51,7 +51,7 @@ hint must name the query block, as in `INDEX(@SEL$1 h@SEL$1, IDX_Hugo_Neu)`.
 **A translation script has three parts** (slide 13): SYSDBA grants the user the
 right to create translation profiles; the user creates the profile with old and
 new text; SYSDBA creates a logon trigger that activates the translation in the
-user's sessions → [[sql-translation-framework]], [[logon-trigger]].
+user's sessions → [SQL Translation Framework](../usage/sql-translation-framework.md), [LOGON trigger](../usage/logon-trigger.md).
 
 **All four are quick fixes** (slide 14). The binding rests on SQL ID or SQL
 text and is lost when the statement changes. They should bridge the time until
@@ -64,15 +64,15 @@ lists all existing directives *including whether they are really used*.
 
 ## Impact on the wiki
 
-- [[sql-plan-management]] — the licence table refined, the plan-hash point, the
+- [SQL plan management](../usage/sql-plan-management.md) — the licence table refined, the plan-hash point, the
   reason for not supporting profiles, the query block hint, the quick-fix
   framing.
-- [[sql-translation-framework]] — licence and the three-part script.
-- [[management-pack-licensing]] — the refined licence rows.
+- [SQL Translation Framework](../usage/sql-translation-framework.md) — licence and the three-part script.
+- [Management pack licensing](../usage/management-pack-licensing.md) — the refined licence rows.
 
 ## Changes over time and disagreements
 
-- **Licence of the baseline.** [[sql-plan-management]] recorded from the blog
+- **Licence of the baseline.** [SQL plan management](../usage/sql-plan-management.md) recorded from the blog
   simply "additional licence needed: yes" for baselines. The deck is more
   precise: the baseline itself needs Enterprise Edition; the *Tuning Pack* is
   needed for creating it from AWR through a SQL tuning set, which is the route
@@ -80,9 +80,9 @@ lists all existing directives *including whether they are really used*.
 - **SQL patch API.** The deck of 2018-04 shows
   `sys.DBMS_SQLDiag_Internal.i_create_patch` and mentions that the generator
   handles the differing API per release, matching the blog
-  ([[blog-execution-plans]], 2018-01-14).
+  ([Blog series on execution plans and the optimizer](blog-execution-plans.md), 2018-01-14).
 - The deck names internally hosted Panorama instances reachable under
-  `…:8080/Panorama` — the path layout discussed in [[panorama-operations]].
+  `…:8080/Panorama` — the path layout discussed in [Panorama operations](../usage/panorama-operations.md).
 
 ## Open questions
 
