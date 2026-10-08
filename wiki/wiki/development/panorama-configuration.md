@@ -5,7 +5,7 @@ subtype: component
 status: draft
 tags: [panorama, architecture, operations]
 created: 2026-10-03
-updated: 2026-10-05
+updated: 2026-10-08
 sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
@@ -69,7 +69,9 @@ reflects that it now guards more than the sampler (admin menu, usage history).
 Set in code, relevant when reasoning about behaviour:
 
 - Browser session lifetime after the last request: 8 hours
-- Idle pooled connections are closed after 1 hour
+- Idle pooled connections are closed after 1 hour — in effect between 1 and 2
+  hours, because the hourly check uses the same 3600 s as threshold
+  ([PanoramaConnection](panorama-connection.md), *The pool*)
 - Network timeout of a connection: twice the query timeout chosen at login
 - Admin token lifetime: 8 hours
 - Version and release date: `Panorama::VERSION`, `Panorama::RELEASE_DATE` in

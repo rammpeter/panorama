@@ -5,7 +5,7 @@ subtype: component
 status: draft
 tags: [panorama, architecture, session]
 created: 2026-10-03
-updated: 2026-10-05
+updated: 2026-10-08
 sources: [panorama-repository.md, rammpeter.github.io.md, rammpeter.github.io/]
 ---
 
@@ -58,6 +58,13 @@ A class-level array guarded by one mutex.
 - **Ageing.** `ConnectionTerminateJob` closes connections idle for more than an
   hour. Logoff runs in a separate thread because it can block until the TCP read
   timeout.
+
+  > Conclusion (from reading `connection_terminate_job.rb` and
+  > `disconnect_aged_connections`, commit `38f29d53`, 2026-10-08): the job runs
+  > every 3600 s and the threshold is also 3600 s, so a connection is closed
+  > **between one and two hours** after its last use — one hour is only the
+  > lower bound. The same interval serves as check cycle and as threshold. A
+  > full pool is a separate path: the oldest idle connection is closed at once.
 - **Eviction on error.** Any exception in a controller action destroys the
   connection. Independently, a connection is destroyed after more than ten SQL
   errors in its lifetime, or immediately on `Closed Connection` — to stop

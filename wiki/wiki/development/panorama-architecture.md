@@ -5,7 +5,7 @@ subtype: system
 status: draft
 tags: [core, panorama, architecture]
 created: 2026-10-03
-updated: 2026-10-04
+updated: 2026-10-08
 sources: [panorama-repository.md]
 ---
 
@@ -99,7 +99,7 @@ shortly after boot:
 | Job | Cycle | Task |
 |---|---|---|
 | `InitializationJob` | once | logs the memory state |
-| `ConnectionTerminateJob` | hourly | closes pooled connections idle for more than an hour, cleans the client info store, trims `Usage.log` |
+| `ConnectionTerminateJob` | hourly | closes pooled connections idle for more than an hour (in effect 1–2 hours, see [PanoramaConnection](panorama-connection.md)), cleans the client info store, trims `Usage.log` |
 | `PanoramaSamplerJob` | smallest configured snapshot cycle | starts the sampler threads → [Panorama Sampler internals](panorama-sampler-internals.md). Only scheduled if a master password is configured |
 
 At process exit, `config/initializers/shutdown_hooks.rb` aborts every pooled
