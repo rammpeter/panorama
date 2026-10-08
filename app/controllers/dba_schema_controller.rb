@@ -1262,6 +1262,10 @@ class DbaSchemaController < ApplicationController
     @owner        = prepare_param :owner
     @table_name   = prepare_param :table_name
     @column_name  = prepare_param :column_name
+
+    # Check that all values exist in dictionary to avoid SQL injection, because column name is not bindable
+    raise "Column #{@owner}.#{@table_name}.#{@column_name} does not exist" unless sql_select_one(["SELECT COUNT(*) FROM DBA_Tab_Columns WHERE Owner = ? AND Table_Name = ? AND Column_Name = ?", @owner, @table_name, @column_name])
+
     @distinct_values = sql_select_iterator "\
       SELECT  \"#{@column_name}\" Column_Value, COUNT(*) Records
       FROM    \"#{@owner}\".\"#{@table_name}\"
@@ -1794,6 +1798,9 @@ class DbaSchemaController < ApplicationController
 
     object_id = sql_select_one ["SELECT Object_ID FROM DBA_Objects WHERE Owner = ? AND Object_Name = ?", @index_owner, @index_name]
     raise "DbaSchemaController.list_current_index_stats: Object #{@index_owner}.#{@index_name} not found in DBA_Objects" if object_id.nil?
+
+    # check table_owner and table_name for existence to prevent SQL injection
+    raise "DbaSchemaController.list_current_index_stats: Table #{@table_owner}.#{@table_name} does not exist " unless sql_select_one(["SELECT COUNT(*) FROM DBA_Tables WHERE Owner = ? AND Table_Name = ?", @table_owner, @table_name])
 
     consistent_gets_before = get_session_consistent_gets
 

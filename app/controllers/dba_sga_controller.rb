@@ -1524,6 +1524,8 @@ class DbaSgaController < ApplicationController
     @max_rows_in_result=1000
     @order_by   = params[:order_by]
 
+    raise "Unsupported order_by value '#{@order_by}'" unless ['sharable_mem', 'record_count'].include? @order_by
+
     @object_caches = sql_select_iterator ["
       SELECT *
       FROM   (
