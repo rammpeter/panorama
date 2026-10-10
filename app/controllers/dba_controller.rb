@@ -1815,9 +1815,7 @@ oradebug setorapname diag
       if trunc_tag == 'SS'
         ts_expr = "CAST(Originating_Timestamp AS DATE)"   # trunc second
       else
-        ts_expr = "TRUNC(Originating_Timestamp, ?)"
-        where_values.insert(0, trunc_tag)
-        where_values << trunc_tag
+        ts_expr = "TRUNC(Originating_Timestamp, '#{trunc_tag}')"
       end
 
       @result =  sql_select_iterator ["\
