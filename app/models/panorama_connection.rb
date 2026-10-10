@@ -116,14 +116,17 @@ ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection.class_eval do
 
   # Method comparable to ActiveRecord::ConnectionAdapters::OracleEnhancedDatabaseStatements.exec_update
   def exec_update(sql, name, binds = [])
-    if /\A\s*(CREATE|DROP|BEGIN|DECLARE)/i.match?(sql) && !binds.empty?
-      raise "Use CALL instead of BEGIN/END; for PL/SQL with binds!"
-    end
+    #if /\A\s*(CREATE|DROP|BEGIN|DECLARE)/i.match?(sql) && !binds.empty?
+    #  raise "Use CALL instead of BEGIN/END; for PL/SQL with binds!"
+    #end
 
     type_casted_binds = binds.map { |attr| TypeMapper.new.type_cast(attr.value_for_database) }
 
     log(sql, name, binds, type_casted_binds) do
-      cursor = prepare(sql)
+      # cursor = prepare(sql)
+      # Using prepared Statement may raise errors if :new or :old is used in CREATE TRIGGER
+      # cursor = prepare(sql) checks for CREATE|DROP|BEGIN|DECLARE and does not prepare the SQL even if binds are given, starting with Rails 8.1
+      cursor = ActiveRecord::ConnectionAdapters::OracleEnhanced::JDBCConnection::Cursor.new(self, @raw_connection.prepareStatement(sql))
       cursor.bind_params(type_casted_binds) if !binds.empty?
       res = cursor.exec_update
       res
