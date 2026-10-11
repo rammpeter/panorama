@@ -281,6 +281,7 @@ class PanoramaConnection
     @time_delay_secs = db_time - panorama_time                                  # Difference between client time zone time of Panorama server and Ruby time in seconds (DB-current time - Panorama-server)
     @time_delay_secs = (@time_delay_secs/10.0).round * 10                       # Round to seconds with +/- 5 seconds
 
+    begin
     sys_stat = PanoramaConnection.direct_select_one(@jdbc_connection, "\
                 SELECT NVL(CPUSPEED, CPUSPEEDNW) CPUSPEED,
                        NVL(SREADTIM, IOSEEKTIM +(SELECT value FROM v$parameter where name  = 'db_block_size') / IOTFRSPEED) SReadTim
@@ -292,6 +293,31 @@ class PanoramaConnection
                        FROM   SYS.AUX_STATS$
                        WHERE SName = 'SYSSTATS_MAIN'
                       )")
+    rescue Exception => e
+      Rails.logger.debug('PanoramaConnection.read_initial_attributes') { "SYS.AUX_STATS$ SYSSTATS_MAIN not available, trying alternative: #{e.class}: #{e.message}" }
+      sys_stat = PanoramaConnection.direct_select_one(@jdbc_connection, "\
+                   WITH FUNCTION get_system_stat(p_name IN VARCHAR2) RETURN NUMBER IS
+                          PRAGMA AUTONOMOUS_TRANSACTION; /* DBMS_STATS.GET_SYSTEM_STATS does a commit internally, so we need to be in an autonomous transaction use it in a CTE */
+                          l_status VARCHAR2(30);
+                          l_start  DATE;
+                          l_stop   DATE;
+                          l_value  NUMBER;
+                        BEGIN
+                          DBMS_STATS.GET_SYSTEM_STATS(l_status, l_start, l_stop, p_name, l_value);
+                          COMMIT;
+                          RETURN l_value;
+                        END;
+                   SELECT NVL(CPUSPEED, CPUSPEEDNW) CPUSPEED,
+                          NVL(SREADTIM, IOSEEKTIM +(SELECT value FROM v$parameter where name  = 'db_block_size') / IOTFRSPEED) SReadTim
+                   FROM  (
+                           SELECT get_system_stat('CPUSPEEDNW')  CPUSPEEDNW,
+                                  get_system_stat('CPUSPEED')    CPUSPEED,
+                                  get_system_stat('IOSEEKTIM')   IOSEEKTIM,
+                                  get_system_stat('IOTFRSPEED')  IOTFRSPEED,
+                                  get_system_stat('SREADTIM')    SREADTIM
+                           FROM   Dual
+                         )")
+    end
     raise "SYS.AUX_STATS$ SYSSTATS_MAIN not available, cannot determine CPU speed and SReadTim" if sys_stat.nil?
     @sysstat_cpuspeed = sys_stat['cpuspeed']
     @sysstat_sreadtim = sys_stat['sreadtim']

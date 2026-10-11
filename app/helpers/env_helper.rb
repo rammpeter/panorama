@@ -6,6 +6,7 @@ require 'java'
 # require_relative '../../config/engine_config'
 require 'database_helper'
 require 'env_extension_helper'
+require 'securerandom'
 
 module EnvHelper
   include DatabaseHelper
@@ -51,7 +52,7 @@ module EnvHelper
         new_client_key = rand(10000000)
         unless ClientInfoStore.exist?(new_client_key) # Dieser Key wurde noch nie genutzt
           # Salt immer mit belegen bei Vergabe des client_key, da es genutzt wird zur Verschlüsselung des Client_Key im cookie
-          cookies[:client_salt] = {:value => rand(10000000000), :expires => 1.year.from_now, httponly: true} # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
+          cookies[:client_salt] = {:value => SecureRandom.random_number(2**256), :expires => 1.year.from_now, httponly: true} # Lokaler Schlüsselbestandteil im Browser-Cookie des Clients, der mit genutzt wird zur Verschlüsselung der auf Server gespeicherten Login-Daten
           cookies[:client_key] = {:value => Encryption.encrypt_value(new_client_key, cookies[:client_salt]), :expires => 1.year.from_now, httponly: true}
           ClientInfoStore.write(new_client_key, 1) # Marker fuer Verwendung des Client-Keys
           break

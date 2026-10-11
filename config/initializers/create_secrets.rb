@@ -11,7 +11,6 @@ begin
     Panorama::Application.log_attribute(:SECRET_KEY_BASE, 'dont show secret', password: true)
     Rails.logger.info('create_secrets.rb') { "Secret key base read from config attribute SECRET_KEY_BASE (#{config.secret_key_base.length} chars)"}
     Rails.logger.warn('create_secrets.rb') { "Secret key base from SECRET_KEY_BASE config attribute is too short! Should have at least 128 chars!" } if config.secret_key_base.length < 128
-
   end
 
   # get file from command line arguments, does not really work with rails server yet
@@ -55,7 +54,7 @@ begin
     config.secret_key_base = SecureRandom.hex(64)
     Rails.logger.warn('create_secrets.rb') { "Encryption key for SECRET_KEY_BASE is initially generated with #{config.secret_key_base.length} chars and stored at #{default_file}!" }
     Rails.logger.warn('create_secrets.rb') { "This key is valid only for the lifetime of this running Panorama instance because you did not provide a value for PANORAMA_VAR_HOME !" } unless config.panorama_var_home_user_defined
-    File.write(default_file, config.secret_key_base)
+    File.write(default_file, config.secret_key_base, perm: 0600) # write to default location with restricted permissions
   end
 rescue Exception => e
   Rails.logger.error('create_secrets.rb') { "Error setting secret key base: #{e.class}: #{e.message}" }
