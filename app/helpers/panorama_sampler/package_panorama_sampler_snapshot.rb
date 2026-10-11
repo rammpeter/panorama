@@ -740,7 +740,7 @@ END Panorama_Sampler_Snapshot;
 
   PROCEDURE Snap_TempStatXS(p_Snap_ID IN NUMBER, p_DBID IN NUMBER, p_Instance IN NUMBER) IS
   BEGIN
-    INSERT INTO panorama_owner.Panorama_TempStatXS (SNAP_ID, DBID, INSTANCE_NUMBER, FILE#, Creation_Change#,
+    INSERT INTO panorama_owner.Internal_TempStatXS (SNAP_ID, DBID, INSTANCE_NUMBER, FILE#, Creation_Change#,
                                      PHYRDS, PHYWRTS, SINGLEBLKRDS, READTIM, WRITETIM, SINGLEBLKRDTIM, PHYBLKRD, PHYBLKWRT, WAIT_COUNT, TIME,
                                      CON_DBID, CON_ID
     ) SELECT p_Snap_ID, p_DBID, p_Instance, f.File#, d.Creation_Change#, f.PHYRDS, f.PHYWRTS, f.SINGLEBLKRDS, f.READTIM, f.WRITETIM, f.SINGLEBLKRDTIM, f.PHYBLKRD, f.PHYBLKWRT, NULL /* WAIT_COUNT */, NULL /* TIME */,

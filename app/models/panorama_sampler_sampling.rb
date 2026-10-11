@@ -508,7 +508,13 @@ class PanoramaSamplerSampling
     end
 
     # SHRINK / MOVE LOB segments if available
-    lobs = PanoramaConnection.sql_select_all ["SELECT Column_Name, Tablespace_Name FROM DBA_Lobs WHERE Owner = ? AND Table_Name = ?", @sampler_config.get_owner.upcase, table_name.upcase]
+    lobs = PanoramaConnection.sql_select_all ["\
+      SELECT l.Column_Name, l.Tablespace_Name
+      FROM   DBA_Lobs l
+      JOIN   DBA_Tab_Columns tc ON tc.Owner = l.Owner AND tc.Table_Name = l.Table_Name AND tc.Column_Name = l.Column_Name
+      WHERE  l.Owner = ? AND l.Table_Name = ?
+      AND    tc.Data_Type != 'VARCHAR2'  /* Exclude pseudo LOBs for extended VARCHAR2 (32767 bytes) */
+      ", @sampler_config.get_owner.upcase, table_name.upcase]
     lobs.each do |lob|
       lob_cmd = "ALTER TABLE #{@sampler_config.get_owner}.#{table_name} MODIFY LOB (#{lob.column_name}) (SHRINK SPACE)"
       Rails.logger.info('PanoramaSamplerSampling.exec_shrink_space') { "Executing #{lob_cmd}" }
