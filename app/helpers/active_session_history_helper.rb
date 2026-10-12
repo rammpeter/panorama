@@ -379,6 +379,8 @@ module ActiveSessionHistoryHelper
 
   # Join with respect to P1 which sometimes has the more valid info than Current_File_No (e.g. for file# in p1text and Current_File_No = -1)
   def ash_data_file_join_sql(data_file_alias: 'f', ash_alias: 's')
+    # Oracle 11.2 fails with CASE expression in outer join condition, so use the old simple join there
+    return "#{data_file_alias}.File_ID = #{ash_alias}.Current_File_No" if get_db_version < '12.1'
     " /* Replacement if s.Current_File_No does not point to a valid file */\n#{data_file_alias}.File_ID = CASE WHEN #{ash_alias}.p1text = 'file#' AND #{ash_alias}.Current_File_No IN (-1, 0, 1) AND #{ash_alias}.P1 != 0 THEN #{ash_alias}.p1 ELSE #{ash_alias}.Current_File_No END"
   end
 end
