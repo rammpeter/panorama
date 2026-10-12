@@ -206,7 +206,17 @@ class ActiveSupport::TestCase
   def shrink_table_size_for_always_free_autonomous_db(sample_config)
     if PanoramaConnection.autonomous_database?
       ['PANORAMA_SQL_PLAN', 'PANORAMA_SQL_BIND', 'PANORAMA_SQLTEXT'].each do |table_name|
-        PanoramaConnection.sql_execute("TRUNCATE TABLE #{sample_config[:owner]}.#{table_name}") if PanoramaConnection.table_exists?(table_name)
+        if PanoramaConnection.table_exists?(table_name)
+          begin
+            PanoramaConnection.sql_execute("TRUNCATE TABLE #{sample_config[:owner]}.#{table_name}")
+          rescue Exception => e
+            raise unless e.message.include?('ORA-00060')
+
+            Rails.logger.warn('ActiveSupport::TestCase.shrink_table_size_for_always_free_autonomous_db') do
+              "Skipping truncate of #{sample_config[:owner]}.#{table_name} after Oracle deadlock"
+            end
+          end
+        end
       end
     end
   end
