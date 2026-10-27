@@ -16,6 +16,9 @@ USER    root
 ARG     YUM="yum -y"
 RUN     rm -rf /var/log/*
 
+# Ensure that the Linux repo URL is not resolved as internal OCI URL
+RUN	echo "" > /etc/dnf/vars/ociregion
+
 # Update OS to current patch state
 RUN     echo "YUM = ${YUM}" && ${YUM} update && ${YUM} install procps && ${YUM} clean all
 

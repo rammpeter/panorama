@@ -1,3 +1,4 @@
+#!/bin/bash
 # Build Oracle database image
 # Peter Ramm, 16.04.2019
 
@@ -27,8 +28,10 @@ if [[ $BASE_IMAGE =~ "free" ]]; then
   export PDB_SERVICE=freepdb1
 fi
 
-if [[ $BASE_IMAGE =~ "23" ]]; then
-  # Settings for Docker-Image of gvenzl/oracle-free:23-full
+# Settings for Docker-Image of gvenzl/oracle-free:23-full
+if [[ $BASE_IMAGE =~ "26" ]]; then
+  export YUM=dnf
+elif [[ $BASE_IMAGE =~ "23" ]]; then
   export YUM=microdnf
 else
   # Settings for Docker-Images pre 23
@@ -50,7 +53,8 @@ sed "s/BASE_ENV/$(cat base.env)/" Dockerfile > Dockerfile.modified
 echo "Building Oracle database for $TARGET_IMAGE"
 # add --squash if it is not experimental no more
 # Disable DOCKER_BUILDKIT as workaround for "/sys/fs/cgroup/memory.max no such file or directory" see: https://github.com/oracle/docker-images/issues/2334
-DOCKER_BUILDKIT=0 docker build --no-cache \
+DOCKER_BUILDKIT=1 docker build --no-cache \
+--progress=plain \
 --build-arg BASE_IMAGE=$BASE_IMAGE \
 --build-arg CDB_SERVICE=$CDB_SERVICE \
 --build-arg PDB_SERVICE=$PDB_SERVICE \

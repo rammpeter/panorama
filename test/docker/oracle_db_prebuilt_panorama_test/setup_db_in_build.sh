@@ -1,11 +1,9 @@
 # Setup database instance during "docker build" by wrapping runOracle.sh
 # Terminates install process after finishing
 
-# Modify run script to start database in background
-sed -i '2i set -x' $ORACLE_BASE/run_db_in_container.sh
+# Start database, ensure the script replaces the current one and receives SIGTERM
+$ORACLE_BASE/$RUN_FILE &
 
-# Start database in background, use script that at first links data files to /opt/oradata
-cd $ORACLE_BASE && env && $ORACLE_BASE/run_db_in_container.sh &
 
 # The container entrypoint used for ghcr.io/gvenzl/oracle-free etc.
 if [ -z "$RUN_FILE" ]; then
