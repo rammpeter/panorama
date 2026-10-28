@@ -736,19 +736,44 @@ class DbaSgaController < ApplicationController
 
     # Bindevariablen des Cursors
     @binds = sql_select_all ["\
-      SELECT /* Panorama-Tool Ramm */ Child_Number, Name, Position, DataType_String, Last_Captured,
-             CASE DataType_String
+      SELECT /* Panorama-Tool Ramm */ c.Child_Number, c.Name, c.Position, c.DataType_String, c.Last_Captured,
+             CASE c.DataType_String
                WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(Value_AnyData), '#{sql_datetime_minute_mask}')
                WHEN 'DATE'      THEN TO_CHAR(TO_DATE(Value_String, 'MM/DD/YYYY HH24:MI:SS'), '#{sql_datetime_second_mask}')
              ELSE Value_String END Value_String,
-             Child_Number,
-             NLS_CHARSET_NAME(Character_SID) Character_Set, Precision, Scale, Max_Length
+             NLS_CHARSET_NAME(c.Character_SID) Character_Set, c.Precision, c.Scale, c.Max_Length,
+             peek.Parse_Time, peek.Plan_Hash_Value,
+             CASE peek.dty
+               WHEN 1   THEN UTL_RAW.CAST_TO_VARCHAR2(HEXTORAW(peek.val))         -- VARCHAR2
+               WHEN 96  THEN UTL_RAW.CAST_TO_VARCHAR2(HEXTORAW(peek.val))         -- CHAR
+               WHEN 2   THEN TO_CHAR(UTL_RAW.CAST_TO_NUMBER(HEXTORAW(peek.val)))  -- NUMBER
+               WHEN 12  THEN TO_CHAR(TO_DATE(                                  -- DATE (7 Byte)
+                               TO_CHAR((TO_NUMBER(SUBSTR(peek.val,1,2),'XX')-100)*100
+                                       + TO_NUMBER(SUBSTR(peek.val,3,2),'XX')-100,'FM0000')
+                               ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,5,2),'XX'),'FM00')
+                               ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,7,2),'XX'),'FM00')
+                               ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,9,2),'XX')-1,'FM00')
+                               ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,11,2),'XX')-1,'FM00')
+                               ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,13,2),'XX')-1,'FM00'),
+                               'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS')
+             ELSE DECODE(peek.Val, NULL, NULL, 'raw: '||peek.val)
+             END Peeked_Value
       FROM   gv$SQL_Bind_Capture c
-      WHERE  Inst_ID = ?
-      AND    SQL_ID  = ?
-      #{" AND Child_Number  = ?" unless @child_number.nil?}
-      #{" AND Child_Address = HEXTORAW(?)" unless @child_address.nil?}
-      ORDER BY Position
+      LEFT OUTER JOIN   (SELECT p.Inst_ID, p.SQL_ID, p.Child_Number, p.TimeStamp Parse_Time, p.Plan_Hash_Value, b.Pos, b.dty, b.val
+                         FROM   gv$SQL_Plan p,
+                                XMLTABLE('/other_xml/peeked_binds/bind'
+                                 PASSING XMLTYPE(p.other_xml)
+                                 COLUMNS pos NUMBER         PATH '@pos',
+                                         nam VARCHAR2(128)  PATH '@nam',
+                                         dty NUMBER         PATH '@dty',
+                                         val VARCHAR2(4000) PATH '.') b
+                         WHERE   p.Other_XML IS NOT NULL
+                        ) peek ON peek.Inst_ID = c.Inst_ID AND peek.SQL_ID = c.SQL_ID AND peek.Child_Number = c.Child_Number AND peek.Pos = c.Position
+      WHERE  c.Inst_ID = ?
+      AND    c.SQL_ID  = ?
+      #{" AND c.Child_Number  = ?" unless @child_number.nil?}
+      #{" AND c.Child_Address = HEXTORAW(?)" unless @child_address.nil?}
+      ORDER BY c.Position
       ", @instance, @sql_id ]
                                 .concat(@child_number.nil?  ? [] : [@child_number])
                                 .concat(@child_address.nil? ? [] : [@child_address])

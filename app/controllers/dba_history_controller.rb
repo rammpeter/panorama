@@ -602,15 +602,44 @@ class DbaHistoryController < ApplicationController
                  WHEN 'TIMESTAMP' THEN TO_CHAR(ANYDATA.AccessTimestamp(b.Value_AnyData), '#{sql_datetime_minute_mask}')
                ELSE b.Value_String END Value_String,
                NLS_CHARSET_NAME(b.Character_SID) Character_Set, b.Precision, b.Scale, b.Max_Length,
-               ss.End_Interval_Time
+               ss.End_Interval_Time,
+               peek.Parse_Time, peek.phv Plan_Hash_Value,
+               CASE peek.dty
+                 WHEN 1   THEN UTL_RAW.CAST_TO_VARCHAR2(HEXTORAW(peek.val))         -- VARCHAR2
+                 WHEN 96  THEN UTL_RAW.CAST_TO_VARCHAR2(HEXTORAW(peek.val))         -- CHAR
+                 WHEN 2   THEN TO_CHAR(UTL_RAW.CAST_TO_NUMBER(HEXTORAW(peek.val)))  -- NUMBER
+                 WHEN 12  THEN TO_CHAR(TO_DATE(                                  -- DATE (7 Byte)
+                                 TO_CHAR((TO_NUMBER(SUBSTR(peek.val,1,2),'XX')-100)*100
+                                         + TO_NUMBER(SUBSTR(peek.val,3,2),'XX')-100,'FM0000')
+                                 ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,5,2),'XX'),'FM00')
+                                 ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,7,2),'XX'),'FM00')
+                                 ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,9,2),'XX')-1,'FM00')
+                                 ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,11,2),'XX')-1,'FM00')
+                                 ||TO_CHAR(TO_NUMBER(SUBSTR(peek.val,13,2),'XX')-1,'FM00'),
+                                 'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS')
+               ELSE DECODE(peek.Val, NULL, NULL, 'raw: '||peek.val)
+               END Peeked_Value
         FROM   DBA_Hist_SQLBind b
         JOIN   DBA_Hist_Snapshot ss ON ss.DBID = b.DBID AND ss.Snap_ID = b.Snap_ID AND ss.Instance_Number = b.Instance_Number
+        -- needed to get all used plan hash values for this SQL_ID, because DBA_Hist_SQLBind does not contain plan_hash_value
+        JOIN   DBA_Hist_SQLStat s ON s.Instance_Number = b.Instance_Number AND s.DBID = b.DBID AND s.Snap_ID = b.Snap_ID AND s.SQL_ID = b.SQL_ID
+        -- Naming phv as Plan_Hash_Value raises ORA-00918 'column ambiguously defined' in case of a join with DBA_Hist_SQLBind, so we use an alias
+        LEFT OUTER JOIN   (SELECT p.DBID, p.SQL_ID, p.Plan_Hash_Value, p.TimeStamp Parse_Time, p.Plan_Hash_Value phv, peek.Pos, peek.dty, peek.val
+                           FROM   DBA_Hist_SQL_Plan p,
+                                  XMLTABLE('/other_xml/peeked_binds/bind'
+                                   PASSING XMLTYPE(p.other_xml)
+                                   COLUMNS pos NUMBER         PATH '@pos',
+                                           nam VARCHAR2(128)  PATH '@nam',
+                                           dty NUMBER         PATH '@dty',
+                                           val VARCHAR2(4000) PATH '.') peek
+                           WHERE   p.Other_XML IS NOT NULL
+                          ) peek ON peek.DBID = b.DBID AND peek.SQL_ID = b.SQL_ID AND peek.Plan_Hash_Value = s.Plan_Hash_Value AND peek.Pos = b.Position
         WHERE  b.DBID            = ?
         AND    b.Instance_Number = ?
         AND    b.SQL_ID          = ?
         AND    b.Snap_ID BETWEEN ? AND ?
         AND    b.Position        = ?
-        ORDER BY Last_Captured DESC
+        ORDER BY b.Last_Captured DESC
         ", @dbid, @instance, @sql_id, @min_snap_id, @max_snap_id, @position]
 
     render_partial
