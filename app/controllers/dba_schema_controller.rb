@@ -3774,6 +3774,9 @@ class DbaSchemaController < ApplicationController
     end
 
     sql_select_all ["SELECT o.*,
+                            /* Transform UTC times into system time zone */
+                            CAST(o.Start_Time AS TIMESTAMP) Start_Time_Local,
+                            CAST(o.End_Time   AS TIMESTAMP) End_Time_Local,
                             #{DatabaseHelper.extract_seconds_from_interval('End_Time - Start_Time')} Duration
                     FROM   (SELECT SUBSTR(sTarget, 1, INSTR(sTarget, '.')-1) Owner,
                                    CASE WHEN INSTR(sTarget, '.', 1, 2) = 0
