@@ -1984,8 +1984,8 @@ oradebug setorapname diag
              MIN(CAST(Timestamp AS TIMESTAMP)) Min_Timestamp, MAX(CAST(Timestamp AS TIMESTAMP)) Max_Timestamp /* use system time zone */,
              Con_ID, COUNT(*) Num_Rows_In_Period
       FROM   GV$Diag_Trace_File_Contents
-      WHERE   Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
-      AND     Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
+      WHERE   Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), SESSIONTIMEZONE)
+      AND     Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), SESSIONTIMEZONE)
       #{where_string}
       GROUP BY Inst_ID, ADR_Home, Trace_Filename, CON_ID
       ORDER BY Max(Timestamp)
@@ -2017,8 +2017,8 @@ oradebug setorapname diag
                                            NVL(MIN(DECODE(In_Period, 1, Line_Number, 0)), 0) Min_Line_Number,
                                            NVL(MAX(DECODE(In_Period, 1, Line_Number, 0)), 0) Max_Line_Number
                                     FROM   (SELECT c.*,
-                                                   CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
-                                                        AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
+                                                   CASE WHEN Timestamp >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), SESSIONTIMEZONE)
+                                                        AND  Timestamp <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), SESSIONTIMEZONE)
                                                    THEN 1 ELSE 0 END In_Period
                                             FROM   gv$Diag_Trace_File_Contents c
                                             WHERE  c.Inst_ID        = ?
@@ -2047,8 +2047,8 @@ oradebug setorapname diag
                                                  AND    c.ADR_Home       = ?
                                                  AND    c.Trace_FileName = ?
                                                  AND    c.Con_ID         = ?
-                                                 AND    Timestamp        >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), DBTIMEZONE)
-                                                 AND     Timestamp       <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), DBTIMEZONE)
+                                                 AND    Timestamp        >= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_start)}'), SESSIONTIMEZONE)
+                                                 AND     Timestamp       <= FROM_TZ(TO_TIMESTAMP(?, '#{sql_datetime_mask(@time_selection_end)}'), SESSIONTIMEZONE)
                                                  /* Do not ORDER BY c.Line_Number because the original order within on line_number should be retained */
                                                 ) x
                                          WHERE  #{rownum_condition}

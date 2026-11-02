@@ -445,8 +445,8 @@ module ExplainPlanHelper
   end
 
   # build data title for columns cost and cardinality
-  def cost_card_data_title(rec)
-    "%t#{"\n\nmarked orange if the difference between estimated cardinality and real number of gotten rows is greater than 10:1 or vice versa\n" if rec['output_rows']}
+  def cost_card_data_title(rec, addition = nil)
+    "%t#{addition}
 #{"
 Optimizer mode = #{rec.optimizer}"          if rec.optimizer}#{"
 CPU cost = #{fn(calc_cpu_cost_from_plan(rec.cpu_cost), 3)}"  if rec.cpu_cost}#{"

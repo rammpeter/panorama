@@ -262,6 +262,16 @@ Last = #{fn(rec.last_disk_writes)}
 "
     end
 
+    data_title_cardinality = proc do |rec|
+      addition = if cardinality_data_style == ''
+                   nil
+                 else
+                   "\n\nMarked orange because the difference between estimated cardinality and real number of gotten rows is greater than 10:1 or vice versa\nThe real number of gotten rows per start = #{fn(rec.output_rows.to_f/rec.starts, 1) rescue nil}\n"
+                 end
+      cost_card_data_title(rec, addition)
+    end
+
+
 
     column_options = []
     column_options << {:caption=>'Skp.',        :data=>proc{|rec| 'x' if rec[:skipped_adaptive_plan]},          :title=>"Is record skipped from plan due to adaptive plans ?" } if @show_adaptive_plans
@@ -275,7 +285,7 @@ Last = #{fn(rec.last_disk_writes)}
     column_options << { :caption=>"Total no. of rows", :data=>link_real_num_rows, :title=>"Total number of rows of object.\nFrom analyze info.\nSum of all partitions if object is partitioned.", :align=>:right, data_title: proc { |rec| "%t\n#{analyzed_spec_title.call(rec)}" } }
     column_options << {:caption=>"MB",          :data=>proc{|rec| fn(rec.mbytes) },                             :title=>"Size of object in MBytes", data_title: proc{|rec| "%t\n#{size_explain(rec.mbytes)}"}, :align=>:right }
     column_options << {:caption=>"Cost",        :data=>proc{|rec| fn(rec.cost) },                               :title=>"Costs calculated by optimizer + additional optimizer calculations", :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
-    column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by the operation', :align=>:right, :data_title=>proc{|rec| cost_card_data_title(rec)} }
+    column_options << {:caption=>'Card.',       :data=>proc{|rec| fn(rec.cardinality) },                        :title=>'Estimated number of rows produced by each single start of the operation', :align=>:right, :data_title=>data_title_cardinality }
     column_options << { caption: "Partition start", data: proc{|rec| rec.partition_start },                       title: "Start partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
     column_options << { caption: "Partition stop", data: proc{|rec| rec.partition_stop },                         title: "Stop partition of a range of accessed partitions" } if explain_plan_col_setting['Partition attributes']
     column_options << { caption: "Partition ID",  data: proc{|rec| rec.partition_id },                            title: "Step that computes the pair of values of the PARTITION_START and PARTITION_STOP columns" } if explain_plan_col_setting['Partition attributes']
