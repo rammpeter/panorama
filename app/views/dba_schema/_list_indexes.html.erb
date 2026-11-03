@@ -103,6 +103,13 @@
          action: "ajax_html('#{@update_area}', 'dba_history', 'list_segment_stat_hist_detail', { owner: '#{@owner}', object_name: '#{rec.index_name}'});"
        },
        {
+         name: "db_cache",
+         caption: "DB cache usage",
+         hint: "Show current use of DB cache for #{@owner}.#{rec.index_name}",
+         icon_class: "",
+         action: "ajax_html('#{@update_area}', 'dba_sga', 'list_db_cache_by_object', { owner: '#{@owner}', object_name: '#{rec.index_name}'});"
+       },
+       {
          name: "show_hint_use",
          caption: "Show use of index name in optimizer hints",
          hint: "Show possible use of the name of this index in optimizer hints of SQLs in SGA",
