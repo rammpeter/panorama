@@ -65,19 +65,23 @@ module EnvHelper
   # Helper to distinguish browser tabs, sets @browser_tab_id
   # @return [void]
   def initialize_browser_tab_id
-    tab_ids = ClientInfoStore.read_for_client_key(get_decrypted_client_key,:browser_tab_ids, default: {})
-    tab_ids = {} if tab_ids.class != Hash
-    @browser_tab_id = 1                                                         # Default tab-id if no other exists
-    while tab_ids.key?(@browser_tab_id) do
-      if tab_ids[@browser_tab_id].key?(:last_page_load) && tab_ids[@browser_tab_id][:last_page_load] < Time.now-84600*10  # Reuse after 10 days
-        break
+    # Atomic read-modify-write ensures that concurrently opened browser tabs don't get the same browser_tab_id
+    ClientInfoStore.update_for_client_key(get_decrypted_client_key, :browser_tab_ids, default: {}) do |tab_ids|
+      tab_ids = {} if tab_ids.class != Hash
+      @browser_tab_id = 1                                                       # Default tab-id if no other exists
+      while tab_ids.key?(@browser_tab_id) do
+        last_request = tab_ids[@browser_tab_id][:last_request] || tab_ids[@browser_tab_id][:last_page_load]
+        if last_request && last_request < Panorama::BROWSER_TAB_ID_REUSE_DELAY.ago # Reuse only if browser tab has not been used for a long time
+          tab_ids[@browser_tab_id] = {}                                         # Ensure that no session state of the previous browser tab is reused
+          break
+        end
+        @browser_tab_id += 1
       end
-      @browser_tab_id += 1
+      tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)           # create Hash for browser tab if not already exists
+      tab_ids[@browser_tab_id][:last_page_load] = Time.now
+      tab_ids[@browser_tab_id][:last_request]   = Time.now                      # Ensure that this browser tab entry will not be cleaned up by ClientInfoStore.cleanup in ConnectionTerminationJob
+      tab_ids
     end
-    tab_ids[@browser_tab_id] = {} if !tab_ids.key?(@browser_tab_id)             # create Hash for browser tab if not already exists
-    tab_ids[@browser_tab_id][:last_page_load] = Time.now
-    tab_ids[@browser_tab_id][:last_request]   = Time.now                        # Ensure that this browser tab entry will not be cleaned up by ClientInfoStore.cleanup in ConnectionTerminationJob
-    ClientInfoStore.write_for_client_key(get_decrypted_client_key,:browser_tab_ids, tab_ids)
   end
 
   # Read tnsnames.ora

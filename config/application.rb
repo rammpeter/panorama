@@ -39,6 +39,10 @@ module Panorama
   # How long should a client browser session be kept alive after the last request?
   MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST = 8.hours   if !defined? Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST
 
+  # How long after the last request should a browser tab id be reserved before it may be reused by another browser tab?
+  # Must be greater than MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST to ensure that a still open browser tab never uses the session state of another browser tab
+  BROWSER_TAB_ID_REUSE_DELAY = 10.days                if !defined? Panorama::BROWSER_TAB_ID_REUSE_DELAY
+
   class Application < Rails::Application
 
     # Log the used settings from environment

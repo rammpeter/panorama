@@ -1,6 +1,6 @@
 class ClientInfoStore
   @@instance = nil
-  @@mutex = Mutex.new
+  @@mutex = Monitor.new                                                         # Reentrant to allow atomic read-modify-write sequences calling read/write internally
 
     private_class_method :new
 
@@ -28,6 +28,7 @@ class ClientInfoStore
   def self.exist?(key)            instance.exist?(key)        end
   def self.read_for_client_key(client_key, key, default: nil) instance.read_for_client_key(client_key, key, default: default) end
   def self.write_for_client_key(client_key, key, value, retries: 0) instance.write_for_client_key(client_key, key, value, retries: retries) end
+  def self.update_for_client_key(client_key, key, default: nil, &block) instance.update_for_client_key(client_key, key, default: default, &block) end
   def self.cleanup()              instance.cleanup            end
 
   def self.read_from_browser_tab_client_info_store(client_key, browser_tab_id, key)
@@ -45,15 +46,17 @@ class ClientInfoStore
   # @param [String] browser_tab_id The browser tab id for identifying browser tab
   # @param [Hash] values The values to be written for browser tab
   def self.write_to_browser_tab_client_info_store(client_key, browser_tab_id, values)
-    browser_tab_ids = self.read_for_client_key(client_key,:browser_tab_ids)             # read full tree with all browser-tab-specific connections
-    if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
-      Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids&.keys}"}
-      raise "No session state available at Panorama-Server! Please reload the browser page."
+    # read and write full tree with all browser-tab-specific connections atomically to prevent lost updates by concurrent requests of other browser tabs
+    self.update_for_client_key(client_key, :browser_tab_ids) do |browser_tab_ids|
+      if browser_tab_ids.nil? || browser_tab_ids[browser_tab_id].nil?
+        Rails.logger.error('ClientInfoStore.write_to_browser_tab_client_info_store') {"No session state available: browser_tab_id=#{browser_tab_id}, browser_tab_ids = #{browser_tab_ids&.keys}"}
+        raise "No session state available at Panorama-Server! Please reload the browser page."
+      end
+      values.each do |key, value|
+        browser_tab_ids[browser_tab_id][key] = value                             # set current values for current browser tab
+      end
+      browser_tab_ids
     end
-    values.each do |key, value|
-      browser_tab_ids[browser_tab_id][key] = value                               # set current values for current browser tab
-    end
-    self.write_for_client_key(client_key,:browser_tab_ids, browser_tab_ids)  # write full tree back to store
   end
 
 
@@ -116,21 +119,38 @@ class ClientInfoStore
   # @param [any] value
   # @param [Integer] retries Should not be used in direct call, for recursive calls only
   def write_for_client_key(client_key, key, value, retries:)
-    client_data = read(client_key)                                              # Read the whole content Hash from cache
-    client_data = {} if client_data.nil? || client_data.class != Hash           # Neustart wenn Struktur nicht passt
-    client_data[key] = value                                                    # Wert in Hash verankern
-    client_data[:last_used] = Time.now                                          # Update last_used
+    @@mutex.synchronize do                                                      # Ensure that other keys of client_data are not overwritten by concurrent writes
+      client_data = read(client_key)                                            # Read the whole content Hash from cache
+      client_data = {} if client_data.nil? || client_data.class != Hash         # Neustart wenn Struktur nicht passt
+      client_data[key] = value                                                  # Wert in Hash verankern
+      client_data[:last_used] = Time.now                                        # Update last_used
 
-    begin
-      write(client_key, client_data)  # Überschreiben des kompletten Hashes im Cache
-    rescue Exception =>e
-      # Especially for test environments, reread the store content if something goes wrong, content has changed etc.
-      if retries < 2
-        Rails.logger.warn('ClientInfoStore.write_for_client_key') { "Retry after #{e.class} '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'" }
-        write_for_client_key(client_key, key, value, retries: retries+1)
-      else
-        ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ClientInfoStore.write_for_client_key')
+      begin
+        write(client_key, client_data)  # Überschreiben des kompletten Hashes im Cache
+      rescue Exception =>e
+        # Especially for test environments, reread the store content if something goes wrong, content has changed etc.
+        if retries < 2
+          Rails.logger.warn('ClientInfoStore.write_for_client_key') { "Retry after #{e.class} '#{e.message}' while writing file store at '#{Panorama::Application.config.client_info_filename}'" }
+          write_for_client_key(client_key, key, value, retries: retries+1)
+        else
+          ExceptionHelper.reraise_extended_exception(e, "while writing file store at '#{Panorama::Application.config.client_info_filename}'", log_location: 'ClientInfoStore.write_for_client_key')
+        end
       end
+    end
+  end
+
+  # Atomic read-modify-write of client related info value, no concurrent write can happen between read and write
+  # @param [String] client_key The decrypted client key for identifying client
+  # @param [String, Symbol] key
+  # @param [any] default value passed to block if key not found
+  # @yieldparam [any] value The current value for key
+  # @yieldreturn [any] The new value to store for key
+  # @return [any] The new value stored for key
+  def update_for_client_key(client_key, key, default: nil)
+    @@mutex.synchronize do
+      value = yield read_for_client_key(client_key, key, default: default)
+      write_for_client_key(client_key, key, value, retries: 0)
+      value
     end
   end
 
@@ -194,26 +214,36 @@ class ClientInfoStore
   def cleanup
     # Remove expired entries from cache by file system
     cached_keys.each do |key|
-      value = read(key)
-      if value.nil?
-        delete(key)                                                             # Remove entry without real content
-      else
-        if value.class == Hash
-          if value.count <= 2 && value[:browser_tab_ids]&.count == 0            # Only empty browser_tab_ids and last_used left
-            delete(key)                                                         # Remove entry without real content
-          elsif value.count <= 3 && value[:browser_tab_ids]&.count == 0 && value[:last_logins]&.count == 0 # Only empty browser_tab_ids, last_logins and last_used left
-            delete(key)                                                         # Remove entry without real content
-          elsif !value.has_key?(:last_used)                                     # Add last_used to all Hash entries without it
-            value[:last_used] = Time.now
-            write(key, value)                                                   # Write back to cache
-          elsif value[:last_used] < Time.now - 12.months                        # Remove entries after 1 year of inactivity
-            delete(key)                                                         # Remove entry
-          elsif value[:browser_tab_ids]
-            value[:browser_tab_ids].each do |browser_tab_id, browser_tab_data|
-              if !browser_tab_data.has_key?(:last_request) || browser_tab_data[:last_request] < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago
-                value[:browser_tab_ids].delete(browser_tab_id)                  # Remove expired browser tab id
-                write(key, value)                                               # Write back to cache
+      @@mutex.synchronize do                                                    # Ensure that concurrent requests do not change the entry between read and write
+        value = read(key)
+        if value.nil?
+          delete(key)                                                           # Remove entry without real content
+        else
+          if value.class == Hash
+            if value.count <= 2 && value[:browser_tab_ids]&.count == 0          # Only empty browser_tab_ids and last_used left
+              delete(key)                                                       # Remove entry without real content
+            elsif value.count <= 3 && value[:browser_tab_ids]&.count == 0 && value[:last_logins]&.count == 0 # Only empty browser_tab_ids, last_logins and last_used left
+              delete(key)                                                       # Remove entry without real content
+            elsif !value.has_key?(:last_used)                                   # Add last_used to all Hash entries without it
+              value[:last_used] = Time.now
+              write(key, value)                                                 # Write back to cache
+            elsif value[:last_used] < Time.now - 12.months                      # Remove entries after 1 year of inactivity
+              delete(key)                                                       # Remove entry
+            elsif value[:browser_tab_ids]
+              changed = false
+              value[:browser_tab_ids].keys.each do |browser_tab_id|
+                browser_tab_data = value[:browser_tab_ids][browser_tab_id]
+                last_request = browser_tab_data[:last_request]
+                if last_request.nil? || last_request < Panorama::BROWSER_TAB_ID_REUSE_DELAY.ago
+                  value[:browser_tab_ids].delete(browser_tab_id)                # Remove expired browser tab id, the id may be reused now
+                  changed = true
+                elsif last_request < Panorama::MAX_SESSION_LIFETIME_AFTER_LAST_REQUEST.ago && browser_tab_data.keys.any? { |k| ![:last_request, :last_page_load].include?(k) }
+                  # Remove the session state of the expired browser tab but keep the id reserved, so a still open browser tab can't get the session state of another browser tab
+                  value[:browser_tab_ids][browser_tab_id] = browser_tab_data.slice(:last_request, :last_page_load)
+                  changed = true
+                end
               end
+              write(key, value) if changed                                      # Write back to cache
             end
           end
         end
