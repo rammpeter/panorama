@@ -21,11 +21,15 @@
   @table_id_prefix = get_unique_area_id
 
   if @modus == "GV$SQL"
-    @metrics_start_hint_suffix = t(:dba_sga_list_sql_sga_stat_metrics_sql_hint, default: "cumulated starting at %{last_load_time}", last_load_time: localeDateTime(@sql.last_load_time))
+    @metrics_start_hint_suffix  = if @sql.loads == 1
+                                    t(:dba_sga_list_sql_sga_stat_metrics_sql_hint, default: "cumulative values since %{last_load_time} (loads = 1)", last_load_time: localeDateTime(@sql.last_load_time))
+                                  else
+                                    t(:dba_sga_list_sql_sga_stat_metrics_sql_multiload_hint, default: "cumulative values since a point in time between  %{first_load_time} and %{last_load_time} because loads = %{loads}", first_load_time: localeDateTime(@sql.first_load_time), last_load_time: localeDateTime(@sql.last_load_time), loads: @sql.loads)
+                                  end
   else # gv$SQLArea
     @metrics_start_hint_suffix = t(:dba_sga_list_sql_sga_stat_metrics_sqlarea_hint, default: "cumulated as sum over all %{child_count} child cursors that started between %{min_last_load_time} and %{last_load_time}", child_count: @sql.child_count, min_last_load_time: localeDateTime(@sql.min_last_load_time),last_load_time: localeDateTime(@sql.last_load_time))
   end
-  metrics_start_hint = "#{t(:dba_sga_list_sql_sga_stat_metrics_hint_prefix, default: 'Metrics are')} #{@metrics_start_hint_suffix}"
+  metrics_start_hint = "\n#{t(:dba_sga_list_sql_sga_stat_metrics_hint_prefix, default: 'Metrics are')} #{@metrics_start_hint_suffix}"
 
 
 # Anzeige sowohl des konkreten Wertes als auch je Execution in zwei TD-Abschnitten

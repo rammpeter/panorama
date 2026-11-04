@@ -469,7 +469,8 @@
     
     Leer wenn keine valide Berechnung möglich ist
   dba_sga_list_sql_sga_stat_metrics_hint_prefix:            Metriken sind
-  dba_sga_list_sql_sga_stat_metrics_sql_hint:               kumuliert seit %{last_load_time}
+  dba_sga_list_sql_sga_stat_metrics_sql_hint:               kumuliert seit %{last_load_time} (loads = 1)
+  dba_sga_list_sql_sga_stat_metrics_sql_multiload_hint:     kumulierte Werte seit einem Zeitpunkt zwischen %{first_load_time} und %{last_load_time} (loads = %{loads})
   dba_sga_list_sql_sga_stat_metrics_sqlarea_hint:           kumuliert als Summe über alle %{child_count} Child-Cursoren die starteten zwischen %{min_last_load_time} und %{last_load_time}
   dba_sga_list_sql_sga_stat_last_active_hint:               Ende der letzten Ausführung des SQL
   dba_sga_list_sql_sga_stat_last_load_sql_hint: |-
