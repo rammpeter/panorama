@@ -1935,6 +1935,16 @@
 
   dragnet_helper_181_name:                                  Inkonsistenzen in Objektstatistiken
 
+  dragnet_helper_182_desc: |-
+    Für diesen Check muss „statistics_level=ALL“ gesetzt sein.
+    Ist dies der Fall, zeigt „gv$Plan_Statistics_All“ die Anzahl der Zeilen an, die von einem bestimmten full table scan zurückgegeben werden.
+    Anhand dieser Informationen lassen sich full table scans identifizieren, die nur einen kleinen Teil der Tabelle zurückgeben, obwohl die Tabelle groß ist.
+    Die Auswahl zeigt full table scans an, die weniger als 10 % der Tabellenzeilen zurückgeben, und ist nach der Laufzeit der full table scan Operation sortiert.
+    Mögliche Lösungen sind: Indizierung der Spalte, auf die die WHERE-Bedingung zugreift, und Verwendung des Indexzugriffs anstelle des full table scans.
+
+  dragnet_helper_182_name: |-
+    Full table scans mit wenigen selektierten Records in der Plan-Zeile: Möglicherweise fehlen Indizes
+
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
   dragnet_show_personal_selection_form_caption:             Erweitern der Rasterfahndungs-SQLs um persönliche Abfragen

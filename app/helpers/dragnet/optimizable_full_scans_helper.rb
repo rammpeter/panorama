@@ -205,8 +205,37 @@ Example: Indexing with NVL(Column,0)'),
                       ORDER BY COUNT(*) DESC
              ",
         },
-
-
+        {
+          :name  => t(:dragnet_helper_182_name, :default=>'Full table scans with less records selected in plan line: possibly missing indexes '),
+          :desc  => t(:dragnet_helper_182_desc, :default=>'This check requires that statistics_level=ALL is set.
+If so, gv$Plan_Statistics_All shows the number of rows returned by a particular full scan.
+This info allows to find full scans which return only a small part of the table, although the table is large.
+The selection shows full scans returning less then 10% of the table rows and is sorted by the runtime of the full scan operation.
+Solution can be: indexing of column accessed by WHERE-condition and usage of index access instead of full scan.'),
+          :sql=>  "\
+WITH Tables AS (SELECT /*+ MATERIALIZE */ * FROM DBA_Tables WHERE Num_Rows IS NOT NULL),
+     Plans AS (SELECT /*+ MATERIALIZE */ p.*,
+                      p.Output_Rows/p.Executions  Rows_per_Exec,
+                      SYSDATE-Timestamp           Age_Days,
+                      Elapsed_Time / 1000000.0    Elapsed_Secs
+               FROM   gv$SQL_PLan_Statistics_All p
+               WHERE  Operation = 'TABLE ACCESS'
+               AND    Options   = 'FULL'
+               AND    Executions > 0
+              )
+SELECT p.SQL_ID, p.Child_Number, t.Owner, t.Table_Name, t.Num_Rows, p.Timestamp Parse_time, ROUND(p.Age_Days,2) Days_Since_Parse_Time,
+       p.ID Plan_Line_ID, p.Executions Executions_Since_Parse_Time,
+       ROUND(p.Rows_per_Exec, 1) Rows_per_Exec,
+       ROUND(p.Elapsed_Secs/p.Age_Days) Elapsed_Secs_per_Day,
+       p.Filter_Predicates
+FROM   Plans p
+JOIN   Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
+WHERE  p.Rows_per_Exec < t.Num_Rows / 10
+AND    p.Age_Days > 0
+AND    p.Elapsed_Secs/p.Age_Days > 10 /* at least 10 seconds runtime per day */
+ORDER BY p.Elapsed_Secs/p.Age_Days DESC
+             ",
+        },
     ]
   end # optimizable_full_scans
 
