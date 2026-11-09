@@ -1663,6 +1663,7 @@ ORDER BY Column_ID
   # @param [Symbol] domain
   def do_check_internal(domain)
     Rails.logger.debug('PanoramaSampleStructureCheck.do_check_internal') { "Execute structure check for domain #{domain} in config ID=#{@sampler_config.get_id} #{@sampler_config.get_name}"}
+    PanoramaConnection.sql_execute "ALTER SESSION SET DDL_LOCK_TIMEOUT=120"
     @ora_tables       = PanoramaConnection.sql_select_all ["SELECT Table_Name FROM All_Tables WHERE Owner = ?",  @sampler_config.get_owner.upcase]
     @ora_tab_privs    = PanoramaConnection.sql_select_all ["SELECT Table_Name FROM ALL_TAB_PRIVS WHERE Table_Schema = ?  AND Privilege = 'SELECT'  AND Grantee = 'PUBLIC'",  @sampler_config.get_owner.upcase]
 
@@ -1754,7 +1755,7 @@ ORDER BY Column_ID
   end
 
   def   remove_tables_internal
-    PanoramaConnection.sql_execute "ALTER SESSION SET DDL_LOCK_TIMEOUT=30"      # Ensure short locks at DROP do not lead to error
+    PanoramaConnection.sql_execute "ALTER SESSION SET DDL_LOCK_TIMEOUT=120"     # Ensure short locks at DROP do not lead to error
     packages = PanoramaConnection.sql_select_all [ "SELECT Object_Name
                                                     FROM   All_Objects
                                                     WHERE  Owner=? AND Object_Type = 'PACKAGE'

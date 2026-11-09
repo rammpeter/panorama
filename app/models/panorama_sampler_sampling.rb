@@ -484,7 +484,7 @@ class PanoramaSamplerSampling
   end
 
   def exec_shrink_space(table_name)
-    PanoramaConnection.sql_execute "ALTER SESSION SET DDL_LOCK_TIMEOUT=30"      # Ensure short locks at ALTER do not lead to error
+    PanoramaConnection.sql_execute "ALTER SESSION SET DDL_LOCK_TIMEOUT=120"     # Ensure short locks at ALTER do not lead to error
     PanoramaConnection.sql_execute("ALTER TABLE #{@sampler_config.get_owner}.#{table_name} ENABLE ROW MOVEMENT")
     begin
       shrink_cmd = "ALTER TABLE #{@sampler_config.get_owner}.#{table_name} SHRINK SPACE CASCADE"
