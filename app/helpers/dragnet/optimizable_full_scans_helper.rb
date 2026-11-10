@@ -215,7 +215,7 @@ Solution can be: indexing of column accessed by WHERE-condition and usage of ind
           :sql=>  "\
 WITH Tables AS (SELECT /*+ MATERIALIZE */ * FROM DBA_Tables WHERE Num_Rows IS NOT NULL),
      Plans AS (SELECT /*+ MATERIALIZE */ p.*,
-                      p.Output_Rows/p.Executions  Rows_per_Exec,
+                      p.Output_Rows/p.Executions  Rows_per_Plan_Line_and_Exec,
                       SYSDATE-Timestamp           Age_Days,
                       Elapsed_Time / 1000000.0    Elapsed_Secs
                FROM   gv$SQL_PLan_Statistics_All p
@@ -225,16 +225,21 @@ WITH Tables AS (SELECT /*+ MATERIALIZE */ * FROM DBA_Tables WHERE Num_Rows IS NO
               )
 SELECT p.SQL_ID, p.Child_Number, t.Owner, t.Table_Name, t.Num_Rows, p.Timestamp Parse_time, ROUND(p.Age_Days,2) Days_Since_Parse_Time,
        p.ID Plan_Line_ID, p.Executions Executions_Since_Parse_Time,
-       ROUND(p.Rows_per_Exec, 1) Rows_per_Exec,
+       ROUND(p.Rows_per_Plan_Line_And_Exec, 1) Rows_per_Plan_Line_And_Exec,
        ROUND(p.Elapsed_Secs/p.Age_Days) Elapsed_Secs_per_Day,
        p.Filter_Predicates
 FROM   Plans p
 JOIN   Tables t ON t.Owner = p.Object_Owner AND t.Table_Name = p.Object_Name
-WHERE  p.Rows_per_Exec < t.Num_Rows / 10
-AND    p.Age_Days > 0
+WHERE  p.Age_Days > 0
 AND    p.Elapsed_Secs/p.Age_Days > 10 /* at least 10 seconds runtime per day */
+AND    t.Num_Rows > ? /* only consider large tables */
+AND    p.Rows_per_Plan_Line_And_Exec < t.Num_Rows / (100.0 / ?) /* less than x% of table rows returned */
 ORDER BY p.Elapsed_Secs/p.Age_Days DESC
              ",
+          parameter: [
+            {:name=>t(:dragnet_helper_182_param_1_name, :default=>'Minumum number of rows for table'), :size=>8, :default=>100000, :title=>t(:dragnet_helper_182_param_1_hint, :default=>'The minumun number of rows for a table to be considered in selection') },
+            {:name=>t(:dragnet_helper_182_param_2_name, :default=>'Maximum percentage of rows returned by full scan'), :size=>8, :default=>5, :title=>t(:dragnet_helper_182_param_2_hint, :default=>'Maximum percentage of rows returned by full scan compared to the total number of rows for table') }
+          ]
         },
     ]
   end # optimizable_full_scans

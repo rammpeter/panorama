@@ -1,5 +1,6 @@
 # Change log of Panorama for Oracle
-## Next
+
+## 2.19.27
 - 2026-11-03 New function to show DB cache usage for an index
 - 2026-10-28 The peeked values are shown in addition in the list of current or historic bind values for a SQL ID.
 - 2026-09-15 New menu entry "SGA/PGA details / SQl Area / Long operations" to show SQLs with long running operations

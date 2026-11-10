@@ -38,7 +38,7 @@
    column_options << {:caption=>"Disk/Ex.",    :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute, 3)},:title=>"Disk Reads per Execute", :align=>"right"}
    column_options << {:caption=>"Buffer Gets", :data=>proc{|rec| formattedNumber(rec.buffer_gets)},           :title=>"Total Buffer Gets", :align=>"right"}
    column_options << {:caption=>"Buffer/Ex.",  :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec, 2)},  :title=>"Buffer Gets per execute", :align=>"right"}
-   column_options << {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},        :title=>"Number of rows processed", :align=>"right"}
+   column_options << {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},        :title=>"Number of rows processed by SQL statement", :align=>"right"}
    column_options << {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2)},    :title=>"Number of rows processed per execute", :align=>"right"}
 
    caption = "SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)"

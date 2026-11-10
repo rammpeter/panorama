@@ -10,7 +10,7 @@ end
 def link_column(rec, value, newgroupkey, action, linktitle)
   ajax_link(value,
               {:action       => action,
-               :groupfilter  => @groupfilter.merge({@groupkey => rec.group_value}),
+               :groupfilter  => @groupfilter.merge({@groupkey.to_sym => rec.group_value}),
                :update_area  => @update_area
               }.merge(newgroupkey),
        :title=>linktitle)

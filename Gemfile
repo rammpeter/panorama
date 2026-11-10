@@ -5,7 +5,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # see: https://rubygems.org/gems/rails/versions
 # rails_version = "6.1.7.10"
 # rails_version = "8.0.5.1"
-rails_version = "8.1.4"
+rails_version = "8.1.4.1"
 gem 'activerecord', rails_version
 gem 'activemodel', rails_version
 gem 'actionpack', rails_version

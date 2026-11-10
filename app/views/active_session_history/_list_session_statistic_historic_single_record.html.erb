@@ -67,7 +67,7 @@
     if rec.session_id_cnt == 1
         ajax_link("#{rec.session_id}, #{rec.session_serial_no}",
                                 {:action       => :list_session_statistic_historic_grouping,
-                                 :groupfilter  => @groupfilter.merge('Session/Sn.' => "#{rec.session_id}, #{rec.session_serial_no}"),
+                                 :groupfilter  => @groupfilter.merge('Session/Sn.'.to_sym => "#{rec.session_id}, #{rec.session_serial_no}"),
                                  :groupby      => 'Session/Sn.',
                                  :update_area  => @update_area,
                                 },

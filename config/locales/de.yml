@@ -1944,6 +1944,10 @@
 
   dragnet_helper_182_name: |-
     Full table scans mit wenigen selektierten Records in der Plan-Zeile: Möglicherweise fehlen Indizes
+  dragnet_helper_182_param_1_name:                          Minimale Anzahl Zeilen für Tabelle
+  dragnet_helper_182_param_1_hint:                          Die minimale Anzahl von Zeilen für eine Tabelle, die in der Auswahl berücksichtigt werden soll
+  dragnet_helper_182_param_2_name:                          Maximale Prozentzahl der Zeilen, die von einem Full Table Scan zurückgegeben werden
+  dragnet_helper_182_param_2_hint:                          Die maximale Prozentzahl der Zeilen, die von einem Full Table Scan im Vergleich zur Gesamtzahl der Zeilen der Tabelle zurückgegeben werden
 
   dragnet_list_dragnet_sql_result_no_result:                SQL brachte kein Result
 
