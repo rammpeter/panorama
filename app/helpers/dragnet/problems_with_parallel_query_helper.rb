@@ -211,7 +211,7 @@ Listed functions should be checked if they can be expanded by pragma PARALLEL_EN
         },
         {
             :name  => t(:dragnet_helper_82_name, :default=>'Statements with parallel query and serial processing of process parts'),
-            :desc  => t(:dragnet_helper_82_desc, :default=>"Parts of parallel processed statements my be executed serially and results of these subprocesses are parallelized by broadcast.
+            :desc  => t(:dragnet_helper_82_desc, :default=>"Parts of parallel processed statements may be executed serially and results of these subprocesses are parallelized by broadcast.
 For small data structures it is often wanted, for large data structures it may be due to missing PARALLEL-hints.
 This Selection lists all statements with 'PARALLEL_FROM_SERIAL'-processing after full-scan on objects as candidates for forgotten parallelising."),
             :sql=>  "WITH SQL_Plan AS (SELECT /*+ NO_MERGE MATERIALIZE */ DBID, SQL_ID, Operation, Options, Object_Owner, Object_Name, Plan_Hash_Value, Other_Tag, Timestamp, ID, Parent_ID FROM DBA_Hist_SQL_PLan)
