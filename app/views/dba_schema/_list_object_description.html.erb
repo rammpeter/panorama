@@ -14,7 +14,15 @@
       hint: "Show possible use of the name of this table in SQL plan management (baselines, profiles, patches)",
       icon_class: "",
       action: "ajax_html('#{@update_area}', 'dba_schema', 'find_use_in_sql_plan_management', { object_name: '#{@table_name}'});"
+    },
+    {
+      name: "show_spd_use",
+      caption: "Show SQL plan directives for table",
+      hint: "Show SQL plan directives for this table (if any)\nMay run long time if many SQL plan directives exist for this table",
+      icon_class: "",
+      action: "ajax_html('#{@update_area}', 'dba_schema', 'list_sql_plan_directives', { owner: '#{@owner}', object_name: '#{@table_name}'});"
     }
+
   ]
   render_page_caption("Description of #{@table_type} #{@owner}.#{@table_name}", command_array)
 %>

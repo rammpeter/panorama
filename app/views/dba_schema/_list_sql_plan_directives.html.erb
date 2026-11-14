@@ -1,0 +1,50 @@
+<% @update_area = get_unique_area_id %>
+
+<%
+  render_action_buttons = proc do |rec|
+    commands = []
+    if rec.object_type == 'COLUMN'
+      commands << {
+        name: "activate_spd",
+        caption: "SQL for activate directive",
+        hint: "Generate the SQL to create extended statistics for this SQL plan directive",
+        icon_class: "",
+        action: "ajax_html('#{@update_area}', 'dba_schema', 'sql_plan_directive_activate_sql', { directive_id: #{rec.directive_id}, owner: '#{@owner}', object_name: '#{@object_name}', subobject_names: '#{rec.subobject_names}' });"
+      }
+    end
+    commands << {
+      name: "drop_spd",
+      caption: "SQL for drop directive",
+      hint: "Generate the drop SQL for this SQL plan directive",
+      icon_class: "",
+      action: "ajax_html('#{@update_area}', 'dba_schema', 'sql_plan_directive_drop_sql', { directive_id: #{rec.directive_id}});"
+    }
+
+    command_array = render_command_array_menu(commands)
+    # Remove linefeeds because matadata[:fulldata] gets the "\" replaced by "<br>" by escape_js_chars
+    # and command_array contains Javascript code which gets invalid by this <br> tags
+    command_array.gsub("\n", "").html_safe
+  end
+
+
+  column_options = []
+  column_options << {caption: 'Directive ID', data: proc{|rec| fn rec.directive_id},        title: 'The identifier of the SQL plan directive', align: :right}
+  column_options << {caption: 'Object type',  data: proc{|rec| rec.object_type},            title: 'The type of the subobject in the SQL plan directive'}
+  column_options << {caption: 'Type',         data: proc{|rec| rec.type},                   title: "The type of the SQL plan directive:\nDYNAMIC SAMPLING: SQL plan directive\nDYNAMIC SAMPLING RESULT: Dynamic sampling query results\nUNKNOWN: Unknown"}
+  column_options << {caption: 'Enabled',      data: proc{|rec| rec.enabled},                title: "Indicates whether the SQL plan directive is enabled."}
+  column_options << {caption: 'State',        data: proc{|rec| rec.state},                  title: "The state of the SQL plan directive. Possible values include:\nSUPERSEDED: This value indicates that the corresponding column or groups have an extension or histogram, or that another SQL plan directive exists that can be used for the directive.\nUSABLE: This value indicates that the SQL plan directive is usable for the optimizer."}
+  column_options << {caption: 'Auto drop',    data: proc{|rec| rec.auto_drop},              title: "If YES, the SQL plan directive gets dropped when unused beyond SPD_RETENTION_WEEKS"}
+  column_options << {caption: 'Created',      data: proc{|rec| localeDateTime(rec.created)},title: "The creation timestamp of the SQL plan directive"}
+  column_options << {caption: 'Last modified',data: proc{|rec| localeDateTime(rec.last_modified)},title: "The timestamp of most recent modification of the SQL plan directive"}
+  column_options << {caption: 'Last used',    data: proc{|rec| localeDateTime(rec.last_used)},title: "The timestamp of most recent use of the SQL plan directive"}
+  column_options << {caption: 'Reason',       data: proc{|rec| rec.reason},                 title: "The reason for creating the SQL plan directive"}
+  column_options << {caption: 'SubObject names', data: proc{|rec| rec.subobject_names},     title: "The list of subobject names for the SQL plan directive from DBA_SQL_PLAN_DIR_OBJECTS"}
+  column_options << {caption: 'Action',       data: render_action_buttons,                  title: 'Call additional actions for this directive'}
+%>
+
+<%= gen_slickgrid(@spds, column_options, {
+  caption: "SQL plan directives for #{@owner}.#{@object_name}",
+  max_height: 450,
+  show_pin_icon: 1,
+  update_area: @update_area
+}) %>

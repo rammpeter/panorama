@@ -32,14 +32,14 @@
    column_options << {:caption=>'Last active', :data=>proc{|rec| localeDateTime(rec.last_active_time)},       :title=>'Timestamp of last activity of query plan', data_title: proc{|rec| "%t\nFirst load time = #{localeDateTime(rec.first_load_time)}\nLast load time = #{localeDateTime(rec.last_load_time)}"}}
    column_options << {:caption=>"Execs",       :data=>proc{|rec| formattedNumber(rec.executions)},            :title=>"Number of executions", :align=>"right"}
    column_options << {:caption=>"Elapsed",     :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs)},     :title=>"Total elapsed time in Sec.", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs)}" }, :align=>"right"}
-   column_options << {:caption=>"Ela./Ex.",    :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute,4)}, :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs_per_execute)}" }, :align=>"right"}
+   column_options << {:caption=>"Ela. per exec.", :data=>proc{|rec| formattedNumber(rec.elapsed_time_secs_per_execute,4)}, :title=>"elapsed time per execute in Sec. (incl. parallel Query Slaves)", data_title: proc{|rec| "%t\n#{seconds_explain(rec.elapsed_time_secs_per_execute)}" }, :align=>"right"}
    column_options << {:caption=>"CPU",         :data=>proc{|rec| formattedNumber(rec.cpu_time_secs)},         :title=>"CPU-Time in Seconds", :align=>"right"}
    column_options << {:caption=>"Disk Reads",  :data=>proc{|rec| formattedNumber(rec.disk_reads)},            :title=>"Total Disk Reads", :align=>"right"}
-   column_options << {:caption=>"Disk/Ex.",    :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute, 3)},:title=>"Disk Reads per Execute", :align=>"right"}
-   column_options << {:caption=>"Buffer Gets", :data=>proc{|rec| formattedNumber(rec.buffer_gets)},           :title=>"Total Buffer Gets", :align=>"right"}
-   column_options << {:caption=>"Buffer/Ex.",  :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec, 2)},  :title=>"Buffer Gets per execute", :align=>"right"}
+   column_options << {:caption=>"Disk reads per Exec.", :data=>proc{|rec| formattedNumber(rec.disk_reads_per_execute, 3)},:title=>"Disk Reads per Execute", :align=>"right"}
+   column_options << {:caption=>"Buffer gets", :data=>proc{|rec| formattedNumber(rec.buffer_gets)},           :title=>"Total Buffer Gets", :align=>"right"}
+   column_options << {:caption=>"Buffer gets per exec.", :data=>proc{|rec| formattedNumber(rec.buffer_gets_per_exec, 2)},  :title=>"Buffer Gets per execute", :align=>"right"}
    column_options << {:caption=>"Rows proc.",  :data=>proc{|rec| formattedNumber(rec.rows_processed)},        :title=>"Number of rows processed by SQL statement", :align=>"right"}
-   column_options << {:caption=>"Rows/Ex.",    :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2)},    :title=>"Number of rows processed per execute", :align=>"right"}
+   column_options << {:caption=>"Rows per exec.", :data=>proc{|rec| formattedNumber(rec.rows_processed_per_execute, 2)},    :title=>"Number of rows processed per execute", :align=>"right"}
 
    caption = "SQL statements in SGA accessing #{@object_owner}.#{@object_name} (by gv$SQL_Plan)"
    caption << " for object type like '#{@object_type_prefix}%'" if @object_type_prefix

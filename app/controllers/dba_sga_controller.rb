@@ -1684,7 +1684,6 @@ class DbaSgaController < ApplicationController
     respond_to do |format|
       format.html {render :html => render_code_mirror(@sql) }
     end
-
   end
 
   # Existierende SQL-Plan Baselines

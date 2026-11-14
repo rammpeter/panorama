@@ -3599,6 +3599,45 @@ class DbaSchemaController < ApplicationController
     render_partial
   end
 
+  def list_sql_plan_directives
+    @owner        = prepare_param(:owner)&.upcase
+    @object_name  = prepare_param(:object_name)&.upcase
+    @spds = sql_select_iterator ["\
+      WITH Objects AS (SELECT /*+ NO_MERGE MATERIALIZE */ Directive_ID, Object_Type, LISTAGG(SubObject_Name, ', ') WITHIN GROUP (ORDER BY SubObject_Name) SubObject_Names
+                       FROM   DBA_SQL_PLAN_DIR_OBJECTS
+                       WHERE  Owner = ? AND Object_Name = ?
+                       GROUP BY Directive_ID, Object_Type
+                      )
+      SELECT o.Directive_ID, o.Object_Type, o.SubObject_Names, d.Type, d.Enabled, d.State, d.Auto_Drop,
+             d.Created, d.Reason, d.Last_Modified, d.Last_Used
+      FROM   Objects o
+      JOIN   DBA_SQL_PLAN_DIRECTIVES d ON d.Directive_ID = o.Directive_ID
+      ORDER BY d.Created DESC
+    ", @owner, @object_name]
+    render_partial
+  end
+
+  def sql_plan_directive_drop_sql
+    directive_id = prepare_param(:directive_id)
+    respond_to do |format|
+      format.html {render :html => render_code_mirror("EXEC DBMS_SPD.DROP_SQL_PLAN_DIRECTIVE(#{directive_id});") }
+    end
+  end
+
+  def sql_plan_directive_activate_sql
+    directive_id    = prepare_param(:directive_id)
+    owner           = prepare_param(:owner)&.upcase
+    object_name     = prepare_param(:object_name)&.upcase
+    subobject_names = prepare_param(:subobject_names)&.upcase
+
+    sql = "\
+-- Activate SQL Plan Directive #{directive_id} as extended statistics at next gather statistics run for the table
+SELECT DBMS_STATS.CREATE_EXTENDED_STATS('#{owner}', '#{object_name}', '(#{subobject_names})') FROM DUAL;"
+
+    respond_to do |format|
+      format.html {render :html => render_code_mirror(sql) }
+    end
+  end
   private
   def list_space_usage_default
     @result = []

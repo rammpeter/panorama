@@ -13,7 +13,7 @@ column_options =
     {:caption=>"User",          :data=>proc{|rec| rec.parsing_schema_name },      :title=>"Parsing Schema Name"},
     {:caption=>"Execs",         :data=>proc{|rec| fn(rec.executions) },           :title=>"Number of Executions", :align=>:right},
     {:caption=>"Elapsed",       :data=>proc{|rec| fn(rec.elapsed_time_secs, 3) }, :title=>"Elapsed Time in seconds for the whole SQL statement cumulated over all parallel query server", :align=>:right},
-    {:caption=>"Ela./Ex.",      :data=>proc{|rec| fn(rec.elapsed_time_secs_per_execute, 3) },       :title=>"Elapsed Time per Execute in seconds for the whole SQL statement cumulated over all parallel query server", :align=>:right},
+    {:caption=>"Ela. per exec.",  :data=>proc{|rec| fn(rec.elapsed_time_secs_per_execute, 3) },       :title=>"Elapsed Time per Execute in seconds for the whole SQL statement cumulated over all parallel query server", :align=>:right},
     {:caption=>"CPU",           :data=>proc{|rec| fn(rec.cpu_time_secs, 3) },     :title=>"CPU-Time in seconds for whole SQL statement cumulated over all parallel query server", :align=>:right},
     {:caption=>"Disk Reads",    :data=>proc{|rec| fn(rec.disk_reads) },           :title=>"Total number of disk reads in considered period for the whole SQL statement", :align=>:right},
     {:caption=>"Buffer Gets",   :data=>proc{|rec| fn(rec.buffer_gets) },          :title=>"Total number of buffer gets in considered period for the whole SQL statement", :align=>:right},
