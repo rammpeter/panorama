@@ -25,10 +25,11 @@ COPY ${BACKEND_SRC_PATH} .
 
 # Not nneded because done again st last stage
 # RUN  microdnf update
-# RUN  microdnf install wget tar gzip curl bash tzdata git make gcc
+# RUN  microdnf install wget tar gzip curl bash tzdata git
+# use essential instead of "make gcc" to install also the needed libs and headers
 
 RUN apt-get update && apt-get install -y \
-        wget ca-certificates tar gzip curl bash tzdata git make gcc nodejs && \
+        wget ca-certificates tar gzip curl bash tzdata git build-essential nodejs && \
     rm -rf /var/lib/apt/lists/*
 # RUN  microdnf install wget tar gzip curl bash tzdata make clang git
 RUN  echo "### install jruby" && \

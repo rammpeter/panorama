@@ -167,7 +167,7 @@ GEM
     psych (5.5.0-java)
       date
       jar-dependencies (>= 0.1.7)
-    puma (8.0.2-java)
+    puma (8.1.1-java)
       nio4r (~> 2.0)
     racc (1.8.1-java)
     rack (3.2.8)
@@ -355,7 +355,7 @@ CHECKSUMS
   pry (0.15.2-java) sha256=855f3b57563bacac46d49f58ecc9650a3d7f798dffafbdf392ff1b26a3fa180c
   pry-debugger-jruby (2.2.1-java) sha256=862be617a40302957e4db6445eb7a92103b1a1e1942c7e754c075caeb2f4bafc
   psych (5.5.0-java) sha256=3b7cf3684c44d049c3dee87ec4118ec9cd6ac714cbdcfba386997f96dbbd36ab
-  puma (8.0.2-java) sha256=37392e0dbd01e2a157748b92b818bfacf801bb32628e41680e9ab1171dea2b3d
+  puma (8.1.1-java) sha256=1ea716d494a73dce87478096ac5b3cf3ad9d3b063a0280b0c74f3a73d03ab37c
   racc (1.8.1-java) sha256=54f2e6d1e1b91c154013277d986f52a90e5ececbe91465d29172e49342732b98
   rack (3.2.8) sha256=1fecc85e463ebc7a2a945fff829ffcd549babeb1556384796fad946c28dc4ec7
   rack-mini-profiler (5.0.0) sha256=99c5ba087fa91c8d9ba80a43f6b2213f1ebead6e863d49286170129d391302e1
