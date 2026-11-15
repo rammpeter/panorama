@@ -80,9 +80,12 @@ jobs:
 
   build_docker:
     permissions:
+      contents: read
       packages: write  # Crucial: Grants write access to GitHub Packages (GHCR)
     runs-on: self-hosted
     needs: await_tests
+    env:
+      IMAGE_REF: ghcr.io/rammpeter/panorama:ci-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -95,20 +98,31 @@ jobs:
           echo "PANORAMA_VERSION=$PANORAMA_VERSION" >> $GITHUB_ENV
           echo PANORAMA_VERSION=$PANORAMA_VERSION
 
-      - name: Build and local push Docker image
+      - name: Build Docker image
+        id: build_image
         run: |
           for FROM in `grep "^FROM" Dockerfile | grep -v scratch |  awk '{print $2}' | tail -n1`; do
             echo "Ensure using latest version of $FROM"
             docker pull $FROM
           done
-          docker buildx build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t ghcr.io/rammpeter/panorama:ci-temp --load .
-          docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
-          docker push ghcr.io/rammpeter/panorama:ci-temp
+          docker buildx build --build-arg JRUBY_VERSION=$JRUBY_VERSION -t "$IMAGE_REF" --load .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_IMAGE_SRC: docker
+        with:
+          version: v0.76.2
+          image-ref: ${{ env.IMAGE_REF }}
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          timeout: 15m
 
       - name: Test Docker image
         run: |
           echo "Test docker image"
-          docker run -d --name panorama-ci-test -p 8080:8080 ghcr.io/rammpeter/panorama:ci-temp
+          docker run -d --name panorama-ci-test -p 8080:8080 "$IMAGE_REF"
           docker ps -a
           # Wait for the container to become available
           MAX_WAIT=240 # 4 minutes
@@ -143,6 +157,7 @@ jobs:
       - name: Final push Docker image
         if: github.ref_name == 'master'
         run: |
+          docker login -u rammpeter -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
           # Check if release already exists
           # Ensure that exit code != 0 does not stop the build
           set +e
@@ -150,8 +165,8 @@ jobs:
           if [[ $? -eq 1 ]];then
             echo "Image with release $PANORAMA_VERSION does not exist, deploying"
             set -e
-            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
-            docker tag ghcr.io/rammpeter/panorama:ci-temp ghcr.io/rammpeter/panorama:latest
+            docker tag "$IMAGE_REF" ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
+            docker tag "$IMAGE_REF" ghcr.io/rammpeter/panorama:latest
             docker push ghcr.io/rammpeter/panorama:$PANORAMA_VERSION
             docker push ghcr.io/rammpeter/panorama:latest
             docker login -u rammpeter -p ${{ secrets.DOCKER_IO_API_KEY }} docker.io
@@ -162,7 +177,10 @@ jobs:
           else
             echo "Image with release $PANORAMA_VERSION already exists, no deployment"
           fi
-          
+
+      - name: Remove temporary Docker image tag
+        if: always() && steps.build_image.outcome == 'success'
+        run: docker image rm "$IMAGE_REF"
 
   build_jar:
     runs-on: self-hosted
@@ -187,6 +205,33 @@ jobs:
         with:
           name: Panorama.jar
           path: Panorama.jar
+          if-no-files-found: error
+
+  scan_jar:
+    runs-on: ubuntu-latest
+    needs: build_jar
+    steps:
+      - name: Download Panorama.jar
+        uses: actions/download-artifact@v5
+        with:
+          name: Panorama.jar
+
+      - name: Extract Panorama.jar
+        run: |
+          mkdir -p "$RUNNER_TEMP/panorama-jar"
+          unzip -q Panorama.jar -d "$RUNNER_TEMP/panorama-jar"
+          test -d "$RUNNER_TEMP/panorama-jar/gems/jruby"
+
+      - name: Scan Panorama.jar with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          version: v0.76.2
+          scan-type: rootfs
+          scan-ref: ${{ runner.temp }}/panorama-jar
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          timeout: 15m
 
   test_jar:
     strategy:
@@ -225,7 +270,7 @@ jobs:
     permissions:
       contents: write # Allow creation of releaes and upload assets
     runs-on: self-hosted
-    needs: test_jar
+    needs: [test_jar, scan_jar]
     steps:
       - name: Check out code
         uses: actions/checkout@v6
