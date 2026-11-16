@@ -177,6 +177,10 @@ WHERE  indx = (SELECT name_ksrcctx FROM x$ksrcctx WHERE addr like '%'||TRIM(TO_C
       obj_rec = sql_select_first_row(["SELECT Owner, Object_Name, SubObject_Name FROM DBA_Objects WHERE Object_ID = ?", p2.to_i])
       result << "Object = #{obj_rec.owner}.#{obj_rec.object_name}"
       result << " (#{obj_rec.subobject_name})" if obj_rec.subobject_name
+    when p1text == 'cache id' # event 'row cache lock' (row cache lock contention)
+      cache = sql_select_one ["SELECT Parameter FROM gv$RowCache WHERE Inst_ID = ? AND Cache# = ?", instance, p1.to_i]
+      result << "gv$RowCache.Cache# = #{p1.to_i}\n"
+      result << "gv$RowCache.Parameter = #{cache}"
     else
       result << "[No additional info can be determined for parameters p1, p2, p3]"
     end

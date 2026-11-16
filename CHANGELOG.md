@@ -1,6 +1,7 @@
 # Change log of Panorama for Oracle
 
-## Next release 2.19.28
+## 2.19.28
+- 2026-11-16 Show gv$RowCache.Parameter in details for event 'row cache lock'
 - 2026-11-14 New function to show SQL plan directives for a table in table details
 
 ## 2.19.27
