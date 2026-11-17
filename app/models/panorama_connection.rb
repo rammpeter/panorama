@@ -584,7 +584,8 @@ class PanoramaConnection
   def self.sid;                             check_for_open_connection.sid;                               end
   def self.system_parameter_table;          check_for_open_connection.system_parameter_table;            end
   # @return [Time] Time in client time zone of the Panorama server, should mostly be the same like Time.now but not really sure
-  def self.db_current_time;                 Time.now + check_for_open_connection.time_delay_secs;        end
+  # Use the Time in UTC zone because the DATE values read from DB are stored in UTC too
+  def self.db_current_time;                 Time.now.change(offset: "+00:00")  + check_for_open_connection.time_delay_secs;        end
   def self.stat_id_consistent_gets;         check_for_open_connection.stat_id_consistent_gets;           end
   def self.sysstat_cpuspeed;                check_for_open_connection.sysstat_cpuspeed;                  end
   def self.sysstat_sreadtim;                check_for_open_connection.sysstat_sreadtim;                  end

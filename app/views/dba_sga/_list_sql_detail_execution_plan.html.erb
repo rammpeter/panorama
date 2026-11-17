@@ -218,6 +218,7 @@ Last = #{fn(rec.last_elapsed_time,3)} ms"
       "%t\nValue = #{stat_val.call(rec.cr_buffer_gets_per_line, 2)}
 #{fn(rec.cr_buffer_gets_per_line*100.0/@sum_cr_buffer_gets_per_line, 2) rescue nil} % of the sum of this column for all lines
 Avg. CR per start = #{fn(rec.cr_buffer_gets_per_line.to_f/rec.starts, 1) rescue nil}
+#{ rec.cr_buffer_gets_per_line > rec.output_rows ? "Avg. CR per result row = #{fn(rec.cr_buffer_gets_per_line.to_f/rec.output_rows, 1) rescue nil}" : "Avg. result rows per CR = #{fn(rec.output_rows.to_f/rec.cr_buffer_gets_per_line, 1) rescue nil}"}
 
 Values including the values of the subordinated children lines:
 Value = #{stat_val.call(rec.cr_buffer_gets, 2)}
