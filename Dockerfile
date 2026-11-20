@@ -79,11 +79,11 @@ ENV JRUBY_HOME=/opt/jruby-$JRUBY_VERSION \
     WORKDIR=/opt/panorama
 ENV PATH=$JRUBY_HOME/bin:$PATH
 
-RUN apt-get update && \
+RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         curl bash netbase && \
+    apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
-
 
 # RUN  microdnf update && microdnf clean all
 
