@@ -388,13 +388,11 @@ module ExplainPlanHelper
       end
     end
 
-    qb_mapping_reverse = {}                                                     # Reverse mapping from long name to short name for display in view column
     qb_mapping.each do |key, value|
       if qb_names_in_plan.has_key?(value) &&                                    # Only add the mapping if the long query block name is really used in plan_table.QBLOCK_NAME
         ( qb_names_in_hints.has_key?(key)  ||                                   # the short query block name mus be used in hints
           qb_mapping.values.select{|v| v==value}.count == 1                # or the long query block name must be unique in the qb_registry
         )
-        qb_mapping_reverse[value] = key
       end
     end
 
@@ -440,7 +438,6 @@ module ExplainPlanHelper
         process_hint_usage.call(hint_usage, p) unless hint_usage.nil?           # Hint-Usages exist for that query block and object alias
       end
       p['hint_usage'] = nil if p['hint_usage'] == ''                            # nothing added to hint_usage
-      p['qblock_name_short'] = qb_mapping_reverse[p.qblock_name]                # The query block name as set by hint QB_NAME
     end
   end
 

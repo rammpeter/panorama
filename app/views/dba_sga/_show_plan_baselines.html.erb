@@ -61,7 +61,7 @@
   end
 
   column_options = [
-    {:caption=>'SQL handle / plan name', :data=>link_plan_name, :title=>"Name of the SQL handle: Uniquely identifies the SQL. Use this for dropping all plan baselines of a SQL\nName of baseline plan: Identifies a unique execution plan within a SQL handle.", data_title: proc{|rec| "%t\nSQL handle = #{rec.sql_handle}\nPlan name = #{rec.plan_name}\nSignature = #{rec.signature.to_s}"}},
+    {:caption=>'SQL handle / plan name', :data=>link_plan_name, :title=>"Name of the SQL handle: Uniquely identifies the SQL. Use this for dropping all plan baselines of a SQL\nThe SQL handle consists of 'SQL_' + the exact matching signature in hexadecimal.\n\nName of baseline plan: Identifies a unique execution plan within a SQL handle.", data_title: proc{|rec| "%t\n\nSQL handle = #{rec.sql_handle}\nPlan name = #{rec.plan_name}\nSignature = #{rec.signature.to_s}"}},
     {:caption=>"Creator",       :data=>proc{|rec| rec.creator},                         :title=>"Name of creator"},
     {:caption=>"Origin",        :data=>proc{|rec| rec.origin},                          :title=>"how plan baseline was created" },
     {:caption=>"Parsing schema name", :data=>proc{|rec| rec.parsing_schema_name},       :title=>"Parsing schema name" },

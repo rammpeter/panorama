@@ -2430,7 +2430,7 @@ END;
 -- Attributes that must be adjusted by you in this script for parameters:
 --   - 'hint_text'   Place your optimizer hints here.
 --                   Be aware that query block names and table-aliases must be used in optimizer hints
---                   with same values as they appear in columns QBLOCK_NAME and OBJECT_ALIAS of v$SQL_PLAN!
+--                   with the final query block name (with hash) from QBLOCK_NAME and the table name + original query block name from OBJECT_ALIAS of v$SQL_PLAN!
 --                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\"
 --                    or as additional columns \"Query block name\" and \"Object alias\".
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
@@ -2506,7 +2506,7 @@ END;
 -- Attributes that must be adjusted by you in this script for parameters:
 --   - 'hint_text'   Place your optimizer hints here.
 --                   Be aware that query block names and table-aliases must be used in optimizer hints
---                   with same values as they appear in columns QBLOCK_NAME and OBJECT_ALIAS of v$SQL_PLAN!
+--                   with the final query block name (with hash) from QBLOCK_NAME and the table name + original query block name from OBJECT_ALIAS of v$SQL_PLAN!
 --                   Panorama shows query block name and alias in execution plan view by mouse over hint on column \"Object name\"
 --                    or as additional columns \"Query block name\" and \"Object alias\".
 --                   Example: \"FULL(@SEL$E029B2FF tab@SEL$2)\" where \"tab\" ist the table alias used in SQL-statement
