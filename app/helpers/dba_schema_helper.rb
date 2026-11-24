@@ -11,24 +11,24 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
   end
 
 
-  def calc_free_space_mb_by_avg_row_len(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, leaf_blocks)
+  def calc_free_space_mb_by_avg_row_len(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, segment_blocks)
     if segment_type['TABLE']
       calc_free_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb)
     else
       if segment_type['INDEX']
-        calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks)
+        calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, segment_blocks)
       else
         nil
       end
     end
   end
 
-  def calc_free_space_pct_by_avg_row_len(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, leaf_blocks)
+  def calc_free_space_pct_by_avg_row_len(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, segment_blocks)
     if segment_type['TABLE']
       free_mb = calc_free_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb)
     else
       if segment_type['INDEX']
-        free_mb = calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks)
+        free_mb = calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, segment_blocks)
       else
         free_mb = nil
       end
@@ -36,12 +36,12 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
     free_mb * 100.0 / size_mb rescue nil
   end
 
-  def calc_compression_ratio(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, leaf_blocks)
+  def calc_compression_ratio(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_type, segment_blocks)
     if segment_type['TABLE']
       calc_needed_space_mb_table(avg_row_len, num_rows, pct_free, ini_trans, blocksize) / size_mb
     else
       if segment_type['INDEX']
-        (size_mb - calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks)) / size_mb
+        (size_mb - calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, segment_blocks)) / size_mb
       end
     end
   rescue Exception
@@ -119,23 +119,30 @@ For exact values click for calculation with DBMS_SPACE.SPACE_USAGE."
       pct_free,
       init_trans,
       block_size,
-      leaf_blocks
+      segment_blocks
   )
 
-    # available data size within one DB block
+    # available data size within one DB block in bytes, considering block header, PCT_FREE, INI_TRANS and table directory entry size
     data_size = ((block_size - block_header_size(init_trans)) * (1 - pct_free/100.0) - table_directory_entry_size).to_i
 
-    # allocated size in leaf blocks by rows
-    net_size = num_rows * (avg_row_len + (avg_row_len > 250 ? 3 : 1) + rowid_size)
+    # Size of one row in leaf block in bytes
+    entry_size = avg_row_len +
+                 2 +                               # Flag-Byte and Lock-Byte
+                 (avg_row_len > 250 ? 3 : 1) +     # Length byte per column (3 bytes if value > 250 bytes, otherwise 1 byte)
+                 rowid_size                        # ROWID with length byte (stored as additional column for Non-Unique)
 
-    # remaining free space in currently allocated leaf blocks
-    (data_size * leaf_blocks - net_size) / (1024.0 * 1024.0)
+    entries_per_leaf_block = (data_size / entry_size).to_i
+    leaf_blocks = (num_rows / entries_per_leaf_block).to_i
+    branch_blocks = (leaf_blocks / 300).to_i       # 300 = average fan-out of branch blocks
+    calc_index_blocks = leaf_blocks + branch_blocks
+    result = (segment_blocks - calc_index_blocks) * block_size.to_f / (1024 * 1024)
+    result
   rescue
     nil
   end
 
-  def calc_free_space_pct_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, leaf_blocks)
-    calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, leaf_blocks) * 100.0 / size_mb rescue nil
+  def calc_free_space_pct_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, size_mb, segment_blocks)
+    calc_free_space_mb_index(avg_row_len, num_rows, pct_free, ini_trans, blocksize, segment_blocks) * 100.0 / size_mb rescue nil
   end
 
   # Decide which view name to use for unified audit trail depending on the database version and mode (CDB or non-CDB).

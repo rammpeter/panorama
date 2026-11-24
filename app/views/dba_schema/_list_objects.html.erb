@@ -102,17 +102,17 @@
   blocksize = PanoramaConnection.db_blocksize                                   # call only once
 
   link_pct_unused = proc do |rec|
-    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.blocks)
     link_space_usage.call(rec, fn(pct_unused)) if pct_unused&.> 0
   end
 
   data_title_pct_unused = proc do |rec|
-    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    pct_unused = calc_free_space_pct_by_avg_row_len(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.blocks)
     "%t\n\nDetailed Value = #{fn(pct_unused, 3)}"
   end
 
   link_mb_unused  = proc do |rec|
-    mb_unusded = calc_free_space_mb_by_avg_row_len( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    mb_unusded = calc_free_space_mb_by_avg_row_len( rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.blocks)
     link_space_usage.call(rec, fn(mb_unusded)) if mb_unusded&.> 0
   end
 
@@ -121,7 +121,7 @@
   end
 
   link_compr_ratio = proc do |rec|
-    compr_ratio = calc_compression_ratio(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.leaf_blocks)
+    compr_ratio = calc_compression_ratio(rec.avg_rowlen, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.mbytes, rec.segment_type, rec.blocks)
     if compr_ratio&.> 1.0
       if rec.segment_type['TABLE']
         ajax_link(fn(compr_ratio, 1),

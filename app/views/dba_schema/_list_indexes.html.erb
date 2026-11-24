@@ -271,7 +271,7 @@
    blocksize = PanoramaConnection.db_blocksize                                   # call only once
 
   data_title_unused = proc do |rec|
-    "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.leaf_blocks), 3)}\nCalculated based on avg. row len in index = #{fn(rec.avg_row_len)}"
+    "%t\n\nCorrelating unused space in MB = #{fn(calc_free_space_mb_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.segment_blocks), 3)}\nCalculated based on avg. row len in index = #{fn(rec.avg_row_len)}"
   end
 
    blocks_data_title = proc do |rec|
@@ -342,7 +342,7 @@ Max. extents = #{rec.max_extents}  #{     data_title_part_def.call(rec.def_max_e
                    {:caption=> 'Rows',             :data=>proc{|rec| link_current_index_stats(rec, fn(rec.num_rows))},    :title=> 'Number of rows calculated by last analyze run', :align=>:right},
                    {:caption=> 'Size (MB)',        :data=>proc{|rec| link_space_usage.call(rec, fn(rec.size_mb, 2))},     :title=> 'Current object size in megabytes', :align=>:right, data_title: proc{|rec| "%t\n#{size_explain(rec.size_mb)}#{blocks_data_title.call(rec)}"}},
                    {:caption=> 'Ext.',             :data=>link_extents,                                                   :title=> 'Number of extents (from DBA_Segments)', :align=>:right, data_title: proc{|rec| "%t#{blocks_data_title.call(rec)}"}},
-                   {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb, rec.leaf_blocks)))}, :title=> "Unused storage of index within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_unused, :align=>:right},
+                   {:caption=> '% unused',         :data=>proc{|rec| link_space_usage.call(rec, fn(calc_free_space_pct_index(rec.avg_row_len, rec.num_rows, rec.pct_free, rec.ini_trans, blocksize, rec.size_mb, rec.segment_blocks)))}, :title=> "Unused storage of index within extents in percent.#{explain_calc_free_space_by_avg_row_len}", data_title: data_title_unused, :align=>:right},
                    {:caption=> 'B',                :data=>proc{|rec| fn(rec.blevel)},                                     :title=> "B*-Tree level (depth of the index from its root block to its leaf blocks).\nA depth of 0 indicates that the root block and leaf block are the same.", :align=>:right},
                    {:caption=> 'Leaf blocks',      :data=>proc{|rec| link_current_index_stats(rec, fn(rec.leaf_blocks))}, :title=> 'Number of leaf blocks in the index calculated by last analyze run', :align=>:right},
                    {:caption=> 'Distinct',         :data=>proc{|rec| fn(rec.distinct_keys)},                              :title=> 'Number of distinct keys in the index calculated by last analyze run', :align=>:right, data_title: data_title_distinct_keys },
