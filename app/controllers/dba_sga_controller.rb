@@ -2837,7 +2837,9 @@ END;
 
     result          = IslandSql.parse_tree_as_dot(sql_text)
     @syntax_errors  = result[:syntax_errors]
-    @digraph        = result[:dot].sub('{', "{\n  graph [rankdir=#{@rankdir}];")
+    @digraph        = result[:dot]
+                        .sub('{', "{\n  graph [rankdir=#{@rankdir}];")
+                        .sub('bgcolor="transparent"', 'bgcolor=lightyellow')    # same background as other Graphviz charts in Panorama
     render_partial
   end
 

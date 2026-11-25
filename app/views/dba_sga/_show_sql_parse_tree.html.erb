@@ -37,7 +37,7 @@
 <% end %>
 
 <%# No flex container here: centering an oversized graph would cut off its left part %>
-<div style="overflow: auto; max-height: 85vh;" id="<%= @current_update_area %>_graphviz"></div>
+<div style="overflow-x: auto;" id="<%= @current_update_area %>_graphviz"></div>
 <script>
     ensureGraphVizLoaded(function() {
         showIndicator('show_sql_parse_tree');
