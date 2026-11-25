@@ -14,19 +14,4 @@ class IslandSql
       @jars_loaded = true
     end
   end
-
-  # Parse a SQL text
-  # @param sql_text [String] the SQL text to parse
-  # @return [Hash] { dot: String with the parse tree in DOT notation, syntax_errors: Array of Hash with :line, :column, :message }
-  def self.parse_tree_as_dot(sql_text)
-    load_jars
-    doc = Java::ChIslandsqlGrammar::IslandSqlDocument::Builder.new
-            .sql(sql_text)
-            .dialect(Java::ChIslandsqlGrammar::IslandSqlDialect::ORACLEDB)
-            .build
-    {
-      dot:           Java::ChIslandsqlGrammarUtil::ParseTreeUtil.dotParseTree(doc.getFile),
-      syntax_errors: doc.getSyntaxErrors.map { |e| { line: e.getLine, column: e.getCharPositionInLine, message: e.getMessage } }
-    }
-  end
 end

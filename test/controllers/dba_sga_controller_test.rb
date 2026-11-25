@@ -160,9 +160,9 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "show_sql_parse_tree with xhr: true" do
+  test "show_sql_join_graph with xhr: true" do
     ['LR', 'TB'].each do |rankdir|
-      post '/dba_sga/show_sql_parse_tree' , params: {format: :html, sql_id: @sga_sql_id, rankdir: rankdir, update_area: :hugo }
+      post '/dba_sga/show_sql_join_graph' , params: {format: :html, sql_id: @sga_sql_id, rankdir: rankdir, update_area: :hugo }
       assert_response :success
     end
   end

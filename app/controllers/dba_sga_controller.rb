@@ -2825,8 +2825,8 @@ END;
 
   end
 
-  # Show the parse tree of a SQL statement as Graphviz chart, parsed by IslandSQL
-  def show_sql_parse_tree
+  # Show the tables, join conditions and filter conditions of a SQL statement as Graphviz chart, parsed by IslandSQL
+  def show_sql_join_graph
     @current_update_area  = prepare_param :update_area
     @sql_id               = prepare_param :sql_id
     @rankdir              = prepare_param :rankdir, default: 'LR'
@@ -2835,11 +2835,9 @@ END;
     sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", @sql_id]
     raise PopupMessageException.new("SQL-ID '#{@sql_id}' not found in gv$SQLArea") if sql_text.nil?
 
-    result          = IslandSql.parse_tree_as_dot(sql_text)
+    result          = SqlJoinGraph.build(sql_text, rankdir: @rankdir)
     @syntax_errors  = result[:syntax_errors]
     @digraph        = result[:dot]
-                        .sub('{', "{\n  graph [rankdir=#{@rankdir}];")
-                        .sub('bgcolor="transparent"', 'bgcolor=lightyellow')    # same background as other Graphviz charts in Panorama
     render_partial
   end
 

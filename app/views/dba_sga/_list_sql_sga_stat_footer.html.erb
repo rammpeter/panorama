@@ -150,12 +150,12 @@
 
   <div class="flex-row-element">
     <%=
-      ajax_submit('Parse tree', {
+      ajax_submit('Join graph', {
           controller:   :dba_sga,
-          action:       :show_sql_parse_tree,
+          action:       :show_sql_join_graph,
           sql_id:       @sql_id,
           update_area:  @update_area
-      }, :title=>"Show the parse tree of the SQL statement as graph.\nParsed by IslandSQL (https://islandsql.ch).")
+      }, :title=>"Show the tables of the SQL statement with their join and filter conditions as graph.\nParsed by IslandSQL (https://islandsql.ch).")
     %>
   </div>
 

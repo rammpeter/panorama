@@ -1,0 +1,89 @@
+<%
+  caption = String.new
+  caption << "<div class=\"flex-row-container\">"
+
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: bold;\" title=\"Tables, join conditions and filter conditions of the SQL statement, parsed by IslandSQL.
+- Frame: query block (main query, WITH clause, inline view, subquery)
+- Box: table / view with its filter conditions, blue for inline views and WITH clause references
+- Solid line: join condition
+- Dashed line: outer join
+- Dotted arrow: usage of an inline view, WITH clause or subquery\">"
+  caption << "Join graph for SQL-ID '#{@sql_id}'"
+  caption << "</div>"
+
+  caption << "&nbsp;&nbsp;&nbsp;"
+
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Direction of the tree layout\">Direction: "
+  caption << "<select onchange=\"refresh_join_graph_#{@current_update_area}({ rankdir: this.value});\">"
+  caption << "<option value=\"LR\"#{@rankdir == 'LR' ? ' selected' : ''}>Left to right</option>"
+  caption << "<option value=\"TB\"#{@rankdir == 'TB' ? ' selected' : ''}>Top to bottom</option>"
+  caption << "</select>"
+  caption << "</div>"
+
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Zoom the graph. 'Fit to width' shrinks the graph to the window width, use zoom levels to read the details.\">Zoom: "
+  caption << "<select onchange=\"zoom_join_graph_#{@current_update_area}(this.value);\">"
+  caption << "<option value=\"fit\" selected>Fit to width</option>"
+  [25, 50, 75, 100].each { |z| caption << "<option value=\"#{z}\">#{z}%</option>" }
+  caption << "</select>"
+  caption << "</div>"
+
+  caption << "</div>"
+%>
+
+<%= render_page_caption(caption.html_safe) %>
+
+<% if @syntax_errors.count > 0 %>
+  <div style="color: red;">
+    <b>Syntax errors:</b><br/>
+    <% @syntax_errors.each do |e| %>
+      Line <%= e[:line] %>, column <%= e[:column] %>: <%= e[:message] %><br/>
+    <% end %>
+  </div>
+<% end %>
+
+<%# No flex container here: centering an oversized graph would cut off its left part %>
+<div style="overflow-x: auto;" id="<%= @current_update_area %>_graphviz"></div>
+<script>
+    ensureGraphVizLoaded(function() {
+        showIndicator('show_sql_join_graph');
+        Viz.instance()
+            .then(viz => {
+                let dot = <%= @digraph.to_json.html_safe %>;
+                // order attribute rows by layout to avoid crossing edges
+                // check existence because application.js of an already opened browser page may be older than this view
+                if (typeof graphviz_order_port_rows === 'function') {
+                    dot = graphviz_order_port_rows(viz, dot);
+                }
+                $('#<%= @current_update_area %>_graphviz').html(viz.renderSVGElement(dot));
+                zoom_join_graph_<%= @current_update_area %>('fit');
+            })
+            .catch(error => {
+                console.error(error);
+                alert(error);
+            })
+            .finally(() => {
+                hideIndicator('show_sql_join_graph');
+            });
+    });
+
+    // The graph may be very large, so scale the SVG by its viewBox instead of showing it at natural size
+    function zoom_join_graph_<%= @current_update_area %>(zoom){
+        const svg = document.querySelector('#<%= @current_update_area %>_graphviz svg');
+        if (!svg) return;
+        svg.setAttribute('width', (svg.viewBox.baseVal.width * (zoom === 'fit' ? 100 : zoom) / 100) + 'pt');
+        svg.style.maxWidth = zoom === 'fit' ? '100%' : '';                      // 'fit' only shrinks a graph wider than the window
+        svg.style.height = 'auto';
+        svg.style.display = 'block';
+        svg.style.margin = '0 auto';                                            // center horizontally, a wider graph stays scrollable from its left side
+        svg.removeAttribute('height');                                          // height follows width by the aspect ratio of viewBox
+    }
+
+    function refresh_join_graph_<%= @current_update_area %>(changes){
+        var current = {
+            update_area:  '<%= @current_update_area %>',
+            sql_id:       '<%= @sql_id %>',
+            rankdir:      '<%= @rankdir %>'
+        };
+        ajax_html('<%= @current_update_area %>', 'dba_sga', 'show_sql_join_graph', {...current, ...changes});
+    }
+</script>

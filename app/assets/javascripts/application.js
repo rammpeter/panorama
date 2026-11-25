@@ -696,6 +696,68 @@ function ensureGraphVizLoaded(callback){
 }
 
 /**
+ * Reorder the rows with ports (<TR><TD PORT="...">) in the HTML-like node labels of a Graphviz graph,
+ * so that each row is placed near the vertical position of the nodes it is connected with.
+ * This reduces crossing edges. The positions are taken from a previous layout of the graph.
+ * @param viz the Viz instance
+ * @param dot the graph in DOT notation, each node with its whole label in one line
+ * @param iterations number of layout passes
+ * @returns {string} the graph with reordered rows
+ */
+function graphviz_order_port_rows(viz, dot, iterations = 2){
+    const row_regex  = /<TR><TD PORT="(\w+)".*?<\/TD><\/TR>/g;
+    const node_regex = /^\s*(\w+) \[label=</;
+    for (let iteration = 0; iteration < iterations; iteration++) {
+        const layout = viz.renderJSON(dot);
+        const nodes_by_gvid = {};
+        const nodes_by_name = {};
+        (layout.objects || []).forEach(o => {
+            if (!o.pos) return;                                                 // clusters have no pos
+            const node = { name: o.name, y: Number(o.pos.split(',')[1]), height: parseFloat(o.height) * 72 };
+            nodes_by_gvid[o._gvid] = node;
+            nodes_by_name[o.name] = node;
+        });
+
+        const ports_by_node = {};                                               // node name => ports in current order
+        dot.split('\n').forEach(line => {
+            const m = line.match(node_regex);
+            if (m) ports_by_node[m[1]] = [...line.matchAll(row_regex)].map(r => r[1]);
+        });
+
+        // vertical position of an edge endpoint, approximated by the row of the port in the node (y grows upwards in Graphviz)
+        const endpoint_y = (name, port) => {
+            const node  = nodes_by_name[name];
+            const ports = ports_by_node[name] || [];
+            const index = port ? ports.indexOf(port) : -1;
+            if (index < 0) return node.y;
+            return node.y + node.height / 2 - node.height * (index + 1.5) / (ports.length + 1);
+        };
+
+        const connected_y = {};                                                 // "node:port" => y positions of connected endpoints
+        (layout.edges || []).forEach(e => {
+            const tail = nodes_by_gvid[e.tail], head = nodes_by_gvid[e.head];
+            if (!tail || !head || tail.name === head.name) return;
+            if (e.tailport) (connected_y[tail.name + ':' + e.tailport] ??= []).push(endpoint_y(head.name, e.headport));
+            if (e.headport) (connected_y[head.name + ':' + e.headport] ??= []).push(endpoint_y(tail.name, e.tailport));
+        });
+
+        dot = dot.split('\n').map(line => {
+            const m = line.match(node_regex);
+            if (!m || (ports_by_node[m[1]] || []).length < 2) return line;
+            const rows = [...line.matchAll(row_regex)].map((r, i) => {
+                const ys = connected_y[m[1] + ':' + r[1]];
+                return { text: r[0], index: i, y: ys ? ys.reduce((a, b) => a + b, 0) / ys.length : null };
+            });
+            const sorted = rows.filter(r => r.y !== null).sort((a, b) => b.y - a.y || a.index - b.index)
+                .concat(rows.filter(r => r.y === null));                        // rows without connection stay at the end
+            let i = 0;
+            return line.replace(row_regex, () => sorted[i++].text);
+        }).join('\n');
+    }
+    return dot;
+}
+
+/**
  * Render the Hamburger menu
  * @param div_id ID of the inner span with the Hamburger menu
  * @param event the payload of the onclick event
