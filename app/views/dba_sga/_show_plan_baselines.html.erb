@@ -50,14 +50,25 @@
   end
 
   render_action_buttons = proc do |rec|
-    ajax_submit('Drop', {
-          controller:   :dba_sga,
-          action:       :generate_drop_sql_plan_baseline_sql,
-          sql_handle:   rec.sql_handle,
-          plan_name:    rec.plan_name,
-          update_area: @update_area,
-        }, :title => "Generate the SQL code for drop of this SQL plan baseline"
-    ).html_safe
+    result = String.new
+    result << ajax_submit('Drop', {
+                controller:   :dba_sga,
+                action:       :generate_drop_sql_plan_baseline_sql,
+                sql_handle:   rec.sql_handle,
+                plan_name:    rec.plan_name,
+                update_area: @update_area,
+              }, :title => "Generate the SQL code for drop of this SQL plan baseline"
+    )
+    result << "<br/>"
+    result << ajax_submit('Change', {
+      controller:   :dba_sga,
+      action:       :generate_change_sql_plan_baseline_sql,
+      sql_handle:   rec.sql_handle,
+      plan_name:    rec.plan_name,
+      update_area: @update_area,
+    }, :title => "Generate the SQL code for change of this SQL plan baseline"
+    )
+    result.html_safe
   end
 
   column_options = [
@@ -91,13 +102,33 @@
 %>
 
 <%=
+  command_menu_entries = []
+  if @exact_matching_signature && @baselines.count > 0                          # called for a single SQL
+    command_menu_entries <<
+      {
+        name:                  :drop_all_baselines,
+        caption:               'Drop all baselines of this SQL',
+        :hint                  => "Generate the code for drop of all SQL plan baselines of this SQL (identified by the given SQL handle)",
+        :icon_class            => 'cui-delete',
+        :show_icon_in_caption  => true,
+        :action                => "ajax_html('#{@update_area}', 'dba_sga', 'generate_drop_all_sql_plan_baselines_sql', { sql_handle: '#{@baselines[0].sql_handle}'});"
+      }
+  end
+
+
+
   if @force_matching_signature
     caption = "<div style=\"background-color: coral;\">SQL plan baseline exists for SQL (from DBA_SQL_Plan_Baselines)</div>".html_safe
   else
     caption = "SQL plan baselines from DBA_SQL_Plan_Baselines"
   end
 
-  gen_slickgrid(@baselines, column_options, :caption => caption, :max_height=>450, show_pin_icon: 1) if @force_matching_signature.nil? || @baselines.count > 0
+  gen_slickgrid(@baselines, column_options,
+                caption: caption,
+                max_height: 450,
+                show_pin_icon: 1,
+                command_menu_entries: command_menu_entries
+  ) if @force_matching_signature.nil? || @baselines.count > 0
 %>
 
 <% unless prepare_param(:update_area_for_target) %>

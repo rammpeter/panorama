@@ -1888,7 +1888,8 @@ EXEC DBMS_SQL_TRANSLATOR.DROP_PROFILE('#{sql_translation_profile}');
 "
     end
 
-    render_partial
+    @caption = "Code for drop of SQL Translation and SQL Translation Profile"
+    render_partial :show_generated_code
   end
 
   def show_sql_patches
@@ -2226,7 +2227,7 @@ END;
     plan_name   = prepare_param :plan_name
 
     @code = "
--- Drop all baselines of the SQL with the given SQL-Handle
+-- Drop the baseline of the SQL with the given SQL-handle and name
 SET SERVEROUTPUT ON;
 DECLARE
   v_dropped_plans number;
@@ -2236,7 +2237,57 @@ BEGIN
 END;
 /
 "
-    render_partial
+    @caption = "Code for drop of a SQL Plan Baseline"
+    render_partial :show_generated_code
+  end
+
+  def generate_drop_all_sql_plan_baselines_sql
+    sql_handle  = prepare_param :sql_handle
+
+    @code = "
+-- Drop all baselines of the SQL with the given SQL-handle
+SET SERVEROUTPUT ON;
+DECLARE
+  v_dropped_plans number;
+BEGIN
+  v_dropped_plans := DBMS_SPM.DROP_SQL_PLAN_BASELINE (sql_handle => '#{sql_handle}');
+  DBMS_OUTPUT.PUT_LINE('dropped ' || v_dropped_plans || ' plan baselines');
+END;
+/
+"
+    @caption = "Code for drop of all SQL Plan Baselines of a SQL"
+    render_partial :show_generated_code
+  end
+
+  def generate_change_sql_plan_baseline_sql
+    sql_handle  = prepare_param :sql_handle
+    plan_name   = prepare_param :plan_name
+
+    @code = "
+/* Change attributes of the baseline of the SQL with the given SQL-handle and name
+Possible attribtes are:
+ENABLED:	    'YES' / 'NO'	YES means the optimizer considers the plan, NO means it ignores it. The plan is only used if it is also ACCEPTED.
+FIXED:	      'YES' / 'NO'	A fixed plan takes precedence over non-fixed plans. Once a statement has a fixed plan, no new plans are captured for it as unaccepted candidates.
+AUTOPURGE:	  'YES' / 'NO'	YES means the plan is purged automatically once it has gone unused for longer than the retention period. You set that period with DBMS_SPM.configure('PLAN_RETENTION_WEEKS', …), and the default is 53 weeks. NO keeps the plan permanently.
+PLAN_NAME:	  new name, max. 30 characters	Renames the plan.
+DESCRIPTION:	text, max. 500 bytes	Sets a free-text description.
+*/
+
+SET SERVEROUTPUT ON;
+DECLARE
+  n PLS_INTEGER;
+BEGIN
+  n := DBMS_SPM.alter_sql_plan_baseline(
+         sql_handle      => '#{sql_handle}',
+         plan_name       => '#{plan_name}',
+         attribute_name  => 'ENABLED',
+         attribute_value => 'NO');
+  DBMS_OUTPUT.put_line(n || ' Plan baselines changed');
+END;
+/
+"
+    @caption = "Code for change of SQL Plan Baseline"
+    render_partial :show_generated_code
   end
 
   def create_profile_from_sql_tuning_advisor_task
@@ -2256,7 +2307,8 @@ END;
     sql_profile  = prepare_param :sql_profile
 
     @code = "EXEC DBMS_SQLTUNE.Drop_SQL_Profile('#{sql_profile}');"
-    render_partial
+    @caption = "Code for drop of SQL Profile"
+    render_partial :show_generated_code
   end
 
   def generate_sql_translation
@@ -2565,7 +2617,8 @@ END;
     sql_patch  = prepare_param :sql_patch
 
     @code = "EXEC DBMS_SQLDiag.Drop_SQL_Patch('#{sql_patch}');"
-    render_partial
+    @caption = "Code for drop of SQL Patch"
+    render_partial :show_generated_code
   end
 
 
@@ -2770,6 +2823,22 @@ END;
     end
 
 
+  end
+
+  # Show the parse tree of a SQL statement as Graphviz chart, parsed by IslandSQL
+  def show_sql_parse_tree
+    @current_update_area  = prepare_param :update_area
+    @sql_id               = prepare_param :sql_id
+    @rankdir              = prepare_param :rankdir, default: 'LR'
+    raise "Unsupported value for rankdir" unless ['LR', 'TB'].include? @rankdir
+
+    sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", @sql_id]
+    raise PopupMessageException.new("SQL-ID '#{@sql_id}' not found in gv$SQLArea") if sql_text.nil?
+
+    result          = IslandSql.parse_tree_as_dot(sql_text)
+    @syntax_errors  = result[:syntax_errors]
+    @digraph        = result[:dot].sub('{', "{\n  graph [rankdir=#{@rankdir}];")
+    render_partial
   end
 
   def list_historic_sga_components

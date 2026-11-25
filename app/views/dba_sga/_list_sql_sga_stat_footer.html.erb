@@ -149,6 +149,17 @@
   <% end %>
 
   <div class="flex-row-element">
+    <%=
+      ajax_submit('Parse tree', {
+          controller:   :dba_sga,
+          action:       :show_sql_parse_tree,
+          sql_id:       @sql_id,
+          update_area:  @update_area
+      }, :title=>"Show the parse tree of the SQL statement as graph.\nParsed by IslandSQL (https://islandsql.ch).")
+    %>
+  </div>
+
+  <div class="flex-row-element">
     <% if @sql['child_number'] %>
       <%=
         ajax_submit('DBMS_XPLAN', {

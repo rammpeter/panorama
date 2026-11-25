@@ -160,6 +160,13 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "show_sql_parse_tree with xhr: true" do
+    ['LR', 'TB'].each do |rankdir|
+      post '/dba_sga/show_sql_parse_tree' , params: {format: :html, sql_id: @sga_sql_id, rankdir: rankdir, update_area: :hugo }
+      assert_response :success
+    end
+  end
+
   test "list_sga_components with xhr: true" do
     post '/dba_sga/list_sga_components', :params => {:format=>:html, :instance=> @instance, :update_area=>:hugo }
     assert_response :success
