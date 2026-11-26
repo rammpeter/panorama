@@ -141,6 +141,16 @@
     }, :title => "Sessions accessing #{@object_type} #{@owner}.#{@object_name} in library cache (from GV$Access)")
     %>
   </div>
+  <div class="flex-row-element">
+    <%= ajax_submit("Sessions initialized", {
+        :update_area   => @update_area,
+        :action        => :list_object_ddl_locks,
+        :owner         => @owner,
+        :object_name   => @object_name,
+        :object_type   => @object_type,
+    }, :title => "Show sessions with initialized state for #{@object_type} #{@owner}.#{@object_name} (library cache locks from GV$LibCache_Locks)")
+    %>
+  </div>
 
   <div class="flex-row-element">
     <%= ajax_submit("Using/calling SQLs in SGA", {

@@ -484,6 +484,13 @@ class DbaSchemaControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test 'list_object_ddl_locks' do
+    ['PACKAGE', 'PACKAGE BODY'].each do |object_type|
+      post '/dba_schema/list_object_ddl_locks', params: {format: :html, owner: 'SYS', object_name: 'DBMS_SESSION', object_type: object_type, update_area: :hugo }
+      assert_response :success
+    end
+  end
+
   test 'list_synonym' do
     post '/dba_schema/list_synonym', params: {format: :html, owner: 'PUBLIC', object_name: 'V$SESSION', object_type: 'SYNONYM', update_area: :hugo }
     assert_response :success

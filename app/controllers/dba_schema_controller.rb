@@ -2220,6 +2220,30 @@ class DbaSchemaController < ApplicationController
     render_partial :list_plsql_description
   end
 
+  # Library cache locks held or requested for an object by sessions of all RAC instances
+  # Used instead of DBA_DDL_LOCKS which shows only the sessions of the current instance
+  def list_object_ddl_locks
+    @owner        = prepare_param :owner
+    @object_name  = prepare_param :object_name
+    @object_type  = prepare_param :object_type
+
+    mode = proc { |column| "DECODE(lk.#{column}, 0, 'None', 1, 'Null', 2, 'Share', 3, 'Exclusive', TO_CHAR(lk.#{column}))" }
+    @ddl_locks = sql_select_all ["\
+      SELECT s.Inst_ID, s.SID, s.Serial# Serial_No, s.UserName, s.Program,
+             o.Owner, o.Name, o.Type, #{mode.call('Mode_Held')} Mode_Held, #{mode.call('Mode_Requested')} Mode_Requested
+      FROM   gv$LibCache_Locks lk
+      JOIN   gv$Session s         ON s.Inst_ID = lk.Inst_ID AND s.SAddr = lk.Holding_User_Session
+      JOIN   gv$DB_Object_Cache o ON o.Inst_ID = lk.Inst_ID AND o.Addr  = lk.Object_Handle
+      WHERE  o.Owner = ?
+      AND    o.Name  = ?
+      AND    o.Type  = ?
+      AND    lk.Type = 'LOCK'
+      ORDER BY s.Inst_ID, s.SID
+    ", @owner, @object_name, @object_type]
+
+    render_partial
+  end
+
   def list_plsql_description_methods
     @owner                = params[:owner]
     @object_name          = params[:object_name]
