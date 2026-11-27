@@ -20,7 +20,7 @@
   caption << "</select>"
   caption << "</div>"
 
-  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Replace views and synonyms by their SQL text before analysis.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails with ORA-24256.\">Views: "
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Replace views and synonyms by their SQL text before analysis.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails.\">Views: "
   caption << "<select onchange=\"refresh_join_graph_#{@current_update_area}({ expand: this.value});\">"
   caption << "<option value=\"1\"#{@expand ? ' selected' : ''}>Expanded</option>"
   caption << "<option value=\"0\"#{@expand ? '' : ' selected'}>As in SQL text</option>"

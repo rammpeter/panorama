@@ -33,7 +33,7 @@ class SqlTextExpanderTest < ActiveSupport::TestCase
       PanoramaConnection.sql_execute "CREATE VIEW V_EXP2 AS SELECT v.ID FROM V_EXP1 v"
       PanoramaConnection.sql_execute "CREATE SYNONYM S_EXP FOR V_EXP2"
 
-      # DBMS_UTILITY.expand_sql_text fails with ORA-24256 because of the not existing table
+      # DBMS_UTILITY.expand_sql_text fails because of the not existing table
       expanded_sql = SqlTextExpander.expand("SELECT s.ID FROM S_EXP s JOIN Not_Existing_XY n ON n.ID = s.ID")
       assert_match(/FROM \(SELECT v.ID FROM \(SELECT ID, Name FROM T_EXP WHERE ID > 0\) v\) s JOIN Not_Existing_XY n/i, expanded_sql)
 

@@ -263,7 +263,7 @@ Hash-value over total optimizer environment + Number of different optimizer envi
             dbid:                 @dbid,
             parsing_schema_name:  @sql.min_parsing_schema_name,
             update_area:          @update_area
-        }, :title=>"Expand SQL-statement from AWR: replace accessed views with their original SQL content.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails with ORA-24256.\nViews are resolved with their current definition, which may differ from the time of execution.")
+        }, :title=>"Expand SQL-statement from AWR: replace accessed views with their original SQL content.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails.\nViews are resolved with their current definition, which may differ from the time of execution.")
       %>
     </div>
   <% end %>

@@ -3,7 +3,7 @@ class SqlTextExpander
   MAX_DEPTH = 20                                                                # Maximum nesting level of views to expand
 
   # Expand a SQL statement by DBMS_UTILITY.expand_sql_text
-  # If DBMS_UTILITY.expand_sql_text fails with ORA-24256 (e.g. because of missing privileges or not existing objects)
+  # If DBMS_UTILITY.expand_sql_text fails with any error (e.g. ORA-24256 because of missing privileges or not existing objects)
   # then the own implementation by IslandSQL parser is used, that replaces synonyms and views as far as possible
   # Unqualified object names are resolved in the schema of the current Panorama user by DBMS_UTILITY.expand_sql_text
   # @param [String] sql_text The SQL statement to expand
@@ -14,8 +14,7 @@ class SqlTextExpander
     begin
       expand_by_dbms_utility(sql_text)
     rescue Exception => e
-      raise unless e.message['ORA-24256']
-      Rails.logger.info('SqlTextExpander.expand') { "DBMS_UTILITY.expand_sql_text failed with ORA-24256, using own implementation instead" }
+      Rails.logger.info('SqlTextExpander.expand') { "DBMS_UTILITY.expand_sql_text failed, using own implementation instead: #{e.message[/ORA-\d+.*/] || e.message.lines.first}" }
       parsing_schema ||= PanoramaConnection.sql_select_one "SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL"
       new.expand_by_parser(sql_text, parsing_schema)
     end
