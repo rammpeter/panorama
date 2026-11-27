@@ -2799,8 +2799,8 @@ END;
   def expand_sql_text
     sql_id = params[:sql_id]
 
-    original_sql = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", sql_id]
-    expanded_sql = SqlTextExpander.expand(original_sql)
+    sql_area = sql_select_first_row ["SELECT SQL_FullText, Parsing_Schema_Name FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", sql_id]
+    expanded_sql = SqlTextExpander.expand(sql_area&.sql_fulltext, parsing_schema: sql_area&.parsing_schema_name)
 
     formatted_sql = format_sql(expanded_sql, params[:window_width])
 
