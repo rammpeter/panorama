@@ -44,6 +44,28 @@ class SqlJoinGraphTest < ActiveSupport::TestCase
     assert dot['label="EXISTS (…)"'],                                   'Link from subquery'
   end
 
+  test "build join graph for DML statements" do
+    dot = SqlJoinGraph.build("UPDATE ship_order_asgmt SET id_loading = :1, ts_upd = SYSDATE
+                              WHERE id_order IN (SELECT id_ref_3 FROM pa_package WHERE id_site = :3 AND stat <= '70') AND id_site = :5")[:dot]
+    assert dot['<B>UPDATE</B>'],                                        'UPDATE cluster'
+    assert node_label(dot, 'ship_order_asgmt')['>id_site&#160;&#160;<FONT COLOR="#1f4e9c">= :5</FONT>'], 'Filter at target table of UPDATE'
+    assert node_label(dot, 'pa_package')['>stat&#160;&#160;<FONT COLOR="#1f4e9c">&lt;= &#39;70&#39;</FONT>'], 'Filter in subquery of UPDATE'
+    assert dot['label="id_order IN (…)"'],                             'Link from subquery to target table'
+
+    dot = SqlJoinGraph.build("DELETE FROM t x WHERE x.a = 1 AND EXISTS (SELECT 1 FROM u WHERE u.b = x.b)")[:dot]
+    assert dot['<B>DELETE</B>'],                                        'DELETE cluster'
+    assert node_label(dot, 't')['&#160;x'],                             'Alias of target table'
+    assert_match(/n\d+:a\d+ -> n\d+:a\d+ \[label="=" tooltip="="\]/, dot, 'Join between subquery and target table')
+
+    dot = SqlJoinGraph.build("MERGE INTO t x USING u y ON (x.a = y.a) WHEN MATCHED THEN UPDATE SET x.b = y.b")[:dot]
+    assert dot['<B>MERGE</B>'],                                         'MERGE cluster'
+    assert_match(/n\d+:a\d+ -> n\d+:a\d+ \[label="=" tooltip="="\]/, dot, 'Join by ON condition of MERGE')
+
+    dot = SqlJoinGraph.build("INSERT INTO t (a) SELECT b FROM u WHERE c = 1")[:dot]
+    assert dot['<B>INSERT</B>'],                                        'INSERT cluster'
+    assert node_label(dot, 'u')['>c&#160;&#160;<FONT COLOR="#1f4e9c">= 1</FONT>'], 'Filter in query of INSERT'
+  end
+
   test "build join graph for invalid SQL" do
     assert_nothing_raised { SqlJoinGraph.build('SELECT FROM WHERE (((') }
   end

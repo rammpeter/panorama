@@ -83,7 +83,11 @@ class SqlJoinGraph
     when @parser_class::QueryBlockContext
       block = new_block(ctx, block, link_node)
       link_node = nil
-    when @parser_class::TableReferenceFromItemContext
+    when @parser_class::UpdateContext, @parser_class::DeleteContext, @parser_class::MergeContext, @parser_class::SingleTableInsertContext
+      block = new_block(ctx, block, link_node)                                  # DML statements have no query block for their target table and conditions
+      link_node = nil
+      @conditions << Condition.new(ctx.expression, block, :on) if ctx.is_a?(@parser_class::MergeContext) && ctx.expression
+    when @parser_class::TableReferenceFromItemContext, @parser_class::DmlTableExpressionClauseContext
       node = new_node(ctx, block)
       link_node = node if node.kind == :inline_view                            # the query blocks inside define this inline view
     when @parser_class::WhereClauseContext
@@ -109,6 +113,12 @@ class SqlJoinGraph
 
   # Describe the role of the query block by its position in the parse tree
   def block_role(ctx, parent)
+    case ctx
+    when @parser_class::UpdateContext             then return 'UPDATE'
+    when @parser_class::DeleteContext             then return 'DELETE'
+    when @parser_class::MergeContext              then return 'MERGE'
+    when @parser_class::SingleTableInsertContext  then return 'INSERT'
+    end
     role = nil
     set_operation = ctx.getParent&.getParent.is_a?(@parser_class::SetSubqueryContext) # queryBlock -> queryBlockSubquery -> setSubquery
     p = ctx.getParent
@@ -129,8 +139,15 @@ class SqlJoinGraph
 
   def new_node(ctx, block, kind: nil, name: nil)
     if ctx
-      qte       = find_descendant(ctx, @parser_class::QueryTableExpressionContext)
-      tab_alias = find_child(ctx, @parser_class::TableAliasContext)
+      if ctx.is_a?(@parser_class::DmlTableExpressionClauseContext)              # target table of DML, the alias follows as sibling
+        qte       = ctx
+        siblings  = (0...ctx.getParent.getChildCount).map { |i| ctx.getParent.getChild(i) }
+        tab_alias = siblings[siblings.index(ctx) + 1]
+        tab_alias = nil unless tab_alias.is_a?(@parser_class::SqlNameContext)
+      else
+        qte       = find_descendant(ctx, @parser_class::QueryTableExpressionContext)
+        tab_alias = find_child(ctx, @parser_class::TableAliasContext)
+      end
       kind      = qte && find_descendant(qte, @parser_class::QueryBlockContext) ? :inline_view : :table
       name      = kind == :inline_view ? 'inline view' : token_text(qte || ctx)
     end
@@ -143,6 +160,7 @@ class SqlJoinGraph
 
   # Split a condition into its AND-connected parts and assign them to joins or filters
   def process_condition(cond)
+    return if cond.block.nil?                                                   # condition outside of any query block or DML statement
     nested_blocks = @blocks.select { |b| b.parent == cond.block && inside?(b.ctx, cond.ctx) }
     split_conjuncts(cond.ctx.getStart.getTokenIndex, cond.ctx.getStop.getTokenIndex).each do |from_idx, to_idx|
       nested = nested_blocks.select { |b| b.ctx.getStart.getTokenIndex >= from_idx && b.ctx.getStop.getTokenIndex <= to_idx }
