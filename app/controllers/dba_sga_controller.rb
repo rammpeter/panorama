@@ -2800,17 +2800,7 @@ END;
     sql_id = params[:sql_id]
 
     original_sql = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", sql_id]
-
-    expanded_sql = sql_select_one ["\
-      WITH
-        FUNCTION Expand(p_Org_SQL CLOB) RETURN CLOB
-        IS
-        v_Expanded_SQL CLOB;
-        BEGIN
-          DBMS_UTILITY.expand_sql_text(input_sql_text => p_Org_SQL, output_sql_text => v_Expanded_SQL);
-          RETURN v_Expanded_SQL;
-        END;
-      SELECT Expand(?) FROM DUAL", original_sql]
+    expanded_sql = SqlTextExpander.expand(original_sql)
 
     formatted_sql = format_sql(expanded_sql, params[:window_width])
 
