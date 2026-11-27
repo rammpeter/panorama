@@ -99,7 +99,13 @@ group :development, :test do
   # Terser handles ES6. Requires a JS runtime for ExecJS at BUILD time only: Node.js on the build machine
   # (not bundled into the JAR, since assets are already precompiled there).
   # gem 'terser'
-  gem 'pry-debugger-jruby'
+
+  # Commented out because of: Could not find a valid gem 'ruby-debug-base-0.11.3-java.gem'
+  # https://youtrack.jetbrains.com/issue/RUBY-36520
+  # gem 'pry-debugger-jruby'^
+
+  # Suggested solution to make debugger work with JRuby: https://youtrack.jetbrains.com/issue/RUBY-36520
+  gem 'irb'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
