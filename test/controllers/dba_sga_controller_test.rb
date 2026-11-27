@@ -162,8 +162,10 @@ class DbaSgaControllerTest < ActionDispatch::IntegrationTest
 
   test "show_sql_join_graph with xhr: true" do
     ['LR', 'TB'].each do |rankdir|
-      post '/dba_sga/show_sql_join_graph' , params: {format: :html, sql_id: @sga_sql_id, rankdir: rankdir, update_area: :hugo }
-      assert_response :success
+      ['1', '0'].each do |expand|
+        post '/dba_sga/show_sql_join_graph' , params: {format: :html, sql_id: @sga_sql_id, rankdir: rankdir, expand: expand, update_area: :hugo }
+        assert_response :success
+      end
     end
   end
 

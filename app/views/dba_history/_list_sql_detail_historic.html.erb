@@ -253,6 +253,34 @@ Hash-value over total optimizer environment + Number of different optimizer envi
     %>
   </div>
 
+  <% if get_db_version >= '12.1' %>
+    <div class="flex-row-element">
+      <%=
+        ajax_submit('Expand', {
+            controller:           :dba_sga,
+            action:               :expand_sql_text,
+            sql_id:               @sql_id,
+            dbid:                 @dbid,
+            parsing_schema_name:  @sql.min_parsing_schema_name,
+            update_area:          @update_area
+        }, :title=>"Expand SQL-statement from AWR: replace accessed views with their original SQL content.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails with ORA-24256.\nViews are resolved with their current definition, which may differ from the time of execution.")
+      %>
+    </div>
+  <% end %>
+
+  <div class="flex-row-element">
+    <%=
+      ajax_submit('Join graph', {
+          controller:           :dba_sga,
+          action:               :show_sql_join_graph,
+          sql_id:               @sql_id,
+          dbid:                 @dbid,
+          parsing_schema_name:  @sql.min_parsing_schema_name,
+          update_area:          @update_area
+      }, :title=>"Show the tables of the SQL statement from AWR with their join and filter conditions as graph.\nParsed by IslandSQL (https://islandsql.ch).")
+    %>
+  </div>
+
   <div class="flex-row-element">
     <%= ajax_submit(t(:dba_history_list_sql_detail_historic_current_sga_caption, :default=>'SQL in current SGA'), {
         :update_area    => @update_area,

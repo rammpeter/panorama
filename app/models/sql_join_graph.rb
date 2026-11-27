@@ -488,10 +488,15 @@ class SqlJoinGraph
   end
 
   def html(text)
-    ERB::Util.html_escape(text)
+    ERB::Util.html_escape(unquote(text))
+  end
+
+  # Remove the quotes of identifiers that do not need them for better readability, e.g. of the result of DBMS_UTILITY.expand_sql_text
+  def unquote(text)
+    text&.gsub(/"([A-Z][A-Z0-9_$#]*)"/) { Regexp.last_match(1) }
   end
 
   def dot_escape(text)
-    text.gsub('\\') { '\\\\' }.gsub('"') { '\\"' }.gsub("\n") { '\\n' }
+    unquote(text).gsub('\\') { '\\\\' }.gsub('"') { '\\"' }.gsub("\n") { '\\n' }
   end
 end

@@ -8,7 +8,7 @@
 - Solid line: join condition
 - Dashed line: outer join
 - Dotted arrow: usage of an inline view, WITH clause or subquery\">"
-  caption << "Join graph for SQL-ID '#{@sql_id}'"
+  caption << "Join graph for SQL-ID '#{@sql_id}'#{' from AWR' if @dbid}"
   caption << "</div>"
 
   caption << "&nbsp;&nbsp;&nbsp;"
@@ -17,6 +17,13 @@
   caption << "<select onchange=\"refresh_join_graph_#{@current_update_area}({ rankdir: this.value});\">"
   caption << "<option value=\"LR\"#{@rankdir == 'LR' ? ' selected' : ''}>Left to right</option>"
   caption << "<option value=\"TB\"#{@rankdir == 'TB' ? ' selected' : ''}>Top to bottom</option>"
+  caption << "</select>"
+  caption << "</div>"
+
+  caption << "<div class=\"flex-row-element\" style=\"font-weight: normal;\" title=\"Replace views and synonyms by their SQL text before analysis.\nUsing DBMS_UTILITY.expand_sql_text or an own implementation if this fails with ORA-24256.\">Views: "
+  caption << "<select onchange=\"refresh_join_graph_#{@current_update_area}({ expand: this.value});\">"
+  caption << "<option value=\"1\"#{@expand ? ' selected' : ''}>Expanded</option>"
+  caption << "<option value=\"0\"#{@expand ? '' : ' selected'}>As in SQL text</option>"
   caption << "</select>"
   caption << "</div>"
 
@@ -31,6 +38,12 @@
 %>
 
 <%= render_page_caption(caption.html_safe) %>
+
+<% if @expand_error %>
+  <div style="color: red;">
+    <b>Views not expanded, graph shows the original SQL text:</b> <%= @expand_error %>
+  </div>
+<% end %>
 
 <% if @syntax_errors.count > 0 %>
   <div style="color: red;">
@@ -82,7 +95,10 @@
         var current = {
             update_area:  '<%= @current_update_area %>',
             sql_id:       '<%= @sql_id %>',
-            rankdir:      '<%= @rankdir %>'
+            dbid:         '<%= @dbid %>',
+            parsing_schema_name: '<%= @parsing_schema_name %>',
+            rankdir:      '<%= @rankdir %>',
+            expand:       '<%= @expand ? 1 : 0 %>'
         };
         ajax_html('<%= @current_update_area %>', 'dba_sga', 'show_sql_join_graph', {...current, ...changes});
     }

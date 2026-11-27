@@ -2796,11 +2796,10 @@ END;
     render_partial
   end
 
+  # Optional parameter dbid: read SQL text from AWR instead of SGA
   def expand_sql_text
-    sql_id = params[:sql_id]
-
-    sql_area = sql_select_first_row ["SELECT SQL_FullText, Parsing_Schema_Name FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", sql_id]
-    expanded_sql = SqlTextExpander.expand(sql_area&.sql_fulltext, parsing_schema: sql_area&.parsing_schema_name)
+    sql_text, parsing_schema_name = sql_text_for_analysis(prepare_param(:sql_id), prepare_param(:dbid), prepare_param(:parsing_schema_name))
+    expanded_sql = SqlTextExpander.expand(sql_text, parsing_schema: parsing_schema_name)
 
     formatted_sql = format_sql(expanded_sql, params[:window_width])
 
@@ -2816,14 +2815,25 @@ END;
   end
 
   # Show the tables, join conditions and filter conditions of a SQL statement as Graphviz chart, parsed by IslandSQL
+  # Optional parameter dbid: read SQL text from AWR instead of SGA
   def show_sql_join_graph
     @current_update_area  = prepare_param :update_area
     @sql_id               = prepare_param :sql_id
+    @dbid                 = prepare_param :dbid
+    @parsing_schema_name  = prepare_param :parsing_schema_name
     @rankdir              = prepare_param :rankdir, default: 'LR'
     raise "Unsupported value for rankdir" unless ['LR', 'TB'].include? @rankdir
+    @expand               = prepare_param(:expand, default: '1') == '1'
 
-    sql_text = sql_select_one ["SELECT SQL_FullText FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", @sql_id]
-    raise PopupMessageException.new("SQL-ID '#{@sql_id}' not found in gv$SQLArea") if sql_text.nil?
+    sql_text, parsing_schema_name = sql_text_for_analysis(@sql_id, @dbid, @parsing_schema_name)
+    @expand_error = nil
+    if @expand                                                                  # replace views by their SQL text before analysis
+      begin
+        sql_text = SqlTextExpander.expand(sql_text, parsing_schema: parsing_schema_name)
+      rescue Exception => e                                                     # show the graph for the original SQL text instead
+        @expand_error = e.message[/ORA-\d+.*/] || e.message.lines.first
+      end
+    end
 
     result          = SqlJoinGraph.build(sql_text, rankdir: @rankdir)
     @syntax_errors  = result[:syntax_errors]
@@ -2961,5 +2971,26 @@ END;
                                         ORDER BY l.Start_Time DESC"].concat(where_values)
 
     render_partial
+  end
+
+  private
+
+  # Get the SQL text and the parsing schema for analysis of a SQL, from SGA or from AWR if dbid is given
+  # @param [String] sql_id
+  # @param [String] dbid DBID of AWR or nil for SGA
+  # @param [String] parsing_schema_name Parsing schema if already known, else determined from SGA or AWR
+  # @return [Array] SQL text, parsing schema name
+  def sql_text_for_analysis(sql_id, dbid, parsing_schema_name)
+    if dbid
+      sql_text = sql_select_one ["SELECT SQL_Text FROM DBA_Hist_SQLText WHERE DBID = ? AND SQL_ID = ?", dbid, sql_id]
+      raise PopupMessageException.new("SQL-ID '#{sql_id}' not found in DBA_Hist_SQLText for DBID = #{dbid}") if sql_text.nil?
+      parsing_schema_name ||= sql_select_one ["SELECT MIN(Parsing_Schema_Name) FROM DBA_Hist_SQLStat WHERE DBID = ? AND SQL_ID = ?", dbid, sql_id]
+    else
+      sql_area = sql_select_first_row ["SELECT SQL_FullText, Parsing_Schema_Name FROM gv$SQLArea WHERE SQL_ID = ? AND RowNum < 2", sql_id]
+      raise PopupMessageException.new("SQL-ID '#{sql_id}' not found in gv$SQLArea") if sql_area.nil?
+      sql_text = sql_area.sql_fulltext
+      parsing_schema_name ||= sql_area.parsing_schema_name
+    end
+    [sql_text, parsing_schema_name]
   end
 end

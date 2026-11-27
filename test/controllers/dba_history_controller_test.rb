@@ -190,6 +190,21 @@ class DbaHistoryControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'expand_sql_text and show_sql_join_graph for SQL from AWR with xhr: true' do
+    if management_pack_license != :none && !@@hist_sql_id.nil?
+      [nil, @@hist_parsing_schema_name].each do |parsing_schema_name|
+        if get_db_version >= '12.1'
+          post '/dba_sga/expand_sql_text', params: {format: :html, sql_id: @@hist_sql_id, dbid: get_dbid, parsing_schema_name: parsing_schema_name, update_area: :hugo }
+          assert_response :success
+        end
+        ['1', '0'].each do |expand|
+          post '/dba_sga/show_sql_join_graph', params: {format: :html, sql_id: @@hist_sql_id, dbid: get_dbid, parsing_schema_name: parsing_schema_name, expand: expand, update_area: :hugo }
+          assert_response :success
+        end
+      end
+    end
+  end
+
 
 
   test "show_using_sqls_historic with xhr: true" do
